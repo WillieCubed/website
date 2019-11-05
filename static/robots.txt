@@ -1,2 +1,6 @@
+# robots.txt for williecubed.me
+
 User-agent: *
 Disallow: /hi
+
+Sitemap: https://williecubed.me/sitemap.xml

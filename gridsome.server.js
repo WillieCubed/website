@@ -1,17 +1,33 @@
-// Server API makes it possible to hook into various parts of Gridsome
-// on server-side and add custom data to the GraphQL data layer.
-// Learn more: https://gridsome.org/docs/server-api/
+// eslint-disable-next-line no-unused-expressions
+require('dotenv').config;
+const axios = require('axios').default;
 
-// Changes here require a server restart.
-// To restart press CTRL + C in terminal and run `gridsome develop`
+const WILLIECUBED_API = 'https://api.williecubed.me/v0';
+const PROJECTS_ENDPOINT = 'projects';
 
-module.exports = function (api) {
-  api.loadSource(({ addCollection }) => {
-    // TODO(data): Load project data
-    // Use the Data Store API here: https://gridsome.org/docs/data-store-api/
-  })
-
-  api.createPages(({ createPage }) => {
-    // Use the Pages API here: https://gridsome.org/docs/pages-api/
-  })
-}
+module.exports = async function (api) {
+  const instance = axios.create({
+    baseURL: WILLIECUBED_API,
+    headers: {
+      Bearer: process.env.WILLIECUBED_API_KEY || 'test',
+    },
+  });
+  try {
+    const projects = (await instance.get(PROJECTS_ENDPOINT)).data;
+    api.loadSource(({ addCollection }) => {
+      const projectsCollection = addCollection('Projects');
+      projects.forEach(projectsCollection.addNode);
+      addCollection('MediaInitiatives');
+    });
+    api.createPages(({ createPage }) => {
+      projects.forEach((project) => {
+        createPage({
+          path: `/projects/${project.id}`,
+          component: './src/templates/Project.vue',
+        });
+      });
+    });
+  } catch (e) {
+    console.error('Could not fetch information.', e);
+  }
+};

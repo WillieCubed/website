@@ -9,6 +9,7 @@
           <nav class="nav">
             <g-link class="nav__link" to="/">Home</g-link>
             <g-link class="nav__link" to="/about/">About</g-link>
+            <a class="nav__link" href="https://blog.williecubed.me">Blog</a>
             <a class="nav__link" href="https://github.com/WillieCubed">GitHub</a>
           </nav>
         </div>

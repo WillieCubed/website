@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "target": "me",
+    "target": "williecubed",
     "public": "dist",
     "ignore": [
       "firebase.json",

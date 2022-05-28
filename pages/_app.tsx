@@ -1,8 +1,15 @@
-import '../styles/globals.css'
-import type { AppProps } from 'next/app'
+import "../styles/globals.css";
+import type { AppProps } from "next/app";
 
-function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+/**
+ * A wrapper for website styles and additional site-wide client-side code.
+ */
+function WebsiteApp({ Component, pageProps }: AppProps) {
+  return (
+    <div className="min-h-screen dark:bg-slate-900 dark:text-slate-300">
+      <Component {...pageProps} />
+    </div>
+  );
 }
 
-export default MyApp
+export default WebsiteApp;

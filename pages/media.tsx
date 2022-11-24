@@ -57,7 +57,7 @@ const MediaPage: NextPage = () => {
                   <span className="uppercase font-medium font-display">
                     View full series
                   </span>
-                  <Image className="pl-2" src={videoOpenIcon} />
+                  <Image className="pl-2" src={videoOpenIcon} alt="" />
                 </div>
               </a>
             </div>

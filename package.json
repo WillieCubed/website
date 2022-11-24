@@ -2,7 +2,7 @@
   "name": "website",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "postbuild": "next-sitemap",
     "start": "next start",
@@ -17,6 +17,7 @@
     "@types/node": "18.11.9",
     "@types/react": "18.0.25",
     "autoprefixer": "^10.4.13",
+    "cross-env": "^7.0.3",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.5",
     "next-sitemap": "^3.1.32",

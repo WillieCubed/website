@@ -16,8 +16,11 @@ export default function LinkButton({
   return (
     <Link
       href={href}
-      className={`inline-block p-[12px] border border-black border-4 font-semibold font-display text-2xl hover:shadow-xl ${variant === 'primary' ? 'bg-primary-dark-2 text-white' : ''
-        }`}
+      className={`inline-block p-[12px] border border-black border-[4px] font-semibold font-display text-2xl hover:shadow-xl ${
+        variant === 'primary'
+          ? 'bg-primary-dark-2 text-white'
+          : 'bg-secondary-dark-1 text-white'
+      }`}
     >
       {children}
     </Link>

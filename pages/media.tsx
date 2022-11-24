@@ -1,6 +1,5 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
-import Link from 'next/link';
 import Image from 'next/image';
 import SiteHeader from '../components/SiteHeader';
 import videoOpenIcon from '../public/assets/icons/open_in_new_black_24dp.svg';

@@ -1,9 +1,10 @@
-import type { NextPage } from "next";
-import Head from "next/head";
-import Image from "next/image";
-import SiteFooter from "../components/SiteFooter";
-import SiteHeader from "../components/SiteHeader";
-import headshot from "../public/assets/headshot.jpg";
+import type { NextPage } from 'next';
+import Head from 'next/head';
+import Image from 'next/image';
+import LinkButton from '../components/LinkButton';
+import SiteFooter from '../components/SiteFooter';
+import SiteHeader from '../components/SiteHeader';
+import headshot from '../public/assets/headshot.jpg';
 
 const LandingPage: NextPage = () => {
   return (

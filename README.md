@@ -1,34 +1,40 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Willie's Wonderful Website
 
-## Getting Started
+_It's my personal [website][website]._
 
-First, run the development server:
+## Development
 
-```bash
+### Quickstart
+
+To clone the repository and start the dev server:
+
+```shell
+git clone git@github.com:WillieCubed/website.git
+cd website
+npm install
 npm run dev
-# or
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Architecture
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+This website is built using [Next.js], a React-based framework.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+### Deployment
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+This website is deployed using Vercel. To deploy this yourself, use this magic
+button:
 
-## Learn More
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FWillieCubed%2Fwebsite)
 
-To learn more about Next.js, take a look at the following resources:
+### Addendum: Windows Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Note: the Git hooks for this project assume you are using a shell environment.
+If you are on Windows, you will need to use Git Bash or WSL to run this project
+or follow the steps below:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+1. Delete the `.husky` folder.
+2. In the `package.json`, remove the `"lint-staged"` object.
 
-## Deploy on Vercel
+Then run the dev server as normal.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+[website]: https://williecubed.me

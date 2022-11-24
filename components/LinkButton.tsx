@@ -1,8 +1,8 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 interface LinkButtonProps {
   href: string;
-  variant?: "primary" | "secondary";
+  variant?: 'primary' | 'secondary';
 }
 
 /**
@@ -10,13 +10,13 @@ interface LinkButtonProps {
  */
 export default function LinkButton({
   href,
-  variant = "primary",
+  variant = 'primary',
   children,
 }: React.PropsWithChildren<LinkButtonProps>) {
   return (
     <Link
       href={href}
-      className={`inline-block p-[12px] border border-black border-4 font-semibold font-display text-2xl hover:shadow-xl ${variant === "primary" ? "bg-primary-dark-2 text-white" : ""
+      className={`inline-block p-[12px] border border-black border-4 font-semibold font-display text-2xl hover:shadow-xl ${variant === 'primary' ? 'bg-primary-dark-2 text-white' : ''
         }`}
     >
       {children}

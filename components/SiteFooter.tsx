@@ -1,4 +1,4 @@
-import taglines from "../lib/tagline_data.json";
+import taglines from '../lib/tagline_data.json';
 
 /**
  * Generate a random tagline quote.
@@ -25,7 +25,7 @@ export default function SiteFooter() {
           {footerTagline}
         </div>
         <div>
-          <div className="my-2 font-bold font-display text-md dark:text-white">
+          {/* <div className="my-2 font-bold font-display text-md dark:text-white">
             Personal Tools
           </div>
           <ul>
@@ -41,7 +41,7 @@ export default function SiteFooter() {
             <li className="hover:text-emerald-400">
               <a href="https://links.williecubed.dev">Link Shortener</a>
             </li>
-          </ul>
+          </ul> */}
         </div>
         <div>
           <div className="my-2 font-bold font-display text-md dark:text-white">

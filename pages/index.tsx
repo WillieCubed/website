@@ -23,10 +23,13 @@ const LandingPage: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
 
         <meta property="og:title" content="Willie Chalmers III" />
-        <meta property="og:description" content="Willie Chalmers III is a student studying computer science at The University of Texas at Dallas and doing research in artficial intelligence. See what he's working on here." />
+        <meta
+          property="og:description"
+          content="Willie Chalmers III is a student studying computer science at The University of Texas at Dallas and doing research in artficial intelligence. See what he's working on here."
+        />
         <meta property="og:image" content="/assets/headshot.jpg" />
         <meta property="og:type" content="website" />
-        <meta property='og:url' content='https://williecubed.me' />
+        <meta property="og:url" content="https://williecubed.me" />
       </Head>
 
       <SiteHeader />
@@ -54,7 +57,9 @@ const LandingPage: NextPage = () => {
                 </div>
               </div>
               <div className="mt-4 md:space-x-4 space-y-4">
-                <LinkButton href="/projects#research-projects">See research</LinkButton>
+                <LinkButton href="/projects#research-projects">
+                  See research
+                </LinkButton>
                 {/* TODO: Enable once routes are implemented */}
                 {/* <LinkButton href="/research">See research</LinkButton> */}
                 {/* <LinkButton href="/about">Read full bio</LinkButton> */}

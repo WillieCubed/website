@@ -49,6 +49,7 @@ module.exports = {
         accent: '#7284FF',
         important: '#FC3C82',
         'on-primary': '#F9F9F9',
+        'on-light': '#404040',
         'on-secondary': '#404040',
         'on-dark': '#FAFAFA',
         dark: '#2A2A2A',

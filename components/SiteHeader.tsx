@@ -21,7 +21,7 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
             </Link>
           )}
         </div>
-        <ul className="flex space-x-4 py-2 lg:py-0">
+        <ul className="flex space-x-6 py-2 lg:py-0">
           <li className="font-bold font-display text-2xl">
             <Link
               href="/projects"

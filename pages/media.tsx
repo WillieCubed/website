@@ -2,8 +2,9 @@ import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import SiteHeader from '../components/SiteHeader';
-import videoOpenIcon from '../public/assets/icons/open_in_new_black_24dp.svg';
+import VideoOpenIcon from '../public/assets/icons/open_in_new_black_24dp.svg';
 import SiteFooter from '../components/SiteFooter';
+import LinkButton from '../components/LinkButton';
 
 const MediaPage: NextPage = () => {
   return (
@@ -16,10 +17,11 @@ const MediaPage: NextPage = () => {
         />
         <link rel="icon" href="/favicon.ico" />
 
-        <meta property='og:site_name' content="Willie Chalmers III" />
+        <meta property="og:site_name" content="Willie Chalmers III" />
         <meta property="og:title" content="Media and Art Initiatives" />
         {/* <meta property="og:image" content="" /> */}
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://williecubed.me/media" />
       </Head>
 
       <SiteHeader />
@@ -37,7 +39,7 @@ const MediaPage: NextPage = () => {
               The Willie Diaries is a video series about a dude going through
               college.
             </div>
-            <div className="">
+            <div className="space-y-4">
               <iframe
                 className="aspect-video rounded-md"
                 width="560"
@@ -48,19 +50,14 @@ const MediaPage: NextPage = () => {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
-              <a
-                className="inline-block text-on-dark"
+              <LinkButton
                 href="https://www.youtube.com/playlist?list=PLeWghFt4u5bOTXAovwRSl4b2Xcpb0y8tF"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <div className="inline-block mt-4 p-4 bg-accent rounded-md content-center">
-                  <span className="uppercase font-medium font-display">
-                    View full series
-                  </span>
-                  <Image className="pl-2" src={videoOpenIcon} alt="" />
-                </div>
-              </a>
+                {/* TODO: Reintroduce icon */}
+                <span>View full series</span>
+              </LinkButton>
             </div>
           </div>
         </section>

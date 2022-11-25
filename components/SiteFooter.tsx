@@ -59,6 +59,11 @@ export default function SiteFooter() {
               </a>
             </li>
             <li className="hover:text-emerald-400">
+              <a className="font-normal" href="https://sigmoid.social/@willie" rel="me">
+                Mastodon (@willie@sigmoid.social)
+              </a>
+            </li>
+            <li className="hover:text-emerald-400">
               <a
                 className="font-normal"
                 href="https://instagram.com/williecubed"

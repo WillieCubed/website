@@ -22,11 +22,16 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
           )}
         </div>
         <ul className="flex space-x-4 py-2 lg:py-0">
+          <li className="font-bold font-display text-2xl">
+            <Link
+              href="/projects"
+              className="hover:underline focus:underline underline-offset-4"
+            >
+              Projects
+            </Link>
+          </li>
           {/* <li>
             <Link href="/research">Research</Link>
-          </li>
-          <li>
-            <Link href="/projects">Projects</Link>
           </li> */}
           {/* <li className="font-bold font-display text-2xl">
             <Link href="/media">Media</Link>

@@ -54,7 +54,7 @@ const LandingPage: NextPage = () => {
                 </div>
               </div>
               <div className="mt-4 md:space-x-4 space-y-4">
-                <LinkButton href="/resume.pdf">See research</LinkButton>
+                <LinkButton href="/projects#research-projects">See research</LinkButton>
                 {/* TODO: Enable once routes are implemented */}
                 {/* <LinkButton href="/research">See research</LinkButton> */}
                 {/* <LinkButton href="/about">Read full bio</LinkButton> */}

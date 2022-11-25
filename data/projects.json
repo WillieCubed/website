@@ -1,0 +1,109 @@
+[
+  {
+    "codename": "cole",
+    "type": "research",
+    "name": "CoLe: The Concept Learning Project",
+    "collaborators": [
+      {
+        "name": "Charles Averill",
+        "url": "https://charles.systems"
+      },
+      {
+        "name": "Intelligent Robotics and Vision Lab at UT Dallas",
+        "url": "https://labs.utdallas.edu/irvl"
+      }
+    ],
+    "subjects": ["Computer Vision", "Natural Language Processing"],
+    "overview": "The concept learning project aims to learn domain-agnostic representations of knowledge in the form of reusable abstract concepts.",
+    "questions": [
+      {
+        "codename": "ug-thesis-reusable-ai",
+        "content": "How can we design reusable AI architectures?",
+        "description": ""
+      },
+      {
+        "codename": "ug-thesis-reasoning",
+        "content": "How does higher-order reasoning arise from lower-order functions?",
+        "description": ""
+      },
+      {
+        "codename": "ug-thesis-sharing-knowledge",
+        "content": "How can knowledge be shared between AI systems?",
+        "description": ""
+      }
+    ],
+    "artifacts": [
+      {
+        "label": "Code on GitHub",
+        "url": "https://github.com/IRVLUTD/concept-learner",
+        "thumbnailUrl": ""
+      },
+      {
+        "label": "Project Website",
+        "url": "https://irvlutd.github.io/concept-learner",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/IRVLUTD/concept-learner",
+    "website": "https://irvlutd.github.io/concept-learner",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2022-11-24T11:49:00-0500"
+  },
+  {
+    "codename": "storygen",
+    "type": "research",
+    "name": "Storygen",
+    "subjects": ["Natural Language Processing", "Knowledge Representation"],
+    "overview": "Storygen is a tool that uses large language models and modifiable knowledge graphs to generate complex stories with characters.",
+    "questions": [
+      {
+        "codename": "ug-thesis-reusable-ai",
+        "content": "How can we design reusable AI architectures?",
+        "description": ""
+      },
+      {
+        "codename": "ug-thesis-reasoning",
+        "content": "How does higher-order reasoning arise from lower-order functions?",
+        "description": ""
+      },
+      {
+        "codename": "ug-thesis-sharing-knowledge",
+        "content": "How can knowledge be shared between AI systems?",
+        "description": ""
+      }
+    ],
+    "artifacts": [
+      {
+        "label": "Project Website",
+        "url": "https://storygen.williecubed.dev",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/IRVLUTD/concept-learner",
+    "website": "https://irvlutd.github.io/concept-learner",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2022-11-24T11:49:00-0500"
+  },
+  {
+    "codename": "aggie",
+    "type": "research",
+    "name": "Aggie: A Testbed for Intelligent Agents",
+    "subjects": [],
+    "overview": "Aggie is a testbench for building intelligent agents that are modular and explainable.",
+    "questions": [],
+    "artifacts": [
+      {
+        "label": "Project Website",
+        "url": "https://irvlutd.github.io/concept-learner",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/IRVLUTD/concept-learner",
+    "website": "https://irvlutd.github.io/concept-learner",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2022-11-24T11:49:00-0500"
+  }
+]

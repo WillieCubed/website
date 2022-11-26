@@ -9,7 +9,7 @@ interface SiteHeaderProps {
 
 export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
   return (
-    <header className="sticky top-0 px-4 lg:px-8 py-2 lg:py-5 bg-primary-dark-2 text-white border-b-4 border-black">
+    <header className="sticky top-0 px-4 lg:px-8 py-2 lg:py-5 bg-primary-dark-2 text-white border-b-4 border-black z-50">
       <nav className="md:flex container max-w-6xl mx-auto text-center md:text-left justify-center md:justify-left">
         <div className="flex-grow font-bold py-2 lg:py-0 font-display text-2xl">
           {showTitle && (

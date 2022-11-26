@@ -71,7 +71,11 @@ function ProjectCard({
 
   const artifactsItems = artifacts.map(({ label, url, thumbnailUrl }) => {
     return (
-      <Link key={label + url} href={url} className="inline-block p-3 bg-slate-300 text-on-light">
+      <Link
+        key={label + url}
+        href={url}
+        className="inline-block p-3 bg-slate-300 text-on-light"
+      >
         <div className="font-mono font-semibold">{label}</div>
       </Link>
     );

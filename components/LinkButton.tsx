@@ -1,6 +1,9 @@
 import Link, { LinkProps } from 'next/link';
 
-interface LinkButtonProps {
+interface LinkButtonProps
+  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps>,
+    React.RefAttributes<HTMLAnchorElement>,
+    LinkProps {
   href: string;
   variant?: 'primary' | 'secondary';
 }
@@ -13,9 +16,7 @@ export default function LinkButton({
   variant = 'primary',
   children,
   ...linkProps
-}: React.PropsWithChildren<
-  LinkButtonProps & React.RefAttributes<HTMLAnchorElement> & LinkProps
->) {
+}: React.PropsWithChildren<LinkButtonProps>) {
   return (
     <Link
       {...linkProps}

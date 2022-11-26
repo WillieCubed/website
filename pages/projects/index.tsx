@@ -197,7 +197,7 @@ const LandingPage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
       <main className="">
         <section
           id="research-projects"
-          className="py-[16px] lg:py-[64px] lg:px-[16px] lg:grid lg:grid-cols-12 lg:px-[24px] lg:gap-x-[16px] bg-[#E1E5F2] text-on-light"
+          className="py-[16px] lg:py-[64px] lg:px-[16px] lg:grid lg:grid-cols-12 lg:px-[24px] lg:gap-x-[16px]"
         >
           <div className="mb-4 px-[20px] md:px-4 md:pb-4 lg:px-0 lg:mb-0 lg:col-span-2 lg:col-start-2">
             <div className="lg:sticky lg:top-[140px]">

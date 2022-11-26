@@ -55,7 +55,8 @@ module.exports = {
         dark: '#2A2A2A',
         light: {
           1: '#F5F5F5',
-          DEFAULT: '#FAFAFA',
+          2: '#FAFAFA',
+          DEFAULT: '#E1E5F2',
         },
         link: '#3324BB',
       },

@@ -7,8 +7,7 @@ import Script from 'next/script';
  */
 function WebsiteApp({ Component, pageProps }: AppProps) {
   return (
-    <div className="min-h-screen">
-      {/* <div className="min-h-screen dark:bg-slate-900 dark:text-slate-300"> */}
+    <div className="min-h-screen dark:bg-slate-900 dark:text-on-dark">
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GTAG_ID}`}
         strategy="afterInteractive"

@@ -1,3 +1,4 @@
+import React from 'react';
 import taglines from '../lib/tagline_data.json';
 
 /**
@@ -13,7 +14,11 @@ function randomlyChooseTagline() {
  * The site-wide footer with useful links to pages and other websites.
  */
 export default function SiteFooter() {
-  const footerTagline = randomlyChooseTagline();
+  const [footerTagline, setFooterTagline] = React.useState(taglines[0]);
+
+  React.useEffect(() => {
+    setFooterTagline(randomlyChooseTagline);
+  }, []);
 
   return (
     <footer className="bg-slate-300 bg-primary-dark-1 text-on-dark dark:bg-slate-900 dark:text-slate-300 dark:border-t-2 dark:border-slate-500/50">

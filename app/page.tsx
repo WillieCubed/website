@@ -16,6 +16,7 @@ export default function LandingPage() {
             src={headshot}
             alt=""
             className="w-full md:col-start-2 md:col-span-3 lg:col-start-2 border-4 border-black"
+            priority
           />
           <div className="py-4 md:py-0 md:col-start-6 md:col-start-5 md:col-end-12">
             <div className="py-5 space-y-8">

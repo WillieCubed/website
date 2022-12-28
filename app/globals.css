@@ -24,3 +24,16 @@
     }
   }
 } */
+
+.stroke {
+  -webkit-text-stroke-width: -1px;
+  -webkit-text-stroke-color: #023ca1;
+  /* -webkit-text-fill-color: white; */
+}
+
+/* @media (prefers-color-scheme: dark) { */
+.stroke-dark {
+  -webkit-text-stroke-width: 2px;
+  -webkit-text-stroke-color: white;
+}
+/* } */

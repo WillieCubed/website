@@ -1,13 +1,15 @@
-module.exports = {
+/** @type {import('tailwindcss').Config} */
+const tailwindConfig = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx}',
     './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Roboto', 'system-ui'],
-        display: ['Work Sans', 'ui-sans-serif'],
+        sans: ['var(--font-sans)', 'Roboto', 'system-ui'],
+        display: ['var(--font-display)', 'Work Sans', 'ui-sans-serif'],
       },
       fontSize: {
         'display-large': [
@@ -64,3 +66,5 @@ module.exports = {
   },
   plugins: [],
 };
+
+module.exports = tailwindConfig;

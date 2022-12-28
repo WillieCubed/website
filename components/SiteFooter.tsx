@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import taglines from '../lib/tagline_data.json';
 

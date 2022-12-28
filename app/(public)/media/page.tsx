@@ -1,5 +1,4 @@
-import VideoOpenIcon from '../public/assets/icons/open_in_new_black_24dp.svg';
-import LinkButton from '../../components/LinkButton';
+import LinkButton from '../../../components/LinkButton';
 
 export default function MediaPage() {
   return (

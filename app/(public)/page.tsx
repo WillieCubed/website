@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import LinkButton from '../components/LinkButton';
-import headshot from '../public/assets/headshot.jpg';
+import LinkButton from '../../components/LinkButton';
+import headshot from '../../public/assets/headshot.jpg';
 
 /**
  * The main entrypoint to the site.

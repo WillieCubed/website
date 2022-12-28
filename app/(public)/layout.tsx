@@ -1,7 +1,7 @@
 import React from 'react';
 import { Roboto, Work_Sans } from '@next/font/google';
-import GeneralLayout from '../components/layouts/GeneralLayout';
-import './globals.css';
+import GeneralLayout from '../../components/layouts/GeneralLayout';
+import '../globals.css';
 
 const sansFont = Roboto({
   weight: ['500', '700'],

@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import LinkButton from '../../components/LinkButton';
-import ProjectList from '../../components/ProjectList';
-import { getProjects, ProjectData } from '../../lib/projects';
+import LinkButton from '../../../components/LinkButton';
+import ProjectList from '../../../components/ProjectList';
+import { ProjectData, getProjects } from '../../../lib/projects';
 
 /**
  * A page showing off all of my projects

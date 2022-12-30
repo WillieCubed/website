@@ -48,12 +48,11 @@ export default function MediaPage() {
           </div>
           <div className="font-display mb-4">
             <a href="https://instagram.com/treesofutd">@treesofutd</a> is a
-            story about life. or something like that. whatever it is, there
-            are a lot of trees.
+            story about life. or something like that. whatever it is, there are
+            a lot of trees.
           </div>
         </div>
       </section>
     </main>
   );
-};
-
+}

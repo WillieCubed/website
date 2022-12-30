@@ -37,7 +37,11 @@ export default function ProjectCard({
 
   const collaboratorsItems = collaborators?.map(({ name, url }) => {
     return url ? (
-      <Link key={name + url} href={url} className="underline font-mono font-semibold">
+      <Link
+        key={name + url}
+        href={url}
+        className="underline font-mono font-semibold"
+      >
         {name}
       </Link>
     ) : (

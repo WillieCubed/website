@@ -58,8 +58,8 @@ export default async function ProjectsPage() {
                 Personal Projects
               </h1>
               <p className="font-display">
-                These projects come out of a desire to make things I would
-                want to use. Most of them are web-based.
+                These projects come out of a desire to make things I would want
+                to use. Most of them are web-based.
               </p>
               <p className="font-display">
                 These projects aren&apos;t trying to discover anything new as
@@ -95,16 +95,16 @@ export default async function ProjectsPage() {
       </section>
     </main>
   );
-};
+}
 
 type ProjectsPageProps = {
   projects: ProjectData[];
 };
 
 /**
- * A wrapper function taht 
+ * A wrapper function taht
  *
- * @returns 
+ * @returns
  */
 async function getProjectsPageData(): Promise<ProjectsPageProps> {
   try {

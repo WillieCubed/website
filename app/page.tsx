@@ -28,8 +28,8 @@ export default function LandingPage() {
                 The&nbsp;University of Texas at Dallas.
               </div>
               <div className="text-xl md:text-display-medium font-semibold font-display">
-                I research autonomous machine intelligence and build tools
-                that bring people together.
+                I research autonomous machine intelligence and build tools that
+                bring people together.
               </div>
             </div>
             <div className="mt-4 md:space-x-4 space-y-4">

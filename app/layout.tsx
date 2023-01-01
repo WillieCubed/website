@@ -21,7 +21,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
       <head />
       <body
         className={
-          'min-h-screen bg-light text-on-light dark:bg-slate-900 dark:text-on-dark'
+          'min-h-screen bg-light text-on-light dark:bg-slate-900 dark:text-on-dark scrollbar-thin scrollbar-thumb-primary-dark-1 scrollbar-track-slate-300 dark:scrollbar-track-slate-800'
         }
       >
         <GeneralLayout>{children}</GeneralLayout>

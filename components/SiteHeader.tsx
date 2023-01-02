@@ -32,9 +32,14 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
               Projects
             </Link>
           </li>
-          {/* <li>
-            <Link href="/research">Research</Link>
-          </li> */}
+          <li className="font-bold font-display text-2xl">
+            <Link
+              href="/research"
+              className="hover:underline focus:underline underline-offset-4"
+            >
+              Research
+            </Link>
+          </li>
           {/* <li className="font-bold font-display text-2xl">
             <Link href="/media">Media</Link>
           </li> */}

@@ -75,7 +75,6 @@ export default function ProjectCard({
       className={`p-[16px] lg:p-[32px] mb-4 border-[4px] border-black bg-white text-on-light dark:bg-dark dark:text-on-dark ${
         isDisplayOnly ? '' : 'hover:shadow-lg'
       } transition snap-start`}
-      transition={{ type: 'linear' }}
     >
       <div>
         <div className="uppercase font-bold font-display text-sm">

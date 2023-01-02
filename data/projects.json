@@ -55,7 +55,7 @@
     "type": "research",
     "name": "Storygen",
     "subjects": ["Natural Language Processing", "Knowledge Representation"],
-    "overview": "Storygen is a tool that uses large language models and modifiable knowledge graphs to generate complex stories with characters.",
+    "overview": "Storygen is a tool that uses large language models and knowledge graphs to generate complex stories with characters.",
     "questions": [
       {
         "codename": "ug-thesis-reusable-ai",
@@ -93,17 +93,125 @@
     "subjects": [],
     "overview": "Aggie is a testbench for building intelligent agents that are modular and explainable.",
     "questions": [],
-    "artifacts": [
-      {
-        "label": "Project Website",
-        "url": "https://irvlutd.github.io/concept-learner",
-        "thumbnailUrl": ""
-      }
-    ],
-    "repository": "https://github.com/IRVLUTD/concept-learner",
-    "website": "https://irvlutd.github.io/concept-learner",
+    "artifacts": [],
+    "repository": "https://github.com/WillieCubed/aggie",
+    "website": "https://aggie.williecubed.dev",
     "docs": "",
     "bundle": "",
     "lastUpdated": "2022-11-24T11:49:00-0500"
+  },
+  {
+    "codename": "website",
+    "type": "personal",
+    "name": "Personal Website",
+    "subjects": [],
+    "overview": "This is my personal portfolio and the hub to who I am and what I do.",
+    "artifacts": [
+      {
+        "label": "The Website",
+        "url": "https://williecubed.me",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/WillieCubed/website",
+    "website": "https://williecubed.me",
+    "docs": "https://williecubed.github.io/website",
+    "bundle": "",
+    "lastUpdated": "2022-12-29T16:11:00-0800"
+  },
+  {
+    "codename": "utd-guide",
+    "type": "personal",
+    "name": "UTD Survival Guide",
+    "subjects": [],
+    "overview": "The UTD Survival Guide is a personalizable guide built to fit the needs of a diverse student body.",
+    "artifacts": [
+      {
+        "label": "Project Website",
+        "url": "https://guide.utdnebula.com",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/UTDNebula/survival-guide",
+    "website": "https://guide.utdnebula.com",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2022-12-31T16:11:00-0800"
+  },
+  {
+    "codename": "comet-planning",
+    "type": "personal",
+    "name": "Nebula Planner",
+    "subjects": [],
+    "overview": "Nebula Planner is an interactive tool that lets students plan their college coursework and experiences in an intuitive drag-and-drop interface.",
+    "artifacts": [
+      {
+        "label": "Project Website",
+        "url": "https://planner.utdnebula.com",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/UTDNebula/neubla-planner/",
+    "website": "",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2022-12-31T16:11:00-0800"
+  },
+  {
+    "codename": "yearbook",
+    "type": "personal",
+    "name": "UTD Wrapped",
+    "subjects": [],
+    "overview": "UTD Wrapped is a yearbook for the 21st century inspired by Spotify Wrapped.",
+    "artifacts": [
+      {
+        "label": "Project Website",
+        "url": "https://utdwrapped.vercel.app",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/WillieCubed/yearbook",
+    "website": "",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2022-12-31T16:11:00-0800"
+  },
+  {
+    "codename": "orbit",
+    "type": "personal",
+    "name": "Orbit: A Friend-Finding App",
+    "subjects": [],
+    "overview": "Orbit lets introverts (and others!) find people to pull into their orbits using a fun and unique matching experience based on responses to questions, not looks.",
+    "artifacts": [
+      {
+        "label": "Live demo",
+        "url": "https://orbit.williecubed.dev",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/WillieCubed/orbit-app",
+    "website": "",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2022-12-31T16:11:00-0800"
+  },
+  {
+    "codename": "simple-chair",
+    "type": "personal",
+    "name": "SimpleChair",
+    "subjects": [],
+    "overview": "SimpleChair makes hosting meetings using Robert's Rules of Order simple and efficient for both the host, the participants, and an audience.",
+    "artifacts": [
+      {
+        "label": "Project Website",
+        "url": "https://simple-chair.vercel.app/",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/WillieCubed/simple-chair",
+    "website": "",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2022-12-31T16:11:00-0800"
   }
 ]

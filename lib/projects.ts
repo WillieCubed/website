@@ -6,6 +6,9 @@ export type ProjectData = {
   name: string;
   collaborators: Collaboator[];
   subjects: string[];
+  /**
+   * A brief description of the project.
+   */
   overview: string;
   questions: Question[];
   artifacts: ProjectArtifact[];
@@ -70,4 +73,22 @@ export type ProjectType = 'research' | 'personal';
 
 export async function getProjects(): Promise<ProjectData[]> {
   return projects as ProjectData[];
+}
+
+/**
+ * Fetches the data for a project.
+ *
+ * @param codename The UID of the project.
+ *
+ * @returns The corresponding project data.
+ */
+export async function getProject(codename: string): Promise<ProjectData> {
+  const projects = await getProjects();
+  const projectData = projects.find((project) => project.codename === codename);
+  if (!projectData) {
+    throw new Error(
+      `Project with given codename "${codename}" cannot be found.`
+    );
+  }
+  return projectData;
 }

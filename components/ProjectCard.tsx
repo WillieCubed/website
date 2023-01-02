@@ -1,21 +1,17 @@
+'use client';
+
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ProjectType, ProjectData } from '../lib/projects';
+import ProjectSubjectTag from './ProjectSubjectTag';
 
 const PROJECT_TYPE_MAP: Record<ProjectType, string> = {
   research: 'Research Project',
   personal: 'Personal Project',
 };
 
-function projectTagToColor(subject: string) {
-  // TODO: Find an obviously better way of fixing this.
-  switch (subject) {
-    case 'Computer Vision':
-      return '#FFD23F';
-    case 'Natural Language Processing':
-      return '#3BCEAC';
-    default:
-      return '#FFD23F';
-  }
+interface ProjectCardProps extends ProjectData {
+  mode?: 'default' | 'expanded';
 }
 
 /**
@@ -32,7 +28,8 @@ export default function ProjectCard({
   overview,
   questions,
   artifacts,
-}: ProjectData) {
+  mode = 'default',
+}: ProjectCardProps) {
   const typeLabel = PROJECT_TYPE_MAP[type];
 
   const collaboratorsItems = collaborators?.map(({ name, url }) => {
@@ -49,23 +46,12 @@ export default function ProjectCard({
     );
   });
 
-  const questionsContent = questions.map(({ codename, content }) => {
+  const questionsContent = questions?.map(({ codename, content }) => {
     return <li key={codename}>{content}</li>;
   });
 
   const subjectTags = subjects.map((label) => {
-    return (
-      <span
-        key={label}
-        className="inline-block p-3 mr-2"
-        style={{
-          // TODO: Find a more efficient way of doing this
-          backgroundColor: projectTagToColor(label) + '80',
-        }}
-      >
-        {label}
-      </span>
-    );
+    return <ProjectSubjectTag key={label} label={label} />;
   });
 
   const artifactsItems = artifacts.map(({ label, url, thumbnailUrl }) => {
@@ -80,8 +66,17 @@ export default function ProjectCard({
     );
   });
 
+  const isResearch = type === 'research';
+
+  const isDisplayOnly = mode === 'expanded';
+
   return (
-    <article className="p-[16px] lg:p-[32px] mb-4 border-[4px] border-black bg-white text-on-light dark:bg-dark dark:text-on-dark hover:shadow-lg transition snap-start">
+    <article
+      className={`p-[16px] lg:p-[32px] mb-4 border-[4px] border-black bg-white text-on-light dark:bg-dark dark:text-on-dark ${
+        isDisplayOnly ? '' : 'hover:shadow-lg'
+      } transition snap-start`}
+      transition={{ type: 'linear' }}
+    >
       <div>
         <div className="uppercase font-bold font-display text-sm">
           {typeLabel}
@@ -91,7 +86,7 @@ export default function ProjectCard({
         </div>
       </div>
       <div className="mt-6 space-y-6">
-        {collaborators && (
+        {isResearch && collaborators && (
           <div className="space-y-2">
             <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
               Collaborators
@@ -99,7 +94,7 @@ export default function ProjectCard({
             <div className="space-x-4">{collaboratorsItems}</div>
           </div>
         )}
-        {subjects.length > 0 && (
+        {isResearch && subjects.length > 0 && (
           <div className="space-y-2">
             <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
               Topics
@@ -113,7 +108,7 @@ export default function ProjectCard({
           </div>
           <p className="font-semibold font-display">{overview}</p>
         </div>
-        {questions.length > 0 && (
+        {isResearch && questions && questions.length > 0 && (
           <div className="space-y-2">
             <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
               Questions Addressed
@@ -130,14 +125,16 @@ export default function ProjectCard({
           </div>
         )}
       </div>
-      <div className="mt-4">
-        <Link
-          href={`/projects/${codename} `}
-          className="underline font-bold font-display"
-        >
-          Learn more
-        </Link>
-      </div>
+      {!isDisplayOnly && (
+        <div className="mt-4">
+          <Link
+            href={`/projects/${codename} `}
+            className="underline font-bold font-display"
+          >
+            Read more
+          </Link>
+        </div>
+      )}
     </article>
   );
 }

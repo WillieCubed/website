@@ -16,7 +16,7 @@ export default async function Head({
 
   return (
     <>
-      <title>{projectData.name} - Willie Chalmers III</title>
+      <title>{`Project Info - ${projectData.name} - Willie Chalmers III`}</title>
       <meta name="description" content={projectData?.overview} />
       <link rel="icon" href="/favicon.ico" />
 

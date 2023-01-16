@@ -3,6 +3,8 @@ import LinkButton from '../../components/LinkButton';
 import ProjectList from '../../components/ProjectList';
 import { getProjects, ProjectData } from '../../lib/projects';
 
+const FEATURED_PROJECTS_LIMIT = 4;
+
 /**
  * A page showing off all of my projects
  *
@@ -12,7 +14,9 @@ export default async function ProjectsPage() {
   const { projects } = await getProjectsPageData();
 
   const researchProjects = projects.filter(({ type }) => type === 'research');
-  const personalProjects = projects.filter(({ type }) => type === 'personal');
+  const personalProjects = projects
+    .filter(({ type }) => type === 'personal')
+    .slice(0, FEATURED_PROJECTS_LIMIT);
 
   return (
     <main className="">

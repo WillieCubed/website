@@ -1,6 +1,4 @@
-import Image from 'next/image';
 import LinkButton from '../components/LinkButton';
-import headshot from '../public/assets/headshot.jpg';
 
 /**
  * The main entrypoint to the site.
@@ -12,9 +10,8 @@ export default function LandingPage() {
     <main className="">
       <section id="overview" className="bg-primary-light-1 text-white pb-16">
         <div className="px-4 md:px-[24px] md:py-[128px] mx-auto md:grid md:grid-cols-12 gap-x-4">
-          <div className="py-4 md:py-0 md:col-start-4 md:col-end-10">
-            <article className="p-6 md:p-8 space-y-8 border-4 border-black bg-primary">
-              {/* <div className="py-5 space-y-8"> */}
+          <div className="md:col-start-4 md:col-end-10">
+            <article className="fancy-shadow p-6 md:p-8 space-y-8 border-4 border-black bg-primary">
               <div className="text-display-medium md:text-display-large font-display stroke">
                 I&apos;m Willie.
               </div>

@@ -37,3 +37,11 @@
   -webkit-text-stroke-color: white;
 }
 /* } */
+
+.fancy-shadow {
+  box-shadow: 8px 8px #00000096;
+}
+
+.fancy-shadow-hover:hover {
+  box-shadow: 8px 8px #00000096;
+}

@@ -16,7 +16,7 @@ export default async function Head({}: { params: {} }) {
       <meta property="og:title" content="Projects Overview" />
       <meta
         property="og:description"
-        content={`Willie Chalmers III is a student studying computer science at The University of Texas at Dallas and doing research in artficial intelligence. See his ${count} projects here.`}
+        content={`Willie Chalmers III works on research and personal projects for business and for pleasure. see all ${count} of them here.`}
       />
       <meta property="og:image" content="/assets/headshot.jpg" />
       <meta property="og:type" content="website" />

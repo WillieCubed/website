@@ -140,8 +140,10 @@ export default async function ResearchOverviewPage() {
             How can knowledge be shared between AI systems?
           </h3>
           <p className="text-lg">
-            Right now, foundation models like GPT-3 are very useful From
-            transfer learning to newer methods like{' '}
+            Right now, foundation models like GPT-3 are very useful at
+            generating new data, but the knowledge within these systems are
+            embedded in weights that do not have semantic meaning. From transfer
+            learning to newer methods like{' '}
             <a href="http://" target="_blank" rel="noopener noreferrer"></a>{' '}
             RLHF use human judgement to &quot;transfer&quot; knowledge between
             successive versions of models, but we don&apos;t have easy ways of,
@@ -151,7 +153,7 @@ export default async function ResearchOverviewPage() {
           <p className="mt-2 text-lg">
             I believe the field will see a boom in activity from hobbists and
             researchers with limited resources after we solve this problem. Once
-            AI R&amp;D becomes less aobut architecture and more about the
+            AI R&amp;D becomes less about architecture and more about the
             learned knowledge, I believe it will be come much more valuable to
             the average person.
           </p>

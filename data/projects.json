@@ -101,39 +101,20 @@
     "lastUpdated": "2022-11-24T11:49:00-0500"
   },
   {
-    "codename": "website",
+    "codename": "yearbook",
     "type": "personal",
-    "name": "Personal Website",
+    "name": "UTD Wrapped",
     "subjects": [],
-    "overview": "This is my personal portfolio and the hub to who I am and what I do.",
-    "artifacts": [
-      {
-        "label": "The Website",
-        "url": "https://williecubed.me",
-        "thumbnailUrl": ""
-      }
-    ],
-    "repository": "https://github.com/WillieCubed/website",
-    "website": "https://williecubed.me",
-    "docs": "https://williecubed.github.io/website",
-    "bundle": "",
-    "lastUpdated": "2022-12-29T16:11:00-0800"
-  },
-  {
-    "codename": "utd-guide",
-    "type": "personal",
-    "name": "UTD Survival Guide",
-    "subjects": [],
-    "overview": "The UTD Survival Guide is a personalizable guide built to fit the needs of a diverse student body.",
+    "overview": "UTD Wrapped is a yearbook for the 21st century inspired by Spotify Wrapped.",
     "artifacts": [
       {
         "label": "Project Website",
-        "url": "https://guide.utdnebula.com",
+        "url": "https://utdwrapped.vercel.app",
         "thumbnailUrl": ""
       }
     ],
-    "repository": "https://github.com/UTDNebula/survival-guide",
-    "website": "https://guide.utdnebula.com",
+    "repository": "https://github.com/WillieCubed/yearbook",
+    "website": "",
     "docs": "",
     "bundle": "",
     "lastUpdated": "2022-12-31T16:11:00-0800"
@@ -158,20 +139,39 @@
     "lastUpdated": "2022-12-31T16:11:00-0800"
   },
   {
-    "codename": "yearbook",
+    "codename": "parlipro",
     "type": "personal",
-    "name": "UTD Wrapped",
+    "name": "ParliPro",
     "subjects": [],
-    "overview": "UTD Wrapped is a yearbook for the 21st century inspired by Spotify Wrapped.",
+    "overview": "ParliPro makes hosting meetings using Robert's Rules of Order simple and efficient for both the host, the participants, and an audience.",
     "artifacts": [
       {
         "label": "Project Website",
-        "url": "https://utdwrapped.vercel.app",
+        "url": "https://parlipro.vercel.app/",
+        "thumbnailUrl": "https://williecubed.me/previews/parlipro-1.png"
+      }
+    ],
+    "repository": "https://github.com/WillieCubed/parlipro",
+    "website": "",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2023-01-16T16:11:09-0600"
+  },
+  {
+    "codename": "utd-guide",
+    "type": "personal",
+    "name": "UTD Survival Guide",
+    "subjects": [],
+    "overview": "The UTD Survival Guide is a personalizable guide built to fit the needs of a diverse student body.",
+    "artifacts": [
+      {
+        "label": "Project Website",
+        "url": "https://guide.utdnebula.com",
         "thumbnailUrl": ""
       }
     ],
-    "repository": "https://github.com/WillieCubed/yearbook",
-    "website": "",
+    "repository": "https://github.com/UTDNebula/survival-guide",
+    "website": "https://guide.utdnebula.com",
     "docs": "",
     "bundle": "",
     "lastUpdated": "2022-12-31T16:11:00-0800"
@@ -196,22 +196,22 @@
     "lastUpdated": "2022-12-31T16:11:00-0800"
   },
   {
-    "codename": "simple-chair",
+    "codename": "website",
     "type": "personal",
-    "name": "SimpleChair",
+    "name": "Personal Website",
     "subjects": [],
-    "overview": "SimpleChair makes hosting meetings using Robert's Rules of Order simple and efficient for both the host, the participants, and an audience.",
+    "overview": "This is my personal portfolio and the hub to who I am and what I do.",
     "artifacts": [
       {
-        "label": "Project Website",
-        "url": "https://simple-chair.vercel.app/",
+        "label": "The Website",
+        "url": "https://williecubed.me",
         "thumbnailUrl": ""
       }
     ],
-    "repository": "https://github.com/WillieCubed/simple-chair",
-    "website": "",
-    "docs": "",
+    "repository": "https://github.com/WillieCubed/website",
+    "website": "https://williecubed.me",
+    "docs": "https://williecubed.github.io/website",
     "bundle": "",
-    "lastUpdated": "2022-12-31T16:11:00-0800"
+    "lastUpdated": "2022-12-29T16:11:00-0800"
   }
 ]

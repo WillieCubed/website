@@ -1,5 +1,5 @@
 import React from 'react';
-import { Roboto, Work_Sans } from '@next/font/google';
+import { Roboto, Work_Sans } from 'next/font/google';
 import GeneralLayout from '../components/layouts/GeneralLayout';
 import './globals.css';
 
@@ -7,12 +7,14 @@ const sansFont = Roboto({
   weight: ['500', '700'],
   variable: '--font-sans',
   display: 'auto',
+  subsets: ['latin'],
 });
 
 const displayFont = Work_Sans({
   weight: ['500', '600', '700'],
   variable: '--font-display',
   display: 'auto',
+  subsets: ['latin'],
 });
 
 export default function RootLayout({ children }: React.PropsWithChildren) {

@@ -1,4 +1,16 @@
-import { getProjects, ProjectData } from '../../lib/projects';
+import { Metadata } from 'next';
+import { ProjectData, getProjects } from '../../../lib/projects';
+
+export const metadata: Metadata = {
+  title: 'Research Overview - Willie Chalmers III',
+  description:
+    'Willie Chalmers III studies artificial intelligence. Learn more about his research here.',
+  openGraph: {
+    title: 'Research Overview',
+    description:
+      'Willie Chalmers III studies artificial intelligence. Learn more about his research here.',
+  },
+};
 
 /**
  * A page containing an overview of my personal research program.

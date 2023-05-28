@@ -2,6 +2,7 @@ import React from 'react';
 import { Roboto, Work_Sans } from 'next/font/google';
 import './globals.css';
 import Script from 'next/script';
+import type { Metadata } from 'next/types';
 
 const sansFont = Roboto({
   weight: ['500', '700'],
@@ -16,6 +17,19 @@ const displayFont = Work_Sans({
   display: 'auto',
   subsets: ['latin'],
 });
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Willie Chalmers III',
+    template: '%s - Willie Chalmers III',
+  },
+  openGraph: {
+    siteName: 'Wilie Chalmers III',
+    url: 'https://williecubed.me',
+    type: 'website',
+    images: ['/assets/headshot.jpg'],
+  },
+};
 
 export default function RootLayout({ children }: React.PropsWithChildren) {
   return (

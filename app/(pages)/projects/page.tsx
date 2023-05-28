@@ -1,9 +1,28 @@
 import Link from 'next/link';
-import LinkButton from '../../components/LinkButton';
-import ProjectList from '../../components/ProjectList';
-import { getProjects, ProjectData } from '../../lib/projects';
+import LinkButton from '../../../components/LinkButton';
+import ProjectList from '../../../components/ProjectList';
+import { ProjectData, getProjects } from '../../../lib/projects';
 
 const FEATURED_PROJECTS_LIMIT = 4;
+
+export async function generateMetadata() {
+  const projects = await getProjects();
+  const count = projects.length;
+
+  return {
+    title: 'Projects - Willie Chalmers III',
+    description: `Willie Chalmers III studies artificial intelligence. Learn more about his Learn about his ${count} personal project${
+      count == 1 ? '' : 's'
+    } here.`,
+    openGraph: {
+      title: 'Research Overview',
+      description: `Willie Chalmers III studies artificial intelligence. Learn more about his Learn about his ${count} personal project${
+        count == 1 ? '' : 's'
+      } here.`,
+      url: 'https://williecubed.me/projects',
+    },
+  };
+}
 
 /**
  * A page showing off all of my projects
@@ -88,7 +107,7 @@ export default async function ProjectsPage() {
       </section>
       <section
         id="media-projects"
-        className="py-[16px] lg:py-[64px] lg:px-[16px] lg:grid lg:grid-cols-12 lg:px-[24px] lg:gap-x-[16px] bg-primary text-on-dark"
+        className="py-[16px] lg:py-[64px] lg:px-[16px] lg:grid lg:grid-cols-12 xl:px-[24px] lg:gap-x-[16px] bg-primary text-on-dark"
       >
         <div className="px-[20px] py-8 md:px-4 md:py-4 lg:px-0 lg:mb-0 lg:col-start-2 lg:col-span-6 space-y-8">
           <div className="font-bold font-display text-display-large">

@@ -23,8 +23,8 @@ export default function LinkButton({
       href={href}
       className={`inline-block p-[12px] border-black border-4 font-semibold font-display text-2xl fancy-shadow-hover transition ${
         variant === 'primary'
-          ? 'bg-primary-dark-2 text-white'
-          : 'bg-secondary-dark-1 text-white'
+          ? 'bg-primary-dark-2 text-white hover:text-white'
+          : 'bg-secondary-dark-1 text-white hover:text-white'
       }`}
     >
       {children}

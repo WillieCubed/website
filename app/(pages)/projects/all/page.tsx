@@ -1,5 +1,5 @@
-import ProjectCard from '../../../components/ProjectCard';
-import { ProjectData, getProjects } from '../../../lib/projects';
+import ProjectCard from '../../../../components/ProjectCard';
+import { ProjectData, getProjects } from '../../../../lib/projects';
 
 /**
  * A simple scrolling list of projects.

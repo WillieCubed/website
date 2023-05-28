@@ -1,4 +1,17 @@
-import LinkButton from '../../components/LinkButton';
+import { Metadata } from 'next';
+import LinkButton from '../../../components/LinkButton';
+
+export const metadata: Metadata = {
+  title: 'Media and Art - Willie Chalmers III',
+  description:
+    'Outside of doing research and developing software, Willie makes videos and does other creative stuff. Check out The Willie Diaries and more here.',
+  openGraph: {
+    title: 'Media and Art Initiatives',
+    description:
+      'Outside of doing research and developing software, Willie makes videos and does other creative stuff. Check out The Willie Diaries and more here.',
+    url: 'https://williecubed.me/media',
+  },
+};
 
 export default function MediaPage() {
   return (

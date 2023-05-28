@@ -37,19 +37,25 @@ export default function SiteFooter() {
             Find me elsewhere
           </div>
           <ul>
-            <li className="hover:text-emerald-400">
-              <a className="font-normal" href="https://github.com/WillieCubed">
+            <li>
+              <a
+                className="font-normal text-white opacity-[0.87] hover:opacity-100 hover:text-white"
+                href="https://github.com/WillieCubed"
+              >
                 GitHub (@WillieCubed)
               </a>
             </li>
-            <li className="hover:text-emerald-400">
-              <a className="font-normal" href="https://twitter.com/WillieCubed">
+            <li>
+              <a
+                className="font-normal text-white opacity-[0.87] hover:opacity-100 hover:text-white"
+                href="https://twitter.com/WillieCubed"
+              >
                 Twitter (@WillieCubed)
               </a>
             </li>
-            <li className="hover:text-emerald-400">
+            <li>
               <a
-                className="font-normal"
+                className="font-normal text-white opacity-[0.87] hover:opacity-100 hover:text-white"
                 href="https://sigmoid.social/@willie"
                 rel="me"
               >
@@ -58,7 +64,7 @@ export default function SiteFooter() {
             </li>
             <li className="hover:text-emerald-400">
               <a
-                className="font-normal"
+                className="font-normal text-white opacity-[0.87] hover:opacity-100 hover:text-white"
                 href="https://instagram.com/williecubed"
               >
                 Instagram (@williecubed)
@@ -66,7 +72,7 @@ export default function SiteFooter() {
             </li>
             <li className="hover:text-emerald-400">
               <a
-                className="font-normal"
+                className="font-normal text-white opacity-[0.87] hover:opacity-100 hover:text-white"
                 href="https://linked.com/in/willie-chalmers-iii"
               >
                 LinkedIn (Willie Chalmers III)

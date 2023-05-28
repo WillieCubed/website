@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next/types';
 
 export const metadata: Metadata = {
-  title: 'Willie Chalmers III',
+  title: '', // Yes, this is intentional; see layout.tsx for template
   description:
     'Willie Chalmers III is a student studying computer science at The University of Texas at Dallas and doing research in artficial intelligence. Learn more about him and his projects here.',
   openGraph: {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <main className="min-h-screen p-6 lg:p-[64px] 2xl:p-[128px] flex flex-col">
-      <div className="h-full grid lg:grid-cols-12 lg:gap-x-4">
+      <div className="h-full lg:grid lg:grid-cols-12 lg:gap-x-4">
         <section className="lg:col-span-6">
           <div className="mt-16 space-y-4">
             <div className="text-display-large font-display">Hello!</div>
@@ -61,7 +61,7 @@ export default function LandingPage() {
           <div className="md:flex w-full mt-2 space-y-4 md:space-y-0 md:space-x-4">
             <Link
               href="/research"
-              className="block min-h-[240px] flex-1 p-4 border-2 fancy-shadow border-black bg-primary text-white hover:text-neutral-200"
+              className="block min-h-[240px] flex-1 p-4 border-2 fancy-shadow border-black bg-primary text-white hover:text-neutral-200 content-end"
             >
               {/* The hover:text-white is a temporary hack because of the global.css link styles */}
               <div className="font-display text-display-small">Research</div>
@@ -83,7 +83,7 @@ export default function LandingPage() {
             <h1 className="font-semibold font-display text-lg">About Me</h1>
             <ul className="mt-2">
               <li>
-                <Link href="/bio">Bio</Link>
+                <Link href="/about">Bio</Link>
               </li>
               <li>
                 <Link href="https://blog.williecubed.me">Blog</Link>

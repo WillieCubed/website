@@ -2,28 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-/* @layer base {
+@layer base {
   a {
-    @apply text-link;
+    @apply text-accent;
+    @apply transition ease-in-out;
   }
   a:hover {
-    @apply text-secondary;
+    @apply text-link;
   }
   body {
-    @apply bg-light;
+    @apply bg-light-1 text-on-light;
+    @apply scrollbar-thumb-primary-dark-1 scrollbar-track-slate-300;
   }
   @media (prefers-color-scheme: dark) {
     a {
       @apply text-on-dark;
     }
     a:hover {
-      @apply text-accent;
+      @apply text-accent-light-1;
     }
     body {
-      @apply bg-dark;
+      @apply bg-slate-900 text-on-dark;
+      @apply scrollbar-track-slate-800;
     }
   }
-} */
+}
 
 .stroke {
   -webkit-text-stroke-width: -1px;
@@ -31,17 +34,19 @@
   /* -webkit-text-fill-color: white; */
 }
 
-/* @media (prefers-color-scheme: dark) { */
-.stroke-dark {
-  -webkit-text-stroke-width: 2px;
-  -webkit-text-stroke-color: white;
+@media (prefers-color-scheme: dark) {
+  .stroke {
+    -webkit-text-stroke-width: 2px;
+    -webkit-text-stroke-color: white;
+  }
 }
-/* } */
+
+/* TODO: Convert into fancy-shadow into Tailwind CSS utility */
 
 .fancy-shadow {
-  box-shadow: 8px 8px #00000096;
+  box-shadow: 4px 4px #000000;
 }
 
-.fancy-shadow-hover:hover {
-  box-shadow: 8px 8px #00000096;
+.fancy-shadow:hover {
+  box-shadow: 8px 8px #000000;
 }

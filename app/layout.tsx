@@ -1,7 +1,7 @@
 import React from 'react';
 import { Roboto, Work_Sans } from 'next/font/google';
-import GeneralLayout from '../components/layouts/GeneralLayout';
 import './globals.css';
+import Script from 'next/script';
 
 const sansFont = Roboto({
   weight: ['500', '700'],
@@ -21,12 +21,25 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
   return (
     <html lang="en" className={`${sansFont.variable} ${displayFont.variable}`}>
       <head />
-      <body
-        className={
-          'min-h-screen bg-light text-on-light dark:bg-slate-900 dark:text-on-dark scrollbar-thin scrollbar-thumb-primary-dark-1 scrollbar-track-slate-300 dark:scrollbar-track-slate-800'
-        }
-      >
-        <GeneralLayout>{children}</GeneralLayout>
+      <body className={'min-h-screen scrollbar-thin '}>
+        {process.env.NODE_ENV === 'production' && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GTAG_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            
+            gtag('config', '${process.env.NEXT_PUBLIC_GTAG_ID}');
+            `}
+            </Script>
+          </>
+        )}
+        {children}
       </body>
     </html>
   );

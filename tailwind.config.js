@@ -63,8 +63,9 @@ const tailwindConfig = {
         'on-dark': '#FAFAFA',
         dark: '#2A2A2A',
         light: {
-          1: '#F5F5F5',
-          2: '#FAFAFA',
+          1: '#F2F2F2',
+          2: '#F5F5F5',
+          3: '#FAFAFA',
           DEFAULT: '#E1E5F2',
         },
         link: '#3324BB',

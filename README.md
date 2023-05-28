@@ -1,4 +1,4 @@
-# Willie's Wonderful Website
+# The WillieCubed Website
 
 _It's my personal [website][website]._
 
@@ -15,14 +15,46 @@ npm install
 npm run dev
 ```
 
+### Setting up
+
+Some functionality, requires additional set-up. Create a `.env.local` file at
+the root of the project with the following variables:
+
+```
+NEXT_PUBLIC_GTAG_ID=
+```
+
+#### Google Analytics
+
+To use Google Analytics, obtain a gtag ID from the Google Anlytics console, and
+use the following value for the `NEXT_PUBLIC_GTAG_ID` variable.
+
 ### Architecture
 
-This website is built using [Next.js], a React-based framework.
+This website is built using [Next.js], a React-based framework. It uses the app directory.
+
+The website supports the following user-facing routes:
+
+- /
+  - Landing (index) page
+- /about
+  - A biography snippet and more
+- /hi
+  - A more intimate page used for quick links and contact information
+  - The "link in bio"
+- /media
+  - An overview of my media (art) initiatives
+- /projects
+  - An overview of all projects
+- /projects/[codename]
+  - Information about a specific project
+- /research
+  - An overview of research activities
 
 ### Deployment
 
-This website is deployed using Vercel. To deploy this yourself, use this magic
-button:
+This website is [deployed][website] using [Vercel](https://vercel.com). To
+deploy this yourself, use this magic button:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FWillieCubed%2Fwebsite)
 

@@ -36,7 +36,9 @@ export async function generateMetadata({
   }
 }
 
-const BASE_URL = 'https://williecubed.me/projects';
+const BASE_URL = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : 'https://williecubed.me/projects';
 
 /**
  * Generate a canonical URL for a project's meta social information.

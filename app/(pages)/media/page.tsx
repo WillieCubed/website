@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     title: 'Media and Art Initiatives',
     description:
       'Outside of doing research and developing software, Willie makes videos and does other creative stuff. Check out The Willie Diaries and more here.',
-    url: 'https://williecubed.me/media',
+    url: '/media',
   },
 };
 

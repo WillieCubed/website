@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     siteName: 'Willie Chalmers III',
     description:
       'Willie Chalmers III is a student studying computer science at The University of Texas at Dallas and doing research in artficial intelligence. Learn more about him and his projects here.',
-    url: 'https://williecubed.me',
+    url: '/',
     type: 'website',
     images: ['/assets/headshot.jpg'],
   },

@@ -19,7 +19,7 @@ export async function generateMetadata() {
       description: `Willie Chalmers III studies artificial intelligence. Learn more about his Learn about his ${count} personal project${
         count == 1 ? '' : 's'
       } here.`,
-      url: 'https://williecubed.me/projects',
+      url: '/projects',
     },
   };
 }

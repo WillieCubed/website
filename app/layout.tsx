@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     siteName: 'Wilie Chalmers III',
-    url: 'https://williecubed.me',
+    url: '/',
     type: 'website',
     images: ['/assets/headshot.jpg'],
   },

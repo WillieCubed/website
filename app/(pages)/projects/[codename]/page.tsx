@@ -17,13 +17,17 @@ export async function generateMetadata({
   const { codename } = params;
   try {
     const projectData = await getProject(codename);
+    const canonicalUrl = generateProjectUrl(projectData);
     return {
       title: `${projectData.name} Project Info - Willie Chalmers III`,
       description: projectData.overview,
+      alternates: {
+        canonical: canonicalUrl,
+      },
       openGraph: {
         title: projectData.name,
         description: projectData.overview,
-        url: generateProjectUrl(projectData),
+        url: canonicalUrl,
         // TODO: Choose a different image for a project
       },
     };

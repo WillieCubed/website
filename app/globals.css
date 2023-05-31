@@ -22,8 +22,8 @@
       @apply text-accent-light-1;
     }
     body {
-      @apply bg-slate-900 text-on-dark;
-      @apply scrollbar-track-slate-800;
+      @apply bg-slate-800 text-on-dark;
+      @apply scrollbar-track-slate-900;
     }
   }
 }

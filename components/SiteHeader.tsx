@@ -11,7 +11,7 @@ interface SiteHeaderProps {
 
 export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
   return (
-    <header className="mx-auto container sticky top-0 z-50 bg-light-1 dark:bg-slate-900">
+    <header className="mx-auto container sticky top-0 z-50 bg-white dark:bg-slate-900">
       <nav className="sticky top-4 md:flex mx-auto px-4 lg:my-4 lg:pb-4 pb-2 lg:py-4 text-center md:text-left justify-center md:justify-left border-4 border-black ">
         <div className="flex-grow font-bold py-2 lg:py-0 font-display text-xl">
           {showTitle && (

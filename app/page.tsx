@@ -2,7 +2,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next/types';
 
 export const metadata: Metadata = {
-  title: '', // Yes, this is intentional; see layout.tsx for template
+  title: {
+    absolute: 'Willie Chalmers III',
+  },
   description:
     'Willie Chalmers III is a student studying computer science at The University of Texas at Dallas and doing research in artficial intelligence. Learn more about him and his projects here.',
   openGraph: {

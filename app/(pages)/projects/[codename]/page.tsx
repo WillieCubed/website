@@ -19,7 +19,7 @@ export async function generateMetadata({
     const projectData = await getProject(codename);
     const canonicalUrl = generateProjectUrl(projectData);
     return {
-      title: `${projectData.name} Project Info - Willie Chalmers III`,
+      title: `${projectData.name} Project Info`,
       description: projectData.overview,
       alternates: {
         canonical: canonicalUrl,
@@ -33,7 +33,7 @@ export async function generateMetadata({
     };
   } catch (e) {
     return {
-      title: 'Unknown Project Info - Willie Chalmers III',
+      title: 'Unknown Project Info',
       description:
         "There's supposed to be a project here, but we can't seem to find the info!",
     };

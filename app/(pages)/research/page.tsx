@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { ProjectData, getProjects } from '../../../lib/projects';
 
 export const metadata: Metadata = {
-  title: 'Research Overview - Willie Chalmers III',
+  title: 'Research Overview',
   description:
     'Willie Chalmers III studies artificial intelligence. Learn more about his research here.',
   openGraph: {

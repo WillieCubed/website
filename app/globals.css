@@ -11,7 +11,7 @@
     @apply text-link;
   }
   body {
-    @apply bg-light-1 text-on-light;
+    @apply bg-surface-background text-on-light;
     @apply scrollbar-thumb-primary-dark-1 scrollbar-track-slate-300;
   }
   @media (prefers-color-scheme: dark) {

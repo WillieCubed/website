@@ -69,7 +69,11 @@ type Question = {
   description: string;
 };
 
-export type ProjectType = 'research' | 'personal';
+export type ProjectType =
+  | 'research'
+  | 'personal'
+  | 'organization'
+  | 'hackathon';
 
 export async function getProjects(): Promise<ProjectData[]> {
   return projects as ProjectData[];

@@ -51,6 +51,37 @@
     "lastUpdated": "2022-11-24T11:49:00-0500"
   },
   {
+    "codename": "hackportal",
+    "type": "organization",
+    "name": "HackPortal",
+    "collaborators": [
+      {
+        "name": "Association for Computing Machinery at UT Dallas",
+        "url": "https://acmutd.co"
+      }
+    ],
+    "subjects": [],
+    "overview": "HackPortal is a hackathon management platform built for small and large events.",
+    "questions": [],
+    "artifacts": [
+      {
+        "label": "Prodution Deployment",
+        "url": "https://ix.hackutd.co",
+        "thumbnailUrl": ""
+      },
+      {
+        "label": "Project Repository",
+        "url": "https://github.com/acmutd/hackportal",
+        "thumbnailUrl": ""
+      }
+    ],
+    "repository": "https://github.com/acmutd/hackportal",
+    "website": "https://hackportal.hackutd.co",
+    "docs": "",
+    "bundle": "",
+    "lastUpdated": "2023-10-02T10:14:00-0700"
+  },
+  {
     "codename": "storygen",
     "type": "research",
     "name": "Storygen",

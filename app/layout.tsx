@@ -11,8 +11,14 @@ const siteFont = Work_Sans({
   subsets: ['latin'],
 });
 
+const BASE_URL =
+  process.env.NODE_ENV === 'development'
+    ? `http://localhost:${process.env.PORT || 3000}`
+    : (process.env.VERCEL_ENV ?? `https://${process.env.VERCEL_ENV}`) ||
+      'https://williecubed.me';
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.VERCEL_ENV || 'https://williecubed.me'),
+  metadataBase: new URL(BASE_URL),
   title: {
     default: 'Willie Chalmers III',
     template: '%s - Willie Chalmers III',

@@ -4,8 +4,8 @@ import './globals.css';
 import Script from 'next/script';
 import type { Metadata } from 'next/types';
 
-const sansFont = Roboto({
-  weight: ['500', '700'],
+const sansFont = Work_Sans({
+  weight: ['500', '600', '700'],
   variable: '--font-sans',
   display: 'auto',
   subsets: ['latin'],

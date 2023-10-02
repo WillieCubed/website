@@ -3,7 +3,7 @@ import LinkButton from '../../../components/LinkButton';
 import ProjectList from '../../../components/ProjectList';
 import { ProjectData, getProjects } from '../../../lib/projects';
 
-const FEATURED_PROJECTS_LIMIT = 4;
+const FEATURED_PROJECTS_LIMIT = 3;
 
 export async function generateMetadata() {
   const projects = await getProjects();
@@ -24,6 +24,29 @@ export async function generateMetadata() {
   };
 }
 
+function SpotlightProjectCard({ project }: { project: ProjectData }) {
+  return (
+    <div className="h-[320px] p-6 flex flex-col justify-between bg-surface-foreground dark:bg-slate-900 border-2 border-black">
+      <div className="flex flex-col space-y-2">
+        <div className="text-label-medium">Personal Project</div>
+        <div className="text-display-medium font-display text-primary">
+          {project.name}
+        </div>
+        <div className="text-label-small font-mono">In development</div>
+      </div>
+      <div className="text-title-medium">{project.overview}</div>
+      <div className="flex flex-row space-x-4">
+        <Link
+          className="text-primary text-label-large"
+          href={`/projects/${project.codename}`}
+        >
+          Learn More
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 /**
  * A page showing off all of my projects
  *
@@ -39,6 +62,24 @@ export default async function ProjectsPage() {
 
   return (
     <main className="">
+      <section className="-mt-[100px] mb-[160px] pt-[100px] px-6 pb-4 md:grid md:grid-cols-12 md:gap-x-4 bg-maverick-500">
+        <div className="mt-16 md:col-start-1 md:col-span-12 lg:col-start-2 lg:col-span-10 space-y-4 text-on-primary">
+          <div className="text-display-medium">My Projects</div>
+          <div className="text-headline-large">
+            I build tools to help me learn and to solve problems.
+          </div>
+        </div>
+        <div className="-mb-[160px] pt-16 md:col-start-1 md:col-span-12 lg:col-start-2 lg:col-span-10 space-y-4">
+          <div className="text-headline-medium text-on-primary">
+            Spotlight Projects
+          </div>
+          <div className="columns-3">
+            <SpotlightProjectCard project={personalProjects[0]} />
+            <SpotlightProjectCard project={personalProjects[1]} />
+            <SpotlightProjectCard project={personalProjects[2]} />
+          </div>
+        </div>
+      </section>
       <section
         id="research-projects"
         className="py-[16px] lg:py-[64px] md:px-[16px] lg:grid lg:grid-cols-12 lg:px-[24px] lg:gap-x-[16px]"

@@ -108,15 +108,15 @@ const tailwindConfig = {
           },
         ],
         'body-medium': [
-          '14px',
+          '16px',
           {
-            lineHeight: '20px',
-            letterSpacing: '0.025em',
+            lineHeight: '22px',
+            letterSpacing: '0.005em',
             fontWeight: '500',
           },
         ],
         'body-small': [
-          '12px',
+          '14px',
           {
             lineHeight: '16px',
             letterSpacing: '0.04em',
@@ -127,6 +127,8 @@ const tailwindConfig = {
         maverick: {
           50: '#ECF3FF',
           100: '#D8E6FE',
+          200: '#D8E6FE',
+          300: '#8AB5FD',
           500: '#3C84FC',
           950: '#060D19',
         },
@@ -158,10 +160,16 @@ const tailwindConfig = {
           background: '#ECF3FF',
         },
         important: '#FC3C82',
-        'on-primary': '#F9F9F9',
-        'on-light': '#404040',
-        'on-secondary': '#404040',
-        'on-dark': '#FAFAFA',
+        on: {
+          'surface-foreground': '#000000',
+          primary: '#F9F9F9',
+          light: '#404040',
+          secondary: '#404040',
+          dark: '#FAFAFA',
+        },
+        emphasis: {
+          low: '#0000008C',
+        },
         dark: '#2A2A2A',
         light: {
           1: '#F2F2F2',

@@ -13,29 +13,123 @@ const tailwindConfig = {
       },
       fontSize: {
         'display-large': [
-          '48px',
+          '57px',
           {
-            lineHeight: '56px',
-            letterSpacing: '0.025em',
-            fontWeight: '700',
+            lineHeight: '64px',
+            letterSpacing: '-0.04em',
+            fontWeight: '600',
           },
         ],
         'display-medium': [
-          '34px',
+          '45px',
           {
-            lineHeight: '40px',
+            lineHeight: '52px',
+            letterSpacing: '-0.04em',
             fontWeight: '600',
           },
         ],
         'display-small': [
+          '36px',
+          {
+            lineHeight: '44px',
+            letterSpacing: '-0.04em',
+            fontWeight: '600',
+          },
+        ],
+        'headline-large': [
+          '32px',
+          {
+            lineHeight: '40px',
+            letterSpacing: '-0.025em',
+            fontWeight: '700',
+          },
+        ],
+        'headline-medium': [
+          '28px',
+          {
+            lineHeight: '36px',
+            letterSpacing: '-0.025em',
+            fontWeight: '600',
+          },
+        ],
+        'headline-small': [
           '24px',
           {
+            lineHeight: '32px',
+            letterSpacing: '-0.025em',
+            fontWeight: '600',
+          },
+        ],
+        'title-large': [
+          '22px',
+          {
             lineHeight: '28px',
-            fontWeight: '700',
+            fontWeight: '600',
+          },
+        ],
+        'title-medium': [
+          '16px',
+          {
+            lineHeight: '24px',
+            letterSpacing: '0.015em',
+            fontWeight: '500',
+          },
+        ],
+        'title-small': [
+          '14px',
+          {
+            letterSpacing: '0.01em',
+            lineHeight: '20px',
+            fontWeight: '500',
+          },
+        ],
+        'label-large': [
+          '14px',
+          {
+            lineHeight: '20px',
+            letterSpacing: '0.01em',
+            fontWeight: '600',
+          },
+        ],
+        'label-medium': [
+          '12px',
+          {
+            lineHeight: '16px',
+            letterSpacing: '0.05em',
+            fontWeight: '600',
+          },
+        ],
+        'label-small': [
+          '11px',
+          {
+            lineHeight: '16px',
+            letterSpacing: '0.025em',
+            fontWeight: '600',
+          },
+        ],
+        'body-medium': [
+          '14px',
+          {
+            lineHeight: '20px',
+            letterSpacing: '0.025em',
+            fontWeight: '500',
+          },
+        ],
+        'body-small': [
+          '12px',
+          {
+            lineHeight: '16px',
+            letterSpacing: '0.04em',
           },
         ],
       },
       colors: {
+        maverick: {
+          50: '#ECF3FF',
+          100: '#D8E6FE',
+          500: '#3C84FC',
+          950: '#060D19',
+        },
         primary: {
           'light-1': '#5E98FD',
           DEFAULT: '#3C84FC',
@@ -56,6 +150,13 @@ const tailwindConfig = {
           'dark-2': '#4760FF',
           'dark-3': '#4157E8',
         },
+        surface: {
+          foreground: {
+            DEFAULT: '#FFFFFF',
+            alt: '#D8E6FE',
+          },
+          background: '#ECF3FF',
+        },
         important: '#FC3C82',
         'on-primary': '#F9F9F9',
         'on-light': '#404040',
@@ -70,9 +171,18 @@ const tailwindConfig = {
         },
         link: '#3324BB',
       },
+      screens: {
+        tablet: '640px',
+        // => @media (min-width: 640px) { ... }
+
+        tablet: '768px',
+
+        desktop: '1280px',
+        // => @media (min-width: 1280px) { ... }
+      },
     },
   },
-  plugins: [require('tailwind-scrollbar')],
+  plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar')],
 };
 
 module.exports = tailwindConfig;

@@ -16,25 +16,18 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="">
-      <section className="-mt-[100px] pt-40 md:grid md:grid-cols-12 p-16 xl:px-24 bg-maverick-300">
+      <section className="-mt-[100px] pt-40 md:grid md:grid-cols-12 p-16 xl:px-24 md:gap-x-4 bg-maverick-300">
         <div className="lg:col-start-3 col-span-4 space-y-8">
-          <div className="text-display-medium">Hey there!</div>
-          <div className="text-headline-small">
+          <div className="text-display-medium text-center md:text-left">Hey there!</div>
+          <div className="text-headline-small text-center md:text-left">
             You're probably looking for something.
             <br />
             Let me help.
           </div>
         </div>
       </section>
-      <main className="p-16 md:grid md:grid-cols-12 xl:px-24 md:gap-x-4">
-        <section className="md:col-start-3 md:col-span-4 space-y-6">
-          <div className="space-y-4">
-            <h1 className="text-title-large">Want to talk to me online?</h1>
-            <p className="text-body-medium">
-              Find me on your preferred social media platform. I&apos;ll likely
-              respond within a few hours.
-            </p>
-          </div>
+      <main className="px-4 py-6 md:p-16 md:grid md:grid-cols-12 xl:px-24 md:gap-x-4 space-y-8 md:space-y-0">
+        <section className="md:col-start-3 md:col-span-4 space-y-8">
           <div className="space-y-4">
             <h1 className="text-title-large">
               Reaching out with an opportunity?
@@ -45,6 +38,13 @@ export default function ContactPage() {
                 LinkedIn
               </Link>{' '}
               or <Link href="mailto:hello@williecubed.me">email me</Link>.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-title-large">Want to have a chat with me online?</h1>
+            <p className="text-body-medium">
+              Find me on your preferred social media platform. I&apos;ll likely
+              respond within a few hours.
             </p>
           </div>
           <div className="space-y-4">

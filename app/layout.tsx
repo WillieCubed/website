@@ -19,10 +19,13 @@ const displayFont = Work_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.VERCEL_ENV || 'https://williecubed.me'),
   title: {
     default: 'Willie Chalmers III',
     template: '%s - Willie Chalmers III',
   },
+  description:
+    'Willie Chalmers III is a recent graduate of computer science from The University of Texas at Dallas. Learn more about him and his projects here.',
   openGraph: {
     siteName: 'Wilie Chalmers III',
     url: '/',

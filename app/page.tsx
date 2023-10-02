@@ -89,7 +89,7 @@ export default function LandingPage() {
                 <li>
                   <Link href="/now">See what I&apos;m working on</Link>
                 </li>
-                {/* <li>
+                <li>
                   <Link href="/about">Learn more about me</Link>
                 </li>
                 <li>
@@ -97,7 +97,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link href="/contact">Contact me</Link>
-                </li> */}
+                </li>
               </ul>
             </div>
           </section>

@@ -40,12 +40,12 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
             />
             <Script id="google-analytics" strategy="afterInteractive">
               {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            
-            gtag('config', '${process.env.NEXT_PUBLIC_GTAG_ID}');
-            `}
+                window.dataLayer = window.dataLayer || [];
+                function gtag() { dataLayer.push(arguments); }
+                gtag('js', new Date());
+                
+                gtag('config', '${process.env.NEXT_PUBLIC_GTAG_ID}');
+              `}
             </Script>
           </>
         )}

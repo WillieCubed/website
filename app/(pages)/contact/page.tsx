@@ -18,7 +18,9 @@ export default function ContactPage() {
     <div className="">
       <section className="-mt-[100px] pt-40 md:grid md:grid-cols-12 p-16 xl:px-24 md:gap-x-4 bg-maverick-300">
         <div className="lg:col-start-3 col-span-4 space-y-8">
-          <div className="text-display-medium text-center md:text-left">Hey there!</div>
+          <div className="text-display-medium text-center md:text-left">
+            Hey there!
+          </div>
           <div className="text-headline-small text-center md:text-left">
             You're probably looking for something.
             <br />
@@ -41,7 +43,9 @@ export default function ContactPage() {
             </p>
           </div>
           <div className="space-y-4">
-            <h1 className="text-title-large">Want to have a chat with me online?</h1>
+            <h1 className="text-title-large">
+              Want to have a chat with me online?
+            </h1>
             <p className="text-body-medium">
               Find me on your preferred social media platform. I&apos;ll likely
               respond within a few hours.

@@ -1,19 +1,12 @@
 import React from 'react';
-import { Roboto, Work_Sans } from 'next/font/google';
+import { Work_Sans } from 'next/font/google';
 import './globals.css';
 import Script from 'next/script';
 import type { Metadata } from 'next/types';
 
-const sansFont = Work_Sans({
+const siteFont = Work_Sans({
   weight: ['500', '600', '700'],
-  variable: '--font-sans',
-  display: 'auto',
-  subsets: ['latin'],
-});
-
-const displayFont = Work_Sans({
-  weight: ['500', '600', '700'],
-  variable: '--font-display',
+  variable: '--font-default',
   display: 'auto',
   subsets: ['latin'],
 });
@@ -36,9 +29,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: React.PropsWithChildren) {
   return (
-    <html lang="en" className={`${sansFont.variable} ${displayFont.variable}`}>
+    <html lang="en">
       <head />
-      <body className={'min-h-screen scrollbar-thin '}>
+      <body className={`min-h-screen scrollbar-thin ${siteFont.className}`}>
         {process.env.NODE_ENV === 'production' && (
           <>
             <Script

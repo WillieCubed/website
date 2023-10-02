@@ -8,8 +8,8 @@ const tailwindConfig = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-sans)', 'Roboto', 'system-ui'],
-        display: ['var(--font-display)', 'Work Sans', 'ui-sans-serif'],
+        sans: ['var(--font-default)', 'Work Sans', 'system-ui'],
+        display: ['var(--font-default)', 'Work Sans', 'ui-sans-serif'],
       },
       fontSize: {
         'display-large': [

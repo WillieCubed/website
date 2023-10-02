@@ -8,6 +8,8 @@ import ProjectSubjectTag from './ProjectSubjectTag';
 const PROJECT_TYPE_MAP: Record<ProjectType, string> = {
   research: 'Research Project',
   personal: 'Personal Project',
+  organization: 'Team Project',
+  hackathon: 'Hackathon Project',
 };
 
 interface ProjectCardProps extends ProjectData {

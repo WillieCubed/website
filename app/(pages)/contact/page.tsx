@@ -22,7 +22,7 @@ export default function ContactPage() {
             Hey there!
           </div>
           <div className="text-headline-small text-center md:text-left">
-            You're probably looking for something.
+            You&apos;re probably looking for something.
             <br />
             Let me help.
           </div>

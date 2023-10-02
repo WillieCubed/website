@@ -80,7 +80,7 @@ export default function ProjectCard({
         <div className="uppercase font-bold font-display text-sm">
           {typeLabel}
         </div>
-        <div className="mt-2 font-display text-display-large text-primary">
+        <div className="mt-2 font-display text-headline-large text-primary">
           {name}
         </div>
       </div>

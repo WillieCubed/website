@@ -18,7 +18,7 @@ const BASE_URL =
     'https://williecubed.me';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
+  metadataBase: new URL('https://williecubed.me/'),
   title: {
     default: 'Willie Chalmers III',
     template: '%s - Willie Chalmers III',

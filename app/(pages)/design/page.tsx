@@ -31,7 +31,7 @@ export default async function DesignPortfolioPage() {
         <div className="mt-16 md:col-start-1 md:col-span-12 lg:col-start-2 lg:col-span-10 space-y-4 text-on-primary">
           <div className="text-display-medium">Design</div>
           <div className="text-headline-large">
-            Sometimes it's easier to make a mockup than to write code.
+            Sometimes it&apos;s easier to make a mockup than to write code.
           </div>
         </div>
       </section>

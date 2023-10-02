@@ -14,8 +14,8 @@ const siteFont = Work_Sans({
 const BASE_URL =
   process.env.NODE_ENV === 'development'
     ? `http://localhost:${process.env.PORT || 3000}`
-    : (process.env.VERCEL_ENV ?? `https://${process.env.VERCEL_ENV}`) ||
-      'https://williecubed.me';
+    : (process.env.VERCEL_ENV ?? `https://${process.env.VERCEL_URL}`) ||
+    'https://williecubed.me';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

@@ -111,8 +111,8 @@ const tailwindConfig = {
           '16px',
           {
             lineHeight: '22px',
-            letterSpacing: '0.005em',
-            fontWeight: '500',
+            letterSpacing: '0.0025em',
+            fontWeight: '400',
           },
         ],
         'body-small': [

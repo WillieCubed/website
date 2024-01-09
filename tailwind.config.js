@@ -7,6 +7,16 @@ const tailwindConfig = {
   ],
   theme: {
     extend: {
+      spacing: {
+        '2xs': '0.25rem',
+        xs: '0.25rem',
+        sm: '0.5rem',
+        md: '0.75rem',
+        lg: '1rem',
+        xl: '1.5rem',
+        '2xl': '2rem',
+        '3xl': '3rem',
+      },
       fontFamily: {
         sans: ['var(--font-default)', 'Work Sans', 'system-ui'],
         display: ['var(--font-default)', 'Work Sans', 'ui-sans-serif'],
@@ -129,7 +139,12 @@ const tailwindConfig = {
           100: '#D8E6FE',
           200: '#D8E6FE',
           300: '#8AB5FD',
+          400: '#639DFD',
           500: '#3C84FC',
+          600: '#306ACA',
+          700: '#244F97',
+          800: '#183565',
+          900: '#0C1A32',
           950: '#060D19',
         },
         primary: {
@@ -156,12 +171,14 @@ const tailwindConfig = {
           foreground: {
             DEFAULT: '#FFFFFF',
             alt: '#D8E6FE',
+            dark: '#183565',
           },
           background: '#ECF3FF',
         },
         important: '#FC3C82',
         on: {
-          'surface-foreground': '#000000',
+          'surface-foreground': '#0C1A32',
+          'surface-foreground-dark': '#ECF3FF',
           primary: '#F9F9F9',
           light: '#404040',
           secondary: '#404040',

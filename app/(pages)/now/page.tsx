@@ -21,8 +21,8 @@ function NowItem({ date, children }: React.PropsWithChildren<NowItemData>) {
 export default function NowPage() {
   return (
     <div className="min-h-[75vh]">
-      <main className="p-4 lg:grid lg:grid-cols-12 lg:gap-x-4">
-        <div className="mt-8 mb-8 row-span-1 col-start-1 lg:col-start-3 xl:col-start-4 lg:col-span-8 xl:col-span-6">
+      <main className="p-4 gridded max-w-breakpoint-2xl mx-auto">
+        <div className="mt-8 mb-8 tablet:row-span-1 tablet:col-start-2 tablet:col-span-8">
           <div className="text-display-medium font-display">
             What I&apos;m Doing Now
           </div>
@@ -77,7 +77,7 @@ export default function NowPage() {
         </section>
         <section
           id="later"
-          className="py-4 row-span-1 col-start-1 lg:col-start-3 xl:col-start-4 lg:col-span-8 xl:col-span-6"
+          className="py-4 tablet:row-span-1 tablet:col-start-2 tablet:col-span-8"
         >
           <h1 className="text-title-large">Later</h1>
           <ul className="mt-2 space-y-2">

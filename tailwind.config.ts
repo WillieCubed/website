@@ -1,5 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-const tailwindConfig = {
+import type { Config } from 'tailwindcss';
+
+const tailwindConfig: Config = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx}',
     './components/**/*.{js,ts,jsx,tsx}',
@@ -204,7 +205,6 @@ const tailwindConfig = {
       },
       screens: {
         tablet: '640px',
-        tablet: '768px',
         desktop: '1280px',
         'large-desktop': '1440px',
       },
@@ -213,4 +213,4 @@ const tailwindConfig = {
   plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar')],
 };
 
-module.exports = tailwindConfig;
+export default tailwindConfig;

@@ -19,6 +19,8 @@ function getWidthCss(path: string) {
     return 'tablet:col-start-2 tablet:col-span-10';
   }
   switch (path) {
+    case '/404':
+      return 'max-w-breakpoint-lg mx-auto';
     case '/now':
       return 'tablet:col-start-4 tablet:col-span-6';
     case '/research':
@@ -33,10 +35,16 @@ function getWidthCss(path: string) {
 
 function shouldEnableGrid(path: string) {
   switch (path) {
+    case '/now':
+    case '/research':
+    case '/design':
+    case '/projects':
+      return true;
+    case '/404':
     case '/':
+    default:
       return false;
   }
-  return true;
 }
 
 function getLayoutClass(path: string) {

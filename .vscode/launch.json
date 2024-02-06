@@ -2,13 +2,13 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Webtite (Server Side)",
+      "name": "Debug Webite (Server Side)",
       "type": "node-terminal",
       "request": "launch",
       "command": "npm run dev"
     },
     {
-      "name": "Debug Webtite (Client Side)",
+      "name": "Debug Webite (Client Side)",
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000"

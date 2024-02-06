@@ -1,7 +1,8 @@
 import withMDX from '@next/mdx';
-import type { NextConfig } from 'next/types';
+// import type { NextConfig } from 'next/types';
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
@@ -9,11 +10,13 @@ const nextConfig: NextConfig = {
         hostname: 'lh3.googleusercontent.com',
       },
       {
-        protocol: 'https',
         hostname: 'cdn.dribbble.com',
       },
       {
         hostname: 'i.scdn.co',
+      },
+      {
+        hostname: 'picsum.photos',
       },
     ],
   },

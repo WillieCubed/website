@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",
@@ -32,6 +32,8 @@
     "@types/date-fns": "^2.6.0",
     "@types/node": "20.11.16",
     "@types/react": "18.2.54",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "autoprefixer": "^10.4.17",
     "cross-env": "^7.0.3",
     "eslint": "8.56.0",

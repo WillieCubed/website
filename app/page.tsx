@@ -47,8 +47,8 @@ export default async function LandingPage() {
   return (
     <div className="p-lg pb-2xl desktop:pb-[128px]">
       <main className="max-w-breakpoint-2xl mx-auto tablet:grid tablet:grid-cols-8 tablet:gap-lg">
-        <div className="hero-fold h-full tablet:col-span-5">
-          <section className="md:px-4 md:col-start-1 md:col-end-10 lg:col-start-3 xl:col-end-11">
+        <div className="hero-fold flex flex-col h-full tablet:col-span-6">
+          <section className="flex-grow">
             <div className="mt-[96px] space-y-4">
               <div className="text-display-medium font-display">Hello!</div>
               <div className="text-display-medium font-display">
@@ -95,7 +95,7 @@ export default async function LandingPage() {
               </div>
             </div>
           </section>
-          <section className="mt-8 lg:mt-24 md:col-span-5" id="spotlight">
+          <section className="mt-8" id="spotlight">
             <div className="flex px-3 py-4 items-center gap-x-3 self-stretch">
               <FeaturedWorkIcon />
               <h1 className="text-headline-small font-bold font-display">
@@ -185,7 +185,7 @@ export default async function LandingPage() {
             </div>
           </section>
         </div>
-        <section id="projects" className="md:col-span-5">
+        <section id="projects" className="tablet:col-span-6">
           <div className="flex px-4 py-4 items-center gap-x-3 self-stretch">
             <FeaturedProjectsIcon />
             <h1 className="text-headline-small font-bold font-display">
@@ -198,7 +198,7 @@ export default async function LandingPage() {
           </div>
         </section>
         {shouldShowWritings && (
-          <section id="writings" className="md:col-span-5">
+          <section id="writings" className="tablet:col-span-6">
             <div className="flex px-4 py-4 items-center gap-x-3 self-stretch">
               <NotesIcon />
               <h1 className="text-headline-small font-bold font-display">

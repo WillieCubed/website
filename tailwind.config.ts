@@ -206,7 +206,7 @@ const tailwindConfig: Config = {
       screens: {
         tablet: '640px',
         desktop: '1280px',
-        'large-desktop': '1440px',
+        'desktop-large': '1440px',
       },
     },
   },

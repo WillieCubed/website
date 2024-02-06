@@ -33,11 +33,13 @@ function getWidthCss(path: string) {
 }
 
 function shouldEnableGrid(path: string) {
+  if (path.startsWith('/projects')) {
+    return true;
+  }
   switch (path) {
     case '/now':
     case '/research':
     case '/design':
-    case '/projects':
       return true;
     case '/404':
     case '/':
@@ -64,10 +66,10 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
 
   return (
     <header
-      className={`print:block ${getLayoutClass(path)} sticky top-0 z-50 px-lg large-desktop:p-0`}
+      className={`print:block ${getLayoutClass(path)} sticky top-0 z-50 px-lg desktop-large:p-0`}
     >
       <nav
-        className={`h-[64px] sticky top-4 mt-4 flex align-middle ${width} p-sm tablet:p-lg text-center tablet:text-left items-start tablet:justify-between border-2 border-black bg-white dark:bg-slate-900`}
+        className={`bordered h-[64px] sticky top-4 mt-4 flex align-middle ${width} p-sm tablet:p-lg text-center tablet:text-left items-start tablet:justify-between bg-white dark:bg-slate-900 transition`}
       >
         <div className="flex-grow font-bold font-display text-xl">
           {showTitle && (

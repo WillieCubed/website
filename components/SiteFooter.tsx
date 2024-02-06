@@ -18,12 +18,12 @@ export default function SiteFooter({
   // spotifyAccessToken: accessToken,
 }: SiteFooterProps) {
   return (
-    <footer className="bg-white text-on-light dark:bg-slate-900 dark:text-slate-300 border-t-2 border-black dark:border-slate-500/50">
-      <div className="max-w-breakpoint-2xl mx-auto space-y-4 lg:space-y-0 tablet:grid lg:grid-cols-8 tablet:px-lg py-16 print:py-lg px-lg gap-x-lg">
-        <div className="row-start-1 col-start-1 lg:col-start-1 tablet:col-span-3 h-full flex flex-col justify-between">
+    <footer className="bg-white text-on-light dark:bg-slate-900 dark:text-slate-300 bordered-t dark:border-slate-500/50">
+      <div className="max-w-breakpoint-2xl mx-auto space-y-lg tablet:space-y-0 tablet:grid desktop:grid-cols-8 tablet:px-lg py-16 print:py-lg px-lg gap-x-lg">
+        <div className="row-start-1 col-start-1 desktop:col-start-1 tablet:col-span-3 h-full flex flex-col justify-between">
           <div
             id="tagline"
-            className="text-headline-small pb-12 print:pb-0 tablet:mb-0 lg:text-headline-medium text-center lg:text-left font-display"
+            className="text-headline-small pb-12 print:pb-0 tablet:mb-0 desktop:text-headline-medium text-center tablet:text-left font-display"
           >
             {tagline}
           </div>
@@ -31,7 +31,7 @@ export default function SiteFooter({
             {/* <NowPlayingWidget accessToken={accessToken} /> */}
           </div>
         </div>
-        <div className="print:hidden tablet:flex row-start-2 tablet:row-start-1 tablet:col-span-5">
+        <div className="print:hidden tablet:flex row-start-2 desktop:row-start-1 tablet:col-span-4 desktop:col-span-5">
           <div className="flex-1 mt-lg tablet:mt-0">
             <div className="text-title-large font-display">My Work</div>
             <div className="mt-4">
@@ -189,7 +189,7 @@ export default function SiteFooter({
         </div>
       </div>
       <div
-        className="px-4 py-2 text-center text-sm bg-primary-light-1 text-on-primary dark:text-on-dark dark:bg-blue-900 cursor-pointer font-display"
+        className="px-lg py-sm text-center text-sm bg-primary-light-1 text-on-primary dark:text-on-dark dark:bg-blue-900 cursor-pointer font-display"
         title="It took nearly half a decade, but it's better than nothing."
       >
         Built with great patience by Willie.

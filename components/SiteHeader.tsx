@@ -16,17 +16,16 @@ interface SiteHeaderProps {
 
 function getWidthCss(path: string) {
   if (path.startsWith('/projects')) {
-    return 'tablet:col-start-2 tablet:col-span-10';
+    return 'tablet:col-start-1 tablet:col-span-8';
   }
   switch (path) {
+    case '/design':
+    case '/research':
+      return 'tablet:col-start-2 tablet:col-span-6';
+    case '/now':
+      return 'tablet:col-start-3 tablet:col-span-4';
     case '/404':
       return 'max-w-breakpoint-lg mx-auto';
-    case '/now':
-      return 'tablet:col-start-4 tablet:col-span-6';
-    case '/research':
-    case '/design':
-    case '/projects':
-      return 'tablet:col-start-2 tablet:col-span-10';
     case '/':
     default:
       return 'max-w-breakpoint-2xl mx-auto';
@@ -49,7 +48,7 @@ function shouldEnableGrid(path: string) {
 
 function getLayoutClass(path: string) {
   return shouldEnableGrid(path)
-    ? 'tablet:grid tablet:grid-cols-12 tablet:gap-x-4'
+    ? 'max-w-breakpoint-2xl mx-auto tablet:grid tablet:grid-cols-8 tablet:gap-x-4'
     : '';
 }
 

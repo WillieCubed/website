@@ -32,7 +32,9 @@ export default function AppsPage() {
             icon={logdateIcon}
           />
         </div>
-        <div className="mt-12 text-title-medium text-center">More to come later!</div>
+        <div className="mt-12 text-title-medium text-center">
+          More to come later!
+        </div>
       </section>
     </div>
   );
@@ -76,7 +78,10 @@ function AppCard({
   });
   return (
     <div className="border-2 border-black bg-surface-foreground">
-      <a className="block md:flex p-6 text-center text-on-light" href="https://logdate.app">
+      <a
+        className="block md:flex p-6 text-center text-on-light"
+        href="https://logdate.app"
+      >
         <Image
           className="rounded-2xl aspect-square object-cover"
           src={icon}

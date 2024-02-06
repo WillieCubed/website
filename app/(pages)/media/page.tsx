@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import LinkButton from '../../../components/LinkButton';
+import LinkButton from '../../../components/OldLinkButton';
 
 export const metadata: Metadata = {
   title: 'Media and Art - Willie Chalmers III',

@@ -1,33 +1,17 @@
-import Link, { LinkProps } from 'next/link';
+import LinkedObjectWrapper from './LinkedObjectWrapper';
 
-interface LinkButtonProps
-  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps>,
-    React.RefAttributes<HTMLAnchorElement>,
-    LinkProps {
+interface LinkButtonProps {
   href: string;
-  variant?: 'primary' | 'secondary';
+  icon?: JSX.Element;
+  label: string;
 }
-
-/**
- * A custom link button that supports multiple styles.
- */
-export default function LinkButton({
-  href,
-  variant = 'primary',
-  children,
-  ...linkProps
-}: React.PropsWithChildren<LinkButtonProps>) {
+export function LinkButton({ href, icon, label }: LinkButtonProps) {
   return (
-    <Link
-      {...linkProps}
-      href={href}
-      className={`inline-block p-[12px] border-black border-4 font-semibold font-display text-2xl fancy-shadow-hover transition ${
-        variant === 'primary'
-          ? 'bg-primary-dark-2 text-white hover:text-white'
-          : 'bg-secondary-dark-1 text-white hover:text-white'
-      }`}
-    >
-      {children}
-    </Link>
+    <LinkedObjectWrapper href={href}>
+      <div className="flex align-middle gap-x-sm">
+        <span>{label}</span>
+        {icon}
+      </div>
+    </LinkedObjectWrapper>
   );
 }

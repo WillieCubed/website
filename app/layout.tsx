@@ -1,8 +1,10 @@
 import React from 'react';
 import { Work_Sans } from 'next/font/google';
-import './globals.css';
 import Script from 'next/script';
 import type { Metadata } from 'next/types';
+import GeneralLayout from '../components/layouts/GeneralLayout';
+import { randomlyChooseTagline } from '../lib/enhancements';
+import './globals.css';
 
 const siteFont = Work_Sans({
   weight: ['500', '600', '700'],
@@ -15,7 +17,7 @@ const BASE_URL =
   process.env.NODE_ENV === 'development'
     ? `http://localhost:${process.env.PORT || 3000}`
     : (process.env.VERCEL_ENV ?? `https://${process.env.VERCEL_URL}`) ||
-    'https://williecubed.me';
+      'https://williecubed.me';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://williecubed.me/'),
@@ -33,7 +35,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: React.PropsWithChildren) {
+export default async function RootLayout({
+  children,
+}: React.PropsWithChildren) {
+  const footerTagline = randomlyChooseTagline();
+  // const accessToken = /* await get<string>('spotify_access_token') || */ '';
+
   return (
     <html lang="en">
       <head />
@@ -55,7 +62,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
             </Script>
           </>
         )}
-        {children}
+        <GeneralLayout tagline={footerTagline}>{children}</GeneralLayout>
       </body>
     </html>
   );

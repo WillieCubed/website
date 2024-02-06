@@ -1,82 +1,28 @@
-import projects from '../data/projects.json';
+import { join } from 'path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { serialize } from 'next-mdx-remote/serialize';
+import { parseISO } from 'date-fns';
+import { ProjectData } from './common';
 
-export type ProjectData = {
-  codename: string;
-  type: ProjectType;
-  name: string;
-  collaborators: Collaboator[];
-  subjects: string[];
-  /**
-   * A brief description of the project.
-   */
-  overview: string;
-  questions: Question[];
-  artifacts: ProjectArtifact[];
-  repository?: string;
-  /**
-   * @deprecated Use `artifacts` instead.
-   */
-  website: string;
-  /**
-   * @deprecated This field isn't used anymore.
-   */
-  docs: string;
-  bundle: string;
-  lastUpdated: string;
-};
+const projectsDirectory = join(process.cwd(), 'content/projects');
 
-type Collaboator = {
-  name: string;
-  url?: string;
-};
+const HIDDEN_ITEM_PREFIX = '_';
 
-type ProjectArtifact = {
-  type: ArtifactType;
-  /**
-   * A brief descriptor for this artifact.
-   *
-   * @example Code on GitHub
-   */
-  label: string;
-
-  /**
-   * An external link to the resource.
-   */
-  url: string;
-
-  /**
-   * An optional thumbnail.
-   *
-   * If this isn't provided, the UI should display a placeholder image.
-   */
-  thumbnailUrl?: string;
-};
-
-export type ArtifactType = (string & 'code') | 'website' | '';
-
-type Question = {
-  /**
-   * A unique hyphen-separated word or phrase used to identify this project.
-   */
-  codename: string;
-  /**
-   * The raw question text.
-   */
-  content: string;
-  /**
-   * Expanded information about the question.
-   */
-  description: string;
-};
-
-export type ProjectType =
-  | 'research'
-  | 'personal'
-  | 'organization'
-  | 'hackathon';
-
-export async function getProjects(): Promise<ProjectData[]> {
-  return projects as ProjectData[];
+/**
+ * Fetches the slugs (codenames) of all projects.
+ *
+ * All projects must be extended markdown (.mdx) files. This excludes any
+ * projects or files that are hidden (i.e. start with an underscore
+ * {@see HIDDEN_ITEM_PREFIX }).
+ *
+ * @returns The codenames of all non-hidden projects
+ */
+export async function getProjectSlugs(): Promise<string[]> {
+  const slugs = readdirSync(projectsDirectory)
+    .filter((file) => file.endsWith('.mdx')) // Only include MDX files
+    .filter((file) => !file.startsWith(HIDDEN_ITEM_PREFIX)) // Remove special files, including template files
+    .map((file) => file.replace(/\.mdx$/, '')); // Remove the .mdx file extension
+  return slugs;
 }
 
 /**
@@ -86,13 +32,61 @@ export async function getProjects(): Promise<ProjectData[]> {
  *
  * @returns The corresponding project data.
  */
-export async function getProject(codename: string): Promise<ProjectData> {
-  const projects = await getProjects();
-  const projectData = projects.find((project) => project.codename === codename);
-  if (!projectData) {
+export async function getProject(codename: string) {
+  const slugIndex = (await getProjectSlugs()).findIndex(
+    (project) => project === codename
+  );
+  if (slugIndex == -1) {
     throw new Error(
       `Project with given codename "${codename}" cannot be found.`
     );
   }
-  return projectData;
+
+  const posthFilePath = join(projectsDirectory, `${codename}.mdx`);
+  const source = readFileSync(posthFilePath);
+  const mdxSource = await serialize(source, {
+    parseFrontmatter: true,
+  });
+  const project: ProjectData = {
+    ...(mdxSource.frontmatter as ProjectData),
+    launched: mdxSource.frontmatter.launched as Date,
+  };
+  return { mdxSource, project };
+}
+
+/**
+ *
+ * @returns All projects
+ */
+export async function getAllProjects() {
+  const slugs = await getProjectSlugs();
+  const projects = await Promise.all(
+    slugs.map(async (slug) => {
+      const { project } = await getProject(slug);
+      return project;
+    })
+  );
+  return projects;
+}
+
+export const FEATURED_LIST: string[] = ['hackportal', 'connie'];
+
+export async function getFeaturedProjects(): Promise<ProjectData[]> {
+  const projects = await getAllProjects();
+  const featuredProjects = projects.filter((project) => {
+    return FEATURED_LIST.includes(project.codename);
+  });
+  return projects;
+}
+
+export async function getFeaturedWork() {
+  return {
+    type: 'Client Work', // 'Research', 'Personal Projects', 'Client Work', 'Design', 'Other
+    projectId: 'connie',
+    title: 'Connie',
+    tagline:
+      'A real-time communications center that keeps nonprofits in touch with older American adults.',
+    description: 'Built for the American Society on Aging',
+    timePeriod: 'October 2023–now',
+  };
 }

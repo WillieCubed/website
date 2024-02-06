@@ -7,6 +7,12 @@ const tailwindConfig = {
   ],
   theme: {
     extend: {
+      maxWidth: {
+        'breakpoint-md': '640px', // Tablet
+        'breakpoint-lg': '1024px',
+        'breakpoint-xl': '1280px', // Large laptop
+        'breakpoint-2xl': '1440px', // Desktop
+      },
       spacing: {
         '2xs': '0.25rem',
         xs: '0.25rem',
@@ -198,12 +204,9 @@ const tailwindConfig = {
       },
       screens: {
         tablet: '640px',
-        // => @media (min-width: 640px) { ... }
-
         tablet: '768px',
-
         desktop: '1280px',
-        // => @media (min-width: 1280px) { ... }
+        'large-desktop': '1440px',
       },
     },
   },

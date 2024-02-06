@@ -3,27 +3,71 @@
 @tailwind utilities;
 
 @layer base {
-  a {
-    @apply text-accent;
-    @apply transition ease-in-out;
+  /* Core theme styles */
+
+  .surface {
+    @apply bg-surface-background;
+    @apply text-on-surface-foreground;
   }
-  a:hover {
-    @apply text-link;
+
+  .surface-alt {
+    @apply bg-maverick-200;
+    @apply text-on-surface-foreground;
   }
+
+  .bordered {
+    @apply border-2;
+    @apply border-on-surface-foreground;
+  }
+
+  /* Other site styles */
+
+  .icon-link {
+    @apply text-on-surface-foreground;
+  }
+
+  .hero {
+    @apply bg-maverick-500;
+    @apply text-on-primary;
+  }
+
   body {
     @apply bg-surface-background text-on-light;
     @apply scrollbar-thumb-primary-dark-1 scrollbar-track-slate-300;
   }
+
   @media (prefers-color-scheme: dark) {
-    a {
-      @apply text-on-dark;
+    /* Core theme styles */
+
+    .bordered {
+      @apply border-2;
+      @apply border-on-surface-foreground;
     }
-    a:hover {
-      @apply text-accent-light-1;
+
+    .surface {
+      @apply bg-maverick-800;
+      @apply text-on-surface-foreground-dark;
     }
+
+    .surface-alt {
+      @apply bg-maverick-900;
+      @apply text-on-surface-foreground-dark;
+    }
+
     body {
       @apply bg-slate-800 text-on-dark;
       @apply scrollbar-track-slate-900;
+    }
+
+    /* Other site styles */
+
+    .icon-link {
+      @apply text-on-surface-foreground-dark;
+    }
+
+    .hero {
+      @apply bg-maverick-700;
+      @apply text-on-primary;
     }
   }
 }

@@ -69,7 +69,7 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
       className={`print:block ${getLayoutClass(path)} sticky top-0 z-50 px-lg desktop-large:p-0`}
     >
       <nav
-        className={`bordered h-[64px] sticky top-4 mt-4 flex align-middle ${width} p-sm tablet:p-lg text-center tablet:text-left items-start tablet:justify-between bg-white dark:bg-slate-900 transition`}
+        className={`bordered h-[64px] sticky top-4 mt-4 flex align-middle ${width} p-sm tablet:p-lg text-center tablet:text-left items-start tablet:justify-between bg-surface-foreground dark:bg-surface-foreground-dark transition`}
       >
         <div className="flex-grow font-bold font-display text-xl">
           {showTitle && (

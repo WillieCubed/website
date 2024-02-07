@@ -20,6 +20,22 @@
     @apply border-on-surface-foreground;
   }
 
+  .bordered-b {
+    @apply border-b-2;
+    @apply border-on-surface-foreground;
+  }
+
+  .bordered-t {
+    @apply border-t-2;
+    @apply border-on-surface-foreground;
+  }
+
+  .gridded {
+    @apply gap-x-lg;
+    @apply tablet:grid;
+    @apply tablet:grid-cols-8;
+  }
+
   /* Other site styles */
 
   .icon-link {

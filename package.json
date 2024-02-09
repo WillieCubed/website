@@ -17,6 +17,7 @@
     "@mdx-js/react": "^3.0.0",
     "@next/mdx": "^14.1.0",
     "@vercel/edge-config": "^0.4.1",
+    "@vercel/speed-insights": "^1.0.9",
     "date-fns": "^3.3.1",
     "framer-motion": "^11.0.3",
     "gray-matter": "^4.0.3",

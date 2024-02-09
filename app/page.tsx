@@ -196,7 +196,7 @@ export default async function LandingPage() {
           </div>
           <div className="space-y-md">
             <FeaturedProjectsList projects={featuredProjects} />
-            <LinkButton href={''} label="See the rest" icon={<></>} />
+            <LinkButton href="/projects" label="See the rest" icon={<></>} />
           </div>
         </section>
         {shouldShowWritings && (

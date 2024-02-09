@@ -30,7 +30,6 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.10",
-    "@types/date-fns": "^2.6.0",
     "@types/node": "20.11.16",
     "@types/react": "18.2.54",
     "@typescript-eslint/eslint-plugin": "^6.21.0",

@@ -1,7 +1,7 @@
 'use client';
 
 import { MDXRemote } from 'next-mdx-remote';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, ReactNode } from 'react';
 import Features from '../../../../components/projects/FeatureList';
 
 const mdxComponentsMap = {
@@ -14,6 +14,11 @@ const mdxComponentsMap = {
     <h2 className="text-title-medium font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
       {children}
     </h2>
+  ),
+  h3: ({ children }: PropsWithChildren) => (
+    <h3 className="text-title-small font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
+      {children}
+    </h3>
   ),
   p: ({ children }: PropsWithChildren) => (
     <p className="text-body-medium text-on-surface-foreground dark:text-on-surface-foreground-dark">

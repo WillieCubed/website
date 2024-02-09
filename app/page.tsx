@@ -1,13 +1,10 @@
 import { get } from '@vercel/edge-config';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Metadata } from 'next/types';
 import './landing.css';
-import nowIcon from '@/assets/list_alt.svg';
-import bioIcon from '@/assets/patient_list.svg';
-import randomIcon from '@/assets/draw_collage.svg';
-import { SocialContactChip } from '../components/landing/SocialContactChip';
 import { getFeaturedProjects } from '../lib/projects';
+import { getFeaturedWork } from '../lib/projects';
+import { SocialContactChip } from '../components/landing/SocialContactChip';
 import FeaturedWorkCard from '../components/FeaturedProject';
 import FeaturedProjectsList from '../components/landing/FeaturedProjectsList';
 import FeaturedProjectsIcon from '../components/icons/FeaturedProjectsIcon';
@@ -17,7 +14,9 @@ import LinkedinIcon from '../components/icons/LinkedinIcon';
 import NotesIcon from '../components/icons/NotesIcon';
 import ThreadsIcon from '../components/icons/ThreadsIcon';
 import { LinkButton } from '../components/LinkButton';
-import { getFeaturedWork } from '../lib/projects';
+import NowPageIcon from '../components/icons/NowPageIcon';
+import BioPageIcon from '../components/icons/BioPageIcon';
+import RandomPageIcon from '../components/icons/RandomPageIcon';
 
 export const metadata: Metadata = {
   title: {
@@ -96,7 +95,7 @@ export default async function LandingPage() {
             </div>
           </section>
           <section className="mt-8" id="spotlight">
-            <div className="flex px-3 py-4 items-center gap-x-3 self-stretch">
+            <div className="flex px-md py-lg items-center gap-x-md self-stretch">
               <FeaturedWorkIcon />
               <h1 className="text-headline-small font-bold font-display">
                 Current Work
@@ -126,31 +125,34 @@ export default async function LandingPage() {
                 <li className="text-on-surface">
                   <Link
                     href="/now"
-                    className="flex items-center h-10 gap-x-2 group rounded-lg group-hover:bg-slate-300 icon-link"
+                    className="flex items-center h-10 gap-x-sm group icon-link"
                   >
-                    <Image
-                      src={nowIcon}
-                      alt=""
-                      width={24}
-                      height={24}
-                      className="group-hover:"
-                    />
-                    <span>See what I&apos;m working on</span>
+                    <NowPageIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
+                    <span className="group-hover:underline underline-offset-2">
+                      See what I&apos;m working on
+                    </span>
                   </Link>
                 </li>
                 <li className="text-on-surface">
-                  <Link href="/bio" className="flex items-center h-10 gap-x-2">
-                    <Image src={bioIcon} alt="" width={24} height={24} />
-                    <span>Learn more about me</span>
+                  <Link
+                    href="/bio"
+                    className="flex items-center h-10 gap-x-sm group icon-link"
+                  >
+                    <BioPageIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
+                    <span className="group-hover:underline underline-offset-2">
+                      Learn more about me
+                    </span>
                   </Link>
                 </li>
                 <li className="text-on-surface">
                   <Link
                     href="/random"
-                    className="flex items-center h-10 gap-x-2"
+                    className="flex items-center h-10 gap-x-sm group icon-link"
                   >
-                    <Image src={randomIcon} alt="" width={24} height={24} />
-                    <span>See something random</span>
+                    <RandomPageIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
+                    <span className="group-hover:underline underline-offset-2">
+                      See something random
+                    </span>
                   </Link>
                 </li>
               </ul>
@@ -159,25 +161,25 @@ export default async function LandingPage() {
               <h1 className="font-semibold font-display text-title-large">
                 Quick contacts
               </h1>
-              <div className="flex items-end flex-wrap space-r-lg space-y-sm">
+              <div className="flex items-center h-10 gap-x-sm icon-link">
                 <SocialContactChip
                   href="https://threads.net/@williecubed"
                   icon={
-                    <ThreadsIcon className="group-hover:stroke-primary text-on-surface-foreground" />
+                    <ThreadsIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
                   }
                   label="Threads"
                 />
                 <SocialContactChip
                   href="https://instagram.com/williecubed"
                   icon={
-                    <InstagramIcon className="group-hover:stroke-primary text-on-surface-foreground" />
+                    <InstagramIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
                   }
                   label="Instagram"
                 />
                 <SocialContactChip
                   href="https://www.linkedin.com/in/willie-chalmers-iii"
                   icon={
-                    <LinkedinIcon className="group-hover:stroke-primary text-on-surface-foreground" />
+                    <LinkedinIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
                   }
                   label="LinkedIn"
                 />
@@ -186,7 +188,7 @@ export default async function LandingPage() {
           </section>
         </div>
         <section id="projects" className="tablet:col-span-6">
-          <div className="flex px-4 py-4 items-center gap-x-3 self-stretch">
+          <div className="flex px-lg py-lg items-center gap-x-md self-stretch">
             <FeaturedProjectsIcon />
             <h1 className="text-headline-small font-bold font-display">
               Selected Projects
@@ -199,7 +201,7 @@ export default async function LandingPage() {
         </section>
         {shouldShowWritings && (
           <section id="writings" className="tablet:col-span-6">
-            <div className="flex px-4 py-4 items-center gap-x-3 self-stretch">
+            <div className="flex px-lg py-lg items-center gap-x-md self-stretch">
               <NotesIcon />
               <h1 className="text-headline-small font-bold font-display">
                 Some Writings

@@ -18,7 +18,7 @@ export default function SiteFooter({
   // spotifyAccessToken: accessToken,
 }: SiteFooterProps) {
   return (
-    <footer className="bg-white text-on-light dark:bg-slate-900 dark:text-slate-300 bordered-t dark:border-slate-500/50">
+    <footer className="bg-white text-on-light dark:bg-slate-900 dark:text-slate-300 bordered-t-2">
       <div className="max-w-breakpoint-2xl mx-auto space-y-lg tablet:space-y-0 tablet:grid desktop:grid-cols-8 tablet:px-lg py-16 print:py-lg px-lg gap-x-lg">
         <div className="row-start-1 col-start-1 desktop:col-start-1 tablet:col-span-3 h-full flex flex-col justify-between">
           <div
@@ -44,14 +44,15 @@ export default function SiteFooter({
                     Technical Projects
                   </Link>
                 </li>
-                <li>
+                {/* TODO: Re-enable design once it's ready */}
+                {/* <li>
                   <Link
                     href="/design"
                     className="font-display text-title-small dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                   >
                     Design
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link
                     href="/research"
@@ -187,12 +188,6 @@ export default function SiteFooter({
             </div>
           </div>
         </div>
-      </div>
-      <div
-        className="px-lg py-sm text-center text-sm bg-primary-light-1 text-on-primary dark:text-on-dark dark:bg-blue-900 cursor-pointer font-display"
-        title="It took nearly half a decade, but it's better than nothing."
-      >
-        Built with great patience by Willie.
       </div>
     </footer>
   );

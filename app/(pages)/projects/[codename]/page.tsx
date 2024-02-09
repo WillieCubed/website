@@ -109,13 +109,13 @@ export default async function ProjectDetailPage({
         >
           <div className="desktop:row-span-1 col-start-1 mb-xl">
             {project.projectIconUrl ? (
-              <img
+              <Image
                 src={project.projectIconUrl}
                 alt={`${project.title} logo`}
-                className="bordered surface-alt size-24 bg-slate-200 text-display-small text-center flex flex-col justify-center"
+                className="bordered surface-alt dark:bg-slate-800 dark:border-slate-900 size-24 text-display-small text-center flex flex-col justify-center"
               />
             ) : (
-              <div className="bordered surface-alt size-24 bg-slate-200 text-display-small text-center flex flex-col justify-center">
+              <div className="bordered surface-alt dark:bg-slate-800 dark:border-slate-900 size-24 text-display-small text-center flex flex-col justify-center">
                 {project.title[0]}
               </div>
             )}

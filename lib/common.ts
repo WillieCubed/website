@@ -13,6 +13,12 @@ export type ProjectData = {
   thumbnail: string;
   website: string;
   contact: ProjectContactInfo;
+  /**
+   * A brief descriptor for this artifact noting who the project was for
+   * @example "with Develop for Good"
+   * @example "for myself"
+   */
+  clientAttribution: string;
   features: ProjectFeature[];
   artifacts: ProjectArtifact[];
   collaborators: Collaboator[];

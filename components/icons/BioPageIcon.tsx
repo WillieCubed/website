@@ -1,8 +1,4 @@
-export default function FeaturedWorkIcon({
-  className,
-}: {
-  className?: string;
-}) {
+export default function NowPageIcon({ className }: { className?: string }) {
   return (
     <svg
       width="24"
@@ -12,9 +8,9 @@ export default function FeaturedWorkIcon({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <g id="auto_awesome_motion">
+      <g id="list_alt">
         <mask
-          id="mask0_1372_1315"
+          id="mask0_1372_1273"
           style={{ maskType: 'alpha' }}
           maskUnits="userSpaceOnUse"
           x="0"
@@ -24,10 +20,10 @@ export default function FeaturedWorkIcon({
         >
           <rect id="Bounding box" width="24" height="24" fill="#D9D9D9" />
         </mask>
-        <g mask="url(#mask0_1372_1315)">
+        <g mask="url(#mask0_1372_1273)">
           <path
-            id="auto_awesome_motion_2"
-            d="M9.81468 22.3647V9.81466H22.3647V22.3647H9.81468ZM12.0897 20.0897H20.0897V12.0897H12.0897V20.0897ZM5.72501 18.0897V5.72499H18.0897V7.99999H8.00001V18.0897H5.72501ZM1.63533 14.0897V1.63531H14.0897V3.91032H3.91033V14.0897H1.63533Z"
+            id="list_alt_2"
+            d="M7.00003 16.9642H9.00003V14.9642H7.00003V16.9642ZM7.00003 13H9.00003V11H7.00003V13ZM7.00003 9.0359H9.00003V7.0359H7.00003V9.0359ZM11 16.9642H17V14.9642H11V16.9642ZM11 13H17V11H11V13ZM11 9.0359H17V7.0359H11V9.0359ZM2.79675 21.2033V2.79675H21.2033V21.2033H2.79675ZM5.07178 18.9283H18.9283V5.07178H5.07178V18.9283Z"
             fill="currentColor"
           />
         </g>

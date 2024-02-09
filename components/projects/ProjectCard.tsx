@@ -1,16 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ProjectType, ProjectData } from '../lib/projects';
-import ProjectSubjectTag from './ProjectSubjectTag';
-
-const PROJECT_TYPE_MAP: Record<ProjectType, string> = {
-  research: 'Research Project',
-  personal: 'Personal Project',
-  organization: 'Team Project',
-  hackathon: 'Hackathon Project',
-};
+import { ProjectData, PROJECT_TYPE_MAP } from '../../lib/common';
 
 interface ProjectCardProps extends ProjectData {
   mode?: 'default' | 'expanded';
@@ -23,22 +14,20 @@ interface ProjectCardProps extends ProjectData {
  */
 export default function ProjectCard({
   codename,
-  name,
+  title,
   type,
+  tagline,
   collaborators,
-  subjects,
-  overview,
-  questions,
   artifacts,
   mode = 'default',
 }: ProjectCardProps) {
   const typeLabel = PROJECT_TYPE_MAP[type];
 
-  const collaboratorsItems = collaborators?.map(({ name, url }) => {
-    return url ? (
+  const collaboratorsItems = collaborators?.map(({ name, link }) => {
+    return link ? (
       <Link
-        key={name + url}
-        href={url}
+        key={name + link}
+        href={link}
         className="underline font-mono font-semibold"
       >
         {name}
@@ -48,15 +37,7 @@ export default function ProjectCard({
     );
   });
 
-  const questionsContent = questions?.map(({ codename, content }) => {
-    return <li key={codename}>{content}</li>;
-  });
-
-  const subjectTags = subjects.map((label) => {
-    return <ProjectSubjectTag key={label} label={label} />;
-  });
-
-  const artifactsItems = artifacts.map(({ label, url, thumbnailUrl }) => {
+  const artifactsItems = artifacts.map(({ label, url }) => {
     return (
       <Link
         key={label + url}
@@ -83,7 +64,7 @@ export default function ProjectCard({
           {typeLabel}
         </div>
         <div className="mt-2 font-display text-headline-large text-primary">
-          {name}
+          {title}
         </div>
       </div>
       <div className="mt-6 space-y-6">
@@ -95,28 +76,28 @@ export default function ProjectCard({
             <div className="space-x-4">{collaboratorsItems}</div>
           </div>
         )}
-        {isResearch && subjects.length > 0 && (
+        {/* {isResearch && subjects.length > 0 && (
           <div className="space-y-2">
             <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
               Topics
             </div>
             <div className="space-y-2">{subjectTags}</div>
           </div>
-        )}
+        )} */}
         <div className="space-y-2">
           <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
             Overview
           </div>
-          <p className="font-semibold font-display">{overview}</p>
+          <p className="font-semibold font-display">{tagline}</p>
         </div>
-        {isResearch && questions && questions.length > 0 && (
+        {/* {isResearch && questions && questions.length > 0 && (
           <div className="space-y-2">
             <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
               Questions Addressed
             </div>
             <ul className="space-y-2">{questionsContent}</ul>
           </div>
-        )}
+        )} */}
         {artifacts && (
           <div className="space-y-2">
             <div className="uppercase font-bold font-display text-sm text-primary-dark-1">

@@ -12,7 +12,7 @@ export default function LinkedObjectWrapper({
   return (
     <Link
       href={href}
-      className="inline-flex flex-col items-start gap-x-[10px] px-lg py-md bordered"
+      className="inline-flex flex-col items-start gap-x-md px-lg py-sm bordered bg-maverick-300 dark:bg-maverick-800 hover:dark:bg-maverick-700 focus:dark:bg-maverick-700 transition ease-in duration-100 "
     >
       {children}
     </Link>

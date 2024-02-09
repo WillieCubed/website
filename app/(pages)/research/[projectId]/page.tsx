@@ -5,7 +5,7 @@ type ResearchProject = {
 
 /**
  * A page showing off a single research project.
- * 
+ *
  * Route: /research/[projectId]
  */
 export default function ResearchDetailPage() {

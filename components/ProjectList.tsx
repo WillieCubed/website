@@ -1,5 +1,5 @@
-import { ProjectData } from '../lib/projects';
-import ProjectCard from './ProjectCard';
+import { ProjectData } from '../lib/common';
+import ProjectCard from './projects/ProjectCard';
 
 interface ProjectsListProps {
   projects: ProjectData[];

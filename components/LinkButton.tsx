@@ -9,8 +9,8 @@ export function LinkButton({ href, icon, label }: LinkButtonProps) {
   return (
     <LinkedObjectWrapper href={href}>
       <div className="flex align-middle gap-x-sm">
-        <span>{label}</span>
         {icon}
+        <span>{label}</span>
       </div>
     </LinkedObjectWrapper>
   );

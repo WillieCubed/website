@@ -23,7 +23,7 @@ export default function FeaturedWorkCard({
   imageUrl,
 }: FeaturedWorkCardProps) {
   return (
-    <div className="p-lg bordered flex space-x-lg surface">
+    <div className="p-lg bordered tablet:flex space-x-lg surface">
       <div className="flex-1 flex flex-col space-y-lg">
         <div className="space-y-md">
           <div className="text-title-small font-display">{type}</div>

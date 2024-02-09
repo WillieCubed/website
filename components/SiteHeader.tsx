@@ -15,7 +15,10 @@ interface SiteHeaderProps {
 }
 
 function getWidthCss(path: string) {
-  if (path.startsWith('/projects')) {
+  if (path === '/projects') {
+    return 'tablet:col-start-2 tablet:col-span-6';
+  }
+  if (path.startsWith('/projects/')) {
     return 'tablet:col-start-1 tablet:col-span-8';
   }
   switch (path) {
@@ -107,14 +110,16 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
                 Research
               </Link>
             </li>
-            <li className="font-bold font-display text-xl">
+
+            {/* TODO: Re-enable design once it's ready */}
+            {/* <li className="font-bold font-display text-xl">
               <Link
                 href="/design"
                 className="hover:underline focus:underline underline-offset-4"
               >
                 Design
               </Link>
-            </li>
+            </li> */}
             <li className="font-bold font-display text-xl">
               <Link
                 href="/resume.pdf"
@@ -154,14 +159,15 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
                   Research
                 </Link>
               </li>
-              <li className="font-bold font-display text-xl">
+              {/* TODO: Re-enable design once it's ready */}
+              {/* <li className="font-bold font-display text-xl">
                 <Link
                   href="/design"
                   className="hover:underline focus:underline underline-offset-4"
                 >
                   Design
                 </Link>
-              </li>
+              </li> */}
               <li className="font-bold font-display text-xl">
                 <Link
                   href="/resume.pdf"

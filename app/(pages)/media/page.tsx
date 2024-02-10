@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import LinkButton from '../../../components/OldLinkButton';
+import { LinkButton } from '../../../components/LinkButton';
 
 export const metadata: Metadata = {
   title: 'Media and Art - Willie Chalmers III',
@@ -38,25 +38,22 @@ export default function MediaPage() {
             />
             <LinkButton
               href="https://www.youtube.com/playlist?list=PLeWghFt4u5bOTXAovwRSl4b2Xcpb0y8tF"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <div className="flex items-center space-x-2">
-                <span>View full series</span>
-                {/* TODO: Extract icon */}
+              icon={
                 <svg
                   className="inline"
                   xmlns="http://www.w3.org/2000/svg"
                   height="24px"
                   viewBox="0 0 24 24"
                   width="24px"
-                  fill="#ffffff"
+                  fill="currentColor"
                 >
                   <path d="M0 0h24v24H0V0z" fill="none" />
                   <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
                 </svg>
-              </div>
-            </LinkButton>
+              }
+              label="View full series"
+              openInNewTab
+            />
           </div>
         </div>
       </section>

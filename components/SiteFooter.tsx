@@ -18,7 +18,7 @@ export default function SiteFooter({
   // spotifyAccessToken: accessToken,
 }: SiteFooterProps) {
   return (
-    <footer className="bg-white text-on-light dark:bg-slate-900 dark:text-slate-300 bordered-t-2">
+    <footer className="bg-white text-on-light dark:bg-slate-900 dark:text-slate-300 bordered-t">
       <div className="max-w-breakpoint-2xl mx-auto space-y-lg tablet:space-y-0 tablet:grid desktop:grid-cols-8 tablet:px-lg py-16 print:py-lg px-lg gap-x-lg">
         <div className="row-start-1 col-start-1 desktop:col-start-1 tablet:col-span-3 h-full flex flex-col justify-between">
           <div

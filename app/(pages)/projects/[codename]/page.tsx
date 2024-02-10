@@ -180,7 +180,7 @@ export default async function ProjectDetailPage({
         </section>
       </div>
       <main className="max-w-breakpoint-2xl mx-auto gridded desktop:gap-x-4 px-lg desktop-large:px-0 py-8 space-y-6 desktop:space-y-0 desktop:gap-y-6">
-        <aside className="tablet:row-start-1 tablet:col-start-8 sticky top-[100px]">
+        <aside className="tablet:row-start-1 tablet:col-start-8 tablet:sticky tablet:top-[100px]">
           <TableOfContents items={[]} />
         </aside>
         <section className="tablet:row-start-1 tablet:col-start-1 desktop:col-span-7">

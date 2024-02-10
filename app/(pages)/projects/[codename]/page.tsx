@@ -136,7 +136,9 @@ export default async function ProjectDetailPage({
                 <div className="flex justify-between">
                   <div className="space-y-3">
                     <div className="text-headline-small">Launched</div>
-                    <div className="text-title-medium">2021</div>
+                    <div className="text-title-medium">
+                      {project.launched.getFullYear()}
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-lg tablet:space-y-0 tablet:flex tablet:space-x-lg tablet:*:w-[50%]">

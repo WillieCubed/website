@@ -107,15 +107,16 @@ export default async function ProjectDetailPage({
           id="hero"
           className="min-[960px]:gridded max-w-breakpoint-2xl mx-auto space-y-lg desktop:space-y-0 tablet:gap-x-lg pb-lg tablet:pb-16 px-lg desktop-large:px-0"
         >
-          <div className="desktop:row-span-1 col-start-1 mb-xl">
+          <div className="relative size-24 *:desktop:row-span-1 col-start-1 mb-xl">
             {project.projectIconUrl ? (
               <Image
                 src={project.projectIconUrl}
                 alt={`${project.title} logo`}
-                className="bordered surface-alt dark:bg-slate-800 dark:border-slate-900 size-24 text-display-small text-center flex flex-col justify-center"
+                className="bordered flex flex-col justify-center object-cover surface-alt dark:bg-slate-800 text-display-small text-center"
+                fill
               />
             ) : (
-              <div className="bordered surface-alt dark:bg-slate-800 dark:border-slate-900 size-24 text-display-small text-center flex flex-col justify-center">
+              <div className="bordered flex flex-col justify-center h-full w-full surface-alt dark:bg-slate-800 text-display-small text-center">
                 {project.title[0]}
               </div>
             )}

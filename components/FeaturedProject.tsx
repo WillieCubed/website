@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 interface FeaturedWorkCardProps {
+  id: string;
   type: string;
   title: string;
   tagline: string;
@@ -13,6 +14,7 @@ interface FeaturedWorkCardProps {
 }
 
 export default function FeaturedWorkCard({
+  id,
   type,
   title,
   tagline,
@@ -38,11 +40,20 @@ export default function FeaturedWorkCard({
         </div>
         <div>
           <div className="flex space-x-4">
-            <Link href={mainLink} className="font-display text-label-large">
-              Open
+            <Link
+              href={mainLink}
+              className="font-display text-label-large hover:underline focus:underline underline-offset-4"
+            >
+              Learn more
+            </Link>
+            <Link
+              href={`/projects/${id}`}
+              className="font-display text-label-large hover:underline focus:underline underline-offset-4"
+            >
+              View project
             </Link>
             {/* TODO: Re-enable case study link when available */}
-            {/* <Link href={caseStudyLink} className="font-display text-label-large">
+            {/* <Link href={caseStudyLink} className="font-display text-label-large hover:underline focus:underline underline-offset-4">
               View case study
             </Link> */}
           </div>

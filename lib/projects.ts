@@ -94,5 +94,6 @@ export async function getFeaturedWork() {
       'A real-time communications center that keeps nonprofits in touch with older American adults.',
     description: 'Built for the American Society on Aging',
     timePeriod: 'October 2023–now',
+    website: 'https://github.com/ConnieML/Connie-RTC',
   };
 }

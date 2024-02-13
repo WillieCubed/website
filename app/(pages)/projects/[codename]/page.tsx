@@ -154,8 +154,10 @@ export default async function ProjectDetailPage({
                       <div className="text-title-medium">
                         {project.contact.name}
                       </div>
-                      <div className="text-title-small">
-                        {project.contact.email}
+                      <div className="text-title-small hover:underline focus:underline underline-offset-4">
+                        <a href={`mailto:${project.contact.email}`}>
+                          {project.contact.email}
+                        </a>
                       </div>
                     </div>
                   </div>

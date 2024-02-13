@@ -102,12 +102,13 @@ export default async function LandingPage() {
               </h1>
             </div>
             <FeaturedWorkCard
+              id={featuredWork.projectId}
               title={featuredWork.title}
               tagline={featuredWork.tagline}
               description={featuredWork.description}
               timePeriod={featuredWork.timePeriod}
-              mainLink={`https://github.com/ConnieML/Connie-RTC/`}
-              caseStudyLink={`/case-studies/${featuredWork.projectId}`}
+              mainLink={featuredWork.website}
+              caseStudyLink={`/case-studies /${featuredWork.projectId}`}
               type={featuredWork.type}
             />
           </section>

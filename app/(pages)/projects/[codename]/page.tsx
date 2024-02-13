@@ -8,6 +8,7 @@ import ProjectDetailView from './ProjectDetailsView';
 import TableOfContents from '../../../../components/TableOfContents';
 import ProjectBackIcon from '../../../../components/projects/ProjectBackIcon';
 import ProjectNextIcon from '../../../../components/projects/ProjectNextIcon';
+import LinkedObjectWrapper from '../../../../components/LinkedObjectWrapper';
 
 const BASE_URL = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -190,7 +191,12 @@ export default async function ProjectDetailPage({
         {/* <aside className="tablet:row-start-1 tablet:col-start-8 tablet:sticky tablet:top-[100px]">
           <TableOfContents items={[]} />
         </aside> */}
-        <section className="tablet:row-start-1 tablet:col-start-1 tablet:col-span-7">
+        <section className="space-y-lg tablet:row-start-1 tablet:col-start-1 tablet:col-span-7">
+          {project.website && (
+            <LinkedObjectWrapper href={project.website}>
+              View project here
+            </LinkedObjectWrapper>
+          )}
           <ProjectDetailView
             compiledSource={mdxSource.compiledSource}
             scope={mdxSource.scope}

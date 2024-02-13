@@ -123,32 +123,34 @@ export default async function ProjectDetailPage({
           </div>
           <div className="row-start-2 col-start-1 col-span-4">
             <div className="h-full flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="text-on-surface text-headline-small">
+              <div className="space-y-md">
+                <div className="text-on-surface text-title-large">
                   Project Overview
                 </div>
-                <div className="text-primary text-display-large">
+                <div className="text-primary text-display-medium desktop:text-display-large">
                   {project.title}
                 </div>
-                <div className="mt-6 text-title-large">{project.tagline}</div>
+                <div className="mt-xl text-headline-small">
+                  {project.tagline}
+                </div>
               </div>
-              <div className="space-y-4 my-xl desktop:my-0">
+              <div className="space-y-lg mt-2xl mb-xl tablet:my-0">
                 <div className="flex justify-between">
-                  <div className="space-y-3">
-                    <div className="text-headline-small">Launched</div>
+                  <div className="space-y-md">
+                    <div className="text-title-large">Launched</div>
                     <div className="text-title-medium">
                       {project.launched.getFullYear()}
                     </div>
                   </div>
                 </div>
                 <div className="space-y-lg tablet:space-y-0 tablet:flex tablet:space-x-lg tablet:*:w-[50%]">
-                  <div className="space-y-3">
+                  <div className="space-y-md">
                     <div className="text-headline-small">Roles</div>
                     <div className="text-title-medium">
                       {project.roles.join(', ')}
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-md">
                     <div className="text-headline-small">Current Contact</div>
                     <div>
                       <div className="text-title-medium">
@@ -181,12 +183,12 @@ export default async function ProjectDetailPage({
           </div>
         </section>
       </div>
-      <main className="max-w-breakpoint-2xl mx-auto gridded desktop:gap-x-4 px-lg desktop-large:px-0 py-8 space-y-6 desktop:space-y-0 desktop:gap-y-6">
+      <main className="max-w-breakpoint-2xl mx-auto gridded desktop:gap-x-lg px-lg desktop-large:px-0 py-8 space-y-xl desktop:space-y-0 desktop:gap-y-xl">
         {/* TODO: Re-enable table of contents once functional */}
         {/* <aside className="tablet:row-start-1 tablet:col-start-8 tablet:sticky tablet:top-[100px]">
           <TableOfContents items={[]} />
         </aside> */}
-        <section className="tablet:row-start-1 tablet:col-start-1 desktop:col-span-7">
+        <section className="tablet:row-start-1 tablet:col-start-1 tablet:col-span-7">
           <ProjectDetailView
             compiledSource={mdxSource.compiledSource}
             scope={mdxSource.scope}

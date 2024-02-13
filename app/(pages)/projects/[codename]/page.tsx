@@ -100,6 +100,8 @@ export default async function ProjectDetailPage({
 
   const { nextProject, nextProjectId } = projectInfo;
 
+  const quarter = Math.floor((new Date().getMonth() + 3) / 3);
+
   return (
     <div className="min-h-[75vh]">
       <div className="surface-alt bordered-b -mt-[128px] pt-[176px]">
@@ -139,7 +141,7 @@ export default async function ProjectDetailPage({
                   <div className="space-y-md">
                     <div className="text-title-large">Launched</div>
                     <div className="text-title-medium">
-                      {project.launched.getFullYear()}
+                      {project.launched.getFullYear()}Q{quarter}
                     </div>
                   </div>
                 </div>

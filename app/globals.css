@@ -52,8 +52,16 @@
     @apply scrollbar-thumb-primary-dark-1 scrollbar-track-slate-300;
   }
 
+  ::selection {
+    @apply bg-maverick-400 text-on-primary;
+  }
+
   @media (prefers-color-scheme: dark) {
     /* Core theme styles */
+
+    ::selection {
+      @apply bg-maverick-700 text-on-primary;
+    }
 
     .bordered {
       @apply border-2;

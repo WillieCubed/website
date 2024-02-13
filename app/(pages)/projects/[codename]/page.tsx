@@ -100,7 +100,7 @@ export default async function ProjectDetailPage({
 
   const { nextProject, nextProjectId } = projectInfo;
 
-  const quarter = Math.floor((new Date().getMonth() + 3) / 3);
+  const quarter = Math.floor(project.launched.getMonth() / 3) + 1;
 
   return (
     <div className="min-h-[75vh]">

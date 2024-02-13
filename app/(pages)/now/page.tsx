@@ -29,7 +29,7 @@ export default function NowPage() {
         </div>
         <section
           id="recent"
-          className="py-4 row-span-1 col-start-1 lg:col-start-3 xl:col-start-4 lg:col-span-8 xl:col-span-6"
+          className="py-4 tablet:row-span-1 tablet:col-start-2 tablet:col-span-8"
         >
           <h1 className="text-title-large">Recently</h1>
           <ul className="mt-2 space-y-2">
@@ -63,7 +63,7 @@ export default function NowPage() {
         </section>
         <section
           id="current"
-          className="py-4 row-span-1 col-start-1 lg:col-start-3 xl:col-start-4 lg:col-span-8 xl:col-span-6"
+          className="py-4 tablet:row-span-1 tablet:col-start-2 tablet:col-span-8"
         >
           <h1 className="text-title-large">Currently</h1>
           <ul className="mt-2 space-y-2">

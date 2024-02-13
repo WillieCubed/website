@@ -6,7 +6,7 @@
   /* Core theme styles */
 
   .surface {
-    @apply bg-surface-background;
+    @apply bg-surface-foreground;
     @apply text-on-surface-foreground;
   }
 

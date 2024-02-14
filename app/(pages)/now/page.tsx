@@ -1,3 +1,4 @@
+import type { Metadata } from 'next/types';
 import Link from 'next/link';
 
 type NowItemData = {
@@ -14,6 +15,16 @@ function NowItem({ date, children }: React.PropsWithChildren<NowItemData>) {
     </li>
   );
 }
+
+export const metadata: Metadata = {
+  title: 'What Now? - Willie Chalmers III',
+  description: "See what Willie has been working on and what's coming up next.",
+  openGraph: {
+    title: "Willie's Now Page",
+    description: "See what I'm up to now and what's coming up next.",
+    url: '/now',
+  },
+};
 
 /**
  * A page that describes what I'm doing right now.

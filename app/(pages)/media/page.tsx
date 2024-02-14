@@ -15,22 +15,22 @@ export const metadata: Metadata = {
 
 export default function MediaPage() {
   return (
-    <main className="p-4">
+    <main className="p-lg mx-auto max-w-breakpoint-md">
       <section className="flex flex-col justify-center">
-        <div className="py-4 mx-auto max-w-xl">
-          <div className="text-sm font-bold font-display uppercase text-primary">
+        <div id="the-willie-diaries" className="py-lg">
+          <div className="text-label-medium font-bold font-display uppercase text-primary">
             Media Project
           </div>
-          <div className="font-bold text-3xl my-2 font-display">
+          <div className="font-bold text-headline-medium my-sm font-display">
             The Willie Diaries
           </div>
-          <div className="font-display mb-4">
+          <div className="font-display mb-lg">
             The Willie Diaries is a video series about a young man going through
             college.
           </div>
-          <div className="space-y-4">
+          <div className="space-y-lg">
             <iframe
-              className="w-full aspect-video border-4 border-black"
+              className="w-full aspect-video bordered"
               src="https://www.youtube-nocookie.com/embed/videoseries?list=PLeWghFt4u5bOTXAovwRSl4b2Xcpb0y8tF"
               title="The Willie Diaries"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -58,14 +58,14 @@ export default function MediaPage() {
         </div>
       </section>
       <section id="initiatives" className="">
-        <div id="trees" className="py-4 mx-auto max-w-xl">
-          <div className="text-sm font-bold font-display uppercase text-primary">
+        <div id="trees" className="py-lg">
+          <div className="text-label-medium font-bold font-display uppercase text-primary">
             Media Project
           </div>
-          <div className="group my-2 text-3xl font-bold font-display">
+          <div className="group my-sm text-headline-medium font-bold font-display">
             treesofutd
           </div>
-          <div className="font-display mb-4">
+          <div className="font-display mb-lg">
             <a
               className="text-primary-dark-2 hover:text-primary-dark-1 dark:text-secondary-light-1 dark:hover:text-secondary underline underline-offset-2"
               href="https://instagram.com/treesofutd"

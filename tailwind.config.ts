@@ -127,7 +127,7 @@ const tailwindConfig: Config = {
         'body-medium': [
           '16px',
           {
-            lineHeight: '22px',
+            lineHeight: '24px',
             letterSpacing: '0.0025em',
             fontWeight: '400',
           },

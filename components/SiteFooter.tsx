@@ -116,14 +116,15 @@ export default function SiteFooter({
                     Blog
                   </Link>
                 </li>
-                <li>
+                {/* TODO: Introduce colophon page when ready */}
+                {/* <li>
                   <Link
-                    href="https://blog.williecubed.me"
+                    href="/colophon"
                     className="font-display text-title-small dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                   >
                     Colophon
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </div>
           </div>

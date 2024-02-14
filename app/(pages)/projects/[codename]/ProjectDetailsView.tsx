@@ -25,6 +25,27 @@ const mdxComponentsMap = {
       {children}
     </p>
   ),
+  strong: ({ children }: PropsWithChildren) => (
+    <strong className="text-body-medium text-on-surface-foreground dark:text-on-surface-foreground-dark">
+      {children}
+    </strong>
+  ),
+  a: ({ children, ...props }: PropsWithChildren) => (
+    <a
+      {...props}
+      className="text-primary hover:underline focus:underline underline-offset-2"
+    >
+      {children}
+    </a>
+  ),
+  ul: ({ children }: PropsWithChildren) => (
+    <ul className="list-disc">{children}</ul>
+  ),
+  li: ({ children }: PropsWithChildren) => (
+    <li className="text-body-medium text-on-surface-foreground dark:text-on-surface-foreground-dark">
+      {children}
+    </li>
+  ),
   FeatureList: ({ children }: PropsWithChildren) => <Features></Features>,
 };
 
@@ -42,7 +63,7 @@ export default function ProjectDetailView({
   return (
     <article className="prose">
       <MDXRemote
-        components={mdxComponentsMap}
+        components={mdxComponentsMap as MDXComponents}
         compiledSource={compiledSource}
         scope={scope}
         frontmatter={frontmatter}

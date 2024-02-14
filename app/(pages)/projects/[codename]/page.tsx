@@ -11,7 +11,7 @@ import ProjectNextIcon from '../../../../components/projects/ProjectNextIcon';
 import LinkedObjectWrapper from '../../../../components/LinkedObjectWrapper';
 
 const BASE_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
+  ? `https://${process.env.VERCEL_URL}/projects`
   : 'https://williecubed.me/projects';
 
 /**

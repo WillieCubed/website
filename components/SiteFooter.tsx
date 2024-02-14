@@ -69,6 +69,14 @@ export default function SiteFooter({
                     Media
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/writings"
+                    className="font-display text-title-small dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
+                  >
+                    Writings
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

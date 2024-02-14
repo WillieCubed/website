@@ -21,6 +21,12 @@ function getWidthCss(path: string) {
   if (path.startsWith('/projects/')) {
     return 'tablet:col-start-1 tablet:col-span-8';
   }
+  if (path === '/writings') {
+    return 'tablet:col-start-2 tablet:col-span-6';
+  }
+  if (path.startsWith('/writings/')) {
+    return 'tablet:col-start-1 tablet:col-span-8';
+  }
   switch (path) {
     case '/now':
       return 'tablet:col-start-2 tablet:col-span-6';
@@ -39,7 +45,11 @@ function shouldEnableGrid(path: string) {
   if (path.startsWith('/projects')) {
     return true;
   }
+  if (path.startsWith('/writings')) {
+    return true;
+  }
   switch (path) {
+    case '/writings':
     case '/research':
     case '/design':
     case '/now':
@@ -76,7 +86,7 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
     >
       <nav
         className={clsx(
-          'bordered min-h-[64px] sticky top-4 mt-4 flex align-middle p-sm tablet:p-lg tablet:text-left items-start justify-between bg-surface-foreground dark:bg-surface-foreground-dark transition',
+          'bordered min-h-[64px] sticky top-4 mt-4 flex align-middle p-sm tablet:p-lg tablet:text-left items-start justify-between bg-surface-foreground dark:bg-surface-foreground-dark transition-all ease-in-out duration-300',
           width
         )}
       >

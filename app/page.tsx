@@ -2,11 +2,12 @@ import { get } from '@vercel/edge-config';
 import Link from 'next/link';
 import type { Metadata } from 'next/types';
 import './landing.css';
-import { getFeaturedProjects } from '../lib/projects';
-import { getFeaturedWork } from '../lib/projects';
+import { getFeaturedProjects, getFeaturedWork } from '../lib/projects';
+import { getFeaturedWritings } from '../lib/writings';
 import { SocialContactChip } from '../components/landing/SocialContactChip';
 import FeaturedWorkCard from '../components/FeaturedProject';
 import FeaturedProjectsList from '../components/landing/FeaturedProjectsList';
+import FeaturedWritingsList from '../components/landing/FeaturedWritingsList';
 import FeaturedProjectsIcon from '../components/icons/FeaturedProjectsIcon';
 import FeaturedWorkIcon from '../components/icons/FeaturedWorkIcon';
 import InstagramIcon from '../components/icons/InstagramIcon';
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
 export default async function LandingPage() {
   const allFeaturedProjects = await getFeaturedProjects();
   const featuredWork = await getFeaturedWork();
+  const featuredWritings = await getFeaturedWritings();
   const shouldShowWritings = await get('show_writings');
 
   // Sort in reverse chronological order
@@ -214,6 +216,10 @@ export default async function LandingPage() {
               <h1 className="text-headline-small font-bold font-display">
                 Some Writings
               </h1>
+            </div>
+            <div className="space-y-md">
+              <FeaturedWritingsList writings={featuredWritings} />
+              <LinkButton href="/writings" label="Read more" icon={<></>} />
             </div>
           </section>
         )}

@@ -1,9 +1,9 @@
 'use client';
 
-import { Menu } from '@headlessui/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import clsx from 'clsx';
 import expandMenuIcon from '../app/assets/read_more.svg';
 import { usePathname } from 'next/navigation';
 
@@ -69,80 +69,45 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
 
   return (
     <header
-      className={`print:block ${getLayoutClass(path)} sticky top-0 z-50 px-lg desktop-large:p-0`}
+      className={clsx(
+        'print:block sticky top-0 z-50 px-lg desktop-large:p-0',
+        getLayoutClass(path)
+      )}
     >
       <nav
-        className={`bordered h-[64px] sticky top-4 mt-4 flex align-middle ${width} p-sm tablet:p-lg text-center tablet:text-left items-start tablet:justify-between bg-surface-foreground dark:bg-surface-foreground-dark transition`}
+        className={clsx(
+          'bordered min-h-[64px] sticky top-4 mt-4 flex align-middle p-sm tablet:p-lg tablet:text-left items-start justify-between bg-surface-foreground dark:bg-surface-foreground-dark transition',
+          width
+        )}
       >
-        <div className="flex-grow font-bold font-display text-xl">
-          {showTitle && (
-            <Link
-              href="/"
-              className="hover:underline focus:underline underline-offset-4"
-            >
-              Willie Chalmers III
-            </Link>
-          )}
-        </div>
-        <div className="align-middle flex-inline hidden tablet:block print:hidden">
-          <ul className="tablet:flex space-x-6">
-            <li className="font-bold font-display text-xl">
+        <div className="h-full w-full flex-col justify-center pt-sm tablet:pt-0 tablet:flex tablet:flex-row tablet:justify-between items-center">
+          <div className="flex-grow font-bold font-display text-xl px-sm tablet:px-0">
+            {showTitle && (
               <Link
-                href="/now"
+                href="/"
                 className="hover:underline focus:underline underline-offset-4"
               >
-                Now
+                Willie Chalmers III
               </Link>
-            </li>
-            <li className="font-bold font-display text-xl">
-              <Link
-                href="/projects"
-                className="hover:underline focus:underline underline-offset-4"
-              >
-                Projects
-              </Link>
-            </li>
-            <li className="font-bold font-display text-xl">
-              <Link
-                href="/research"
-                className="hover:underline focus:underline underline-offset-4"
-              >
-                Research
-              </Link>
-            </li>
-
-            {/* TODO: Re-enable design once it's ready */}
-            {/* <li className="font-bold font-display text-xl">
-              <Link
-                href="/design"
-                className="hover:underline focus:underline underline-offset-4"
-              >
-                Design
-              </Link>
-            </li> */}
-            <li className="font-bold font-display text-xl">
-              <Link
-                href="/resume.pdf"
-                className="hover:underline focus:underline underline-offset-4"
-              >
-                Resume
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <Menu>
-          <Menu.Items className="print:hidden">
-            <ul className="md:flex space-x-6 py-2 lg:py-0">
-              <Menu.Item>
-                <li className="font-bold font-display text-xl">
-                  <Link
-                    href="/now"
-                    className="hover:underline focus:underline underline-offset-4"
-                  >
-                    Now
-                  </Link>
-                </li>
-              </Menu.Item>
+            )}
+          </div>
+          <div
+            className={clsx(
+              'align-middle tablet:flex-inline print:hidden',
+              showMore ? 'block' : 'hidden tablet:block'
+            )}
+          >
+            <ul className="py-sm px-sm tablet:p-0 tablet:flex tablet:space-x-xl *:text-left">
+              <li className="font-bold font-display text-xl">
+                <Link
+                  href="/now"
+                  className={clsx(
+                    'hover:underline focus:underline underline-offset-4'
+                  )}
+                >
+                  Now
+                </Link>
+              </li>
               <li className="font-bold font-display text-xl">
                 <Link
                   href="/projects"
@@ -177,15 +142,15 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
                 </Link>
               </li>
             </ul>
-          </Menu.Items>
-          <Menu.Button
-            type="button"
-            className="print:hidden tablet:hidden rounded-lg text-on-surface-foreground dark:text-on-surface-foreground-dark flex flex-col justify-center cursor-pointer"
-            onClick={toggleShowMore}
-          >
-            <Image src={expandMenuIcon} alt={'See more navigation options'} />
-          </Menu.Button>
-        </Menu>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="size-[40px] print:hidden tablet:hidden rounded-lg text-on-surface-foreground dark:text-on-surface-foreground-dark flex flex-col justify-center items-center cursor-pointer"
+          onClick={toggleShowMore}
+        >
+          <Image src={expandMenuIcon} alt={'See more navigation options'} />
+        </button>
       </nav>
     </header>
   );

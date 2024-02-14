@@ -48,14 +48,16 @@ export default async function LandingPage() {
       <main className="max-w-breakpoint-2xl mx-auto tablet:grid tablet:grid-cols-8 tablet:gap-lg">
         <div className="hero-fold flex flex-col h-full tablet:col-span-6">
           <section className="flex-grow">
-            <div className="mt-[96px] space-y-4">
-              <div className="text-display-medium font-display">Hello!</div>
-              <div className="text-display-medium font-display">
+            <div className="mt-[48px] tablet:mt-[96px] space-y-4">
+              <div className="text-display-small tablet:text-display-medium font-display">
+                Hello!
+              </div>
+              <div className="text-display-small tablet:text-display-medium font-display">
                 I&apos;m <span className="text-primary">Willie</span>.
               </div>
             </div>
             <div className="mt-6 space-y-4">
-              <div className="text-headline-large font-display">
+              <div className="text-headline-medium tablet:text-headline-large font-display">
                 I build{' '}
                 <span
                   className="text-primary hover:underline cursor-pointer"

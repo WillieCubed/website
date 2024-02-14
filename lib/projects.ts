@@ -50,8 +50,8 @@ export async function getProject(codename: string) {
     );
   }
 
-  const posthFilePath = join(projectsDirectory, `${codename}.mdx`);
-  const source = readFileSync(posthFilePath);
+  const projectPath = join(projectsDirectory, `${codename}.mdx`);
+  const source = readFileSync(projectPath);
   const mdxSource = await serialize(source, MDX_OPTIONS);
   const project: ProjectData = {
     ...(mdxSource.frontmatter as ProjectData),
@@ -75,14 +75,19 @@ export async function getAllProjects() {
   return projects;
 }
 
-export const FEATURED_LIST: string[] = ['hackportal', 'connie'];
+// TODO: Extract to content file
+export const FEATURED_LIST: string[] = [
+  'hackportal',
+  'connie',
+  'nebula-planner',
+];
 
 export async function getFeaturedProjects(): Promise<ProjectData[]> {
   const projects = await getAllProjects();
   const featuredProjects = projects.filter((project) => {
     return FEATURED_LIST.includes(project.codename);
   });
-  return projects;
+  return featuredProjects;
 }
 
 export async function getFeaturedWork() {

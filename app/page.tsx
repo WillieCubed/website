@@ -39,9 +39,14 @@ export const metadata: Metadata = {
  * Route: /
  */
 export default async function LandingPage() {
-  const featuredProjects = await getFeaturedProjects();
+  const allFeaturedProjects = await getFeaturedProjects();
   const featuredWork = await getFeaturedWork();
   const shouldShowWritings = await get('show_writings');
+
+  // Sort in reverse chronological order
+  const featuredProjects = allFeaturedProjects.sort(
+    (p1, p2) => p2.launched.getTime() - p1.launched.getTime()
+  );
 
   return (
     <div className="p-lg pb-2xl desktop:pb-[128px]">

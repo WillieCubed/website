@@ -2,6 +2,7 @@
 
 import { MDXRemote } from 'next-mdx-remote';
 import { PropsWithChildren, ReactNode } from 'react';
+import { MDXComponents } from '@mdx-js/react/lib';
 import Features from '../../../../components/projects/FeatureList';
 
 const mdxComponentsMap = {

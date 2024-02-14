@@ -2,9 +2,10 @@ import React from 'react';
 import { Work_Sans } from 'next/font/google';
 import Script from 'next/script';
 import type { Metadata } from 'next/types';
-import GeneralLayout from '../components/layouts/GeneralLayout';
 import { randomlyChooseTagline } from '../lib/enhancements';
 import './globals.css';
+import SiteFooter from '../components/SiteFooter';
+import SiteHeader from '../components/SiteHeader';
 
 const siteFont = Work_Sans({
   weight: ['500', '600', '700'],
@@ -62,7 +63,11 @@ export default async function RootLayout({
             </Script>
           </>
         )}
-        <GeneralLayout tagline={footerTagline}>{children}</GeneralLayout>
+        <>
+          <SiteHeader />
+          {children}
+          <SiteFooter tagline={footerTagline} />
+        </>
       </body>
     </html>
   );

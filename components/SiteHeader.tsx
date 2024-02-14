@@ -158,11 +158,6 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
           type="button"
           className="size-[40px] print:hidden tablet:hidden rounded-lg text-on-surface-foreground dark:text-on-surface-foreground-dark flex flex-col justify-center items-center cursor-pointer"
           onClick={toggleShowMore}
-          aria-description={
-            showMore
-              ? 'Hide more navigation options'
-              : 'See more navigation options'
-          }
         >
           <svg
             width="24"
@@ -170,6 +165,11 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            aria-description={
+              showMore
+                ? 'Hide more navigation options'
+                : 'See more navigation options'
+            }
           >
             <mask
               id="mask0_1239_718"

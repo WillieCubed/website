@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import React from 'react';
 import { Work_Sans } from 'next/font/google';
 import Script from 'next/script';
@@ -74,6 +75,7 @@ export default async function RootLayout({
           <SiteHeader />
           {children}
           <SiteFooter tagline={footerTagline} />
+          <Analytics />
         </>
       </body>
     </html>

@@ -17,12 +17,13 @@ export async function generateMetadata() {
 
   return {
     title: 'Projects - Willie Chalmers III',
-    description: `Willie Chalmers III studies artificial intelligence. Learn more about his Learn about his ${count} personal project${
+    description: `Willie Chalmers III studies artificial intelligence. Learn more about his ${count} personal project${
       count == 1 ? '' : 's'
     } here.`,
     openGraph: {
+      siteName: 'Willie Chalmers III',
       title: 'Projects Overview',
-      description: `Willie Chalmers III studies artificial intelligence. Learn more about his Learn about his ${count} personal project${
+      description: `Willie Chalmers III studies artificial intelligence. Learn more about his ${count} personal project${
         count == 1 ? '' : 's'
       } here.`,
       url: '/projects',

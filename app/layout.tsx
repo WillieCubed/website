@@ -1,7 +1,7 @@
 import React from 'react';
 import { Work_Sans } from 'next/font/google';
 import Script from 'next/script';
-import type { Metadata } from 'next/types';
+import type { Metadata, Viewport } from 'next/types';
 import { randomlyChooseTagline } from '../lib/enhancements';
 import './globals.css';
 import SiteFooter from '../components/SiteFooter';
@@ -27,13 +27,20 @@ export const metadata: Metadata = {
     template: '%s - Willie Chalmers III',
   },
   description:
-    'Willie Chalmers III is a recent graduate of computer science from The University of Texas at Dallas. Learn more about him and his projects here.',
+    'Willie Chalmers III builds software for people. Learn more about him and his projects here.',
   openGraph: {
     siteName: 'Wilie Chalmers III',
     url: '/',
     type: 'website',
     images: ['/assets/headshot.jpg'],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#3C84FC' },
+    { media: '(prefers-color-scheme: dark)', color: '#034ECE' },
+  ],
 };
 
 export default async function RootLayout({

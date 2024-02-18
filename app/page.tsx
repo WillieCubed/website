@@ -24,13 +24,12 @@ export const metadata: Metadata = {
     absolute: 'Willie Chalmers III',
   },
   openGraph: {
-    title: 'Home',
+    siteName: 'Willie Chalmers III',
     // TODO: Update this to be dynamic with some cool stats
     description:
-      'Willie Chalmers III is a student studying computer science at The University of Texas at Dallas. Learn more about him and his projects here.',
+      'Willie Chalmers III builds software for people. Learn more about him and his projects here.',
     url: '/',
     type: 'website',
-    images: ['/assets/headshot.jpg'],
   },
 };
 

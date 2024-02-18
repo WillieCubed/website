@@ -5,11 +5,12 @@ import { ProjectData } from '../../../lib/common';
 export const metadata: Metadata = {
   title: 'Research Overview',
   description:
-    'Willie Chalmers III studies artificial intelligence. Learn more about his research here.',
+    'Willie Chalmers III builds software for people. Learn more about him and his research interests here.',
   openGraph: {
+    siteName: 'Willie Chalmers III',
     title: 'Research Overview',
     description:
-      'Willie Chalmers III studies artificial intelligence. Learn more about his research here.',
+      'Willie Chalmers III builds software for people. Learn more about him and his research interests here.',
   },
 };
 

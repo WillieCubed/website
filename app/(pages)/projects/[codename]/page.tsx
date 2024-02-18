@@ -45,6 +45,7 @@ export async function generateMetadata({
         canonical: canonicalUrl,
       },
       openGraph: {
+        siteName: 'Willie Chalmers III',
         title: project.title,
         description: project.tagline,
         url: canonicalUrl,

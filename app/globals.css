@@ -69,12 +69,12 @@
     }
 
     .surface {
-      @apply bg-maverick-800;
+      @apply bg-surface-foreground-dark;
       @apply text-on-surface-foreground-dark;
     }
 
     .surface-alt {
-      @apply bg-maverick-900;
+      @apply bg-maverick-950;
       @apply text-on-surface-foreground-dark;
     }
 

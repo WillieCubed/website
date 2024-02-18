@@ -31,7 +31,7 @@ function FeaturedProjectCard({
   const { title, tagline, codename } = project;
   return (
     <Link href={`/projects/${codename}`} className="group">
-      <div className="flex flex-col p-lg bg-surface-foreground dark:bg-surface-foreground-dark border-2 group-hover:bg-maverick-100 group-focus:bg-maverick-100 active:bg-maverick-100 dark:group-hover:bg-maverick-700 dark:group-focus:bg-maverick-700 dark:active:bg-maverick-700 transition ease-in duration-100 border-on-surface-foreground">
+      <div className="flex flex-col p-lg bg-surface-foreground dark:bg-surface-foreground-dark border-2 group-hover:bg-maverick-100 group-focus:bg-maverick-100 active:bg-maverick-100 dark:group-hover:bg-maverick-900 dark:group-focus:bg-maverick-900 dark:active:bg-maverick-900 transition ease-in duration-100 border-on-surface-foreground">
         <div className="space-y-sm">
           <div className="text-on-surface text-title-small">{labelText}</div>
           <div className="flex flex-col self-stretch gap-y-lg items-start">

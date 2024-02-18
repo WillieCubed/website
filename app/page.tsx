@@ -24,7 +24,6 @@ export const metadata: Metadata = {
     absolute: 'Willie Chalmers III',
   },
   openGraph: {
-    siteName: 'Willie Chalmers III',
     // TODO: Update this to be dynamic with some cool stats
     description:
       'Willie Chalmers III builds software for people. Learn more about him and his projects here.',

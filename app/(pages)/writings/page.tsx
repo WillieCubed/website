@@ -35,7 +35,7 @@ export default async function WritingsPage() {
           </div>
         </div>
       </section>
-      <section className="min-h-[50vh] tablet:col-span-6 tablet:col-start-2 space-y-lg pt-2xl pb-lg px-lg desktop-large:px-0">
+      <section className="min-h-[50vh] tablet:col-span-6 tablet:col-start-2 space-y-lg pt-2xl pb-2xl px-lg desktop-large:px-0">
         {writingComponents}
       </section>
     </main>

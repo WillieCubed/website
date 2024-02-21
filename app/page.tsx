@@ -1,4 +1,3 @@
-import { get } from '@vercel/edge-config';
 import Link from 'next/link';
 import type { Metadata } from 'next/types';
 import './landing.css';
@@ -18,6 +17,7 @@ import { LinkButton } from '../components/LinkButton';
 import NowPageIcon from '../components/icons/NowPageIcon';
 import BioPageIcon from '../components/icons/BioPageIcon';
 import RandomPageIcon from '../components/icons/RandomPageIcon';
+import { fetchConfig, REMOTE_CONFIG_KEYS } from '../lib/config';
 
 export const metadata: Metadata = {
   title: {
@@ -41,7 +41,7 @@ export default async function LandingPage() {
   const allFeaturedProjects = await getFeaturedProjects();
   const featuredWork = await getFeaturedWork();
   const featuredWritings = await getFeaturedWritings();
-  const shouldShowWritings = await get('show_writings');
+  const shouldShowWritings = await fetchConfig(REMOTE_CONFIG_KEYS.showWritings);
 
   // Sort in reverse chronological order
   const featuredProjects = allFeaturedProjects.sort(

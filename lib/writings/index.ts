@@ -1,8 +1,8 @@
-import { get } from '@vercel/edge-config';
 import { serialize } from 'next-mdx-remote/serialize';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import rehypeSlug from 'rehype-slug';
+import { fetchConfig } from '../config';
 
 const HIDDEN_ITEM_PREFIX = '_';
 
@@ -90,7 +90,7 @@ export async function getAllWritings() {
 }
 
 export async function getFeaturedWritings(): Promise<WritingData[]> {
-  const featuredListConfig = await get('featured_writings');
+  const featuredListConfig = await fetchConfig('featured_writings');
   if (!featuredListConfig) {
     return [];
   }

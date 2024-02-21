@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { REMOTE_CONFIG_KEYS, fetchConfig } from '../lib/config';
 // import NowPlayingWidget from './widgets/NowPlayingWidget';
 
 interface SiteFooterProps {
@@ -13,10 +14,11 @@ interface SiteFooterProps {
 /**
  * The site-wide footer with useful links to pages and other websites.
  */
-export default function SiteFooter({
+export default async function SiteFooter({
   tagline,
   // spotifyAccessToken: accessToken,
 }: SiteFooterProps) {
+  const showWritings = await fetchConfig(REMOTE_CONFIG_KEYS.showWritings);
   return (
     <footer className="bg-white text-on-light dark:bg-slate-900 dark:text-slate-300 bordered-t">
       <div className="max-w-breakpoint-2xl mx-auto space-y-lg tablet:space-y-0 tablet:grid desktop:grid-cols-8 tablet:px-lg py-16 print:py-lg px-lg gap-x-lg">
@@ -69,14 +71,16 @@ export default function SiteFooter({
                     Media
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/writings"
-                    className="font-display text-title-small dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
-                  >
-                    Writings
-                  </Link>
-                </li>
+                {showWritings && (
+                  <li>
+                    <Link
+                      href="/writings"
+                      className="font-display text-title-small dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
+                    >
+                      Writings
+                    </Link>
+                  </li>
+                )}
               </ul>
             </div>
           </div>
@@ -108,14 +112,15 @@ export default function SiteFooter({
                     Bio
                   </Link>
                 </li>
-                <li>
+                {/* TODO: Re-add blog link when ready */}
+                {/* <li>
                   <Link
                     href="https://blog.williecubed.me"
                     className="font-display text-title-small dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                   >
                     Blog
                   </Link>
-                </li>
+                </li> */}
                 {/* TODO: Introduce colophon page when ready */}
                 {/* <li>
                   <Link

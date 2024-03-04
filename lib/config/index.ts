@@ -17,7 +17,7 @@ const VERCEL_REMOTE_CONFIG_VALUES: Record<
 
 export async function fetchConfig<
   KeyType extends keyof typeof REMOTE_CONFIG_KEYS,
-  ValueType extends (typeof VERCEL_REMOTE_CONFIG_VALUES)[KeyType],
->(key: KeyType): Promise<ValueType> {
-  return (await get(key)) || (VERCEL_REMOTE_CONFIG_VALUES[key] as ValueType);
+  ValueType extends Readonly<(typeof VERCEL_REMOTE_CONFIG_VALUES)[KeyType]>,
+>(key: KeyType): Promise<Readonly<ValueType>> {
+  return ((await get(key)) || VERCEL_REMOTE_CONFIG_VALUES[key]) as ValueType;
 }

@@ -1,7 +1,9 @@
 import { get } from '@vercel/edge-config';
+
+import { LinkButton } from '@/components/LinkButton';
+
 import type { ProjectData } from '@/lib/common';
 import { getAllProjects } from '@/lib/projects';
-import { LinkButton } from '@/components/LinkButton';
 
 const FEATURED_PROJECTS_LIMIT = 3;
 

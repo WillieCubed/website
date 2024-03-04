@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+
 import ProjectSearchBox from './ProjectSearchBox';
 
 interface ProjectIndexSelection {

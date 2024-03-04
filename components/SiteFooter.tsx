@@ -1,6 +1,8 @@
-import React from 'react';
 import Link from 'next/link';
+import React from 'react';
+
 import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
+
 // import NowPlayingWidget from './widgets/NowPlayingWidget';
 
 interface SiteFooterProps {
@@ -121,15 +123,14 @@ export default async function SiteFooter({
                     Blog
                   </Link>
                 </li> */}
-                {/* TODO: Introduce colophon page when ready */}
-                {/* <li>
+                <li>
                   <Link
                     href="/colophon"
                     className="font-display text-title-small dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                   >
                     Colophon
                   </Link>
-                </li> */}
+                </li>
               </ul>
             </div>
           </div>

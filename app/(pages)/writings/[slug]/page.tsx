@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
-import { WritingData, getWriting } from '@/lib/writings';
-import WritingDetailsView from './WritingDetailsView';
 import { Metadata } from 'next/types';
+
+import { WritingData, getWriting } from '@/lib/writings';
+
+import WritingDetailsView from './WritingDetailsView';
 
 const BASE_URL = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}/writings`

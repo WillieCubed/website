@@ -1,4 +1,5 @@
 import Link from 'next/link';
+
 import { ProjectData } from '@/lib/common';
 
 interface FeaturedProjectsListProps {

@@ -1,11 +1,12 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useState } from 'react';
 import clsx from 'clsx';
-import expandMenuIcon from '../app/assets/read_more.svg';
+import Image from 'next/image';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+
+import expandMenuIcon from '../app/assets/read_more.svg';
 
 interface SiteHeaderProps {
   /**

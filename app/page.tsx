@@ -1,23 +1,26 @@
 import Link from 'next/link';
 import type { Metadata } from 'next/types';
-import './landing.css';
-import { getFeaturedProjects, getFeaturedWork } from '@/lib/projects';
-import { getFeaturedWritings } from '@/lib/writings';
-import { SocialContactChip } from '@/components/landing/SocialContactChip';
+
 import FeaturedWorkCard from '@/components/FeaturedProject';
-import FeaturedProjectsList from '@/components/landing/FeaturedProjectsList';
-import FeaturedWritingsList from '@/components/landing/FeaturedWritingsList';
+import { LinkButton } from '@/components/LinkButton';
+import BioPageIcon from '@/components/icons/BioPageIcon';
 import FeaturedProjectsIcon from '@/components/icons/FeaturedProjectsIcon';
 import FeaturedWorkIcon from '@/components/icons/FeaturedWorkIcon';
 import InstagramIcon from '@/components/icons/InstagramIcon';
 import LinkedinIcon from '@/components/icons/LinkedinIcon';
 import NotesIcon from '@/components/icons/NotesIcon';
-import ThreadsIcon from '@/components/icons/ThreadsIcon';
-import { LinkButton } from '@/components/LinkButton';
 import NowPageIcon from '@/components/icons/NowPageIcon';
-import BioPageIcon from '@/components/icons/BioPageIcon';
 import RandomPageIcon from '@/components/icons/RandomPageIcon';
-import { fetchConfig, REMOTE_CONFIG_KEYS } from '@/lib/config';
+import ThreadsIcon from '@/components/icons/ThreadsIcon';
+import FeaturedProjectsList from '@/components/landing/FeaturedProjectsList';
+import FeaturedWritingsList from '@/components/landing/FeaturedWritingsList';
+import { SocialContactChip } from '@/components/landing/SocialContactChip';
+
+import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
+import { getFeaturedProjects, getFeaturedWork } from '@/lib/projects';
+import { getFeaturedWritings } from '@/lib/writings';
+
+import './landing.css';
 
 export const metadata: Metadata = {
   title: {

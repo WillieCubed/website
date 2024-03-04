@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next';
+
 import { getAllProjects } from '@/lib/projects';
-import { getAllWritings } from '@/lib/writings';
 import { siteRoute } from '@/lib/url-utils';
+import { getAllWritings } from '@/lib/writings';
 
 /**
  * Generates the sitemap for the whole website.

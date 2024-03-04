@@ -2,6 +2,7 @@ import { serialize } from 'next-mdx-remote/serialize';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import rehypeSlug from 'rehype-slug';
+
 import { fetchConfig } from '../config';
 
 const HIDDEN_ITEM_PREFIX = '_';

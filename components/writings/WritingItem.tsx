@@ -1,4 +1,5 @@
 import Link from 'next/link';
+
 import { WritingData } from '@/lib/writings';
 
 interface WritingItemProps {

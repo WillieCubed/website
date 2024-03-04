@@ -1,14 +1,17 @@
 import type { Metadata } from 'next';
-import { getProject, getProjectSlugs } from '@/lib/projects';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { ProjectData } from '@/lib/common';
 import Image from 'next/image';
-import ProjectDetailView from './ProjectDetailsView';
-// import TableOfContents from '@/components/TableOfContents';
-import ProjectBackIcon from '@/components/projects/ProjectBackIcon';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
 // import ProjectNextIcon from '@/components/projects/ProjectNextIcon';
 import LinkedObjectWrapper from '@/components/LinkedObjectWrapper';
+// import TableOfContents from '@/components/TableOfContents';
+import ProjectBackIcon from '@/components/projects/ProjectBackIcon';
+
+import { ProjectData } from '@/lib/common';
+import { getProject, getProjectSlugs } from '@/lib/projects';
+
+import ProjectDetailView from './ProjectDetailsView';
 
 const BASE_URL = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}/projects`

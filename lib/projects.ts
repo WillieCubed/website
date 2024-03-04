@@ -1,8 +1,9 @@
-import { join } from 'path';
-import { readdirSync, readFileSync } from 'node:fs';
-import { serialize } from 'next-mdx-remote/serialize';
-import rehypeSlug from 'rehype-slug';
 import { parseISO } from 'date-fns';
+import { serialize } from 'next-mdx-remote/serialize';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'path';
+import rehypeSlug from 'rehype-slug';
+
 import { ProjectData } from './common';
 
 const projectsDirectory = join(process.cwd(), 'content/projects');

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+
 import { LinkButton } from '@/components/LinkButton';
 
 export const metadata: Metadata = {

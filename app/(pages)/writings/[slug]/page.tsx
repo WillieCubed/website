@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { WritingData, getWriting } from '../../../../lib/writings';
+import { WritingData, getWriting } from '@/lib/writings';
 import WritingDetailsView from './WritingDetailsView';
 import { Metadata } from 'next/types';
 

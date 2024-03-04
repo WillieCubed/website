@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { WritingData } from '../../lib/writings';
+import { WritingData } from '@/lib/writings';
 
 interface FeaturedWritingsListProps {
   writings: WritingData[];

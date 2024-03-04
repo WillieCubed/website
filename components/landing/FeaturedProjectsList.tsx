@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ProjectData } from '../../lib/common';
+import { ProjectData } from '@/lib/common';
 
 interface FeaturedProjectsListProps {
   projects: ProjectData[];

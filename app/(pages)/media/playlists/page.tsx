@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getPlaylists } from '../../../../lib/data/spotify';
+import { getPlaylists } from '@/lib/data/spotify';
 
 const TEST_TOKEN = process.env.TEST_SPOTIFY_TOKEN as string;
 

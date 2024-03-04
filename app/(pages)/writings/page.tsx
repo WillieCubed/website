@@ -1,6 +1,6 @@
 import type { Metadata } from 'next/types';
-import { getAllWritings } from '../../../lib/writings';
-import WritingItem from '../../../components/writings/WritingItem';
+import { getAllWritings } from '@/lib/writings';
+import WritingItem from '@/components/writings/WritingItem';
 
 export const metadata: Metadata = {
   title: 'Writings',

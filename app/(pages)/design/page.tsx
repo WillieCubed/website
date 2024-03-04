@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next/types';
 import Image from 'next/image';
-import { fetchDribbleShots } from '../../../lib/data/dribbble';
+import { fetchDribbleShots } from '@/lib/data/dribbble';
 
 export const metadata: Metadata = {
   title: 'Design Portfolio',

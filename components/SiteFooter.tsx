@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { REMOTE_CONFIG_KEYS, fetchConfig } from '../lib/config';
+import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
 // import NowPlayingWidget from './widgets/NowPlayingWidget';
 
 interface SiteFooterProps {

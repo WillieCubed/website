@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ProjectData, PROJECT_TYPE_MAP } from '../../lib/common';
+import { ProjectData, PROJECT_TYPE_MAP } from '@/lib/common';
 
 interface SpotlightProjectCardProps {
   project: ProjectData;

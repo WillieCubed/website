@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ProjectFeature } from '../../lib/common';
+import { ProjectFeature } from '@/lib/common';
 
 interface FeatureListProps {
   features: ProjectFeature[];

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
-import { getAllProjects } from '../../../lib/projects';
-import { ProjectData } from '../../../lib/common';
+import { getAllProjects } from '@/lib/projects';
+import { ProjectData } from '@/lib/common';
 
 export const metadata: Metadata = {
   title: 'Research Overview',

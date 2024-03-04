@@ -90,7 +90,7 @@
     }
 
     .hero {
-      @apply bg-maverick-700;
+      @apply bg-maverick-800;
       @apply text-on-primary;
     }
   }

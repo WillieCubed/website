@@ -81,13 +81,13 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
   return (
     <header
       className={clsx(
-        'print:block sticky top-0 z-50 px-lg desktop-large:p-0',
+        'print:block sticky top-lg z-50 px-lg desktop-large:p-0',
         getLayoutClass(path)
       )}
     >
       <nav
         className={clsx(
-          'bordered min-h-[64px] sticky top-4 mt-4 flex align-middle p-sm tablet:p-lg tablet:text-left items-start justify-between bg-surface-foreground dark:bg-surface-foreground-dark transition-all ease-in-out duration-300',
+          'bordered min-h-[64px] sticky top-lg flex align-middle p-sm tablet:p-lg tablet:text-left items-start justify-between bg-surface-foreground dark:bg-surface-foreground-dark transition-all ease-in-out duration-300',
           width
         )}
       >

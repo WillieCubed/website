@@ -1,9 +1,7 @@
 import withMDX from '@next/mdx';
+import type { NextConfig } from 'next/types';
 
-// import type { NextConfig } from 'next/types';
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [

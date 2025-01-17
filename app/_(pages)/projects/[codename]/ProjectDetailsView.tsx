@@ -1,6 +1,5 @@
 'use client';
 
-import { MDXComponents } from '@mdx-js/react/lib';
 import { MDXRemote } from 'next-mdx-remote';
 import { PropsWithChildren, ReactNode } from 'react';
 
@@ -65,7 +64,7 @@ export default function ProjectDetailView({
   return (
     <article className="prose">
       <MDXRemote
-        components={mdxComponentsMap as MDXComponents}
+        components={mdxComponentsMap}
         compiledSource={compiledSource}
         scope={scope}
         frontmatter={frontmatter}

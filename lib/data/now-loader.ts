@@ -19,7 +19,7 @@ const NOW_DIRECTORY = join(CONTENT_DIRECTORY, 'now');
  */
 async function getNowEntry(slug: string): Promise<NowItemData> {
   const data = getContentData<NowItemData>(NOW_DIRECTORY, slug);
-  return data;
+  return data as never;
 }
 
 /**
@@ -29,8 +29,11 @@ export async function getAllNowEntries(): Promise<NowItemData[]> {
   const slugs = await getFileSlugs(NOW_DIRECTORY);
   const writings = await Promise.all(
     slugs.map(async (slug) => {
-      const { writing } = await getNowEntry(slug);
-      return writing;
+      const { content, date } = await getNowEntry(slug);
+      return {
+        date: date,
+        content: content,
+      };
     })
   );
   return writings;

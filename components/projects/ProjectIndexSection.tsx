@@ -46,6 +46,8 @@ function ProjectIndexList() {
   );
 }
 
-interface ProjectIndexItemProps {}
+interface ProjectIndexItemProps {
+  name: string;
+}
 
 function ProjectIndexItem() {}

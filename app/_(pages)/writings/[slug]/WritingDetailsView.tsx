@@ -1,6 +1,5 @@
 'use client';
 
-import { MDXComponents } from '@mdx-js/react/lib';
 import { MDXRemote } from 'next-mdx-remote';
 import { PropsWithChildren } from 'react';
 
@@ -70,7 +69,7 @@ export default function WritingDetailsView({
   return (
     <article className="prose">
       <MDXRemote
-        components={mdxComponentsMap as MDXComponents}
+        components={mdxComponentsMap}
         compiledSource={compiledSource}
         scope={scope}
         frontmatter={frontmatter}

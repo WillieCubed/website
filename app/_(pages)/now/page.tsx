@@ -95,9 +95,9 @@ export default async function NowPage() {
               >
                 Reasonable Tech Company
               </Link>
-              , a startup that builds tools to augment humans' ability to learn
-              and do work. We&apos;re focused on Project Haystack, a platform
-              for creating and managing autonomous knowledge agents.
+              , a startup that builds tools to augment humans&apos; ability to
+              learn and do work. We&apos;re focused on Project Haystack, a
+              platform for creating and managing autonomous knowledge agents.
             </p>
             <p>
               I&apos;m also working on{' '}

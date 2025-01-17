@@ -76,12 +76,12 @@ function useScrollState() {
 
   const handleScroll = useCallback(() => {
     setScrollY(window.scrollY);
-  }, [scrollY]);
+  }, [window]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [handleScroll]);
 
   return scrollY;
 }
@@ -214,7 +214,9 @@ type NavigationItemContents = {
   subitems?: NavigationItemContents[];
 };
 
-interface NavigationItemProps extends NavigationItemContents {}
+interface NavigationItemProps extends NavigationItemContents {
+  title: string;
+}
 
 function NavigationItem({ href, title, subitems }: NavigationItemProps) {
   const itemList = subitems?.map((item) => {

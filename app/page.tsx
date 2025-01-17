@@ -54,7 +54,7 @@ function TileButton({
       className={clsx(
         variant === 'primary' && 'bg-primary text-on-primary',
         variant === 'tonal' &&
-        'bg-secondary-container text-on-secondary-container',
+          'bg-secondary-container text-on-secondary-container',
         className
       )}
       href={href}
@@ -102,13 +102,14 @@ export default async function LandingPage() {
             life easier.
           </p>
           <p>
-            Previously, he worked with the American Society on Aging to prototype a digital
-            communications platform for helping community-based organizations stay in touch
-            with older American adults.
+            Previously, he worked with the American Society on Aging to
+            prototype a digital communications platform for helping
+            community-based organizations stay in touch with older American
+            adults.
           </p>
           <p>
-            Before that, Willie founded and led Nebula Labs, an organization that
-            builds tools to support students&apos; academic success.
+            Before that, Willie founded and led Nebula Labs, an organization
+            that builds tools to support students&apos; academic success.
           </p>
           <p>
             Willie got his bachelor&apos;s degree in computer science from The
@@ -120,8 +121,9 @@ export default async function LandingPage() {
             students.
           </p>
           <p>
-            Find him on <Link href="https://threads.net/@williecubed">Threads</Link> or email
-            him at{' '}
+            Find him on{' '}
+            <Link href="https://threads.net/@williecubed">Threads</Link> or
+            email him at{' '}
             <Link href="mailto:contact@williecubed.me">
               contact@williecubed.me
             </Link>

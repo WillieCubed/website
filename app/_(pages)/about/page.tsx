@@ -399,7 +399,7 @@ function ResumeExperienceList({ items }: { items: ResumeExperienceItem[] }) {
 function BigWordsBox({ children }: React.PropsWithChildren) {
   return (
     <section className="h-[60vh] py-16 flex">
-      <blockquote className="my-auto max-w-6xl ml-48 p-16 text-[72px] font-display font-semibold bg-[#ffffff22]">
+      <blockquote className="my-auto max-w-6xl ml-48 p-16 text-[72px] font-display font-semibold bg-white/[0.13]">
         {children}
       </blockquote>
     </section>

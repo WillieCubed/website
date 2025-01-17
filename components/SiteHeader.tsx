@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import expandMenuIcon from '../app/assets/read_more.svg';
 
@@ -68,8 +68,27 @@ function getLayoutClass(path: string) {
     : '';
 }
 
+/**
+ * A hook that can be used to detect when the user has scrolled from the top of the page.
+ */
+function useScrollState() {
+  const [scrollY, setScrollY] = useState(0);
+
+  const handleScroll = useCallback(() => {
+    setScrollY(window.scrollY);
+  }, [scrollY]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return scrollY;
+}
+
 export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
   const [showMore, setShowMore] = useState(false);
+  const scrollY = useScrollState();
 
   const toggleShowMore = () => {
     setShowMore(!showMore);
@@ -81,22 +100,23 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
   return (
     <header
       className={clsx(
-        'print:block sticky top-lg z-50 px-lg desktop-large:p-0',
-        getLayoutClass(path)
+        'print:block sticky top-0 desktop-large:p-0'
+        // getLayoutClass(path)
       )}
     >
       <nav
         className={clsx(
-          'bordered min-h-[64px] sticky top-lg flex align-middle p-sm tablet:p-lg tablet:text-left items-start justify-between bg-surface-foreground dark:bg-surface-foreground-dark transition-all ease-in-out duration-300',
-          width
+          'border-b border-outline-variant  min-h-[64px] sticky top-lg flex align-middle p-sm tablet:p-lg tablet:text-left items-start justify-between transition-all ease-in-out duration-300',
+          // width
+          scrollY > 0 ? 'bg-surface-container-high' : 'bg-surface-container'
         )}
       >
         <div className="h-full w-full flex-col justify-center pt-sm tablet:pt-0 tablet:flex tablet:flex-row tablet:justify-between items-center">
-          <div className="flex-grow font-bold font-display text-xl px-sm tablet:px-0">
+          <div className="flex-grow font-bold font-display text-headline-small px-sm tablet:px-0">
             {showTitle && (
               <Link
                 href="/"
-                className="hover:underline focus:underline underline-offset-4"
+                className="hover:underline focus:underline underline-offset-4 text-primary"
               >
                 Willie Chalmers III
               </Link>
@@ -108,8 +128,8 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
               showMore ? 'block' : 'hidden tablet:block'
             )}
           >
-            <ul className="py-sm px-sm tablet:p-0 tablet:flex tablet:space-x-xl *:text-left">
-              <li className="font-bold font-display text-xl">
+            <ul className="py-sm px-sm tablet:p-0 tablet:flex tablet:space-x-lg *:text-left">
+              {/* <li className="font-bold font-display text-title-medium">
                 <Link
                   href="/now"
                   className={clsx(
@@ -118,25 +138,25 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
                 >
                   Now
                 </Link>
-              </li>
-              <li className="font-bold font-display text-xl">
+              </li> */}
+              {/* <li className="font-bold font-display text-title-medium">
                 <Link
                   href="/projects"
                   className="hover:underline focus:underline underline-offset-4"
                 >
                   Projects
                 </Link>
-              </li>
-              <li className="font-bold font-display text-xl">
+              </li> */}
+              {/* <li className="font-bold font-display text-title-medium">
                 <Link
                   href="/research"
                   className="hover:underline focus:underline underline-offset-4"
                 >
                   Research
                 </Link>
-              </li>
+              </li> */}
               {/* TODO: Re-enable design once it's ready */}
-              {/* <li className="font-bold font-display text-xl">
+              {/* <li className="font-bold font-display text-headline-small">
                 <Link
                   href="/design"
                   className="hover:underline focus:underline underline-offset-4"
@@ -144,14 +164,6 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
                   Design
                 </Link>
               </li> */}
-              <li className="font-bold font-display text-xl">
-                <Link
-                  href="/resume.pdf"
-                  className="hover:underline focus:underline underline-offset-4"
-                >
-                  Resume
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
@@ -220,7 +232,7 @@ function NavigationItem({ href, title, subitems }: NavigationItemProps) {
 
   return (
     <div>
-      <div className="font-bold font-display text-xl">
+      <div className="font-bold font-display text-headline-small">
         <Link href={href}>{title}</Link>
       </div>
       {subitems && <ul>{itemList}</ul>}

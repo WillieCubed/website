@@ -1,6 +1,13 @@
+import tailwindTypography from '@tailwindcss/typography';
+import {
+  ColorsMap,
+  Options,
+  withMaterialColors,
+} from 'tailwind-material-colors';
+import tailwindScrollbar from 'tailwind-scrollbar';
 import type { Config } from 'tailwindcss';
 
-const tailwindConfig: Config = {
+const tailwindConfig = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx}',
     './components/**/*.{js,ts,jsx,tsx}',
@@ -26,7 +33,12 @@ const tailwindConfig: Config = {
       },
       fontFamily: {
         sans: ['var(--font-default)', 'Work Sans', 'system-ui'],
-        display: ['var(--font-default)', 'Work Sans', 'ui-sans-serif'],
+        display: [
+          'var(--font-display)',
+          'var(--font-default)',
+          'Itim',
+          'ui-sans-serif',
+        ],
       },
       fontSize: {
         'display-large': [
@@ -128,8 +140,7 @@ const tailwindConfig: Config = {
           '16px',
           {
             lineHeight: '24px',
-            letterSpacing: '0.0025em',
-            fontWeight: '400',
+            fontWeight: '300',
           },
         ],
         'body-small': [
@@ -154,63 +165,32 @@ const tailwindConfig: Config = {
           900: '#023997',
           950: '#01245F',
         },
-        primary: {
-          'light-1': '#8BB5FD',
-          DEFAULT: '#3C84FC',
-          'dark-1': '#0346BA',
-          'dark-2': '#022D79',
-        },
-        secondary: {
-          'light-1': '#33FFBB',
-          DEFAULT: '#00FCA8',
-          'dark-1': '#00E096',
-          'dark-2': '#00CC88',
-        },
-        accent: {
-          'light-2': '#909FFF',
-          'light-1': '#8595FF',
-          DEFAULT: '#7284FF',
-          'dark-1': '#5C72FF',
-          'dark-2': '#4760FF',
-          'dark-3': '#4157E8',
-        },
-        surface: {
-          foreground: {
-            DEFAULT: '#FFFFFF',
-            alt: '#D8E6FE',
-            dark: '#183565',
-          },
-          background: '#ECF3FF',
-        },
-        important: '#FC3C82',
-        on: {
-          'surface-foreground': '#0C1A32',
-          'surface-foreground-dark': '#ECF3FF',
-          primary: '#F9F9F9',
-          light: '#404040',
-          secondary: '#404040',
-          dark: '#FAFAFA',
-        },
-        emphasis: {
-          low: '#0000008C',
-        },
-        dark: '#2A2A2A',
-        light: {
-          1: '#F2F2F2',
-          2: '#F5F5F5',
-          3: '#FAFAFA',
-          DEFAULT: '#E1E5F2',
-        },
-        link: '#3324BB',
       },
       screens: {
         tablet: '640px',
         desktop: '1280px',
         'desktop-large': '1440px',
       },
+      transitionProperty: {
+        width: 'width',
+      },
     },
   },
-  plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar')],
+  plugins: [tailwindTypography, tailwindScrollbar],
+} satisfies Config;
+
+const materialConfig: ColorsMap = {
+  primary: '#3C84FC',
 };
 
-export default tailwindConfig;
+const materialColorOptions = {
+  scheme: 'fidelity',
+  contrast: 0,
+  extend: true,
+} satisfies Options;
+
+export default withMaterialColors(
+  tailwindConfig,
+  materialConfig,
+  materialColorOptions
+);

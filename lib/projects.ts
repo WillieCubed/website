@@ -56,7 +56,7 @@ export async function getProject(codename: string) {
   const mdxSource = await serialize(source, MDX_OPTIONS);
   const project: ProjectData = {
     ...(mdxSource.frontmatter as ProjectData),
-    launched: mdxSource.frontmatter.launched as Date,
+    launched: new Date(mdxSource.frontmatter.launched as string) as Date,
   };
   return { mdxSource, project };
 }
@@ -92,14 +92,24 @@ export async function getFeaturedProjects(): Promise<ProjectData[]> {
 }
 
 export async function getFeaturedWork() {
+  // return {
+  //   type: 'Client Work', // 'Research', 'Personal Projects', 'Client Work', 'Design', 'Other
+  //   projectId: 'connie',
+  //   title: 'Connie',
+  //   tagline:
+  //     'A real-time communications center that keeps nonprofits in touch with older American adults.',
+  //   description: 'Built for the American Society on Aging',
+  //   timePeriod: 'October 2023–now',
+  //   website: 'https://github.com/ConnieML/Connie-RTC',
+  // };
   return {
-    type: 'Client Work', // 'Research', 'Personal Projects', 'Client Work', 'Design', 'Other
-    projectId: 'connie',
-    title: 'Connie',
-    tagline:
-      'A real-time communications center that keeps nonprofits in touch with older American adults.',
-    description: 'Built for the American Society on Aging',
-    timePeriod: 'October 2023–now',
+    type: 'Other', // 'Research', 'Personal Projects', 'Client Work', 'Design', 'Other'
+    projectId: 'logdate',
+    title: 'LogDate',
+    tagline: 'A new home for your thoughts and memories.',
+    description:
+      'An app that lets you document, reflect on, and share your memories.',
+    timePeriod: 'March 2023–now',
     website: 'https://github.com/ConnieML/Connie-RTC',
   };
 }

@@ -1,3 +1,5 @@
+import type { JSX } from 'react';
+
 interface SocialContactChipProps {
   href: string;
   icon: JSX.Element;

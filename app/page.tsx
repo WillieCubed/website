@@ -1,5 +1,7 @@
+import clsx from 'clsx';
 import Link from 'next/link';
 import type { Metadata } from 'next/types';
+import { type JSX, PropsWithChildren } from 'react';
 
 import FeaturedWorkCard from '@/components/FeaturedProject';
 import { LinkButton } from '@/components/LinkButton';
@@ -35,196 +37,213 @@ export const metadata: Metadata = {
   },
 };
 
+interface TileButtonProps {
+  variant?: 'primary' | 'tonal' | 'text';
+  href?: string;
+  className?: string;
+}
+
+function TileButton({
+  variant = 'primary',
+  href = '#',
+  className,
+  children,
+}: PropsWithChildren<TileButtonProps>) {
+  return (
+    <Link
+      className={clsx(
+        variant === 'primary' && 'bg-primary text-on-primary',
+        variant === 'tonal' &&
+        'bg-secondary-container text-on-secondary-container',
+        className
+      )}
+      href={href}
+    >
+      {children}
+    </Link>
+  );
+}
+
 /**
  * The main entrypoint to the site.
  *
  * Route: /
  */
 export default async function LandingPage() {
-  const allFeaturedProjects = await getFeaturedProjects();
-  const featuredWork = await getFeaturedWork();
-  const featuredWritings = await getFeaturedWritings();
-  const shouldShowWritings = await fetchConfig(REMOTE_CONFIG_KEYS.showWritings);
+  // const allFeaturedProjects = await getFeaturedProjects();
+  // const featuredWork = await getFeaturedWork();
+  // const featuredWritings = await getFeaturedWritings();
+  // const shouldShowWritings = await fetchConfig(REMOTE_CONFIG_KEYS.showWritings);
 
-  // Sort in reverse chronological order
-  const featuredProjects = allFeaturedProjects.sort(
-    (p1, p2) => p2.launched.getTime() - p1.launched.getTime()
-  );
+  // // Sort in reverse chronological order
+  // const featuredProjects = allFeaturedProjects.sort(
+  //   (p1, p2) => p2.launched.getTime() - p1.launched.getTime()
+  // );
 
   return (
-    <div className="p-lg pb-2xl desktop:pb-[128px]">
-      <main className="max-w-breakpoint-2xl mx-auto tablet:grid tablet:grid-cols-8 tablet:gap-lg">
-        <div className="hero-fold flex flex-col h-full tablet:col-span-6">
-          <section className="flex-grow">
-            <div className="mt-[48px] tablet:mt-[96px] space-y-4">
-              <div className="text-display-small tablet:text-display-medium font-display">
-                Hello!
-              </div>
-              <div className="text-display-small tablet:text-display-medium font-display">
-                I&apos;m <span className="text-primary">Willie</span>.
-              </div>
-            </div>
-            <div className="mt-6 space-y-4">
-              <div className="text-headline-medium tablet:text-headline-large font-display">
-                I build{' '}
-                <span
-                  className="text-primary hover:underline cursor-pointer"
-                  title="(create software that uses AI)"
-                >
-                  thoughtful software
-                </span>{' '}
-                to bring people together
-                <br className="print:hidden" /> and aspire to{' '}
-                <span
-                  className="text-accent-dark-2 hover:underline cursor-pointer"
-                  title="(search for the holy grail of artificial general intelligence)"
-                >
-                  study machine intelligence
-                </span>
-                .
-              </div>
-              <div className="max-w-[598px]">
-                <div className="text-headline-small">
-                  Currently a product manager for{' '}
-                  <a
-                    href="https://www.developforgood.org/"
-                    className="text-maverick-400 hover:text-maverick-500 transition ease-linear underline"
-                  >
-                    Develop for Good
-                  </a>{' '}
-                  working with the{' '}
-                  <a
-                    href="https://www.asaging.org/"
-                    className="text-maverick-400 hover:text-maverick-500 transition ease-linear underline"
-                  >
-                    American Society on Aging
-                  </a>
-                  .
-                </div>
-              </div>
-            </div>
-          </section>
-          <section className="mt-8" id="spotlight">
-            <div className="flex px-md py-lg items-center gap-x-md self-stretch">
-              <FeaturedWorkIcon />
-              <h1 className="text-headline-small font-bold font-display">
-                Current Work
-              </h1>
-            </div>
-            <FeaturedWorkCard
-              id={featuredWork.projectId}
-              title={featuredWork.title}
-              tagline={featuredWork.tagline}
-              description={featuredWork.description}
-              timePeriod={featuredWork.timePeriod}
-              mainLink={featuredWork.website}
-              caseStudyLink={`/case-studies /${featuredWork.projectId}`}
-              type={featuredWork.type}
-            />
-          </section>
-        </div>
-        <div className="hero-fold h-full tablet:pb-lg tablet:col-start-7 tablet:col-end-9 tablet:row-start-1">
-          <section
-            id="links"
-            className="h-full flex flex-col justify-end bottom-0 inset-0 tablet:sticky tablet:top-24 pb-4 mt-xl space-y-8"
-          >
-            <div>
-              <h1 className="font-semibold font-display text-title-large">
-                Quick links
-              </h1>
-              <ul className="mt-2 flex flex-col items-start text-title-medium">
-                <li className="text-on-surface">
-                  <Link
-                    href="/now"
-                    className="flex items-center h-10 gap-x-sm group icon-link"
-                  >
-                    <NowPageIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
-                    <span className="group-hover:underline underline-offset-2">
-                      See what I&apos;m working on
-                    </span>
-                  </Link>
-                </li>
-                <li className="text-on-surface">
-                  <Link
-                    href="/bio"
-                    className="flex items-center h-10 gap-x-sm group icon-link"
-                  >
-                    <BioPageIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
-                    <span className="group-hover:underline underline-offset-2">
-                      Learn more about me
-                    </span>
-                  </Link>
-                </li>
-                <li className="text-on-surface">
-                  <Link
-                    href="/random"
-                    className="flex items-center h-10 gap-x-sm group icon-link"
-                  >
-                    <RandomPageIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
-                    <span className="group-hover:underline underline-offset-2">
-                      See something random
-                    </span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div className="flex flex-col space-y-lg">
-              <h1 className="font-semibold font-display text-title-large">
-                Quick contacts
-              </h1>
-              <div className="flex items-center h-10 gap-x-sm icon-link">
-                <SocialContactChip
-                  href="https://threads.net/@williecubed"
-                  icon={
-                    <ThreadsIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
-                  }
-                  label="Threads"
-                />
-                <SocialContactChip
-                  href="https://instagram.com/williecubed"
-                  icon={
-                    <InstagramIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
-                  }
-                  label="Instagram"
-                />
-                <SocialContactChip
-                  href="https://www.linkedin.com/in/willie-chalmers-iii"
-                  icon={
-                    <LinkedinIcon className="text-on-surface-foreground dark:text-on-surface-foreground-dark" />
-                  }
-                  label="LinkedIn"
-                />
-              </div>
-            </div>
-          </section>
-        </div>
-        <section id="projects" className="tablet:col-span-6">
-          <div className="flex px-lg py-lg items-center gap-x-md self-stretch">
-            <FeaturedProjectsIcon />
-            <h1 className="text-headline-small font-bold font-display">
-              Selected Projects
-            </h1>
+    <div>
+      <main className="mx-auto max-w-2xl p-lg">
+        <div className="mt-3xl space-y-lg">
+          <div className="font-display text-display-medium">willie is...</div>
+          <div className="font-display text-headline-medium">
+            Currently building{' '}
+            <Link
+              className="text-primary hover:text-primary-con"
+              href="https://reasonabletech.co"
+            >
+              Project Newton
+            </Link>
           </div>
-          <div className="space-y-md">
-            <FeaturedProjectsList projects={featuredProjects} />
-            <LinkButton href="/projects" label="See the rest" icon={<></>} />
-          </div>
-        </section>
-        {shouldShowWritings && (
-          <section id="writings" className="tablet:col-span-6">
-            <div className="flex px-lg py-lg items-center gap-x-md self-stretch">
-              <NotesIcon />
-              <h1 className="text-headline-small font-bold font-display">
-                Some Writings
-              </h1>
-            </div>
-            <div className="space-y-md">
-              <FeaturedWritingsList writings={featuredWritings} />
-              <LinkButton href="/writings" label="Read more" icon={<></>} />
-            </div>
-          </section>
-        )}
+        </div>
+        <div className="mt-3xl prose">
+          <p className="">
+            Willie Chalmers III is the founder of the Reasonable Tech Company, a
+            little startup focused on building intelligent software to make your
+            life easier.
+          </p>
+          <p>
+            Previously, he worked with the American Society on Aging to prototype a digital
+            communications platform for helping community-based organizations stay in touch
+            with older American adults.
+          </p>
+          <p>
+            Before that, Willie founded and led Nebula Labs, an organization that
+            builds tools to support students&apos; academic success.
+          </p>
+          <p>
+            Willie got his bachelor&apos;s degree in computer science from The
+            University of Texas at Dallas, where he managed{' '}
+            <Link href="https://acmutd.co">several</Link>{' '}
+            <Link href="https://aisutd.org">student</Link>{' '}
+            <Link href="https://sg.utdallas.edu">organizations</Link>, working
+            with over a hundred student leaders, impacting thousands of
+            students.
+          </p>
+          <p>
+            Find him on <Link href="https://threads.net/@williecubed">Threads</Link> or email
+            him at{' '}
+            <Link href="mailto:contact@williecubed.me">
+              contact@williecubed.me
+            </Link>
+            .
+          </p>
+        </div>
       </main>
     </div>
+    // <div className="grid desktop:grid-cols-8">
+    //   <section
+    //     id="hero"
+    //     className="desktop:col-span-8 desktop:grid desktop:grid-cols-subgrid"
+    //   >
+    //     <div className="desktop:col-span-4 pt-[128px] px-xl pb-xl space-y-xl">
+    //       <div className="space-y-lg">
+    //         <div className="text-display-medium 2xl:text-display-large">
+    //           I&apos;m Willie.
+    //         </div>
+    //         <div className="text-display-small 2xl:text-display-medium">
+    //           I <span className="text-primary">build software</span> for{' '}
+    //           <span className="text-tertiary">humans</span>.
+    //         </div>
+    //       </div>
+    //       <div className="text-headline-small text-on-surface-variant">
+    //         Currently working an app to help people document and share their
+    //         memories.
+    //       </div>
+    //       <div className="text-title-small text-on-surface-variant">
+    //         (among{' '}
+    //         <Link href="https://reasonabletech.co" className="text-on-surface">
+    //           other things
+    //         </Link>
+    //         )
+    //       </div>
+    //     </div>
+    //     {/* <div className="desktop:col-span-4 content-end space-y-xl p-lg">
+    //       <div className="text-label-large text-on-surface-variant">Places I&apos;m online</div>
+    //     </div> */}
+    //   </section>
+    //   <section id="featured" className="desktop:col-span-8">
+    //     <RowHeader icon={<FeaturedWorkIcon />} title="Featured Work" />
+    //     <div className="flex">
+    //       <div className="flex-1 border-r border-outline-variant bg-surface aspect-[16/9]"></div>
+    //       <div className="h-full flex-1 flex flex-col">
+    //         <div className="flex-1 flex flex-col justify-end p-lg space-y-xl">
+    //           <div className="space-y-lg">
+    //             <div className="text-display-small">{featuredWork.title}</div>
+    //             <div className="text-headline-small">
+    //               {featuredWork.tagline}
+    //             </div>
+    //           </div>
+    //         </div>
+    //         <div className="flex">
+    //           <TileButton
+    //             variant="primary"
+    //             href="https://logdate.app"
+    //             className="flex-1 p-lg"
+    //           >
+    //             <div className="text-label-large">Visit website</div>
+    //           </TileButton>
+    //           <TileButton
+    //             variant="tonal"
+    //             href="/projects/logdate"
+    //             className="flex-1 p-lg"
+    //           >
+    //             <div className="text-label-large">Project Brief</div>
+    //           </TileButton>
+    //           <TileButton
+    //             variant="tonal"
+    //             href="https://github.com/WillieCubed/logdate-client"
+    //             className="flex-1 p-lg"
+    //           >
+    //             <div className="text-label-large">View on GitHub</div>
+    //           </TileButton>
+    //         </div>
+    //       </div>
+    //     </div>
+    //   </section>
+    //   <section id="works">
+    //     <RowHeader icon={<FeaturedWorkIcon />} title="Other Projects" />
+    //   </section>
+    //   {shouldShowWritings && (
+    //     <section
+    //       id="notes"
+    //       className="col-span-8 lg:grid lg:grid-cols-6 xl:grid-cols-8"
+    //     >
+    //       <div className="p-lg space-x-md col-span-2">
+    //         <div>I</div>
+    //         <div className="space-y-md">
+    //           <div className="text-headline-small">Notes</div>
+    //           <div className="text-body-large">
+    //             A few of my ideas and writings, all in one place.
+    //           </div>
+    //         </div>
+    //       </div>
+    //     </section>
+    //   )}
+    // </div>
   );
 }
+
+// interface WritingCardProps {
+//   title: string;
+//   description: string;
+//   date: Date;
+//   href: string;
+// }
+
+// function Writing({ title, description, date, href }: WritingCardProps) {
+//   return <div></div>;
+// }
+
+// interface RowHeaderProps {
+//   icon: JSX.Element;
+//   title: string;
+// }
+
+// function RowHeader({ icon, title }: RowHeaderProps) {
+//   return (
+//     <div className="flex items-center space-x-sm p-lg border-b border-outline-variant">
+//       <div className={clsx()}>{icon}</div>
+//       <div className="text-headline-small">{title}</div>
+//     </div>
+//   );
+// }

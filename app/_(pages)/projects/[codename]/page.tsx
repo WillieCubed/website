@@ -32,11 +32,10 @@ export const dynamic = 'force-static';
  * This injects OpenGraph Project tags with information specific to the project
  * with the given codename.
  */
-export async function generateMetadata({
-  params,
-}: {
-  params: { codename: string };
+export async function generateMetadata(props: {
+  params: Promise<{ codename: string }>;
 }): Promise<Metadata> {
+  const params = await props.params;
   const { codename } = params;
   try {
     const { project } = await getProject(codename);
@@ -77,18 +76,20 @@ export async function generateStaticParams() {
 }
 
 interface ProjectDetailPageProps {
-  params: {
+  params: Promise<{
     codename: string;
-  };
+  }>;
 }
 
 /**
  * A page that shows extended information about a project.
  * Route: /projects/<codename>
  */
-export default async function ProjectDetailPage({
-  params: { codename },
-}: ProjectDetailPageProps) {
+export default async function ProjectDetailPage(props: ProjectDetailPageProps) {
+  const params = await props.params;
+
+  const { codename } = params;
+
   let mdxSource, project;
   try {
     const projectData = await getProject(codename);

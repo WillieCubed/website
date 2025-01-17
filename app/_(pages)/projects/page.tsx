@@ -1,8 +1,7 @@
-import { get } from '@vercel/edge-config';
-
 import { LinkButton } from '@/components/LinkButton';
 
 import type { ProjectData } from '@/lib/common';
+import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
 import { getAllProjects } from '@/lib/projects';
 
 const FEATURED_PROJECTS_LIMIT = 3;
@@ -19,22 +18,24 @@ export async function generateMetadata() {
 
   return {
     title: 'Projects - Willie Chalmers III',
-    description: `Willie Chalmers III studies artificial intelligence. Learn more about his ${count} personal project${
-      count == 1 ? '' : 's'
-    } here.`,
+    description:
+      'Willie builds stuff. Learn about his apps and other projects.',
+    // description: `Willie Chalmers III studies artificial intelligence. Learn more about his ${count} personal project${count == 1 ? '' : 's'
+    //   } here.`,
     openGraph: {
       siteName: 'Willie Chalmers III',
       title: 'Projects Overview',
-      description: `Willie Chalmers III studies artificial intelligence. Learn more about his ${count} personal project${
-        count == 1 ? '' : 's'
-      } here.`,
+      description:
+        'Willie builds stuff. Learn about his apps and other projects.',
+      // description: `Willie Chalmers III studies artificial intelligence. Learn more about his ${count} personal project${count == 1 ? '' : 's'
+      //   } here.`,
       url: '/projects',
     },
   };
 }
 
 interface ProjectsPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 /**
@@ -42,9 +43,8 @@ interface ProjectsPageProps {
  *
  * Route: /projects
  */
-export default async function ProjectsPage({
-  searchParams,
-}: ProjectsPageProps) {
+export default async function ProjectsPage(props: ProjectsPageProps) {
+  const searchParams = await props.searchParams;
   const { projects } = await getProjectsPageData();
 
   // Yeah I know this isn't thread-safe, but this is a personal app, okay?
@@ -65,8 +65,8 @@ export default async function ProjectsPage({
   return (
     <main className="min-h-dvh max-w-breakpoint-2xl mx-auto tablet:grid tablet:grid-cols-8 tablet:gap-lg">
       <section className="tablet:col-span-3 tablet:col-start-2 mt-16">
-        <div className="sticky top-32 space-y-xl px-lg desktop-large:px-0">
-          <div className="space-y-lg ">
+        <div className="sticky top-32 pb-3xl space-y-xl px-lg desktop-large:px-0">
+          <div className="space-y-lg">
             <div className="text-display-small">Projects</div>
             <div className="text-headline-medium">My bread and butter.</div>
           </div>
@@ -152,7 +152,9 @@ async function getProjectsPageData(): Promise<ProjectsPageData> {
  */
 async function getFeaturedProjectCodenames() {
   try {
-    const featuredProjectCodenames = await get<string[]>('featuredProjects');
+    const featuredProjectCodenames = await fetchConfig<string, string[]>(
+      REMOTE_CONFIG_KEYS.featuredProjects
+    );
     return featuredProjectCodenames ?? [];
   } catch (error) {
     console.error('Could not fetch featured projects', error);

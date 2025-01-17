@@ -1,20 +1,28 @@
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Work_Sans } from 'next/font/google';
+import { Copse, Itim, Work_Sans } from 'next/font/google';
 import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
-import SiteFooter from '@/components/SiteFooter';
-import SiteHeader from '@/components/SiteHeader';
-
-import { randomlyChooseTagline } from '@/lib/enhancements';
-
+import LayoutWrapper from './LayoutWrapper';
 import './globals.css';
 
-const siteFont = Work_Sans({
-  weight: ['500', '600', '700'],
+// const siteFont = Work_Sans({
+//   weight: ['500', '600', '700'],
+//   variable: '--font-default',
+//   display: 'auto',
+//   subsets: ['latin'],
+// });
+const siteFont = Copse({
+  weight: ['400'],
   variable: '--font-default',
+  display: 'auto',
+  subsets: ['latin'],
+});
+const displayFont = Itim({
+  weight: ['400'],
+  variable: '--font-display',
   display: 'auto',
   subsets: ['latin'],
 });
@@ -32,7 +40,7 @@ export const metadata: Metadata = {
     template: '%s - Willie Chalmers III',
   },
   description:
-    'Willie Chalmers III builds software for people. Learn more about him and his projects here.',
+    'Willie Chalmers III builds software for humans. Learn more about him and his projects here.',
   openGraph: {
     siteName: 'Wilie Chalmers III',
     url: '/',
@@ -51,13 +59,12 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: React.PropsWithChildren) {
-  const footerTagline = randomlyChooseTagline();
-  // const accessToken = /* await get<string>('spotify_access_token') || */ '';
-
   return (
     <html lang="en">
       <head />
-      <body className={`min-h-screen scrollbar-thin ${siteFont.className}`}>
+      <body
+        className={`min-h-screen scrollbar-w-8 scrollbar-track-surface-container bg-surface-container ${siteFont.variable} ${displayFont.variable} font-sans`}
+      >
         {process.env.NODE_ENV === 'production' && (
           <>
             <Script
@@ -75,13 +82,10 @@ export default async function RootLayout({
             </Script>
           </>
         )}
-        <>
-          <SiteHeader />
-          {children}
-          <SiteFooter tagline={footerTagline} />
-          <Analytics />
-          <SpeedInsights />
-        </>
+        {children}
+        {/* <LayoutWrapper>{children}</LayoutWrapper> */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

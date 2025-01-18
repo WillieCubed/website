@@ -76,7 +76,7 @@ function useScrollState() {
 
   const handleScroll = useCallback(() => {
     setScrollY(window.scrollY);
-  }, [window]);
+  }, []);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);

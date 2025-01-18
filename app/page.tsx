@@ -88,14 +88,14 @@ export default async function LandingPage() {
           <div className="font-display text-headline-medium">
             Currently building{' '}
             <Link
-              className="text-primary hover:text-primary-con"
+              className="text-primary hover:underline hover:text-primary-container transition ease-in"
               href="https://reasonabletech.co"
             >
               Project Newton
             </Link>
           </div>
         </div>
-        <div className="mt-3xl prose">
+        <div className="mt-3xl prose text-on-surface prose-a:text-primary hover:prose-a:text-primary-container transition ease-in">
           <p className="">
             Willie Chalmers III is the founder of the Reasonable Tech Company, a
             little startup focused on building intelligent software to make your

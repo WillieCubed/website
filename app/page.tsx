@@ -96,16 +96,18 @@ export default async function LandingPage() {
           </div>
         </div>
         <div className="mt-3xl prose text-on-surface prose-a:text-primary hover:prose-a:text-primary-container transition ease-in">
-          <p className="">
-            Willie Chalmers III is the founder of the Reasonable Tech Company, a
-            little startup focused on building intelligent software to make your
-            life easier.
+          <p>
+            Willie Chalmers III is the human behind the Reasonable Tech Company,
+            a little startup focused on building intelligent software to solve
+            hard problems. Right now, he&apos;s working on Project Newton, a
+            next-generation research assistant for accelerating scientific
+            discovery.
           </p>
           <p>
             Previously, he worked with the American Society on Aging to
             prototype a digital communications platform for helping
-            community-based organizations stay in touch with older American
-            adults.
+            community-based organizations maintain relationships with older
+            American adults.
           </p>
           <p>
             Before that, Willie founded and led Nebula Labs, an organization

@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Copse, Itim, Work_Sans } from 'next/font/google';
+import { Rubik } from 'next/font/google';
 import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
@@ -8,22 +8,16 @@ import React from 'react';
 import LayoutWrapper from './LayoutWrapper';
 import './globals.css';
 
-// const siteFont = Work_Sans({
-//   weight: ['500', '600', '700'],
-//   variable: '--font-default',
-//   display: 'auto',
-//   subsets: ['latin'],
-// });
-const siteFont = Copse({
-  weight: ['400'],
+const siteFont = Rubik({
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-default',
-  display: 'auto',
+  display: 'swap',
   subsets: ['latin'],
 });
-const displayFont = Itim({
-  weight: ['400'],
+const displayFont = Rubik({
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-display',
-  display: 'auto',
+  display: 'swap',
   subsets: ['latin'],
 });
 

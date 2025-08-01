@@ -84,24 +84,23 @@ export default async function LandingPage() {
     <div>
       <main className="mx-auto max-w-2xl p-lg">
         <div className="mt-3xl space-y-lg">
-          <div className="font-display text-display-medium">willie is...</div>
+          <div className="font-display text-display-medium tracking-normal">
+            willie is...
+          </div>
           <div className="font-display text-headline-medium">
-            Currently building{' '}
-            <Link
-              className="text-primary hover:underline hover:text-primary-container transition ease-in"
-              href="https://reasonabletech.co"
-            >
-              Project Newton
-            </Link>
+            Currently building Project Lovelace
           </div>
         </div>
-        <div className="mt-3xl prose text-on-surface prose-a:text-primary hover:prose-a:text-primary-container transition ease-in">
+        <div className="mt-3xl prose text-on-surface prose-a:text-primary prose-a:no-underline hover:prose-a:text-primary-container transition ease-in">
           <p>
-            Willie Chalmers III is the human behind the Reasonable Tech Company,
-            a little startup focused on building intelligent software to solve
-            hard problems. Right now, he&apos;s working on Project Newton, a
-            next-generation research assistant for accelerating scientific
-            discovery.
+            Willie Chalmers III is the human behind the{' '}
+            <Link href="https://reasonabletech.co">
+              Reasonable Tech Company
+            </Link>
+            , a little startup focused on building intelligent software to solve
+            hard problems. Right now, he&apos;s working on{' '}
+            <Link href="https://uselovelace.com">Project Lovelace</Link>, an
+            end-to-end platform for building all kinds of software.
           </p>
           <p>
             Previously, he worked with the American Society on Aging to

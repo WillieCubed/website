@@ -32,11 +32,11 @@ const tailwindConfig = {
         '3xl': '3rem',
       },
       fontFamily: {
-        sans: ['var(--font-default)', 'Work Sans', 'system-ui'],
+        sans: ['var(--font-default)', 'Rubik', 'system-ui'],
         display: [
           'var(--font-display)',
           'var(--font-default)',
-          'Itim',
+          'Rubik',
           'ui-sans-serif',
         ],
       },

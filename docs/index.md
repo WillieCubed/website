@@ -7,6 +7,12 @@ meta, I know).
 supplemental information about development of this website and how to modify or
 extend it, keep reading.
 
+## Operations
+
+- [Hiatus mode](./hiatus-mode.md): temporary Project Superbloom launch behavior,
+  including which routes are hidden and which operational/error pages remain
+  reachable.
+
 # Design Tidbits
 
 ## General Philosophy

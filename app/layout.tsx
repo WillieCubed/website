@@ -5,6 +5,8 @@ import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
+import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
+
 import LayoutWrapper from './LayoutWrapper';
 import './globals.css';
 
@@ -27,21 +29,42 @@ const BASE_URL =
     : (process.env.VERCEL_ENV ?? `https://${process.env.VERCEL_URL}`) ||
       'https://williecubed.me';
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://williecubed.me/'),
-  title: {
-    default: 'Willie Chalmers III',
-    template: '%s - Willie Chalmers III',
-  },
-  description:
-    'Willie Chalmers III builds software for humans. Learn more about him and his projects here.',
-  openGraph: {
-    siteName: 'Wilie Chalmers III',
-    url: '/',
-    type: 'website',
-    images: ['/assets/headshot.jpg'],
-  },
-};
+const isHiatus = isHiatusMode();
+
+export const metadata: Metadata = isHiatus
+  ? {
+      metadataBase: new URL('https://williecubed.me/'),
+      title: {
+        absolute: HIATUS_MESSAGE,
+      },
+      description: HIATUS_MESSAGE,
+      openGraph: {
+        title: HIATUS_MESSAGE,
+        description: HIATUS_MESSAGE,
+        url: '/',
+        type: 'website',
+      },
+      robots: {
+        index: false,
+        follow: false,
+        nocache: true,
+      },
+    }
+  : {
+      metadataBase: new URL('https://williecubed.me/'),
+      title: {
+        default: 'Willie Chalmers III',
+        template: '%s - Willie Chalmers III',
+      },
+      description:
+        'Willie Chalmers III builds software for humans. Learn more about him and his projects here.',
+      openGraph: {
+        siteName: 'Wilie Chalmers III',
+        url: '/',
+        type: 'website',
+        images: ['/assets/headshot.jpg'],
+      },
+    };
 
 export const viewport: Viewport = {
   themeColor: [

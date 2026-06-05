@@ -1,0 +1,5 @@
+allowBuilds:
+  '@vercel/speed-insights': true
+  bufferutil: false
+  esbuild: true
+  sharp: true

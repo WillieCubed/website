@@ -3,6 +3,8 @@ import type { NextConfig } from 'next/types';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  cacheComponents: true,
+  allowedDevOrigins: ['williecubed.localhost'],
   images: {
     remotePatterns: [
       {

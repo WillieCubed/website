@@ -39,3 +39,6 @@ yarn-error.log*
 # ESLint
 .eslintcache
 .env*.local
+
+# Build cache
+.cache/

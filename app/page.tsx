@@ -20,22 +20,44 @@ import { SocialContactChip } from '@/components/landing/SocialContactChip';
 
 import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
 import { getFeaturedProjects, getFeaturedWork } from '@/lib/projects';
+import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 import { getFeaturedWritings } from '@/lib/writings';
 
 import './landing.css';
 
-export const metadata: Metadata = {
-  title: {
-    absolute: 'Willie Chalmers III',
-  },
-  openGraph: {
-    // TODO: Update this to be dynamic with some cool stats
-    description:
-      'Willie Chalmers III builds software for people. Learn more about him and his projects here.',
-    url: '/',
-    type: 'website',
-  },
-};
+export function generateMetadata(): Metadata {
+  if (isHiatusMode()) {
+    return {
+      title: {
+        absolute: HIATUS_MESSAGE,
+      },
+      description: HIATUS_MESSAGE,
+      openGraph: {
+        title: HIATUS_MESSAGE,
+        description: HIATUS_MESSAGE,
+        url: '/',
+        type: 'website',
+      },
+      twitter: {
+        title: HIATUS_MESSAGE,
+        description: HIATUS_MESSAGE,
+      },
+    };
+  }
+
+  return {
+    title: {
+      absolute: 'Willie Chalmers III',
+    },
+    openGraph: {
+      // TODO: Update this to be dynamic with some cool stats
+      description:
+        'Willie Chalmers III builds software for people. Learn more about him and his projects here.',
+      url: '/',
+      type: 'website',
+    },
+  };
+}
 
 interface TileButtonProps {
   variant?: 'primary' | 'tonal' | 'text';
@@ -69,7 +91,21 @@ function TileButton({
  *
  * Route: /
  */
+function HiatusLandingPage() {
+  return (
+    <main className="grid min-h-dvh place-items-center bg-surface-container px-lg">
+      <h1 className="text-center font-display text-display-small text-on-surface tablet:text-display-medium">
+        <span className="text-primary">Willie</span> will return shortly.
+      </h1>
+    </main>
+  );
+}
+
 export default async function LandingPage() {
+  if (isHiatusMode()) {
+    return <HiatusLandingPage />;
+  }
+
   // const allFeaturedProjects = await getFeaturedProjects();
   // const featuredWork = await getFeaturedWork();
   // const featuredWritings = await getFeaturedWritings();

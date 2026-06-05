@@ -1,6 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@config '../tailwind.config.ts';
+
+@utility interactive-bg-surface-container {
+  background-color: var(--color-surface-container-high);
+}
 
 .stroke {
   -webkit-text-stroke-width: -1px;

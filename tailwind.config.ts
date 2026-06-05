@@ -1,9 +1,4 @@
 import tailwindTypography from '@tailwindcss/typography';
-import {
-  ColorsMap,
-  Options,
-  withMaterialColors,
-} from 'tailwind-material-colors';
 import tailwindScrollbar from 'tailwind-scrollbar';
 import type { Config } from 'tailwindcss';
 
@@ -143,6 +138,13 @@ const tailwindConfig = {
             fontWeight: '300',
           },
         ],
+        'body-large': [
+          '18px',
+          {
+            lineHeight: '28px',
+            fontWeight: '300',
+          },
+        ],
         'body-small': [
           '14px',
           {
@@ -152,6 +154,41 @@ const tailwindConfig = {
         ],
       },
       colors: {
+        primary: '#3C84FC',
+        'primary-light-1': '#A5C5FE',
+        'primary-light-2': '#C8DCFE',
+        'primary-dark-1': '#045FFB',
+        'primary-dark-2': '#034ECE',
+        'on-primary': '#FFFFFF',
+        'primary-container': '#D8E2FF',
+        'on-primary-container': '#001A42',
+        secondary: '#625B71',
+        'secondary-light-1': '#CCC2DC',
+        'secondary-dark-1': '#4A4458',
+        'secondary-container': '#E8DEF8',
+        'on-secondary-container': '#1D192B',
+        tertiary: '#7D5260',
+        'tertiary-container': '#FFD8E4',
+        'on-tertiary-container': '#31111D',
+        accent: '#FFB4AB',
+        'accent-light-1': '#FFDAD6',
+        surface: '#FFFBFE',
+        'on-surface': '#1C1B1F',
+        'on-surface-variant': '#49454F',
+        'surface-container': '#F8F9FF',
+        'surface-container-high': '#ECEEF6',
+        'surface-container-highest': '#E6E8F0',
+        'surface-foreground': '#F0F5FF',
+        'surface-foreground-dark': '#101828',
+        'on-surface-foreground': '#1C1B1F',
+        'on-surface-foreground-dark': '#F8F9FF',
+        'on-surface-border': '#C8DCFE',
+        'on-surface-border-dark': '#3C84FC',
+        outline: '#79747E',
+        'outline-variant': '#CAC4D0',
+        'on-light': '#111827',
+        'on-dark': '#F8FAFC',
+        dark: '#111827',
         maverick: {
           50: '#F0F5FF',
           100: '#E6EFFF',
@@ -179,18 +216,4 @@ const tailwindConfig = {
   plugins: [tailwindTypography, tailwindScrollbar],
 } satisfies Config;
 
-const materialConfig: ColorsMap = {
-  primary: '#3C84FC',
-};
-
-const materialColorOptions = {
-  scheme: 'fidelity',
-  contrast: 0,
-  extend: true,
-} satisfies Options;
-
-export default withMaterialColors(
-  tailwindConfig,
-  materialConfig,
-  materialColorOptions
-);
+export default tailwindConfig;

@@ -64,12 +64,17 @@ export async function getContentData<T>(directory: string, slug: string) {
   let source;
   try {
     source = readFileSync(writingPath);
-  } catch (e) {
+  } catch {
     try {
       const writingPath = join(directory, `${slug}.md`);
       source = readFileSync(writingPath);
-    } catch (e) {
-      throw new Error(`Writing with given codename "${slug}" cannot be found.`);
+    } catch (error) {
+      throw new Error(
+        `Writing with given codename "${slug}" cannot be found.`,
+        {
+          cause: error,
+        }
+      );
     }
   }
   const mdxSource = await serialize(source, MDX_OPTIONS);

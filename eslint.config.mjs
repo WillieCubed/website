@@ -1,18 +1,9 @@
-import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
-import nextTypescript from 'eslint-config-next/typescript';
+import js from '@eslint/js';
+import nextPlugin from '@next/eslint-plugin-next';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 const eslintConfig = [
-  ...nextCoreWebVitals,
-  ...nextTypescript,
-  // TODO: Remove once codebase is in a better state
-  {
-    rules: {
-      // Note: you must disable the base rule as it can report incorrect errors
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
   {
     ignores: [
       'node_modules/**',
@@ -22,6 +13,25 @@ const eslintConfig = [
       'build/**',
       'next-env.d.ts',
     ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  nextPlugin.configs.recommended,
+  nextPlugin.configs['core-web-vitals'],
+  {
+    files: ['*.config.{js,cjs,mjs,ts}', '.*rc.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    files: ['**/*.{js,jsx,ts,tsx,mjs,cjs}'],
+    rules: {
+      // TODO: Remove once codebase is in a better state.
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
   },
 ];
 

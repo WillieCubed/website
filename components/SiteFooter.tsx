@@ -43,12 +43,7 @@ const QUICK_LINKS: { label: string; href: string }[] = [
 /**
  * The site-wide footer with useful links to pages and other websites.
  */
-export default function SiteFooter(
-  {
-    // tagline,
-    // spotifyAccessToken: accessToken,
-  }: SiteFooterProps
-) {
+export default function SiteFooter(_props: SiteFooterProps) {
   const tagline = randomlyChooseTagline();
   // const showWritings = await fetchConfig(REMOTE_CONFIG_KEYS.showWritings);
   return (

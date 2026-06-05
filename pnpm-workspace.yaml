@@ -6,3 +6,8 @@ allowBuilds:
   bufferutil: false
   esbuild: true
   sharp: true
+  unrs-resolver: true
+
+peerDependencyRules:
+  allowedVersions:
+    tailwindcss: 4.3.0

@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@config '../tailwind.config.ts';
+@config '../tailwind.config.mjs';
 
 @utility interactive-bg-surface-container {
   background-color: var(--color-surface-container-high);

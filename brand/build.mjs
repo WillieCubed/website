@@ -430,7 +430,7 @@ const page = `<!doctype html>
         <img src="/brand/mark/williecubed-mark.svg" alt="" width="96" height="96" />
         <div>
           <h1 id="brand-title">WillieCubed brand</h1>
-          <p>The mark is an isometric cube: one object with several faces. Every file here is generated from the same geometry and palette.</p>
+          <p>Marks, lockups, app icons, colors, and type.</p>
           <p class="downloads">${link('williecubed-brand.zip', 'Download everything')}</p>
         </div>
       </section>

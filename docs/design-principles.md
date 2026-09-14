@@ -22,8 +22,8 @@ running on its own. Every motion has a reduced-motion fallback.
 
 **Approachable.** Anyone who lands on the site can tell within a few seconds
 who Willie is and where their thing lives. That includes a bus rider who
-scanned a flyer, a legislative staffer, a recruiter, and someone who watches The
-Willie Diaries. Use plain words and legible type, and never put information
+scanned a flyer, a legislative staffer, a recruiter, and someone who found one of
+Willie's apps. Use plain words and legible type, and never put information
 only behind a hover.
 
 **Interactive.** The content responds to the visitor. Hover reveals context
@@ -40,9 +40,9 @@ back without anyone editing the homepage by hand.
 
 ## Brand
 
-The site is Willie's personal brand. Las Vegans for Better Transit, the
-Rebuilding America Project, and The Willie Diaries appear on it as work Willie
-does, not as sub-brands, so their logos, palettes, and type stay on their own
+The site is Willie's personal brand. Las Vegans for Better Transit, Hypertext
+Studio, and the Reasonable Tech Company appear on it as work Willie does, not as
+sub-brands, so their logos, palettes, and type stay on their own
 sites. A component may take a faint color hint from its own media, such as the
 average tint of a real thumbnail, but it never adopts an initiative's brand
 colors outright. Where no real media exists, the component stays neutral.
@@ -62,8 +62,7 @@ Willie chose four sites as inspiration. Each one contributes something specific:
 
 ## Open questions
 
-The Rebuilding America Project and The Willie Diaries have no public web
-presence yet, so every design direction uses placeholders for their
-descriptions, episodes, and media. The assumption that most organizing traffic
+The homepage uses real media captured from each venture's public site, so
+those captures go stale when the products change. The assumption that most organizing traffic
 arrives on phones from social links and flyers is unverified until the site has
 analytics.

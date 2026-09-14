@@ -36,7 +36,20 @@ element transitions are the minimum, not extras.
 
 **Responsive.** The site works first on a 390px phone and scales up from there.
 It also responds to time, so current work surfaces first and older work steps
-back without anyone editing the homepage by hand.
+back without anyone editing the homepage by hand. Layouts change at the Material
+3 window size classes, because the codebase already uses Material 3 tokens and
+MUI:
+
+| Class    | Width      | Homepage layout                                       |
+| -------- | ---------- | ----------------------------------------------------- |
+| Compact  | < 600px    | One stacked column                                    |
+| Medium   | 600–839px  | Stacked, full-width text, two-column list and tiles   |
+| Expanded | 840–1199px | Sticky rail beside a two-column grid sized to content |
+| Large    | ≥ 1200px   | Sticky rail beside a six-column grid                  |
+
+The first screen on compact and medium stops at its natural height so part of
+the first tile shows below it. A layout that exactly fills the viewport reads
+as a page that cannot scroll.
 
 ## Brand
 

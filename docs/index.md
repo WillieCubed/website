@@ -13,7 +13,15 @@ extend it, keep reading.
   including which routes are hidden and which operational/error pages remain
   reachable.
 
+## Design
+
+- [Design principles](./design-principles.md): the five principles and the brand
+  rule that govern the relaunch.
+
 # Design Tidbits
+
+The notes below describe the previous site. The relaunch follows
+[design principles](./design-principles.md) instead.
 
 ## General Philosophy
 

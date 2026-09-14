@@ -12,3 +12,4 @@ for repository-wide changes.
 - `writings`: writing content, `lib/writings`, and `components/writings`
 - `theme`: Tailwind configuration, `app/globals.css`, and shared styling
 - `content`: MDX and data files under `content/` and `data/`
+- `docs`: maintainer documentation under `docs/`

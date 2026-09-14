@@ -35,6 +35,12 @@ function isBlockedHiatusPath(pathname: string): boolean {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (pathname === '/') {
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = '/home.html';
+    return NextResponse.rewrite(homeUrl);
+  }
+
   if (isLiveMode() || isAllowedHiatusPath(pathname)) {
     return;
   }

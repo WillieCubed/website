@@ -1,6 +1,22 @@
 @import 'tailwindcss';
 @config '../tailwind.config.mjs';
 
+/*
+ * Tailwind v4 resolves max-w-* against --max-width, then --spacing, then
+ * --container. The custom xs–3xl spacing tokens in tailwind.config.mjs would
+ * otherwise turn max-w-2xl into 2rem, and a config maxWidth key only reaches
+ * --container, so the container sizes have to be pinned here.
+ */
+@theme {
+  --max-width-xs: 20rem;
+  --max-width-sm: 24rem;
+  --max-width-md: 28rem;
+  --max-width-lg: 32rem;
+  --max-width-xl: 36rem;
+  --max-width-2xl: 42rem;
+  --max-width-3xl: 48rem;
+}
+
 @utility interactive-bg-surface-container {
   background-color: var(--color-surface-container-high);
 }

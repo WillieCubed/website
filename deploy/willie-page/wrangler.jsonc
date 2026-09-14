@@ -3,7 +3,7 @@
 {
   "name": "willie-page",
   "compatibility_date": "2026-09-01",
-  "assets": { "directory": "./site", "not_found_handling": "404-page" },
+  "assets": { "directory": "./site", "not_found_handling": "404-page", "html_handling": "drop-trailing-slash" },
   "routes": [
     { "pattern": "willie.page/*", "zone_name": "willie.page" },
     { "pattern": "www.willie.page/*", "zone_name": "willie.page" }

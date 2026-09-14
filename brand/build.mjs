@@ -3,6 +3,7 @@
 // changing either; never edit files under public/brand by hand.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -89,18 +90,10 @@ const ON_DARK = [C.paper, C.mint, C.green];
 // ---------- Mark variants (512 canvas unless noted) ----------
 
 const mark = {
-  tile: (small = false) => svg(512, 512, `<rect width="512" height="512" rx="112" fill="${C.green}"/>${facetSvg(facets(tuned({ cx: 256, cy: 256, r: small ? 200 : 186 }, small)), ON_TILE)}`, 'WillieCubed'),
-  square: (r = 186, colors = ON_TILE, bg = C.green) => svg(512, 512, `${bg ? `<rect width="512" height="512" fill="${bg}"/>` : ''}${facetSvg(facets({ cx: 256, cy: 256, r }), colors)}`, 'WillieCubed'),
+  tile: (small = false) => svg(512, 512, `<rect width="512" height="512" rx="112" fill="${C.green}"/>${facetSvg(facets(tuned({ cx: 256, cy: 256, r: small ? 214 : 204 }, small)), ON_TILE)}`, 'WillieCubed'),
+  square: (r = 204, colors = ON_TILE, bg = C.green) => svg(512, 512, `${bg ? `<rect width="512" height="512" fill="${bg}"/>` : ''}${facetSvg(facets({ cx: 256, cy: 256, r }), colors)}`, 'WillieCubed'),
   cube: (colors, small = false) => svg(512, 512, facetSvg(facets(tuned({ cx: 256, cy: 256, r: 250 }, small)), colors), 'WillieCubed'),
 };
-
-// macOS icons sit inside Apple's 1024 grid: an 824-point rounded body with a
-// soft drop shadow, leaving the outer margin for the shadow.
-const macos = () =>
-  svg(1024, 1024,
-    `<defs><filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.3"/></filter></defs>` +
-      `<rect x="100" y="100" width="824" height="824" rx="185" fill="${C.green}" filter="url(#s)"/>${facetSvg(facets({ cx: 512, cy: 512, r: 300 }), ON_TILE)}`,
-    'WillieCubed');
 
 // ---------- Text ----------
 
@@ -115,7 +108,7 @@ function lockup({ label, color, tile = true }) {
   const height = markSize + pad * 2;
   const glyphs = BOLD.getPath(label, textX, baseline, size).toPathData(2);
   const markBody = tile
-    ? `<rect x="${pad}" y="${pad}" width="${markSize}" height="${markSize}" rx="${(markSize * 112) / 512}" fill="${C.green}"/>${facetSvg(facets({ cx: pad + markSize / 2, cy: pad + markSize / 2, r: markSize * (186 / 512) }), ON_TILE)}`
+    ? `<rect x="${pad}" y="${pad}" width="${markSize}" height="${markSize}" rx="${(markSize * 112) / 512}" fill="${C.green}"/>${facetSvg(facets({ cx: pad + markSize / 2, cy: pad + markSize / 2, r: markSize * (204 / 512) }), ON_TILE)}`
     : facetSvg(facets({ cx: pad + markSize / 2, cy: pad + markSize / 2, r: markSize * 0.47 }), color === C.ink ? ON_LIGHT : ON_DARK);
   return svg(width, height, `${markBody}<path d="${glyphs}" fill="${color}"/>`, label);
 }
@@ -138,7 +131,7 @@ function ogImage() {
   const line1 = BOLD.getPath('builds software and systems', 96, 450, 52).toPathData(2);
   const line2 = BOLD.getPath('for people.', 96, 516, 52).toPathData(2);
   const url = BOLD.getPath('willie.page', 96, 150, 34).toPathData(2);
-  const markBox = `<rect x="936" y="96" width="168" height="168" rx="${(168 * 112) / 512}" fill="${C.green}"/>${facetSvg(facets({ cx: 1020, cy: 180, r: 168 * (186 / 512) }), ON_TILE)}`;
+  const markBox = `<rect x="936" y="96" width="168" height="168" rx="${(168 * 112) / 512}" fill="${C.green}"/>${facetSvg(facets({ cx: 1020, cy: 180, r: 168 * (204 / 512) }), ON_TILE)}`;
   return svg(w, h, `<rect width="${w}" height="${h}" fill="${C.paper}"/>${markBox}<path d="${url}" fill="${C.green}"/><path d="${name}" fill="${C.ink}"/><path d="${line1}" fill="${C.muted}"/><path d="${line2}" fill="${C.muted}"/>`, 'Willie Chalmers III');
 }
 
@@ -256,48 +249,92 @@ write('web/manifest.webmanifest', JSON.stringify(manifest, null, 2) + '\n', { gr
 // Social
 write('social/og-image.png', png(ogImage(), 1200), { group: 'social', purpose: 'Link preview image for Open Graph and X (1200×630)' });
 write('social/og-image.svg', ogImage(), { group: 'social', purpose: 'Link preview image, vector source' });
-for (const s of [400, 1024]) write(`social/avatar-${s}.png`, png(mark.square(170), s), { group: 'social', purpose: `Profile picture, safe for circular crops (${s}px)` });
+for (const s of [400, 1024]) write(`social/avatar-${s}.png`, png(mark.square(190), s), { group: 'social', purpose: `Profile picture, safe for circular crops (${s}px)` });
 
-// Apple platforms
-const appIcon = mark.square(186);
-const appDark = mark.square(186, ON_DARK, null);
-const appTinted = mark.square(186, ['#ffffff', '#b8b8b8', '#6e6e6e'], null);
-write('apple/AppIcon.appiconset/icon-1024.png', png(appIcon, 1024), { group: 'apple', purpose: 'iOS, iPadOS, and watchOS app icon (default appearance)' });
-write('apple/AppIcon.appiconset/icon-1024-dark.png', png(appDark, 1024), { group: 'apple', purpose: 'Dark appearance (transparent background)' });
-write('apple/AppIcon.appiconset/icon-1024-tinted.png', png(appTinted, 1024), { group: 'apple', purpose: 'Tinted appearance (grayscale)' });
+// Apple platforms. An Icon Composer document is the source for iOS, iPadOS,
+// macOS, watchOS, and visionOS 26 and later; Xcode's actool renders its
+// Liquid Glass appearances. The flat asset catalog serves older Xcode versions,
+// which require an opaque full-bleed square.
+const flatIcon = mark.square();
+write('apple/AppIcon.appiconset/icon-1024.png', png(flatIcon, 1024), { group: 'apple', purpose: 'Flat app icon for Xcode 16 and earlier' });
 write('apple/AppIcon.appiconset/Contents.json', JSON.stringify({
   images: [
     { filename: 'icon-1024.png', idiom: 'universal', platform: 'ios', size: '1024x1024' },
-    { appearances: [{ appearance: 'luminosity', value: 'dark' }], filename: 'icon-1024-dark.png', idiom: 'universal', platform: 'ios', size: '1024x1024' },
-    { appearances: [{ appearance: 'luminosity', value: 'tinted' }], filename: 'icon-1024-tinted.png', idiom: 'universal', platform: 'ios', size: '1024x1024' },
     { filename: 'icon-1024.png', idiom: 'universal', platform: 'watchos', size: '1024x1024' },
   ],
   info: { author: 'xcode', version: 1 },
-}, null, 2) + '\n', { group: 'apple', purpose: 'Xcode asset catalog' });
+}, null, 2) + '\n', { group: 'apple', purpose: 'Xcode asset catalog for the flat icon' });
 
-const macSvg = macos();
-write('apple/macos/williecubed-macos.svg', macSvg, { group: 'apple', purpose: 'macOS icon source on Apple’s 1024 grid' });
-const iconset = path.join(OUT, 'apple/macos/WillieCubed.iconset');
-fs.mkdirSync(iconset, { recursive: true });
-for (const base of [16, 32, 128, 256, 512]) {
-  fs.writeFileSync(path.join(iconset, `icon_${base}x${base}.png`), png(macSvg, base));
-  fs.writeFileSync(path.join(iconset, `icon_${base}x${base}@2x.png`), png(macSvg, base * 2));
+const LAYER = 1024;
+const layerFacets = facets({ cx: 512, cy: 512, r: 420 });
+const layerSvg = (points, fill, title) => svg(LAYER, LAYER, `<path d="${pathD(points)}" fill="${fill}" stroke="${fill}" stroke-width="${layerFacets.stroke}" stroke-linejoin="round"/>`, title);
+const srgb = (hex) => `srgb:${[1, 3, 5].map((i) => (parseInt(hex.slice(i, i + 2), 16) / 255).toFixed(5)).join(',')},1.00000`;
+const iconDocument = {
+  'fill-specializations': [{ value: { solid: srgb(C.green) } }, { appearance: 'dark', value: { solid: srgb(C.ink) } }],
+  groups: [
+    {
+      name: 'Cube',
+      layers: [
+        { name: 'Top', 'image-name': 'facet-top.svg', glass: true },
+        { name: 'Left', 'image-name': 'facet-left.svg', glass: true },
+        // Ink vanishes against the dark background, so this facet turns green in dark mode.
+        { name: 'Right', 'image-name': 'facet-right.svg', glass: true, 'fill-specializations': [{ appearance: 'dark', value: { solid: srgb(C.green) } }] },
+      ],
+      lighting: 'combined',
+      shadow: { kind: 'neutral', opacity: 0.5 },
+      translucency: { enabled: true, value: 0.4 },
+    },
+  ],
+  'supported-platforms': { circles: ['watchOS'], squares: 'shared' },
+};
+write('apple/WillieCubed.icon/icon.json', JSON.stringify(iconDocument, null, 2) + '\n', { group: 'apple', purpose: 'Icon Composer document with Liquid Glass layers (Xcode 26)' });
+write('apple/WillieCubed.icon/Assets/facet-top.svg', layerSvg(layerFacets.top, C.paper, 'Top facet'));
+write('apple/WillieCubed.icon/Assets/facet-left.svg', layerSvg(layerFacets.left, C.mint, 'Left facet'));
+write('apple/WillieCubed.icon/Assets/facet-right.svg', layerSvg(layerFacets.right, C.ink, 'Right facet'));
+
+const glassRenders = [];
+function renderLiquidGlass() {
+  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'williecubed-icon-'));
+  const extractor = path.join(work, 'extract-renders');
+  execFileSync('xcrun', ['swiftc', '-O', path.join(HERE, 'apple/extract-renders.swift'), '-o', extractor], { stdio: 'ignore' });
+  const document = path.join(OUT, 'apple/WillieCubed.icon');
+  for (const [platform, label, target, devices] of [['iphoneos', 'ios', '17.0', ['iphone']], ['macosx', 'macos', '14.0', []]]) {
+    const compiled = path.join(work, label);
+    const extracted = path.join(work, `${label}-renders`);
+    fs.mkdirSync(compiled);
+    fs.mkdirSync(extracted);
+    execFileSync('xcrun', ['actool', document, '--compile', compiled, '--platform', platform, ...devices.flatMap((d) => ['--target-device', d]), '--minimum-deployment-target', target, '--app-icon', 'WillieCubed', '--output-partial-info-plist', path.join(compiled, 'partial.plist')], { stdio: 'ignore' });
+    execFileSync(extractor, [path.join(compiled, 'Assets.car'), extracted], { stdio: 'ignore' });
+    const largest = fs.readdirSync(extracted).filter((f) => f.startsWith('WillieCubed-')).sort((a, b) => parseInt(b.split('-').at(-1)) - parseInt(a.split('-').at(-1)));
+    const pick = (test) => largest.find((f) => test(f.split('-').slice(1, -1).join('-')));
+    const appearances = { default: pick((a) => !/dark|tint/i.test(a)), dark: pick((a) => /dark/i.test(a)), tinted: pick((a) => /tint/i.test(a)) };
+    for (const [appearance, file] of Object.entries(appearances)) {
+      if (!file) continue;
+      const rel = `apple/liquid-glass/williecubed-${label}-${appearance}.png`;
+      write(rel, fs.readFileSync(path.join(extracted, file)), { group: 'apple', purpose: `${label === 'ios' ? 'iOS and iPadOS' : 'macOS'} ${appearance} appearance, rendered by actool` });
+      glassRenders.push({ rel, label, appearance });
+    }
+    if (label === 'macos' && appearances.default) {
+      // ICNS for distribution outside Xcode, resized from the Liquid Glass render.
+      const iconset = path.join(work, 'WillieCubed.iconset');
+      fs.mkdirSync(iconset);
+      const source = path.join(extracted, appearances.default);
+      for (const base of [16, 32, 128, 256, 512]) {
+        for (const [suffix, px] of [['', base], ['@2x', base * 2]]) execFileSync('sips', ['-z', String(px), String(px), source, '--out', path.join(iconset, `icon_${base}x${base}${suffix}.png`)], { stdio: 'ignore' });
+      }
+      const icns = path.join(OUT, 'apple/macos/WillieCubed.icns');
+      fs.mkdirSync(path.dirname(icns), { recursive: true });
+      execFileSync('iconutil', ['-c', 'icns', iconset, '-o', icns]);
+      files.push({ rel: 'apple/macos/WillieCubed.icns', bytes: fs.statSync(icns).size, group: 'apple', purpose: 'macOS app icon with Liquid Glass (ICNS, 16 to 1024px)' });
+    }
+  }
+  fs.rmSync(work, { recursive: true, force: true });
 }
 try {
-  execFileSync('iconutil', ['-c', 'icns', iconset, '-o', path.join(OUT, 'apple/macos/WillieCubed.icns')]);
-  files.push({ rel: 'apple/macos/WillieCubed.icns', bytes: fs.statSync(path.join(OUT, 'apple/macos/WillieCubed.icns')).size, group: 'apple', purpose: 'macOS app icon (ICNS, 16 to 1024px)' });
-} catch {
-  console.warn('iconutil unavailable; skipped WillieCubed.icns');
+  renderLiquidGlass();
+} catch (error) {
+  console.warn(`Skipped Liquid Glass renders; they need Xcode 26 on macOS (${error.message.split('\n')[0]})`);
 }
-fs.rmSync(iconset, { recursive: true, force: true });
-
-// Icon Composer (iOS 26 and later) and visionOS build icons from separate layers.
-const LAYER = 1024;
-const big = facets({ cx: 512, cy: 512, r: 372 });
-write('apple/icon-composer/background.svg', svg(LAYER, LAYER, `<rect width="${LAYER}" height="${LAYER}" fill="${C.green}"/>`, 'Background'), { group: 'apple', purpose: 'Icon Composer and visionOS layer: background' });
-write('apple/icon-composer/facet-top.svg', svg(LAYER, LAYER, `<path d="${pathD(big.top)}" fill="${C.paper}" stroke="${C.paper}" stroke-width="${big.stroke}" stroke-linejoin="round"/>`, 'Top facet'), { group: 'apple', purpose: 'Icon Composer and visionOS layer: top facet' });
-write('apple/icon-composer/facet-left.svg', svg(LAYER, LAYER, `<path d="${pathD(big.left)}" fill="${C.mint}" stroke="${C.mint}" stroke-width="${big.stroke}" stroke-linejoin="round"/>`, 'Left facet'), { group: 'apple', purpose: 'Icon Composer and visionOS layer: left facet' });
-write('apple/icon-composer/facet-right.svg', svg(LAYER, LAYER, `<path d="${pathD(big.right)}" fill="${C.ink}" stroke="${C.ink}" stroke-width="${big.stroke}" stroke-linejoin="round"/>`, 'Right facet'), { group: 'apple', purpose: 'Icon Composer and visionOS layer: right facet' });
 
 // Android adaptive icons: 108dp layers with the cube inside the 66dp safe zone.
 const dp = facets({ cx: 54, cy: 54, r: 30 });
@@ -400,13 +437,13 @@ const page = `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Brand · Willie Chalmers III</title>
     <meta name="description" content="Download the WillieCubed mark, lockups, app icons, and color and type tokens." />
-    <link rel="canonical" href="https://willie.page/brand/" />
+    <link rel="canonical" href="https://willie.page/brand" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Willie Chalmers III" />
     <meta property="og:title" content="WillieCubed brand" />
     <meta property="og:description" content="Download the WillieCubed mark, lockups, app icons, and color and type tokens." />
-    <meta property="og:url" content="https://willie.page/brand/" />
-    <meta property="og:image" content="https://willie.page/brand/social/og-image.png" />
+    <meta property="og:url" content="https://willie.page/brand" />
+    <meta property="og:image" content="https://willie.page/brandsocial/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Willie Chalmers III builds software and systems for people." />
@@ -431,7 +468,7 @@ const page = `<!doctype html>
         <div>
           <h1 id="brand-title">WillieCubed brand</h1>
           <p>Marks, lockups, app icons, colors, and type.</p>
-          <p class="downloads">${link('williecubed-brand.zip', 'Download the brand kit')}</p>
+          <p class="downloads">${link('williecubed-brand.zip', 'Download brand kit')}</p>
         </div>
       </section>
 
@@ -462,7 +499,21 @@ const page = `<!doctype html>
         </div>
       </section>
 
-      <section aria-labelledby="platforms">
+${glassRenders.length ? `<section aria-labelledby="app-icon">
+        <h2 id="app-icon">App icon</h2>
+        <div class="asset-grid">${glassRenders.filter((r) => r.label === 'ios').map((r) => `
+          <figure class="asset${r.appearance === 'default' ? '' : ' asset-dark'}">
+            <div class="asset-preview"><img src="/brand/${r.rel}" alt="WillieCubed app icon, ${r.appearance} appearance" width="160" height="160" /></div>
+            <figcaption>
+              <h3>${r.appearance[0].toUpperCase() + r.appearance.slice(1)}</h3>
+              <p>Liquid Glass, rendered by Xcode from the Icon Composer document.</p>
+              <p class="downloads">${link(r.rel, 'PNG 1024')}</p>
+            </figcaption>
+          </figure>`).join('')}
+        </div>
+      </section>
+
+      ` : ''}<section aria-labelledby="platforms">
         <h2 id="platforms">Platform icons</h2>
         <div class="file-groups">
           <div><h3>Web and PWA</h3><ul class="files">${fileRows('web')}</ul></div>

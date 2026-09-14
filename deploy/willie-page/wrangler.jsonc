@@ -1,6 +1,5 @@
-// Serves the static homepage on willie.page while the Next.js site is
-// rebuilt. Refresh site/ from public/home.html and public/assets/home before
-// deploying: npx wrangler deploy --config deploy/willie-page/wrangler.jsonc
+// Serves the static homepage and brand page on willie.page while the Next.js
+// site is rebuilt. Deploy with `pnpm deploy:willie-page`.
 {
   "name": "willie-page",
   "compatibility_date": "2026-09-01",

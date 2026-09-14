@@ -15,6 +15,8 @@ Use one of these scopes. Omit the scope only for repository-wide changes.
 - **`theme`** — Tailwind configuration, `app/globals.css`, and shared styling
 - **`indieweb`** — webmentions, feeds, discovery endpoints, and microformats; infrastructure for content interaction and syndication
 - **`docs`** — maintainer documentation under `docs/`
+- **`brand`** — the WillieCubed mark, the asset generator in `brand/`, and `/brand`
+- **`deploy`** — the willie.page Worker under `deploy/`
 
 ## Types
 

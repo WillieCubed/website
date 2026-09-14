@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "brand:build": "node brand/build.mjs",
+    "deploy:willie-page": "sh deploy/willie-page/stage.sh && npx wrangler@4 deploy --config deploy/willie-page/wrangler.jsonc",
     "prepare": "husky"
   },
   "dependencies": {
@@ -39,6 +41,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@next/eslint-plugin-next": "^16.2.7",
+    "@resvg/resvg-js": "2.6.2",
     "@tailwindcss/postcss": "^4.3.0",
     "@tailwindcss/typography": "^0.5.19",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
@@ -51,9 +54,12 @@
     "globals": "^17.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
+    "opentype.js": "1.3.4",
+    "pdfkit": "0.17.2",
     "portless": "^0.13.1",
     "postcss": "^8.5.15",
     "prettier": "^3.8.3",
+    "svg-to-pdfkit": "0.1.8",
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.3.0",
     "typescript": "6.0.3",

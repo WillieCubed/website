@@ -1,0 +1,53 @@
+{
+  "$description": "WillieCubed brand tokens",
+  "color": {
+    "green": {
+      "$type": "color",
+      "$value": "#2f6f5e",
+      "$description": "The mark’s tile and the site’s accent."
+    },
+    "ink": {
+      "$type": "color",
+      "$value": "#1c231e",
+      "$description": "Text and the mark’s shadow facet."
+    },
+    "paper": {
+      "$type": "color",
+      "$value": "#f4f5ef",
+      "$description": "Page background and the mark’s top facet."
+    },
+    "mint": {
+      "$type": "color",
+      "$value": "#8fd1b8",
+      "$description": "The mark’s lit facet."
+    },
+    "tray": {
+      "$type": "color",
+      "$value": "#e7eae2",
+      "$description": "Card and tile surfaces."
+    },
+    "muted": {
+      "$type": "color",
+      "$value": "#69736b",
+      "$description": "Secondary text."
+    }
+  },
+  "font": {
+    "display": {
+      "$type": "fontFamily",
+      "$value": [
+        "Atkinson Hyperlegible Next",
+        "system-ui",
+        "sans-serif"
+      ]
+    },
+    "mono": {
+      "$type": "fontFamily",
+      "$value": [
+        "Atkinson Hyperlegible Mono",
+        "ui-monospace",
+        "monospace"
+      ]
+    }
+  }
+}

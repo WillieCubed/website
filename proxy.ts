@@ -2,6 +2,13 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { isLiveMode } from '@/lib/site-mode';
 
+// Pages that ship as static HTML in public/ rather than as app routes.
+const STATIC_PAGES: Record<string, string> = {
+  '/': '/home.html',
+  '/brand': '/brand/index.html',
+  '/brand/': '/brand/index.html',
+};
+
 const ALLOWED_HIATUS_PREFIXES = ['/_next/', '/_vercel/'];
 const BLOCKED_HIATUS_PATHS = new Set([
   '/about',
@@ -35,10 +42,11 @@ function isBlockedHiatusPath(pathname: string): boolean {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === '/') {
-    const homeUrl = request.nextUrl.clone();
-    homeUrl.pathname = '/home.html';
-    return NextResponse.rewrite(homeUrl);
+  const staticPage = STATIC_PAGES[pathname];
+  if (staticPage) {
+    const pageUrl = request.nextUrl.clone();
+    pageUrl.pathname = staticPage;
+    return NextResponse.rewrite(pageUrl);
   }
 
   if (isLiveMode() || isAllowedHiatusPath(pathname)) {

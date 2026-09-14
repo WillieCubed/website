@@ -1,0 +1,10 @@
+:root {
+  --wc-green: #2f6f5e;
+  --wc-ink: #1c231e;
+  --wc-paper: #f4f5ef;
+  --wc-mint: #8fd1b8;
+  --wc-tray: #e7eae2;
+  --wc-muted: #69736b;
+  --wc-font-display: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --wc-font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;
+}

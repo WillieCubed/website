@@ -45,3 +45,4 @@ yarn-error.log*
 
 # Staged Worker assets, rebuilt by deploy/willie-page/stage.sh
 /deploy/willie-page/site/
+/deploy/willie-page/.wrangler/

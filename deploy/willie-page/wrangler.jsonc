@@ -1,0 +1,12 @@
+// Serves the static homepage on willie.page while the Next.js site is
+// rebuilt. Refresh site/ from public/home.html and public/assets/home before
+// deploying: npx wrangler deploy --config deploy/willie-page/wrangler.jsonc
+{
+  "name": "willie-page",
+  "compatibility_date": "2026-09-01",
+  "assets": { "directory": "./site", "not_found_handling": "single-page-application" },
+  "routes": [
+    { "pattern": "willie.page/*", "zone_name": "willie.page" },
+    { "pattern": "www.willie.page/*", "zone_name": "willie.page" }
+  ]
+}

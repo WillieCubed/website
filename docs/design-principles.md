@@ -53,12 +53,20 @@ as a page that cannot scroll.
 
 ## Brand
 
-The site is Willie's personal brand. Las Vegans for Better Transit, Hypertext
-Studio, and the Reasonable Tech Company appear on it as work Willie does, not as
-sub-brands, so their logos, palettes, and type stay on their own
-sites. A component may take a faint color hint from its own media, such as the
-average tint of a real thumbnail, but it never adopts an initiative's brand
-colors outright. Where no real media exists, the component stays neutral.
+The site is Willie's personal brand, so at rest every component uses the site's
+own warm neutral palette. Pointing at, focusing, or opening a venture takes on
+that venture's colors: its tile, list row, and detail view switch to a Material
+3 scheme built from the venture's brand color. The scheme uses the Fidelity
+variant, which keeps the brand color as the primary. The Expressive variant was
+rejected because it rotates the primary hue and turned Las Vegans for Better
+Transit's orange into blue.
+
+Nobody enters a brand color by hand. A resolver script reads each venture's
+site and takes the first saturated color it finds in the web manifest, the
+theme-color meta tag, the primary buttons, or the icon, then writes the seeds
+to a JSON file that the page turns into schemes. A venture whose site yields no
+saturated color stays neutral. The script has to be rerun when a site rebrands,
+and the Next.js port should run it at build time.
 
 ## Reference sites
 

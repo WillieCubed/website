@@ -14,9 +14,11 @@ like Willie talking. Cold greys, black-and-neon palettes, and corporate stat
 banners break it.
 
 **Fluid.** When something on the page changes, it moves there. Sections reorder,
-expand, and come into focus smoothly instead of jumping. Motion comes from
-content changing state, never from decoration running on its own. Every motion
-has a reduced-motion fallback.
+expand, and come into focus smoothly instead of jumping. When an element persists
+between two states or pages, such as a tile that opens into a detail view, it
+morphs between them with a shared element transition and morphs back when the
+visitor returns. Motion comes from content changing state, never from decoration
+running on its own. Every motion has a reduced-motion fallback.
 
 **Approachable.** Anyone who lands on the site can tell within a few seconds
 who Willie is and where their thing lives. That includes a bus rider who
@@ -24,9 +26,13 @@ scanned a flyer, a legislative staffer, a recruiter, and someone who watches The
 Willie Diaries. Use plain words and legible type, and never put information
 only behind a hover.
 
-**Interactive.** The content responds to the visitor. Words, projects, and
-media react when someone points at, taps, or focuses them. Interaction belongs
-on real objects on the page, not on ambient canvases or background effects.
+**Interactive.** The content responds to the visitor. Hover reveals context
+that fits the thing under the pointer, such as a one-line hint about what opening
+it shows or the other work a word connects to. Focus and selection answer with
+subtle movement, such as a focus ring that eases in, a card that lifts, or a
+press that gives slightly. Interaction belongs on real objects on the page, not
+on ambient canvases or background effects. Jace-style hover focus and shared
+element transitions are the minimum, not extras.
 
 **Responsive.** The site works first on a 390px phone and scales up from there.
 It also responds to time, so current work surfaces first and older work steps

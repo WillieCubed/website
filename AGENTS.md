@@ -9,7 +9,8 @@ for repository-wide changes.
 - `hiatus`: the `SITE_MODE` gate in `proxy.ts` and `lib/site-mode.ts`
 - `pages`: the routes under `app/_(pages)`
 - `projects`: project data, `lib/projects`, and `components/projects`
-- `writings`: writing content, `lib/writings`, and `components/writings`
+- `writings`: the writing system—`lib/writings`, `components/writings`, and writing display/processing
+- `content`: data and content files under `content/` and `data/` directories
 - `theme`: Tailwind configuration, `app/globals.css`, and shared styling
-- `content`: MDX and data files under `content/` and `data/`
+- `indieweb`: webmentions, feeds, discovery endpoints, and microformats—infrastructure for content interaction and discovery
 - `docs`: maintainer documentation under `docs/`

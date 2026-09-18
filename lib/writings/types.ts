@@ -45,7 +45,10 @@ export type RSVPData = {
 
 export type WritingData = {
   slug: string;
+  /** Headline, or the first sentence of the body for posts that have none. */
   title: string;
+  /** False when `title` was derived from the body rather than set in frontmatter. */
+  hasExplicitTitle: boolean;
   description: string;
   published: Date;
   lastUpdated: Date;

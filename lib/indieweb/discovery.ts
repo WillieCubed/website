@@ -1,6 +1,8 @@
 import {
   AT_PROTOCOL_DID,
   MICROPUB_ENDPOINT,
+  OEMBED_ENDPOINT,
+  PUBLIC_WEBMENTIONS_ENDPOINT,
   SITE_AUTHOR_HANDLE,
   SITE_NAME,
   SITE_URL,
@@ -71,13 +73,24 @@ export function buildAtProtocolDid(): string {
 export function buildLlmsSummary(): string {
   return `# ${SITE_NAME}
 
-${SITE_URL} is the personal website, writing archive, and IndieWeb home of Willie Chalmers III.
+> ${SITE_URL} is the personal website, writing archive, and IndieWeb home of ${SITE_NAME}.
 
-Key surfaces:
-- Writings: ${SITE_URL}/writings
-- Feeds: ${SITE_URL}/feed.xml, ${SITE_URL}/feed/atom, ${SITE_URL}/feed/json
-- IndieWeb activity: ${SITE_URL}/activity/feed.xml
+## Read
+
+- Writings (articles and notes): ${SITE_URL}/writings
+- Site feeds: ${SITE_URL}/feed.xml, ${SITE_URL}/feed/atom, ${SITE_URL}/feed/json
+- Writings feeds: ${SITE_URL}/writings/feed.xml, ${SITE_URL}/writings/feed/atom, ${SITE_URL}/writings/feed/json
+- Search: ${SITE_URL}/search?q=
+- Initiatives: ${SITE_URL}/initiatives
+
+## IndieWeb
+
 - Webmention endpoint: ${SITE_URL}${WEBMENTION_ENDPOINT}
+- Public webmentions: ${SITE_URL}${PUBLIC_WEBMENTIONS_ENDPOINT}
+- Webmention activity feed: ${SITE_URL}/activity/feed.xml
 - Micropub endpoint: ${SITE_URL}${MICROPUB_ENDPOINT}
+- oEmbed provider: ${SITE_URL}${OEMBED_ENDPOINT}?url=
+- WebFinger: ${SITE_URL}/.well-known/webfinger
+- Every writing carries h-entry markup, and ${SITE_URL}/writings is an h-feed.
 `;
 }

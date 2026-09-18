@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "PORTLESS_PORT=1355 portless",
     "dev:app": "next dev",
+    "prebuild": "tsx scripts/generate-search-index.ts",
     "build": "next build",
+    "postbuild": "tsx scripts/postbuild.mts",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -13,7 +15,11 @@
     "brand:build": "node brand/build.mjs",
     "deploy:willie-page": "sh deploy/willie-page/stage.sh && npx wrangler@4 deploy --config deploy/willie-page/wrangler.jsonc",
     "prepare": "husky",
-    "brand:seeds": "node brand/resolve-brands.mjs"
+    "brand:seeds": "node brand/resolve-brands.mjs",
+    "test": "tsx --test tests/unit/*.test.mts",
+    "search:index": "tsx scripts/generate-search-index.ts",
+    "websub:ping": "tsx scripts/websub-ping.mts",
+    "webmentions:send": "tsx scripts/send-webmentions.mts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -81,6 +87,7 @@
     "svg-to-pdfkit": "0.1.8",
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.3.0",
+    "tsx": "^4.23.13",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.60.1"
   },

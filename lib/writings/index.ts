@@ -44,8 +44,9 @@ const RESERVED_WRITING_SLUGS = ['series'];
 const writingsDirectory = join(process.cwd(), 'content/writings');
 
 interface RawFrontmatter {
-  title: string;
-  description: string;
+  /** Optional for notes and interaction posts; derived from the body when absent. */
+  title?: string;
+  description?: string;
   published: Date;
   lastUpdated: Date;
   tags?: string[];
@@ -142,6 +143,16 @@ export function extractHeadings(content: string): TOCHeading[] {
 export async function getWriting(slug: string) {
   'use cache';
   cacheLife('hours');
+  return loadWriting(slug);
+}
+
+/**
+ * Read and parse a writing with no Next.js cache involved.
+ *
+ * Build scripts run under plain Node, where `cacheLife()` throws, so they
+ * call this directly. Page code should call {@link getWriting} instead.
+ */
+export async function loadWriting(slug: string) {
   const slugs = await getWritingSlugs();
   if (!slugs.includes(slug)) {
     throw new Error(`Writing with given codename "${slug}" cannot be found.`);
@@ -195,10 +206,12 @@ export async function getWriting(slug: string) {
     }
   }
 
+  const derivedTitle = deriveTitle(frontmatter, content);
   const writing: WritingData = {
     slug,
-    title: frontmatter.title,
-    description: frontmatter.description,
+    title: derivedTitle.title,
+    hasExplicitTitle: derivedTitle.explicit,
+    description: frontmatter.description ?? derivedTitle.title,
     published: frontmatter.published,
     lastUpdated: frontmatter.lastUpdated,
     tags: frontmatter.tags || [],
@@ -218,6 +231,31 @@ export async function getWriting(slug: string) {
   };
 
   return { content, writing, headings };
+}
+
+/**
+ * Notes, replies, likes, and the other short post kinds have no headline in
+ * IndieWeb terms, so their frontmatter may omit `title`. The first sentence
+ * of the body stands in for feeds, metadata, and the writings index.
+ */
+function deriveTitle(
+  frontmatter: RawFrontmatter,
+  content: string
+): { title: string; explicit: boolean } {
+  const explicit = frontmatter.title?.trim();
+  if (explicit) return { title: explicit, explicit: true };
+
+  const plain = content
+    .replace(/^import\s.*$/gm, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`#>]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const sentence = plain.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? plain;
+  const title =
+    sentence.length > 120 ? `${sentence.slice(0, 117).trimEnd()}…` : sentence;
+  return { title: title || 'Untitled note', explicit: false };
 }
 
 /**

@@ -13,6 +13,9 @@ import PDFDocument from 'pdfkit';
 import SVGtoPDF from 'svg-to-pdfkit';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+// Every generated file gets this timestamp so rebuilding unchanged assets
+// produces byte-identical PDFs and archives.
+const BUILD_EPOCH = new Date('2026-01-01T00:00:00Z');
 const PUBLIC = path.join(HERE, '..', 'public');
 const OUT = path.join(PUBLIC, 'brand');
 const BOLD = opentype.loadSync(path.join(HERE, 'fonts/AtkinsonHyperlegibleNext-Bold.ttf'));
@@ -149,7 +152,7 @@ const png = (svgText, width) => new Resvg(svgText, { fitTo: { mode: 'width', val
 
 function pdf(rel, svgText) {
   const [, w, h] = svgText.match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/).map(Number);
-  const doc = new PDFDocument({ size: [w, h], margin: 0, info: { Title: 'WillieCubed', Author: 'Willie Chalmers III' } });
+  const doc = new PDFDocument({ size: [w, h], margin: 0, info: { Title: 'WillieCubed', Author: 'Willie Chalmers III', CreationDate: BUILD_EPOCH, ModDate: BUILD_EPOCH } });
   const chunks = [];
   doc.on('data', (c) => chunks.push(c));
   const done = new Promise((resolve) => doc.on('end', resolve));
@@ -229,12 +232,13 @@ write('web/icon-monochrome-512.png', png(mark.square(150, ['#000000', '#000000',
 const manifest = {
   id: '/',
   name: 'Willie Chalmers III',
-  short_name: 'williecubed',
+  short_name: 'WillieCubed',
   description: 'Willie Chalmers III builds software and systems for people.',
   lang: 'en-US',
   start_url: '/',
   scope: '/',
-  display: 'minimal-ui',
+  display: 'standalone',
+  categories: ['productivity'],
   background_color: C.paper,
   theme_color: C.green,
   icons: [
@@ -372,7 +376,8 @@ fs.copyFileSync(path.join(OUT, 'web/apple-touch-icon.png'), path.join(PUBLIC, 'a
 fs.copyFileSync(path.join(OUT, 'web/manifest.webmanifest'), path.join(PUBLIC, 'manifest.webmanifest'));
 
 // Everything in one archive.
-execFileSync('zip', ['-qr', 'williecubed-brand.zip', 'mark', 'lockups', 'web', 'social', 'apple', 'android', 'tokens', '-x', '*.DS_Store'], { cwd: OUT });
+for (const f of fs.readdirSync(OUT, { recursive: true })) fs.utimesSync(path.join(OUT, f), BUILD_EPOCH, BUILD_EPOCH);
+execFileSync('zip', ['-qrX', 'williecubed-brand.zip', 'mark', 'lockups', 'web', 'social', 'apple', 'android', 'tokens', '-x', '*.DS_Store'], { cwd: OUT });
 const zipBytes = fs.statSync(path.join(OUT, 'williecubed-brand.zip')).size;
 
 // ---------- Download page ----------

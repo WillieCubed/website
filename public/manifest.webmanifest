@@ -1,12 +1,15 @@
 {
   "id": "/",
   "name": "Willie Chalmers III",
-  "short_name": "williecubed",
+  "short_name": "WillieCubed",
   "description": "Willie Chalmers III builds software and systems for people.",
   "lang": "en-US",
   "start_url": "/",
   "scope": "/",
-  "display": "minimal-ui",
+  "display": "standalone",
+  "categories": [
+    "productivity"
+  ],
   "background_color": "#f4f5ef",
   "theme_color": "#2f6f5e",
   "icons": [

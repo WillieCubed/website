@@ -1,0 +1,9 @@
+{
+  "lvbt": { "hex": "#e5471a", "source": "buttons" },
+  "logdate": { "hex": "#3d6838", "source": "manifest" },
+  "docket": { "hex": "#265adf", "source": "icon" },
+  "curfew": { "hex": "#e8854a", "source": "buttons" },
+  "lovelace": { "hex": "#296a47", "source": "buttons" },
+  "atlas": { "hex": "#8f4a4c", "source": "icon" },
+  "hypertext": { "hex": "#3157d5", "source": "icon" }
+}

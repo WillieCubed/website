@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import SiteLink from '@/components/link/SiteLink';
 
 import type { Initiative, Part } from '@/lib/initiatives';
 
@@ -64,12 +64,13 @@ export default function Playbill({
                 <h3
                   className={`mt-1 font-semibold text-ink ${compact ? 'text-title-medium' : 'text-title-large'}`}
                 >
-                  <Link
+                  <SiteLink
+                    preview={false}
                     href={href}
                     className="after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none"
                   >
                     {part.title}
-                  </Link>
+                  </SiteLink>
                 </h3>
                 {!compact && part.tagline && (
                   <p className="mt-2 text-body-medium text-muted">

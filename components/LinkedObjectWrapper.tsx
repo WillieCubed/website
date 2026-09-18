@@ -1,6 +1,7 @@
 import clsx from 'clsx';
-import Link from 'next/link';
 import { PropsWithChildren } from 'react';
+
+import SiteLink from '@/components/link/SiteLink';
 
 interface LinkedObjectWrapperProps {
   href: string;
@@ -15,7 +16,8 @@ export default function LinkedObjectWrapper({
   children,
 }: PropsWithChildren<LinkedObjectWrapperProps>) {
   return (
-    <Link
+    <SiteLink
+      preview={false}
       href={href}
       target={openInNewTab ? '_blank' : undefined}
       rel={openInNewTab ? 'noopener noreferrer' : undefined}
@@ -25,6 +27,6 @@ export default function LinkedObjectWrapper({
       )}
     >
       {children}
-    </Link>
+    </SiteLink>
   );
 }

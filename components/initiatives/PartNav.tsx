@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import SiteLink from '@/components/link/SiteLink';
 
 import type { Initiative, Part } from '@/lib/initiatives';
 
@@ -21,7 +21,8 @@ export default function PartNav({ initiative, part }: PartNavProps) {
     >
       <div>
         {previous && (
-          <Link
+          <SiteLink
+            preview={false}
             href={`${initiative.href}/${previous.slug}`}
             className="group block rounded-xl p-3 transition-colors hover:bg-tray"
           >
@@ -31,20 +32,22 @@ export default function PartNav({ initiative, part }: PartNavProps) {
             <span className="text-title-small text-ink group-hover:underline">
               {previous.title}
             </span>
-          </Link>
+          </SiteLink>
         )}
       </div>
       <div className="text-center">
-        <Link
+        <SiteLink
+          preview={false}
           href={initiative.href}
           className="inline-block rounded-full border border-line px-4 py-2 text-label-large text-ink transition-colors hover:bg-tray"
         >
           All of {initiative.title}
-        </Link>
+        </SiteLink>
       </div>
       <div className="text-right">
         {next && (
-          <Link
+          <SiteLink
+            preview={false}
             href={`${initiative.href}/${next.slug}`}
             className="group block rounded-xl p-3 transition-colors hover:bg-tray"
           >
@@ -54,7 +57,7 @@ export default function PartNav({ initiative, part }: PartNavProps) {
             <span className="text-title-small text-ink group-hover:underline">
               {next.title}
             </span>
-          </Link>
+          </SiteLink>
         )}
       </div>
     </nav>

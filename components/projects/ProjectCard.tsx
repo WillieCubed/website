@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import SiteLink from '@/components/link/SiteLink';
 
 import { PROJECT_TYPE_MAP, ProjectData } from '@/lib/common';
 
@@ -26,13 +26,14 @@ export default function ProjectCard({
 
   const collaboratorsItems = collaborators?.map(({ name, link }) => {
     return link ? (
-      <Link
+      <SiteLink
+        preview={false}
         key={name + link}
         href={link}
         className="underline font-mono font-semibold"
       >
         {name}
-      </Link>
+      </SiteLink>
     ) : (
       <span className="underline font-mono font-semibold">{name}</span>
     );
@@ -40,13 +41,14 @@ export default function ProjectCard({
 
   const artifactsItems = artifacts.map(({ label, url }) => {
     return (
-      <Link
+      <SiteLink
+        preview={false}
         key={label + url}
         href={url}
         className="inline-block p-3 bg-slate-300 text-on-light"
       >
         <div className="font-mono font-semibold">{label}</div>
-      </Link>
+      </SiteLink>
     );
   });
 
@@ -110,12 +112,13 @@ export default function ProjectCard({
       </div>
       {!isDisplayOnly && (
         <div className="mt-4">
-          <Link
+          <SiteLink
+            preview={false}
             href={`/projects/${codename} `}
             className="underline font-bold font-display"
           >
             Read more
-          </Link>
+          </SiteLink>
         </div>
       )}
     </article>

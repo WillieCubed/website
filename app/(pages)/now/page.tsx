@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import type { Metadata } from 'next/types';
+
+import SiteLink from '@/components/link/SiteLink';
 
 import { getAllNowEntries } from '@/lib/data/now-loader';
 import { pageMetadata } from '@/lib/site';
@@ -86,24 +87,24 @@ export default async function NowPage() {
           <div className="text-body-medium mt-lg space-y-sm">
             <p>
               I am working on the{' '}
-              <Link
+              <SiteLink
                 href="https://reasonabletech.co"
                 className="text-primary hover:underline focus:underline underline-offset-2"
               >
                 Reasonable Tech Company
-              </Link>
+              </SiteLink>
               , a startup that builds tools to augment humans&apos; ability to
               learn and do work. We&apos;re focused on Project Haystack, a
               platform for creating and managing autonomous knowledge agents.
             </p>
             <p>
               I&apos;m also working on{' '}
-              <Link
+              <SiteLink
                 href="https://youtube.com/@williecubed?si=V6VkIO7Szf3OwoFQ"
                 className="text-primary hover:underline focus:underline underline-offset-2"
               >
                 The Willie Diaries,
-              </Link>{' '}
+              </SiteLink>{' '}
               a video diary that documents what it&apos;s like to be a
               20-something in 21st century America.
             </p>

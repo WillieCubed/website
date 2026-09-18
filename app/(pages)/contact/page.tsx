@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
+
+import SiteLink from '@/components/link/SiteLink';
 
 import { pageMetadata } from '@/lib/site';
 
@@ -33,10 +34,11 @@ export default function ContactPage() {
             </h1>
             <p className="text-body-medium">
               Send me a message on{' '}
-              <Link href="https://www.linkedin.com/in/willie-chalmers-iii">
+              <SiteLink href="https://www.linkedin.com/in/willie-chalmers-iii">
                 LinkedIn
-              </Link>{' '}
-              or <Link href="mailto:hello@williecubed.me">email me</Link>.
+              </SiteLink>{' '}
+              or{' '}
+              <SiteLink href="mailto:hello@williecubed.me">email me</SiteLink>.
             </p>
           </div>
           <div className="space-y-4">
@@ -62,32 +64,34 @@ export default function ContactPage() {
           <dl className="inline-block">
             <dd className="text-title-large">Instagram</dd>
             <dt className="mt-2 text-headline-small">
-              <Link href="https://instagram.com/williecubed">@williecubed</Link>
+              <SiteLink href="https://instagram.com/williecubed">
+                @williecubed
+              </SiteLink>
             </dt>
             <dd className="mt-4 text-title-large">Threads</dd>
             <dt className="mt-2 text-headline-small">
-              <Link href="https://threads.net/williecubed">
+              <SiteLink href="https://threads.net/williecubed">
                 @williecubed@threads.net
-              </Link>
+              </SiteLink>
             </dt>
           </dl>
           <div>
             <div className="text-title-large">Email</div>
             <div className="mt-2">
-              <Link
+              <SiteLink
                 className="text-headline-small"
                 href="mailto:hello@williecubed.me"
               >
                 hello@williecubed.me
-              </Link>
+              </SiteLink>
             </div>
             <div className="mt-2">
-              <Link
+              <SiteLink
                 className="text-headline-small"
                 href="mailto:projects@williecubed.me"
               >
                 projects@williecubed.me
-              </Link>
+              </SiteLink>
             </div>
           </div>
         </section>

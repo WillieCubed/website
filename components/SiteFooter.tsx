@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import React from 'react';
+
+import SiteLink from '@/components/link/SiteLink';
 
 import { randomlyChooseTagline } from '@/lib/enhancements';
 
@@ -61,7 +62,7 @@ export default function SiteFooter(_props: SiteFooterProps) {
           </div>
           {/* <div className="-mx-md flex flex-col tablet:flex-row tablet:space-x-sm space-y-sm tablet:space-y-0 items-center">
             <div className="px-md py-sm text-title-medium text-on-surface-variant hover:interactive-bg-surface-container rounded-full">@blog@williecubed.me</div>
-            <Link className="px-md py-sm text-title-medium text-on-surface-variant hover:interactive-bg-surface-container focus:interactive-bg-surface-container rounded-full" href="/rss">willieubed.me/rss</Link>
+            <SiteLink className="px-md py-sm text-title-medium text-on-surface-variant hover:interactive-bg-surface-container focus:interactive-bg-surface-container rounded-full" href="/rss">willieubed.me/rss</SiteLink>
           </div> */}
           <div className="print:hidden flex justify-center">
             {/* <NowPlayingWidget accessToken={accessToken} /> */}
@@ -72,13 +73,13 @@ export default function SiteFooter(_props: SiteFooterProps) {
             <div className="text-label-large">Quick links</div>
             <div className="space-x-xl">
               {QUICK_LINKS.map(({ label, href }) => (
-                <Link
+                <SiteLink
                   key={href}
                   href={href}
                   className="text-title-medium lg:text-title-large text-primary hover:font-bold transition-all ease-in-out"
                 >
                   {label}
-                </Link>
+                </SiteLink>
               ))}
             </div>
           </div>
@@ -88,37 +89,37 @@ export default function SiteFooter(_props: SiteFooterProps) {
               <div className="mt-lg">
                 <ul className="space-y-sm">
                   <li>
-                    <Link
+                    <SiteLink
                       href="/projects"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       Projects & Apps
-                    </Link>
+                    </SiteLink>
                   </li>
                   <li>
-                    <Link
+                    <SiteLink
                       href="/research"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       Research
-                    </Link>
+                    </SiteLink>
                   </li>
                   <li>
-                    <Link
+                    <SiteLink
                       href="/media"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       Media
-                    </Link>
+                    </SiteLink>
                   </li>
                   {showWritings && (
                     <li>
-                      <Link
+                      <SiteLink
                         href="/writings"
                         className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                       >
                         Writings
-                      </Link>
+                      </SiteLink>
                     </li>
                   )}
                 </ul>
@@ -129,36 +130,36 @@ export default function SiteFooter(_props: SiteFooterProps) {
               <div className="mt-lg">
                 <ul className="space-y-sm">
                   <li>
-                    <Link
+                    <SiteLink
                       href="/now"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       About
-                    </Link>
+                    </SiteLink>
                   </li>
                   <li>
-                    <Link
+                    <SiteLink
                       href="/resume.pdf"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       Resume
-                    </Link>
+                    </SiteLink>
                   </li>
                   <li>
-                    <Link
+                    <SiteLink
                       href="/writings"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       Writings (Blog)
-                    </Link>
+                    </SiteLink>
                   </li>
                   <li>
-                    <Link
+                    <SiteLink
                       href="https://blog.williecubed.me"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       Blog
-                    </Link>
+                    </SiteLink>
                   </li>
                 </ul>
               </div>
@@ -168,36 +169,36 @@ export default function SiteFooter(_props: SiteFooterProps) {
               <div className="mt-lg">
                 <ul className="space-y-sm">
                   <li>
-                    <Link
+                    <SiteLink
                       href="https://logdate.app"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       LogDate
-                    </Link>
+                    </SiteLink>
                   </li>
                   <li>
-                    <Link
+                    <SiteLink
                       href="https://diaries.williecubed.me"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       The Willie Diaries
-                    </Link>
+                    </SiteLink>
                   </li>
                   <li>
-                    <Link
+                    <SiteLink
                       href="/media/overthinking-everything"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       Overthinking Everything
-                    </Link>
+                    </SiteLink>
                   </li>
                   <li>
-                    <Link
+                    <SiteLink
                       href="/research/aggie"
                       className="font-display text-title-medium dark:text-white opacity-[0.87] hover:opacity-100 dark:hover:text-white"
                     >
                       The AGI Project
-                    </Link>
+                    </SiteLink>
                   </li>
                 </ul>
               </div>

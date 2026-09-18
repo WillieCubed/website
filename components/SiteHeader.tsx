@@ -2,9 +2,10 @@
 
 import clsx from 'clsx';
 import Image from 'next/image';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+
+import SiteLink from '@/components/link/SiteLink';
 
 import expandMenuIcon from '../app/assets/read_more.svg';
 
@@ -114,12 +115,13 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
         <div className="h-full w-full flex-col justify-center pt-sm tablet:pt-0 tablet:flex tablet:flex-row tablet:justify-between items-center">
           <div className="flex-grow font-bold font-display text-headline-small px-sm tablet:px-0">
             {showTitle && (
-              <Link
+              <SiteLink
+                preview={false}
                 href="/"
                 className="hover:underline focus:underline underline-offset-4 text-primary"
               >
                 Willie Chalmers III
-              </Link>
+              </SiteLink>
             )}
           </div>
           <div
@@ -130,39 +132,39 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
           >
             <ul className="py-sm px-sm tablet:p-0 tablet:flex tablet:space-x-lg *:text-left">
               {/* <li className="font-bold font-display text-title-medium">
-                <Link
+                <SiteLink preview={false}
                   href="/now"
                   className={clsx(
                     'hover:underline focus:underline underline-offset-4'
                   )}
                 >
                   Now
-                </Link>
+                </SiteLink>
               </li> */}
               {/* <li className="font-bold font-display text-title-medium">
-                <Link
+                <SiteLink preview={false}
                   href="/projects"
                   className="hover:underline focus:underline underline-offset-4"
                 >
                   Projects
-                </Link>
+                </SiteLink>
               </li> */}
               {/* <li className="font-bold font-display text-title-medium">
-                <Link
+                <SiteLink preview={false}
                   href="/research"
                   className="hover:underline focus:underline underline-offset-4"
                 >
                   Research
-                </Link>
+                </SiteLink>
               </li> */}
               {/* TODO: Re-enable design once it's ready */}
               {/* <li className="font-bold font-display text-headline-small">
-                <Link
+                <SiteLink preview={false}
                   href="/design"
                   className="hover:underline focus:underline underline-offset-4"
                 >
                   Design
-                </Link>
+                </SiteLink>
               </li> */}
             </ul>
           </div>
@@ -222,12 +224,13 @@ function NavigationItem({ href, title, subitems }: NavigationItemProps) {
   const itemList = subitems?.map((item) => {
     return (
       <li className="font-medium font-display text-lg" key={title + href}>
-        <Link
+        <SiteLink
+          preview={false}
           href={item.href}
           className="hover:underline focus:underline underline-offset-4"
         >
           {item.title}
-        </Link>
+        </SiteLink>
       </li>
     );
   });
@@ -235,7 +238,9 @@ function NavigationItem({ href, title, subitems }: NavigationItemProps) {
   return (
     <div>
       <div className="font-bold font-display text-headline-small">
-        <Link href={href}>{title}</Link>
+        <SiteLink preview={false} href={href}>
+          {title}
+        </SiteLink>
       </div>
       {subitems && <ul>{itemList}</ul>}
     </div>

@@ -24,6 +24,8 @@ extend it, keep reading.
 
 - [Design principles](./design-principles.md): the five principles and the brand
   rule that govern the relaunch.
+- [Links and hover cards](./links.md): every in-site link goes through
+  `SiteLink`, what the hover card shows, and when to turn it off.
 
 ## Conventions
 

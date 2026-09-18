@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import SiteLink from '@/components/link/SiteLink';
 
 import { PROJECT_TYPE_MAP, ProjectData } from '@/lib/common';
 
@@ -21,12 +21,13 @@ export default function SpotlightProjectCard({
       <div className="text-title-medium">{project.tagline}</div>
       <div className="h-20 flex items-start self-stretch"></div>
       <div className="flex flex-row space-x-4">
-        <Link
+        <SiteLink
+          preview={false}
           className="text-primary text-label-large"
           href={`/projects/${project.codename}`}
         >
           Learn More
-        </Link>
+        </SiteLink>
       </div>
     </div>
   );

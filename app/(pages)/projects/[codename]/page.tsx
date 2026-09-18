@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 // import ProjectNextIcon from '@/components/projects/ProjectNextIcon';
 import LinkedObjectWrapper from '@/components/LinkedObjectWrapper';
+import SiteLink from '@/components/link/SiteLink';
 // import TableOfContents from '@/components/TableOfContents';
 import ProjectBackIcon from '@/components/projects/ProjectBackIcon';
 
@@ -193,7 +193,7 @@ export default async function ProjectDetailPage(props: ProjectDetailPageProps) {
         <section id="nav" className="col-span-8">
           <div className="flex justify-between">
             <div id="back" className="w-[142px]">
-              <Link href="/projects" className="group">
+              <SiteLink href="/projects" className="group">
                 <div className="space-y-sm">
                   <div>
                     <ProjectBackIcon />
@@ -202,11 +202,11 @@ export default async function ProjectDetailPage(props: ProjectDetailPageProps) {
                     Back to all projects
                   </div>
                 </div>
-              </Link>
+              </SiteLink>
             </div>
             {/* TODO: Re-enable once functionality can work */}
             {/* <div id="next" className="space-y-2 w-[164px]">
-              <Link
+              <SiteLink
                 href={`/projects/${nextProjectId}`}
                 className="group "
               >
@@ -217,7 +217,7 @@ export default async function ProjectDetailPage(props: ProjectDetailPageProps) {
                   <div className="text-label-large ">Next project</div>
                   <div className="text-title-medium group-hover:underline group-hover:underline-offset-4">{nextProject}</div>
                 </div>
-              </Link>
+              </SiteLink>
             </div> */}
           </div>
         </section>

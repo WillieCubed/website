@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+
+import SiteLink from '@/components/link/SiteLink';
 
 export const metadata: Metadata = {
   title: 'Something went wrong',
@@ -16,9 +17,9 @@ export default function ServerErrorPage() {
       <p className="text-headline-small text-on-surface">
         The site hit a server error.
       </p>
-      <Link href="/" className="text-primary text-title-large">
+      <SiteLink href="/" className="text-primary text-title-large">
         Return Home
-      </Link>
+      </SiteLink>
     </main>
   );
 }

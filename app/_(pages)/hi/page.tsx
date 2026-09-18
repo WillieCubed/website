@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+
+import SiteLink from '@/components/link/SiteLink';
 
 export const metadata: Metadata = {
   title: 'Hello from Willie!',
@@ -16,9 +17,9 @@ export default function HiPage() {
     // TODO: Include social links.
     // TODO: Make this cute.
     <main className="p-8 min-h-[80vh] container mx-auto">
-      <Link href="https://instagram.com">
+      <SiteLink href="https://instagram.com">
         <div className="text-display-large text-center">!_UwU_!</div>
-      </Link>
+      </SiteLink>
     </main>
   );
 }

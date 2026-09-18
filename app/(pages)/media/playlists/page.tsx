@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
+
+import SiteLink from '@/components/link/SiteLink';
 
 import { getPlaylists } from '@/lib/data/spotify';
 import { pageMetadata } from '@/lib/site';
@@ -26,7 +27,7 @@ export default async function PlaylistsPage() {
         <div className="py-4 mx-auto max-w-xl">
           {playlists.map(({ uri, openableUrl, title, thumbnailUrl }) => {
             return (
-              <Link href={openableUrl} key={uri}>
+              <SiteLink preview={false} href={openableUrl} key={uri}>
                 <div>
                   <Image
                     src={thumbnailUrl}
@@ -38,7 +39,7 @@ export default async function PlaylistsPage() {
                     {title}
                   </div>
                 </div>
-              </Link>
+              </SiteLink>
             );
           })}
         </div>

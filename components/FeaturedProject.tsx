@@ -1,5 +1,6 @@
 import Image from 'next/image';
-import Link from 'next/link';
+
+import SiteLink from '@/components/link/SiteLink';
 
 interface FeaturedWorkCardProps {
   id: string;
@@ -40,22 +41,24 @@ export default function FeaturedWorkCard({
         </div>
         <div>
           <div className="flex space-x-4">
-            <Link
+            <SiteLink
+              preview={false}
               href={mainLink}
               className="font-display text-label-large hover:underline focus:underline underline-offset-4"
             >
               Learn more
-            </Link>
-            <Link
+            </SiteLink>
+            <SiteLink
+              preview={false}
               href={`/projects/${id}`}
               className="font-display text-label-large hover:underline focus:underline underline-offset-4"
             >
               View project
-            </Link>
+            </SiteLink>
             {/* TODO: Re-enable case study link when available */}
-            {/* <Link href={caseStudyLink} className="font-display text-label-large hover:underline focus:underline underline-offset-4">
+            {/* <SiteLink preview={false} href={caseStudyLink} className="font-display text-label-large hover:underline focus:underline underline-offset-4">
               View case study
-            </Link> */}
+            </SiteLink> */}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import SiteLink from '@/components/link/SiteLink';
 
 import { WritingData } from '@/lib/writings';
 
@@ -32,7 +32,7 @@ function FeaturedWritingItem({ writing }: FeaturedProjectCardProps) {
     day: 'numeric',
   });
   return (
-    <Link href={`/writings/${slug}`} className="group">
+    <SiteLink preview={false} href={`/writings/${slug}`} className="group">
       <div className="flex flex-col p-lg bg-surface-foreground dark:bg-surface-foreground-dark border-2 group-hover:bg-maverick-100 group-focus:bg-maverick-100 active:bg-maverick-100 dark:group-hover:bg-maverick-700 dark:group-focus:bg-maverick-700 dark:active:bg-maverick-700 transition ease-in duration-100 border-on-surface-foreground">
         <div className="space-y-sm">
           {lastUpdated && (
@@ -46,6 +46,6 @@ function FeaturedWritingItem({ writing }: FeaturedProjectCardProps) {
           </div>
         </div>
       </div>
-    </Link>
+    </SiteLink>
   );
 }

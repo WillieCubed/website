@@ -1,8 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef } from 'react';
+
+import SiteLink from '@/components/link/SiteLink';
 
 interface CollectionModalProps {
   slug: string;
@@ -79,12 +80,13 @@ export default function CollectionModal({
         >
           {/* Modal header - fixed height (h-14 = 56px) */}
           <div className="flex h-14 items-center justify-between rounded-t-xl border-b border-outline-variant bg-surface px-lg">
-            <Link
+            <SiteLink
+              preview={false}
               href={`/collections/${slug}`}
               className="link-animated text-label-medium text-on-surface-variant"
             >
               Open full page &rarr;
-            </Link>
+            </SiteLink>
             <button
               onClick={(e) => {
                 e.stopPropagation();

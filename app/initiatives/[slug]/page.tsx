@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import InitiativeBody from '@/components/initiatives/InitiativeBody';
@@ -7,6 +6,7 @@ import Playbill from '@/components/initiatives/Playbill';
 import RouteMap from '@/components/initiatives/RouteMap';
 import TrailerBlock from '@/components/initiatives/TrailerBlock';
 import { formatRange } from '@/components/initiatives/dates';
+import SiteLink from '@/components/link/SiteLink';
 import TopBar from '@/components/site/TopBar';
 
 import {
@@ -77,12 +77,12 @@ export default async function InitiativePage(props: {
             {parent && (
               <>
                 {' · '}
-                <Link
+                <SiteLink
                   href={parent.href}
                   className="underline-offset-4 hover:underline"
                 >
                   {parent.title}
-                </Link>
+                </SiteLink>
               </>
             )}
           </p>
@@ -140,12 +140,12 @@ export default async function InitiativePage(props: {
             <ul className="mt-4 grid list-none gap-3 p-0">
               {children.map((child) => (
                 <li key={child.slug} className="act-card rounded-2xl p-4">
-                  <Link
+                  <SiteLink
                     href={child.href}
                     className="text-title-medium text-ink hover:underline"
                   >
                     {child.title}
-                  </Link>
+                  </SiteLink>
                   <p className="mt-1 text-body-medium text-muted">
                     {child.tagline}
                   </p>
@@ -163,12 +163,12 @@ export default async function InitiativePage(props: {
             <ul className="flex list-none flex-wrap gap-2 p-0">
               {initiative.links.map((link) => (
                 <li key={link.href}>
-                  <Link
+                  <SiteLink
                     href={link.href}
                     className="inline-block rounded-full border border-line px-4 py-2 text-label-large text-ink transition-colors hover:bg-tray"
                   >
                     {link.label}
-                  </Link>
+                  </SiteLink>
                 </li>
               ))}
             </ul>

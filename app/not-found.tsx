@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
+
+import SiteLink from '@/components/link/SiteLink';
 
 export const metadata: Metadata = {
   title: "That's a 404!",
@@ -24,9 +25,9 @@ export default function NotFound() {
           invalid or does not exist.
         </div>
         <div>
-          <Link href="/" className="text-primary text-title-large">
+          <SiteLink href="/" className="text-primary text-title-large">
             Return Home
-          </Link>
+          </SiteLink>
         </div>
       </main>
     </div>

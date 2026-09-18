@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import Link from 'next/link';
 
+import SiteLink from '@/components/link/SiteLink';
 import TopBar from '@/components/site/TopBar';
 
 import { currentPart, getInitiatives } from '@/lib/initiatives';
@@ -57,12 +57,13 @@ export default async function InitiativesPage() {
                     {item.parent && ` · part of ${item.parent.toUpperCase()}`}
                   </p>
                   <h2 className="mt-1 text-title-large text-ink">
-                    <Link
+                    <SiteLink
+                      preview={false}
                       href={item.href}
                       className="after:absolute after:inset-0 focus-visible:outline-none"
                     >
                       {item.title}
-                    </Link>
+                    </SiteLink>
                   </h2>
                   <p className="mt-2 text-body-medium text-muted">
                     {item.tagline}

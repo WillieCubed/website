@@ -1,6 +1,6 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import Link from 'next/link';
 
+import SiteLink from '@/components/link/SiteLink';
 import { mdxComponents } from '@/components/mdx';
 import WritingItem from '@/components/writings/WritingItem';
 
@@ -34,12 +34,12 @@ export default function CollectionContent({
       >
         <div className="space-y-md">
           {!isModal && (
-            <Link
+            <SiteLink
               href="/collections"
               className="link-animated text-label-large"
             >
               &larr; All collections
-            </Link>
+            </SiteLink>
           )}
 
           <div className="flex items-center gap-sm">

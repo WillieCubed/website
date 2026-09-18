@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import InitiativeBody from '@/components/initiatives/InitiativeBody';
@@ -11,6 +10,7 @@ import {
   formatRange,
   isoDate,
 } from '@/components/initiatives/dates';
+import SiteLink from '@/components/link/SiteLink';
 import TopBar from '@/components/site/TopBar';
 
 import { getInitiative, getInitiativeSlugs, getPart } from '@/lib/initiatives';
@@ -77,9 +77,9 @@ export default async function PartPage(props: {
           )}
           <div className="relative flex min-h-[52vh] flex-col justify-end bg-gradient-to-t from-ink/80 via-ink/20 to-transparent p-6 medium:p-10">
             <p className="text-label-large uppercase tracking-[0.08em] text-ground/85">
-              <Link href={initiative.href} className="hover:underline">
+              <SiteLink href={initiative.href} className="hover:underline">
                 {initiative.title}
-              </Link>
+              </SiteLink>
               {' · '}
               {initiative.partLabel} {part.number}
             </p>

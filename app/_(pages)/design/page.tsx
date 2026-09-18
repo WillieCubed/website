@@ -1,6 +1,7 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import type { Metadata } from 'next/types';
+
+import SiteLink from '@/components/link/SiteLink';
 
 import { fetchDribbleShots } from '@/lib/data/dribbble';
 
@@ -46,7 +47,7 @@ export default async function DesignPortfolioPage() {
               // TODO: Actually make this good with proper portfolio design
               return (
                 <li key={shot.id} className="mx-auto w-[800px]">
-                  <Link href={shot.html_url}>
+                  <SiteLink href={shot.html_url}>
                     <Image
                       src={shot.images.hidpi}
                       alt={''}
@@ -57,7 +58,7 @@ export default async function DesignPortfolioPage() {
                     <div className="mt-4 text-headline-large text-center">
                       {shot.title}
                     </div>
-                  </Link>
+                  </SiteLink>
                 </li>
               );
             })}

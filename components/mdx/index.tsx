@@ -2,6 +2,7 @@ import { AnchorHTMLAttributes, PropsWithChildren } from 'react';
 
 import { HoverCardGallery } from '@/components/HoverCardGallery';
 import { FootnoteRef } from '@/components/footnotes';
+import SiteLink, { isInternalHref } from '@/components/link/SiteLink';
 
 import Callout from './Callout';
 import ImageWithCaption from './ImageWithCaption';
@@ -45,16 +46,13 @@ export const mdxComponents = {
   ),
   a: ({
     children,
-    href,
+    href = '',
     ...props
   }: PropsWithChildren<AnchorHTMLAttributes<HTMLAnchorElement>>) => {
-    const isHeaderLink = href?.startsWith('#');
-    const isInternalLink =
-      href?.startsWith('/') || href?.startsWith('#') || !href;
-    const isExternal = !isInternalLink;
-
+    const isHeaderLink = href.startsWith('#');
+    const isExternal = /^[a-z]+:/i.test(href) && !isInternalHref(href);
     return (
-      <a
+      <SiteLink
         href={href}
         className={
           isHeaderLink
@@ -65,7 +63,7 @@ export const mdxComponents = {
         {...props}
       >
         {children}
-      </a>
+      </SiteLink>
     );
   },
   ul: ({ children }: PropsWithChildren) => (

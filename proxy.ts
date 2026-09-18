@@ -4,7 +4,6 @@ import { isLiveMode } from '@/lib/site-mode';
 
 // Pages that ship as static HTML in public/ rather than as app routes.
 const STATIC_PAGES: Record<string, string> = {
-  '/': '/home.html',
   '/brand': '/brand/index.html',
   '/brand/': '/brand/index.html',
 };

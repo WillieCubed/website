@@ -26,6 +26,8 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     mdxRs: true,
+    // Lets components use React's <ViewTransition> for route changes.
+    viewTransition: true,
   },
 };
 

@@ -8,6 +8,13 @@ import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
+import {
+  INDIEAUTH_AUTHORIZATION_ENDPOINT,
+  INDIEAUTH_TOKEN_ENDPOINT,
+  MICROPUB_ENDPOINT,
+  WEBMENTION_ENDPOINT,
+  WEBSUB_HUB,
+} from '@/lib/indieweb/constants';
 import { site } from '@/lib/site';
 import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 
@@ -72,7 +79,37 @@ export default async function RootLayout({
 }: React.PropsWithChildren) {
   return (
     <html lang={site.language}>
-      <head />
+      <head>
+        {/* IndieWeb discovery: where to send mentions and posts, who vouches
+            for this site, and where the feeds live. */}
+        <link rel="webmention" href={WEBMENTION_ENDPOINT} />
+        <link rel="micropub" href={MICROPUB_ENDPOINT} />
+        <link
+          rel="authorization_endpoint"
+          href={INDIEAUTH_AUTHORIZATION_ENDPOINT}
+        />
+        <link rel="token_endpoint" href={INDIEAUTH_TOKEN_ENDPOINT} />
+        <link rel="hub" href={WEBSUB_HUB} />
+        <link rel="self" href={site.origin} />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={`${site.name} (RSS)`}
+          href="/feed.xml"
+        />
+        <link
+          rel="alternate"
+          type="application/atom+xml"
+          title={`${site.name} (Atom)`}
+          href="/feed/atom"
+        />
+        <link
+          rel="alternate"
+          type="application/feed+json"
+          title={`${site.name} (JSON Feed)`}
+          href="/feed/json"
+        />
+      </head>
       <body
         className={`min-h-screen scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink ${sansFont.variable} ${monoFont.variable} font-sans antialiased`}
       >

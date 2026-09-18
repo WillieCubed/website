@@ -1,36 +1,21 @@
-import clsx from 'clsx';
-import Link from 'next/link';
 import type { Metadata } from 'next/types';
-import { type JSX, PropsWithChildren } from 'react';
 
-import FeaturedWorkCard from '@/components/FeaturedProject';
-import { LinkButton } from '@/components/LinkButton';
-import BioPageIcon from '@/components/icons/BioPageIcon';
-import FeaturedProjectsIcon from '@/components/icons/FeaturedProjectsIcon';
-import FeaturedWorkIcon from '@/components/icons/FeaturedWorkIcon';
-import InstagramIcon from '@/components/icons/InstagramIcon';
-import LinkedinIcon from '@/components/icons/LinkedinIcon';
-import NotesIcon from '@/components/icons/NotesIcon';
-import NowPageIcon from '@/components/icons/NowPageIcon';
-import RandomPageIcon from '@/components/icons/RandomPageIcon';
-import ThreadsIcon from '@/components/icons/ThreadsIcon';
-import FeaturedProjectsList from '@/components/landing/FeaturedProjectsList';
-import FeaturedWritingsList from '@/components/landing/FeaturedWritingsList';
-import { SocialContactChip } from '@/components/landing/SocialContactChip';
+import { CountdownDays } from '@/components/home/Countdown';
+import { HiatusPage } from '@/components/home/HiatusPage';
+import { HomeShell } from '@/components/home/HomeShell';
+import { Rail } from '@/components/home/Rail';
+import { TileGrid } from '@/components/home/TileGrid';
+import '@/components/home/home.css';
 
-import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
-import { getFeaturedProjects, getFeaturedWork } from '@/lib/projects';
+import { allBrandVars } from '@/lib/brand/scheme';
+import { LVBT_DEADLINE, getHomeTiles } from '@/lib/home/ventures';
+import { site } from '@/lib/site';
 import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
-import { getFeaturedWritings } from '@/lib/writings';
-
-import './landing.css';
 
 export function generateMetadata(): Metadata {
   if (isHiatusMode()) {
     return {
-      title: {
-        absolute: HIATUS_MESSAGE,
-      },
+      title: { absolute: HIATUS_MESSAGE },
       description: HIATUS_MESSAGE,
       openGraph: {
         title: HIATUS_MESSAGE,
@@ -38,251 +23,47 @@ export function generateMetadata(): Metadata {
         url: '/',
         type: 'website',
       },
-      twitter: {
-        title: HIATUS_MESSAGE,
-        description: HIATUS_MESSAGE,
-      },
+      twitter: { title: HIATUS_MESSAGE, description: HIATUS_MESSAGE },
     };
   }
 
   return {
-    title: {
-      absolute: 'Willie Chalmers III',
-    },
+    title: { absolute: site.name },
+    description: site.description,
+    alternates: { canonical: '/' },
     openGraph: {
-      // TODO: Update this to be dynamic with some cool stats
-      description:
-        'Willie Chalmers III builds software for people. Learn more about him and his projects here.',
+      title: site.name,
+      description: site.shortDescription,
       url: '/',
-      type: 'website',
+      type: 'profile',
+      firstName: site.author.givenName,
+      lastName: site.author.familyName,
+    },
+    twitter: {
+      title: site.name,
+      description: site.shortDescription,
     },
   };
 }
 
-interface TileButtonProps {
-  variant?: 'primary' | 'tonal' | 'text';
-  href?: string;
-  className?: string;
-}
-
-function TileButton({
-  variant = 'primary',
-  href = '#',
-  className,
-  children,
-}: PropsWithChildren<TileButtonProps>) {
-  return (
-    <Link
-      className={clsx(
-        variant === 'primary' && 'bg-primary text-on-primary',
-        variant === 'tonal' &&
-          'bg-secondary-container text-on-secondary-container',
-        className
-      )}
-      href={href}
-    >
-      {children}
-    </Link>
-  );
-}
-
 /**
- * The main entrypoint to the site.
+ * The homepage: a rail with the headline and venture list beside a grid of
+ * tiles, each of which opens a detail view.
  *
  * Route: /
  */
-function HiatusLandingPage() {
-  return (
-    <main className="grid min-h-dvh place-items-center bg-surface-container px-lg">
-      <h1 className="text-center font-display text-display-small text-on-surface tablet:text-display-medium">
-        <span className="text-primary">Willie</span> will return shortly.
-      </h1>
-    </main>
-  );
-}
-
-export default async function LandingPage() {
+export default function HomePage() {
   if (isHiatusMode()) {
-    return <HiatusLandingPage />;
+    return <HiatusPage />;
   }
 
-  // const allFeaturedProjects = await getFeaturedProjects();
-  // const featuredWork = await getFeaturedWork();
-  // const featuredWritings = await getFeaturedWritings();
-  // const shouldShowWritings = await fetchConfig(REMOTE_CONFIG_KEYS.showWritings);
-
-  // // Sort in reverse chronological order
-  // const featuredProjects = allFeaturedProjects.sort(
-  //   (p1, p2) => p2.launched.getTime() - p1.launched.getTime()
-  // );
-
   return (
-    <div>
-      <main className="mx-auto max-w-2xl p-lg">
-        <div className="mt-3xl space-y-lg">
-          <div className="font-display text-display-medium tracking-normal">
-            willie is...
-          </div>
-          <div className="font-display text-headline-medium">
-            Currently building Project Lovelace
-          </div>
-        </div>
-        <div className="mt-3xl prose text-on-surface prose-a:text-primary prose-a:no-underline hover:prose-a:text-primary-container transition ease-in">
-          <p>
-            Willie Chalmers III is the human behind the{' '}
-            <Link href="https://reasonabletech.co">
-              Reasonable Tech Company
-            </Link>
-            , a little startup focused on building intelligent software to solve
-            hard problems. Right now, he&apos;s working on{' '}
-            <Link href="https://uselovelace.com">Project Lovelace</Link>, an
-            end-to-end platform for building all kinds of software.
-          </p>
-          <p>
-            Previously, he worked with the American Society on Aging to
-            prototype a digital communications platform for helping
-            community-based organizations maintain relationships with older
-            American adults.
-          </p>
-          <p>
-            Before that, Willie founded and led Nebula Labs, an organization
-            that builds tools to support students&apos; academic success.
-          </p>
-          <p>
-            Willie got his bachelor&apos;s degree in computer science from The
-            University of Texas at Dallas, where he managed{' '}
-            <Link href="https://acmutd.co">several</Link>{' '}
-            <Link href="https://aisutd.org">student</Link>{' '}
-            <Link href="https://sg.utdallas.edu">organizations</Link>, working
-            with over a hundred student leaders, impacting thousands of
-            students.
-          </p>
-          <p>
-            Find him on{' '}
-            <Link href="https://threads.net/@williecubed">Threads</Link> or
-            email him at{' '}
-            <Link href="mailto:contact@williecubed.me">
-              contact@williecubed.me
-            </Link>
-            .
-          </p>
-        </div>
-      </main>
-    </div>
-    // <div className="grid desktop:grid-cols-8">
-    //   <section
-    //     id="hero"
-    //     className="desktop:col-span-8 desktop:grid desktop:grid-cols-subgrid"
-    //   >
-    //     <div className="desktop:col-span-4 pt-[128px] px-xl pb-xl space-y-xl">
-    //       <div className="space-y-lg">
-    //         <div className="text-display-medium 2xl:text-display-large">
-    //           I&apos;m Willie.
-    //         </div>
-    //         <div className="text-display-small 2xl:text-display-medium">
-    //           I <span className="text-primary">build software</span> for{' '}
-    //           <span className="text-tertiary">humans</span>.
-    //         </div>
-    //       </div>
-    //       <div className="text-headline-small text-on-surface-variant">
-    //         Currently working an app to help people document and share their
-    //         memories.
-    //       </div>
-    //       <div className="text-title-small text-on-surface-variant">
-    //         (among{' '}
-    //         <Link href="https://reasonabletech.co" className="text-on-surface">
-    //           other things
-    //         </Link>
-    //         )
-    //       </div>
-    //     </div>
-    //     {/* <div className="desktop:col-span-4 content-end space-y-xl p-lg">
-    //       <div className="text-label-large text-on-surface-variant">Places I&apos;m online</div>
-    //     </div> */}
-    //   </section>
-    //   <section id="featured" className="desktop:col-span-8">
-    //     <RowHeader icon={<FeaturedWorkIcon />} title="Featured Work" />
-    //     <div className="flex">
-    //       <div className="flex-1 border-r border-outline-variant bg-surface aspect-[16/9]"></div>
-    //       <div className="h-full flex-1 flex flex-col">
-    //         <div className="flex-1 flex flex-col justify-end p-lg space-y-xl">
-    //           <div className="space-y-lg">
-    //             <div className="text-display-small">{featuredWork.title}</div>
-    //             <div className="text-headline-small">
-    //               {featuredWork.tagline}
-    //             </div>
-    //           </div>
-    //         </div>
-    //         <div className="flex">
-    //           <TileButton
-    //             variant="primary"
-    //             href="https://logdate.app"
-    //             className="flex-1 p-lg"
-    //           >
-    //             <div className="text-label-large">Visit website</div>
-    //           </TileButton>
-    //           <TileButton
-    //             variant="tonal"
-    //             href="/projects/logdate"
-    //             className="flex-1 p-lg"
-    //           >
-    //             <div className="text-label-large">Project Brief</div>
-    //           </TileButton>
-    //           <TileButton
-    //             variant="tonal"
-    //             href="https://github.com/WillieCubed/logdate-client"
-    //             className="flex-1 p-lg"
-    //           >
-    //             <div className="text-label-large">View on GitHub</div>
-    //           </TileButton>
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </section>
-    //   <section id="works">
-    //     <RowHeader icon={<FeaturedWorkIcon />} title="Other Projects" />
-    //   </section>
-    //   {shouldShowWritings && (
-    //     <section
-    //       id="notes"
-    //       className="col-span-8 lg:grid lg:grid-cols-6 xl:grid-cols-8"
-    //     >
-    //       <div className="p-lg space-x-md col-span-2">
-    //         <div>I</div>
-    //         <div className="space-y-md">
-    //           <div className="text-headline-small">Notes</div>
-    //           <div className="text-body-large">
-    //             A few of my ideas and writings, all in one place.
-    //           </div>
-    //         </div>
-    //       </div>
-    //     </section>
-    //   )}
-    // </div>
+    <HomeShell
+      brands={allBrandVars()}
+      detailCountdown={<CountdownDays deadline={LVBT_DEADLINE} />}
+    >
+      <Rail />
+      <TileGrid tiles={getHomeTiles()} />
+    </HomeShell>
   );
 }
-
-// interface WritingCardProps {
-//   title: string;
-//   description: string;
-//   date: Date;
-//   href: string;
-// }
-
-// function Writing({ title, description, date, href }: WritingCardProps) {
-//   return <div></div>;
-// }
-
-// interface RowHeaderProps {
-//   icon: JSX.Element;
-//   title: string;
-// }
-
-// function RowHeader({ icon, title }: RowHeaderProps) {
-//   return (
-//     <div className="flex items-center space-x-sm p-lg border-b border-outline-variant">
-//       <div className={clsx()}>{icon}</div>
-//       <div className="text-headline-small">{title}</div>
-//     </div>
-//   );
-// }

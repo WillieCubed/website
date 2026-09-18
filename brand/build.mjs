@@ -461,7 +461,7 @@ const page = `<!doctype html>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;500&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/assets/site.css" />
+    <link rel="stylesheet" href="/assets/brand.css" />
   </head>
   <body class="brand">
     <header class="brand-header">

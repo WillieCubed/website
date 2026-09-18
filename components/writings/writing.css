@@ -1,0 +1,20 @@
+/* A reply's target sits above the post as the top of a thread. The short
+   line under the card runs down to the author's avatar in the byline. */
+.reply-target {
+  display: flex;
+  flex-direction: column;
+}
+.reply-target__thread {
+  display: block;
+  width: 2px;
+  height: 20px;
+  margin: 6px 0 6px 13px;
+  border-radius: 1px;
+  background: var(--color-line);
+}
+
+/* A note has no headline, so its text carries the page. */
+.note-body .prose {
+  font-size: 1.25rem;
+  line-height: 1.55;
+}

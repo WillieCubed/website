@@ -2,6 +2,7 @@ import SiteLink from '@/components/link/SiteLink';
 
 import { searchContent, searchResultPath } from '@/lib/search/server';
 import type { SearchResult } from '@/lib/search/types';
+import { formatDate } from '@/lib/site';
 
 interface SiteSearchProps {
   /** The query from the URL, if any. */
@@ -86,11 +87,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
   const published = new Date(result.published);
   const formattedDate = Number.isNaN(published.getTime())
     ? ''
-    : published.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
+    : formatDate(published, 'short');
 
   return (
     <SiteLink

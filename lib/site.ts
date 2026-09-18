@@ -17,6 +17,8 @@ export const site = {
     'Willie Chalmers III builds software and systems for people.',
   locale: 'en_US',
   language: 'en',
+  /** Dates on the site read in this zone whatever zone the server runs in. */
+  timeZone: 'America/Los_Angeles',
   themeColor: '#f4f5ef',
   ogImage: '/brand/social/og-image.png',
   author: {
@@ -46,6 +48,23 @@ export const site = {
     'diaries.willie.page': '/initiatives/twd',
   },
 } as const;
+
+/**
+ * A calendar date the way the author saw it. Writing dates carry a Pacific
+ * offset, and formatting them in the server's own zone shifted the day on
+ * Vercel.
+ */
+export function formatDate(
+  date: Date | string | number,
+  month: 'long' | 'short' = 'long'
+): string {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: site.timeZone,
+    year: 'numeric',
+    month,
+    day: 'numeric',
+  }).format(new Date(date));
+}
 
 /**
  * True for paths on this site, including absolute URLs on the canonical

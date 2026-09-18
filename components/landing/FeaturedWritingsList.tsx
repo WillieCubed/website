@@ -1,5 +1,6 @@
 import SiteLink from '@/components/link/SiteLink';
 
+import { formatDate } from '@/lib/site';
 import { WritingData } from '@/lib/writings';
 
 interface FeaturedWritingsListProps {
@@ -26,11 +27,7 @@ interface FeaturedProjectCardProps {
 
 function FeaturedWritingItem({ writing }: FeaturedProjectCardProps) {
   const { title, slug, description, lastUpdated } = writing;
-  const formattedDate = new Date(lastUpdated).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const formattedDate = formatDate(lastUpdated);
   return (
     <SiteLink preview={false} href={`/writings/${slug}`} className="group">
       <div className="flex flex-col p-lg bg-surface-foreground dark:bg-surface-foreground-dark border-2 group-hover:bg-maverick-100 group-focus:bg-maverick-100 active:bg-maverick-100 dark:group-hover:bg-maverick-700 dark:group-focus:bg-maverick-700 dark:active:bg-maverick-700 transition ease-in duration-100 border-on-surface-foreground">

@@ -2,7 +2,7 @@ import { cacheLife } from 'next/cache';
 
 import { getInitiatives } from '@/lib/initiatives';
 import { getAllProjects } from '@/lib/projects';
-import { site } from '@/lib/site';
+import { formatDate, site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
 import type { EntityCard } from './types';
@@ -66,14 +66,9 @@ const STATIC_PAGES: EntityCard[] = [
   },
 ];
 
-const dateFormat = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-});
-
 function range(starts: Date, ends: Date) {
   const short = new Intl.DateTimeFormat('en-US', {
+    timeZone: site.timeZone,
     month: 'short',
     day: 'numeric',
   });
@@ -105,7 +100,7 @@ export async function getEntityRegistry(): Promise<EntityCard[]> {
       cover: writing.featuredImage
         ? { src: writing.featuredImage, alt: writing.featuredImageAlt ?? '' }
         : undefined,
-      meta: `${dateFormat.format(new Date(writing.published))} · ${writing.readingTime} min read`,
+      meta: `${formatDate(new Date(writing.published))} · ${writing.readingTime} min read`,
     });
   }
 

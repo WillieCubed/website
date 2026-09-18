@@ -5,8 +5,9 @@ import { useState } from 'react';
 import { WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
 
 /**
- * Replies written on another site arrive as webmentions. This form sends
- * one by hand for people whose site does not send them itself.
+ * Replies live on the sites of the people who wrote them and arrive here
+ * as webmentions. Most sites send one on their own; this form is for the
+ * ones that do not.
  */
 export default function WebmentionForm({ target }: { target: string }) {
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>(
@@ -15,7 +16,7 @@ export default function WebmentionForm({ target }: { target: string }) {
 
   return (
     <form
-      className="flex flex-wrap items-end gap-2"
+      className="flex flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault();
         const form = event.currentTarget;
@@ -35,27 +36,32 @@ export default function WebmentionForm({ target }: { target: string }) {
         }
       }}
     >
-      <label className="flex min-w-0 flex-1 flex-col gap-1 text-label-medium text-muted">
-        Replied on your own site? Paste the URL
+      <label htmlFor="webmention-source" className="text-body-medium text-ink">
+        Wrote a reply to this on your own site or blog? Send me the link and it
+        shows up here.
+      </label>
+      <div className="flex flex-wrap gap-2">
         <input
+          id="webmention-source"
           name="source"
           type="url"
           required
           placeholder="https://"
-          className="min-w-0 rounded-full border border-line bg-card px-4 py-2 text-body-medium text-ink"
+          className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2 text-body-medium text-ink"
         />
-      </label>
-      <button
-        type="submit"
-        disabled={state === 'sending'}
-        className="rounded-full bg-accent px-4 py-2 text-label-large font-semibold text-white disabled:opacity-60"
-      >
-        Send
-      </button>
-      <span role="status" className="basis-full text-label-medium text-muted">
-        {state === 'sent' && 'Received. It shows up here once it is checked.'}
+        <button
+          type="submit"
+          disabled={state === 'sending'}
+          className="rounded-full bg-accent px-4 py-2 text-label-large font-semibold text-white disabled:opacity-60"
+        >
+          Send
+        </button>
+      </div>
+      <span role="status" className="text-label-medium text-muted">
+        {state === 'sent' &&
+          'Got it. Your reply appears here once the page has been checked.'}
         {state === 'failed' &&
-          'That did not go through. Check the URL and try again.'}
+          'That did not go through. Check the link and try again.'}
       </span>
     </form>
   );

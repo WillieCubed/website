@@ -1,70 +1,63 @@
 import WebmentionAvatar from '@/components/indieweb/WebmentionAvatar';
 
 import type { Webmention } from '@/lib/indieweb/types';
+import { formatDate } from '@/lib/site';
 
 interface WebmentionRepliesProps {
   replies: Webmention[];
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
+/**
+ * Each reply is its author, when they wrote it, and what they said. The
+ * date links to the reply where it lives.
+ */
 export default function WebmentionReplies({ replies }: WebmentionRepliesProps) {
   if (replies.length === 0) return null;
 
   return (
-    <div className="space-y-4">
-      <p className="text-label-medium text-muted">
+    <section aria-label="Replies" className="space-y-4">
+      <h2 className="text-label-medium text-muted">
         {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
-      </p>
-      <div className="space-y-4">
+      </h2>
+      <ul className="space-y-3">
         {replies.map((reply) => (
-          <div key={reply.id} className="flex gap-3">
+          <li
+            key={reply.id}
+            className="flex gap-3 rounded-2xl border border-line bg-card px-4 py-3"
+          >
             <WebmentionAvatar author={reply.author} size="md" />
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="flex flex-wrap items-baseline gap-x-2 text-label-medium text-muted">
                 {reply.author.url ? (
                   <a
                     href={reply.author.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-label-large font-medium hover:text-primary"
+                    rel="noopener"
+                    className="text-label-large font-medium text-ink hover:text-accent"
                   >
-                    {reply.author.name || 'Anonymous'}
+                    {reply.author.name || 'Someone'}
                   </a>
                 ) : (
-                  <span className="text-label-large font-medium">
-                    {reply.author.name || 'Anonymous'}
+                  <span className="text-label-large font-medium text-ink">
+                    {reply.author.name || 'Someone'}
                   </span>
                 )}
-                {reply.publishedAt && (
-                  <span className="text-label-small text-gray-500 dark:text-gray-400">
-                    {formatDate(reply.publishedAt)}
-                  </span>
-                )}
-              </div>
+                <a
+                  href={reply.sourceUrl}
+                  rel="noopener"
+                  className="hover:text-ink"
+                >
+                  {reply.publishedAt
+                    ? formatDate(reply.publishedAt, 'short')
+                    : new URL(reply.sourceUrl).hostname}
+                </a>
+              </p>
               {reply.content && (
-                <p className="text-body-medium text-gray-700 dark:text-gray-300">
-                  {reply.content}
-                </p>
+                <p className="text-body-medium text-ink">{reply.content}</p>
               )}
-              <a
-                href={reply.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-label-small text-primary hover:underline"
-              >
-                View original
-              </a>
             </div>
-          </div>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </section>
   );
 }

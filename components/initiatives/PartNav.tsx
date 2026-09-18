@@ -17,7 +17,7 @@ export default function PartNav({ initiative, part }: PartNavProps) {
   return (
     <nav
       aria-label={`${initiative.title} navigation`}
-      className="mt-12 grid gap-3 border-t border-line pt-6 medium:grid-cols-3"
+      className="mt-12 grid gap-3 medium:grid-cols-3"
     >
       <div>
         {previous && (

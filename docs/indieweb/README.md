@@ -44,7 +44,7 @@ Each writing page is an `h-entry` with `p-name`, `p-summary`, `e-content`,
 `WritingHeader` renders that derived title inside an `sr-only` heading.
 
 Post kinds map to these properties in `WritingHeader.tsx` and
-`InteractionContext.tsx`. `docs/content/writings.md` explains the frontmatter.
+`ReplyTarget.tsx`. `docs/content/writings.md` explains the frontmatter.
 
 | Frontmatter   | Property                                   |
 | ------------- | ------------------------------------------ |
@@ -125,7 +125,7 @@ curl in this repo checks it.
 | 3     | Search results on your own domain                          | Done                    | `/search?q=`                                                                     |
 | 3     | Micropub endpoint that creates posts                       | Done                    | `/micropub`                                                                      |
 | 3     | Author h-card on every post with photo                     | Done                    | `WritingHeader.tsx` byline                                                       |
-| 3     | Likes, reposts, bookmarks, RSVPs render as h-entry         | Done, no live posts yet | `InteractionContext.tsx`                                                         |
+| 3     | Likes, reposts, bookmarks, RSVPs render as h-entry         | Done, no live posts yet | `ReplyTarget.tsx`                                                                |
 | 3     | WebSub hub declared in feeds and pinged on publish         | Done                    | `WEBSUB_HUB`, `websub:ping`                                                      |
 | 3     | Autolinked mentions                                        | Done                    | `remark-mentions.ts`                                                             |
 | 3     | Person tags, photo posts, comment display from other sites | Not done                | see `docs/future/activitypub.md` for what comes after                            |

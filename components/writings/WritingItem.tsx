@@ -5,6 +5,7 @@ import RepeatIcon from '@mui/icons-material/Repeat';
 
 import SiteLink from '@/components/link/SiteLink';
 
+import { formatDate } from '@/lib/site';
 import { WritingData } from '@/lib/writings';
 import type { PostType } from '@/lib/writings/types';
 
@@ -24,14 +25,7 @@ export default function WritingItem({
   seriesHref,
   showSeriesInfo = true,
 }: WritingItemProps) {
-  const formattedDate = new Date(writing.published).toLocaleDateString(
-    'en-US',
-    {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }
-  );
+  const formattedDate = formatDate(writing.published, 'short');
 
   const publishedIso = new Date(writing.published).toISOString();
 

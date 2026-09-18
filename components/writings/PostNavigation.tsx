@@ -3,7 +3,9 @@ import SiteLink from '@/components/link/SiteLink';
 import type { WritingData } from '@/lib/writings';
 
 interface PostNavigationProps {
+  /** The post published before this one. */
   previous: WritingData | null;
+  /** The post published after this one. */
   next: WritingData | null;
 }
 
@@ -17,44 +19,39 @@ export default function PostNavigation({
 
   return (
     <nav
-      className="mt-2xl border-t border-outline-variant pt-xl"
-      aria-label="Post navigation"
+      className="mt-12 grid gap-3 medium:grid-cols-2"
+      aria-label="Nearby posts"
     >
-      <div className="flex justify-between gap-lg">
-        {previous ? (
-          <SiteLink
-            href={`/writings/${previous.slug}`}
-            rel="prev"
-            className="group flex-1 text-left"
-          >
-            <span className="text-label-medium text-on-surface-variant">
-              &larr; Previous
-            </span>
-            <span className="mt-xs block text-title-medium text-on-surface group-hover:text-primary transition-colors">
-              {previous.title}
-            </span>
-          </SiteLink>
-        ) : (
-          <div className="flex-1" />
-        )}
-
-        {next ? (
-          <SiteLink
-            href={`/writings/${next.slug}`}
-            rel="next"
-            className="group flex-1 text-right"
-          >
-            <span className="text-label-medium text-on-surface-variant">
-              Next &rarr;
-            </span>
-            <span className="mt-xs block text-title-medium text-on-surface group-hover:text-primary transition-colors">
-              {next.title}
-            </span>
-          </SiteLink>
-        ) : (
-          <div className="flex-1" />
-        )}
-      </div>
+      {previous ? (
+        <SiteLink
+          preview={false}
+          href={`/writings/${previous.slug}`}
+          rel="prev"
+          className="group flex flex-col gap-1 rounded-2xl bg-card px-5 py-4 text-ink transition-colors hover:bg-tray"
+        >
+          <span className="text-label-medium text-muted">&larr; Older</span>
+          <span className="text-title-medium font-semibold group-hover:text-accent">
+            {previous.title}
+          </span>
+        </SiteLink>
+      ) : (
+        <span />
+      )}
+      {next ? (
+        <SiteLink
+          preview={false}
+          href={`/writings/${next.slug}`}
+          rel="next"
+          className="group flex flex-col items-end gap-1 rounded-2xl bg-card px-5 py-4 text-right text-ink transition-colors hover:bg-tray"
+        >
+          <span className="text-label-medium text-muted">Newer &rarr;</span>
+          <span className="text-title-medium font-semibold group-hover:text-accent">
+            {next.title}
+          </span>
+        </SiteLink>
+      ) : (
+        <span />
+      )}
     </nav>
   );
 }

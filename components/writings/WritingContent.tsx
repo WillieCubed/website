@@ -1,6 +1,7 @@
 import WritingDetailsView from '@/app/writings/[slug]/WritingDetailsView';
 
 import TableOfContents from '@/components/TableOfContents';
+import SiteLink from '@/components/link/SiteLink';
 import References from '@/components/references/References';
 
 import { SeriesWithWritings, TOCHeading, WritingData } from '@/lib/writings';
@@ -33,25 +34,37 @@ export default async function WritingContent({
         </div>
       )}
 
-      {/* Main content */}
-      <div className="mx-auto max-w-breakpoint-md px-lg desktop:px-0">
+      <div className="mx-auto max-w-breakpoint-md space-y-10 px-lg desktop:px-0">
         {/* h-entry: e-content */}
-        <div className="e-content pb-8">
+        <div
+          className={`e-content ${writing.hasExplicitTitle ? '' : 'note-body'}`}
+        >
           <WritingDetailsView source={content} />
         </div>
-        <div className="pb-12">
-          <References items={references} />
-        </div>
 
-        {/* Series navigation */}
+        {writing.tags.length > 0 && (
+          <ul className="flex flex-wrap gap-2" aria-label="Tags">
+            {writing.tags.map((tag) => (
+              <li key={tag}>
+                <SiteLink
+                  href={`/writings?tag=${encodeURIComponent(tag)}`}
+                  className="p-category inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
+                >
+                  {tag}
+                </SiteLink>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <References items={references} />
+
         {writing.series && seriesData && (
-          <div className="pb-12">
-            <SeriesNav
-              series={seriesData}
-              writings={seriesData.writings}
-              currentPart={writing.series.part}
-            />
-          </div>
+          <SeriesNav
+            series={seriesData}
+            writings={seriesData.writings}
+            currentPart={writing.series.part}
+          />
         )}
       </div>
     </>

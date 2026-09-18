@@ -27,14 +27,12 @@ export default function PostInteractions({
       webmentions.mentions.length > 0 ||
       webmentions.bookmarks.length > 0);
 
-  const hasBacklinks = backlinks.length > 0;
-
   return (
-    <section className="mx-auto max-w-breakpoint-md space-y-8 border-t border-line px-lg pt-8 desktop:px-0">
+    <section className="space-y-10 pt-12">
       {hasWebmentions && webmentions && (
         <WebmentionSection webmentions={webmentions} />
       )}
-      {hasBacklinks && <BacklinksSection backlinks={backlinks} />}
+      {backlinks.length > 0 && <BacklinksSection backlinks={backlinks} />}
       <WebmentionForm target={target} />
     </section>
   );

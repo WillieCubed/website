@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres';
+import { mf2 } from 'microformats-parser';
 
 import { SITE_URL } from '@/lib/indieweb/constants';
 
@@ -142,75 +143,6 @@ export async function cacheReplyContext(
 }
 
 /**
- * Parse microformats2 h-entry from HTML to extract reply context.
- */
-function parseMf2Entry(mf2: Record<string, unknown>): Partial<ReplyContext> {
-  const context: Partial<ReplyContext> = {};
-
-  const items = mf2.items as Array<Record<string, unknown>> | undefined;
-  if (!items || items.length === 0) return context;
-
-  // Find h-entry
-  const hEntry = items.find(
-    (item) =>
-      Array.isArray(item.type) && (item.type as string[]).includes('h-entry')
-  );
-
-  if (hEntry && hEntry.properties) {
-    const props = hEntry.properties as Record<string, unknown[]>;
-
-    // Get name/title
-    if (props.name && props.name[0]) {
-      context.title = String(props.name[0]);
-    }
-
-    // Get content preview
-    if (props.content && props.content[0]) {
-      const content = props.content[0] as
-        | string
-        | { value?: string; html?: string };
-      const textContent =
-        typeof content === 'string' ? content : content.value || '';
-      context.contentPreview = textContent.slice(0, 280).trim();
-      if (textContent.length > 280) {
-        context.contentPreview += '...';
-      }
-    }
-
-    // Get published date
-    if (props.published && props.published[0]) {
-      const pubDate = new Date(String(props.published[0]));
-      if (!isNaN(pubDate.getTime())) {
-        context.publishedAt = pubDate;
-      }
-    }
-
-    // Get author
-    if (props.author && props.author[0]) {
-      const author = props.author[0] as
-        | string
-        | { type?: string[]; properties?: Record<string, unknown[]> };
-      if (typeof author === 'string') {
-        context.authorName = author;
-      } else if (author.properties) {
-        const authorProps = author.properties;
-        if (authorProps.name && authorProps.name[0]) {
-          context.authorName = String(authorProps.name[0]);
-        }
-        if (authorProps.url && authorProps.url[0]) {
-          context.authorUrl = String(authorProps.url[0]);
-        }
-        if (authorProps.photo && authorProps.photo[0]) {
-          context.authorPhoto = String(authorProps.photo[0]);
-        }
-      }
-    }
-  }
-
-  return context;
-}
-
-/**
  * Extract site name from HTML meta tags or URL.
  */
 function extractSiteName(html: string, url: string): string | undefined {
@@ -218,13 +150,13 @@ function extractSiteName(html: string, url: string): string | undefined {
   const ogMatch = html.match(
     /<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']+)["']/i
   );
-  if (ogMatch) return ogMatch[1];
+  if (ogMatch) return cleanMetaText(ogMatch[1]);
 
   // Try twitter:site
   const twitterMatch = html.match(
     /<meta[^>]*name=["']twitter:site["'][^>]*content=["']@?([^"']+)["']/i
   );
-  if (twitterMatch) return twitterMatch[1];
+  if (twitterMatch) return cleanMetaText(twitterMatch[1]);
 
   // Fall back to hostname
   try {
@@ -242,17 +174,17 @@ function extractTitle(html: string): string | undefined {
   const ogMatch = html.match(
     /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i
   );
-  if (ogMatch) return ogMatch[1];
+  if (ogMatch) return cleanMetaText(ogMatch[1]);
 
   // Try twitter:title
   const twitterMatch = html.match(
     /<meta[^>]*name=["']twitter:title["'][^>]*content=["']([^"']+)["']/i
   );
-  if (twitterMatch) return twitterMatch[1];
+  if (twitterMatch) return cleanMetaText(twitterMatch[1]);
 
   // Fall back to <title>
   const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-  if (titleMatch) return titleMatch[1].trim();
+  if (titleMatch) return cleanMetaText(titleMatch[1]);
 
   return undefined;
 }
@@ -265,20 +197,20 @@ function extractDescription(html: string): string | undefined {
   const ogMatch = html.match(
     /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i
   );
-  if (ogMatch) return ogMatch[1];
+  if (ogMatch) return cleanMetaText(ogMatch[1]);
 
   // Try meta description
   const metaMatch = html.match(
     /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i
   );
-  if (metaMatch) return metaMatch[1];
+  if (metaMatch) return cleanMetaText(metaMatch[1]);
 
   return undefined;
 }
 
 /**
  * Fetch and parse reply context from a URL.
- * Uses microformats2 parsing with fallback to Open Graph/meta tags.
+ * Reads the first h-entry, then fills the gaps from Open Graph and meta tags.
  */
 export async function fetchReplyContext(url: string): Promise<ReplyContext> {
   // First check cache
@@ -310,22 +242,13 @@ export async function fetchReplyContext(url: string): Promise<ReplyContext> {
 
     const html = await response.text();
 
-    // Try microformats2 parsing first
-    const mf2Data: Record<string, unknown> | null = null;
+    let mf2Context: Partial<ReplyContext> = {};
     try {
-      // Use a simple regex-based mf2 extraction for common patterns
-      // In production, you'd want to use a proper mf2 parser like microformats-parser
-      const mf2Context = extractMicroformats(html);
-      if (
-        mf2Context.authorName ||
-        mf2Context.title ||
-        mf2Context.contentPreview
-      ) {
-        context = { ...context, ...mf2Context };
-      }
+      mf2Context = extractMicroformats(html, url);
     } catch {
-      // mf2 parsing failed, continue with fallbacks
+      // A page the parser cannot read still gets the meta tag fallbacks.
     }
+    context = { ...context, ...mf2Context };
 
     // Fill in missing fields from meta tags
     if (!context.title) {
@@ -339,7 +262,7 @@ export async function fetchReplyContext(url: string): Promise<ReplyContext> {
     }
 
     // Cache the result
-    await cacheReplyContext(context, mf2Data || undefined);
+    await cacheReplyContext(context, mf2Context);
 
     return context;
   } catch (error) {
@@ -350,81 +273,104 @@ export async function fetchReplyContext(url: string): Promise<ReplyContext> {
   }
 }
 
+const PREVIEW_LENGTH = 280;
+
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+  hellip: '…',
+  mdash: '—',
+  ndash: '–',
+  lsquo: '‘',
+  rsquo: '’',
+  ldquo: '“',
+  rdquo: '”',
+  copy: '©',
+};
+
 /**
- * Simple microformats extraction from HTML.
- * Extracts h-entry data using regex patterns.
+ * Meta tag content arrives HTML-escaped, and pages such as MediaWiki put
+ * line breaks in it as `&#10;`. Decode the entities a meta tag can carry
+ * and fold the whitespace so the text reads as one line.
  */
-function extractMicroformats(html: string): Partial<ReplyContext> {
+export function cleanMetaText(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const decoded = raw.replace(
+    /&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,
+    (match, entity: string) => {
+      if (entity[0] === '#') {
+        const code =
+          entity[1] === 'x' || entity[1] === 'X'
+            ? parseInt(entity.slice(2), 16)
+            : parseInt(entity.slice(1), 10);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+      }
+      return NAMED_ENTITIES[entity.toLowerCase()] ?? match;
+    }
+  );
+  const text = decoded.replace(/\s+/g, ' ').trim();
+  return text || undefined;
+}
+
+function preview(text: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length > PREVIEW_LENGTH
+    ? `${flat.slice(0, PREVIEW_LENGTH).trimEnd()}…`
+    : flat;
+}
+
+function firstString(values: unknown[] | undefined): string | undefined {
+  const value = values?.[0];
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && 'value' in value) {
+    const inner = (value as { value?: unknown }).value;
+    if (typeof inner === 'string') return inner;
+  }
+  return undefined;
+}
+
+/**
+ * Read the first h-entry on the page with the microformats parser, which
+ * decodes entities and resolves relative URLs. Only the entry's own
+ * author counts: wiki pages nest contributor h-cards as children, and
+ * those are not who wrote the entry.
+ */
+export function extractMicroformats(
+  html: string,
+  url: string
+): Partial<ReplyContext> {
   const context: Partial<ReplyContext> = {};
-
-  // Look for h-entry patterns
-  const hEntryMatch = html.match(
-    /<[^>]*class="[^"]*h-entry[^"]*"[^>]*>([\s\S]*?)<\/(?:article|div)>/i
+  const entry = mf2(html, { baseUrl: url }).items.find((item) =>
+    item.type?.includes('h-entry')
   );
-  if (!hEntryMatch) return context;
+  if (!entry) return context;
+  const props = entry.properties;
 
-  const hEntryHtml = hEntryMatch[0];
+  const name = firstString(props.name);
+  if (name) context.title = name.replace(/\s+/g, ' ').trim();
 
-  // Extract p-name (title)
-  const pNameMatch = hEntryHtml.match(
-    /<[^>]*class="[^"]*p-name[^"]*"[^>]*>([^<]+)</i
-  );
-  if (pNameMatch) {
-    context.title = pNameMatch[1].trim();
+  const body = firstString(props.summary) ?? firstString(props.content);
+  if (body) context.contentPreview = preview(body);
+
+  const published = firstString(props.published);
+  if (published) {
+    const date = new Date(published);
+    if (!Number.isNaN(date.getTime())) context.publishedAt = date;
   }
 
-  // Extract p-summary or e-content preview
-  const summaryMatch = hEntryHtml.match(
-    /<[^>]*class="[^"]*(?:p-summary|e-content)[^"]*"[^>]*>([^<]{1,300})/i
-  );
-  if (summaryMatch) {
-    context.contentPreview = summaryMatch[1].trim().slice(0, 280);
-    if (summaryMatch[1].length > 280) {
-      context.contentPreview += '...';
-    }
-  }
-
-  // Extract dt-published
-  const pubMatch = hEntryHtml.match(
-    /<time[^>]*class="[^"]*dt-published[^"]*"[^>]*datetime="([^"]+)"/i
-  );
-  if (pubMatch) {
-    const pubDate = new Date(pubMatch[1]);
-    if (!isNaN(pubDate.getTime())) {
-      context.publishedAt = pubDate;
-    }
-  }
-
-  // Extract author from h-card
-  const authorMatch = hEntryHtml.match(
-    /<[^>]*class="[^"]*(?:p-author|h-card)[^"]*"[^>]*>([\s\S]*?)<\/(?:a|span|div)>/i
-  );
-  if (authorMatch) {
-    const authorHtml = authorMatch[0];
-
-    // Get author name
-    const authorNameMatch =
-      authorHtml.match(/<[^>]*class="[^"]*p-name[^"]*"[^>]*>([^<]+)</i) ||
-      authorHtml.match(/>([^<]+)</);
-    if (authorNameMatch) {
-      context.authorName = authorNameMatch[1].trim();
-    }
-
-    // Get author URL
-    const authorUrlMatch = authorHtml.match(/href="([^"]+)"/i);
-    if (authorUrlMatch) {
-      context.authorUrl = authorUrlMatch[1];
-    }
-
-    // Get author photo
-    const photoMatch =
-      authorHtml.match(
-        /<img[^>]*class="[^"]*u-photo[^"]*"[^>]*src="([^"]+)"/i
-      ) ||
-      authorHtml.match(/<img[^>]*src="([^"]+)"[^>]*class="[^"]*u-photo[^"]*"/i);
-    if (photoMatch) {
-      context.authorPhoto = photoMatch[1];
-    }
+  const author = props.author?.[0];
+  if (typeof author === 'string') {
+    context.authorName = author;
+  } else if (author && typeof author === 'object' && 'properties' in author) {
+    const card = (author as { properties: Record<string, unknown[]> })
+      .properties;
+    context.authorName = firstString(card.name);
+    context.authorUrl = firstString(card.url);
+    context.authorPhoto = firstString(card.photo);
   }
 
   return context;

@@ -77,9 +77,11 @@
 
 /* The list at the end. Condensed, it keeps its first entries in view and
    only folds the rest; it never disappears. */
-.references {
-  border-top: 1px solid var(--color-line);
-  padding-top: 20px;
+.references__title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
 }
 .references ol {
   list-style: none;

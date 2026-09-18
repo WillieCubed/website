@@ -22,7 +22,10 @@ export function References({ items }: { items: Reference[] }) {
   const hidden = items.length - shown.length;
 
   return (
-    <section className="references" aria-label="References">
+    <section className="references" aria-labelledby="references-title">
+      <h2 id="references-title" className="references__title">
+        References
+      </h2>
       <ol>
         {shown.map((item) => (
           <li key={item.id} id={`ref-${item.id}`}>

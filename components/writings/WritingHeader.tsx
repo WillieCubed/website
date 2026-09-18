@@ -1,11 +1,11 @@
-import ReplyContextDisplay from '@/components/indieweb/ReplyContext';
 import SiteLink from '@/components/link/SiteLink';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
-import { site } from '@/lib/site';
+import { formatDate, site } from '@/lib/site';
 import { SeriesWithWritings, WritingData } from '@/lib/writings';
 
-import InteractionContext from './InteractionContext';
+import ReplyTarget, { type TargetKind } from './ReplyTarget';
+import './writing.css';
 
 interface WritingHeaderProps {
   writing: WritingData;
@@ -15,6 +15,11 @@ interface WritingHeaderProps {
   replyContexts?: Map<string, ReplyContext>;
 }
 
+/**
+ * An article opens with its title, a note opens with its author row and
+ * goes straight into the text. A post that answers another page carries
+ * that page above it as the top of the thread.
+ */
 export default function WritingHeader({
   writing,
   seriesData,
@@ -23,191 +28,117 @@ export default function WritingHeader({
 }: WritingHeaderProps) {
   const publishedIso = new Date(writing.published).toISOString();
   const updatedIso = new Date(writing.lastUpdated).toISOString();
-
-  const formattedPublishDate = new Date(writing.published).toLocaleDateString(
-    'en-US',
-    {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }
-  );
+  const target = targetOf(writing);
 
   return (
-    <header className="mx-auto max-w-breakpoint-md px-lg pb-lg pt-8 desktop:px-0">
+    <header className="mx-auto max-w-breakpoint-md px-lg pb-md pt-8 desktop:px-0">
       {/* Permalink for parsers. u-uid marks it as the canonical identity. */}
       <a href={canonicalUrl} className="u-url u-uid hidden" />
+      {updatedIso !== publishedIso && (
+        <time className="dt-updated hidden" dateTime={updatedIso} />
+      )}
 
-      <div className="space-y-md">
-        {/* Interaction context (for like, repost, bookmark, rsvp posts) */}
-        {writing.likeOf && (
-          <InteractionContext
-            targetUrl={writing.likeOf}
-            interactionType="like"
-            context={replyContexts?.get(writing.likeOf)}
-          />
-        )}
-        {writing.repostOf && (
-          <InteractionContext
-            targetUrl={writing.repostOf}
-            interactionType="repost"
-            context={replyContexts?.get(writing.repostOf)}
-          />
-        )}
-        {writing.bookmarkOf && (
-          <InteractionContext
-            targetUrl={writing.bookmarkOf}
-            interactionType="bookmark"
-            context={replyContexts?.get(writing.bookmarkOf)}
-          />
-        )}
-        {writing.rsvp && (
-          <InteractionContext
-            targetUrl={writing.rsvp.eventUrl}
-            interactionType="rsvp"
-            rsvpStatus={writing.rsvp.status}
-            context={replyContexts?.get(writing.rsvp.eventUrl)}
-          />
-        )}
+      {target && (
+        <ReplyTarget
+          url={target.url}
+          kind={target.kind}
+          context={replyContexts?.get(target.url)}
+          rsvpStatus={writing.rsvp?.status}
+        />
+      )}
 
-        {/* Reply context (for reply posts - separate from interaction types) */}
-        {writing.inReplyTo &&
-          !writing.rsvp &&
-          (replyContexts?.get(writing.inReplyTo) ? (
-            <ReplyContextDisplay
-              context={replyContexts.get(writing.inReplyTo)!}
-              label="In reply to"
-              microformatClass="u-in-reply-to"
-            />
-          ) : (
-            <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4">
-              <p className="text-label-large text-on-surface-variant">
-                In reply to{' '}
-                <a
-                  href={writing.inReplyTo}
-                  className="u-in-reply-to link-animated font-medium text-primary"
-                  rel="in-reply-to"
-                >
-                  {new URL(writing.inReplyTo).hostname}
-                </a>
-              </p>
-            </div>
-          ))}
-
-        {/* Reading time */}
-        <div
-          className="flex animate-fade-in items-center gap-3"
-          style={{ animationDelay: '0ms' }}
-        >
-          <span className="text-label-medium text-gray-500 dark:text-gray-400">
-            {writing.readingTime} min read
-          </span>
-        </div>
-
-        {/* h-entry: p-name. A note has no headline, so its body is the name. */}
-        {writing.hasExplicitTitle ? (
-          <h1
-            className="p-name animate-fade-in-up text-headline-medium desktop:text-headline-large"
-            style={{ animationDelay: '50ms', animationFillMode: 'backwards' }}
-          >
+      {writing.hasExplicitTitle ? (
+        <div className="space-y-md">
+          <h1 className="p-name text-headline-medium desktop:text-headline-large">
             {writing.title}
           </h1>
-        ) : (
-          <h1 className="sr-only">{writing.title}</h1>
-        )}
-
-        {/* h-entry: p-summary */}
-        {writing.hasExplicitTitle && (
-          <p
-            className="p-summary animate-fade-in-up text-title-large text-primary"
-            style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
-          >
+          <p className="p-summary text-title-large text-accent">
             {writing.description}
           </p>
-        )}
-
-        {/* Meta info: date, author, tags */}
-        <div className="flex flex-wrap items-center gap-4 text-label-large text-gray-600 dark:text-gray-400">
-          {/* h-entry: dt-published */}
-          <time className="dt-published" dateTime={publishedIso}>
-            {formattedPublishDate}
-          </time>
-
-          {/* h-entry: dt-updated (hidden if same as published) */}
-          {updatedIso !== publishedIso && (
-            <time className="dt-updated hidden" dateTime={updatedIso} />
-          )}
-
-          {/* h-entry: p-author with a visible h-card byline */}
-          <span className="p-author h-card flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={site.author.photo}
-              alt=""
-              width={24}
-              height={24}
-              className="u-photo size-6 rounded-full"
-            />
-            <SiteLink
-              href="/"
-              rel="author"
-              className="p-name u-url link-animated font-medium"
-            >
-              {site.author.name}
-            </SiteLink>
-          </span>
-
-          {/* Tags */}
-          {writing.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {writing.tags.map((tag) => (
-                <SiteLink
-                  key={tag}
-                  href={`/writings?tag=${encodeURIComponent(tag)}`}
-                  className="p-category rounded bg-gray-100 px-2 py-0.5 text-label-small hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-                >
-                  {tag}
-                </SiteLink>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Series indicator */}
-        {writing.series && seriesData && (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-            <p className="text-label-large">
-              Part {writing.series.part} of {seriesData.totalParts} in the{' '}
+          <Byline writing={writing} publishedIso={publishedIso} readingTime />
+          {writing.series && seriesData && (
+            <p className="text-label-large text-muted">
+              Part {writing.series.part} of {seriesData.totalParts} ·{' '}
               <SiteLink
                 href={seriesData.href}
-                className="link-animated font-semibold"
+                className="link-animated font-medium text-ink"
               >
                 {seriesData.name}
-              </SiteLink>{' '}
-              series
+              </SiteLink>
             </p>
-          </div>
-        )}
-
-        {/* Syndication links (POSSE) */}
-        {writing.syndication && writing.syndication.length > 0 && (
-          <div className="text-label-medium text-gray-500 dark:text-gray-400">
-            Also on:{' '}
-            {writing.syndication.map((link, index) => (
-              <span key={link.url}>
-                <a
-                  href={link.url}
-                  className="u-syndication link-animated text-primary"
-                  rel="syndication"
-                >
-                  {link.name}
-                </a>
-                {index < writing.syndication!.length - 1 && ', '}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <h1 className="p-name sr-only">{writing.title}</h1>
+          <Byline writing={writing} publishedIso={publishedIso} />
+        </>
+      )}
     </header>
+  );
+}
+
+function targetOf(
+  writing: WritingData
+): { url: string; kind: TargetKind } | null {
+  if (writing.likeOf) return { url: writing.likeOf, kind: 'like' };
+  if (writing.repostOf) return { url: writing.repostOf, kind: 'repost' };
+  if (writing.bookmarkOf) return { url: writing.bookmarkOf, kind: 'bookmark' };
+  if (writing.rsvp) return { url: writing.rsvp.eventUrl, kind: 'rsvp' };
+  if (writing.inReplyTo) return { url: writing.inReplyTo, kind: 'reply' };
+  return null;
+}
+
+function Byline({
+  writing,
+  publishedIso,
+  readingTime = false,
+}: {
+  writing: WritingData;
+  publishedIso: string;
+  readingTime?: boolean;
+}) {
+  return (
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label-large text-muted">
+      <span className="p-author h-card flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={site.author.photo}
+          alt=""
+          width={28}
+          height={28}
+          className="u-photo size-7 rounded-full"
+        />
+        <SiteLink
+          href="/"
+          rel="author"
+          className="p-name u-url font-medium text-ink"
+        >
+          {site.author.name}
+        </SiteLink>
+      </span>
+      <span aria-hidden="true">·</span>
+      <time className="dt-published" dateTime={publishedIso}>
+        {formatDate(writing.published)}
+      </time>
+      {readingTime && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span>{writing.readingTime} min read</span>
+        </>
+      )}
+      {writing.syndication?.map((link) => (
+        <span key={link.url} className="flex items-center gap-2">
+          <span aria-hidden="true">·</span>
+          <a
+            href={link.url}
+            className="u-syndication link-animated"
+            rel="syndication"
+          >
+            {link.name}
+          </a>
+        </span>
+      ))}
+    </p>
   );
 }

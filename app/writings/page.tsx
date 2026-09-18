@@ -216,7 +216,7 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
           <WritingsList tag={tag} />
         </Suspense>
       </section>
-      <section className="border-t border-line pt-lg">
+      <section className="pt-lg">
         <Suspense fallback={<div className="h-10" />}>
           <TagFilter currentTag={tag} />
         </Suspense>

@@ -17,7 +17,6 @@ import {
   getSeriesSlugs as _getSeriesSlugs,
   getSeriesWithWritings as _getSeriesWithWritings,
 } from '../collections';
-import { fetchConfig } from '../config';
 import type {
   PostType,
   RSVPData,
@@ -51,6 +50,8 @@ interface RawFrontmatter {
   lastUpdated: Date;
   tags?: string[];
   draft?: boolean;
+  /** Surfaces the writing wherever featured writings are listed. */
+  featured?: boolean;
   featuredImage?: string;
   featuredImageAlt?: string;
   series?: {
@@ -216,6 +217,7 @@ export async function loadWriting(slug: string) {
     lastUpdated: frontmatter.lastUpdated,
     tags: frontmatter.tags || [],
     draft: frontmatter.draft ?? false,
+    featured: frontmatter.featured ?? false,
     featuredImage: frontmatter.featuredImage,
     featuredImageAlt: frontmatter.featuredImageAlt,
     readingTime: Math.ceil(stats.minutes),
@@ -375,15 +377,8 @@ export async function getSeriesName(slug: string): Promise<string> {
  * Gets featured writings based on config.
  */
 export async function getFeaturedWritings(): Promise<WritingData[]> {
-  const featuredListConfig = await fetchConfig('featured_writings');
-  if (!featuredListConfig) {
-    return [];
-  }
   const writings = await getAllWritings();
-  const featuredWritings = writings.filter((writing) => {
-    return (featuredListConfig as string[]).includes(writing.slug);
-  });
-  return featuredWritings;
+  return writings.filter((writing) => writing.featured);
 }
 
 /**

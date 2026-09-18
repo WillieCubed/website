@@ -1,3 +1,4 @@
+import { cacheLife } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next/types';
 
@@ -111,31 +112,35 @@ async function fetchInteractions(slug: string) {
 async function fetchReplyContexts(
   writing: WritingData
 ): Promise<Map<string, ReplyContext>> {
-  const contexts = new Map<string, ReplyContext>();
-
-  // Collect all URLs that need context
   const urls: string[] = [];
   if (writing.likeOf) urls.push(writing.likeOf);
   if (writing.repostOf) urls.push(writing.repostOf);
   if (writing.bookmarkOf) urls.push(writing.bookmarkOf);
   if (writing.rsvp?.eventUrl) urls.push(writing.rsvp.eventUrl);
   if (writing.inReplyTo) urls.push(writing.inReplyTo);
+  return new Map(await loadReplyContexts(urls));
+}
 
-  // Fetch contexts in parallel
-  await Promise.all(
-    urls.map(async (url) => {
+/**
+ * Remote pages are fetched inside a cache scope: it keeps a build from
+ * hitting every target on each render, and it is the one place the
+ * prerenderer lets a Server Component read the clock and the network.
+ */
+async function loadReplyContexts(
+  urls: string[]
+): Promise<Array<[string, ReplyContext]>> {
+  'use cache';
+  cacheLife('hours');
+  return Promise.all(
+    urls.map(async (url): Promise<[string, ReplyContext]> => {
       try {
-        const context = await getReplyContext(url);
-        contexts.set(url, context);
+        return [url, await getReplyContext(url)];
       } catch (error) {
         console.error(`Failed to fetch context for ${url}:`, error);
-        // Store minimal context on error
-        contexts.set(url, { url, fetchedAt: new Date() });
+        return [url, { url, fetchedAt: new Date() }];
       }
     })
   );
-
-  return contexts;
 }
 
 export default async function WritingDetailPage(props: WritingDetailPageProps) {

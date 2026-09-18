@@ -33,7 +33,6 @@
     "@next/mdx": "16.2.7",
     "@types/mdx": "^2.0.13",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/edge-config": "^1.4.3",
     "@vercel/postgres": "^0.10.0",
     "@vercel/speed-insights": "^2.0.0",
     "date-fns": "^4.4.0",

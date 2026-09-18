@@ -6,8 +6,6 @@ import SiteLink from '@/components/link/SiteLink';
 
 import { randomlyChooseTagline } from '@/lib/enhancements';
 
-// import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
-
 // import NowPlayingWidget from './widgets/NowPlayingWidget';
 
 interface SiteFooterProps {
@@ -46,7 +44,6 @@ const QUICK_LINKS: { label: string; href: string }[] = [
  */
 export default function SiteFooter(_props: SiteFooterProps) {
   const tagline = randomlyChooseTagline();
-  // const showWritings = await fetchConfig(REMOTE_CONFIG_KEYS.showWritings);
   return (
     <footer className="bg-surface-container-highest text-on-surface border-t border-outline">
       <div className="max-w-breakpoint-2xl mx-auto space-y-lg tablet:space-y-0 tablet:grid desktop:grid-cols-8 tablet:px-lg py-16 print:py-lg px-lg gap-x-lg">

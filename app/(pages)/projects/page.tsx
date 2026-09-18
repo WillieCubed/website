@@ -1,8 +1,9 @@
+import { Suspense } from 'react';
+
 import { LinkButton } from '@/components/LinkButton';
 
 import type { ProjectData } from '@/lib/common';
-import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
-import { getAllProjects } from '@/lib/projects';
+import { FEATURED_LIST, getAllProjects } from '@/lib/projects';
 import { pageMetadata } from '@/lib/site';
 
 const FEATURED_PROJECTS_LIMIT = 3;
@@ -33,7 +34,17 @@ interface ProjectsPageProps {
  *
  * Route: /projects
  */
-export default async function ProjectsPage(props: ProjectsPageProps) {
+export default function ProjectsPage(props: ProjectsPageProps) {
+  // searchParams is request data, so the part that reads it streams inside
+  // Suspense and the rest of the page prerenders.
+  return (
+    <Suspense fallback={null}>
+      <ProjectsContent searchParams={props.searchParams} />
+    </Suspense>
+  );
+}
+
+async function ProjectsContent(props: ProjectsPageProps) {
   const searchParams = await props.searchParams;
   const { projects } = await getProjectsPageData();
 
@@ -142,9 +153,7 @@ async function getProjectsPageData(): Promise<ProjectsPageData> {
  */
 async function getFeaturedProjectCodenames() {
   try {
-    const featuredProjectCodenames = await fetchConfig<string, string[]>(
-      REMOTE_CONFIG_KEYS.featuredProjects
-    );
+    const featuredProjectCodenames = FEATURED_LIST;
     return featuredProjectCodenames ?? [];
   } catch (error) {
     console.error('Could not fetch featured projects', error);

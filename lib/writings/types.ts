@@ -54,6 +54,8 @@ export type WritingData = {
   lastUpdated: Date;
   tags: string[];
   draft: boolean;
+  /** Set in frontmatter to surface the writing in featured lists. */
+  featured: boolean;
   featuredImage?: string;
   featuredImageAlt?: string;
   readingTime: number;

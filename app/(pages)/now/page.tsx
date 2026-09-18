@@ -1,3 +1,4 @@
+import { cacheLife } from 'next/cache';
 import type { Metadata } from 'next/types';
 
 import SiteLink from '@/components/link/SiteLink';
@@ -36,28 +37,45 @@ export const metadata: Metadata = pageMetadata({
 /**
  * A page that describes what I'm doing right now.
  */
-export default async function NowPage() {
+/**
+ * Buckets the entries by age. It runs in a cache scope because it needs the
+ * clock, which the prerenderer only allows inside cached or dynamic code,
+ * and an hour of staleness is fine for a page about the current month.
+ */
+async function loadNowSections() {
+  'use cache';
+  cacheLife('hours');
   const nowEntries = await getAllNowEntries();
-
   const now = new Date();
-  const twoYearsAgo = new Date(now.setFullYear(now.getFullYear() - 2));
-  const oneMonthAgo = new Date(now.setMonth(now.getMonth() - 1));
+  const twoYearsAgo = new Date(now);
+  twoYearsAgo.setFullYear(now.getFullYear() - 2);
+  const oneMonthAgo = new Date(now);
+  oneMonthAgo.setMonth(now.getMonth() - 1);
+  const byNewest = (a: { date: Date }, b: { date: Date }) =>
+    new Date(b.date).getTime() - new Date(a.date).getTime();
 
-  const recentEntries = nowEntries
-    .filter((entry) => {
-      const date = new Date(entry.date);
-      return date >= twoYearsAgo && date <= oneMonthAgo;
-    })
-    .sort((a, b) => b.date.getTime() - a.date.getTime());
-  const currentEntries = nowEntries
-    .filter((entry) => {
-      const date = new Date(entry.date);
-      return date > oneMonthAgo && date <= now;
-    })
-    .sort((a, b) => b.date.getTime() - a.date.getTime());
-  const laterEntries = nowEntries
-    .filter((entry) => new Date(entry.date) > now)
-    .sort((a, b) => b.date.getTime() - a.date.getTime());
+  return {
+    recentEntries: nowEntries
+      .filter((entry) => {
+        const date = new Date(entry.date);
+        return date >= twoYearsAgo && date <= oneMonthAgo;
+      })
+      .sort(byNewest),
+    currentEntries: nowEntries
+      .filter((entry) => {
+        const date = new Date(entry.date);
+        return date > oneMonthAgo && date <= now;
+      })
+      .sort(byNewest),
+    laterEntries: nowEntries
+      .filter((entry) => new Date(entry.date) > now)
+      .sort(byNewest),
+  };
+}
+
+export default async function NowPage() {
+  const { recentEntries, currentEntries, laterEntries } =
+    await loadNowSections();
 
   return (
     <div className="min-h-[75vh]">

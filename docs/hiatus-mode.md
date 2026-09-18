@@ -20,6 +20,10 @@ Hiatus mode blocks content routes only:
 - `/research`
 - `/writings`
 
+`/initiatives` and its pages stay reachable in hiatus on purpose: they are
+launch content, and `tour.willie.page` and `diaries.willie.page` redirect to
+them. `/search` stays reachable too.
+
 Blocked content routes rewrite to the app not-found page with a `404` status.
 Operational routes and framework assets stay accessible, including `/_not-found`,
 `/500`, `/robots.txt`, `/sitemap.xml`, `/_next/*`, and `/_vercel/*`.

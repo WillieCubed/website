@@ -61,6 +61,7 @@ export async function getCachedReplyContext(
   url: string,
   maxAgeHours = 168 // 7 days default
 ): Promise<ReplyContext | null> {
+  if (!process.env.POSTGRES_URL) return null;
   const result = await sql`
     SELECT
       target_url,
@@ -102,6 +103,7 @@ export async function cacheReplyContext(
   context: ReplyContext,
   rawMf2?: object
 ): Promise<void> {
+  if (!process.env.POSTGRES_URL) return;
   await sql`
     INSERT INTO reply_context_cache (
       target_url,

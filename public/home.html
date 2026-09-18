@@ -227,11 +227,17 @@
         accent ? document.documentElement.style.setProperty('--live-accent', accent) : document.documentElement.style.removeProperty('--live-accent');
       }
 
+      // Leaving one tile fires before entering the next, so clearing right away
+      // would flash the whole grid back into focus while the pointer crosses the
+      // gap between tiles. The clear waits long enough for the next enter.
+      let clearTimer = 0;
+      const setPreview = (value) => { clearTimeout(clearTimer); preview = value; apply(); };
+      const clearPreview = () => { clearTimeout(clearTimer); clearTimer = setTimeout(() => { preview = null; apply(); }, 120); };
       const hover = (el, value) => {
-        el.addEventListener('pointerenter', () => { preview = value; apply(); });
-        el.addEventListener('pointerleave', () => { preview = null; apply(); });
-        el.addEventListener('focusin', () => { preview = value; apply(); });
-        el.addEventListener('focusout', () => { preview = null; apply(); });
+        el.addEventListener('pointerenter', () => setPreview(value));
+        el.addEventListener('pointerleave', clearPreview);
+        el.addEventListener('focusin', () => setPreview(value));
+        el.addEventListener('focusout', clearPreview);
       };
 
       for (const k of keys) {

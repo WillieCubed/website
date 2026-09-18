@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import SiteLink from '@/components/link/SiteLink';
 
 import { searchContent, searchResultPath } from '@/lib/search/server';
 import type { SearchResult } from '@/lib/search/types';
@@ -93,7 +93,8 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       });
 
   return (
-    <Link
+    <SiteLink
+      preview={false}
       href={searchResultPath(result)}
       className="group block rounded-lg border border-outline-variant p-4 transition-all hover:border-primary hover:bg-primary/5"
     >
@@ -127,6 +128,6 @@ function SearchResultCard({ result }: { result: SearchResult }) {
           {result.snippet}
         </p>
       )}
-    </Link>
+    </SiteLink>
   );
 }

@@ -13,7 +13,7 @@ import {
 
 import { entityKey } from '@/lib/entities/key';
 import type { EntityCard } from '@/lib/entities/types';
-import { site } from '@/lib/site';
+import { isInternalHref } from '@/lib/site';
 
 import LinkPreview from './LinkPreview';
 import './link.css';
@@ -49,13 +49,6 @@ function loadRegistry(): Promise<Map<string, EntityCard>> {
       });
   }
   return registryPromise;
-}
-
-/** True for paths on this site, including absolute URLs on the canonical origin. */
-export function isInternalHref(href: string): boolean {
-  if (href.startsWith('/') && !href.startsWith('//')) return true;
-  if (href.startsWith(site.origin)) return true;
-  return false;
 }
 
 /**

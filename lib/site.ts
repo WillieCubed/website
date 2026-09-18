@@ -48,6 +48,16 @@ export const site = {
   },
 } as const;
 
+/**
+ * True for paths on this site, including absolute URLs on the canonical
+ * origin. Lives here rather than in the link component so server code can
+ * use it too.
+ */
+export function isInternalHref(href: string): boolean {
+  if (href.startsWith('/') && !href.startsWith('//')) return true;
+  return href.startsWith(site.origin);
+}
+
 /** Absolute URL for a path on the canonical origin. */
 export function absoluteUrl(path = '/'): string {
   return new URL(path, site.origin).toString();

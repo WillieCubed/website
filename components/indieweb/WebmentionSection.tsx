@@ -1,69 +1,87 @@
-import WebmentionActivityFeed from '@/components/indieweb/WebmentionActivityFeed';
+import WebmentionAvatar from '@/components/indieweb/WebmentionAvatar';
+import WebmentionReplies from '@/components/indieweb/WebmentionReplies';
 
-import { flattenWebmentionActivities } from '@/lib/indieweb/activity-feed';
-import type { WebmentionGroup } from '@/lib/indieweb/types';
+import type { Webmention, WebmentionGroup } from '@/lib/indieweb/types';
 
 interface WebmentionSectionProps {
   webmentions: WebmentionGroup;
 }
 
+/**
+ * Replies are a conversation and get the room. Likes, reposts, and
+ * bookmarks are reactions and get one quiet line. Mentions from other
+ * pages are listed by source.
+ */
 export default function WebmentionSection({
   webmentions,
 }: WebmentionSectionProps) {
   const { likes, reposts, replies, mentions, bookmarks } = webmentions;
-  const activities = flattenWebmentionActivities(webmentions);
-  const totalCount =
-    likes.length +
-    reposts.length +
-    replies.length +
-    mentions.length +
-    bookmarks.length;
-
-  if (totalCount === 0) {
+  const reactions = [...likes, ...reposts, ...bookmarks];
+  if (replies.length === 0 && reactions.length === 0 && mentions.length === 0) {
     return null;
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-title-medium font-medium text-gray-700 dark:text-gray-300">
-        Responses{' '}
-        <span className="text-gray-500 dark:text-gray-400">({totalCount})</span>
-      </h2>
-
-      <div className="space-y-6">
-        <ActivitySummary webmentions={webmentions} />
-        <WebmentionActivityFeed activities={activities} />
-      </div>
+    <div className="space-y-8">
+      {replies.length > 0 && <WebmentionReplies replies={replies} />}
+      {reactions.length > 0 && (
+        <Reactions likes={likes} reposts={reposts} bookmarks={bookmarks} />
+      )}
+      {mentions.length > 0 && <Mentions mentions={mentions} />}
     </div>
   );
 }
 
-interface ActivitySummaryProps {
-  webmentions: WebmentionGroup;
+function names(items: Webmention[]): string {
+  const list = items.map((item) => item.author.name || 'someone');
+  if (list.length <= 2) return list.join(' and ');
+  if (list.length === 3) return `${list[0]}, ${list[1]}, and ${list[2]}`;
+  return `${list[0]}, ${list[1]}, and ${list.length - 2} others`;
 }
 
-interface ActivitySummaryItem {
-  label: string;
-  count: number;
-}
-
-function ActivitySummary({ webmentions }: ActivitySummaryProps) {
-  const counts: ActivitySummaryItem[] = [
-    { label: 'Replies', count: webmentions.replies.length },
-    { label: 'Mentions', count: webmentions.mentions.length },
-    { label: 'Likes', count: webmentions.likes.length },
-    { label: 'Reposts', count: webmentions.reposts.length },
-    { label: 'Bookmarks', count: webmentions.bookmarks.length },
-  ].filter((item) => item.count > 0);
-
+function Reactions({
+  likes,
+  reposts,
+  bookmarks,
+}: {
+  likes: Webmention[];
+  reposts: Webmention[];
+  bookmarks: Webmention[];
+}) {
+  const faces = [...likes, ...reposts, ...bookmarks].slice(0, 8);
+  const parts = [
+    likes.length > 0 && `Liked by ${names(likes)}`,
+    reposts.length > 0 && `Reposted by ${names(reposts)}`,
+    bookmarks.length > 0 && `Bookmarked by ${names(bookmarks)}`,
+  ].filter(Boolean);
   return (
-    <dl className="grid grid-cols-2 gap-3 tablet:grid-cols-5">
-      {counts.map(({ label, count }) => (
-        <div key={label} className="rounded border border-outline-variant p-3">
-          <dt className="text-label-small text-on-surface-variant">{label}</dt>
-          <dd className="text-title-medium font-medium">{count}</dd>
-        </div>
+    <p className="flex flex-wrap items-center gap-3 text-body-small text-muted">
+      <span className="flex">
+        {faces.map((item, i) => (
+          <span
+            key={item.id}
+            className={`rounded-full ring-2 ring-ground ${i > 0 ? '-ml-2' : ''}`}
+          >
+            <WebmentionAvatar author={item.author} size="sm" />
+          </span>
+        ))}
+      </span>
+      <span>{parts.join(' · ')}</span>
+    </p>
+  );
+}
+
+function Mentions({ mentions }: { mentions: Webmention[] }) {
+  return (
+    <ul className="space-y-1 text-body-small text-muted">
+      {mentions.map((mention) => (
+        <li key={mention.id}>
+          <a href={mention.sourceUrl} rel="noopener" className="link-animated">
+            {mention.author.name || new URL(mention.sourceUrl).hostname}
+          </a>{' '}
+          mentioned this
+        </li>
       ))}
-    </dl>
+    </ul>
   );
 }

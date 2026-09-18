@@ -19,9 +19,9 @@ export default function WebmentionReplies({ replies }: WebmentionRepliesProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-title-small font-medium">
-        {replies.length} {replies.length === 1 ? 'Reply' : 'Replies'}
-      </h3>
+      <p className="text-label-medium text-muted">
+        {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+      </p>
       <div className="space-y-4">
         {replies.map((reply) => (
           <div key={reply.id} className="flex gap-3">

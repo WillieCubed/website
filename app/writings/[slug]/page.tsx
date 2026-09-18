@@ -2,6 +2,7 @@ import { cacheLife } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next/types';
 
+import TopBar from '@/components/site/TopBar';
 import PostInteractions from '@/components/writings/PostInteractions';
 import PostNavigation from '@/components/writings/PostNavigation';
 import WritingContent from '@/components/writings/WritingContent';
@@ -174,33 +175,40 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
   const canonicalUrl = generateCanonicalUrl(writing.slug);
 
   return (
-    <article className="h-entry mx-auto max-w-breakpoint-2xl">
-      <WritingHeader
-        writing={writing}
-        seriesData={seriesData}
-        canonicalUrl={canonicalUrl}
-        replyContexts={replyContexts}
+    <>
+      <TopBar
+        column="reading"
+        crumbs={[{ label: 'Writings', href: '/writings' }]}
       />
-
-      <WritingContent
-        content={content}
-        headings={headings}
-        writing={writing}
-        seriesData={seriesData}
-      />
-
-      <section className="mx-auto max-w-breakpoint-md px-lg pb-2xl desktop:px-0">
-        <PostInteractions
-          webmentions={webmentions}
-          backlinks={backlinks}
-          slug={slug}
+      <article className="h-entry mx-auto max-w-breakpoint-2xl">
+        <WritingHeader
+          writing={writing}
+          seriesData={seriesData}
+          canonicalUrl={canonicalUrl}
+          replyContexts={replyContexts}
         />
 
-        <PostNavigation
-          previous={adjacentWritings.previous}
-          next={adjacentWritings.next}
+        <WritingContent
+          content={content}
+          headings={headings}
+          writing={writing}
+          seriesData={seriesData}
         />
-      </section>
-    </article>
+
+        <section className="mx-auto max-w-breakpoint-md px-lg pb-2xl desktop:px-0">
+          <PostInteractions
+            webmentions={webmentions}
+            backlinks={backlinks}
+            slug={slug}
+            target={canonicalUrl}
+          />
+
+          <PostNavigation
+            previous={adjacentWritings.previous}
+            next={adjacentWritings.next}
+          />
+        </section>
+      </article>
+    </>
   );
 }

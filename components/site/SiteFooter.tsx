@@ -22,16 +22,6 @@ const PAGES = [
 
 const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
   {
-    label: 'Last.fm',
-    href: 'https://www.last.fm/user/WillieCubed',
-    icon: 'music',
-  },
-  {
-    label: 'Spotify',
-    href: 'https://open.spotify.com/user/pkj37ts4e7ip19j0msai6lahf',
-    icon: 'music',
-  },
-  {
     label: 'Email',
     href: `mailto:${site.author.email}?subject=Hello%20Willie!`,
     icon: 'mail',
@@ -72,48 +62,46 @@ const PILL =
  */
 export default function SiteFooter() {
   return (
-    <footer className="mt-24 bg-tray">
-      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-12 expanded:grid-cols-2">
-        <div className="space-y-4">
+    <footer className="mt-16 bg-tray">
+      <div className="mx-auto grid max-w-[1200px] gap-x-10 gap-y-8 px-5 py-12 expanded:grid-cols-[minmax(0,1fr)_auto] expanded:items-end">
+        <div className="space-y-3">
           <p className="text-headline-small font-semibold text-ink">
             {site.name}
           </p>
           <Suspense fallback={<p className="text-title-large">&nbsp;</p>}>
             <Tagline />
           </Suspense>
-          <FeedsButton />
         </div>
-        <div className="space-y-6 expanded:justify-self-end">
-          <nav aria-label="Pages">
-            <ul className="-mx-3 flex flex-wrap gap-1 expanded:justify-end">
-              {PAGES.map((page) => (
-                <li key={page.href}>
-                  <SiteLink preview={false} href={page.href} className={PILL}>
-                    {page.label}
-                  </SiteLink>
-                </li>
-              ))}
-            </ul>
-          </nav>
+        <nav aria-label="Pages" className="expanded:self-start">
           <ul className="-mx-3 flex flex-wrap gap-1 expanded:justify-end">
-            {site.social.map((profile) => (
-              <li key={profile.href}>
-                <a href={profile.href} rel="me" className={PILL}>
-                  <SocialIcon label={profile.label} />
-                  {profile.label}
-                </a>
-              </li>
-            ))}
-            {ELSEWHERE.map((place) => (
-              <li key={place.href}>
-                <a href={place.href} className={PILL}>
-                  <Icon name={place.icon} size={16} />
-                  {place.label}
-                </a>
+            {PAGES.map((page) => (
+              <li key={page.href}>
+                <SiteLink preview={false} href={page.href} className={PILL}>
+                  {page.label}
+                </SiteLink>
               </li>
             ))}
           </ul>
-        </div>
+        </nav>
+        <FeedsButton />
+        <ul className="-mx-3 flex flex-wrap gap-1 expanded:justify-end">
+          {site.social.map((profile) => (
+            <li key={profile.href}>
+              <a href={profile.href} rel="me" className={PILL}>
+                <SocialIcon label={profile.label} />
+                {profile.label}
+              </a>
+            </li>
+          ))}
+          {ELSEWHERE.map((place) => (
+            <li key={place.href}>
+              <a href={place.href} className={PILL}>
+                <Icon name={place.icon} size={16} />
+                {place.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </footer>
   );

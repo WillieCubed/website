@@ -131,7 +131,7 @@ export default function WritingsPage({ searchParams }: WritingsPageProps) {
         column="content"
         crumbs={[{ label: 'Writings', href: '/writings' }]}
       />
-      <main className="h-feed mx-auto max-w-[840px] px-5 pb-20">
+      <main className="h-feed mx-auto max-w-[840px] px-5 pb-8">
         {/* h-feed: u-url so parsers know which page this feed is */}
         <a href={absoluteUrl('/writings')} className="u-url hidden" />
         <section className="mt-6">

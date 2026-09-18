@@ -1,13 +1,8 @@
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import EventIcon from '@mui/icons-material/Event';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import RepeatIcon from '@mui/icons-material/Repeat';
-
+import Icon, { type IconName } from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
 import { formatDate } from '@/lib/site';
 import { WritingData } from '@/lib/writings';
-import type { PostType } from '@/lib/writings/types';
 
 interface WritingItemProps {
   writing: WritingData;
@@ -19,93 +14,112 @@ interface WritingItemProps {
   showSeriesInfo?: boolean;
 }
 
+/**
+ * One entry in the index. The title, or the text when there is no title,
+ * comes first; everything else is one quiet line under it.
+ */
 export default function WritingItem({
   writing,
   seriesName,
   seriesHref,
   showSeriesInfo = true,
 }: WritingItemProps) {
-  const formattedDate = formatDate(writing.published, 'short');
-
   const publishedIso = new Date(writing.published).toISOString();
+  const target = targetOf(writing);
 
   return (
-    <article className="h-entry group relative -mx-md max-w-breakpoint-md rounded-lg px-md py-md transition-all duration-200 ease-out hover:translate-x-1 hover:bg-gray-50 dark:hover:bg-gray-900">
+    <article className="h-entry group relative rounded-2xl border border-line bg-card px-5 py-4 transition-colors hover:border-accent">
       {/* Main link covers the entire card */}
       <SiteLink
         href={`/writings/${writing.slug}`}
         preview={false}
-        className="u-url absolute inset-0 z-10"
+        className="u-url absolute inset-0 z-10 rounded-2xl"
         aria-label={writing.title}
       />
 
-      <div className="pointer-events-none relative space-y-sm">
-        {/* Meta row */}
-        <div className="flex flex-wrap items-center gap-2 text-label-medium text-gray-500 dark:text-gray-400">
-          <time className="dt-published" dateTime={publishedIso}>
-            {formattedDate}
-          </time>
-          {writing.hasExplicitTitle && (
-            <>
-              <span>·</span>
-              <span>{writing.readingTime} min read</span>
-            </>
-          )}
-          {writing.draft && (
-            <span className="rounded bg-yellow-100 px-2 py-0.5 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-              Draft
-            </span>
-          )}
-        </div>
-
-        {/* Title. Notes have none, so the derived first sentence is the entry text. */}
+      <div className="pointer-events-none relative space-y-2">
         {writing.hasExplicitTitle ? (
           <>
-            <h2 className="p-name text-title-large transition duration-150 ease-out group-hover:text-primary group-focus:text-primary">
+            <h2 className="p-name text-title-large font-semibold text-ink transition-colors group-hover:text-accent">
               {writing.title}
             </h2>
-            <p className="p-summary text-body-medium text-gray-600 dark:text-gray-400">
+            <p className="p-summary text-body-medium text-muted">
               {writing.description}
             </p>
           </>
         ) : (
-          <p className="p-name text-body-large transition duration-150 ease-out group-hover:text-primary group-focus:text-primary">
-            {writing.title}
-          </p>
+          <p className="p-name text-body-large text-ink">{writing.title}</p>
         )}
 
-        {/* Tags */}
-        {writing.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-sm">
-            {writing.tags.slice(0, 4).map((tag) => (
-              <span
-                key={tag}
-                className="p-category rounded bg-gray-100 px-2 py-0.5 text-label-small text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-              >
-                {tag}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label-medium text-muted">
+          {target && (
+            <>
+              <span className="flex items-center gap-1">
+                <Icon name={target.icon} size={13} title={target.word} />
+                {hostOf(target.url)}
               </span>
-            ))}
-            {writing.tags.length > 4 && (
-              <span className="text-label-small text-gray-500">
-                +{writing.tags.length - 4} more
+              <span aria-hidden="true">·</span>
+            </>
+          )}
+          <time className="dt-published" dateTime={publishedIso}>
+            {formatDate(writing.published, 'short')}
+          </time>
+          {writing.hasExplicitTitle && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{writing.readingTime} min read</span>
+            </>
+          )}
+          {showSeriesInfo && writing.series && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>
+                Part {writing.series.part} of{' '}
+                <SiteLink
+                  href={seriesHref ?? '/writings'}
+                  className="link-animated pointer-events-auto relative z-20 font-medium text-ink"
+                >
+                  {seriesName || writing.series.slug}
+                </SiteLink>
               </span>
-            )}
-          </div>
-        )}
-
-        {/* Series indicator */}
-        {showSeriesInfo && writing.series && (
-          <div className="pt-sm text-label-medium text-gray-500 dark:text-gray-400">
-            Part {writing.series.part} of{' '}
-            <SiteLink
-              href={seriesHref ?? '/writings'}
-              className="link-animated pointer-events-auto relative z-20 font-medium"
-            >
-              {seriesName || writing.series.slug}
-            </SiteLink>
-          </div>
-        )}
+            </>
+          )}
+          {writing.draft && (
+            <span className="rounded-full bg-mint/40 px-2 py-0.5 text-ink">
+              Draft
+            </span>
+          )}
+        </p>
       </div>
     </article>
   );
+}
+
+function targetOf(
+  writing: WritingData
+): { url: string; icon: IconName; word: string } | null {
+  if (writing.likeOf) {
+    return { url: writing.likeOf, icon: 'heart', word: 'Liked' };
+  }
+  if (writing.repostOf) {
+    return { url: writing.repostOf, icon: 'repeat', word: 'Reposted' };
+  }
+  if (writing.bookmarkOf) {
+    return { url: writing.bookmarkOf, icon: 'bookmark', word: 'Bookmarked' };
+  }
+  if (writing.rsvp) {
+    return { url: writing.rsvp.eventUrl, icon: 'calendar', word: 'RSVP' };
+  }
+  if (writing.inReplyTo) {
+    return { url: writing.inReplyTo, icon: 'reply', word: 'Replying to' };
+  }
+  return null;
+}
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
 }

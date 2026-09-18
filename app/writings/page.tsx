@@ -1,6 +1,7 @@
 import type { Metadata } from 'next/types';
 import { Suspense } from 'react';
 
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import TopBar from '@/components/site/TopBar';
 import WritingItem from '@/components/writings/WritingItem';
@@ -58,14 +59,14 @@ async function WritingsList({ tag }: { tag?: string }) {
 
   if (writings.length === 0) {
     return (
-      <div className="py-12 text-center text-body-medium text-gray-500 dark:text-gray-400">
+      <div className="py-12 text-center text-body-medium text-muted">
         No writings found{tag && ` with tag "${tag}"`}.
       </div>
     );
   }
 
   return (
-    <div className="space-y-md">
+    <div className="space-y-3">
       {writings.map((writing) => (
         <WritingItem
           key={writing.slug}
@@ -94,13 +95,14 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+      <Icon name="tag" size={14} className="text-muted" />
       <SiteLink
         href="/writings"
-        className={`rounded-full px-4 py-2 text-label-large transition-colors ${
+        className={`rounded-full px-3 py-1.5 text-label-large transition-colors ${
           !currentTag
-            ? 'bg-primary text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+            ? 'bg-accent text-white'
+            : 'border border-line bg-card text-ink hover:border-accent hover:text-accent'
         }`}
       >
         All
@@ -109,10 +111,10 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
         <SiteLink
           key={tag}
           href={`/writings?tag=${encodeURIComponent(tag)}`}
-          className={`rounded-full px-4 py-2 text-label-large transition-colors ${
+          className={`rounded-full px-3 py-1.5 text-label-large transition-colors ${
             currentTag === tag
-              ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+              ? 'bg-accent text-white'
+              : 'border border-line bg-card text-ink hover:border-accent hover:text-accent'
           }`}
         >
           {tag}
@@ -136,31 +138,10 @@ export default function WritingsPage({ searchParams }: WritingsPageProps) {
           <div className="space-y-xl">
             <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
               <h1 className="p-name text-display-small">Writings</h1>
-              <p className="flex flex-wrap items-center gap-x-3 text-label-medium text-muted">
-                <span className="p-author h-card">
-                  <SiteLink href="/" className="p-name u-url">
-                    {site.author.name}
-                  </SiteLink>
-                </span>
-                <span aria-hidden="true">·</span>
-                <a
-                  href={absoluteUrl('/writings/feed.xml')}
-                  className="link-animated"
-                >
-                  RSS
-                </a>
-                <a
-                  href={absoluteUrl('/writings/feed/atom')}
-                  className="link-animated"
-                >
-                  Atom
-                </a>
-                <a
-                  href={absoluteUrl('/writings/feed/json')}
-                  className="link-animated"
-                >
-                  JSON Feed
-                </a>
+              <p className="p-author h-card text-label-large text-muted">
+                <SiteLink href="/" className="p-name u-url">
+                  {site.author.name}
+                </SiteLink>
               </p>
             </div>
           </div>
@@ -182,10 +163,7 @@ function WritingsContentFallback() {
       <section className="min-h-[50vh] space-y-lg pb-xl pt-lg">
         <div className="space-y-md">
           {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="h-32 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"
-            />
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-card" />
           ))}
         </div>
       </section>
@@ -207,7 +185,7 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-32 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"
+                  className="h-28 animate-pulse rounded-2xl bg-card"
                 />
               ))}
             </div>
@@ -216,10 +194,29 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
           <WritingsList tag={tag} />
         </Suspense>
       </section>
-      <section className="pt-lg">
+      <section className="flex flex-wrap items-center justify-between gap-4 pt-lg">
         <Suspense fallback={<div className="h-10" />}>
           <TagFilter currentTag={tag} />
         </Suspense>
+        <form action="/search" className="flex items-center gap-2">
+          <label htmlFor="writings-search" className="sr-only">
+            Search
+          </label>
+          <input
+            id="writings-search"
+            name="q"
+            type="search"
+            placeholder="Search"
+            className="w-44 rounded-full border border-line bg-card px-4 py-1.5 text-body-medium text-ink"
+          />
+          <button
+            type="submit"
+            aria-label="Search"
+            className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-white"
+          >
+            <Icon name="search" size={16} />
+          </button>
+        </form>
       </section>
     </>
   );

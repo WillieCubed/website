@@ -1,0 +1,115 @@
+/* The feeds button and its popover. The popover borrows the hover card's
+   surface so every floating panel on the site reads as one family. */
+.feeds-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-site),
+    color 160ms var(--ease-site);
+}
+.feeds-button:hover,
+.feeds-button:focus-visible {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.feeds-popover {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 6px;
+  width: min(320px, calc(100vw - 32px));
+  border: 0;
+  border-radius: 14px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-ink) 6%, transparent),
+    0 18px 40px -20px color-mix(in srgb, var(--color-ink) 45%, transparent);
+  outline: 1px solid var(--color-line);
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 160ms var(--ease-site),
+    transform 200ms var(--ease-site),
+    display 200ms allow-discrete,
+    overlay 200ms allow-discrete;
+}
+.feeds-popover:not(:popover-open) {
+  display: none;
+}
+@starting-style {
+  .feeds-popover:popover-open {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feeds-popover,
+  .feeds-popover:popover-open {
+    transform: none;
+    transition: opacity 120ms linear;
+  }
+}
+.feeds-popover ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.feeds-popover li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-radius: 10px;
+}
+.feeds-popover li:hover {
+  background: var(--color-tray);
+}
+.feeds-popover__link {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+.feeds-popover__url {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.feeds-popover__quiet .feeds-popover__link {
+  font-weight: 400;
+  color: var(--color-muted);
+}
+.feeds-popover__copy {
+  display: inline-flex;
+  padding: 8px;
+  margin-right: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.feeds-popover__copy:hover,
+.feeds-popover__copy:focus-visible {
+  color: var(--color-accent);
+}

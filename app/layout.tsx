@@ -8,6 +8,8 @@ import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
+import SiteFooter from '@/components/site/SiteFooter';
+
 import {
   INDIEAUTH_AUTHORIZATION_ENDPOINT,
   INDIEAUTH_TOKEN_ENDPOINT,
@@ -135,6 +137,7 @@ export default async function RootLayout({
             </>
           )}
         {children}
+        <SiteFooter />
         <Analytics />
         <SpeedInsights />
       </body>

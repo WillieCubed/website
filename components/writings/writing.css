@@ -12,9 +12,3 @@
   border-radius: 1px;
   background: var(--color-line);
 }
-
-/* A note has no headline, so its text carries the page. */
-.note-body .prose {
-  font-size: 1.25rem;
-  line-height: 1.55;
-}

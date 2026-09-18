@@ -36,9 +36,7 @@ export default async function WritingContent({
 
       <div className="mx-auto max-w-breakpoint-md space-y-10 px-lg desktop:px-0">
         {/* h-entry: e-content */}
-        <div
-          className={`e-content ${writing.hasExplicitTitle ? '' : 'note-body'}`}
-        >
+        <div className="e-content">
           <WritingDetailsView source={content} />
         </div>
 

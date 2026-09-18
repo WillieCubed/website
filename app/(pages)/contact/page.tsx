@@ -1,17 +1,14 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 
-export const metadata: Metadata = {
+import { pageMetadata } from '@/lib/site';
+
+export const metadata: Metadata = pageMetadata({
   title: 'Contact',
-  description: "See how to get in touch with me. It's pretty simple.",
-  openGraph: {
-    title: 'Contact',
-    description: "See how to get in touch with me. It's pretty simple.",
-    url: '/contact',
-    type: 'website',
-    images: ['/assets/headshot.jpg'],
-  },
-};
+  description: "See how to get in touch with Willie. It's pretty simple.",
+  path: '/contact',
+  image: '/assets/headshot.jpg',
+});
 
 export default function ContactPage() {
   return (

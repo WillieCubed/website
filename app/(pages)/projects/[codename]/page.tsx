@@ -10,16 +10,9 @@ import ProjectBackIcon from '@/components/projects/ProjectBackIcon';
 
 import { ProjectData } from '@/lib/common';
 import { getProject, getProjectSlugs } from '@/lib/projects';
-import { absoluteRoute } from '@/lib/site';
+import { pageMetadata } from '@/lib/site';
 
 import ProjectDetailView from './ProjectDetailsView';
-
-/**
- * Generate a canonical URL for a project's meta social information.
- */
-function generateProjectUrl(codename: string) {
-  return absoluteRoute`/projects/${codename}`;
-}
 
 export const dynamic = 'force-static';
 
@@ -36,26 +29,19 @@ export async function generateMetadata(props: {
   const { codename } = params;
   try {
     const { project } = await getProject(codename);
-    const canonicalUrl = generateProjectUrl(project.codename);
-    return {
-      title: `${project.title} Project Info`,
+    return pageMetadata({
+      title: project.title,
       description: project.tagline,
-      alternates: {
-        canonical: canonicalUrl,
-      },
-      openGraph: {
-        title: project.title,
-        description: project.tagline,
-        url: canonicalUrl,
-        // TODO: Choose a different image for a project
-      },
-    };
+      path: `/projects/${project.codename}`,
+    });
   } catch (e) {
-    return {
-      title: 'Unknown Project Info',
+    return pageMetadata({
+      title: 'Unknown project',
       description:
         "There's supposed to be a project here, but we can't seem to find the info!",
-    };
+      path: `/projects/${codename}`,
+      noIndex: true,
+    });
   }
 }
 

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next/types';
 
 import { getAllNowEntries } from '@/lib/data/now-loader';
+import { pageMetadata } from '@/lib/site';
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', {
@@ -25,15 +26,11 @@ function NowItem({ date, children }: React.PropsWithChildren<NowItemState>) {
   );
 }
 
-export const metadata: Metadata = {
-  title: 'What Now? - Willie Chalmers III',
+export const metadata: Metadata = pageMetadata({
+  title: 'Now',
   description: "See what Willie has been working on and what's coming up next.",
-  openGraph: {
-    title: "Willie's Now Page",
-    description: "See what I'm up to now and what's coming up next.",
-    url: '/now',
-  },
-};
+  path: '/now',
+});
 
 /**
  * A page that describes what I'm doing right now.

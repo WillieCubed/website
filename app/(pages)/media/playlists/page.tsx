@@ -3,21 +3,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { getPlaylists } from '@/lib/data/spotify';
+import { pageMetadata } from '@/lib/site';
 
 const TEST_TOKEN = process.env.TEST_SPOTIFY_TOKEN as string;
 
-export const metadata: Metadata = {
-  title: "Willie's Playlists",
+export const metadata: Metadata = pageMetadata({
+  title: 'Playlists',
   description:
     'Ever wonder what Willie listens to? Here are all of his public playlists.',
-  openGraph: {
-    title: "Willie's Playlists",
-    description:
-      'Ever wonder what Willie listens to? Here are all of his public playlists.',
-    images: ['/assets/meta/playlist-cover.png'],
-    url: '/playlists',
-  },
-};
+  path: '/media/playlists',
+  image: '/assets/meta/playlist-cover.png',
+});
 
 /**
  * Route: /playlists

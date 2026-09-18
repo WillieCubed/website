@@ -2,17 +2,14 @@ import { Metadata } from 'next';
 
 import { LinkButton } from '@/components/LinkButton';
 
-export const metadata: Metadata = {
-  title: 'Media and Art - Willie Chalmers III',
+import { pageMetadata } from '@/lib/site';
+
+export const metadata: Metadata = pageMetadata({
+  title: 'Media and art',
   description:
     'Outside of doing research and developing software, Willie makes videos and does other creative stuff. Check out The Willie Diaries and more here.',
-  openGraph: {
-    title: 'Media and Art Initiatives',
-    description:
-      'Outside of doing research and developing software, Willie makes videos and does other creative stuff. Check out The Willie Diaries and more here.',
-    url: '/media',
-  },
-};
+  path: '/media',
+});
 
 export default function MediaPage() {
   return (

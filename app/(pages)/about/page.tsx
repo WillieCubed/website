@@ -1,17 +1,14 @@
 import type { Metadata } from 'next/types';
 
-export const metadata: Metadata = {
+import { pageMetadata } from '@/lib/site';
+
+export const metadata: Metadata = pageMetadata({
   title: 'About',
-  openGraph: {
-    siteName: 'Willie Chalmers III',
-    // TODO: Update this to be dynamic with some cool stats
-    description:
-      'Willie Chalmers III builds software for people. Learn more about him here.',
-    url: '/',
-    type: 'website',
-    images: ['/assets/headshot.jpg'],
-  },
-};
+  description:
+    'Willie Chalmers III builds software for people. Learn more about him here.',
+  path: '/about',
+  image: '/assets/headshot.jpg',
+});
 
 /**
  * An overview of who I am and what I believe along with a small autobiography.

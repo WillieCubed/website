@@ -3,6 +3,7 @@ import { LinkButton } from '@/components/LinkButton';
 import type { ProjectData } from '@/lib/common';
 import { REMOTE_CONFIG_KEYS, fetchConfig } from '@/lib/config';
 import { getAllProjects } from '@/lib/projects';
+import { pageMetadata } from '@/lib/site';
 
 const FEATURED_PROJECTS_LIMIT = 3;
 
@@ -16,22 +17,11 @@ export async function generateMetadata() {
   const projects = await getAllProjects();
   const count = projects.length;
 
-  return {
-    title: 'Projects - Willie Chalmers III',
-    description:
-      'Willie builds stuff. Learn about his apps and other projects.',
-    // description: `Willie Chalmers III studies artificial intelligence. Learn more about his ${count} personal project${count == 1 ? '' : 's'
-    //   } here.`,
-    openGraph: {
-      siteName: 'Willie Chalmers III',
-      title: 'Projects Overview',
-      description:
-        'Willie builds stuff. Learn about his apps and other projects.',
-      // description: `Willie Chalmers III studies artificial intelligence. Learn more about his ${count} personal project${count == 1 ? '' : 's'
-      //   } here.`,
-      url: '/projects',
-    },
-  };
+  return pageMetadata({
+    title: 'Projects',
+    description: `Willie builds stuff. Learn about his ${count} app${count === 1 ? '' : 's'} and other projects.`,
+    path: '/projects',
+  });
 }
 
 interface ProjectsPageProps {

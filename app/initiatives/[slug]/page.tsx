@@ -32,7 +32,7 @@ export async function generateMetadata(props: {
       title: initiative.title,
       description: initiative.description,
       path: initiative.href,
-      image: initiative.cover?.src,
+      image: `${initiative.href}/opengraph-image`,
     });
   } catch {
     return {};

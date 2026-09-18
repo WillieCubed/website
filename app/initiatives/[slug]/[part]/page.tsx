@@ -40,7 +40,7 @@ export async function generateMetadata(props: {
     title: `${initiative.partLabel} ${part.number}: ${part.title}`,
     description: part.description ?? part.tagline ?? initiative.description,
     path: `${initiative.href}/${part.slug}`,
-    image: part.cover?.src ?? initiative.cover?.src,
+    image: `${initiative.href}/${part.slug}/opengraph-image`,
     type: 'article',
   });
 }

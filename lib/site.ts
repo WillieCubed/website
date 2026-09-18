@@ -100,6 +100,9 @@ export function pageMetadata({
 }: PageMetadataInput): Metadata {
   // Next.js replaces a parent's openGraph and twitter objects wholesale
   // when a page sets its own, so the site-level fields are repeated here.
+  // Next.js 16 does not inject a nested segment's opengraph-image file
+  // into a page that sets openGraph itself, so entity pages pass their
+  // image route explicitly and everything else falls back to the site card.
   const images = [image ?? site.ogImage];
   return {
     title,

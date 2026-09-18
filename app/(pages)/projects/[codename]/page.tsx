@@ -33,6 +33,7 @@ export async function generateMetadata(props: {
       title: project.title,
       description: project.tagline,
       path: `/projects/${project.codename}`,
+      image: `/projects/${project.codename}/opengraph-image`,
     });
   } catch (e) {
     return pageMetadata({

@@ -11,7 +11,6 @@ export default async function Image(props: {
   const { codename } = await props.params;
   const { project } = await getProject(codename);
   return renderEntityImage({
-    kind: 'Project',
     title: project.title,
     description: project.tagline,
     meta: project.clientAttribution || undefined,

@@ -3,21 +3,13 @@ import SiteLink from '@/components/link/SiteLink';
 import type { Initiative, Part } from '@/lib/initiatives';
 
 import Reveal from './Reveal';
-import { formatDay, formatRange, isoDate } from './dates';
+import { formatRange, isoDate } from './dates';
 
 interface PlaybillProps {
   initiative: Initiative;
   /** `compact` fits inside a homepage tile; `full` is the initiative page. */
   variant?: 'full' | 'compact';
 }
-
-const STATUS_LABEL: Record<Part['status'], string> = {
-  planned: 'Opens',
-  active: 'Now playing',
-  paused: 'Paused',
-  complete: 'Wrapped',
-  archived: 'Archived',
-};
 
 /**
  * The acts of a campaign, in order. Every act is fully rendered on the
@@ -44,11 +36,6 @@ export default function Playbill({
       >
         {parts.map((part) => {
           const href = `${initiative.href}/${part.slug}`;
-          const status = STATUS_LABEL[part.status];
-          const when =
-            part.status === 'planned'
-              ? `${status} ${formatDay(part.starts)}`
-              : status;
           return (
             <li
               key={part.slug}
@@ -81,8 +68,6 @@ export default function Playbill({
                   <time dateTime={isoDate(part.starts)}>
                     {formatRange(part.starts, part.ends)}
                   </time>
-                  <span aria-hidden="true"> · </span>
-                  <span>{when}</span>
                 </p>
                 {!compact && part.places.length > 0 && (
                   <ul

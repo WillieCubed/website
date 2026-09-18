@@ -13,11 +13,11 @@ export default async function Image(props: {
   const { slug, part: partSlug } = await props.params;
   const found = await getPart(slug, partSlug);
   if (!found) {
-    return renderEntityImage({ kind: 'Initiative', title: 'Not found' });
+    return renderEntityImage({ title: 'Not found' });
   }
   const { initiative, part } = found;
   return renderEntityImage({
-    kind: `${initiative.title} · ${initiative.partLabel} ${part.number}`,
+    kicker: `${initiative.title} · ${initiative.partLabel} ${part.number}`,
     title: part.title,
     description: part.tagline ?? part.description,
     meta: `${formatRange(part.starts, part.ends, true)}${part.places.length ? ` · ${part.places.map((p) => p.name).join(', ')}` : ''}`,

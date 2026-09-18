@@ -39,12 +39,6 @@ export async function generateMetadata(props: {
   }
 }
 
-const KIND_LABEL = {
-  campaign: 'Campaign',
-  series: 'Series',
-  project: 'Project',
-};
-
 export default async function InitiativePage(props: {
   params: Promise<{ slug: string }>;
 }) {
@@ -69,23 +63,9 @@ export default async function InitiativePage(props: {
 
   return (
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
-      <TopBar crumbs={crumbs} />
+      <TopBar crumbs={crumbs} column="content" />
       <main className="mx-auto max-w-[1200px] px-5 pb-20">
         <header className="mx-auto max-w-[840px]">
-          <p className="act-kicker text-label-medium">
-            {KIND_LABEL[initiative.kind]}
-            {parent && (
-              <>
-                {' · '}
-                <SiteLink
-                  href={parent.href}
-                  className="underline-offset-4 hover:underline"
-                >
-                  {parent.title}
-                </SiteLink>
-              </>
-            )}
-          </p>
           <h1 className="mt-2 text-display-medium text-ink">
             {initiative.title}
           </h1>
@@ -104,24 +84,17 @@ export default async function InitiativePage(props: {
         </div>
 
         {initiative.parts.length > 0 && (
-          <section className="mt-12" aria-labelledby="acts">
-            <h2 id="acts" className="text-headline-small text-ink">
-              The {initiative.partLabel.toLowerCase()}s
-            </h2>
-            <div className="mt-4">
-              <Playbill initiative={initiative} />
-            </div>
+          <section
+            className="mt-12"
+            aria-label={`${initiative.title} ${initiative.partLabel.toLowerCase()}s`}
+          >
+            <Playbill initiative={initiative} />
           </section>
         )}
 
         {places.length > 1 && (
-          <section className="mt-12" aria-labelledby="route">
-            <h2 id="route" className="text-headline-small text-ink">
-              The route
-            </h2>
-            <div className="mt-4">
-              <RouteMap places={places} title={`${initiative.title} route`} />
-            </div>
+          <section className="mt-12" aria-label={`${initiative.title} route`}>
+            <RouteMap places={places} title={`${initiative.title} route`} />
           </section>
         )}
 
@@ -132,12 +105,9 @@ export default async function InitiativePage(props: {
         {children.length > 0 && (
           <section
             className="mx-auto mt-12 max-w-[720px]"
-            aria-labelledby="children"
+            aria-label={`Inside ${initiative.title}`}
           >
-            <h2 id="children" className="text-headline-small text-ink">
-              Inside {initiative.title}
-            </h2>
-            <ul className="mt-4 grid list-none gap-3 p-0">
+            <ul className="grid list-none gap-3 p-0">
               {children.map((child) => (
                 <li key={child.slug} className="act-card rounded-2xl p-4">
                   <SiteLink

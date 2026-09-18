@@ -6,8 +6,7 @@ import type { Initiative } from '@/lib/initiatives';
 
 /**
  * The trailer at the top of an initiative page. Before the video exists it
- * shows the cover with a "trailer coming soon" note rather than an empty
- * player, so the page never ships a broken embed.
+ * shows the cover, plainly, so the page never ships an empty player.
  */
 export default function TrailerBlock({
   initiative,
@@ -37,11 +36,6 @@ export default function TrailerBlock({
         priority
         unoptimized={poster.src.endsWith('.svg')}
       />
-      {trailer && (
-        <figcaption className="absolute bottom-4 left-4 rounded-full bg-ground/90 px-3 py-1 text-label-medium text-ink">
-          {trailer.title}: coming soon
-        </figcaption>
-      )}
     </figure>
   );
 }

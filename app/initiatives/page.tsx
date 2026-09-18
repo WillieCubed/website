@@ -14,12 +14,6 @@ export const metadata = pageMetadata({
   path: '/initiatives',
 });
 
-const KIND_LABEL = {
-  campaign: 'Campaign',
-  series: 'Series',
-  project: 'Project',
-};
-
 export default async function InitiativesPage() {
   const initiatives = await getInitiatives();
   return (
@@ -27,9 +21,6 @@ export default async function InitiativesPage() {
       <TopBar crumbs={[{ label: 'Initiatives', href: '/initiatives' }]} />
       <main className="mx-auto max-w-[1200px] px-5 pb-20">
         <h1 className="text-display-small text-ink">Initiatives</h1>
-        <p className="mt-3 max-w-prose text-body-large text-muted">
-          The things Willie is running on purpose, each with a page of its own.
-        </p>
         <ul className="mt-10 grid list-none gap-5 p-0 medium:grid-cols-2 large:grid-cols-3">
           {initiatives.map((item) => {
             const act = currentPart(item);
@@ -52,10 +43,6 @@ export default async function InitiativesPage() {
                   </div>
                 )}
                 <div className="p-5">
-                  <p className="act-kicker text-label-medium">
-                    {KIND_LABEL[item.kind]}
-                    {item.parent && ` · part of ${item.parent.toUpperCase()}`}
-                  </p>
                   <h2 className="mt-1 text-title-large text-ink">
                     <SiteLink
                       preview={false}

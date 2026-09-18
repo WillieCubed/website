@@ -8,7 +8,8 @@ import {
 import { site } from '@/lib/site';
 
 export interface EntityImageProps {
-  kind: string;
+  /** One line of context above the title, such as the parent or the part. */
+  kicker?: string;
   title: string;
   description?: string;
   meta?: string;
@@ -45,7 +46,7 @@ function palette(brand?: string) {
  * flexbox and inline styles, hence the shape of this markup.
  */
 export default function EntityImage({
-  kind,
+  kicker,
   title,
   description,
   meta,
@@ -81,18 +82,18 @@ export default function EntityImage({
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: 18, flex: 1 }}
         >
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 24,
-              letterSpacing: 4,
-              textTransform: 'uppercase',
-              color: c.accent,
-              fontWeight: 700,
-            }}
-          >
-            {kind}
-          </div>
+          {kicker && (
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 26,
+                color: c.accent,
+                fontWeight: 700,
+              }}
+            >
+              {kicker}
+            </div>
+          )}
           <div
             style={{
               display: 'flex',

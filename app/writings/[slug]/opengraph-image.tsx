@@ -17,7 +17,6 @@ export default async function Image(props: {
   const { slug } = await props.params;
   const { writing } = await getWriting(slug);
   return renderEntityImage({
-    kind: writing.postType === 'article' ? 'Writing' : writing.postType,
     title: writing.title,
     description: writing.description,
     meta: `${dateFormat.format(new Date(writing.published))} · ${writing.readingTime} min read`,

@@ -76,11 +76,7 @@ export default async function PartPage(props: {
             />
           )}
           <div className="relative flex min-h-[52vh] flex-col justify-end bg-gradient-to-t from-ink/80 via-ink/20 to-transparent p-6 medium:p-10">
-            <p className="text-label-large uppercase tracking-[0.08em] text-ground/85">
-              <SiteLink href={initiative.href} className="hover:underline">
-                {initiative.title}
-              </SiteLink>
-              {' · '}
+            <p className="act-kicker text-label-large text-ground/85">
               {initiative.partLabel} {part.number}
             </p>
             <h1 className="mt-2 max-w-[18ch] text-display-medium text-ground">
@@ -113,12 +109,9 @@ export default async function PartPage(props: {
             {part.milestones.length > 0 && (
               <section
                 className="act-card rounded-2xl p-4"
-                aria-labelledby="milestones"
+                aria-label="Milestones"
               >
-                <h2 id="milestones" className="act-kicker text-label-medium">
-                  Milestones
-                </h2>
-                <ol className="mt-3 grid list-none gap-3 p-0">
+                <ol className="grid list-none gap-3 p-0">
                   {part.milestones.map((m) => (
                     <li key={m.id} className="grid gap-0.5">
                       <time

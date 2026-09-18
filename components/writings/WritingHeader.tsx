@@ -1,8 +1,8 @@
-import Link from 'next/link';
-
 import ReplyContextDisplay from '@/components/indieweb/ReplyContext';
+import SiteLink from '@/components/link/SiteLink';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
+import { site } from '@/lib/site';
 import { SeriesWithWritings, WritingData } from '@/lib/writings';
 
 import InteractionContext from './InteractionContext';
@@ -35,8 +35,8 @@ export default function WritingHeader({
 
   return (
     <header className="mx-auto max-w-breakpoint-md px-lg pb-lg pt-16 desktop:px-0">
-      {/* Hidden microformats data */}
-      <a href={canonicalUrl} className="u-url hidden" />
+      {/* Permalink for parsers. u-uid marks it as the canonical identity. */}
+      <a href={canonicalUrl} className="u-url u-uid hidden" />
 
       <div className="space-y-md">
         {/* Interaction context (for like, repost, bookmark, rsvp posts) */}
@@ -104,21 +104,27 @@ export default function WritingHeader({
           </span>
         </div>
 
-        {/* h-entry: p-name */}
-        <h1
-          className="p-name animate-fade-in-up text-headline-medium desktop:text-headline-large"
-          style={{ animationDelay: '50ms', animationFillMode: 'backwards' }}
-        >
-          {writing.title}
-        </h1>
+        {/* h-entry: p-name. A note has no headline, so its body is the name. */}
+        {writing.hasExplicitTitle ? (
+          <h1
+            className="p-name animate-fade-in-up text-headline-medium desktop:text-headline-large"
+            style={{ animationDelay: '50ms', animationFillMode: 'backwards' }}
+          >
+            {writing.title}
+          </h1>
+        ) : (
+          <h1 className="sr-only">{writing.title}</h1>
+        )}
 
         {/* h-entry: p-summary */}
-        <p
-          className="p-summary animate-fade-in-up text-title-large text-primary"
-          style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
-        >
-          {writing.description}
-        </p>
+        {writing.hasExplicitTitle && (
+          <p
+            className="p-summary animate-fade-in-up text-title-large text-primary"
+            style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
+          >
+            {writing.description}
+          </p>
+        )}
 
         {/* Meta info: date, author, tags */}
         <div className="flex flex-wrap items-center gap-4 text-label-large text-gray-600 dark:text-gray-400">
@@ -132,23 +138,36 @@ export default function WritingHeader({
             <time className="dt-updated hidden" dateTime={updatedIso} />
           )}
 
-          {/* h-entry: p-author with h-card */}
-          <Link href="/" rel="author" className="p-author h-card u-url hidden">
-            <span className="p-name">Willie Chalmers III</span>
-            <span className="u-url">https://williecubed.me</span>
-          </Link>
+          {/* h-entry: p-author with a visible h-card byline */}
+          <span className="p-author h-card flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={site.author.photo}
+              alt=""
+              width={24}
+              height={24}
+              className="u-photo size-6 rounded-full"
+            />
+            <SiteLink
+              href="/"
+              rel="author"
+              className="p-name u-url link-animated font-medium"
+            >
+              {site.author.name}
+            </SiteLink>
+          </span>
 
           {/* Tags */}
           {writing.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {writing.tags.map((tag) => (
-                <Link
+                <SiteLink
                   key={tag}
                   href={`/writings?tag=${encodeURIComponent(tag)}`}
                   className="p-category rounded bg-gray-100 px-2 py-0.5 text-label-small hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                 >
                   {tag}
-                </Link>
+                </SiteLink>
               ))}
             </div>
           )}
@@ -159,12 +178,12 @@ export default function WritingHeader({
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
             <p className="text-label-large">
               Part {writing.series.part} of {seriesData.totalParts} in the{' '}
-              <Link
+              <SiteLink
                 href={seriesData.href}
                 className="link-animated font-semibold"
               >
                 {seriesData.name}
-              </Link>{' '}
+              </SiteLink>{' '}
               series
             </p>
           </div>

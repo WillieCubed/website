@@ -20,6 +20,16 @@ extend it, keep reading.
 - [Projects](./projects.md): project categories and the `data/projects.json`
   shape.
 
+## IndieWeb
+
+- [IndieWeb](./indieweb/README.md): every protocol route, the environment
+  variables that switch each on, the scripts that run after a build, and the
+  IndieMark level 1 to 3 checklist with status.
+- [Content](./content/README.md): writing and feed documentation, including
+  the frontmatter for notes, replies, likes, reposts, bookmarks, and RSVPs.
+- [ActivityPub plan](./future/activitypub.md): what federation would take,
+  not yet started.
+
 ## Design
 
 - [Design principles](./design-principles.md): the five principles and the brand

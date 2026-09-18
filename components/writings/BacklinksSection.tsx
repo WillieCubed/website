@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import SiteLink from '@/components/link/SiteLink';
 
 import type { Backlink } from '@/lib/writings/backlinks';
 
@@ -39,7 +39,7 @@ function BacklinkCard({ backlink }: { backlink: Backlink }) {
   );
 
   return (
-    <Link
+    <SiteLink
       href={`/writings/${backlink.slug}`}
       className="block rounded-lg border border-gray-200 p-4 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-50 hover:translate-x-1 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800/50"
     >
@@ -54,6 +54,6 @@ function BacklinkCard({ backlink }: { backlink: Backlink }) {
           {formattedDate}
         </p>
       </div>
-    </Link>
+    </SiteLink>
   );
 }

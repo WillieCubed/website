@@ -1,4 +1,5 @@
 import type { ProjectData } from '@/lib/common';
+import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import type { ActivityFeedItem } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 import { siteRoute } from '@/lib/url-utils';
@@ -152,6 +153,7 @@ export function generateRssFeed(
     <language>en-us</language>
     <lastBuildDate>${formatRssDate(latestFeedDate(items))}</lastBuildDate>
     <atom:link href="${feedUrl}" rel="self" type="application/rss+xml"/>
+    <atom:link href="${WEBSUB_HUB}" rel="hub"/>
     <managingEditor>${AUTHOR_EMAIL} (${AUTHOR_NAME})</managingEditor>
     <webMaster>${AUTHOR_EMAIL} (${AUTHOR_NAME})</webMaster>
 ${itemsXml}
@@ -197,7 +199,7 @@ export function generateAtomFeed(
   <subtitle>${escapeXml(subtitle)}</subtitle>
   <link href="${siteUrl}" rel="alternate" type="text/html"/>
   <link href="${feedUrl}" rel="self" type="application/atom+xml"/>
-  <link href="https://pubsubhubbub.appspot.com/" rel="hub"/>
+  <link href="${WEBSUB_HUB}" rel="hub"/>
   <id>${siteUrl}/</id>
   <updated>${formatAtomDate(latestFeedDate(items))}</updated>
   <author>
@@ -228,7 +230,7 @@ export function generateJsonFeed(
     feed_url: feedUrl,
     description,
     language: 'en-US',
-    hubs: [{ type: 'WebSub', url: 'https://pubsubhubbub.appspot.com/' }],
+    hubs: [{ type: 'WebSub', url: WEBSUB_HUB }],
     authors: [
       {
         name: AUTHOR_NAME,

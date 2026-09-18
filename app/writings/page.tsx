@@ -1,9 +1,10 @@
-import Link from 'next/link';
 import type { Metadata } from 'next/types';
 import { Suspense } from 'react';
 
+import SiteLink from '@/components/link/SiteLink';
 import WritingItem from '@/components/writings/WritingItem';
 
+import { absoluteUrl, site } from '@/lib/site';
 import {
   getAllTags,
   getAllWritings,
@@ -22,8 +23,11 @@ export const metadata: Metadata = {
     url: '/writings',
   },
   alternates: {
+    canonical: '/writings',
     types: {
-      'application/rss+xml': '/feed.xml',
+      'application/rss+xml': '/writings/feed.xml',
+      'application/atom+xml': '/writings/feed/atom',
+      'application/feed+json': '/writings/feed/json',
     },
   },
 };
@@ -90,7 +94,7 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Link
+      <SiteLink
         href="/writings"
         className={`rounded-full px-4 py-2 text-label-large transition-colors ${
           !currentTag
@@ -99,9 +103,9 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
         }`}
       >
         All
-      </Link>
+      </SiteLink>
       {tags.map((tag) => (
-        <Link
+        <SiteLink
           key={tag}
           href={`/writings?tag=${encodeURIComponent(tag)}`}
           className={`rounded-full px-4 py-2 text-label-large transition-colors ${
@@ -111,7 +115,7 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
           }`}
         >
           {tag}
-        </Link>
+        </SiteLink>
       ))}
     </div>
   );
@@ -120,6 +124,8 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
 export default function WritingsPage({ searchParams }: WritingsPageProps) {
   return (
     <main className="h-feed mx-auto max-w-breakpoint-2xl tablet:grid tablet:grid-cols-8 tablet:gap-lg">
+      {/* h-feed: u-url so parsers know which page this feed is */}
+      <a href={absoluteUrl('/writings')} className="u-url hidden" />
       <section className="mt-16 tablet:col-span-6 tablet:col-start-2">
         <div className="space-y-xl px-lg desktop-large:px-0">
           <div className="space-y-md">
@@ -131,14 +137,41 @@ export default function WritingsPage({ searchParams }: WritingsPageProps) {
           <div className="space-y-sm text-body-medium">
             <p>
               Technical deep-dives, creative explorations, and everything in
-              between. Subscribe via{' '}
+              between, by{' '}
+              <span className="p-author h-card">
+                <SiteLink href="/" className="p-name u-url font-medium">
+                  {site.author.name}
+                </SiteLink>
+              </span>
+              . Subscribe via{' '}
               <a
-                href="/feed.xml"
+                href={absoluteUrl('/writings/feed.xml')}
                 className="text-primary underline-offset-2 hover:underline"
               >
                 RSS
               </a>
-              .
+              ,{' '}
+              <a
+                href={absoluteUrl('/writings/feed/atom')}
+                className="text-primary underline-offset-2 hover:underline"
+              >
+                Atom
+              </a>
+              , or{' '}
+              <a
+                href={absoluteUrl('/writings/feed/json')}
+                className="text-primary underline-offset-2 hover:underline"
+              >
+                JSON Feed
+              </a>
+              , or{' '}
+              <SiteLink
+                href="/search"
+                className="text-primary underline-offset-2 hover:underline"
+              >
+                search
+              </SiteLink>{' '}
+              the archive.
             </p>
           </div>
         </div>

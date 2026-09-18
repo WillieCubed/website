@@ -1,4 +1,6 @@
 ---
+# Articles need a title. Notes, replies, likes, reposts, bookmarks, and RSVPs
+# may leave it out, and the first sentence of the body stands in for it.
 title: ''
 description: ''
 published: 2024-02-14T01:01-0800
@@ -7,8 +9,29 @@ tags: []
 draft: true
 featuredImage: ''
 featuredImageAlt: ''
+# Post kind. One of article (default), note, photo, like, repost, bookmark, rsvp.
+# A reply is any kind with inReplyTo set. See _template-note.mdx for the
+# short-form fields.
+postType: article
 # Optional: reference a series by slug (must exist in content/series/)
 # series:
 #   slug: 'example-series'
 #   part: 1
+# Optional: copies of this post on other services (POSSE). Each renders as a
+# u-syndication link.
+# syndication:
+#   - name: Instagram
+#     url: https://instagram.com/p/...
+# Optional: the post this one responds to. Renders as u-in-reply-to.
+# inReplyTo: https://example.com/post
+# Optional interaction targets. Setting one also sets the postType when it is
+# absent. They render as u-like-of, u-repost-of, and u-bookmark-of.
+# likeOf: https://example.com/post
+# repostOf: https://example.com/post
+# bookmarkOf: https://example.com/post
+# Optional RSVP. status is one of yes, no, maybe, interested. Renders as
+# p-rsvp with u-in-reply-to on the event.
+# rsvp:
+#   eventUrl: https://example.com/event
+#   status: yes
 ---

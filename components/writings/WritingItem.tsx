@@ -2,7 +2,8 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import EventIcon from '@mui/icons-material/Event';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import RepeatIcon from '@mui/icons-material/Repeat';
-import Link from 'next/link';
+
+import SiteLink from '@/components/link/SiteLink';
 
 import { WritingData } from '@/lib/writings';
 import type { PostType } from '@/lib/writings/types';
@@ -75,8 +76,9 @@ export default function WritingItem({
   return (
     <article className="h-entry group relative -mx-md max-w-breakpoint-md rounded-lg px-md py-md transition-all duration-200 ease-out hover:translate-x-1 hover:bg-gray-50 dark:hover:bg-gray-900">
       {/* Main link covers the entire card */}
-      <Link
+      <SiteLink
         href={`/writings/${writing.slug}`}
+        preview={false}
         className="u-url absolute inset-0 z-10"
         aria-label={writing.title}
       />
@@ -104,8 +106,12 @@ export default function WritingItem({
           <time className="dt-published" dateTime={publishedIso}>
             {formattedDate}
           </time>
-          <span>·</span>
-          <span>{writing.readingTime} min read</span>
+          {writing.hasExplicitTitle && (
+            <>
+              <span>·</span>
+              <span>{writing.readingTime} min read</span>
+            </>
+          )}
           {writing.draft && (
             <span className="rounded bg-yellow-100 px-2 py-0.5 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
               Draft
@@ -113,15 +119,21 @@ export default function WritingItem({
           )}
         </div>
 
-        {/* Title */}
-        <h2 className="p-name text-title-large transition duration-150 ease-out group-hover:text-primary group-focus:text-primary">
-          {writing.title}
-        </h2>
-
-        {/* Description */}
-        <p className="p-summary text-body-medium text-gray-600 dark:text-gray-400">
-          {writing.description}
-        </p>
+        {/* Title. Notes have none, so the derived first sentence is the entry text. */}
+        {writing.hasExplicitTitle ? (
+          <>
+            <h2 className="p-name text-title-large transition duration-150 ease-out group-hover:text-primary group-focus:text-primary">
+              {writing.title}
+            </h2>
+            <p className="p-summary text-body-medium text-gray-600 dark:text-gray-400">
+              {writing.description}
+            </p>
+          </>
+        ) : (
+          <p className="p-name text-body-large transition duration-150 ease-out group-hover:text-primary group-focus:text-primary">
+            {writing.title}
+          </p>
+        )}
 
         {/* Tags */}
         {writing.tags.length > 0 && (
@@ -146,12 +158,12 @@ export default function WritingItem({
         {showSeriesInfo && writing.series && (
           <div className="pt-sm text-label-medium text-gray-500 dark:text-gray-400">
             Part {writing.series.part} of{' '}
-            <Link
+            <SiteLink
               href={seriesHref ?? '/writings'}
               className="link-animated pointer-events-auto relative z-20 font-medium"
             >
               {seriesName || writing.series.slug}
-            </Link>
+            </SiteLink>
           </div>
         )}
       </div>

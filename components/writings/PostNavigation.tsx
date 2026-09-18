@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import SiteLink from '@/components/link/SiteLink';
 
 import type { WritingData } from '@/lib/writings';
 
@@ -22,7 +22,7 @@ export default function PostNavigation({
     >
       <div className="flex justify-between gap-lg">
         {previous ? (
-          <Link
+          <SiteLink
             href={`/writings/${previous.slug}`}
             rel="prev"
             className="group flex-1 text-left"
@@ -33,13 +33,13 @@ export default function PostNavigation({
             <span className="mt-xs block text-title-medium text-on-surface group-hover:text-primary transition-colors">
               {previous.title}
             </span>
-          </Link>
+          </SiteLink>
         ) : (
           <div className="flex-1" />
         )}
 
         {next ? (
-          <Link
+          <SiteLink
             href={`/writings/${next.slug}`}
             rel="next"
             className="group flex-1 text-right"
@@ -50,7 +50,7 @@ export default function PostNavigation({
             <span className="mt-xs block text-title-medium text-on-surface group-hover:text-primary transition-colors">
               {next.title}
             </span>
-          </Link>
+          </SiteLink>
         ) : (
           <div className="flex-1" />
         )}

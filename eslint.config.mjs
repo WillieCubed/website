@@ -19,7 +19,12 @@ const eslintConfig = [
   nextPlugin.configs.recommended,
   nextPlugin.configs['core-web-vitals'],
   {
-    files: ['*.config.{js,cjs,mjs,ts}', '.*rc.js'],
+    files: [
+      '*.config.{js,cjs,mjs,ts}',
+      '.*rc.js',
+      'brand/**/*.mjs',
+      'scripts/**/*.{js,mjs,ts,mts}',
+    ],
     languageOptions: {
       globals: globals.node,
     },

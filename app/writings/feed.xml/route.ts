@@ -1,9 +1,10 @@
 import { cacheLife } from 'next/cache';
 import RSS from 'rss';
 
+import { site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
-const SITE_URL = 'https://williecubed.me';
+const SITE_URL = site.origin;
 
 async function buildWritingsFeed() {
   'use cache';
@@ -19,7 +20,7 @@ async function buildWritingsFeed() {
     feed_url: `${SITE_URL}/writings/feed.xml`,
     language: 'en',
     pubDate: new Date(),
-    copyright: `${new Date().getFullYear()} Willie Chalmers III`,
+    copyright: `${new Date().getFullYear()} ${site.author.name}`,
     generator: 'Next.js + RSS',
     custom_namespaces: {
       atom: 'http://www.w3.org/2005/Atom',
@@ -47,7 +48,7 @@ async function buildWritingsFeed() {
       guid: url,
       date: new Date(writing.published),
       categories: writing.tags,
-      author: 'Willie Chalmers III',
+      author: site.author.name,
       custom_elements: [{ 'content:encoded': writing.description }],
     });
   }

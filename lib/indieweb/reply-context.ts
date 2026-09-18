@@ -1,5 +1,7 @@
 import { sql } from '@vercel/postgres';
 
+import { SITE_URL } from '@/lib/indieweb/constants';
+
 /**
  * Rich context data for a reply/interaction target.
  */
@@ -292,8 +294,7 @@ export async function fetchReplyContext(url: string): Promise<ReplyContext> {
     // Fetch the page
     const response = await fetch(url, {
       headers: {
-        'User-Agent':
-          'williecubed.me reply-context fetcher (+https://williecubed.me)',
+        'User-Agent': `${new URL(SITE_URL).hostname} reply-context fetcher (+${SITE_URL})`,
         Accept: 'text/html,application/xhtml+xml',
       },
       redirect: 'follow',

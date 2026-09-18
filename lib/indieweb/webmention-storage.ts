@@ -17,8 +17,9 @@ import type {
   WebmentionTargetRequest,
   WebmentionType,
 } from '@/lib/indieweb/types';
+import { site } from '@/lib/site';
 
-const SITE_URL = 'https://williecubed.me';
+const SITE_URL = site.origin;
 
 /**
  * Initialize the webmentions table if it doesn't exist.

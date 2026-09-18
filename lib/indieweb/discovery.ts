@@ -12,7 +12,8 @@ import { absoluteSiteUrl } from '@/lib/indieweb/utils';
 export function buildWebFingerResponse(
   resource: string | null
 ): WebFingerResponse {
-  const subject = resource || `acct:${SITE_AUTHOR_HANDLE}@williecubed.me`;
+  const subject =
+    resource || `acct:${SITE_AUTHOR_HANDLE}@${new URL(SITE_URL).hostname}`;
 
   return {
     subject,

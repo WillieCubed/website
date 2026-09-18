@@ -1,13 +1,159 @@
 @import 'tailwindcss';
-@config '../tailwind.config.mjs';
+@plugin '@tailwindcss/typography';
+@plugin 'tailwind-scrollbar';
 
 /*
- * Tailwind v4 resolves max-w-* against --max-width, then --spacing, then
- * --container. The custom xs–3xl spacing tokens in tailwind.config.mjs would
- * otherwise turn max-w-2xl into 2rem, and a config maxWidth key only reaches
- * --container, so the container sizes have to be pinned here.
+ * The site's design tokens. The warm neutral palette, Atkinson Hyperlegible
+ * type, and Material 3 window classes come from docs/design-principles.md.
+ * The older Material role names (primary, surface, on-surface, maverick) stay
+ * defined so existing pages keep compiling, but they now resolve to the warm
+ * palette instead of the retired blue one.
  */
 @theme {
+  /* Warm neutral palette */
+  --color-ground: #f4f5ef;
+  --color-tray: #e7eae2;
+  --color-card: #fbfcf9;
+  --color-ink: #1c231e;
+  --color-muted: #69736b;
+  --color-prose: #7f8981;
+  --color-line: #dfe3da;
+  --color-accent: #2f6f5e;
+  --color-mint: #8fd1b8;
+
+  /* Green ramp derived from the accent */
+  --color-maverick-50: #f1f7f4;
+  --color-maverick-100: #dff0e8;
+  --color-maverick-200: #c9e8db;
+  --color-maverick-300: #8fd1b8;
+  --color-maverick-400: #5fb497;
+  --color-maverick-500: #2f6f5e;
+  --color-maverick-600: #28604f;
+  --color-maverick-700: #1f4e40;
+  --color-maverick-800: #183d32;
+  --color-maverick-900: #112c24;
+  --color-maverick-950: #0a1a15;
+
+  /* Material role aliases onto the warm palette */
+  --color-primary: var(--color-accent);
+  --color-primary-light-1: var(--color-mint);
+  --color-primary-light-2: var(--color-maverick-200);
+  --color-primary-dark-1: var(--color-maverick-600);
+  --color-primary-dark-2: var(--color-maverick-700);
+  --color-on-primary: #ffffff;
+  --color-primary-container: var(--color-maverick-200);
+  --color-on-primary-container: #0f2b23;
+  --color-secondary: var(--color-muted);
+  --color-secondary-light-1: #b9c2bb;
+  --color-secondary-dark-1: #4e574f;
+  --color-secondary-container: var(--color-tray);
+  --color-on-secondary-container: var(--color-ink);
+  --color-tertiary: #a05a3c;
+  --color-tertiary-container: #f3dfd4;
+  --color-on-tertiary-container: #3b1e12;
+  --color-accent-light-1: #d9f0e6;
+  --color-surface: var(--color-ground);
+  --color-on-surface: var(--color-ink);
+  --color-on-surface-variant: var(--color-muted);
+  --color-surface-container-lowest: var(--color-card);
+  --color-surface-container-low: var(--color-ground);
+  --color-surface-container: #eef0e9;
+  --color-surface-container-high: var(--color-tray);
+  --color-surface-container-highest: var(--color-line);
+  --color-surface-foreground: var(--color-card);
+  --color-surface-foreground-dark: var(--color-ink);
+  --color-on-surface-foreground: var(--color-ink);
+  --color-on-surface-foreground-dark: var(--color-ground);
+  --color-on-surface-border: var(--color-line);
+  --color-on-surface-border-dark: var(--color-accent);
+  --color-outline: var(--color-prose);
+  --color-outline-variant: var(--color-line);
+  --color-on-light: var(--color-ink);
+  --color-on-dark: var(--color-ground);
+  --color-dark: var(--color-ink);
+
+  /* Type */
+  --font-sans:
+    var(--font-atkinson), 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --font-display:
+    var(--font-atkinson), 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --font-mono:
+    var(--font-atkinson-mono), 'Atkinson Hyperlegible Mono', ui-monospace,
+    monospace;
+
+  /* Material 3 type scale */
+  --text-display-large: 57px;
+  --text-display-large--line-height: 64px;
+  --text-display-large--letter-spacing: -0.04em;
+  --text-display-large--font-weight: 600;
+  --text-display-medium: 45px;
+  --text-display-medium--line-height: 52px;
+  --text-display-medium--letter-spacing: -0.04em;
+  --text-display-medium--font-weight: 600;
+  --text-display-small: 36px;
+  --text-display-small--line-height: 44px;
+  --text-display-small--letter-spacing: -0.04em;
+  --text-display-small--font-weight: 600;
+  --text-headline-large: 32px;
+  --text-headline-large--line-height: 40px;
+  --text-headline-large--letter-spacing: -0.025em;
+  --text-headline-large--font-weight: 700;
+  --text-headline-medium: 28px;
+  --text-headline-medium--line-height: 36px;
+  --text-headline-medium--letter-spacing: -0.025em;
+  --text-headline-medium--font-weight: 600;
+  --text-headline-small: 24px;
+  --text-headline-small--line-height: 32px;
+  --text-headline-small--letter-spacing: -0.025em;
+  --text-headline-small--font-weight: 600;
+  --text-title-large: 22px;
+  --text-title-large--line-height: 28px;
+  --text-title-large--font-weight: 600;
+  --text-title-medium: 16px;
+  --text-title-medium--line-height: 24px;
+  --text-title-medium--letter-spacing: 0.015em;
+  --text-title-medium--font-weight: 500;
+  --text-title-small: 14px;
+  --text-title-small--line-height: 20px;
+  --text-title-small--letter-spacing: 0.01em;
+  --text-title-small--font-weight: 500;
+  --text-label-large: 14px;
+  --text-label-large--line-height: 20px;
+  --text-label-large--letter-spacing: 0.01em;
+  --text-label-large--font-weight: 600;
+  --text-label-medium: 12px;
+  --text-label-medium--line-height: 16px;
+  --text-label-medium--letter-spacing: 0.05em;
+  --text-label-medium--font-weight: 600;
+  --text-label-small: 11px;
+  --text-label-small--line-height: 16px;
+  --text-label-small--letter-spacing: 0.025em;
+  --text-label-small--font-weight: 600;
+  --text-body-large: 18px;
+  --text-body-large--line-height: 28px;
+  --text-body-large--font-weight: 400;
+  --text-body-medium: 16px;
+  --text-body-medium--line-height: 24px;
+  --text-body-medium--font-weight: 400;
+  --text-body-small: 14px;
+  --text-body-small--line-height: 16px;
+  --text-body-small--letter-spacing: 0.04em;
+
+  /* Named spacing steps used as p-lg, gap-md, and so on */
+  --spacing-2xs: 0.25rem;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.5rem;
+  --spacing-2xl: 2rem;
+  --spacing-3xl: 3rem;
+
+  /*
+   * Tailwind v4 resolves max-w-* against --max-width, then --spacing, then
+   * --container. The named spacing steps above would otherwise turn max-w-2xl
+   * into 2rem, so the container sizes are pinned here.
+   */
   --max-width-xs: 20rem;
   --max-width-sm: 24rem;
   --max-width-md: 28rem;
@@ -15,31 +161,56 @@
   --max-width-xl: 36rem;
   --max-width-2xl: 42rem;
   --max-width-3xl: 48rem;
+  --max-width-breakpoint-md: 640px;
+  --max-width-breakpoint-lg: 1024px;
+  --max-width-breakpoint-xl: 1280px;
+  --max-width-breakpoint-2xl: 1440px;
+
+  /* Material 3 window size classes, plus the older names as aliases */
+  --breakpoint-medium: 600px;
+  --breakpoint-expanded: 840px;
+  --breakpoint-large: 1200px;
+  --breakpoint-tablet: 600px;
+  --breakpoint-desktop: 1200px;
+  --breakpoint-desktop-large: 1440px;
+
+  /* Motion */
+  --ease-site: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root {
+  color-scheme: light;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  color: var(--color-ink);
 }
 
 @utility interactive-bg-surface-container {
   background-color: var(--color-surface-container-high);
 }
 
-.stroke {
-  -webkit-text-stroke-width: -1px;
-  -webkit-text-stroke-color: #023ca1;
-  /* -webkit-text-fill-color: white; */
+@utility transition-width {
+  transition-property: width;
 }
 
-@media (prefers-color-scheme: dark) {
-  .stroke {
-    -webkit-text-stroke-width: 2px;
-    -webkit-text-stroke-color: white;
+/* Inline links inside prose and metadata. Defined here because eleven
+   components already use the class and nothing defined it. */
+@utility link-animated {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--color-accent) 35%,
+    transparent
+  );
+  text-underline-offset: 0.18em;
+  transition:
+    text-decoration-color 180ms var(--ease-site),
+    color 180ms var(--ease-site);
+  &:hover,
+  &:focus-visible {
+    text-decoration-color: var(--color-accent);
   }
-}
-
-/* TODO: Convert into fancy-shadow into Tailwind CSS utility */
-
-.fancy-shadow {
-  box-shadow: 4px 4px #000000;
-}
-
-.fancy-shadow:hover {
-  box-shadow: 8px 8px #000000;
 }

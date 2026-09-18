@@ -10,18 +10,15 @@ import ProjectBackIcon from '@/components/projects/ProjectBackIcon';
 
 import { ProjectData } from '@/lib/common';
 import { getProject, getProjectSlugs } from '@/lib/projects';
+import { absoluteRoute } from '@/lib/site';
 
 import ProjectDetailView from './ProjectDetailsView';
-
-const BASE_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}/projects`
-  : 'https://williecubed.me/projects';
 
 /**
  * Generate a canonical URL for a project's meta social information.
  */
 function generateProjectUrl(codename: string) {
-  return `${BASE_URL}/${codename}`;
+  return absoluteRoute`/projects/${codename}`;
 }
 
 export const dynamic = 'force-static';
@@ -47,7 +44,6 @@ export async function generateMetadata(props: {
         canonical: canonicalUrl,
       },
       openGraph: {
-        siteName: 'Willie Chalmers III',
         title: project.title,
         description: project.tagline,
         url: canonicalUrl,

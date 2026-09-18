@@ -12,6 +12,7 @@ import {
   getReplyContext,
 } from '@/lib/indieweb/reply-context';
 import { getWebmentionsForPost } from '@/lib/indieweb/webmention-storage';
+import { absoluteRoute } from '@/lib/site';
 import {
   SeriesWithWritings,
   WritingData,
@@ -22,10 +23,8 @@ import {
 } from '@/lib/writings';
 import { getBacklinksForPost } from '@/lib/writings/backlinks';
 
-const BASE_URL = 'https://williecubed.me/writings';
-
 function generateCanonicalUrl(slug: string) {
-  return `${BASE_URL}/${slug}`;
+  return absoluteRoute`/writings/${slug}`;
 }
 
 export async function generateStaticParams() {

@@ -1,39 +1,34 @@
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Rubik } from 'next/font/google';
+import {
+  Atkinson_Hyperlegible_Mono,
+  Atkinson_Hyperlegible_Next,
+} from 'next/font/google';
 import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
+import { site } from '@/lib/site';
 import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 
-import LayoutWrapper from './LayoutWrapper';
 import './globals.css';
 
-const siteFont = Rubik({
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-default',
+const sansFont = Atkinson_Hyperlegible_Next({
+  variable: '--font-atkinson',
   display: 'swap',
   subsets: ['latin'],
 });
-const displayFont = Rubik({
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-display',
+const monoFont = Atkinson_Hyperlegible_Mono({
+  variable: '--font-atkinson-mono',
   display: 'swap',
   subsets: ['latin'],
 });
-
-const BASE_URL =
-  process.env.NODE_ENV === 'development'
-    ? `http://localhost:${process.env.PORT || 3000}`
-    : (process.env.VERCEL_ENV ?? `https://${process.env.VERCEL_URL}`) ||
-      'https://williecubed.me';
 
 const isHiatus = isHiatusMode();
 
 export const metadata: Metadata = isHiatus
   ? {
-      metadataBase: new URL('https://williecubed.me/'),
+      metadataBase: new URL(site.origin),
       title: {
         absolute: HIATUS_MESSAGE,
       },
@@ -51,56 +46,54 @@ export const metadata: Metadata = isHiatus
       },
     }
   : {
-      metadataBase: new URL('https://williecubed.me/'),
+      metadataBase: new URL(site.origin),
       title: {
-        default: 'Willie Chalmers III',
-        template: '%s - Willie Chalmers III',
+        default: site.name,
+        template: `%s · ${site.name}`,
       },
-      description:
-        'Willie Chalmers III builds software for humans. Learn more about him and his projects here.',
+      description: site.description,
       openGraph: {
-        siteName: 'Wilie Chalmers III',
-        url: '/',
+        siteName: site.name,
+        locale: site.locale,
         type: 'website',
-        images: ['/assets/headshot.jpg'],
+        images: [site.ogImage],
+      },
+      twitter: {
+        card: 'summary_large_image',
       },
     };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#3C84FC' },
-    { media: '(prefers-color-scheme: dark)', color: '#034ECE' },
-  ],
+  themeColor: site.themeColor,
 };
 
 export default async function RootLayout({
   children,
 }: React.PropsWithChildren) {
   return (
-    <html lang="en">
+    <html lang={site.language}>
       <head />
       <body
-        className={`min-h-screen scrollbar-w-8 scrollbar-track-surface-container bg-surface-container ${siteFont.variable} ${displayFont.variable} font-sans`}
+        className={`min-h-screen scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink ${sansFont.variable} ${monoFont.variable} font-sans antialiased`}
       >
-        {process.env.NODE_ENV === 'production' && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GTAG_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
+        {process.env.NODE_ENV === 'production' &&
+          process.env.NEXT_PUBLIC_GTAG_ID && (
+            <>
+              <Script
+                src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GTAG_ID}`}
+                strategy="afterInteractive"
+              />
+              <Script id="google-analytics" strategy="afterInteractive">
+                {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag() { dataLayer.push(arguments); }
                 gtag('js', new Date());
-                
                 gtag('config', '${process.env.NEXT_PUBLIC_GTAG_ID}');
               `}
-            </Script>
-          </>
-        )}
+              </Script>
+            </>
+          )}
         {children}
-        {/* <LayoutWrapper>{children}</LayoutWrapper> */}
         <Analytics />
         <SpeedInsights />
       </body>

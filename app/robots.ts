@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 
+import { absoluteUrl } from '@/lib/site';
+
 /**
  * Generates a robots.txt file for the website.
  */
@@ -25,6 +27,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/writings/'],
       },
     ],
-    sitemap: `${process.env.NEXT_PUBLIC_BASE_URL}/sitemap.xml`,
+    sitemap: absoluteUrl('/sitemap.xml'),
   };
 }

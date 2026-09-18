@@ -1,12 +1,14 @@
 import crypto from 'node:crypto';
 
+import { site } from '@/lib/site';
+
 // TODO: Fix this obviously, OBVIOUSLY bad excuse of security
 export const spotify_state_code = '10'; // A "random" number
 export const SPOTIFY_ACCOUNTS_URL = 'https://accounts.spotify.com';
 export const SPOTIFY_API_BASE_URI = 'https://api.spotify.com/v1';
 export const SPOTIFY_REDIRECT_URI =
   process.env.NODE_ENV === 'production'
-    ? 'https://williecubed.me/api/spotify-callback/'
+    ? `${site.origin}/api/spotify-callback/`
     : 'http://localhost:3000/api/spotify-callback/';
 
 const MIN_BYTES_LENGTH = 43 * 2;

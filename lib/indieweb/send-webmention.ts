@@ -1,4 +1,6 @@
-const SITE_URL = 'https://williecubed.me';
+import { site } from '@/lib/site';
+
+const SITE_URL = site.origin;
 const FETCH_TIMEOUT = 10000;
 
 interface SendResult {
@@ -195,7 +197,8 @@ export function extractExternalLinks(html: string): string[] {
       // Only include external HTTPS links
       if (
         parsed.protocol === 'https:' &&
-        !parsed.hostname.includes('williecubed.me')
+        parsed.hostname !== new URL(SITE_URL).hostname &&
+        !parsed.hostname.endsWith('.willie.page')
       ) {
         links.push(url);
       }

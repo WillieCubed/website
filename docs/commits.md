@@ -13,10 +13,12 @@ Use one of these scopes. Omit the scope only for repository-wide changes.
 - **`writings`** — the writing system: `lib/writings`, `components/writings`, and page routes
 - **`content`** — data and content files under `content/` and `data/` directories
 - **`theme`** — Tailwind configuration, `app/globals.css`, and shared styling
+- **`initiatives`** — the initiative content model, `lib/initiatives`, `components/initiatives`, and the `/initiatives` routes
+- **`links`** — the in-site link component, hover cards, and the entity registry under `lib/entities`
 - **`indieweb`** — webmentions, feeds, discovery endpoints, and microformats; infrastructure for content interaction and syndication
 - **`docs`** — maintainer documentation under `docs/`
 - **`brand`** — the WillieCubed mark, the asset generator in `brand/`, and `/brand`
-- **`deploy`** — the willie.page Worker under `deploy/`
+- **`deploy`** — hosting, redirects, and domain configuration
 
 ## Types
 

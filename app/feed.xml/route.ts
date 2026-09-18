@@ -1,9 +1,10 @@
 import RSS from 'rss';
 
 import { getAllProjects } from '@/lib/projects';
+import { site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
-const SITE_URL = 'https://williecubed.me';
+const SITE_URL = site.origin;
 
 export async function GET() {
   const [writings, projects] = await Promise.all([
@@ -12,14 +13,14 @@ export async function GET() {
   ]);
 
   const feed = new RSS({
-    title: 'Willie Chalmers III',
+    title: site.name,
     description:
       'Writings, projects, and updates from Willie Chalmers III who builds software for humans.',
     site_url: SITE_URL,
     feed_url: `${SITE_URL}/feed.xml`,
     language: 'en',
     pubDate: new Date(),
-    copyright: `${new Date().getFullYear()} Willie Chalmers III`,
+    copyright: `${new Date().getFullYear()} ${site.author.name}`,
     generator: 'Next.js + RSS',
     custom_namespaces: {
       atom: 'http://www.w3.org/2005/Atom',
@@ -56,7 +57,7 @@ export async function GET() {
       guid: url,
       date: new Date(writing.published),
       categories: writing.tags,
-      author: 'Willie Chalmers III',
+      author: site.author.name,
       custom_elements: [{ 'content:encoded': writing.description }],
     });
   }
@@ -72,7 +73,7 @@ export async function GET() {
       guid: url,
       date: new Date(project.launched),
       categories: project.type ? [project.type] : [],
-      author: 'Willie Chalmers III',
+      author: site.author.name,
     });
   }
 

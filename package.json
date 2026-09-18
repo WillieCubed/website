@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "brand:build": "node brand/build.mjs",
     "deploy:willie-page": "sh deploy/willie-page/stage.sh && npx wrangler@4 deploy --config deploy/willie-page/wrangler.jsonc",
@@ -47,7 +48,8 @@
     "shiki": "^3.23.0",
     "swr": "^2.4.1",
     "unified": "^11.0.5",
-    "unist-util-visit": "^5.1.0"
+    "unist-util-visit": "^5.1.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

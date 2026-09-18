@@ -1,13 +1,13 @@
 import type { ProjectData } from '@/lib/common';
 import type { ActivityFeedItem } from '@/lib/indieweb/types';
+import { site } from '@/lib/site';
 import { siteRoute } from '@/lib/url-utils';
 import type { WritingData } from '@/lib/writings';
 
-const SITE_TITLE = 'Willie Chalmers III';
-const SITE_DESCRIPTION =
-  'Willie Chalmers III builds software for humans. Learn more about him and his projects here.';
-const AUTHOR_NAME = 'Willie Chalmers III';
-const AUTHOR_EMAIL = 'hello@williecubed.me';
+const SITE_TITLE = site.name;
+const SITE_DESCRIPTION = site.description;
+const AUTHOR_NAME = site.author.name;
+const AUTHOR_EMAIL = site.author.email;
 
 export interface FeedItem {
   id?: string;

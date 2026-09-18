@@ -1,8 +1,10 @@
 import WritingDetailsView from '@/app/writings/[slug]/WritingDetailsView';
 
 import TableOfContents from '@/components/TableOfContents';
+import References from '@/components/references/References';
 
 import { SeriesWithWritings, TOCHeading, WritingData } from '@/lib/writings';
+import { extractReferences } from '@/lib/writings/references';
 
 import SeriesNav from './SeriesNav';
 
@@ -13,13 +15,14 @@ interface WritingContentProps {
   seriesData: SeriesWithWritings | null;
 }
 
-export default function WritingContent({
+export default async function WritingContent({
   content,
   headings,
   writing,
   seriesData,
 }: WritingContentProps) {
   const showToc = headings.length >= 3;
+  const references = await extractReferences(content);
 
   return (
     <>
@@ -33,8 +36,11 @@ export default function WritingContent({
       {/* Main content */}
       <div className="mx-auto max-w-breakpoint-md px-lg desktop:px-0">
         {/* h-entry: e-content */}
-        <div className="e-content pb-12 tablet:pb-16">
+        <div className="e-content pb-8">
           <WritingDetailsView source={content} />
+        </div>
+        <div className="pb-12">
+          <References items={references} />
         </div>
 
         {/* Series navigation */}

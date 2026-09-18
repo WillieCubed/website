@@ -1,0 +1,122 @@
+/* Marks and the popover they open. The popover sits in the top layer and
+   borrows the hover card's surface so both feel like one system. */
+.ref-mark {
+  display: inline-block;
+  margin-inline-start: 0.1em;
+  padding: 0 0.35em;
+  min-width: 1.4em;
+  border-radius: 999px;
+  vertical-align: super;
+  font-size: 0.68em;
+  line-height: 1.5;
+  font-weight: 600;
+  text-align: center;
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  text-decoration: none;
+  transition: background 160ms var(--ease-site);
+}
+.ref-mark:hover,
+.ref-mark:focus-visible,
+.ref-mark[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  outline: none;
+}
+.ref-popover {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 12px 14px;
+  width: min(360px, calc(100vw - 32px));
+  border: 0;
+  border-radius: 14px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-ink) 6%, transparent),
+    0 18px 40px -20px color-mix(in srgb, var(--color-ink) 45%, transparent);
+  outline: 1px solid var(--color-line);
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 160ms var(--ease-site),
+    transform 200ms var(--ease-site),
+    display 200ms allow-discrete,
+    overlay 200ms allow-discrete;
+}
+.ref-popover:not(:popover-open) {
+  display: none;
+}
+@starting-style {
+  .ref-popover:popover-open {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ref-popover,
+  .ref-popover:popover-open {
+    transform: none;
+    transition: opacity 120ms linear;
+  }
+}
+.ref-popover__num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-inline-end: 8px;
+}
+.ref-popover__host {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+/* The list at the end. Condensed, it keeps its first entries in view and
+   only folds the rest; it never disappears. */
+.references {
+  border-top: 1px solid var(--color-line);
+  padding-top: 20px;
+}
+.references ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.references li {
+  display: grid;
+  grid-template-columns: 2.2em minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-muted);
+  scroll-margin-top: 80px;
+}
+.references li:target {
+  color: var(--color-ink);
+}
+.references__num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.references__back {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.references__toggle {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}

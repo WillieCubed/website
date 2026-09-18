@@ -174,10 +174,6 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     setName(source.media, 'media');
     sourceRef.current = source;
     openIdRef.current = id;
-    if (push) {
-      pushedRef.current = true;
-      router.push(`${pathname}?detail=${id}`, { scroll: false });
-    }
     await morph(() => {
       setName(source.card, '');
       setName(source.media, '');
@@ -190,6 +186,12 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
       if (!dialog.open) dialog.showModal();
       dialog.scrollTop = 0;
     });
+    // The URL changes after the morph. Pushing first made the router start
+    // its own view transition and the morph aborted with an invalid state.
+    if (push) {
+      pushedRef.current = true;
+      router.push(`${pathname}?detail=${id}`, { scroll: false });
+    }
     busyRef.current = false;
   };
 
@@ -199,11 +201,11 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     if (!entries[id] || busyRef.current) return;
     busyRef.current = true;
     openIdRef.current = id;
-    if (replace) router.replace(`${pathname}?detail=${id}`, { scroll: false });
     await morph(() => {
       flushSync(() => setOpenId(id));
       if (dialogRef.current) dialogRef.current.scrollTop = 0;
     });
+    if (replace) router.replace(`${pathname}?detail=${id}`, { scroll: false });
     busyRef.current = false;
   };
 

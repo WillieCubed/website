@@ -7,19 +7,11 @@ import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 
 import type { InitiativeTile } from './ventures';
 
-const KIND_LABEL = {
-  campaign: 'Campaign',
-  series: 'Series',
-  project: 'Project',
-};
-
 function headFor(initiative: Initiative, parents: Map<string, Initiative>) {
   const parent = initiative.parent
     ? parents.get(initiative.parent)?.title
     : undefined;
-  return parent
-    ? `${parent} · ${initiative.title}`
-    : `${KIND_LABEL[initiative.kind]} · ${initiative.title}`;
+  return parent ? `${parent} · ${initiative.title}` : initiative.title;
 }
 
 /**

@@ -1,6 +1,3 @@
-/// <reference types="react/canary" />
-import { ViewTransition } from 'react';
-
 import type {
   InitiativeTile as InitiativeTileEntry,
   TileEntry,
@@ -57,10 +54,6 @@ function VentureBody({ venture }: { venture: Venture }) {
 /**
  * A featured initiative's tile links to its page instead of opening a detail
  * view. A campaign with parts shows its acts; anything else shows its cover.
- * The cover carries a React ViewTransition name so the initiative page can
- * pick it up as a shared element on navigation. Venture tiles keep the DOM
- * View Transition API instead, because their morph is driven by the detail
- * dialog's own document.startViewTransition call.
  */
 function InitiativeBody({
   tile,
@@ -78,13 +71,10 @@ function InitiativeBody({
   }
   if (!tile.image) return null;
   return (
-    <ViewTransition name={`media-${tile.id}`}>
-      <div className="shot tile-cover" data-media="">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={tile.image.src} alt={tile.image.alt} />
-        <span className="tile-tagline">{tile.tagline}</span>
-      </div>
-    </ViewTransition>
+    <div className="shot tile-cover" data-media="">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={tile.image.src} alt={tile.image.alt} />
+    </div>
   );
 }
 

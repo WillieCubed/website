@@ -34,7 +34,7 @@ export default function WritingHeader({
   );
 
   return (
-    <header className="mx-auto max-w-breakpoint-md px-lg pb-lg pt-16 desktop:px-0">
+    <header className="mx-auto max-w-breakpoint-md px-lg pb-lg pt-8 desktop:px-0">
       {/* Permalink for parsers. u-uid marks it as the canonical identity. */}
       <a href={canonicalUrl} className="u-url u-uid hidden" />
 

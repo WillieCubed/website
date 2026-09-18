@@ -2,6 +2,7 @@ import type { Metadata } from 'next/types';
 import { Suspense } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
+import TopBar from '@/components/site/TopBar';
 import WritingItem from '@/components/writings/WritingItem';
 
 import { absoluteUrl, site } from '@/lib/site';
@@ -123,63 +124,52 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
 
 export default function WritingsPage({ searchParams }: WritingsPageProps) {
   return (
-    <main className="h-feed mx-auto max-w-breakpoint-2xl tablet:grid tablet:grid-cols-8 tablet:gap-lg">
-      {/* h-feed: u-url so parsers know which page this feed is */}
-      <a href={absoluteUrl('/writings')} className="u-url hidden" />
-      <section className="mt-16 tablet:col-span-6 tablet:col-start-2">
-        <div className="space-y-xl px-lg desktop-large:px-0">
-          <div className="space-y-md">
-            <h1 className="p-name text-display-small">Writings</h1>
-            <p className="text-headline-medium text-gray-600 dark:text-gray-400">
-              Thoughts, tutorials, and notes.
-            </p>
+    <>
+      <TopBar
+        column="content"
+        crumbs={[{ label: 'Writings', href: '/writings' }]}
+      />
+      <main className="h-feed mx-auto max-w-[840px] px-5 pb-20">
+        {/* h-feed: u-url so parsers know which page this feed is */}
+        <a href={absoluteUrl('/writings')} className="u-url hidden" />
+        <section className="mt-6">
+          <div className="space-y-xl">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+              <h1 className="p-name text-display-small">Writings</h1>
+              <p className="flex flex-wrap items-center gap-x-3 text-label-medium text-muted">
+                <span className="p-author h-card">
+                  <SiteLink href="/" className="p-name u-url">
+                    {site.author.name}
+                  </SiteLink>
+                </span>
+                <span aria-hidden="true">·</span>
+                <a
+                  href={absoluteUrl('/writings/feed.xml')}
+                  className="link-animated"
+                >
+                  RSS
+                </a>
+                <a
+                  href={absoluteUrl('/writings/feed/atom')}
+                  className="link-animated"
+                >
+                  Atom
+                </a>
+                <a
+                  href={absoluteUrl('/writings/feed/json')}
+                  className="link-animated"
+                >
+                  JSON Feed
+                </a>
+              </p>
+            </div>
           </div>
-          <div className="space-y-sm text-body-medium">
-            <p>
-              Technical deep-dives, creative explorations, and everything in
-              between, by{' '}
-              <span className="p-author h-card">
-                <SiteLink href="/" className="p-name u-url font-medium">
-                  {site.author.name}
-                </SiteLink>
-              </span>
-              . Subscribe via{' '}
-              <a
-                href={absoluteUrl('/writings/feed.xml')}
-                className="text-primary underline-offset-2 hover:underline"
-              >
-                RSS
-              </a>
-              ,{' '}
-              <a
-                href={absoluteUrl('/writings/feed/atom')}
-                className="text-primary underline-offset-2 hover:underline"
-              >
-                Atom
-              </a>
-              , or{' '}
-              <a
-                href={absoluteUrl('/writings/feed/json')}
-                className="text-primary underline-offset-2 hover:underline"
-              >
-                JSON Feed
-              </a>
-              , or{' '}
-              <SiteLink
-                href="/search"
-                className="text-primary underline-offset-2 hover:underline"
-              >
-                search
-              </SiteLink>{' '}
-              the archive.
-            </p>
-          </div>
-        </div>
-      </section>
-      <Suspense fallback={<WritingsContentFallback />}>
-        <WritingsContent searchParams={searchParams} />
-      </Suspense>
-    </main>
+        </section>
+        <Suspense fallback={<WritingsContentFallback />}>
+          <WritingsContent searchParams={searchParams} />
+        </Suspense>
+      </main>
+    </>
   );
 }
 

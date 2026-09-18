@@ -308,6 +308,45 @@
   .h3 {
     grid-row: span 3;
   }
+  /* Featured initiatives: the acts strip sits under the tile head, and a
+     cover tile carries its current act as a caption. */
+  .tile-playbill {
+    position: absolute;
+    inset: 44px 12px 12px;
+    overflow: hidden;
+  }
+  .tile-playbill ol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    height: 100%;
+  }
+  .tile-playbill .act-card {
+    background: var(--color-card);
+    border-radius: 10px;
+  }
+  .tile-playbill .act[aria-current='step'] .act-card {
+    background: color-mix(
+      in srgb,
+      var(--b-primary-container, var(--color-mint)) 40%,
+      var(--color-card)
+    );
+  }
+  .tile-cover .tile-tagline {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 12px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-card) 88%, transparent);
+    color: var(--color-ink);
+    font-size: 13px;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .focusing .tile:not(.hit) {
     filter: blur(4px) saturate(0.5);
     opacity: 0.5;

@@ -1,11 +1,16 @@
 /// <reference types="react/canary" />
 import { ViewTransition } from 'react';
 
-import type { InitiativeTile, TileEntry, Venture } from '@/lib/home/ventures';
+import type {
+  InitiativeTile as InitiativeTileEntry,
+  TileEntry,
+  Venture,
+} from '@/lib/home/ventures';
 
 import { Constellation } from './Constellation';
 import { CountdownDays } from './Countdown';
 import { Icon } from './Icon';
+import { InitiativeTile } from './InitiativeTile';
 import { ProductScroller } from './ProductScroller';
 import { Tile } from './Tile';
 
@@ -51,39 +56,46 @@ function VentureBody({ venture }: { venture: Venture }) {
 
 /**
  * A featured initiative's tile links to its page instead of opening a detail
- * view. Its media carries a React ViewTransition name so the initiative page
- * can pick it up as a shared element on navigation. The venture tiles keep
- * the DOM View Transition API instead: their morph is driven by the detail
- * dialog's own document.startViewTransition call, and React's ViewTransition
- * only takes part in React transitions such as route changes, so wrapping
- * venture media in it would leave two owners of the same element name.
+ * view. A campaign with parts shows its acts; anything else shows its cover.
+ * The cover carries a React ViewTransition name so the initiative page can
+ * pick it up as a shared element on navigation. Venture tiles keep the DOM
+ * View Transition API instead, because their morph is driven by the detail
+ * dialog's own document.startViewTransition call.
  */
-function InitiativeCard({ tile }: { tile: InitiativeTile }) {
-  return (
-    <article className={`tile ${tile.size}`} id={tile.id} data-id={tile.id}>
-      <a className="cover" href={tile.href} aria-label={tile.name} />
-      <div className="head">
-        <span className="label">{tile.head}</span>
-        <span className="hint" aria-hidden="true">
-          <span>{tile.hint}</span>
-          <i>
-            <Icon name="outward" />
-          </i>
-        </span>
+function InitiativeBody({
+  tile,
+  playbill,
+}: {
+  tile: InitiativeTileEntry;
+  playbill?: React.ReactNode;
+}) {
+  if (tile.body === 'playbill' && playbill) {
+    return (
+      <div className="tile-playbill" data-media="">
+        {playbill}
       </div>
-      {tile.image && (
-        <ViewTransition name={`media-${tile.id}`}>
-          <div className="shot" data-media="">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={tile.image.src} alt={tile.image.alt} />
-          </div>
-        </ViewTransition>
-      )}
-    </article>
+    );
+  }
+  if (!tile.image) return null;
+  return (
+    <ViewTransition name={`media-${tile.id}`}>
+      <div className="shot tile-cover" data-media="">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={tile.image.src} alt={tile.image.alt} />
+        <span className="tile-tagline">{tile.tagline}</span>
+      </div>
+    </ViewTransition>
   );
 }
 
-export function TileGrid({ tiles }: { tiles: TileEntry[] }) {
+export function TileGrid({
+  tiles,
+  playbills = {},
+}: {
+  tiles: TileEntry[];
+  /** Pre-rendered acts for playbill tiles, keyed by tile id. */
+  playbills?: Record<string, React.ReactNode>;
+}) {
   return (
     <main className="evidence" aria-label="Work in progress">
       {tiles.map((tile) =>
@@ -105,7 +117,9 @@ export function TileGrid({ tiles }: { tiles: TileEntry[] }) {
             <VentureBody venture={tile.venture} />
           </Tile>
         ) : (
-          <InitiativeCard key={tile.id} tile={tile} />
+          <InitiativeTile key={tile.id} tile={tile}>
+            <InitiativeBody tile={tile} playbill={playbills[tile.id]} />
+          </InitiativeTile>
         )
       )}
     </main>

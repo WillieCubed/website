@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
 
 import { entries } from '@/lib/home/ventures';
+import type { Facet } from '@/lib/home/ventures';
 
 import { DetailDialog } from './DetailDialog';
 import {
@@ -20,6 +21,8 @@ interface HomeShellProps {
   brands: Record<string, Record<string, string>>;
   /** The server-rendered LVBT countdown for the detail view. */
   detailCountdown: React.ReactNode;
+  /** Facets for tiles that are not ventures, such as featured initiatives. */
+  extraEntries?: Record<string, { facets: Facet[] }>;
   children: React.ReactNode;
 }
 
@@ -30,6 +33,7 @@ interface HomeShellProps {
 export function HomeShell({
   brands,
   detailCountdown,
+  extraEntries = {},
   children,
 }: HomeShellProps) {
   const [preview, setPreviewState] = useState<Preview>(null);
@@ -54,18 +58,20 @@ export function HomeShell({
   const clearPreviewNow = useCallback(() => setPreview(null), [setPreview]);
 
   const value = useMemo<HomeContextValue>(() => {
+    const facetsOf = (id: string) =>
+      entries[id]?.facets ?? extraEntries[id]?.facets;
     const matches = (id: string) => {
-      const entry = entries[id];
-      if (!preview || !entry) return false;
+      const facets = facetsOf(id);
+      if (!preview || !facets) return false;
       return 'facet' in preview
-        ? entry.facets.includes(preview.facet)
-        : entry.id === preview.id;
+        ? facets.includes(preview.facet)
+        : id === preview.id;
     };
     const lit = !preview
       ? []
       : 'facet' in preview
         ? [preview.facet]
-        : (entries[preview.id]?.facets ?? []);
+        : (facetsOf(preview.id) ?? []);
     return {
       preview,
       setPreview,
@@ -76,7 +82,14 @@ export function HomeShell({
       openDetail: (id, from) => opener.current(id, from),
       brands,
     };
-  }, [preview, setPreview, clearPreview, clearPreviewNow, brands]);
+  }, [
+    preview,
+    setPreview,
+    clearPreview,
+    clearPreviewNow,
+    brands,
+    extraEntries,
+  ]);
 
   const accent =
     preview && 'id' in preview

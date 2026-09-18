@@ -6,9 +6,12 @@ import { HomeShell } from '@/components/home/HomeShell';
 import { Rail } from '@/components/home/Rail';
 import { TileGrid } from '@/components/home/TileGrid';
 import '@/components/home/home.css';
+import Playbill from '@/components/initiatives/Playbill';
 
 import { allBrandVars } from '@/lib/brand/scheme';
+import { facetEntries, getFeaturedTiles } from '@/lib/home/featured';
 import { LVBT_DEADLINE, getHomeTiles } from '@/lib/home/ventures';
+import { getFeaturedInitiatives } from '@/lib/initiatives';
 import { site } from '@/lib/site';
 import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 
@@ -52,18 +55,36 @@ export function generateMetadata(): Metadata {
  *
  * Route: /
  */
-export default function HomePage() {
+export default async function HomePage() {
   if (isHiatusMode()) {
     return <HiatusPage />;
   }
+
+  const [featuredTiles, featured] = await Promise.all([
+    getFeaturedTiles(),
+    getFeaturedInitiatives(),
+  ]);
+  const playbills = Object.fromEntries(
+    featured
+      .filter((initiative) => initiative.parts.length > 0)
+      .map((initiative) => [
+        `initiative-${initiative.slug}`,
+        <Playbill
+          key={initiative.slug}
+          initiative={initiative}
+          variant="compact"
+        />,
+      ])
+  );
 
   return (
     <HomeShell
       brands={allBrandVars()}
       detailCountdown={<CountdownDays deadline={LVBT_DEADLINE} />}
+      extraEntries={facetEntries(featuredTiles)}
     >
       <Rail />
-      <TileGrid tiles={getHomeTiles()} />
+      <TileGrid tiles={getHomeTiles(featuredTiles)} playbills={playbills} />
     </HomeShell>
   );
 }

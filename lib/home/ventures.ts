@@ -426,8 +426,13 @@ export interface InitiativeTile extends TileEntryBase {
   head: string;
   hint: string;
   href: string;
-  brand?: BrandKey;
+  tagline: string;
+  facets: Facet[];
+  /** Material custom properties computed from the initiative's own seed. */
+  brandVars?: Record<string, string>;
   image?: { src: string; alt: string };
+  /** `playbill` renders the initiative's acts; `cover` shows its art. */
+  body: 'cover' | 'playbill';
 }
 
 export type TileEntry = VentureTile | InitiativeTile;

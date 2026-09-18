@@ -12,13 +12,15 @@
     "format": "prettier --write .",
     "brand:build": "node brand/build.mjs",
     "deploy:willie-page": "sh deploy/willie-page/stage.sh && npx wrangler@4 deploy --config deploy/willie-page/wrangler.jsonc",
-    "prepare": "husky"
+    "prepare": "husky",
+    "brand:seeds": "node brand/resolve-brands.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@headlessui/react": "^2.2.10",
     "@headlessui/tailwindcss": "^0.2.2",
+    "@material/material-color-utilities": "^0.3.0",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@mui/icons-material": "^9.0.1",

@@ -160,7 +160,7 @@ export default function WritingHeader({
             <p className="text-label-large">
               Part {writing.series.part} of {seriesData.totalParts} in the{' '}
               <Link
-                href={`/collections/${writing.series.slug}`}
+                href={seriesData.href}
                 className="link-animated font-semibold"
               >
                 {seriesData.name}

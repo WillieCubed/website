@@ -12,6 +12,7 @@ import { join } from 'node:path';
 // Series-specific helpers (for backward compatibility and convenience)
 // =============================================================================
 
+import { getInitiative, initiativeExists } from '../initiatives';
 import type { WritingData } from '../writings/types';
 import type {
   Collection,
@@ -169,6 +170,8 @@ export interface SeriesDefinition {
   complete?: boolean;
   /** MDX content for series landing page */
   content: string;
+  /** Where the series name links. Initiatives own their page. */
+  href: string;
 }
 
 /**
@@ -193,6 +196,25 @@ export async function getSeriesSlugs(): Promise<string[]> {
  * Returns the backward-compatible shape.
  */
 export async function getSeries(slug: string): Promise<SeriesDefinition> {
+  // A writing's series slug can name an initiative instead of a file in
+  // content/series/, so a series of writings about Superbloom lands on
+  // /initiatives/superbloom rather than a collections page that does not
+  // exist.
+  const hasFile = (await getCollectionSlugs('series')).includes(slug);
+  if (!hasFile && (await initiativeExists(slug))) {
+    const initiative = await getInitiative(slug);
+    return {
+      slug,
+      name: initiative.title,
+      description: initiative.description,
+      coverImage: initiative.cover?.src,
+      startedAt: initiative.starts?.toISOString(),
+      complete: initiative.status === 'complete',
+      content: initiative.content,
+      href: initiative.href,
+    };
+  }
+
   const definition = await getCollectionDefinition(
     'series',
     slug,
@@ -208,6 +230,7 @@ export async function getSeries(slug: string): Promise<SeriesDefinition> {
     startedAt: definition.metadata.startedAt,
     complete: definition.metadata.complete,
     content: definition.content,
+    href: `/writings?series=${definition.slug}`,
   };
 }
 

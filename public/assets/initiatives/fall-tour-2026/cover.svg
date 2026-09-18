@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Fall Tour 2026">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c9552e"/>
+      <stop offset="1" stop-color="#5b2a1c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <polyline fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="6" stroke-dasharray="2 18" stroke-linecap="round" points="140,520 360,300 560,420 760,240 960,380 1080,300"/><circle cx="140" cy="520" r="14" fill="#fff" fill-opacity=".9"/><circle cx="360" cy="300" r="14" fill="#fff" fill-opacity=".9"/><circle cx="560" cy="420" r="14" fill="#fff" fill-opacity=".9"/><circle cx="760" cy="240" r="14" fill="#fff" fill-opacity=".9"/><circle cx="960" cy="380" r="14" fill="#fff" fill-opacity=".9"/><circle cx="1080" cy="300" r="14" fill="#fff" fill-opacity=".9"/>
+</svg>

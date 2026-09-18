@@ -5,9 +5,9 @@ import { Suspense } from 'react';
 import WritingItem from '@/components/writings/WritingItem';
 
 import {
-  getAllSeries,
   getAllTags,
   getAllWritings,
+  getSeries,
   getWritingsByTag,
 } from '@/lib/writings';
 
@@ -35,13 +35,21 @@ interface WritingsPageProps {
 }
 
 async function WritingsList({ tag }: { tag?: string }) {
-  const [writings, allSeries] = await Promise.all([
-    tag ? getWritingsByTag(tag) : getAllWritings(),
-    getAllSeries(),
-  ]);
+  const writings = tag ? await getWritingsByTag(tag) : await getAllWritings();
 
-  // Build a map of series slug -> name for quick lookup
-  const seriesNameMap = new Map(allSeries.map((s) => [s.slug, s.name]));
+  // Resolve every series a listed writing belongs to. A series can be a file
+  // in content/series/ or an initiative, and getSeries handles both.
+  const seriesSlugs = [
+    ...new Set(writings.flatMap((w) => (w.series ? [w.series.slug] : []))),
+  ];
+  const seriesMap = new Map(
+    await Promise.all(
+      seriesSlugs.map(async (slug) => {
+        const series = await getSeries(slug).catch(() => null);
+        return [slug, series] as const;
+      })
+    )
+  );
 
   if (writings.length === 0) {
     return (
@@ -58,7 +66,14 @@ async function WritingsList({ tag }: { tag?: string }) {
           key={writing.slug}
           writing={writing}
           seriesName={
-            writing.series ? seriesNameMap.get(writing.series.slug) : undefined
+            writing.series
+              ? seriesMap.get(writing.series.slug)?.name
+              : undefined
+          }
+          seriesHref={
+            writing.series
+              ? seriesMap.get(writing.series.slug)?.href
+              : undefined
           }
         />
       ))}

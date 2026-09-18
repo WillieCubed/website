@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
       {
         hostname: 'picsum.photos',
       },
+      {
+        hostname: 'i.ytimg.com',
+      },
     ],
   },
   experimental: {

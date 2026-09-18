@@ -49,6 +49,8 @@ interface WritingItemProps {
   writing: WritingData;
   /** Series name to display (resolved from slug) */
   seriesName?: string;
+  /** Where the series name links; falls back to the writings index. */
+  seriesHref?: string;
   /** Whether to show series info (default: true) */
   showSeriesInfo?: boolean;
 }
@@ -56,6 +58,7 @@ interface WritingItemProps {
 export default function WritingItem({
   writing,
   seriesName,
+  seriesHref,
   showSeriesInfo = true,
 }: WritingItemProps) {
   const formattedDate = new Date(writing.published).toLocaleDateString(
@@ -144,7 +147,7 @@ export default function WritingItem({
           <div className="pt-sm text-label-medium text-gray-500 dark:text-gray-400">
             Part {writing.series.part} of{' '}
             <Link
-              href={`/collections/${writing.series.slug}`}
+              href={seriesHref ?? '/writings'}
               className="link-animated pointer-events-auto relative z-20 font-medium"
             >
               {seriesName || writing.series.slug}

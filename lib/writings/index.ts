@@ -1,4 +1,5 @@
 import matter from 'gray-matter';
+import { cacheLife } from 'next/cache';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import readingTime from 'reading-time';
@@ -139,6 +140,8 @@ export function extractHeadings(content: string): TOCHeading[] {
  * @returns The corresponding writing data and MDX source.
  */
 export async function getWriting(slug: string) {
+  'use cache';
+  cacheLife('hours');
   const slugs = await getWritingSlugs();
   if (!slugs.includes(slug)) {
     throw new Error(`Writing with given codename "${slug}" cannot be found.`);

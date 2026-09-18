@@ -13,10 +13,21 @@ extend it, keep reading.
   including which routes are hidden and which operational/error pages remain
   reachable.
 
+## Content
+
+- [Initiatives](./initiatives.md): the MDX schema for campaigns, series, and
+  projects under `/initiatives`, their parts, and the homepage `feature` block.
+- [Projects](./projects.md): project categories and the `data/projects.json`
+  shape.
+
 ## Design
 
 - [Design principles](./design-principles.md): the five principles and the brand
   rule that govern the relaunch.
+
+## Conventions
+
+- [Commits](./commits.md): Conventional Commit types and scopes.
 
 # Design Tidbits
 

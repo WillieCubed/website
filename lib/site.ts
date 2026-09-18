@@ -98,12 +98,16 @@ export function pageMetadata({
   type = 'website',
   noIndex = false,
 }: PageMetadataInput): Metadata {
-  const images = image ? [image] : undefined;
+  // Next.js replaces a parent's openGraph and twitter objects wholesale
+  // when a page sets its own, so the site-level fields are repeated here.
+  const images = [image ?? site.ogImage];
   return {
     title,
     description,
     alternates: { canonical: path },
     openGraph: {
+      siteName: site.name,
+      locale: site.locale,
       title,
       description,
       url: path,
@@ -111,6 +115,7 @@ export function pageMetadata({
       images,
     },
     twitter: {
+      card: 'summary_large_image',
       title,
       description,
       images,

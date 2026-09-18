@@ -23,7 +23,7 @@ export default function SeriesNav({
         {/* Series header */}
         <div className="flex items-center justify-between">
           <Link
-            href={`/collections/${series.slug}`}
+            href={series.href}
             className="link-animated text-label-large font-medium"
           >
             {series.name}

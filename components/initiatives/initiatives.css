@@ -1,0 +1,98 @@
+/*
+ * Initiative and part pages. The tokens come from app/globals.css; a page
+ * that carries a brand sets --b-* custom properties inline, and the rules
+ * below fall back to the site's neutral palette when it does not.
+ */
+.initiative {
+  --accent-live: var(--b-primary, var(--color-accent));
+  --accent-soft: var(--b-primary-container, var(--color-maverick-200));
+  --accent-ink: var(--b-on-primary-container, var(--color-ink));
+  --surface-soft: var(--b-surface-container-low, var(--color-card));
+}
+
+/* Acts reveal as they scroll into view. The scroll-driven version needs no
+   JavaScript; browsers without it get a class toggled by an observer, and
+   reduced motion gets neither. */
+.act {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .act {
+      animation: act-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+  }
+  @supports not (animation-timeline: view()) {
+    .act[data-reveal] {
+      opacity: 0;
+      transform: translateY(18px);
+      transition:
+        opacity 600ms var(--ease-site),
+        transform 600ms var(--ease-site);
+    }
+    .act[data-reveal='in'] {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+@keyframes act-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.act-card {
+  background: var(--surface-soft);
+  border: 1px solid var(--color-line);
+  transition:
+    transform 260ms var(--ease-site),
+    border-color 260ms var(--ease-site),
+    box-shadow 260ms var(--ease-site);
+}
+.act-card:hover,
+.act-card:focus-within {
+  transform: translateY(-2px);
+  border-color: var(--accent-live);
+  box-shadow: 0 12px 30px -18px
+    color-mix(in srgb, var(--accent-live) 60%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .act-card,
+  .act-card:hover {
+    transform: none;
+    transition: none;
+  }
+}
+.act[aria-current='step'] .act-card {
+  border-color: var(--accent-live);
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface-soft));
+}
+.act-kicker {
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-live);
+}
+
+.route-map path {
+  stroke: var(--accent-live);
+}
+.route-map circle {
+  fill: var(--accent-live);
+}
+
+.initiative-prose :is(h2, h3) {
+  color: var(--color-ink);
+}
+.initiative-prose a {
+  color: var(--accent-live);
+}

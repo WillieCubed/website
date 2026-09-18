@@ -78,7 +78,13 @@ export default async function RootLayout({
   children,
 }: React.PropsWithChildren) {
   return (
-    <html lang={site.language}>
+    // The font variables live on <html>: the theme's --font-sans reads
+    // --font-atkinson at :root, and a custom property that references an
+    // undefined variable there computes to nothing.
+    <html
+      lang={site.language}
+      className={`${sansFont.variable} ${monoFont.variable}`}
+    >
       <head>
         {/* IndieWeb discovery: where to send mentions and posts, who vouches
             for this site, and where the feeds live. */}
@@ -110,9 +116,7 @@ export default async function RootLayout({
           href="/feed/json"
         />
       </head>
-      <body
-        className={`min-h-screen scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink ${sansFont.variable} ${monoFont.variable} font-sans antialiased`}
-      >
+      <body className="min-h-screen scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink font-sans antialiased">
         {process.env.NODE_ENV === 'production' &&
           process.env.NEXT_PUBLIC_GTAG_ID && (
             <>

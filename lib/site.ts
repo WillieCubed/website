@@ -30,14 +30,13 @@ export const site = {
   },
   /** Profiles that link back here. Every one of these carries rel="me". */
   social: [
-    { label: 'GitHub', href: 'https://github.com/WillieCubed' },
-    { label: 'Threads', href: 'https://threads.net/@williecubed' },
-    { label: 'Instagram', href: 'https://instagram.com/williecubed' },
     {
       label: 'LinkedIn',
       href: 'https://www.linkedin.com/in/willie-chalmers-iii',
     },
-    { label: 'Last.fm', href: 'https://www.last.fm/user/WillieCubed' },
+    { label: 'GitHub', href: 'https://github.com/WillieCubed' },
+    { label: 'Threads', href: 'https://threads.net/@williecubed' },
+    { label: 'Instagram', href: 'https://instagram.com/williecubed' },
   ],
   /** Hostnames that redirect into the canonical origin. */
   legacyHosts: ['williecubed.me', 'www.williecubed.me', 'www.willie.page'],

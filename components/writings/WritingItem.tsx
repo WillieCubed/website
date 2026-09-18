@@ -8,44 +8,6 @@ import SiteLink from '@/components/link/SiteLink';
 import { WritingData } from '@/lib/writings';
 import type { PostType } from '@/lib/writings/types';
 
-const POST_TYPE_CONFIG: Record<
-  PostType,
-  {
-    label: string;
-    icon?: typeof FavoriteIcon;
-    bgColor?: string;
-    textColor?: string;
-  }
-> = {
-  article: { label: 'Article' },
-  note: { label: 'Note' },
-  photo: { label: 'Photo' },
-  like: {
-    label: 'Like',
-    icon: FavoriteIcon,
-    bgColor: 'bg-red-100 dark:bg-red-900/30',
-    textColor: 'text-red-600 dark:text-red-400',
-  },
-  repost: {
-    label: 'Repost',
-    icon: RepeatIcon,
-    bgColor: 'bg-green-100 dark:bg-green-900/30',
-    textColor: 'text-green-600 dark:text-green-400',
-  },
-  bookmark: {
-    label: 'Bookmark',
-    icon: BookmarkIcon,
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-    textColor: 'text-blue-600 dark:text-blue-400',
-  },
-  rsvp: {
-    label: 'RSVP',
-    icon: EventIcon,
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
-    textColor: 'text-purple-600 dark:text-purple-400',
-  },
-};
-
 interface WritingItemProps {
   writing: WritingData;
   /** Series name to display (resolved from slug) */
@@ -86,23 +48,6 @@ export default function WritingItem({
       <div className="pointer-events-none relative space-y-sm">
         {/* Meta row */}
         <div className="flex flex-wrap items-center gap-2 text-label-medium text-gray-500 dark:text-gray-400">
-          {writing.postType !== 'article' && (
-            <>
-              {(() => {
-                const config = POST_TYPE_CONFIG[writing.postType];
-                const Icon = config.icon;
-                return (
-                  <span
-                    className={`flex items-center gap-1 rounded px-2 py-0.5 ${config.bgColor || 'bg-primary/10'} ${config.textColor || 'text-primary'}`}
-                  >
-                    {Icon && <Icon className="size-3.5" />}
-                    {config.label}
-                  </span>
-                );
-              })()}
-              <span>·</span>
-            </>
-          )}
           <time className="dt-published" dateTime={publishedIso}>
             {formattedDate}
           </time>

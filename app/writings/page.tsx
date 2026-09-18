@@ -179,7 +179,7 @@ function WritingsContentFallback() {
       <section className="px-lg pt-xl tablet:col-span-6 tablet:col-start-2 desktop-large:px-0">
         <div className="h-10" />
       </section>
-      <section className="min-h-[50vh] space-y-lg px-lg pb-2xl pt-xl tablet:col-span-6 tablet:col-start-2 desktop-large:px-0">
+      <section className="min-h-[50vh] space-y-lg pb-xl pt-lg">
         <div className="space-y-md">
           {[...Array(5)].map((_, i) => (
             <div
@@ -199,15 +199,8 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
 
   return (
     <>
-      {/* Tag filters */}
-      <section className="px-lg pt-xl tablet:col-span-6 tablet:col-start-2 desktop-large:px-0">
-        <Suspense fallback={<div className="h-10" />}>
-          <TagFilter currentTag={tag} />
-        </Suspense>
-      </section>
-
       {/* Writings list */}
-      <section className="min-h-[50vh] space-y-lg px-lg pb-2xl pt-xl tablet:col-span-6 tablet:col-start-2 desktop-large:px-0">
+      <section className="min-h-[50vh] space-y-lg pb-xl pt-lg">
         <Suspense
           fallback={
             <div className="space-y-md">
@@ -221,6 +214,11 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
           }
         >
           <WritingsList tag={tag} />
+        </Suspense>
+      </section>
+      <section className="border-t border-line pt-lg">
+        <Suspense fallback={<div className="h-10" />}>
+          <TagFilter currentTag={tag} />
         </Suspense>
       </section>
     </>

@@ -1,7 +1,6 @@
-'use client';
-
-import { MDXRemote } from 'next-mdx-remote';
-import { PropsWithChildren, ReactNode } from 'react';
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import { PropsWithChildren } from 'react';
+import rehypeSlug from 'rehype-slug';
 
 import Features from '@/components/projects/FeatureList';
 
@@ -51,23 +50,16 @@ const mdxComponentsMap = {
 };
 
 interface ProjectDetailViewProps {
-  compiledSource: string;
-  scope: Record<string, unknown>;
-  frontmatter: Record<string, unknown>;
+  source: string;
 }
 
-export default function ProjectDetailView({
-  compiledSource,
-  scope,
-  frontmatter,
-}: ProjectDetailViewProps) {
+export default function ProjectDetailView({ source }: ProjectDetailViewProps) {
   return (
     <article className="prose">
       <MDXRemote
+        source={source}
         components={mdxComponentsMap}
-        compiledSource={compiledSource}
-        scope={scope}
-        frontmatter={frontmatter}
+        options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }}
       />
     </article>
   );

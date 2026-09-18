@@ -1,8 +1,6 @@
-import { parseISO } from 'date-fns';
-import { serialize } from 'next-mdx-remote/serialize';
+import matter from 'gray-matter';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'path';
-import rehypeSlug from 'rehype-slug';
 
 import { ProjectData } from './common';
 
@@ -27,13 +25,6 @@ export async function getProjectSlugs(): Promise<string[]> {
   return slugs;
 }
 
-const MDX_OPTIONS = {
-  parseFrontmatter: true,
-  mdxOptions: {
-    rehypePlugins: [rehypeSlug],
-  },
-};
-
 /**
  * Fetches the data for a project.
  *
@@ -52,13 +43,12 @@ export async function getProject(codename: string) {
   }
 
   const projectPath = join(projectsDirectory, `${codename}.mdx`);
-  const source = readFileSync(projectPath);
-  const mdxSource = await serialize(source, MDX_OPTIONS);
+  const { data, content } = matter(readFileSync(projectPath, 'utf8'));
   const project: ProjectData = {
-    ...(mdxSource.frontmatter as ProjectData),
-    launched: new Date(mdxSource.frontmatter.launched as string) as Date,
+    ...(data as ProjectData),
+    launched: new Date(data.launched as string),
   };
-  return { mdxSource, project };
+  return { content, project };
 }
 
 /**

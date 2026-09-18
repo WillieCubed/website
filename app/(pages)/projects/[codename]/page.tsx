@@ -14,8 +14,6 @@ import { pageMetadata } from '@/lib/site';
 
 import ProjectDetailView from './ProjectDetailsView';
 
-export const dynamic = 'force-static';
-
 /**
  * Head for the /projects/[codename] route.
  *
@@ -73,10 +71,10 @@ export default async function ProjectDetailPage(props: ProjectDetailPageProps) {
 
   const { codename } = params;
 
-  let mdxSource, project;
+  let content: string, project: ProjectData;
   try {
     const projectData = await getProject(codename);
-    mdxSource = projectData.mdxSource;
+    content = projectData.content;
     project = projectData.project as ProjectData;
   } catch (e) {
     return redirect('/404');
@@ -185,11 +183,7 @@ export default async function ProjectDetailPage(props: ProjectDetailPageProps) {
               View project here
             </LinkedObjectWrapper>
           )}
-          <ProjectDetailView
-            compiledSource={mdxSource.compiledSource}
-            scope={mdxSource.scope}
-            frontmatter={mdxSource.frontmatter}
-          />
+          <ProjectDetailView source={content} />
         </section>
         <section id="nav" className="col-span-8">
           <div className="flex justify-between">

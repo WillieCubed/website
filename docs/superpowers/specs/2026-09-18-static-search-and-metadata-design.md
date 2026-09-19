@@ -52,7 +52,7 @@ the reindex route and the prebuild script keep working unchanged.
   stays in the union but nothing emits it while projects are parked.
 - exports `UNDATED = '1970-01-01T00:00:00.000Z'`. Items without a date use it,
   which satisfies `published_at NOT NULL` with no migration and sorts undated
-  items last. `SiteSearch` shows no date for `UNDATED`.
+  items last. `SiteSearch` shows a date only for writings.
 
 What it collects, all with `draft: false` enforced explicitly:
 
@@ -65,8 +65,10 @@ What it collects, all with `draft: false` enforced explicitly:
 
 Text for initiatives and parts is tagline, description and the MDX body, run
 through the existing `stripMdxSyntax`. Static pages come from `STATIC_PAGES` in
-`lib/entities/registry.ts`, which is exported so hover cards and search share
-one list.
+`lib/entities/pages.ts`, which `lib/entities/registry.ts` also imports, so
+hover cards and search share one list. A static page's item has empty
+`content`: its description is its whole text, and repeating it doubled the
+result excerpt.
 
 ### Server search, widened
 
@@ -75,17 +77,21 @@ one list.
 - `lib/search/postgres.ts`: `indexItem` writes `item.path` to `url`;
   `searchPostgres` maps `row.url` to `path`.
 - `components/SiteSearch.tsx`: placeholder and empty-state copy say "Search"
-  rather than "Search writings"; the type badge already renders for non-writings.
-- `app/search/page.tsx`: description says "Search the whole site"; a line
-  under the form tells visitors ⌘K opens instant search anywhere.
+  rather than "Search writings". The small-print line under a result comes
+  from `resultMeta` in `lib/search/meta.ts`, which returns only the parts that
+  apply (a type badge for non-writings, a date for writings, tags), so a
+  separator never dangles.
+- `app/search/page.tsx`: description reads "Search everything on willie.page";
+  a line under the heading, hidden in hiatus mode, tells visitors ⌘K opens
+  instant search on any page.
 - `app/api/search/route.ts`: doc comment lists the new `type` values.
 
 ### Pagefind index
 
 `pagefind` is a devDependency. `lib/search/pagefind.ts` has two functions:
 
-- `toPagefindRecord(item)` (pure): `{ url: item.path, language: 'en', content: description + '\n' + content, meta: { title, description, type }, filters: { type: [item.type], tag: item.tags } (tag omitted when empty), sort: { date: item.published } (omitted when UNDATED) }`.
-- `buildPagefindIndex(items, outputPath)`: `createIndex`, `addCustomRecord` per item, `writeFiles({ outputPath })`, then `close`. It throws if any call returns errors.
+- `toPagefindRecord(item)` (pure): `{ url: item.path, language: 'en', content: description and content joined by a blank line (an empty part is dropped), meta: { title, description, type }, filters: { type: [item.type], tag: item.tags } (tag omitted when empty), sort: { date: item.published } (omitted when UNDATED) }`.
+- `buildPagefindIndex(items, outputPath)`: `createIndex`, `addCustomRecord` per item, clears `outputPath`, `writeFiles({ outputPath })`, then `close`. It throws if any call returns errors.
 
 `scripts/generate-search-index.ts` (already the `prebuild`) collects once,
 writes `public/search-index.json` as it does today, then calls
@@ -95,27 +101,34 @@ writes `public/search-index.json` as it does today, then calls
 
 ### ⌘K modal
 
-- `components/search/SearchModal.tsx` (client) renders `<pagefind-modal />`
-  and, on `requestIdleCallback` after load, adds
+- `components/search/SearchModal.tsx` (client) renders `PagefindDialog`, the
+  `<pagefind-modal>` element, and, on `requestIdleCallback` after load, adds
   `/pagefind/pagefind-component-ui.js` (module) and
-  `/pagefind/pagefind-component-ui.css`. Pagefind emits both next to the index,
-  so UI and index versions always match. If the Node API's `writeFiles` turns
-  out not to emit them, the plan switches to the `@pagefind/component-ui`
-  package and imports from it; the build check decides which.
+  `/pagefind/pagefind-component-ui.css`. The idle callback has a 2000ms
+  timeout, so a page that never goes idle still gets the shortcut; where the
+  method is missing, a 200ms `setTimeout` stands in. Pagefind emits both files
+  next to the index, so UI and index versions always match; `writeFiles` does
+  emit them, so the `@pagefind/component-ui` package is not needed.
 - The index and WASM load only on the first search, not at idle.
-- `components/search/pagefind.d.ts` declares the `pagefind-modal` and
-  `pagefind-modal-trigger` JSX intrinsic elements.
-- Trigger: `<pagefind-modal-trigger compact>` at the right end of
-  `components/site/TopBar.tsx`; the full trigger in `components/home/Rail.tsx`.
-  The default shortcut `mod+k` gives ⌘K on macOS and Ctrl+K elsewhere; Esc
-  closes; focus is trapped. The shortcut is suppressed while an input,
+- `components/search/pagefind.tsx` exports `PagefindTrigger` (props `compact`
+  and `hideShortcut`) and `PagefindDialog`. They create the custom elements
+  with `createElement`, so the project needs no global JSX type declarations.
+- Trigger: the top bar's `PagefindTrigger` is `compact hide-shortcut` (icon
+  only) at the right end of `components/site/TopBar.tsx`, and is not rendered
+  in hiatus mode; the home rail in `components/home/Rail.tsx` carries the full
+  trigger. The default shortcut `mod+k` gives ⌘K on macOS and Ctrl+K elsewhere;
+  Esc closes; focus is trapped. The shortcut is suppressed while an input,
   textarea or contentEditable has focus (Pagefind's own behavior).
-- Reserved space: `pagefind-modal-trigger:not(:defined)` gets a fixed size so
-  the bar does not shift when the element upgrades. `TopBar` adds a
-  `<noscript>` link to `/search`.
+- Reserved space: `pagefind-modal-trigger:not(:defined)` gets a 2.25rem square,
+  matching Pagefind's default 36px input height, so the bar does not shift
+  when the element upgrades. `TopBar` adds a `<noscript>` link to `/search`.
 - Theming maps `--pf-*` variables (text, background, border, radius, focus
-  outline, mark, font) to the warm tokens in `app/globals.css`. The Component
-  UI does not follow `prefers-color-scheme`, and the site has one theme.
+  outline, mark, font) to the warm tokens in `components/search/search.css`.
+  The block is written on `:root:root`, because Pagefind's own stylesheet loads
+  later and sets the same variables on `:root`, so it would otherwise win.
+  Input height and font size stay at Pagefind's defaults: the trigger's height
+  follows the input's. The Component UI does not follow `prefers-color-scheme`,
+  and the site has one theme.
 - `app/layout.tsx` mounts `<SearchModal />` beside `<SiteFooter />` unless
   `isHiatusMode()`.
 
@@ -137,6 +150,8 @@ writes `public/search-index.json` as it does today, then calls
 - `tests/unit/search-pagefind.test.mts`: `toPagefindRecord` field mapping,
   empty tags omitted, `UNDATED` sort omitted.
 - `tests/unit/search-rank.test.mts`: fixtures gain `path`.
+- `tests/unit/search-meta.test.mts`: `resultMeta` returns only the parts that
+  apply, with a date for writings alone.
 - After a real `pnpm build`: `public/pagefind/pagefind.js` exists, and a browser
   check that ⌘K opens the modal, a query returns a result, and the link resolves.
 
@@ -146,15 +161,16 @@ writes `public/search-index.json` as it does today, then calls
 
 `lib/seo/jsonld.ts` holds pure builders that return plain objects. All URLs
 go through `absoluteUrl`. Optional fields are omitted, never `undefined`.
-Entities use stable `@id`s (`<origin>/#website`, `#person`, `#org-<key>`) so
-pages reference one another rather than repeat.
+Entities use stable `@id`s (`<origin>/#website`, `#person`, `#org-<key>`).
+A consumer resolves an `@id` only inside one document, so a page that
+references the person includes the person node in its own graph.
 
-| Page                  | Emits                                                                                                                              |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `/`                   | `WebSite` (`alternateName: 'WillieCubed'`), `Person` (`sameAs` from `site.social`, no email), `ProfilePage`, three `Organization`s |
-| `/writings/[slug]`    | `BlogPosting` (headline, dates, author `@id`, image, keywords, `isPartOf` for series), `BreadcrumbList`                            |
-| `/initiatives/[slug]` | `BreadcrumbList`                                                                                                                   |
-| initiative part       | `BreadcrumbList`                                                                                                                   |
+| Page                  | Emits                                                                                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                   | `WebSite` (`alternateName: 'WillieCubed'`), `Person` (`sameAs` from `site.social`, no email), `ProfilePage`; the `Person` lists the three ventures as `Organization`s under `worksFor` |
+| `/writings/[slug]`    | `BlogPosting` (headline, dates, author `@id`, image, keywords, `isPartOf` for series), `BreadcrumbList`, `Person`                                                                      |
+| `/initiatives/[slug]` | `BreadcrumbList`                                                                                                                                                                       |
+| initiative part       | `BreadcrumbList`                                                                                                                                                                       |
 
 Tour parts are story acts that span several cities, not events, so they carry
 no `Event` markup. `Event` and `EventSeries` markup waits until the individual
@@ -168,7 +184,7 @@ Transit (`https://lasvegasfortransit.org/`), Hypertext Studio
 
 `components/seo/JsonLd.tsx` is a server component that renders
 `<script type="application/ld+json">` from `JSON.stringify` with `<` escaped
-as `<`.
+as `\u003c`.
 
 ### Open Graph and social cards
 
@@ -186,11 +202,13 @@ In `pageMetadata()` (`lib/site.ts`):
 `app/writings/[slug]/page.tsx` moves onto `pageMetadata`, keeping its feed and
 oEmbed `alternates.types`. New image routes `app/writings/opengraph-image.tsx`
 and `app/initiatives/opengraph-image.tsx` use `renderEntityImage`, and their
-pages pass them as `image`. Initiative pages export `generateViewport` returning
-`themeColor` from `brand` when it is a hex. Root metadata declares `icons`
-(favicon.ico, icon.svg, apple-touch-icon.png) and `manifest`
-(`/manifest.webmanifest`); the plan confirms in built HTML that they were
-missing and now appear.
+pages pass them as `image`. Initiative and part pages export `generateViewport`,
+which calls `initiativeViewport(slug)` in `lib/initiatives/viewport.ts`. It
+returns `themeColor` from `brand` when that is a `#rrggbb` hex
+(`viewportForBrand`) and nothing otherwise. Root metadata declares `icons`
+(a 48px PNG, icon.svg, apple-touch-icon.png) and `manifest`
+(`/manifest.webmanifest`), which the site never linked before; the built HTML
+now carries all four links.
 
 ### Crawl hygiene
 
@@ -200,11 +218,13 @@ missing and now appear.
   `/writings/` only. `ChatGPT-User` stays listed as today.
 - Root `metadata.robots` (live mode): `index`, `follow`, and
   `googleBot: { 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 }`.
-- `app/sitemap.ts`: remove `changeFrequency` and `priority` (Google ignores
-  both). `lastModified` is set only from a known value: writings use
-  `lastUpdated`; initiatives and parts use a new optional `updated` frontmatter
-  date (`lib/initiatives/schema.ts`, documented in `docs/initiatives.md`);
-  everything else omits it. The event end date is no longer used.
+- `app/sitemap.ts` and `lib/seo/sitemap.ts`: a pure `buildSitemap()` builds the
+  entries and `app/sitemap.ts` feeds it the loaders' data. Remove
+  `changeFrequency` and `priority` (Google ignores both). `lastModified` is set
+  only from a known value: writings use `lastUpdated`; initiatives and parts
+  use a new optional `updated` frontmatter date (`lib/initiatives/schema.ts`,
+  documented in `docs/initiatives.md`); everything else omits it. The event end
+  date is no longer used.
 
 ### Tests
 
@@ -217,16 +237,21 @@ missing and now appear.
   `Twitterbot` are never disallowed; the sitemap URL is absolute.
 - `tests/unit/seo-sitemap.test.mts`: no `priority` or `changeFrequency`;
   drafts absent; `lastModified` only when known.
+- `tests/unit/initiative-viewport.test.mts`: `viewportForBrand` returns a theme
+  colour only for a `#rrggbb` brand.
 - Rich Results Test and an OG preview check need a deployed URL, so they run
   manually after the first preview deploy.
 
 ## Files
 
-Create: `lib/search/collect.ts`, `lib/search/pagefind.ts`,
-`components/search/SearchModal.tsx`, `components/search/pagefind.d.ts`,
+Create: `lib/entities/pages.ts`, `lib/search/collect.ts`,
+`lib/search/pagefind.ts`, `lib/search/meta.ts`, `components/search/search.css`,
+`lib/seo/sitemap.ts`, `components/search/SearchModal.tsx`,
+`components/search/pagefind.tsx`, `lib/initiatives/viewport.ts`,
 `lib/seo/jsonld.ts`, `components/seo/JsonLd.tsx`,
 `app/writings/opengraph-image.tsx`, `app/initiatives/opengraph-image.tsx`, and
-the six new test files above.
+the new test files named in each Tests section, plus
+`tests/unit/search-server.test.mts` for `selectSearchable`.
 
 Modify: `lib/search/{index,types,server,postgres}.ts`,
 `components/SiteSearch.tsx`, `app/search/page.tsx`, `app/api/search/route.ts`,
@@ -238,14 +263,16 @@ Modify: `lib/search/{index,types,server,postgres}.ts`,
 `app/initiatives/[slug]/[part]/page.tsx`, `app/robots.ts`, `app/sitemap.ts`,
 `lib/initiatives/schema.ts`, `docs/initiatives.md`, `docs/indieweb/README.md`
 (search rows: ⌘K added, `/search` unchanged), `package.json`, `.gitignore`,
-`app/globals.css`, `tests/unit/search-rank.test.mts`.
+`lib/initiatives/index.ts` (adds `loadAllInitiatives`), `eslint.config.mjs`
+(ignores `public/pagefind/**`), `tests/unit/search-rank.test.mts`.
 
 Delete: nothing.
 
 ## Risks to verify during implementation
 
 1. Whether `writeFiles` emits `pagefind-component-ui.{js,css}`. If not, use the
-   `@pagefind/component-ui` package.
+   `@pagefind/component-ui` package. Resolved: it emits both, so the package is
+   not used.
 2. Whether pnpm 11's build-script policy lets `pagefind` install its platform
    binary. Confirmed when `pagefind` is added during implementation; the first
    Vercel build confirms Linux.

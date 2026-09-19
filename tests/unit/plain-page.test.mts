@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { plainPage } from '@/lib/plain-page';
+import { site } from '@/lib/site';
 
 function request(accept?: string) {
-  return new Request('https://willie.page/anywhere', {
+  return new Request(`${site.origin}/anywhere`, {
     headers: accept ? { Accept: accept } : {},
   });
 }
@@ -25,9 +26,8 @@ test('plainPage answers a browser with escaped HTML and keeps the status', async
   const body = await response.text();
   assert.ok(!body.includes('<script>'));
   assert.match(body, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
-  assert.match(
-    body,
-    /<title>418 I&#39;m a teapot · Willie Chalmers III<\/title>/
+  assert.ok(
+    body.includes(`<title>418 I&#39;m a teapot · ${site.name}</title>`)
   );
   assert.match(body, /href="\/"/);
 });

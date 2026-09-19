@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { site } from '@/lib/site';
 import { whoamiLines, whoamiResponse } from '@/lib/whoami';
 
 function value(lines: Array<[string, string]>, label: string) {
@@ -67,7 +68,7 @@ test('whoamiLines leaves out what the host does not say', () => {
 
 test('whoamiResponse prints the lines and is never cached', async () => {
   const response = whoamiResponse(
-    new Request('https://willie.page/whoami', {
+    new Request(`${site.origin}/whoami`, {
       headers: {
         'x-forwarded-for': '203.0.113.9',
         'user-agent': 'curl/8.7.1',

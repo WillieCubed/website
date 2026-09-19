@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { coffeeResponse, teaResponse } from '@/lib/htcpcp';
+import { site } from '@/lib/site';
 
 function post(path: string, body: string, headers: Record<string, string>) {
-  return new Request(`https://willie.page${path}`, {
+  return new Request(`${site.origin}${path}`, {
     method: 'POST',
     headers,
     body,
@@ -14,7 +15,7 @@ function post(path: string, body: string, headers: Record<string, string>) {
 const TEAPOT_MESSAGE = { 'Content-Type': 'message/teapot' };
 
 test('GET /coffee is refused with 418 because this server is a teapot', async () => {
-  const response = coffeeResponse(new Request('https://willie.page/coffee'));
+  const response = coffeeResponse(new Request(`${site.origin}/coffee`));
 
   assert.equal(response.status, 418);
   const body = await response.text();
@@ -31,7 +32,7 @@ test('POST /coffee with a coffeepot message is still 418', async () => {
 });
 
 test('GET /tea describes the pot', async () => {
-  const response = await teaResponse(new Request('https://willie.page/tea'));
+  const response = await teaResponse(new Request(`${site.origin}/tea`));
 
   assert.equal(response.status, 200);
   assert.match(await response.text(), /teapot/i);

@@ -1280,7 +1280,7 @@ In `docs/indieweb/README.md`, replace ``Writes `public/search-index.json` from p
 - [ ] **Step 9: Typecheck, format, lint, and commit**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 35 tests pass, typecheck clean. If `import('pagefind')` reports missing types, read `node_modules/pagefind/types/index.d.ts` and adjust the destructuring in `buildPagefindIndex` to the declared names.
+Expected: PASS. 38 tests pass, typecheck clean. If `import('pagefind')` reports missing types, read `node_modules/pagefind/types/index.d.ts` and adjust the destructuring in `buildPagefindIndex` to the declared names.
 
 ```bash
 pnpm exec prettier --write lib/search/pagefind.ts scripts/generate-search-index.ts docs/indieweb/README.md tests/unit/search-pagefind.test.mts
@@ -1887,7 +1887,7 @@ with:
 - [ ] **Step 6: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 40 tests pass, typecheck clean. Existing callers pass a subset of the new input, so none should break. If TypeScript rejects the `openGraph` conditional, annotate each branch with `satisfies NonNullable<Metadata['openGraph']>` rather than loosening the type.
+Expected: PASS. 43 tests pass, typecheck clean. Existing callers pass a subset of the new input, so none should break. If TypeScript rejects the `openGraph` conditional, annotate each branch with `satisfies NonNullable<Metadata['openGraph']>` rather than loosening the type.
 
 - [ ] **Step 7: Format, lint, and commit**
 
@@ -2349,7 +2349,7 @@ export default function JsonLd({ data }: { data: JsonLdNode }) {
 - [ ] **Step 5: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 51 tests pass, typecheck clean.
+Expected: PASS. 54 tests pass, typecheck clean.
 
 - [ ] **Step 6: Format, lint, and commit**
 
@@ -3233,7 +3233,7 @@ with:
 - [ ] **Step 9: Typecheck and verify**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 53 tests pass, typecheck clean.
+Expected: PASS. 56 tests pass, typecheck clean.
 
 Every initiative is a draft, and drafts render only in development, so use the dev server (`PORT=3010 pnpm dev:app` as a background task):
 
@@ -3397,7 +3397,7 @@ with:
 - [ ] **Step 4: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 58 tests pass, typecheck clean.
+Expected: PASS. 61 tests pass, typecheck clean.
 
 - [ ] **Step 5: Format, lint, and commit**
 
@@ -3725,7 +3725,7 @@ with:
 - [ ] **Step 6: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 62 tests pass, typecheck clean.
+Expected: PASS. 65 tests pass, typecheck clean.
 
 - [ ] **Step 7: Format, lint, and commit**
 
@@ -3761,7 +3761,7 @@ pnpm typecheck
 git diff --name-only --diff-filter=d origin/main...HEAD -- '*.ts' '*.tsx' '*.mts' | xargs pnpm exec eslint
 ```
 
-Expected: 62 tests pass, typecheck clean, eslint reports nothing.
+Expected: 65 tests pass, typecheck clean, eslint reports nothing.
 
 - [ ] **Step 2: Build for production**
 

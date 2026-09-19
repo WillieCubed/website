@@ -7,11 +7,13 @@ import { Rail } from '@/components/home/Rail';
 import { TileGrid } from '@/components/home/TileGrid';
 import '@/components/home/home.css';
 import Playbill from '@/components/initiatives/Playbill';
+import JsonLd from '@/components/seo/JsonLd';
 
 import { allBrandVars } from '@/lib/brand/scheme';
 import { facetEntries, getFeaturedTiles } from '@/lib/home/featured';
 import { LVBT_DEADLINE, getHomeTiles } from '@/lib/home/ventures';
 import { getFeaturedInitiatives } from '@/lib/initiatives';
+import { homeGraph } from '@/lib/seo/jsonld';
 import { site } from '@/lib/site';
 import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 
@@ -35,16 +37,28 @@ export function generateMetadata(): Metadata {
     description: site.description,
     alternates: { canonical: '/' },
     openGraph: {
+      siteName: site.name,
+      locale: site.locale,
       title: site.name,
       description: site.shortDescription,
       url: '/',
       type: 'profile',
       firstName: site.author.givenName,
       lastName: site.author.familyName,
+      images: [
+        {
+          url: site.ogImage,
+          width: 1200,
+          height: 630,
+          alt: site.shortDescription,
+        },
+      ],
     },
     twitter: {
+      card: 'summary_large_image',
       title: site.name,
       description: site.shortDescription,
+      images: [{ url: site.ogImage, alt: site.shortDescription }],
     },
   };
 }
@@ -78,13 +92,16 @@ export default async function HomePage() {
   );
 
   return (
-    <HomeShell
-      brands={allBrandVars()}
-      detailCountdown={<CountdownDays deadline={LVBT_DEADLINE} />}
-      extraEntries={facetEntries(featuredTiles)}
-    >
-      <Rail />
-      <TileGrid tiles={getHomeTiles(featuredTiles)} playbills={playbills} />
-    </HomeShell>
+    <>
+      <JsonLd data={homeGraph()} />
+      <HomeShell
+        brands={allBrandVars()}
+        detailCountdown={<CountdownDays deadline={LVBT_DEADLINE} />}
+        extraEntries={facetEntries(featuredTiles)}
+      >
+        <Rail />
+        <TileGrid tiles={getHomeTiles(featuredTiles)} playbills={playbills} />
+      </HomeShell>
+    </>
   );
 }

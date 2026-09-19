@@ -332,3 +332,21 @@
   margin-inline: calc(-1 * var(--bleed));
   padding-inline: var(--bleed);
 }
+
+/* The homepage rail and the footer share these, so the footer's contact row
+   sits on the rail's line and its lockup lands where the rail's name was.
+   The rail is 400px wide, and 300px with a tighter gap in the expanded
+   window class. */
+:root {
+  --rail-w: 400px;
+  --rail-gap: clamp(32px, 4vw, 64px);
+  --footer-row-h: 40px;
+  --footer-inset: 28px;
+  --lockup-h: 48px;
+}
+@media (min-width: 840px) and (max-width: 1199px) {
+  :root {
+    --rail-w: 300px;
+    --rail-gap: 32px;
+  }
+}

@@ -7,17 +7,29 @@ import { IndexRow } from './IndexRow';
 import { FacetKey } from './Statement';
 
 /**
- * The sticky column beside the grid: the headline, the venture list, and
- * the contact links. It is also the site's h-card, so the name, photo, note,
- * and rel="me" links are real, visible parts of the page.
+ * The sticky column beside the grid: the headline and the venture list. It
+ * is also the site's h-card, so the name and note are real, visible parts of
+ * the page. The contact links sit at the foot of the rail but belong to the
+ * footer, which grows out of them (SiteFooter), so the photo and email are
+ * given here as data.
  */
 export function Rail() {
   return (
     <aside className="rail h-card">
+      <data
+        className="u-photo"
+        value={new URL(site.author.photo, site.origin).href}
+      />
+      <data className="u-email" value={`mailto:${site.author.email}`} />
       <div className="lead">
         <div className="intro">
           <h1 className="statement">
-            <a className="p-name u-url u-uid" href={`${site.origin}/`}>
+            {/* The footer's name arrives as this one leaves the screen. */}
+            <a
+              className="p-name u-url u-uid"
+              href={`${site.origin}/`}
+              data-footer-anchor
+            >
               <b>{site.author.name}</b>
             </a>{' '}
             builds <FacetKey facet="software">software</FacetKey> and{' '}
@@ -47,25 +59,6 @@ export function Rail() {
             ))}
           </ul>
         </nav>
-      </div>
-
-      <div className="rail-foot">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="u-photo foot-photo"
-          src={site.author.photo}
-          alt=""
-          width={28}
-          height={28}
-        />
-        <a className="u-email" href={`mailto:${site.author.email}`}>
-          Email
-        </a>
-        {site.social.map((profile) => (
-          <a className="u-url" rel="me" href={profile.href} key={profile.href}>
-            {profile.label}
-          </a>
-        ))}
       </div>
     </aside>
   );

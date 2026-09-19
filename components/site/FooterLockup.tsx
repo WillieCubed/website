@@ -36,7 +36,9 @@ export default function FooterLockup({ name }: { name: string }) {
       data-revealed={revealed}
     >
       <Mark className="site-footer__mark" />
-      <span className="site-footer__wordmark">{name}</span>
+      <span className="site-footer__wordmark" data-footer-name>
+        {name}
+      </span>
     </p>
   );
 }

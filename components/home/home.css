@@ -45,20 +45,25 @@
   }
 
   /* Rail */
+  /* The rail's width and gap are shared with the footer (globals.css), so
+     the footer's columns line up with these. */
   .shell {
     display: grid;
-    grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
-    gap: clamp(32px, 4vw, 64px);
+    grid-template-columns: var(--rail-w) minmax(0, 1fr);
+    gap: var(--rail-gap);
     max-width: 1480px;
     margin: 0 auto;
   }
+  /* The foot of the rail is left clear: the footer, collapsed to its
+     contact row, rides there (site.css). */
   .rail {
     position: sticky;
     top: 0;
     display: flex;
     flex-direction: column;
     height: 100svh;
-    padding-block: 28px;
+    padding-block: var(--footer-inset)
+      calc(var(--footer-inset) + var(--footer-row-h) + 16px);
   }
   .statement {
     margin: clamp(48px, 12vh, 120px) 0 0;
@@ -250,26 +255,6 @@
   }
   .stack {
     transition: scale 180ms var(--ease-site);
-  }
-
-  .rail-foot {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 16px;
-    margin-top: auto;
-    color: var(--color-muted);
-    font-size: 14px;
-  }
-  .rail-foot a:hover {
-    color: var(--color-ink);
-  }
-  /* The h-card photo sits with the contact links, small enough to read as a
-     signature rather than a hero portrait. */
-  .foot-photo {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
   }
 
   /* Tiles */
@@ -1095,10 +1080,6 @@
     main.evidence {
       order: 2;
     }
-    .rail-foot {
-      order: 3;
-      margin: 0 0 40px;
-    }
     .evidence {
       grid-template-columns: minmax(0, 1fr);
       grid-auto-rows: auto;
@@ -1286,10 +1267,6 @@
   /* Expanded: the rail returns beside a two-column grid whose rows size to
      their content, so no tile clips its text at tablet-landscape widths. */
   @media (min-width: 840px) and (max-width: 1199px) {
-    .shell {
-      grid-template-columns: 300px minmax(0, 1fr);
-      gap: 32px;
-    }
     .statement {
       font-size: 28px;
     }

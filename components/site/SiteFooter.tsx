@@ -11,6 +11,7 @@ import { randomlyChooseTagline, taglineHref } from '@/lib/enhancements';
 import { routedPages, site } from '@/lib/site';
 
 import FeedsButton from './FeedsButton';
+import FooterDock from './FooterDock';
 import FooterLockup from './FooterLockup';
 import './site.css';
 
@@ -85,14 +86,16 @@ const LINK =
 
 /**
  * The end of every page: who this is, the way back to the main pages,
- * the feeds, and where else to find Willie.
+ * the feeds, and where else to find Willie. On the homepage it is also the
+ * rail's contact row, collapsed, and opens out of it as the page ends
+ * (FooterDock).
  */
 export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
         <div className="site-footer__top">
-          <div className="space-y-3">
+          <div className="site-footer__brand space-y-3">
             <FooterLockup name={site.name} />
             <Suspense fallback={<p className="text-body-medium">&nbsp;</p>}>
               <Tagline />
@@ -111,10 +114,11 @@ export default function SiteFooter() {
           </nav>
         </div>
         {/* This row never wraps. When the column gets narrow the labels
-            drop and the icons stay, so the row degrades instead of folding. */}
+            drop and the icons stay, so the row degrades instead of folding.
+            The contact links come first, on screen and in tab order alike:
+            on the homepage they are the row the footer grows out of. */}
         <div className="site-footer__row">
-          <FeedsButton />
-          <ul className="site-footer__profiles">
+          <ul className="site-footer__profiles" data-footer-contact>
             {site.social.map((profile) => (
               <li key={profile.href}>
                 <a href={profile.href} rel="me" className={LINK}>
@@ -132,8 +136,10 @@ export default function SiteFooter() {
               </li>
             ))}
           </ul>
+          <FeedsButton />
         </div>
       </div>
+      <FooterDock />
     </footer>
   );
 }

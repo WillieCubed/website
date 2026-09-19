@@ -29,7 +29,14 @@ export default function RequestLog({ paths }: RequestLogProps) {
   useEffect(() => {
     let from = 'typed it in';
     try {
-      if (document.referrer) {
+      // document.referrer names whatever loaded the document, which is
+      // stale once the visitor has moved around the site without a reload.
+      const load = performance.getEntriesByType('navigation')[0];
+      const loadedHere =
+        !load || new URL(load.name).pathname === window.location.pathname;
+      if (!loadedHere) {
+        from = 'followed a link on this site';
+      } else if (document.referrer) {
         const referrer = new URL(document.referrer);
         from =
           referrer.host === window.location.host
@@ -42,8 +49,13 @@ export default function RequestLog({ paths }: RequestLogProps) {
     setOrigin(from);
   }, []);
 
-  const parked = isParkedPath(pathname);
-  const match = parked ? null : closestPath(pathname, paths);
+  // The 404 page is prerendered once, so on the server the pathname is the
+  // prerender's own (/_not-found). Everything that depends on the visitor's
+  // path waits for the browser, the same as their frame, so the server HTML
+  // and the first client render match.
+  const ready = origin !== null;
+  const parked = ready && isParkedPath(pathname);
+  const match = ready && !parked ? closestPath(pathname, paths) : null;
 
   let line = 0;
   const next = () => ({ '--line': line++ }) as React.CSSProperties;
@@ -51,7 +63,7 @@ export default function RequestLog({ paths }: RequestLogProps) {
   return (
     <pre className="request-log">
       <span className="request-log__line" style={next()}>
-        <span className="request-log__dim">GET</span> {pathname}
+        <span className="request-log__dim">GET</span> {ready ? pathname : ''}
       </span>
       <span className="request-log__line" style={next()}>
         <span className="request-log__status">404</span> Not Found
@@ -66,7 +78,7 @@ export default function RequestLog({ paths }: RequestLogProps) {
       <span
         className="request-log__line request-log__frame request-log__dim"
         style={next()}
-        data-ready={origin !== null}
+        data-ready={ready}
       >
         {origin ? `at you (${origin}, just now)` : ' '}
       </span>

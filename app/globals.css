@@ -224,3 +224,20 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* How far a text-bearing container reaches past the reading column's text
+   line. It equals the column's side gutter below the desktop breakpoint
+   (px-lg), so a card's text lands on the line and its box never crosses
+   the screen edge; from 1200px the column is centred with room to spare. */
+:root {
+  --bleed: 1rem;
+}
+@media (min-width: 1200px) {
+  :root {
+    --bleed: 1.25rem;
+  }
+}
+.bleed {
+  margin-inline: calc(-1 * var(--bleed));
+  padding-inline: var(--bleed);
+}

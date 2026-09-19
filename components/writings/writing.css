@@ -17,6 +17,6 @@
 /* Code blocks reach past the text column on both sides so the code
    inside starts on the same line as the paragraphs around it. */
 .e-content pre {
-  margin-inline: -1.25rem;
-  padding-inline: 1.25rem;
+  margin-inline: calc(-1 * var(--bleed));
+  padding-inline: var(--bleed);
 }

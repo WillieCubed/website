@@ -94,12 +94,19 @@
   display: grid;
   grid-template-columns: 2.2em minmax(0, 1fr) auto;
   gap: 8px;
-  margin-left: calc(-2.2em - 8px);
   align-items: baseline;
   font-size: 14px;
   line-height: 1.5;
   color: var(--color-muted);
   scroll-margin-top: 80px;
+}
+/* The numbers hang in the margin only where the column has one to hang
+   into; below 1200px the reading column's gutter is too narrow for them,
+   so they sit on the text line instead. */
+@media (min-width: 1200px) {
+  .references li {
+    margin-left: calc(-2.2em - 8px);
+  }
 }
 .references li:target {
   color: var(--color-ink);

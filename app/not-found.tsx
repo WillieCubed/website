@@ -28,8 +28,9 @@ async function routedPaths(): Promise<string[]> {
     getAllWritings(),
     getInitiatives(),
   ]);
+  // The homepage is left out: every short path is within two edits of "/",
+  // and the page already offers a way home.
   return [
-    '/',
     '/writings',
     '/initiatives',
     '/search',

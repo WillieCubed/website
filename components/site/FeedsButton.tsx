@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
@@ -46,6 +46,17 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
     panel.style.top = `${top}px`;
   }
 
+  // The popover is fixed in the top layer, so it follows the button by hand
+  // while it is open; scrolling or resizing would otherwise leave it behind.
+  const follow = useRef(() => place());
+  useEffect(() => {
+    const listener = follow.current;
+    return () => {
+      window.removeEventListener('scroll', listener);
+      window.removeEventListener('resize', listener);
+    };
+  }, []);
+
   return (
     <>
       <button
@@ -63,8 +74,17 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
         popover="auto"
         className="feeds-popover"
         onToggle={(event) => {
-          if (event.newState === 'open') place();
-          else setCopied(null);
+          if (event.newState === 'open') {
+            place();
+            window.addEventListener('scroll', follow.current, {
+              passive: true,
+            });
+            window.addEventListener('resize', follow.current);
+          } else {
+            window.removeEventListener('scroll', follow.current);
+            window.removeEventListener('resize', follow.current);
+            setCopied(null);
+          }
         }}
       >
         <ul>

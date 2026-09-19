@@ -1,15 +1,9 @@
-import robotsRoute from '@/app/robots';
+import robots from '@/app/robots';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { site } from '@/lib/site';
 
-// tsx loads app/*.ts as CommonJS, so this ESM test can receive the module
-// object instead of the function. Unwrap it.
-const robots =
-  typeof robotsRoute === 'function'
-    ? robotsRoute
-    : (robotsRoute as unknown as { default: typeof robotsRoute }).default;
 const result = robots();
 const rules = Array.isArray(result.rules) ? result.rules : [result.rules];
 

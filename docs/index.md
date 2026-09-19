@@ -32,6 +32,12 @@ extend it, keep reading.
 - [ActivityPub plan](./future/activitypub.md): what federation would take,
   not yet started.
 
+## Protocols
+
+- [Protocol easter eggs](./protocols.md): the teapot (`/coffee`, `/tea`),
+  `/whoami`, `security.txt`, OpenSearch, and the Clacks header, with how to try
+  each and where the limits are.
+
 ## Design
 
 - [Design principles](./design-principles.md): the five principles and the brand

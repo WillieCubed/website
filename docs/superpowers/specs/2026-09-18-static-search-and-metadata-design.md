@@ -154,11 +154,11 @@ pages reference one another rather than repeat.
 | `/`                   | `WebSite` (`alternateName: 'WillieCubed'`), `Person` (`sameAs` from `site.social`, no email), `ProfilePage`, three `Organization`s |
 | `/writings/[slug]`    | `BlogPosting` (headline, dates, author `@id`, image, keywords, `isPartOf` for series), `BreadcrumbList`                            |
 | `/initiatives/[slug]` | `BreadcrumbList`                                                                                                                   |
-| initiative part       | `BreadcrumbList`, plus `Event` when the part has a title, a start date and at least one place                                      |
+| initiative part       | `BreadcrumbList`                                                                                                                   |
 
-`Event` uses `startDate`/`endDate`, `eventStatus: EventScheduled`,
-`eventAttendanceMode: OfflineEventAttendanceMode`, one `Place` with
-`GeoCoordinates` per entry in `places`, and the `Person` as organizer.
+Tour parts are story acts that span several cities, not events, so they carry
+no `Event` markup. `Event` and `EventSeries` markup waits until the individual
+events are modeled in the content with their own date, venue, and city.
 
 `site.ventures` in `lib/site.ts` lists the three organizations with URLs taken
 from the venture links already in `lib/home/ventures.ts`: Las Vegans for Better
@@ -209,8 +209,7 @@ missing and now appear.
 ### Tests
 
 - `tests/unit/seo-jsonld.test.mts`: each builder's required fields, absolute
-  URLs, ISO dates, no `undefined` values, `<` escaping, `Event` omitted when
-  places are missing.
+  URLs, ISO dates, no `undefined` values, `<` escaping.
 - `tests/unit/seo-metadata.test.mts`: `pageMetadata` image objects, default
   alt, article fields, Slack labels.
 - `tests/unit/seo-robots.test.mts`: the AI tokens are disallowed from
@@ -253,5 +252,5 @@ Delete: nothing.
 3. That the Pagefind trigger, themed with `--pf-*` variables, fits the design
    principles. If it cannot, replace it with a site-styled button that calls
    `modal.open()` and a small `mod+k` key handler.
-4. That `Event` markup validates in Google's Rich Results Test on a deployed
-   preview.
+4. That `BlogPosting` markup validates in Google's Rich Results Test on a
+   deployed preview.

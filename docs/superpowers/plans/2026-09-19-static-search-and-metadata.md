@@ -2899,7 +2899,7 @@ git restore --staged . && git add app/writings && git commit -F "$MSG"
 
 ---
 
-### Task 9: Initiative breadcrumbs, event markup, and brand theme colour
+### Task 9: Initiative breadcrumbs and brand theme colour
 
 **Files:**
 
@@ -2909,7 +2909,7 @@ git restore --staged . && git add app/writings && git commit -F "$MSG"
 
 **Interfaces:**
 
-- Consumes: `pageMetadata()` `imageAlt` and `labels` (Task 5); `breadcrumbLd`, `eventLd`, `graph`, `personLd` and `<JsonLd>` (Task 6)
+- Consumes: `pageMetadata()` `imageAlt` and `labels` (Task 5); `breadcrumbLd`, `graph` and `<JsonLd>` (Task 6)
 - Produces: `viewportForBrand(brand: string | undefined): Viewport` and `initiativeViewport(slug: string): Promise<Viewport>` from `@/lib/initiatives/viewport`
 
 The theme-colour lookup lives once, in `lib/initiatives/viewport.ts`, and both pages call it (Steps 1 to 3). The rest of the task is wiring with no unit test of its own; Step 9 verifies it.
@@ -3132,7 +3132,7 @@ with:
 ```tsx
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
-import { breadcrumbLd, eventLd, graph, personLd } from '@/lib/seo/jsonld';
+import { breadcrumbLd, graph } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/site';
 ```
 
@@ -3187,7 +3187,7 @@ export async function generateViewport(props: {
 export default async function PartPage(props: {
 ```
 
-- [ ] **Step 8: Part page: the breadcrumb and event graph**
+- [ ] **Step 8: Part page: the breadcrumb graph**
 
 In `app/initiatives/[slug]/[part]/page.tsx`, replace:
 
@@ -3205,23 +3205,12 @@ with:
   const cover = part.cover ?? initiative.cover;
   const partPath = `${initiative.href}/${part.slug}`;
   const partTitle = `${initiative.partLabel} ${part.number}: ${part.title}`;
-  const event = eventLd({
-    path: partPath,
-    name: partTitle,
-    description: part.description ?? part.tagline,
-    starts: part.starts,
-    ends: part.ends,
-    places: part.places,
-    image: `${partPath}/opengraph-image`,
-  });
   const partGraph = graph(
     breadcrumbLd([
       { name: 'Initiatives', path: '/initiatives' },
       { name: initiative.title, path: initiative.href },
       { name: partTitle, path: partPath },
-    ]),
-    personLd(),
-    ...(event ? [event] : [])
+    ])
   );
 
   return (
@@ -3233,7 +3222,7 @@ with:
 - [ ] **Step 9: Typecheck and verify**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 56 tests pass, typecheck clean.
+Expected: PASS. 54 tests pass, typecheck clean.
 
 Every initiative is a draft, and drafts render only in development, so use the dev server (`PORT=3010 pnpm dev:app` as a background task):
 
@@ -3242,14 +3231,12 @@ F="$(git rev-parse --git-dir)/part.html"
 curl -s http://localhost:3010/initiatives/fall-tour-2026/part-1 > "$F"
 grep -o '<meta name="theme-color"[^>]*>' "$F"
 grep -o '<meta name="twitter:label1"[^>]*>' "$F"
-node -e "const h=require('fs').readFileSync(process.argv[1],'utf8');const m=h.match(/<script type=\"application\/ld\+json\">(.*?)<\/script>/s);const g=JSON.parse(m[1])['@graph'];console.log(g.map((n)=>n['@type']).join(','));const e=g.find((n)=>n['@type']==='Event');console.log(e&&e.startDate,e&&e.location.length)" "$F"
+node -e "const h=require('fs').readFileSync(process.argv[1],'utf8');const m=h.match(/<script type=\"application\/ld\+json\">(.*?)<\/script>/s);const g=JSON.parse(m[1])['@graph'];console.log(g.map((n)=>n['@type']).join(','))" "$F"
 curl -s -o /dev/null -w '%{http_code} %{content_type}\n' http://localhost:3010/initiatives/opengraph-image
 curl -s http://localhost:3010/initiatives | grep -o '<meta property="og:image"[^>]*>'
 ```
 
-Expected: a `theme-color` meta whose content is the initiative's hex brand (when its frontmatter `brand` is a `#rrggbb`; a key such as `lvbt` leaves the site colour); a `twitter:label1` of `When`; JSON-LD types `BreadcrumbList,Person,Event` and an Event `startDate` in `YYYY-MM-DD` form with at least one location; then `200 image/png`; then an `og:image` ending in `/initiatives/opengraph-image`.
-
-If the fall-tour part has no places in its frontmatter, the Event is correctly absent: open `content/initiatives/fall-tour-2026/parts/1.mdx`, confirm `places:` is empty, and check `part-2` instead.
+Expected: a `theme-color` meta whose content is the initiative's hex brand (when its frontmatter `brand` is a `#rrggbb`; a key such as `lvbt` leaves the site colour); a `twitter:label1` of `When`; the JSON-LD type `BreadcrumbList` and no `Event`; then `200 image/png`; then an `og:image` ending in `/initiatives/opengraph-image`.
 
 - [ ] **Step 10: Format, lint, and commit**
 
@@ -3258,11 +3245,10 @@ pnpm exec prettier --write app/initiatives lib/initiatives/viewport.ts tests/uni
 pnpm exec eslint app/initiatives lib/initiatives/viewport.ts
 MSG="$(git rev-parse --git-dir)/PLAN_COMMIT_MSG"
 cat > "$MSG" <<'EOF'
-feat(initiatives): Add breadcrumbs, event markup, and brand theme colour
+feat(initiatives): Add breadcrumbs and brand theme colour
 
-Initiative pages emit breadcrumb JSON-LD and tint the browser chrome with
-their brand colour. Parts with a place also emit Event markup, and the index
-gets its own social card.
+Initiative and part pages emit breadcrumb JSON-LD and tint the browser
+chrome with their brand colour. The index gets its own social card.
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 EOF
@@ -3397,7 +3383,7 @@ with:
 - [ ] **Step 4: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 61 tests pass, typecheck clean.
+Expected: PASS. 59 tests pass, typecheck clean.
 
 - [ ] **Step 5: Format, lint, and commit**
 
@@ -3725,7 +3711,7 @@ with:
 - [ ] **Step 6: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 65 tests pass, typecheck clean.
+Expected: PASS. 63 tests pass, typecheck clean.
 
 - [ ] **Step 7: Format, lint, and commit**
 
@@ -3761,7 +3747,7 @@ pnpm typecheck
 git diff --name-only --diff-filter=d origin/main...HEAD -- '*.ts' '*.tsx' '*.mts' | xargs pnpm exec eslint
 ```
 
-Expected: 65 tests pass, typecheck clean, eslint reports nothing.
+Expected: 63 tests pass, typecheck clean, eslint reports nothing.
 
 - [ ] **Step 2: Build for production**
 
@@ -3876,4 +3862,4 @@ git restore --staged . && git add docs/superpowers/specs/2026-09-18-static-searc
 
 - [ ] **Step 7: Hand off**
 
-Report to the user: the commits made, which Task 3 branch applied (emitted Component UI files or the npm fallback), whether `generateViewport` survived the production build, and what still needs a deployed URL: Google's Rich Results Test for the `Event` and `BlogPosting` markup, an Open Graph preview check, and confirming the `pagefind` binary installs on Vercel's Linux build. Nothing is pushed.
+Report to the user: the commits made, which Task 3 branch applied (emitted Component UI files or the npm fallback), whether `generateViewport` survived the production build, and what still needs a deployed URL: Google's Rich Results Test for the `BlogPosting` markup, an Open Graph preview check, and confirming the `pagefind` binary installs on Vercel's Linux build. Nothing is pushed.

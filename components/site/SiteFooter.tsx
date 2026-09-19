@@ -14,6 +14,17 @@ import FeedsButton from './FeedsButton';
 import FooterLockup from './FooterLockup';
 import './site.css';
 
+/**
+ * Every routed page from the site manifest, then search. Search is a tool
+ * rather than one of the site's own pages, so it stays out of `sitePages`
+ * and out of the sitemap, but the link is here for visitors whose scripts
+ * never ran and who cannot open the ⌘K dialog.
+ */
+const PAGES = [
+  ...routedPages.map((page) => ({ label: page.label, href: page.path })),
+  { label: 'Search', href: '/search' },
+];
+
 const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
   {
     label: 'Email',
@@ -89,9 +100,9 @@ export default function SiteFooter() {
           </div>
           <nav aria-label="Pages" className="site-footer__pages">
             <ul className="flex flex-wrap gap-x-5 gap-y-1">
-              {routedPages.map((page) => (
-                <li key={page.path}>
-                  <SiteLink preview={false} href={page.path} className={LINK}>
+              {PAGES.map((page) => (
+                <li key={page.href}>
+                  <SiteLink preview={false} href={page.href} className={LINK}>
                     {page.label}
                   </SiteLink>
                 </li>

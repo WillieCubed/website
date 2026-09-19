@@ -30,6 +30,15 @@ test('training crawlers are kept out of /writings/ under their real tokens', () 
   }
 });
 
+test('training crawlers are also kept off the full-text copies of the writings', () => {
+  const group = rules.find((rule) => agents(rule).includes('GPTBot'));
+  assert.ok(group);
+  const disallowed = [group.disallow ?? []].flat();
+  for (const path of ['/pagefind/', '/search-index.json', '/api/search']) {
+    assert.ok(disallowed.includes(path), `${path} is not disallowed`);
+  }
+});
+
 test('the invented Googlebot-Extended token is gone', () => {
   assert.ok(!blockedFromWritings.includes('Googlebot-Extended'));
 });

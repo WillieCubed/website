@@ -81,7 +81,7 @@ export async function searchPostgres(
 export async function indexItem(item: SearchableItem): Promise<void> {
   const url = item.path;
 
-  const tagsArray = `{${item.tags.map((t) => `"${t.replace(/"/g, '\\"')}"`).join(',')}}`;
+  const tagsArray = `{${item.tags.map((t) => `"${t.replace(/[\\"]/g, '\\$&')}"`).join(',')}}`;
 
   await sql`
     INSERT INTO search_index (

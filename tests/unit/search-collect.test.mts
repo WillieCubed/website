@@ -190,3 +190,41 @@ test('collectSearchDocuments returns unique keys, rooted paths, and the static p
     );
   }
 });
+
+test('the search text keeps prose that JSX, code spans, and underscores used to eat', () => {
+  const text = (content: string) =>
+    writingToItem(
+      {
+        slug: 'x',
+        title: 'X',
+        description: '',
+        published: new Date('2026-01-04T00:00:00Z'),
+        lastUpdated: new Date('2026-01-04T00:00:00Z'),
+        tags: [],
+        draft: false,
+        readingTime: 1,
+        postType: 'article',
+      },
+      content
+    ).content;
+
+  assert.equal(
+    text(
+      'Use `Promise<Response>` here. Keep this sentence.\n\n<Aside>side</Aside> end'
+    ),
+    'Use  here. Keep this sentence.\n\nside end'
+  );
+  assert.equal(text('before <Callout tone={a > b} /> after'), 'before  after');
+  assert.equal(
+    text('The flag is snake_case_name in config.'),
+    'The flag is snake_case_name in config.'
+  );
+  assert.equal(
+    text('A <Ref href="/x">important cited text</Ref> B'),
+    'A important cited text B'
+  );
+  assert.equal(
+    text('An _emphasised_ word and __strong__ one.'),
+    'An emphasised word and strong one.'
+  );
+});

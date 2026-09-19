@@ -53,7 +53,7 @@ export async function generateMetadata(props: {
     title: writing.title,
     description: writing.description,
     path,
-    image: `${path}/opengraph-image`,
+    image: writing.featuredImage || `${path}/opengraph-image`,
     imageAlt: writing.featuredImageAlt || writing.title,
     type: 'article',
     publishedTime: writing.published,

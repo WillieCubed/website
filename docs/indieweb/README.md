@@ -23,7 +23,7 @@ The canonical origin, author name, photo, and social profiles all come from
 | `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                                      | nothing                           |
 | `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, initiatives, and pages, answered from this domain   | nothing (Postgres optional)       |
 | `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres`          | Postgres, `SEARCH_REINDEX_SECRET` |
-| ⌘K on any page                                                     | Pagefind dialog over the same content as `/search`; its index is served from `/pagefind/` | nothing                           |
+| ⌘K where the search button shows                                   | Pagefind dialog over the same content as `/search`; its index is served from `/pagefind/` | nothing                           |
 | `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints                      | nothing                           |
 | `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                                 | nothing                           |
 | `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                          | nothing                           |

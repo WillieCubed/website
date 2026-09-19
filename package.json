@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "PORTLESS_PORT=1355 portless",
     "dev:app": "next dev",
+    "predev:app": "tsx scripts/generate-search-index.ts",
     "prebuild": "tsx scripts/generate-search-index.ts",
     "build": "next build",
     "postbuild": "tsx scripts/postbuild.mts",
@@ -87,8 +88,8 @@
     "typescript-eslint": "^8.60.1"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": "eslint --cache --fix",
-    "*.{js,jsx,ts,tsx,css,md}": "prettier --write"
+    "*.{js,jsx,ts,tsx,mjs,mts}": "eslint --cache --fix",
+    "*.{js,jsx,ts,tsx,mjs,mts,css,md}": "prettier --write"
   },
   "overrides": {
     "@types/react": "19.2.16",

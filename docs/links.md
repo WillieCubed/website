@@ -40,7 +40,7 @@ cover, an optional brand seed, and one line of context. It is served once per
 visit as `/entities.json`, and `SiteLink` fetches it the first time a visitor
 shows intent. A page that is not in the registry gets no card, which is the
 signal to add it: content pages come from their loaders, and hand-written
-pages are listed in `STATIC_PAGES` at the top of the registry.
+pages are listed in `STATIC_PAGES` in `lib/entities/pages.ts`.
 
 An initiative or part with a `brand` seed paints its card in that Material 3
 scheme, the same way its page and tile do.

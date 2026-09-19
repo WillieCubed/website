@@ -16,7 +16,8 @@ export default function robots(): MetadataRoute.Robots {
         allow: ['/', MCP_ENDPOINT],
         disallow: ['/api/', '/admin/', '/hi/'],
       },
-      // AI training crawlers stay out of the writings. Search crawlers and
+      // AI training crawlers stay out of the writings and out of the search
+      // artifacts that carry their full text. Search crawlers and
       // link-preview bots (Slackbot, LinkedInBot, facebookexternalhit,
       // Twitterbot) are deliberately not listed, so results and unfurls work.
       // Google-Extended is the real opt-out token for Gemini training;
@@ -34,7 +35,12 @@ export default function robots(): MetadataRoute.Robots {
           'CCBot',
           'Omgilibot',
         ],
-        disallow: ['/writings/'],
+        disallow: [
+          '/writings/',
+          '/pagefind/',
+          '/search-index.json',
+          '/api/search',
+        ],
       },
     ],
     sitemap: absoluteUrl('/sitemap.xml'),

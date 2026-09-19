@@ -18,8 +18,10 @@ image-size option to `pageMetadata` when they are routed again.
 
 Projects also left the site feeds and search. When the project pages come
 back, restore the project items in the three site feeds under
-`app/feed.xml` and `app/feed/`, and remove the writing-only filter in
-`searchContent` in `lib/search/server.ts`.
+`app/feed.xml` and `app/feed/`, remove the project exclusions in
+`selectSearchable` (`lib/search/server.ts`), `SearchContentType`
+(`lib/search/types.ts`), and `app/api/search/route.ts`, and have
+`lib/search/collect.ts` emit project items.
 
 `layout.tsx` here is the old layout for these pages, which adds the top
 bar. It only applies while the pages sit in this folder.

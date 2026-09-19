@@ -17,6 +17,8 @@ export * from './schema';
 
 const CONTENT_DIR = join(process.cwd(), 'content', 'initiatives');
 const HIDDEN_PREFIX = '_';
+/** Slugs that conflict with static routes under /initiatives/. */
+const RESERVED_SLUGS = ['opengraph-image'];
 
 /** Turns a part number into its URL segment. */
 export function partSlug(number: number): string {
@@ -66,12 +68,17 @@ function listInitiativeSlugs(): string[] {
   return readdirSync(CONTENT_DIR, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .filter((entry) => !entry.name.startsWith(HIDDEN_PREFIX))
+    .filter((entry) => !RESERVED_SLUGS.includes(entry.name))
     .filter((entry) => existsSync(join(CONTENT_DIR, entry.name, 'index.mdx')))
     .map((entry) => entry.name)
     .sort();
 }
 
-function loadParts(slug: string, now: Date): Part[] {
+function loadParts(
+  slug: string,
+  now: Date,
+  includeDrafts = showDrafts
+): Part[] {
   const dir = join(initiativeDir(slug), 'parts');
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
@@ -94,11 +101,15 @@ function loadParts(slug: string, now: Date): Part[] {
         content,
       } satisfies Part;
     })
-    .filter((part) => !part.draft || process.env.NODE_ENV !== 'production')
+    .filter((part) => !part.draft || includeDrafts)
     .sort((a, b) => a.number - b.number);
 }
 
-function loadInitiative(slug: string, now: Date): Initiative {
+function loadInitiative(
+  slug: string,
+  now: Date,
+  includeDraftParts = showDrafts
+): Initiative {
   const filePath = join(initiativeDir(slug), 'index.mdx');
   if (!existsSync(filePath)) {
     throw new Error(`Initiative "${slug}" cannot be found.`);
@@ -110,7 +121,7 @@ function loadInitiative(slug: string, now: Date): Initiative {
       `Invalid initiative frontmatter in ${filePath}:\n${parsed.error.message}`
     );
   }
-  const parts = loadParts(slug, now);
+  const parts = loadParts(slug, now, includeDraftParts);
   const { status, ...rest } = parsed.data;
   const starts = rest.starts ?? parts[0]?.starts;
   const ends = rest.ends ?? parts.at(-1)?.ends;
@@ -130,17 +141,17 @@ function loadInitiative(slug: string, now: Date): Initiative {
  * Every initiative read straight from disk with no Next.js cache involved.
  *
  * Build scripts run under plain Node, where `cacheLife()` throws, so they
- * call this instead of {@link getInitiatives}. Drafts are excluded unless
- * `includeDrafts` is set, and NODE_ENV is not consulted for the initiative
- * itself. Parts come back as loaded, which includes draft parts outside
- * production, so callers that must skip them filter on `part.draft`.
+ * call this instead of {@link getInitiatives}. Drafts, and draft parts, are
+ * left out unless `includeDrafts` is set. NODE_ENV is not consulted, so the
+ * dates and status derived from an initiative's parts match what production
+ * serves.
  */
 export function loadAllInitiatives(
   options: { includeDrafts?: boolean; now?: Date } = {}
 ): Initiative[] {
   const { includeDrafts = false, now = new Date() } = options;
   return listInitiativeSlugs()
-    .map((slug) => loadInitiative(slug, now))
+    .map((slug) => loadInitiative(slug, now, includeDrafts))
     .filter((item) => includeDrafts || !item.draft);
 }
 

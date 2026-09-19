@@ -50,7 +50,7 @@ export async function generateMetadata(props: {
   }
   return pageMetadata({
     title: `${initiative.partLabel} ${part.number}: ${part.title}`,
-    description: part.description ?? part.tagline ?? initiative.description,
+    description: part.description || part.tagline || initiative.description,
     path: `${initiative.href}/${part.slug}`,
     image: `${initiative.href}/${part.slug}/opengraph-image`,
     type: 'article',
@@ -76,10 +76,17 @@ export default async function PartPage(props: {
   const cover = part.cover ?? initiative.cover;
   const partPath = `${initiative.href}/${part.slug}`;
   const partTitle = `${initiative.partLabel} ${part.number}: ${part.title}`;
+  // One trail feeds the top bar and the breadcrumb markup, and it includes a
+  // parent initiative the way the initiative page does.
+  const parent = initiative.parent
+    ? await getInitiative(initiative.parent).catch(() => null)
+    : null;
+  const crumbs = [{ label: 'Initiatives', href: '/initiatives' }];
+  if (parent) crumbs.push({ label: parent.title, href: parent.href });
+  crumbs.push({ label: initiative.title, href: initiative.href });
   const partGraph = graph(
     breadcrumbLd([
-      { name: 'Initiatives', path: '/initiatives' },
-      { name: initiative.title, path: initiative.href },
+      ...crumbs.map((crumb) => ({ name: crumb.label, path: crumb.href })),
       { name: partTitle, path: partPath },
     ])
   );
@@ -87,12 +94,7 @@ export default async function PartPage(props: {
   return (
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
       <JsonLd data={partGraph} />
-      <TopBar
-        crumbs={[
-          { label: 'Initiatives', href: '/initiatives' },
-          { label: initiative.title, href: initiative.href },
-        ]}
-      />
+      <TopBar crumbs={crumbs} />
       <main className="mx-auto max-w-[1200px] px-5 pb-20">
         <header className="relative overflow-hidden rounded-3xl bg-ink text-ground">
           {cover && (

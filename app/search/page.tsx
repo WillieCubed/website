@@ -28,7 +28,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
         <>
           <p className="mb-lg text-body-medium text-on-surface-variant">
             Press <kbd className="font-mono">⌘K</kbd> (Ctrl+K on Windows and
-            Linux) on any page for instant search.
+            Linux) for instant search.
           </p>
           <div className="mb-lg">
             <PagefindTrigger />

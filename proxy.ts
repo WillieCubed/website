@@ -23,6 +23,9 @@ const BLOCKED_HIATUS_PATHS = new Set([
   '/random',
   '/research',
   '/writings',
+  // The search index holds the text of every published page.
+  '/pagefind',
+  '/search-index.json',
 ]);
 
 function isAllowedHiatusPath(pathname: string): boolean {

@@ -40,7 +40,7 @@ export type { WritingData, TOCHeading };
 const HIDDEN_ITEM_PREFIX = '_';
 
 /** Slugs that conflict with routes under /writings/ */
-const RESERVED_WRITING_SLUGS = ['series'];
+const RESERVED_WRITING_SLUGS = ['series', 'opengraph-image'];
 
 const writingsDirectory = join(process.cwd(), 'content/writings');
 

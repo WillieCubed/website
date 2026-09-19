@@ -9,9 +9,10 @@ const COMPONENT_UI = '/pagefind/pagefind-component-ui';
 
 /**
  * Adds Pagefind's Component UI to the page once. The script defines the
- * <pagefind-modal> and <pagefind-modal-trigger> elements and registers the
- * ⌘K / Ctrl+K shortcut. The search index and its WASM load later still, on
- * the first search.
+ * <pagefind-modal> and <pagefind-modal-trigger> elements. Each trigger
+ * registers the ⌘K / Ctrl+K shortcut while it is on the page, so the shortcut
+ * works only on pages that render one. The search index and its WASM load
+ * later still, on the first search.
  */
 function loadComponentUi() {
   if (document.querySelector('script[data-pagefind-ui]')) return;
@@ -25,6 +26,13 @@ function loadComponentUi() {
   script.type = 'module';
   script.src = `${COMPONENT_UI}.js`;
   script.dataset.pagefindUi = '';
+  script.onerror = () => {
+    // Drop the failed tags so the next click can try again, instead of leaving
+    // every trigger dead until a full reload.
+    script.remove();
+    link.remove();
+    document.addEventListener('pointerdown', loadComponentUi, { once: true });
+  };
   document.head.append(script);
 }
 

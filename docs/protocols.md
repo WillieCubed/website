@@ -55,8 +55,8 @@ the site already publishes, and every tool is read-only. Point a client at
   site's own loaders, which hide drafts in production. The tools test against
   plain data through the `SiteContent` interface, because the loaders only run
   inside Next. While every writing is a draft, `list_writings` and
-  `search_writings` return nothing in production, as `/writings` and `/search`
-  do. In development drafts show, except in search, whose index always leaves
+  `search_writings` return nothing in production, as `/writings` does, while
+  `/search` still finds the static pages. In development drafts show, except in search, whose index always leaves
   them out. In hiatus mode the writing tools return nothing and `/llms.txt`
   lists no writings, because `proxy.ts` 404s `/writings` then; initiatives
   stay. `get_writing` returns the MDX source, so a few JSX components such as

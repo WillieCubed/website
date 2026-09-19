@@ -94,6 +94,7 @@
   display: grid;
   grid-template-columns: 2.2em minmax(0, 1fr) auto;
   gap: 8px;
+  margin-left: calc(-2.2em - 8px);
   align-items: baseline;
   font-size: 14px;
   line-height: 1.5;

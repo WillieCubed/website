@@ -11,6 +11,7 @@ import { randomlyChooseTagline } from '@/lib/enhancements';
 import { site } from '@/lib/site';
 
 import FeedsButton from './FeedsButton';
+import './site.css';
 
 const PAGES = [
   { label: 'Now', href: '/now' },
@@ -54,7 +55,7 @@ async function Tagline() {
 }
 
 const PILL =
-  'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-label-large text-ink transition-colors hover:bg-card hover:text-accent';
+  'inline-flex items-center gap-2 rounded-full border border-transparent px-3 py-1.5 text-label-large text-ink transition-colors hover:border-line hover:bg-card hover:text-accent';
 
 /**
  * The end of every page: who this is, the way back to the main pages,
@@ -62,8 +63,8 @@ const PILL =
  */
 export default function SiteFooter() {
   return (
-    <footer className="mt-16 bg-tray">
-      <div className="mx-auto grid max-w-[1200px] gap-x-10 gap-y-8 px-5 py-12 expanded:grid-cols-[minmax(0,1fr)_auto] expanded:items-end">
+    <footer className="site-footer">
+      <div className="site-footer__inner">
         <div className="space-y-3">
           <p className="text-headline-small font-semibold text-ink">
             {site.name}
@@ -72,8 +73,8 @@ export default function SiteFooter() {
             <Tagline />
           </Suspense>
         </div>
-        <nav aria-label="Pages" className="expanded:self-start">
-          <ul className="-mx-3 flex flex-wrap gap-1 expanded:justify-end">
+        <nav aria-label="Pages" className="site-footer__pages">
+          <ul className="flex flex-wrap gap-1">
             {PAGES.map((page) => (
               <li key={page.href}>
                 <SiteLink preview={false} href={page.href} className={PILL}>
@@ -84,7 +85,7 @@ export default function SiteFooter() {
           </ul>
         </nav>
         <FeedsButton />
-        <ul className="-mx-3 flex flex-wrap gap-1 expanded:justify-end">
+        <ul className="site-footer__profiles flex flex-wrap gap-1">
           {site.social.map((profile) => (
             <li key={profile.href}>
               <a href={profile.href} rel="me" className={PILL}>

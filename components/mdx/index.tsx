@@ -80,7 +80,7 @@ export const mdxComponents = {
     </li>
   ),
   blockquote: ({ children }: PropsWithChildren) => (
-    <blockquote className="my-6 border-l-4 border-primary pl-4 italic text-gray-700 dark:text-gray-300">
+    <blockquote className="-ml-5 my-6 border-l-4 border-accent/40 pl-4 italic text-prose">
       {children}
     </blockquote>
   ),

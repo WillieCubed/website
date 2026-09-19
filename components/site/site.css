@@ -1,3 +1,49 @@
+/* The footer's text sits on the same vertical line as the page above
+   it. The top bar carries the page's column as data-column, and the
+   footer follows it from here. Buttons keep their outer edge on the line;
+   only cards and quotes reach past it. */
+.site-footer {
+  margin-top: 64px;
+  background: var(--color-tray);
+}
+.site-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 20px;
+  display: grid;
+  gap: 32px 40px;
+  align-items: end;
+}
+@media (min-width: 840px) {
+  .site-footer__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .site-footer__pages {
+    align-self: start;
+  }
+  .site-footer__pages ul,
+  .site-footer__profiles {
+    justify-content: flex-end;
+  }
+}
+body:has([data-column='content']) .site-footer__inner {
+  max-width: 840px;
+}
+body:has([data-column='reading']) .site-footer__inner {
+  max-width: 640px;
+  padding-inline: 24px;
+  grid-template-columns: minmax(0, 1fr);
+}
+body:has([data-column='reading']) .site-footer__pages ul,
+body:has([data-column='reading']) .site-footer__profiles {
+  justify-content: flex-start;
+}
+@media (min-width: 1200px) {
+  body:has([data-column='reading']) .site-footer__inner {
+    padding-inline: 0;
+  }
+}
+
 /* The feeds button and its popover. The popover borrows the hover card's
    surface so every floating panel on the site reads as one family. */
 .feeds-button {

@@ -33,6 +33,7 @@ interface TopBarProps {
 export default function TopBar({ crumbs = [], column = 'wide' }: TopBarProps) {
   return (
     <header
+      data-column={column}
       className={`mx-auto flex items-center gap-3 py-4 text-label-large text-muted ${COLUMN[column]}`}
     >
       <SiteLink

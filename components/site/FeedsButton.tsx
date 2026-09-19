@@ -52,7 +52,7 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
         ref={button}
         type="button"
         popoverTarget={id}
-        className="feeds-button justify-self-start"
+        className="feeds-button"
       >
         <Icon name="rss" size={16} />
         Feeds

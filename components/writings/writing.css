@@ -8,7 +8,14 @@
   display: block;
   width: 2px;
   height: 20px;
-  margin: 6px 0 6px 13px;
+  margin: 6px 0 6px -7px;
   border-radius: 1px;
   background: var(--color-line);
+}
+
+/* Code blocks reach past the text column on both sides so the code
+   inside starts on the same line as the paragraphs around it. */
+.e-content pre {
+  margin-inline: -1.25rem;
+  padding-inline: 1.25rem;
 }

@@ -18,7 +18,7 @@ export default function SeriesNav({
   const totalParts = writings.length;
 
   return (
-    <nav className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <nav className="-mx-lg rounded-2xl border border-line bg-card p-lg">
       <div className="space-y-md">
         {/* Series header */}
         <div className="flex items-center justify-between">

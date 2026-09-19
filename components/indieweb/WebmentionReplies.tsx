@@ -23,7 +23,7 @@ export default function WebmentionReplies({ replies }: WebmentionRepliesProps) {
         {replies.map((reply) => (
           <li
             key={reply.id}
-            className="flex gap-3 rounded-2xl border border-line bg-card px-4 py-3"
+            className="-mx-4 flex gap-3 rounded-2xl border border-line bg-card px-4 py-3"
           >
             <WebmentionAvatar author={reply.author} size="md" />
             <div className="min-w-0 flex-1 space-y-1">

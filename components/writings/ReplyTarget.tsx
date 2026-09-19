@@ -4,7 +4,7 @@ import Icon, { type IconName } from '@/components/icons/Icon';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
 import { formatDate } from '@/lib/site';
-import type { RSVPStatus } from '@/lib/writings/types';
+import type { RSVPStatus, WritingData } from '@/lib/writings/types';
 
 export type TargetKind = 'reply' | 'like' | 'repost' | 'bookmark' | 'rsvp';
 
@@ -23,13 +23,37 @@ const MICROFORMAT: Record<TargetKind, string> = {
   rsvp: 'u-in-reply-to',
 };
 
-const ICON: Record<TargetKind, IconName> = {
+export const TARGET_ICON: Record<TargetKind, IconName> = {
   reply: 'reply',
   like: 'heart',
   repost: 'repeat',
   bookmark: 'bookmark',
   rsvp: 'calendar',
 };
+
+/** The word a feed would show for each kind of post. */
+export const TARGET_WORD: Record<TargetKind, string> = {
+  reply: 'Replying to',
+  like: 'Liked',
+  repost: 'Reposted',
+  bookmark: 'Bookmarked',
+  rsvp: 'RSVP',
+};
+
+/**
+ * The page a post answers and how. A post carries one of these; the order
+ * decides which wins if frontmatter sets more than one.
+ */
+export function replyTargetOf(
+  writing: WritingData
+): { url: string; kind: TargetKind } | null {
+  if (writing.likeOf) return { url: writing.likeOf, kind: 'like' };
+  if (writing.repostOf) return { url: writing.repostOf, kind: 'repost' };
+  if (writing.bookmarkOf) return { url: writing.bookmarkOf, kind: 'bookmark' };
+  if (writing.rsvp) return { url: writing.rsvp.eventUrl, kind: 'rsvp' };
+  if (writing.inReplyTo) return { url: writing.inReplyTo, kind: 'reply' };
+  return null;
+}
 
 const RSVP_WORD: Record<RSVPStatus, string> = {
   yes: 'Going',
@@ -67,12 +91,12 @@ export default function ReplyTarget({
     <div className="reply-target">
       <a
         href={url}
-        className={`${MICROFORMAT[kind]} h-cite group -mx-4 flex flex-col gap-1 rounded-2xl border border-line bg-card px-4 py-4 medium:-mx-5 medium:px-5 text-ink no-underline transition-colors hover:border-accent`}
+        className={`${MICROFORMAT[kind]} h-cite group bleed flex flex-col gap-1 rounded-2xl border border-line bg-card py-4 text-ink no-underline transition-colors hover:border-accent`}
         rel={kind === 'reply' || kind === 'rsvp' ? 'in-reply-to' : 'nofollow'}
       >
         <span className="flex items-center gap-2 text-label-medium text-muted">
           <Icon
-            name={ICON[kind]}
+            name={TARGET_ICON[kind]}
             size={14}
             title={kind === 'reply' ? 'Replying to' : undefined}
           />
@@ -125,7 +149,7 @@ export default function ReplyTarget({
   );
 }
 
-function hostOf(url: string): string {
+export function hostOf(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
   } catch {

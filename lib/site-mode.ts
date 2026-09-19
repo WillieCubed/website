@@ -1,5 +1,8 @@
 export type SiteMode = 'hiatus' | 'live';
 
+/** Drafts render in development so they can be previewed, never in production. */
+export const showDrafts = process.env.NODE_ENV !== 'production';
+
 export const HIATUS_MESSAGE = 'Willie will return shortly.';
 
 type SiteModeEnv = Record<string, string | undefined>;

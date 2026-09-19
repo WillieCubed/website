@@ -4,6 +4,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import readingTime from 'reading-time';
 
+import { showDrafts } from '@/lib/site-mode';
+
 // =============================================================================
 // Series functions - delegating to collections module
 // =============================================================================
@@ -260,8 +262,7 @@ function deriveTitle(
   return { title: title || 'Untitled note', explicit: false };
 }
 
-/** Drafts render in development so they can be previewed, never in production. */
-export const showDrafts = process.env.NODE_ENV !== 'production';
+export { showDrafts };
 
 /**
  * One writing, or a thrown error when it is a draft and drafts are not

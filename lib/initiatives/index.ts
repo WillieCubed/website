@@ -3,6 +3,8 @@ import { cacheLife } from 'next/cache';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { showDrafts } from '@/lib/site-mode';
+
 import {
   type Initiative,
   InitiativeFrontmatterSchema,
@@ -123,9 +125,6 @@ function loadInitiative(slug: string, now: Date): Initiative {
     href: `/initiatives/${slug}`,
   };
 }
-
-/** Drafts render in development so they can be previewed, never in production. */
-const showDrafts = process.env.NODE_ENV !== 'production';
 
 /**
  * Every initiative slug a visitor can open: hidden ones excluded, and

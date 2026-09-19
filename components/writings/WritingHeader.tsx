@@ -4,7 +4,7 @@ import type { ReplyContext } from '@/lib/indieweb/reply-context';
 import { formatDate } from '@/lib/site';
 import { SeriesWithWritings, WritingData } from '@/lib/writings';
 
-import ReplyTarget, { type TargetKind } from './ReplyTarget';
+import ReplyTarget, { replyTargetOf } from './ReplyTarget';
 import './writing.css';
 
 interface WritingHeaderProps {
@@ -30,7 +30,7 @@ export default function WritingHeader({
 }: WritingHeaderProps) {
   const publishedIso = new Date(writing.published).toISOString();
   const updatedIso = new Date(writing.lastUpdated).toISOString();
-  const target = targetOf(writing);
+  const target = replyTargetOf(writing);
 
   return (
     <header className="mx-auto max-w-breakpoint-md px-lg pb-md pt-8 desktop:px-0">
@@ -78,17 +78,6 @@ export default function WritingHeader({
       )}
     </header>
   );
-}
-
-function targetOf(
-  writing: WritingData
-): { url: string; kind: TargetKind } | null {
-  if (writing.likeOf) return { url: writing.likeOf, kind: 'like' };
-  if (writing.repostOf) return { url: writing.repostOf, kind: 'repost' };
-  if (writing.bookmarkOf) return { url: writing.bookmarkOf, kind: 'bookmark' };
-  if (writing.rsvp) return { url: writing.rsvp.eventUrl, kind: 'rsvp' };
-  if (writing.inReplyTo) return { url: writing.inReplyTo, kind: 'reply' };
-  return null;
 }
 
 function Byline({

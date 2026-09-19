@@ -5,15 +5,10 @@ every page in here returns a 404. These are the pages from the old site
 that have not been rebuilt in the new design yet. Landing, writings, and
 initiatives are the only routed pages.
 
-To bring a page back, rebuild it and move its folder to `app/<route>`.
-Then add it back in the places that skip parked pages on purpose:
-
-- the page links in `components/site/SiteFooter.tsx`
-- the page list in `app/sitemap.ts`
-- the static page cards in `lib/entities/registry.ts`, so links to it get
-  a hover card
-- `site.parkedPaths` in `lib/site.ts`, which makes the 404 page say the
-  page is being rebuilt; remove the path from it
+To bring a page back, rebuild it, move its folder to `app/<route>`, and
+set its `routed` flag to true in `sitePages` in `lib/site.ts`. The footer
+links, the sitemap, the hover-card registry, and the 404 page's "being
+rebuilt" note all read that list.
 
 Projects also left the site feeds and search. When the project pages come
 back, restore the project items in the three site feeds under

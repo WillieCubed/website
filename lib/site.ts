@@ -47,29 +47,119 @@ export const site = {
     'tour.willie.page': '/initiatives/fall-tour-2026',
     'diaries.willie.page': '/initiatives/twd',
   },
-  /**
-   * Paths that belonged to pages now parked in app/_(pages) while they are
-   * rebuilt. The 404 page tells visitors with old links that the page is
-   * coming back. Remove a path when its page is routed again.
-   */
-  parkedPaths: [
-    '/about',
-    '/apps',
-    '/colophon',
-    '/contact',
-    '/media',
-    '/now',
-    '/projects',
-    '/random',
-  ],
 } as const;
+
+export interface SitePage {
+  path: string;
+  label: string;
+  /** The hover card's description once the page is routed. */
+  description: string;
+  /** False while the page is parked in app/_(pages) for a rebuild. */
+  routed: boolean;
+  changeFrequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  priority: number;
+}
+
+/**
+ * Every top-level page. When a parked page is rebuilt and its folder moves
+ * out of app/_(pages), set `routed` to true here: the footer links, the
+ * sitemap, the hover-card registry, and the 404's rebuilt note all read
+ * this list.
+ */
+export const sitePages: SitePage[] = [
+  {
+    path: '/writings',
+    label: 'Writings',
+    description: 'Articles, notes, and replies from Willie.',
+    routed: true,
+    changeFrequency: 'daily',
+    priority: 0.9,
+  },
+  {
+    path: '/initiatives',
+    label: 'Initiatives',
+    description:
+      'The campaigns, series, and projects Willie is running right now.',
+    routed: true,
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  },
+  {
+    path: '/about',
+    label: 'About',
+    description: 'Who Willie is, what he has done, and where he is going.',
+    routed: false,
+    changeFrequency: 'yearly',
+    priority: 0.75,
+  },
+  {
+    path: '/apps',
+    label: 'Apps',
+    description: 'The apps Willie has shipped.',
+    routed: false,
+    changeFrequency: 'monthly',
+    priority: 0.3,
+  },
+  {
+    path: '/colophon',
+    label: 'Colophon',
+    description: 'How this site is made.',
+    routed: false,
+    changeFrequency: 'yearly',
+    priority: 0.3,
+  },
+  {
+    path: '/contact',
+    label: 'Contact',
+    description: "How to get in touch with Willie. It's pretty simple.",
+    routed: false,
+    changeFrequency: 'yearly',
+    priority: 0.6,
+  },
+  {
+    path: '/media',
+    label: 'Media',
+    description: 'The Willie Diaries and other creative work.',
+    routed: false,
+    changeFrequency: 'monthly',
+    priority: 0.6,
+  },
+  {
+    path: '/now',
+    label: 'Now',
+    description: "What Willie is working on and what's coming up next.",
+    routed: false,
+    changeFrequency: 'weekly',
+    priority: 0.5,
+  },
+  {
+    path: '/projects',
+    label: 'Projects',
+    description: 'Apps and other things Willie has built.',
+    routed: false,
+    changeFrequency: 'monthly',
+    priority: 0.9,
+  },
+  {
+    path: '/random',
+    label: 'Random',
+    description: 'A page picked at random.',
+    routed: false,
+    changeFrequency: 'yearly',
+    priority: 0.1,
+  },
+];
+
+/** The top-level pages a visitor can open. */
+export const routedPages = sitePages.filter((page) => page.routed);
 
 /**
  * True when a path belonged to a page that is parked while it is rebuilt.
  */
 export function isParkedPath(path: string): boolean {
-  return site.parkedPaths.some(
-    (parked) => path === parked || path.startsWith(`${parked}/`)
+  return sitePages.some(
+    (page) =>
+      !page.routed && (path === page.path || path.startsWith(`${page.path}/`))
   );
 }
 

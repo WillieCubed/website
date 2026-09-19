@@ -1,8 +1,10 @@
-import Icon, { type IconName } from '@/components/icons/Icon';
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
 import { formatDate } from '@/lib/site';
 import { WritingData } from '@/lib/writings';
+
+import { TARGET_ICON, TARGET_WORD, hostOf, replyTargetOf } from './ReplyTarget';
 
 interface WritingItemProps {
   writing: WritingData;
@@ -25,7 +27,7 @@ export default function WritingItem({
   showSeriesInfo = true,
 }: WritingItemProps) {
   const publishedIso = new Date(writing.published).toISOString();
-  const target = targetOf(writing);
+  const target = replyTargetOf(writing);
 
   return (
     <article className="h-entry group relative -mx-3 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent">
@@ -55,7 +57,11 @@ export default function WritingItem({
           {target && (
             <>
               <span className="flex items-center gap-1">
-                <Icon name={target.icon} size={13} title={target.word} />
+                <Icon
+                  name={TARGET_ICON[target.kind]}
+                  size={13}
+                  title={TARGET_WORD[target.kind]}
+                />
                 {hostOf(target.url)}
               </span>
               <span aria-hidden="true">·</span>
@@ -90,33 +96,4 @@ export default function WritingItem({
       </div>
     </article>
   );
-}
-
-function targetOf(
-  writing: WritingData
-): { url: string; icon: IconName; word: string } | null {
-  if (writing.likeOf) {
-    return { url: writing.likeOf, icon: 'heart', word: 'Liked' };
-  }
-  if (writing.repostOf) {
-    return { url: writing.repostOf, icon: 'repeat', word: 'Reposted' };
-  }
-  if (writing.bookmarkOf) {
-    return { url: writing.bookmarkOf, icon: 'bookmark', word: 'Bookmarked' };
-  }
-  if (writing.rsvp) {
-    return { url: writing.rsvp.eventUrl, icon: 'calendar', word: 'RSVP' };
-  }
-  if (writing.inReplyTo) {
-    return { url: writing.inReplyTo, icon: 'reply', word: 'Replying to' };
-  }
-  return null;
-}
-
-function hostOf(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return url;
-  }
 }

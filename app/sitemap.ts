@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 
 import { getInitiatives } from '@/lib/initiatives';
+import { routedPages } from '@/lib/site';
 import { siteRoute } from '@/lib/url-utils';
 import { getAllWritings } from '@/lib/writings';
 
@@ -39,16 +40,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 1,
     },
-    {
-      url: siteRoute`/writings`,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: siteRoute`/initiatives`,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
+    ...routedPages.map((page) => ({
+      url: siteRoute`${page.path}`,
+      changeFrequency: page.changeFrequency,
+      priority: page.priority,
+    })),
     ...initiativeItems,
     ...writingItems,
   ] as MetadataRoute.Sitemap; // Because the mapped item lists are not typed as MetadataRoute.SitemapItem[] for some reason

@@ -17,6 +17,7 @@ import './site.css';
 const PAGES = [
   { label: 'Writings', href: '/writings' },
   { label: 'Initiatives', href: '/initiatives' },
+  { label: 'Search', href: '/search' },
 ];
 
 const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [

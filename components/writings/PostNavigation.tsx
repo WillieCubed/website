@@ -20,7 +20,7 @@ export default function PostNavigation({
 
   return (
     <nav
-      className="mt-12 grid gap-3 medium:grid-cols-2"
+      className="-mx-5 mt-12 grid gap-3 medium:grid-cols-2"
       aria-label="Nearby posts"
     >
       {previous ? (

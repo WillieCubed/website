@@ -44,12 +44,17 @@ function SocialIcon({ label }: { label: string }) {
 
 /**
  * The tagline changes once an hour rather than on every render, so the
- * page and its hydration agree on it.
+ * page and its hydration agree on it. Only the text is cached, so a style
+ * change never waits on the cache.
  */
-async function Tagline() {
+async function hourlyTagline(): Promise<string> {
   'use cache';
   cacheLife('hours');
-  return <p className="text-title-large text-ink">{randomlyChooseTagline()}</p>;
+  return randomlyChooseTagline();
+}
+
+async function Tagline() {
+  return <p className="text-body-medium text-muted">{await hourlyTagline()}</p>;
 }
 
 const LINK =
@@ -71,7 +76,7 @@ export default function SiteFooter() {
               <Mark className="site-footer__mark" />
               <span className="site-footer__wordmark">{site.name}</span>
             </p>
-            <Suspense fallback={<p className="text-title-large">&nbsp;</p>}>
+            <Suspense fallback={<p className="text-body-medium">&nbsp;</p>}>
               <Tagline />
             </Suspense>
           </div>

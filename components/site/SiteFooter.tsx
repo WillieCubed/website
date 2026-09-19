@@ -65,44 +65,50 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
-        <div className="space-y-3">
-          <p className="text-headline-small font-semibold text-ink">
-            {site.name}
-          </p>
-          <Suspense fallback={<p className="text-title-large">&nbsp;</p>}>
-            <Tagline />
-          </Suspense>
+        <div className="site-footer__top">
+          <div className="space-y-3">
+            <p className="text-headline-small font-semibold text-ink">
+              {site.name}
+            </p>
+            <Suspense fallback={<p className="text-title-large">&nbsp;</p>}>
+              <Tagline />
+            </Suspense>
+          </div>
+          <nav aria-label="Pages" className="site-footer__pages">
+            <ul className="flex flex-wrap gap-x-5 gap-y-1">
+              {PAGES.map((page) => (
+                <li key={page.href}>
+                  <SiteLink preview={false} href={page.href} className={LINK}>
+                    {page.label}
+                  </SiteLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
-        <nav aria-label="Pages" className="site-footer__pages">
-          <ul className="flex flex-wrap gap-x-5 gap-y-1">
-            {PAGES.map((page) => (
-              <li key={page.href}>
-                <SiteLink preview={false} href={page.href} className={LINK}>
-                  {page.label}
-                </SiteLink>
+        {/* This row never wraps. When the column gets narrow the labels
+            drop and the icons stay, so the row degrades instead of folding. */}
+        <div className="site-footer__row">
+          <FeedsButton />
+          <ul className="site-footer__profiles">
+            {site.social.map((profile) => (
+              <li key={profile.href}>
+                <a href={profile.href} rel="me" className={LINK}>
+                  <SocialIcon label={profile.label} />
+                  <span className="site-footer__label">{profile.label}</span>
+                </a>
+              </li>
+            ))}
+            {ELSEWHERE.map((place) => (
+              <li key={place.href}>
+                <a href={place.href} className={LINK}>
+                  <Icon name={place.icon} size={16} />
+                  <span className="site-footer__label">{place.label}</span>
+                </a>
               </li>
             ))}
           </ul>
-        </nav>
-        <FeedsButton />
-        <ul className="site-footer__profiles flex flex-wrap gap-x-5 gap-y-1">
-          {site.social.map((profile) => (
-            <li key={profile.href}>
-              <a href={profile.href} rel="me" className={LINK}>
-                <SocialIcon label={profile.label} />
-                {profile.label}
-              </a>
-            </li>
-          ))}
-          {ELSEWHERE.map((place) => (
-            <li key={place.href}>
-              <a href={place.href} className={LINK}>
-                <Icon name={place.icon} size={16} />
-                {place.label}
-              </a>
-            </li>
-          ))}
-        </ul>
+        </div>
       </div>
     </footer>
   );

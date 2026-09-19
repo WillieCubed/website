@@ -11,24 +11,53 @@
   margin: 0 auto;
   padding: 48px 20px;
   display: grid;
-  gap: 32px 40px;
-  align-items: end;
+  gap: 32px;
 }
-.site-footer .feeds-button {
-  justify-self: start;
+.site-footer__top {
+  display: grid;
+  gap: 24px 40px;
 }
 @media (min-width: 840px) {
   /* Proportional columns: an auto right column would take the whole
-     profile row's width and squeeze the tagline into four lines. */
-  .site-footer__inner {
+     row's width and squeeze the tagline into four lines. */
+  .site-footer__top {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   }
-  .site-footer__pages {
-    align-self: start;
-  }
-  .site-footer__pages ul,
-  .site-footer__profiles {
+  .site-footer__pages ul {
     justify-content: flex-end;
+  }
+}
+/* The bottom row is its own container and never wraps. Below a width
+   that fits every label, the labels go visually hidden and the icons
+   carry the row; the link text stays for screen readers. */
+.site-footer__row {
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: nowrap;
+}
+.site-footer__profiles {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+@container (max-width: 680px) {
+  .site-footer__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .site-footer__profiles {
+    gap: 16px;
   }
 }
 body:has([data-column='content']) .site-footer__inner {
@@ -37,10 +66,11 @@ body:has([data-column='content']) .site-footer__inner {
 body:has([data-column='reading']) .site-footer__inner {
   max-width: 640px;
   padding-inline: 24px;
+}
+body:has([data-column='reading']) .site-footer__top {
   grid-template-columns: minmax(0, 1fr);
 }
-body:has([data-column='reading']) .site-footer__pages ul,
-body:has([data-column='reading']) .site-footer__profiles {
+body:has([data-column='reading']) .site-footer__pages ul {
   justify-content: flex-start;
 }
 @media (min-width: 1200px) {

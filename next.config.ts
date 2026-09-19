@@ -1,10 +1,14 @@
 import withMDX from '@next/mdx';
 import type { NextConfig } from 'next/types';
 
+import { siteHeaders } from './lib/response-headers';
 import { site } from './lib/site';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return siteHeaders;
+  },
   /**
    * Host redirects live here rather than in a dashboard so they are
    * versioned and work on any host that runs next.config. Every hostname

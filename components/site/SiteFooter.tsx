@@ -1,6 +1,7 @@
 import { cacheLife } from 'next/cache';
 import { Suspense } from 'react';
 
+import Mark from '@/components/brand/Mark';
 import Icon, { type IconName } from '@/components/icons/Icon';
 import InstagramIcon from '@/components/icons/InstagramIcon';
 import LinkedinIcon from '@/components/icons/LinkedinIcon';
@@ -64,8 +65,11 @@ export default function SiteFooter() {
       <div className="site-footer__inner">
         <div className="site-footer__top">
           <div className="space-y-3">
-            <p className="text-headline-small font-semibold text-ink">
-              {site.name}
+            {/* The cube is the lockup's constant half. The name wipes in
+                beside it once the top bar's copy has scrolled away. */}
+            <p className="site-footer__lockup text-headline-small font-semibold text-ink">
+              <Mark className="site-footer__mark" />
+              <span className="site-footer__wordmark">{site.name}</span>
             </p>
             <Suspense fallback={<p className="text-title-large">&nbsp;</p>}>
               <Tagline />

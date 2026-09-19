@@ -79,6 +79,39 @@ body:has([data-column='reading']) .site-footer__pages ul {
   }
 }
 
+/* The name appears once on screen. The footer carries the brand lockup:
+   the cube always, and the name beside it only after the top bar's copy
+   of the name has scrolled out of view. The name is uncovered by a wipe
+   from the cube outward, never faded. Without scroll-driven animations,
+   on a page too short to scroll, and on pages with no top bar (home), the
+   footer shows the cube alone. Readers always get the name text. */
+.site-footer__lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+.site-footer__mark {
+  width: 1.4em;
+  height: 1.4em;
+  flex-shrink: 0;
+}
+.site-footer__wordmark {
+  clip-path: inset(0 100% 0 0);
+}
+@supports (animation-timeline: scroll()) {
+  body:has(header[data-column]) .site-footer__wordmark {
+    animation: site-footer-name-wipe linear both;
+    animation-timeline: scroll(root);
+    animation-range: 48px 144px;
+  }
+}
+@keyframes site-footer-name-wipe {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
 /* The feeds button and its popover. The popover borrows the hover card's
    surface so every floating panel on the site reads as one family. */
 .feeds-button {

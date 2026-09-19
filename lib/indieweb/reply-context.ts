@@ -307,7 +307,9 @@ export function cleanMetaText(raw: string | undefined): string | undefined {
           entity[1] === 'x' || entity[1] === 'X'
             ? parseInt(entity.slice(2), 16)
             : parseInt(entity.slice(1), 10);
-        return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+        return Number.isInteger(code) && code >= 0 && code <= 0x10ffff
+          ? String.fromCodePoint(code)
+          : match;
       }
       return NAMED_ENTITIES[entity.toLowerCase()] ?? match;
     }

@@ -48,12 +48,17 @@ export async function searchContent(
   query: string,
   options: SearchOptions = {}
 ): Promise<SearchResponse> {
-  // Project pages are parked in app/_(pages), so a project result would
-  // link to a 404. Search covers writings until those pages come back.
-  const { limit = 20, offset = 0 } = options;
-  const type = 'writing';
+  const { type = 'all', limit = 20, offset = 0 } = options;
   const trimmed = query.trim();
   const backend = usePostgresSearch() ? 'postgres' : 'index';
+
+  // Project pages are parked in app/_(pages), so a project result would
+  // link to a 404. Projects return nothing and "all" means writings until
+  // those pages come back.
+  if (type === 'project') {
+    return { results: [], total: 0, query: trimmed, backend };
+  }
+  const kind = 'writing' as const;
 
   if (!trimmed || tokenize(trimmed).length === 0) {
     return { results: [], total: 0, query: trimmed, backend };
@@ -61,12 +66,12 @@ export async function searchContent(
 
   if (backend === 'postgres') {
     const { searchPostgres } = await import('./postgres');
-    return searchPostgres(trimmed, { type, limit, offset });
+    return searchPostgres(trimmed, { type: kind, limit, offset });
   }
 
   const items = await loadSearchIndex();
   const matches = rankItems(
-    items.filter((item) => item.type === type),
+    items.filter((item) => item.type === kind),
     trimmed
   );
   const results: SearchResult[] = matches.slice(offset, offset + limit);

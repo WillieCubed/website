@@ -11,7 +11,7 @@ import { randomlyChooseTagline, taglineHref } from '@/lib/enhancements';
 import { routedPages, site } from '@/lib/site';
 
 import FeedsButton from './FeedsButton';
-import FooterDock from './FooterDock';
+import FooterFrame from './FooterFrame';
 import FooterLockup from './FooterLockup';
 import './site.css';
 
@@ -85,14 +85,14 @@ const LINK =
   'inline-flex items-center gap-2 py-1 text-label-large text-ink transition-colors hover:text-accent';
 
 /**
- * The end of every page: who this is, the way back to the main pages,
- * the feeds, and where else to find Willie. On the homepage it is also the
- * rail's contact row, collapsed, and opens out of it as the page ends
- * (FooterDock).
+ * The end of every page: who this is, the way back to the main pages, the
+ * feeds, and where else to find Willie. On the homepage, which asks for it
+ * by rendering DockFooter, this same footer is the rail's contact row until
+ * the page ends and then opens out of it (FooterFrame).
  */
 export default function SiteFooter() {
   return (
-    <footer className="site-footer">
+    <FooterFrame>
       <div className="site-footer__inner">
         <div className="site-footer__top">
           <div className="site-footer__brand space-y-3">
@@ -139,7 +139,6 @@ export default function SiteFooter() {
           <FeedsButton />
         </div>
       </div>
-      <FooterDock />
-    </footer>
+    </FooterFrame>
   );
 }

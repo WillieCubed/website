@@ -1,9 +1,14 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 
+import { visibleElement } from '@/lib/dom/visible';
 import { footerProgress } from '@/lib/footer/dock';
+import {
+  getFooterDocked,
+  getFooterDockedOnServer,
+  subscribeFooterDocked,
+} from '@/lib/footer/docked';
 import { createNameReveal, waveProgress } from '@/lib/footer/name-reveal';
 
 import './footer-dock.css';
@@ -12,42 +17,30 @@ const COMPACT = '(max-width: 839px)';
 const REDUCE = '(prefers-reduced-motion: reduce)';
 
 /**
- * Whether the homepage is the page on screen. A soft navigation leaves the
- * page before it in the document, hidden, so the rail can still be found
- * from another route; only the page being shown takes up space. This stands
- * in for route information the footer does not have: it is rendered from
- * the root layout, so it cannot be told which page it sits under, and the
- * homepage is also the one route that sometimes has no rail at all (hiatus
- * mode). A parallel route slot for the footer would make both of those
- * server facts and retire this probe.
+ * The footer element itself. On most pages it is a plain block. On the
+ * homepage, which says so by rendering DockFooter, it is the rail's contact
+ * row until the page ends and then opens into the full footer: this marks
+ * it for footer-dock.css to draw and writes how far open it is as --p,
+ * which the stylesheet derives everything else from. It also runs the
+ * name's letter wave.
+ *
+ * Both the mark and the opening are client-side, so a visitor without
+ * scripting gets the plain footer rather than one stuck shut.
  */
-function homeOnScreen(): boolean {
-  for (const element of document.querySelectorAll('.home')) {
-    if (element.getClientRects().length > 0) return true;
-  }
-  return false;
-}
+export default function FooterFrame({ children }: React.PropsWithChildren) {
+  const ref = useRef<HTMLElement>(null);
+  const docked = useSyncExternalStore(
+    subscribeFooterDocked,
+    getFooterDocked,
+    getFooterDockedOnServer
+  );
 
-/**
- * On the homepage, opens the footer out of its contact row as the page ends.
- * It marks the footer for footer-dock.css to draw, then writes how far open
- * it is as --p; the stylesheet derives everything else from that. It also
- * runs the name's letter wave. On every other page it does nothing, and the
- * footer is the plain block it always was.
- */
-export default function FooterDock() {
-  const pathname = usePathname();
-
-  // Set up again on every navigation, since only the homepage has a rail
-  // for the footer to grow out of.
   useEffect(() => {
-    if (pathname !== '/') return;
-    const footer = document.querySelector<HTMLElement>('footer.site-footer');
-    if (!footer || !homeOnScreen()) return;
+    const footer = ref.current;
+    if (!docked || !footer) return;
     footer.dataset.dock = '';
 
     const contact = footer.querySelector<HTMLElement>('[data-footer-contact]');
-    const anchor = document.querySelector<HTMLElement>('[data-footer-anchor]');
     const name = footer.querySelector<HTMLElement>('[data-footer-name]');
     const compact = window.matchMedia(COMPACT);
     const reduce = window.matchMedia(REDUCE);
@@ -78,9 +71,12 @@ export default function FooterDock() {
         footerHeight,
       });
       footer.style.setProperty('--p', p.toFixed(4));
+      // The headline's name rides the sticky rail, so where it has got to
+      // is the one thing worth measuring every frame.
       const headline = compact.matches
         ? null
-        : (anchor?.getBoundingClientRect() ?? null);
+        : (visibleElement('[data-footer-anchor]')?.getBoundingClientRect() ??
+          null);
       reveal?.set(
         waveProgress({ p, compact: compact.matches, headline, footerHeight })
       );
@@ -125,7 +121,11 @@ export default function FooterDock() {
       footer.removeAttribute('style');
       delete footer.dataset.dock;
     };
-  }, [pathname]);
+  }, [docked]);
 
-  return null;
+  return (
+    <footer ref={ref} className="site-footer">
+      {children}
+    </footer>
+  );
 }

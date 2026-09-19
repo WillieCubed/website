@@ -5,11 +5,15 @@ import { useEffect, useState } from 'react';
 
 import Mark from '@/components/brand/Mark';
 
+import { visibleElement } from '@/lib/dom/visible';
+
 /**
- * The cube, with the name wiping in beside it once the top bar has left
- * the screen, so the name shows once per screen. The reveal is a trigger,
- * not tied to scroll distance, so it never stops partway on a page that
- * can only scroll a little.
+ * The cube, with the name beside it. The name shows once per screen: on
+ * most pages it wipes in once the top bar has left the screen, a trigger
+ * rather than a scroll distance, so it never stops partway on a page that
+ * can only scroll a little. On the homepage the footer's letter wave
+ * brings it in instead (lib/footer/name-reveal.ts), and footer-dock.css
+ * turns the wipe off there.
  */
 export default function FooterLockup({ name }: { name: string }) {
   const pathname = usePathname();
@@ -18,7 +22,7 @@ export default function FooterLockup({ name }: { name: string }) {
   // The top bar is replaced on every navigation, so the observer is set up
   // again for each page and dropped for pages without one.
   useEffect(() => {
-    const header = document.querySelector('header[data-column]');
+    const header = visibleElement('header[data-column]');
     if (!header) {
       const frame = requestAnimationFrame(() => setRevealed(false));
       return () => cancelAnimationFrame(frame);

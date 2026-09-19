@@ -8,6 +8,7 @@ import { TileGrid } from '@/components/home/TileGrid';
 import '@/components/home/home.css';
 import Playbill from '@/components/initiatives/Playbill';
 import JsonLd from '@/components/seo/JsonLd';
+import DockFooter from '@/components/site/DockFooter';
 
 import { allBrandVars } from '@/lib/brand/scheme';
 import { facetEntries, getFeaturedTiles } from '@/lib/home/featured';
@@ -94,6 +95,8 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={homeGraph()} />
+      {/* The footer is this page's contact row until the page ends. */}
+      <DockFooter />
       <HomeShell
         brands={allBrandVars()}
         detailCountdown={<CountdownDays deadline={LVBT_DEADLINE} />}

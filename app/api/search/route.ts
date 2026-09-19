@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { searchContent } from '@/lib/search/server';
 import type { SearchContentType } from '@/lib/search/types';
 
-const CONTENT_TYPES: SearchContentType[] = ['writing', 'project', 'all'];
+const CONTENT_TYPES: SearchContentType[] = [
+  'writing',
+  'initiative',
+  'page',
+  'all',
+];
 
 /**
  * GET /api/search
@@ -13,7 +18,7 @@ const CONTENT_TYPES: SearchContentType[] = ['writing', 'project', 'all'];
  *
  * Query parameters:
  * - q: Search query (required)
- * - type: 'writing' | 'project' | 'all' (default: 'all')
+ * - type: 'writing' | 'initiative' | 'page' | 'all' (default: 'all')
  * - limit: Maximum results (default: 20, max: 100)
  * - offset: Pagination offset (default: 0)
  */

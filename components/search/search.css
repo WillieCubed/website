@@ -1,0 +1,25 @@
+/* Pagefind search. The Component UI sets `all: initial` on its host
+   elements, so it takes its look from these custom properties alone. */
+:root {
+  --pf-text: var(--color-ink);
+  --pf-background: var(--color-card);
+  --pf-border: var(--color-line);
+  --pf-border-radius: 12px;
+  --pf-outline-focus: var(--color-accent);
+  --pf-mark: var(--color-ink);
+  --pf-font: var(--font-sans);
+  --pf-input-height: 44px;
+  --pf-input-font-size: 16px;
+}
+
+/* Hold the trigger's space until the element upgrades so the bar does not
+   shift when the script arrives. */
+pagefind-modal-trigger:not(:defined) {
+  display: inline-block;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
+.rail-search {
+  margin-top: 1.25rem;
+}

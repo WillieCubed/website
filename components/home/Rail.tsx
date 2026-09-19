@@ -1,3 +1,5 @@
+import { PagefindTrigger } from '@/components/search/pagefind';
+
 import { railVentures } from '@/lib/home/ventures';
 import { site } from '@/lib/site';
 
@@ -31,6 +33,10 @@ export function Rail() {
               building <span className="name">Project Lovelace</span>.
             </p>
           </div>
+        </div>
+
+        <div className="rail-search">
+          <PagefindTrigger />
         </div>
 
         <nav className="index" aria-label="What he’s building">

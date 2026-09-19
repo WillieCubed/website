@@ -8,6 +8,7 @@ import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
+import SearchModal from '@/components/search/SearchModal';
 import SiteFooter from '@/components/site/SiteFooter';
 
 import {
@@ -148,6 +149,7 @@ export default async function RootLayout({
             the window instead of riding up under the content. */}
         <div className="grow">{children}</div>
         <SiteFooter />
+        {!isHiatus && <SearchModal />}
         <Analytics />
         <SpeedInsights />
       </body>

@@ -7,7 +7,7 @@ import LinkedinIcon from '@/components/icons/LinkedinIcon';
 import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import SiteLink from '@/components/link/SiteLink';
 
-import { randomlyChooseTagline } from '@/lib/enhancements';
+import { randomlyChooseTagline, taglineHref } from '@/lib/enhancements';
 import { routedPages, site } from '@/lib/site';
 
 import FeedsButton from './FeedsButton';
@@ -49,7 +49,24 @@ async function hourlyTagline(): Promise<string> {
 }
 
 async function Tagline() {
-  return <p className="text-body-medium text-muted">{await hourlyTagline()}</p>;
+  const tagline = await hourlyTagline();
+  const href = taglineHref(tagline);
+  return (
+    <p className="text-body-medium text-muted">
+      {href ? (
+        // A plain anchor: the target is a route handler, not a page the
+        // router can render, so it takes a full navigation.
+        <a
+          href={href}
+          className="underline-offset-4 hover:text-accent hover:underline"
+        >
+          {tagline}
+        </a>
+      ) : (
+        tagline
+      )}
+    </p>
+  );
 }
 
 const LINK =

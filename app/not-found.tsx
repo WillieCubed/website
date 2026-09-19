@@ -50,10 +50,7 @@ export default async function NotFound() {
       <main className="mx-auto flex max-w-[840px] flex-col gap-7 px-5 pb-8 pt-10">
         <h1 className="text-display-small">No page lives at this address.</h1>
         <RequestLog paths={paths} />
-        <nav
-          aria-label="Pages"
-          className="flex flex-wrap items-center gap-x-5 gap-y-3"
-        >
+        <div>
           <SiteLink
             preview={false}
             href="/"
@@ -62,22 +59,7 @@ export default async function NotFound() {
             <Icon name="arrow-left" size={16} />
             Back to the homepage
           </SiteLink>
-          {/* The two links wrap as a pair, never one at a time. */}
-          <span className="flex items-center gap-x-5 whitespace-nowrap">
-            <SiteLink
-              href="/writings"
-              className="text-label-large text-ink hover:text-accent"
-            >
-              Writings
-            </SiteLink>
-            <SiteLink
-              href="/initiatives"
-              className="text-label-large text-ink hover:text-accent"
-            >
-              Initiatives
-            </SiteLink>
-          </span>
-        </nav>
+        </div>
       </main>
     </>
   );

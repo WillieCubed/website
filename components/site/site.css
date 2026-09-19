@@ -90,11 +90,11 @@ body:has([data-column='reading']) .site-footer__pages ul {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0;
 }
 .site-footer__mark {
-  width: 1.4em;
-  height: 1.4em;
+  height: 1.3em;
+  width: auto;
+  aspect-ratio: 403.52 / 435.92;
   flex-shrink: 0;
 }
 .site-footer__wordmark {

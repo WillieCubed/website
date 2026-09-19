@@ -10,8 +10,10 @@ interface MarkProps {
  */
 export default function Mark({ className, title }: MarkProps) {
   return (
+    // Cropped to the stroked shape (paths plus half the 48.5 stroke) so the
+    // cube's drawn edge is its box edge and lines up with text beside it.
     <svg
-      viewBox="0 0 512 512"
+      viewBox="54.24 26.78 403.52 435.92"
       className={className}
       fill="currentColor"
       stroke="currentColor"

@@ -50,7 +50,9 @@ test('search and link-preview bots are never blocked from /writings/', () => {
 test('everyone else keeps the site but not the API', () => {
   const everyone = rules.find((rule) => agents(rule).includes('*'));
   assert.ok(everyone);
-  assert.equal(everyone.allow, '/');
+  // The allow list also carries the MCP endpoint, so that one path under
+  // /api/ stays reachable; robots.test.mts covers that entry.
+  assert.ok([everyone.allow ?? []].flat().includes('/'));
   assert.ok([everyone.disallow ?? []].flat().includes('/api/'));
 });
 

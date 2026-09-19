@@ -40,6 +40,24 @@ export const site = {
     { label: 'Threads', href: 'https://threads.net/@williecubed' },
     { label: 'Instagram', href: 'https://instagram.com/williecubed' },
   ],
+  /** The ventures Willie runs, for structured data. */
+  ventures: [
+    {
+      key: 'lvbt',
+      name: 'Las Vegans for Better Transit',
+      url: 'https://lasvegasfortransit.org/',
+    },
+    {
+      key: 'hypertext',
+      name: 'Hypertext Studio',
+      url: 'https://hypertext.studio/',
+    },
+    {
+      key: 'rtc',
+      name: 'Reasonable Tech Company',
+      url: 'https://reasonabletech.co/',
+    },
+  ],
   /** Hostnames that redirect into the canonical origin. */
   legacyHosts: ['williecubed.me', 'www.williecubed.me', 'www.willie.page'],
   /** Subdomains that redirect to a path on the canonical origin. */

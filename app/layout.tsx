@@ -34,6 +34,16 @@ const monoFont = Atkinson_Hyperlegible_Mono({
   subsets: ['latin'],
 });
 
+/** Google shows the favicon in results only when it is a multiple of 48px. */
+const SITE_ICONS: Metadata['icons'] = {
+  icon: [
+    { url: '/brand/web/icon-48.png', sizes: '48x48', type: 'image/png' },
+    { url: '/icon.svg', type: 'image/svg+xml' },
+  ],
+  apple: '/apple-touch-icon.png',
+};
+const SITE_MANIFEST = '/manifest.webmanifest';
+
 const isHiatus = isHiatusMode();
 
 export const metadata: Metadata = isHiatus
@@ -54,6 +64,8 @@ export const metadata: Metadata = isHiatus
         follow: false,
         nocache: true,
       },
+      icons: SITE_ICONS,
+      manifest: SITE_MANIFEST,
     }
   : {
       metadataBase: new URL(site.origin),
@@ -66,10 +78,30 @@ export const metadata: Metadata = isHiatus
         siteName: site.name,
         locale: site.locale,
         type: 'website',
-        images: [site.ogImage],
+        images: [
+          {
+            url: site.ogImage,
+            width: 1200,
+            height: 630,
+            alt: site.shortDescription,
+          },
+        ],
       },
       twitter: {
         card: 'summary_large_image',
+      },
+      icons: SITE_ICONS,
+      manifest: SITE_MANIFEST,
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+          'max-video-preview': -1,
+        },
       },
     };
 

@@ -15,6 +15,12 @@ Then add it back in the places that skip parked pages on purpose:
 - `site.parkedPaths` in `lib/site.ts`, which makes the 404 page say the
   page is being rebuilt; remove the path from it
 
+A page that passes an image to `pageMetadata()` must pass a 1200×630
+card, because the helper declares every custom social image as
+1200×630. The parked About and Contact pages pass
+`/assets/headshot.jpg`, which is 1157×1157, so fix the image or add an
+image-size option to `pageMetadata` when they are routed again.
+
 Projects also left the site feeds and search. When the project pages come
 back, restore the project items in the three site feeds under
 `app/feed.xml` and `app/feed/`, and remove the writing-only filter in

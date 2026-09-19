@@ -6,7 +6,7 @@ import SiteLink from '@/components/link/SiteLink';
 import TopBar from '@/components/site/TopBar';
 import WritingItem from '@/components/writings/WritingItem';
 
-import { absoluteUrl, site } from '@/lib/site';
+import { absoluteUrl, pageMetadata, site } from '@/lib/site';
 import {
   getAllTags,
   getAllWritings,
@@ -14,18 +14,19 @@ import {
   getWritingsByTag,
 } from '@/lib/writings';
 
-export const metadata: Metadata = {
+const writingsMetadata = pageMetadata({
   title: 'Writings',
   description:
     'Thoughts, tutorials, and notes on software, music, and creativity.',
-  openGraph: {
-    title: "Willie's Writings",
-    description:
-      'Thoughts, tutorials, and notes on software, music, and creativity.',
-    url: '/writings',
-  },
+  path: '/writings',
+  image: '/writings/opengraph-image',
+  imageAlt: 'Writings by Willie Chalmers III',
+});
+
+export const metadata: Metadata = {
+  ...writingsMetadata,
   alternates: {
-    canonical: '/writings',
+    ...writingsMetadata.alternates,
     types: {
       'application/rss+xml': '/writings/feed.xml',
       'application/atom+xml': '/writings/feed/atom',

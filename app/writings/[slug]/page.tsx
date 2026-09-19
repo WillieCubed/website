@@ -2,6 +2,7 @@ import { cacheLife } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next/types';
 
+import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 import PostInteractions from '@/components/writings/PostInteractions';
 import PostNavigation from '@/components/writings/PostNavigation';
@@ -14,7 +15,8 @@ import {
   getReplyContext,
 } from '@/lib/indieweb/reply-context';
 import { getWebmentionsForPost } from '@/lib/indieweb/webmention-storage';
-import { absoluteRoute } from '@/lib/site';
+import { blogPostingLd, breadcrumbLd, graph, personLd } from '@/lib/seo/jsonld';
+import { absoluteRoute, formatDate, pageMetadata } from '@/lib/site';
 import {
   SeriesWithWritings,
   WritingData,
@@ -46,11 +48,26 @@ export async function generateMetadata(props: {
   // resolved to nothing would replace the 404 page's title.
   const { writing } = await getPublishedWriting(slug).catch(() => notFound());
   const canonicalUrl = generateCanonicalUrl(writing.slug);
-  return {
+  const path = `/writings/${writing.slug}`;
+  const metadata = pageMetadata({
     title: writing.title,
     description: writing.description,
+    path,
+    image: `${path}/opengraph-image`,
+    imageAlt: writing.featuredImageAlt || writing.title,
+    type: 'article',
+    publishedTime: writing.published,
+    modifiedTime: writing.lastUpdated,
+    tags: writing.tags,
+    labels: [
+      ['Reading time', `${writing.readingTime} min`],
+      ['Published', formatDate(writing.published)],
+    ],
+  });
+  return {
+    ...metadata,
     alternates: {
-      canonical: canonicalUrl,
+      ...metadata.alternates,
       types: {
         'application/rss+xml': `${canonicalUrl}/activity/feed.xml`,
         'application/atom+xml': `${canonicalUrl}/activity/feed/atom`,
@@ -59,15 +76,6 @@ export async function generateMetadata(props: {
           canonicalUrl
         )}`,
       },
-    },
-    openGraph: {
-      type: 'article',
-      title: writing.title,
-      description: writing.description,
-      publishedTime: new Date(writing.published).toISOString(),
-      modifiedTime: new Date(writing.lastUpdated).toISOString(),
-      url: canonicalUrl,
-      images: writing.featuredImage ? [writing.featuredImage] : undefined,
     },
   };
 }
@@ -178,9 +186,29 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
   ]);
 
   const canonicalUrl = generateCanonicalUrl(writing.slug);
+  const path = `/writings/${writing.slug}`;
 
   return (
     <>
+      <JsonLd
+        data={graph(
+          blogPostingLd({
+            path,
+            title: writing.title,
+            description: writing.description,
+            published: writing.published,
+            updated: writing.lastUpdated,
+            tags: writing.tags,
+            image: writing.featuredImage || `${path}/opengraph-image`,
+            seriesName: seriesData?.name,
+          }),
+          breadcrumbLd([
+            { name: 'Writings', path: '/writings' },
+            { name: writing.title, path },
+          ]),
+          personLd()
+        )}
+      />
       <TopBar
         column="reading"
         crumbs={[{ label: 'Writings', href: '/writings' }]}

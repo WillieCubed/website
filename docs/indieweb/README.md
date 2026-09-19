@@ -12,23 +12,24 @@ The canonical origin, author name, photo, and social profiles all come from
 
 ## Routes
 
-| Route                                                              | Purpose                                                                          | Needs                             |
-| ------------------------------------------------------------------ | -------------------------------------------------------------------------------- | --------------------------------- |
-| `/webmention` (alias of `/api/webmention`)                         | Receives webmentions, verifies the source, stores them for moderation            | Postgres                          |
-| `/webmentions?target=`                                             | Public JSON list of approved webmentions for one page                            | Postgres                          |
-| `/api/webmention/send`, `/api/webmention/send-all`                 | Send webmentions for one post or every post; bearer `WEBMENTION_SECRET`          | Postgres, `WEBMENTION_SECRET`     |
-| `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database         | Postgres (optional)               |
-| `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                         | Postgres (optional)               |
-| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates a note or article          | IndieAuth token; see Micropub     |
-| `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                             | nothing                           |
-| `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, answered from this domain                  | nothing (Postgres optional)       |
-| `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres` | Postgres, `SEARCH_REINDEX_SECRET` |
-| `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints             | nothing                           |
-| `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                        | nothing                           |
-| `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                 | nothing                           |
-| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`                      | nothing                           |
-| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and projects; each declares the WebSub hub               | nothing                           |
-| `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                 | nothing                           |
+| Route                                                              | Purpose                                                                                   | Needs                             |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- | --------------------------------- |
+| `/webmention` (alias of `/api/webmention`)                         | Receives webmentions, verifies the source, stores them for moderation                     | Postgres                          |
+| `/webmentions?target=`                                             | Public JSON list of approved webmentions for one page                                     | Postgres                          |
+| `/api/webmention/send`, `/api/webmention/send-all`                 | Send webmentions for one post or every post; bearer `WEBMENTION_SECRET`                   | Postgres, `WEBMENTION_SECRET`     |
+| `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                  | Postgres (optional)               |
+| `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                  | Postgres (optional)               |
+| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates a note or article                   | IndieAuth token; see Micropub     |
+| `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                                      | nothing                           |
+| `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, initiatives, and pages, answered from this domain   | nothing (Postgres optional)       |
+| `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres`          | Postgres, `SEARCH_REINDEX_SECRET` |
+| ⌘K where the search button shows                                   | Pagefind dialog over the same content as `/search`; its index is served from `/pagefind/` | nothing                           |
+| `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints                      | nothing                           |
+| `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                                 | nothing                           |
+| `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                          | nothing                           |
+| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`                               | nothing                           |
+| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and projects; each declares the WebSub hub                        | nothing                           |
+| `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                          | nothing                           |
 
 Every route that says "Postgres" reads `POSTGRES_URL` through
 `@vercel/postgres`. Without it the webmention routes return errors and the
@@ -82,13 +83,13 @@ correct outcome on Vercel and Workers: set the GitHub variables there.
 
 ## Scripts
 
-| Script                                        | What it does                                                                                |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `pnpm search:index` (runs as `prebuild`)      | Writes `public/search-index.json` from published writings. The file is gitignored.          |
-| `pnpm websub:ping`                            | POSTs `hub.mode=publish` with the six feed URLs to `WEBSUB_HUB`.                            |
-| `pnpm webmentions:send`                       | Sends webmentions for writings whose content hash changed. Skips itself without a database. |
-| `scripts/postbuild.mts` (runs as `postbuild`) | Runs the two scripts above only when `INDIEWEB_POSTBUILD=1`, and never fails the build.     |
-| `pnpm test`                                   | `tsx --test tests/unit/*.test.mts`                                                          |
+| Script                                        | What it does                                                                                                                                                                                                                                             |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm search:index` (runs as `prebuild`)      | Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives and their parts, and pages. Both are gitignored. The Pagefind step needs its platform binary, which the `pagefind` package installs. |
+| `pnpm websub:ping`                            | POSTs `hub.mode=publish` with the six feed URLs to `WEBSUB_HUB`.                                                                                                                                                                                         |
+| `pnpm webmentions:send`                       | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                                                                                                                              |
+| `scripts/postbuild.mts` (runs as `postbuild`) | Runs the two scripts above only when `INDIEWEB_POSTBUILD=1`, and never fails the build.                                                                                                                                                                  |
+| `pnpm test`                                   | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                       |
 
 ## Environment variables
 

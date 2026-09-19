@@ -134,7 +134,11 @@ export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
         '/writings',
         'articles and notes; the index is an h-feed and every writing carries h-entry markup'
       ),
-      llmsLink('Search', '/search?q=', 'search across every writing'),
+      llmsLink(
+        'Search',
+        '/search?q=',
+        'search across writings, initiatives, and pages'
+      ),
       llmsLink('Initiatives', '/initiatives'),
       llmsLink('Site feed (RSS)', '/feed.xml'),
       llmsLink('Site feed (Atom)', '/feed/atom'),

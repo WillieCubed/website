@@ -125,6 +125,8 @@ export const InitiativeFrontmatterSchema = z.object({
   status: StatusSchema.optional(),
   starts: DateSchema.optional(),
   ends: DateSchema.optional(),
+  /** The last day the page was meaningfully edited. Feeds the sitemap. */
+  updated: DateSchema.optional(),
   /** A key in lib/brand/seeds.json or a `#rrggbb` hex. */
   brand: z
     .string()
@@ -148,6 +150,8 @@ export const PartFrontmatterSchema = z.object({
   description: z.string().optional(),
   starts: DateSchema,
   ends: DateSchema,
+  /** The last day the page was meaningfully edited. Feeds the sitemap. */
+  updated: DateSchema.optional(),
   status: StatusSchema.optional(),
   places: z.array(PlaceSchema).default([]),
   cover: MediaSchema.optional(),

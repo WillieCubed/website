@@ -7,6 +7,7 @@ import type { SearchableItem } from '@/lib/search/types';
 const items: SearchableItem[] = [
   {
     slug: 'fall-tour-2026-begins',
+    path: '/writings/fall-tour-2026-begins',
     title: 'Fall Tour 2026 starts today.',
     description: 'Fall Tour 2026 starts today.',
     content: 'Fall Tour 2026 starts today. I am packing the car.',
@@ -16,6 +17,7 @@ const items: SearchableItem[] = [
   },
   {
     slug: 'project-superbloom',
+    path: '/writings/project-superbloom',
     title: 'Project Superbloom',
     description: 'Four products in one month.',
     content: 'A rare desert phenomenon. Nothing about touring here.',

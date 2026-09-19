@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
@@ -11,10 +11,13 @@ import {
   isoDate,
 } from '@/components/initiatives/dates';
 import SiteLink from '@/components/link/SiteLink';
+import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 
 import { getInitiative, getInitiativeSlugs, getPart } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
+import { initiativeViewport } from '@/lib/initiatives/viewport';
+import { breadcrumbLd, graph } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/site';
 
 // Cache Components refuses an empty list at build time. When nothing is
@@ -39,13 +42,28 @@ export async function generateMetadata(props: {
   const found = await getPart(slug, partSlug).catch(() => null);
   if (!found) notFound();
   const { initiative, part } = found;
+  const labels: Array<[string, string]> = [
+    ['When', formatRange(part.starts, part.ends, true)],
+  ];
+  if (part.places.length > 0) {
+    labels.push(['Where', part.places.map((place) => place.name).join(', ')]);
+  }
   return pageMetadata({
     title: `${initiative.partLabel} ${part.number}: ${part.title}`,
-    description: part.description ?? part.tagline ?? initiative.description,
+    description: part.description || part.tagline || initiative.description,
     path: `${initiative.href}/${part.slug}`,
     image: `${initiative.href}/${part.slug}/opengraph-image`,
     type: 'article',
+    labels,
   });
+}
+
+/** Tints the browser chrome with the initiative's brand colour. */
+export async function generateViewport(props: {
+  params: Promise<{ slug: string; part: string }>;
+}): Promise<Viewport> {
+  const { slug } = await props.params;
+  return initiativeViewport(slug);
 }
 
 export default async function PartPage(props: {
@@ -56,15 +74,27 @@ export default async function PartPage(props: {
   if (!found) notFound();
   const { initiative, part } = found;
   const cover = part.cover ?? initiative.cover;
+  const partPath = `${initiative.href}/${part.slug}`;
+  const partTitle = `${initiative.partLabel} ${part.number}: ${part.title}`;
+  // One trail feeds the top bar and the breadcrumb markup, and it includes a
+  // parent initiative the way the initiative page does.
+  const parent = initiative.parent
+    ? await getInitiative(initiative.parent).catch(() => null)
+    : null;
+  const crumbs = [{ label: 'Initiatives', href: '/initiatives' }];
+  if (parent) crumbs.push({ label: parent.title, href: parent.href });
+  crumbs.push({ label: initiative.title, href: initiative.href });
+  const partGraph = graph(
+    breadcrumbLd([
+      ...crumbs.map((crumb) => ({ name: crumb.label, path: crumb.href })),
+      { name: partTitle, path: partPath },
+    ])
+  );
 
   return (
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
-      <TopBar
-        crumbs={[
-          { label: 'Initiatives', href: '/initiatives' },
-          { label: initiative.title, href: initiative.href },
-        ]}
-      />
+      <JsonLd data={partGraph} />
+      <TopBar crumbs={crumbs} />
       <main className="mx-auto max-w-[1200px] px-5 pb-20">
         <header className="relative overflow-hidden rounded-3xl bg-ink text-ground">
           {cover && (

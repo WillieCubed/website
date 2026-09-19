@@ -11,6 +11,7 @@ const eslintConfig = [
       '.vercel/**',
       'out/**',
       'build/**',
+      'public/pagefind/**',
       'next-env.d.ts',
     ],
   },
@@ -21,7 +22,7 @@ const eslintConfig = [
   {
     files: [
       '*.config.{js,cjs,mjs,ts}',
-      '.*rc.js',
+      '.*rc.{js,mjs}',
       'brand/**/*.mjs',
       'scripts/**/*.{js,mjs,ts,mts}',
     ],

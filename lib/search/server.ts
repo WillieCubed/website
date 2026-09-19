@@ -1,9 +1,12 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { isHiatusMode } from '@/lib/site-mode';
+
 import { generateSearchIndex } from './index';
 import { rankItems, tokenize } from './rank';
 import type {
+  SearchContentType,
   SearchOptions,
   SearchResponse,
   SearchResult,
@@ -28,13 +31,20 @@ let indexPromise: Promise<SearchableItem[]> | null = null;
 
 /**
  * Load the search index. The prebuild script writes public/search-index.json;
- * when that file is missing (dev server, fresh checkout) the index is built
- * from the content directory on first use and cached for the process.
+ * when that file is missing or was written before items carried a path (dev
+ * server, fresh checkout, stale file) the index is built from the content
+ * directory on first use and cached for the process.
  */
 export async function loadSearchIndex(): Promise<SearchableItem[]> {
   if (!indexPromise) {
     indexPromise = readFile(INDEX_PATH, 'utf8')
-      .then((raw) => JSON.parse(raw) as SearchableItem[])
+      .then((raw) => {
+        const items = JSON.parse(raw) as SearchableItem[];
+        if (items.some((item) => typeof item.path !== 'string')) {
+          throw new Error('stale search index');
+        }
+        return items;
+      })
       .catch(() => generateSearchIndex())
       .catch((error) => {
         indexPromise = null;
@@ -44,43 +54,45 @@ export async function loadSearchIndex(): Promise<SearchableItem[]> {
   return indexPromise;
 }
 
+/**
+ * The items a query may match. Projects never match while their pages are
+ * parked in app/_(pages), because a result would link to a 404.
+ */
+export function selectSearchable(
+  items: SearchableItem[],
+  type: SearchContentType
+): SearchableItem[] {
+  return items.filter(
+    (item) => item.type !== 'project' && (type === 'all' || item.type === type)
+  );
+}
+
 export async function searchContent(
   query: string,
   options: SearchOptions = {}
 ): Promise<SearchResponse> {
-  const { type = 'all', limit = 20, offset = 0 } = options;
+  const { limit = 20, offset = 0, type = 'all' } = options;
   const trimmed = query.trim();
   const backend = usePostgresSearch() ? 'postgres' : 'index';
 
-  // Project pages are parked in app/_(pages), so a project result would
-  // link to a 404. Projects return nothing and "all" means writings until
-  // those pages come back.
-  if (type === 'project') {
-    return { results: [], total: 0, query: trimmed, backend };
-  }
-  const kind = 'writing' as const;
-
-  if (!trimmed || tokenize(trimmed).length === 0) {
+  // Hiatus hides the content routes, so search would describe pages a visitor
+  // cannot open. It returns nothing, as the MCP tools do.
+  if (isHiatusMode() || !trimmed || tokenize(trimmed).length === 0) {
     return { results: [], total: 0, query: trimmed, backend };
   }
 
   if (backend === 'postgres') {
     const { searchPostgres } = await import('./postgres');
-    return searchPostgres(trimmed, { type: kind, limit, offset });
+    return searchPostgres(trimmed, { type, limit, offset });
   }
 
   const items = await loadSearchIndex();
-  const matches = rankItems(
-    items.filter((item) => item.type === kind),
-    trimmed
-  );
+  const matches = rankItems(selectSearchable(items, type), trimmed);
   const results: SearchResult[] = matches.slice(offset, offset + limit);
   return { results, total: matches.length, query: trimmed, backend };
 }
 
 /** Site-relative URL for a search result. */
 export function searchResultPath(result: SearchResult): string {
-  return result.type === 'project'
-    ? `/projects/${result.slug}`
-    : `/writings/${result.slug}`;
+  return result.path;
 }

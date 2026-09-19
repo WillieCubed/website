@@ -1,6 +1,8 @@
 import SiteLink from '@/components/link/SiteLink';
+import { PagefindTrigger } from '@/components/search/pagefind';
 
 import { site } from '@/lib/site';
+import { isHiatusMode } from '@/lib/site-mode';
 
 interface Crumb {
   label: string;
@@ -56,6 +58,18 @@ export default function TopBar({ crumbs = [], column = 'wide' }: TopBarProps) {
           </SiteLink>
         </span>
       ))}
+      <div className="ml-auto flex items-center">
+        {!isHiatusMode() && <PagefindTrigger compact hideShortcut />}
+        <noscript>
+          <SiteLink
+            preview={false}
+            href="/search"
+            className="transition-colors hover:text-ink"
+          >
+            Search
+          </SiteLink>
+        </noscript>
+      </div>
     </header>
   );
 }

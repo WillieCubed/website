@@ -55,7 +55,7 @@ async function Tagline() {
 }
 
 const PILL =
-  'inline-flex items-center gap-2 rounded-full border border-transparent px-3 py-1.5 text-label-large text-ink transition-colors hover:border-line hover:bg-card hover:text-accent';
+  'inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1.5 text-label-large text-ink transition-colors hover:border-accent hover:text-accent';
 
 /**
  * The end of every page: who this is, the way back to the main pages,

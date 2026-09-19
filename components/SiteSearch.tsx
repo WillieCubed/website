@@ -1,8 +1,10 @@
+import { Fragment } from 'react';
+
 import SiteLink from '@/components/link/SiteLink';
 
+import { resultMeta } from '@/lib/search/meta';
 import { searchContent, searchResultPath } from '@/lib/search/server';
 import type { SearchResult } from '@/lib/search/types';
-import { formatDate } from '@/lib/site';
 
 interface SiteSearchProps {
   /** The query from the URL, if any. */
@@ -84,13 +86,7 @@ function SearchResults({
 }
 
 function SearchResultCard({ result }: { result: SearchResult }) {
-  const published = new Date(result.published);
-  // Only writings show a date. Initiative dates are whole days and pages have
-  // none, and formatDate's zone shift would move a whole day back by one.
-  const formattedDate =
-    result.type === 'writing' && !Number.isNaN(published.getTime())
-      ? formatDate(published, 'short')
-      : '';
+  const meta = resultMeta(result);
 
   return (
     <SiteLink
@@ -99,23 +95,20 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       className="group block rounded-lg border border-outline-variant p-4 transition-all hover:border-primary hover:bg-primary/5"
     >
       <div className="flex flex-wrap items-center gap-2 text-label-medium text-on-surface-variant">
-        {result.type !== 'writing' && (
-          <>
-            <span className="rounded bg-primary/10 px-1.5 py-0.5 capitalize text-primary">
-              {result.type}
-            </span>
-            <span>·</span>
-          </>
-        )}
-        {formattedDate && (
-          <time dateTime={result.published}>{formattedDate}</time>
-        )}
-        {result.tags.length > 0 && (
-          <>
-            <span>·</span>
-            <span>{result.tags.slice(0, 2).join(', ')}</span>
-          </>
-        )}
+        {meta.map((part, index) => (
+          <Fragment key={part.kind}>
+            {index > 0 && <span aria-hidden="true">·</span>}
+            {part.kind === 'type' ? (
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 capitalize text-primary">
+                {part.text}
+              </span>
+            ) : part.kind === 'date' ? (
+              <time dateTime={part.dateTime}>{part.text}</time>
+            ) : (
+              <span>{part.text}</span>
+            )}
+          </Fragment>
+        ))}
       </div>
       <h2 className="mt-1 text-title-large group-hover:text-primary">
         {result.title}

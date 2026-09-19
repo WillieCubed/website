@@ -48,8 +48,9 @@ interface RawFrontmatter {
   /** Optional for notes and interaction posts; derived from the body when absent. */
   title?: string;
   description?: string;
-  published: Date;
-  lastUpdated: Date;
+  /** A string unless the YAML is a full timestamp with seconds. */
+  published: Date | string;
+  lastUpdated?: Date | string;
   tags?: string[];
   draft?: boolean;
   /** Surfaces the writing wherever featured writings are listed. */
@@ -215,8 +216,8 @@ export async function loadWriting(slug: string) {
     title: derivedTitle.title,
     hasExplicitTitle: derivedTitle.explicit,
     description: frontmatter.description ?? derivedTitle.title,
-    published: frontmatter.published,
-    lastUpdated: frontmatter.lastUpdated,
+    published: new Date(frontmatter.published),
+    lastUpdated: new Date(frontmatter.lastUpdated ?? frontmatter.published),
     tags: frontmatter.tags || [],
     draft: frontmatter.draft ?? false,
     featured: frontmatter.featured ?? false,

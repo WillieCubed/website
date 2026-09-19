@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   type SiteContent,
+  contentForMode,
   createSiteMcpHandler,
   summarizeWriting,
 } from '@/lib/mcp/site-server';
@@ -184,4 +185,20 @@ test('summarizeWriting accepts a Date or the string a cache hands back', () => {
       .published,
     '2026-05-01T00:00:00.000Z'
   );
+});
+
+test('in hiatus mode the writings are hidden, as /writings is, and initiatives are not', async () => {
+  const hidden = contentForMode(true, content);
+
+  assert.deepEqual(await hidden.listWritings(), []);
+  assert.equal(await hidden.readWriting('hello'), null);
+  assert.deepEqual(await hidden.searchWritings('hello', 5), []);
+  assert.deepEqual(
+    await hidden.listInitiatives(),
+    await content.listInitiatives()
+  );
+});
+
+test('outside hiatus mode the content passes through untouched', () => {
+  assert.equal(contentForMode(false, content), content);
 });

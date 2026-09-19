@@ -1,27 +1,34 @@
 import { getInitiatives } from '@/lib/initiatives';
 import { searchContent } from '@/lib/search/server';
-import { getAllWritings, getPublishedWriting } from '@/lib/writings';
+import { isHiatusMode } from '@/lib/site-mode';
+import {
+  getAllWritings,
+  getPublishedWriting,
+  getPublishedWritingSlugs,
+} from '@/lib/writings';
 
-import { type SiteContent, summarizeWriting } from './site-server';
+import {
+  type SiteContent,
+  contentForMode,
+  summarizeWriting,
+} from './site-server';
 
 /**
  * The site's own loaders behind the MCP tools. Each one already hides drafts
- * in production, which is the only visibility rule the tools rely on.
+ * in production, which is the only visibility rule they rely on; hiatus mode
+ * is applied on top by `contentForMode`.
  */
-export const siteContent: SiteContent = {
+const liveContent: SiteContent = {
   async listWritings() {
     return (await getAllWritings()).map(summarizeWriting);
   },
 
   async readWriting(slug) {
-    let loaded;
-    try {
-      loaded = await getPublishedWriting(slug);
-    } catch {
-      // A missing slug and a draft in production both throw.
-      return null;
-    }
-    return { ...summarizeWriting(loaded.writing), markdown: loaded.content };
+    // Only a missing slug or a draft in production means "not found". Any
+    // other failure is a real error and is left to surface as one.
+    if (!(await getPublishedWritingSlugs()).includes(slug)) return null;
+    const { writing, content } = await getPublishedWriting(slug);
+    return { ...summarizeWriting(writing), markdown: content };
   },
 
   async searchWritings(query, limit) {
@@ -42,3 +49,5 @@ export const siteContent: SiteContent = {
     }));
   },
 };
+
+export const siteContent = contentForMode(isHiatusMode(), liveContent);

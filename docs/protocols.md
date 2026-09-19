@@ -57,7 +57,14 @@ the site already publishes, and every tool is read-only. Point a client at
   inside Next. While every writing is a draft, `list_writings` and
   `search_writings` return nothing in production, as `/writings` and `/search`
   do. In development drafts show, except in search, whose index always leaves
-  them out.
+  them out. In hiatus mode the writing tools return nothing and `/llms.txt`
+  lists no writings, because `proxy.ts` 404s `/writings` then; initiatives
+  stay. `get_writing` returns the MDX source, so a few JSX components such as
+  `<Ref>` and `<SpotifyEmbed>` come through as text.
+- **Browsers.** The route answers a CORS preflight and sends
+  `Access-Control-Allow-Origin: *` (`lib/mcp/cors.ts`), so a browser-hosted MCP
+  client on another origin can call it. `robots.txt` allows `/api/mcp` under the
+  otherwise disallowed `/api/`, matching the link in `/llms.txt`.
 - **No rate limit in code.** A per-process limiter does nothing on serverless.
   If traffic ever needs limiting, add a rule in the host's firewall for
   `/api/mcp`.

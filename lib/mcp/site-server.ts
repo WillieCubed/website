@@ -43,14 +43,31 @@ export interface SiteContent {
 const DEFAULT_SEARCH_LIMIT = 10;
 
 /**
- * A writing reduced to what a client needs. `published` may be a Date or an
- * ISO string: Next hands back strings for values read through a cache.
+ * In hiatus mode proxy.ts 404s /writings, so the tools must not serve
+ * writings either. Initiatives stay: their pages are not blocked.
+ */
+export function contentForMode(
+  hiatus: boolean,
+  content: SiteContent
+): SiteContent {
+  if (!hiatus) return content;
+  return {
+    ...content,
+    listWritings: async () => [],
+    readWriting: async () => null,
+    searchWritings: async () => [],
+  };
+}
+
+/**
+ * A writing reduced to what a client needs. `published` is a Date on a
+ * WritingData and an ISO string on a SearchResult.
  */
 export function summarizeWriting(writing: {
   slug: string;
   title: string;
   description: string;
-  published: Date | string | number;
+  published: Date | string;
   tags: string[];
 }): WritingSummary {
   return {
@@ -127,7 +144,7 @@ export function registerSiteTools(
     {
       title: 'Get a writing',
       description:
-        'The full text of one published writing, as markdown, with its URL, date, and tags. Get the slug from list_writings or search_writings.',
+        'The full text of one published writing as MDX source (markdown with a few JSX components such as <Ref> and <SpotifyEmbed>), with its URL, date, and tags. Get the slug from list_writings or search_writings.',
       inputSchema: z.object({
         slug: z.string().min(1).describe('The writing slug, e.g. "my-post".'),
       }),

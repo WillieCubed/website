@@ -44,12 +44,22 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     const name = footer.querySelector<HTMLElement>('[data-footer-name]');
     const compact = window.matchMedia(COMPACT);
     const reduce = window.matchMedia(REDUCE);
-    const reveal =
-      name?.firstChild instanceof Text
-        ? createNameReveal(name.firstChild, {
-            reduceMotion: () => reduce.matches,
-          })
-        : null;
+    const reduceMotion = () => reduce.matches;
+    const textIn = (element: Element | null | undefined) =>
+      element?.firstChild instanceof Text ? element.firstChild : null;
+    const footerName = textIn(name);
+    const reveal = footerName
+      ? createNameReveal(footerName, { reduceMotion })
+      : null;
+    // The headline's name leaves the way the footer's arrives: the same
+    // letters, the same springs, run backwards, so the name reads as
+    // moving down the page rather than as two names fading past each
+    // other. The anchor holds the heading's own copy of the name.
+    const headline = visibleElement('[data-footer-anchor]');
+    const headlineName = textIn(headline?.firstElementChild ?? headline);
+    const headlineReveal = headlineName
+      ? createNameReveal(headlineName, { reduceMotion })
+      : null;
 
     // Neither of these changes with the scroll, so they are read when the
     // page changes shape instead of every frame.
@@ -73,13 +83,17 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       footer.style.setProperty('--p', p.toFixed(4));
       // The headline's name rides the sticky rail, so where it has got to
       // is the one thing worth measuring every frame.
-      const headline = compact.matches
+      const box = compact.matches
         ? null
-        : (visibleElement('[data-footer-anchor]')?.getBoundingClientRect() ??
-          null);
-      reveal?.set(
-        waveProgress({ p, compact: compact.matches, headline, footerHeight })
-      );
+        : (headline?.getBoundingClientRect() ?? null);
+      const wave = waveProgress({
+        p,
+        compact: compact.matches,
+        headline: box,
+        footerHeight,
+      });
+      reveal?.set(wave);
+      headlineReveal?.set(1 - wave);
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -118,6 +132,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       compact.removeEventListener('change', remeasure);
       footer.removeEventListener('focusin', onFocus);
       reveal?.destroy();
+      headlineReveal?.destroy();
       footer.removeAttribute('style');
       delete footer.dataset.dock;
     };

@@ -22,6 +22,30 @@ export function stageName(stage: number): string {
   return `footer-name-${stage}`;
 }
 
+/**
+ * The stages are shared: the footer's name arrives through them while the
+ * headline's name leaves through the same ones, so both look the same and
+ * the registry holds one set however many names are in play.
+ */
+let sharedStages: Highlight[] | null = null;
+let stageUsers = 0;
+
+function acquireStages(): Highlight[] {
+  if (!sharedStages) {
+    sharedStages = Array.from({ length: STAGES + 1 }, () => new Highlight());
+    sharedStages.forEach((stage, k) => CSS.highlights.set(stageName(k), stage));
+  }
+  stageUsers += 1;
+  return sharedStages;
+}
+
+function releaseStages(): void {
+  stageUsers -= 1;
+  if (stageUsers > 0 || !sharedStages) return;
+  sharedStages.forEach((_, k) => CSS.highlights.delete(stageName(k)));
+  sharedStages = null;
+}
+
 /** The share of the wave each letter takes to arrive. */
 const WINDOW = 0.4;
 /** How far open the footer is when the cube has lifted clear of the row. */
@@ -158,8 +182,7 @@ export function createNameReveal(
     };
   }
 
-  const stages = Array.from({ length: STAGES + 1 }, () => new Highlight());
-  stages.forEach((stage, k) => CSS.highlights.set(stageName(k), stage));
+  const stages = acquireStages();
   const graphemes = new Intl.Segmenter(undefined, {
     granularity: 'grapheme',
   }).segment(text.data);
@@ -241,7 +264,12 @@ export function createNameReveal(
     },
     destroy() {
       cancelAnimationFrame(frame);
-      stages.forEach((_, k) => CSS.highlights.delete(stageName(k)));
+      for (let i = 0; i < letters.length; i++) {
+        const stage = shown[i];
+        if (stage !== null) stages[stage].delete(ranges[i]);
+        shown[i] = null;
+      }
+      releaseStages();
       element.style.removeProperty('--footer-name-opacity');
     },
   };

@@ -81,6 +81,9 @@ async function Tagline() {
   );
 }
 
+/** How many profiles the collapsed row keeps beside the email link. */
+const KEPT = 2;
+
 const LINK =
   'inline-flex items-center gap-2 py-1 text-label-large text-ink transition-colors hover:text-accent';
 
@@ -119,19 +122,25 @@ export default function SiteFooter() {
             on the homepage they are the row the footer grows out of. */}
         <div className="site-footer__row">
           <ul className="site-footer__profiles" data-footer-contact>
-            {site.social.map((profile) => (
-              <li key={profile.href}>
-                <a href={profile.href} rel="me" className={LINK}>
-                  <SocialIcon label={profile.label} />
-                  <span className="site-footer__label">{profile.label}</span>
-                </a>
-              </li>
-            ))}
             {ELSEWHERE.map((place) => (
               <li key={place.href}>
                 <a href={place.href} className={LINK}>
                   <Icon name={place.icon} size={16} />
                   <span className="site-footer__label">{place.label}</span>
+                </a>
+              </li>
+            ))}
+            {site.social.map((profile, index) => (
+              // The row is the homepage's footer while it is collapsed, and
+              // only so much of it fits the rail's column: the ones past the
+              // first few wait until the footer opens (footer-dock.css).
+              <li
+                key={profile.href}
+                data-extra={index >= KEPT ? '' : undefined}
+              >
+                <a href={profile.href} rel="me" className={LINK}>
+                  <SocialIcon label={profile.label} />
+                  <span className="site-footer__label">{profile.label}</span>
                 </a>
               </li>
             ))}

@@ -17,7 +17,6 @@
   --wide: calc(1 - var(--ease-t) * var(--ease-t) * var(--ease-t));
   --surface: clamp(0, var(--p) / 0.12, 1);
   --dock: clamp(0, var(--p) / 0.5, 1);
-  --leave: clamp(0, (var(--p) - 0.15) / 0.35, 1);
   /* How far the row's surface has grown out of nothing; only a phone
      starts from nothing (see the compact block). */
   --appear: 1;
@@ -124,6 +123,7 @@
   clip-path: none;
   transition: none;
   opacity: var(--footer-name-opacity, 0);
+  will-change: opacity;
 }
 
 /* Everything but the row and the lockup comes in with the opening, each
@@ -158,28 +158,40 @@
 .site-footer[data-dock] .site-footer__row {
   min-height: var(--footer-row-h);
 }
+/* Nothing in the row moves as the footer opens: the gaps, the icon slots
+   and the cube's seat are all held at their open size from the start, and
+   only ink and the icons themselves come in. */
 .site-footer[data-dock] .site-footer__profiles {
-  --profile-gap: calc(12px + 8px * var(--dock));
+  --profile-gap: 20px;
   align-items: center;
   column-gap: var(--profile-gap);
 }
-/* The cube's seat at the head of the row. It empties as the cube lifts
-   away and the links slide over to close it; the negative margin cancels
-   the gap once the seat is gone. */
+/* The cube's seat at the head of the row. It is held for good, so the
+   links keep their place when the cube lifts away instead of sliding
+   left, and the row reads the same open or closed. */
 .site-footer[data-dock] .site-footer__profiles::before {
   content: '';
   flex-shrink: 0;
   /* The cube at the collapsed lockup's size: 1.3em of 20px, at the mark's
      own proportion. */
-  width: calc(20px * 1.3 * var(--mark-aspect) * (1 - var(--leave)));
+  width: calc(20px * 1.3 * var(--mark-aspect));
   height: calc(20px * 1.3);
-  margin-right: calc(-1 * var(--profile-gap) * var(--leave));
+}
+
+/* Only so much of the row fits the rail's column, so the profiles past
+   the first few unfold from the end as the footer opens. They are last in
+   the row, so nothing already on screen moves to make room. */
+.site-footer[data-dock] .site-footer__profiles li[data-extra] {
+  overflow: clip;
+  max-width: calc(var(--dock) * 12rem);
+  opacity: var(--dock);
+  margin-right: calc(-1 * var(--profile-gap) * (1 - var(--dock)));
 }
 .site-footer[data-dock] .site-footer__profiles a {
-  gap: calc(8px * var(--dock));
-  /* Quiet in the rail, the footer's weight once open, so the collapsed
-     row stays inside the rail's column. */
-  font-weight: calc(400 + 200 * var(--dock));
+  gap: 8px;
+  /* One weight throughout: interpolating it re-shapes the text and the
+     links drift sideways as the footer opens. */
+  font-weight: 500;
   color: color-mix(
     in srgb,
     var(--color-ink) calc(var(--dock) * 100%),
@@ -192,16 +204,8 @@
   color: var(--color-accent);
 }
 .site-footer[data-dock] .site-footer__profiles a > svg {
-  width: calc(16px * var(--dock));
   opacity: var(--dock);
-}
-
-/* In the expanded window class the rail is only 300px, so the collapsed
-   row closes up further to stay inside it. */
-@media (min-width: 840px) and (max-width: 1199px) {
-  .site-footer[data-dock] .site-footer__profiles {
-    --profile-gap: calc(4px + 16px * var(--dock));
-  }
+  scale: calc(0.6 + 0.4 * var(--dock));
 }
 
 @media (min-width: 840px) {

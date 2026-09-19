@@ -16,13 +16,6 @@ function toIso(value: Date | string): string {
   return new Date(value).toISOString();
 }
 
-/** A calendar day in the local zone, which is how the site stores its dates. */
-function isoDay(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
-
 export function graph(...nodes: JsonLdNode[]): JsonLdNode {
   return { '@context': 'https://schema.org', '@graph': nodes };
 }
@@ -109,49 +102,6 @@ export function blogPostingLd(input: BlogPostingInput): JsonLdNode {
           isPartOf: { '@type': 'CreativeWorkSeries', name: input.seriesName },
         }
       : {}),
-  };
-}
-
-export interface EventInput {
-  path: string;
-  name: string;
-  description?: string;
-  starts: Date;
-  ends: Date;
-  places: Array<{ name: string; region?: string; lat: number; lng: number }>;
-  /** Site-relative or absolute image URL. */
-  image?: string;
-}
-
-/**
- * An in-person event, or null when it has no place: Google requires a
- * location, and markup that fails that requirement is worse than none.
- */
-export function eventLd(input: EventInput): JsonLdNode | null {
-  if (!input.name || input.places.length === 0) return null;
-  const url = absoluteUrl(input.path);
-  return {
-    '@type': 'Event',
-    '@id': `${url}#event`,
-    url,
-    name: input.name,
-    ...(input.description ? { description: input.description } : {}),
-    startDate: isoDay(input.starts),
-    endDate: isoDay(input.ends),
-    eventStatus: 'https://schema.org/EventScheduled',
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    location: input.places.map((place) => ({
-      '@type': 'Place',
-      name: place.name,
-      address: place.region ? `${place.name}, ${place.region}` : place.name,
-      geo: {
-        '@type': 'GeoCoordinates',
-        latitude: place.lat,
-        longitude: place.lng,
-      },
-    })),
-    organizer: { '@id': ids.person },
-    ...(input.image ? { image: [absoluteUrl(input.image)] } : {}),
   };
 }
 

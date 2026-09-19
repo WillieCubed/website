@@ -38,6 +38,7 @@ export default function TopBar({ crumbs = [], column = 'wide' }: TopBarProps) {
       <SiteLink
         preview={false}
         href="/"
+        rel="author"
         className="font-semibold text-ink transition-colors hover:text-accent"
       >
         {site.name}

@@ -136,14 +136,7 @@ export default function WritingsPage({ searchParams }: WritingsPageProps) {
         <a href={absoluteUrl('/writings')} className="u-url hidden" />
         <section className="mt-6">
           <div className="space-y-xl">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-              <h1 className="p-name text-display-small">Writings</h1>
-              <p className="p-author h-card text-label-large text-muted">
-                <SiteLink href="/" className="p-name u-url">
-                  {site.author.name}
-                </SiteLink>
-              </p>
-            </div>
+            <h1 className="p-name text-display-small">Writings</h1>
           </div>
         </section>
         <Suspense fallback={<WritingsContentFallback />}>

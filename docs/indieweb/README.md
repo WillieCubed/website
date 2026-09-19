@@ -36,10 +36,13 @@ activity feeds return empty documents; nothing else on the site notices.
 ## Markup
 
 Each writing page is an `h-entry` with `p-name`, `p-summary`, `e-content`,
-`dt-published`, `dt-updated`, `p-category`, `u-url u-uid`, and a visible
-`p-author h-card` byline carrying `u-photo`, `p-name`, and `u-url`.
-`/writings` is an `h-feed` with its own `p-name`, `u-url`, and
-`p-author h-card`. Notes omit the visible headline; the loader derives
+`dt-published`, `dt-updated`, `p-category`, and `u-url u-uid`. No entry
+carries a `p-author`: the top bar's link home is `rel="author"`, the head
+repeats it as a `<link>`, and the homepage `h-card` has `u-url u-uid` equal
+to its own URL, so it is the representative card. That is the authorship
+algorithm's documented fallback (indieweb.org/authorship-spec), and it keeps
+the author's name off every page that is already under the author's name.
+`/writings` is an `h-feed` with its own `p-name` and `u-url`. Notes omit the visible headline; the loader derives
 `title` from the first sentence so feeds and the index still have text, and
 `WritingHeader` renders that derived title inside an `sr-only` heading.
 
@@ -124,7 +127,7 @@ curl in this repo checks it.
 | 2     | Feed autodiscovery on the posts page                       | Done                    | `alternates.types` in `app/writings/page.tsx`                                    |
 | 3     | Search results on your own domain                          | Done                    | `/search?q=`                                                                     |
 | 3     | Micropub endpoint that creates posts                       | Done                    | `/micropub`                                                                      |
-| 3     | Author h-card on every post with photo                     | Done                    | `WritingHeader.tsx` byline                                                       |
+| 3     | Authorship on every post                                   | Done                    | `rel="author"` in `TopBar.tsx` and the head; representative h-card in `Rail.tsx` |
 | 3     | Likes, reposts, bookmarks, RSVPs render as h-entry         | Done, no live posts yet | `ReplyTarget.tsx`                                                                |
 | 3     | WebSub hub declared in feeds and pinged on publish         | Done                    | `WEBSUB_HUB`, `websub:ping`                                                      |
 | 3     | Autolinked mentions                                        | Done                    | `remark-mentions.ts`                                                             |

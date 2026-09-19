@@ -15,7 +15,7 @@ export function Rail() {
       <div className="lead">
         <div className="intro">
           <h1 className="statement">
-            <a className="p-name u-url" href={site.origin}>
+            <a className="p-name u-url u-uid" href={`${site.origin}/`}>
               <b>{site.author.name}</b>
             </a>{' '}
             builds <FacetKey facet="software">software</FacetKey> and{' '}

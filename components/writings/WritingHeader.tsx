@@ -1,7 +1,7 @@
 import SiteLink from '@/components/link/SiteLink';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
-import { formatDate, site } from '@/lib/site';
+import { formatDate } from '@/lib/site';
 import { SeriesWithWritings, WritingData } from '@/lib/writings';
 
 import ReplyTarget, { type TargetKind } from './ReplyTarget';
@@ -16,9 +16,11 @@ interface WritingHeaderProps {
 }
 
 /**
- * An article opens with its title, a note opens with its author row and
- * goes straight into the text. A post that answers another page carries
- * that page above it as the top of the thread.
+ * An article opens with its title, a note opens with its date and goes
+ * straight into the text. A post that answers another page carries that
+ * page above it as the top of the thread. No byline names the author:
+ * the top bar's way home is rel="author", and the homepage h-card is the
+ * representative card, which is the authorship algorithm's own path.
  */
 export default function WritingHeader({
   writing,
@@ -100,24 +102,6 @@ function Byline({
 }) {
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label-large text-muted">
-      <span className="p-author h-card flex items-center gap-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={site.author.photo}
-          alt=""
-          width={28}
-          height={28}
-          className="u-photo size-7 rounded-full"
-        />
-        <SiteLink
-          href="/"
-          rel="author"
-          className="p-name u-url font-medium text-ink"
-        >
-          {site.author.name}
-        </SiteLink>
-      </span>
-      <span aria-hidden="true">·</span>
       <time className="dt-published" dateTime={publishedIso}>
         {formatDate(writing.published)}
       </time>

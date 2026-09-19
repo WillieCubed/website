@@ -90,6 +90,7 @@ export default async function RootLayout({
       <head>
         {/* IndieWeb discovery: where to send mentions and posts, who vouches
             for this site, and where the feeds live. */}
+        <link rel="author" href={`${site.origin}/`} />
         <link rel="webmention" href={WEBMENTION_ENDPOINT} />
         <link rel="micropub" href={MICROPUB_ENDPOINT} />
         <link

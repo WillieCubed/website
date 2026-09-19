@@ -128,6 +128,7 @@ test('pageToItem keys pages by href and leaves them undated', () => {
   assert.equal(pageToItem(writings).slug, 'pages/writings');
   assert.equal(pageToItem(writings).published, UNDATED);
   assert.equal(pageToItem(writings).type, 'page');
+  assert.equal(pageToItem(home).content, '');
 });
 
 test('writingToItem maps a writing to a rooted, dated item', () => {

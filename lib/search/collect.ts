@@ -120,7 +120,8 @@ export function pageToItem(page: EntityCard): SearchableItem {
     path: page.href,
     title: page.title,
     description: page.description,
-    content: page.description,
+    // Description is the page's whole text; as content it doubled the excerpt.
+    content: '',
     tags: [],
     published: UNDATED,
     type: 'page',

@@ -40,7 +40,8 @@ export default function SearchModal() {
     // the `in` form narrows `window` to `never` on the fallback path, because
     // lib.dom declares the method as always present (Safari still lacks it).
     if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(loadComponentUi);
+      // The timeout keeps a page that never goes idle from losing the shortcut.
+      const id = window.requestIdleCallback(loadComponentUi, { timeout: 2000 });
       return () => window.cancelIdleCallback(id);
     }
     const id = window.setTimeout(loadComponentUi, 200);

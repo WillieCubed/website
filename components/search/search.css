@@ -1,6 +1,14 @@
 /* Pagefind search. The Component UI sets `all: initial` on its host
-   elements, so it takes its look from these custom properties alone. */
-:root {
+   elements, so it takes its look from these custom properties alone.
+
+   The script appends its own stylesheet after this one, and that sheet sets
+   the same variables on a plain `:root`. `:root:root` has higher specificity,
+   so these values win whatever the source order.
+
+   Input height and font size are left at Pagefind's defaults on purpose: the
+   trigger button's height follows the input height, and the default 36px
+   matches the placeholder below, so the top bar does not grow on upgrade. */
+:root:root {
   --pf-text: var(--color-ink);
   --pf-background: var(--color-card);
   --pf-border: var(--color-line);
@@ -8,8 +16,6 @@
   --pf-outline-focus: var(--color-accent);
   --pf-mark: var(--color-ink);
   --pf-font: var(--font-sans);
-  --pf-input-height: 44px;
-  --pf-input-font-size: 16px;
 }
 
 /* Hold the trigger's space until the element upgrades so the bar does not

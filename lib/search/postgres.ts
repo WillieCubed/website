@@ -64,6 +64,7 @@ export async function searchPostgres(
 
   const results: SearchResult[] = result.rows.map((row) => ({
     slug: row.slug,
+    path: row.url,
     title: row.title,
     description: row.description,
     content: row.snippet || '',
@@ -78,10 +79,7 @@ export async function searchPostgres(
 }
 
 export async function indexItem(item: SearchableItem): Promise<void> {
-  const url =
-    item.type === 'writing'
-      ? `/writings/${item.slug}`
-      : `/projects/${item.slug}`;
+  const url = item.path;
 
   const tagsArray = `{${item.tags.map((t) => `"${t.replace(/"/g, '\\"')}"`).join(',')}}`;
 

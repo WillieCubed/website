@@ -4,35 +4,10 @@ import { getInitiatives } from '@/lib/initiatives';
 import { formatDate, site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
+import { STATIC_PAGES } from './pages';
 import type { EntityCard } from './types';
 
 export type { EntityCard };
-
-/**
- * Pages that are not generated from content but still deserve a card.
- * Keep the descriptions in sync with each page's metadata.
- */
-const STATIC_PAGES: EntityCard[] = [
-  {
-    href: '/',
-    kind: 'page',
-    title: site.name,
-    description: site.shortDescription,
-  },
-  {
-    href: '/initiatives',
-    kind: 'page',
-    title: 'Initiatives',
-    description:
-      'The campaigns, series, and projects Willie is running right now.',
-  },
-  {
-    href: '/writings',
-    kind: 'page',
-    title: 'Writings',
-    description: 'Articles, notes, and replies from Willie.',
-  },
-];
 
 function range(starts: Date, ends: Date) {
   const short = new Intl.DateTimeFormat('en-US', {

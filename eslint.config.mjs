@@ -11,6 +11,7 @@ const eslintConfig = [
       '.vercel/**',
       'out/**',
       'build/**',
+      'public/pagefind/**',
       'next-env.d.ts',
     ],
   },

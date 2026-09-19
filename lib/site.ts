@@ -88,7 +88,8 @@ export const sitePages: SitePage[] = [
   {
     path: '/writings',
     label: 'Writings',
-    description: 'Articles, notes, and replies from Willie.',
+    description:
+      'Thoughts, tutorials, and notes on software, music, and creativity.',
     routed: true,
     changeFrequency: 'daily',
     priority: 0.9,

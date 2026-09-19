@@ -119,7 +119,7 @@ export default async function RootLayout({
           href="/feed/json"
         />
       </head>
-      <body className="min-h-screen scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink font-sans antialiased">
+      <body className="flex min-h-dvh flex-col scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink font-sans antialiased">
         {process.env.NODE_ENV === 'production' &&
           process.env.NEXT_PUBLIC_GTAG_ID && (
             <>
@@ -137,7 +137,9 @@ export default async function RootLayout({
               </Script>
             </>
           )}
-        {children}
+        {/* Grows to fill a short page so the footer rests on the bottom of
+            the window instead of riding up under the content. */}
+        <div className="grow">{children}</div>
         <SiteFooter />
         <Analytics />
         <SpeedInsights />

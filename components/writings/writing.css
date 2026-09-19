@@ -8,7 +8,7 @@
   display: block;
   width: 2px;
   height: 20px;
-  margin: 6px 0 6px -7px;
+  margin: 6px 0 6px 26px;
   border-radius: 1px;
   background: var(--color-line);
 }

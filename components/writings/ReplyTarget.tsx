@@ -67,7 +67,7 @@ export default function ReplyTarget({
     <div className="reply-target">
       <a
         href={url}
-        className={`${MICROFORMAT[kind]} h-cite group -mx-5 flex flex-col gap-1 rounded-2xl border border-line bg-card px-5 py-4 text-ink no-underline transition-colors hover:border-accent`}
+        className={`${MICROFORMAT[kind]} h-cite group flex flex-col gap-1 rounded-2xl border border-line bg-card px-5 py-4 text-ink no-underline transition-colors hover:border-accent`}
         rel={kind === 'reply' || kind === 'rsvp' ? 'in-reply-to' : 'nofollow'}
       >
         <span className="flex items-center gap-2 text-label-medium text-muted">

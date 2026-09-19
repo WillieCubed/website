@@ -28,7 +28,7 @@ export default function WritingItem({
   const target = targetOf(writing);
 
   return (
-    <article className="h-entry group relative -mx-5 rounded-2xl border border-line bg-card px-5 py-4 transition-colors hover:border-accent">
+    <article className="h-entry group relative rounded-2xl border border-line bg-card px-5 py-4 transition-colors hover:border-accent">
       {/* Main link covers the entire card */}
       <SiteLink
         href={`/writings/${writing.slug}`}

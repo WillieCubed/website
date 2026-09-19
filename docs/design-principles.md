@@ -17,7 +17,9 @@ banners break it.
 expand, and come into focus smoothly instead of jumping. When an element persists
 between two states or pages, such as a tile that opens into a detail view, it
 morphs between them with a shared element transition and morphs back when the
-visitor returns. Motion comes from content changing state, never from decoration
+visitor returns. An element appears on the page once; when it belongs in two
+places, it moves between them, as the homepage's contact row grows into the
+footer. Motion comes from content changing state, never from decoration
 running on its own. Every motion has a reduced-motion fallback.
 
 **Approachable.** Anyone who lands on the site can tell within a few seconds

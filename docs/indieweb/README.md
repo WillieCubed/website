@@ -44,6 +44,12 @@ repeats it as a `<link>`, and the homepage `h-card` has `u-url u-uid` equal
 to its own URL, so it is the representative card. That is the authorship
 algorithm's documented fallback (indieweb.org/authorship-spec), and it keeps
 the author's name off every page that is already under the author's name.
+The homepage `h-card` is the rail in `components/home/Rail.tsx`: the
+headline's name is its `p-name`, the line under it its `p-note`, and the
+photo and email are `<data class="u-photo">` and `<data class="u-email">`,
+because on the homepage the contact links belong to the footer, which grows
+out of the rail's foot. The `rel="me"` links are the footer's profile links,
+on every page.
 `/writings` is an `h-feed` with its own `p-name` and `u-url`. Notes omit the visible headline; the loader derives
 `title` from the first sentence so feeds and the index still have text, and
 `WritingHeader` renders that derived title inside an `sr-only` heading.
@@ -117,7 +123,7 @@ curl in this repo checks it.
 
 | Level | Criterion                                                  | Status                  | Where                                                                            |
 | ----- | ---------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------- |
-| 1     | Own domain with an h-card                                  | Done                    | `lib/site.ts`, `components/site`                                                 |
+| 1     | Own domain with an h-card                                  | Done                    | `lib/site.ts`, `components/home/Rail.tsx`                                        |
 | 1     | rel="me" links to profiles that link back                  | Done                    | `site.social` in the footer                                                      |
 | 1     | Posts on your own domain with h-entry                      | Done                    | `app/writings/[slug]/page.tsx`                                                   |
 | 1     | Posts have permalinks and dates                            | Done                    | `u-url u-uid`, `dt-published`                                                    |

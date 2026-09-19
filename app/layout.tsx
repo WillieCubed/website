@@ -118,6 +118,13 @@ export default async function RootLayout({
           title={`${site.name} (JSON Feed)`}
           href="/feed/json"
         />
+        {/* Lets a browser offer this site as a search engine in its address bar. */}
+        <link
+          rel="search"
+          type="application/opensearchdescription+xml"
+          title={site.shortName}
+          href="/opensearch.xml"
+        />
       </head>
       <body className="flex min-h-dvh flex-col scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink font-sans antialiased">
         {process.env.NODE_ENV === 'production' &&

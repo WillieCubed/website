@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
 
 import InitiativeBody from '@/components/initiatives/InitiativeBody';
@@ -7,6 +7,7 @@ import RouteMap from '@/components/initiatives/RouteMap';
 import TrailerBlock from '@/components/initiatives/TrailerBlock';
 import { formatRange } from '@/components/initiatives/dates';
 import SiteLink from '@/components/link/SiteLink';
+import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 
 import {
@@ -15,6 +16,8 @@ import {
   getInitiativeSlugs,
 } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
+import { initiativeViewport } from '@/lib/initiatives/viewport';
+import { breadcrumbLd, graph } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/site';
 
 // Cache Components refuses an empty list at build time. When nothing is
@@ -36,10 +39,23 @@ export async function generateMetadata(props: {
       description: initiative.description,
       path: initiative.href,
       image: `${initiative.href}/opengraph-image`,
+      imageAlt: `${initiative.title}: ${initiative.tagline}`,
+      labels:
+        initiative.starts && initiative.ends
+          ? [['Dates', formatRange(initiative.starts, initiative.ends, true)]]
+          : undefined,
     });
   } catch {
     notFound();
   }
+}
+
+/** Tints the browser chrome with the initiative's brand colour. */
+export async function generateViewport(props: {
+  params: Promise<{ slug: string }>;
+}): Promise<Viewport> {
+  const { slug } = await props.params;
+  return initiativeViewport(slug);
 }
 
 export default async function InitiativePage(props: {
@@ -66,6 +82,14 @@ export default async function InitiativePage(props: {
 
   return (
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
+      <JsonLd
+        data={graph(
+          breadcrumbLd([
+            ...crumbs.map((crumb) => ({ name: crumb.label, path: crumb.href })),
+            { name: initiative.title, path: initiative.href },
+          ])
+        )}
+      />
       <TopBar crumbs={crumbs} column="content" />
       <main className="mx-auto max-w-[1200px] px-5 pb-20">
         <header className="mx-auto max-w-[840px]">

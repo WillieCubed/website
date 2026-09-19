@@ -12,6 +12,8 @@ export const metadata = pageMetadata({
   description:
     'The campaigns, series, and projects Willie is running right now, each with its own page and story.',
   path: '/initiatives',
+  image: '/initiatives/opengraph-image',
+  imageAlt: 'Initiatives from Willie Chalmers III',
 });
 
 export default async function InitiativesPage() {

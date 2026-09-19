@@ -95,11 +95,11 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Icon name="tag" size={14} className="text-muted" />
+    <div className="no-scrollbar -mx-5 flex items-center gap-2 overflow-x-auto px-5 medium:mx-0 medium:flex-wrap medium:overflow-visible medium:px-0">
+      <Icon name="tag" size={14} className="shrink-0 text-muted" />
       <SiteLink
         href="/writings"
-        className={`rounded-full px-3 py-1.5 text-label-large transition-colors ${
+        className={`shrink-0 rounded-full px-3 py-1.5 text-label-large transition-colors ${
           !currentTag
             ? 'bg-accent text-white'
             : 'border border-line bg-card text-ink hover:border-accent hover:text-accent'
@@ -111,7 +111,7 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
         <SiteLink
           key={tag}
           href={`/writings?tag=${encodeURIComponent(tag)}`}
-          className={`rounded-full px-3 py-1.5 text-label-large transition-colors ${
+          className={`shrink-0 rounded-full px-3 py-1.5 text-label-large transition-colors ${
             currentTag === tag
               ? 'bg-accent text-white'
               : 'border border-line bg-card text-ink hover:border-accent hover:text-accent'
@@ -171,7 +171,7 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
   return (
     <>
       {/* Writings list */}
-      <section className="min-h-[50vh] space-y-lg pb-xl pt-lg">
+      <section className="pb-6 pt-lg">
         <Suspense
           fallback={
             <div className="space-y-md">
@@ -187,7 +187,7 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
           <WritingsList tag={tag} />
         </Suspense>
       </section>
-      <section className="flex flex-wrap items-center justify-between gap-4 pt-lg">
+      <section className="flex flex-col gap-4 medium:flex-row medium:flex-wrap medium:items-center medium:justify-between">
         <Suspense fallback={<div className="h-10" />}>
           <TagFilter currentTag={tag} />
         </Suspense>
@@ -200,12 +200,12 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
             name="q"
             type="search"
             placeholder="Search"
-            className="w-44 rounded-full border border-line bg-card px-4 py-1.5 text-body-medium text-ink"
+            className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2 text-body-medium text-ink medium:w-44 medium:flex-none medium:py-1.5"
           />
           <button
             type="submit"
             aria-label="Search"
-            className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-white"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-white medium:size-9"
           >
             <Icon name="search" size={16} />
           </button>

@@ -214,3 +214,11 @@
     text-decoration-color: var(--color-accent);
   }
 }
+
+/* A row that scrolls sideways on touch without drawing a scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

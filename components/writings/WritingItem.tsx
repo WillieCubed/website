@@ -28,7 +28,7 @@ export default function WritingItem({
   const target = targetOf(writing);
 
   return (
-    <article className="h-entry group relative -mx-5 rounded-2xl border border-line bg-card px-5 py-4 transition-colors hover:border-accent">
+    <article className="h-entry group relative -mx-3 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent">
       {/* Main link covers the entire card */}
       <SiteLink
         href={`/writings/${writing.slug}`}
@@ -70,26 +70,23 @@ export default function WritingItem({
               <span>{writing.readingTime} min read</span>
             </>
           )}
-          {showSeriesInfo && writing.series && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>
-                Part {writing.series.part} of{' '}
-                <SiteLink
-                  href={seriesHref ?? '/writings'}
-                  className="link-animated pointer-events-auto relative z-20 font-medium text-ink"
-                >
-                  {seriesName || writing.series.slug}
-                </SiteLink>
-              </span>
-            </>
-          )}
           {writing.draft && (
             <span className="rounded-full bg-mint/40 px-2 py-0.5 text-ink">
               Draft
             </span>
           )}
         </p>
+        {showSeriesInfo && writing.series && (
+          <p className="text-label-medium text-muted">
+            Part {writing.series.part} of{' '}
+            <SiteLink
+              href={seriesHref ?? '/writings'}
+              className="link-animated pointer-events-auto relative z-20 font-medium text-ink"
+            >
+              {seriesName || writing.series.slug}
+            </SiteLink>
+          </p>
+        )}
       </div>
     </article>
   );

@@ -336,13 +336,18 @@
 /* The homepage rail and the footer share these, so the footer's contact row
    sits on the rail's line and its lockup lands where the rail's name was.
    The rail is 400px wide, and 300px with a tighter gap in the expanded
-   window class. */
+   window class. The shell's width and gutter are here for the same reason:
+   the footer's collapsed row is drawn from them (footer-dock.css). */
 :root {
+  --shell-max: 1480px;
+  --shell-gutter: 20px;
   --rail-w: 400px;
   --rail-gap: clamp(32px, 4vw, 64px);
   --footer-row-h: 40px;
   --footer-inset: 28px;
   --lockup-h: 48px;
+  /* The cube's drawn proportion, from components/brand/Mark.tsx. */
+  --mark-aspect: 403.52 / 435.92;
 }
 @media (min-width: 840px) and (max-width: 1199px) {
   :root {

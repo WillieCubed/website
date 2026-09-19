@@ -10,14 +10,14 @@ import { clamp01, ramp } from './dock';
  * The name stays one plain text node the whole time. Nothing is split,
  * copied or hidden, so it reads, selects and kerns like any other text: each
  * letter is a Range over that node, sorted into one of a few highlight
- * stages (the CSS Custom Highlight API) that site.css styles. A letter that
+ * stages (the CSS Custom Highlight API) that footer-dock.css styles. A letter that
  * has landed leaves every stage and is just the text.
  */
 
 /** How many in-between looks a letter passes through on its way in. */
 export const STAGES = 8;
 
-/** The name each stage is registered under, and styled by in site.css. */
+/** The name each stage is registered under, styled in footer-dock.css. */
 export function stageName(stage: number): string {
   return `footer-name-${stage}`;
 }
@@ -160,22 +160,24 @@ export function createNameReveal(
 
   const stages = Array.from({ length: STAGES + 1 }, () => new Highlight());
   stages.forEach((stage, k) => CSS.highlights.set(stageName(k), stage));
-  const segments = [
-    ...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(
-      text.data
-    ),
-  ];
-  const ranges = segments.map(({ index, segment }) => {
+  const graphemes = new Intl.Segmenter(undefined, {
+    granularity: 'grapheme',
+  }).segment(text.data);
+  const ranges = [...graphemes].map(({ index, segment }) => {
     const range = new Range();
     range.setStart(text, index);
     range.setEnd(text, index + segment.length);
     return range;
   });
-  const letters = makeLetters(segments.length);
+  const letters = makeLetters(ranges.length);
   const shown: (number | null)[] = letters.map(() => null);
 
-  const paint = (i: number) => {
-    const stage = stageFor(letters[i].x);
+  const paint = (i: number, plain: boolean) => {
+    const stage = plain
+      ? letters[i].x >= 0.94
+        ? null
+        : 0
+      : stageFor(letters[i].x);
     const was = shown[i];
     if (stage === was) return;
     if (was !== null) stages[was].delete(ranges[i]);
@@ -191,36 +193,48 @@ export function createNameReveal(
   const tick = (now: number) => {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
+    const plain = reduceMotion();
     let moving = false;
-    letters.forEach((letter, i) => {
+    for (let i = 0; i < letters.length; i++) {
+      const letter = letters[i];
       const target = letterTarget(wave, letter);
-      if (reduceMotion()) {
+      if (plain) {
         letter.x = target;
         letter.v = 0;
-      } else if (stepLetter(letter, target, dt)) {
-        moving = true;
+      } else if (letter.x !== target || letter.v !== 0) {
+        if (stepLetter(letter, target, dt)) moving = true;
       }
-      paint(i);
-    });
+      paint(i, plain);
+    }
     frame = moving ? requestAnimationFrame(tick) : 0;
   };
 
-  letters.forEach((_, i) => paint(i));
+  const settle = () => {
+    const plain = reduceMotion();
+    for (let i = 0; i < letters.length; i++) {
+      letters[i].x = letterTarget(wave, letters[i]);
+      letters[i].v = 0;
+      paint(i, plain);
+    }
+  };
+
+  settle();
   element.style.setProperty('--footer-name-opacity', '1');
 
   return {
     set(next) {
-      wave = next;
       // The first reading puts the letters where they belong, so a page
       // loaded part-way down does not play the wave on arrival.
       if (!primed) {
         primed = true;
-        letters.forEach((letter, i) => {
-          letter.x = letterTarget(wave, letter);
-          paint(i);
-        });
+        wave = next;
+        settle();
         return;
       }
+      // Nothing to do while the wave stands still and the letters have
+      // caught up with it, which is most of the page.
+      if (next === wave && !frame) return;
+      wave = next;
       if (frame) return;
       last = performance.now();
       frame = requestAnimationFrame(tick);

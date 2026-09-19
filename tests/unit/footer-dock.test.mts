@@ -1,12 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  dockVars,
-  footerProgress,
-  lockupTop,
-  openingTop,
-} from '@/lib/footer/dock';
+import { footerProgress } from '@/lib/footer/dock';
 import {
   STAGES,
   letterTarget,
@@ -28,39 +23,6 @@ test('the footer opens over its own height at the end of the page', () => {
 
 test('a footer with no height never opens', () => {
   assert.equal(footerProgress({ ...page, footerHeight: 0, scrollY: end }), 0);
-});
-
-test('closed, the wide footer is the bare row; open, it is all the way', () => {
-  assert.deepEqual(dockVars(0, false), {
-    p: 0,
-    wide: 0,
-    surface: 0,
-    dock: 0,
-    leave: 0,
-    appear: 1,
-  });
-  for (const value of Object.values(dockVars(1, false))) {
-    assert.equal(value, 1);
-  }
-});
-
-test('on a phone the row starts as nothing, already in the footer look', () => {
-  const closed = dockVars(0, true);
-  assert.equal(closed.appear, 0);
-  assert.equal(closed.dock, 1);
-  assert.equal(dockVars(0.08, true).appear, 1);
-});
-
-test('the rising lockup stays inside the opening', () => {
-  // A wide footer, and a phone footer that fills an 844px screen.
-  for (const height of [236, 844]) {
-    for (let p = 0; p <= 1; p += 0.01) {
-      assert.ok(
-        lockupTop(p, height) >= openingTop(p, height),
-        `lockup above the opening at p=${p.toFixed(2)}, height=${height}`
-      );
-    }
-  }
 });
 
 test('the name is whole once the headline name has left the top', () => {

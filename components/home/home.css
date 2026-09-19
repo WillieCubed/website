@@ -5,7 +5,7 @@
  * nothing here reaches another route.
  */
 .home {
-  padding-inline: 20px;
+  padding-inline: var(--shell-gutter);
   color: var(--color-ink);
   font: 400 16px/1.5 var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -51,7 +51,7 @@
     display: grid;
     grid-template-columns: var(--rail-w) minmax(0, 1fr);
     gap: var(--rail-gap);
-    max-width: 1480px;
+    max-width: var(--shell-max);
     margin: 0 auto;
   }
   /* The foot of the rail is left clear: the footer, collapsed to its
@@ -59,8 +59,6 @@
   .rail {
     position: sticky;
     top: 0;
-    display: flex;
-    flex-direction: column;
     height: 100svh;
     padding-block: var(--footer-inset)
       calc(var(--footer-inset) + var(--footer-row-h) + 16px);

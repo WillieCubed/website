@@ -18,8 +18,10 @@
   justify-self: start;
 }
 @media (min-width: 840px) {
+  /* Proportional columns: an auto right column would take the whole
+     profile row's width and squeeze the tagline into four lines. */
   .site-footer__inner {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   }
   .site-footer__pages {
     align-self: start;

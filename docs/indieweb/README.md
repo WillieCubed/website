@@ -83,13 +83,13 @@ correct outcome on Vercel and Workers: set the GitHub variables there.
 
 ## Scripts
 
-| Script                                        | What it does                                                                                                                                         |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm search:index` (runs as `prebuild`)      | Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives, and pages. Both are gitignored. |
-| `pnpm websub:ping`                            | POSTs `hub.mode=publish` with the six feed URLs to `WEBSUB_HUB`.                                                                                     |
-| `pnpm webmentions:send`                       | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                          |
-| `scripts/postbuild.mts` (runs as `postbuild`) | Runs the two scripts above only when `INDIEWEB_POSTBUILD=1`, and never fails the build.                                                              |
-| `pnpm test`                                   | `tsx --test tests/unit/*.test.mts`                                                                                                                   |
+| Script                                        | What it does                                                                                                                                                                                                                                             |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm search:index` (runs as `prebuild`)      | Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives and their parts, and pages. Both are gitignored. The Pagefind step needs its platform binary, which the `pagefind` package installs. |
+| `pnpm websub:ping`                            | POSTs `hub.mode=publish` with the six feed URLs to `WEBSUB_HUB`.                                                                                                                                                                                         |
+| `pnpm webmentions:send`                       | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                                                                                                                              |
+| `scripts/postbuild.mts` (runs as `postbuild`) | Runs the two scripts above only when `INDIEWEB_POSTBUILD=1`, and never fails the build.                                                                                                                                                                  |
+| `pnpm test`                                   | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                       |
 
 ## Environment variables
 

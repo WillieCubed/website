@@ -3,10 +3,8 @@ import { cacheLife } from 'next/cache';
 import {
   type FeedItem,
   generateJsonFeed,
-  projectToFeedItem,
   writingToFeedItem,
 } from '@/lib/feeds';
-import { getAllProjects } from '@/lib/projects';
 import { siteRoute } from '@/lib/url-utils';
 import { getAllWritings } from '@/lib/writings';
 
@@ -14,15 +12,11 @@ async function buildFeed() {
   'use cache';
   cacheLife('hours');
 
-  const [writings, projects] = await Promise.all([
-    getAllWritings(),
-    getAllProjects(),
-  ]);
+  const writings = await getAllWritings();
 
-  const items: FeedItem[] = [
-    ...writings.map(writingToFeedItem),
-    ...projects.map(projectToFeedItem),
-  ].sort((a, b) => b.published.getTime() - a.published.getTime());
+  const items: FeedItem[] = [...writings.map(writingToFeedItem)].sort(
+    (a, b) => b.published.getTime() - a.published.getTime()
+  );
 
   const feed = generateJsonFeed(items, {
     feedUrl: siteRoute`/feed/json`,

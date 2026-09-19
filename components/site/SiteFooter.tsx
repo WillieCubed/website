@@ -14,11 +14,8 @@ import FeedsButton from './FeedsButton';
 import './site.css';
 
 const PAGES = [
-  { label: 'Now', href: '/now' },
   { label: 'Writings', href: '/writings' },
   { label: 'Initiatives', href: '/initiatives' },
-  { label: 'Projects', href: '/projects' },
-  { label: 'Colophon', href: '/colophon' },
 ];
 
 const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [

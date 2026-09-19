@@ -1,4 +1,3 @@
-import type { ProjectData } from '@/lib/common';
 import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import type { ActivityFeedItem } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
@@ -69,19 +68,6 @@ export function writingToFeedItem(writing: WritingData): FeedItem {
     published: new Date(writing.published),
     updated: writing.lastUpdated ? new Date(writing.lastUpdated) : undefined,
     categories: writing.tags,
-  };
-}
-
-/**
- * Convert a project to a feed item.
- */
-export function projectToFeedItem(project: ProjectData): FeedItem {
-  return {
-    title: project.title,
-    description: project.tagline || project.description || '',
-    url: siteRoute`/projects/${project.codename}`,
-    published: new Date(project.launched),
-    categories: project.type ? [project.type] : undefined,
   };
 }
 

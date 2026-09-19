@@ -48,7 +48,10 @@ export async function searchContent(
   query: string,
   options: SearchOptions = {}
 ): Promise<SearchResponse> {
-  const { type = 'all', limit = 20, offset = 0 } = options;
+  // Project pages are parked in app/_(pages), so a project result would
+  // link to a 404. Search covers writings until those pages come back.
+  const { limit = 20, offset = 0 } = options;
+  const type = 'writing';
   const trimmed = query.trim();
   const backend = usePostgresSearch() ? 'postgres' : 'index';
 
@@ -63,7 +66,7 @@ export async function searchContent(
 
   const items = await loadSearchIndex();
   const matches = rankItems(
-    type === 'all' ? items : items.filter((item) => item.type === type),
+    items.filter((item) => item.type === type),
     trimmed
   );
   const results: SearchResult[] = matches.slice(offset, offset + limit);

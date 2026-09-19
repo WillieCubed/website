@@ -1,7 +1,6 @@
 import { cacheLife } from 'next/cache';
 
 import { getInitiatives } from '@/lib/initiatives';
-import { getAllProjects } from '@/lib/projects';
 import { formatDate, site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
@@ -33,37 +32,6 @@ const STATIC_PAGES: EntityCard[] = [
     title: 'Writings',
     description: 'Articles, notes, and replies from Willie.',
   },
-  {
-    href: '/projects',
-    kind: 'page',
-    title: 'Projects',
-    description: 'Apps and other things Willie has built.',
-  },
-  {
-    href: '/about',
-    kind: 'page',
-    title: 'About',
-    description: 'Who Willie is, what he has done, and where he is going.',
-    cover: { src: '/assets/headshot.jpg', alt: 'Willie Chalmers III' },
-  },
-  {
-    href: '/contact',
-    kind: 'page',
-    title: 'Contact',
-    description: "How to get in touch with Willie. It's pretty simple.",
-  },
-  {
-    href: '/now',
-    kind: 'page',
-    title: 'Now',
-    description: "What Willie is working on and what's coming up next.",
-  },
-  {
-    href: '/media',
-    kind: 'page',
-    title: 'Media and art',
-    description: 'The Willie Diaries and other creative work.',
-  },
 ];
 
 function range(starts: Date, ends: Date) {
@@ -83,9 +51,8 @@ export async function getEntityRegistry(): Promise<EntityCard[]> {
   'use cache';
   cacheLife('hours');
 
-  const [writings, projects, initiatives] = await Promise.all([
+  const [writings, initiatives] = await Promise.all([
     getAllWritings(false),
-    getAllProjects(),
     getInitiatives(),
   ]);
 
@@ -101,19 +68,6 @@ export async function getEntityRegistry(): Promise<EntityCard[]> {
         ? { src: writing.featuredImage, alt: writing.featuredImageAlt ?? '' }
         : undefined,
       meta: `${formatDate(new Date(writing.published))} · ${writing.readingTime} min read`,
-    });
-  }
-
-  for (const project of projects) {
-    cards.push({
-      href: `/projects/${project.codename}`,
-      kind: 'project',
-      title: project.title,
-      description: project.tagline || project.description,
-      cover: project.thumbnail
-        ? { src: project.thumbnail, alt: project.title }
-        : undefined,
-      meta: project.clientAttribution || undefined,
     });
   }
 

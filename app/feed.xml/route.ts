@@ -1,21 +1,16 @@
 import RSS from 'rss';
 
-import { getAllProjects } from '@/lib/projects';
 import { site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
 const SITE_URL = site.origin;
 
 export async function GET() {
-  const [writings, projects] = await Promise.all([
-    getAllWritings(),
-    getAllProjects(),
-  ]);
+  const writings = await getAllWritings();
 
   const feed = new RSS({
     title: site.name,
-    description:
-      'Writings, projects, and updates from Willie Chalmers III who builds software for humans.',
+    description: 'Writings from Willie Chalmers III.',
     site_url: SITE_URL,
     feed_url: `${SITE_URL}/feed.xml`,
     language: 'en',
@@ -59,21 +54,6 @@ export async function GET() {
       categories: writing.tags,
       author: site.author.name,
       custom_elements: [{ 'content:encoded': writing.description }],
-    });
-  }
-
-  // Add projects
-  for (const project of projects) {
-    const url = `${SITE_URL}/projects/${project.codename}`;
-
-    feed.item({
-      title: project.title,
-      description: project.tagline || project.description || '',
-      url,
-      guid: url,
-      date: new Date(project.launched),
-      categories: project.type ? [project.type] : [],
-      author: site.author.name,
     });
   }
 

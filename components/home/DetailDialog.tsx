@@ -141,6 +141,17 @@ interface DetailDialogProps {
 }
 
 /**
+ * Identifies the current history entry. Next keeps a key on the state it
+ * writes; a fresh entry gets a fresh key, so comparing it says whether the
+ * entry that opening pushed is still the one on top.
+ */
+function historyKey(): unknown {
+  if (typeof window === 'undefined') return null;
+  const state = window.history.state as { key?: unknown } | null;
+  return state?.key ?? null;
+}
+
+/**
  * The detail view. The `?detail=<id>` search param is the source of truth
  * for which entry is open, so the back gesture, the close button, and a
  * shared link all land in the same state. Opening from a click morphs first
@@ -159,9 +170,10 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const openIdRef = useRef<string | null>(null);
   const sourceRef = useRef<Source | null>(null);
-  // Whether this page pushed the current history entry, so closing can go
-  // back instead of replacing a URL the visitor arrived on.
-  const pushedRef = useRef(false);
+  // The history entry opening pushed, so closing can go back instead of
+  // replacing a URL the visitor arrived on — and only when that entry is
+  // still the current one.
+  const pushedRef = useRef<unknown>(null);
   const busyRef = useRef(false);
 
   const open = async (id: string, from: HTMLElement | null, push: boolean) => {
@@ -189,8 +201,8 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     // The URL changes after the morph. Pushing first made the router start
     // its own view transition and the morph aborted with an invalid state.
     if (push) {
-      pushedRef.current = true;
       router.push(`${pathname}?detail=${id}`, { scroll: false });
+      pushedRef.current = historyKey();
     }
     busyRef.current = false;
   };
@@ -215,7 +227,7 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     if (!openIdRef.current || busyRef.current || !dialog) return;
     busyRef.current = true;
     openIdRef.current = null;
-    pushedRef.current = false;
+    pushedRef.current = null;
     await morph(() => {
       setName(dialog, '');
       setName(mediaRef.current, '');
@@ -238,7 +250,11 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
   // Closing goes through history so the back gesture and the close button
   // behave the same way.
   const requestClose = () => {
-    if (pushedRef.current) router.back();
+    const pushed = pushedRef.current;
+    // Going back is only safe while the entry opening pushed is still on
+    // top. Otherwise closing drops the param where it stands, so it can
+    // never send the visitor past the page they came from.
+    if (pushed !== null && pushed === historyKey()) router.back();
     else router.replace(pathname, { scroll: false });
   };
 

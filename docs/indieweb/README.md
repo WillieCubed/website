@@ -23,7 +23,8 @@ The canonical origin, author name, photo, and social profiles all come from
 | `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                             | nothing                           |
 | `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, answered from this domain                  | nothing (Postgres optional)       |
 | `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres` | Postgres, `SEARCH_REINDEX_SECRET` |
-| `/llms.txt`                                                        | Plain-text map of the site for language-model crawlers                           | nothing                           |
+| `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints             | nothing                           |
+| `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                        | nothing                           |
 | `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                 | nothing                           |
 | `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`                      | nothing                           |
 | `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and projects; each declares the WebSub hub               | nothing                           |

@@ -10,15 +10,12 @@ export interface WebmentionActivityFeedProps {
 }
 
 const ACTIVITY_TONE: Record<WebmentionType, string> = {
-  like: 'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300',
-  repost:
-    'border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-300',
+  like: 'border-tertiary/30 bg-tertiary-container text-on-tertiary-container',
+  repost: 'border-primary/30 bg-primary-container text-on-primary-container',
   reply:
-    'border-primary/30 bg-primary/5 text-primary dark:border-primary/40 dark:bg-primary/10',
-  mention:
-    'border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  bookmark:
-    'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300',
+    'border-secondary/30 bg-secondary-container text-on-secondary-container',
+  mention: 'border-outline-variant bg-surface-container-high text-on-surface',
+  bookmark: 'border-primary/30 bg-primary-container text-on-primary-container',
 };
 
 function formatActivityDate(date: Date): string {

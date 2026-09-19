@@ -17,7 +17,7 @@ export default function ProjectNextIcon({ className }: { className?: string }) {
         width="24"
         height="24"
       >
-        <rect width="24" height="24" fill="#D9D9D9" />
+        <rect width="24" height="24" fill="none" />
       </mask>
       <g mask="url(#mask0_1558_535)">
         <path

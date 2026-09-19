@@ -11,7 +11,7 @@ export default function SpotlightProjectCard({
 }: SpotlightProjectCardProps) {
   const projectTypeLabel = PROJECT_TYPE_MAP[project.type];
   return (
-    <div className="h-[320px] max-w-[480px] flex-1 px-4 py-6 flex flex-col shrink-0 justify-between bg-surface-foreground dark:bg-slate-900 border-2 border-black">
+    <div className="flex h-[320px] max-w-[480px] flex-1 shrink-0 flex-col justify-between border-2 border-outline bg-surface-container-lowest px-4 py-6">
       <div className="flex flex-col space-y-2">
         <div className="text-label-medium">{projectTypeLabel}</div>
         <div className="text-display-medium font-display text-primary self-stretch">

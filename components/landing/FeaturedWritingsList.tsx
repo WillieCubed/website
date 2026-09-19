@@ -30,7 +30,7 @@ function FeaturedWritingItem({ writing }: FeaturedProjectCardProps) {
   const formattedDate = formatDate(lastUpdated);
   return (
     <SiteLink preview={false} href={`/writings/${slug}`} className="group">
-      <div className="flex flex-col p-lg bg-surface-foreground dark:bg-surface-foreground-dark border-2 group-hover:bg-maverick-100 group-focus:bg-maverick-100 active:bg-maverick-100 dark:group-hover:bg-maverick-700 dark:group-focus:bg-maverick-700 dark:active:bg-maverick-700 transition ease-in duration-100 border-on-surface-foreground">
+      <div className="flex flex-col border-2 border-outline bg-surface-container-lowest p-lg transition duration-100 ease-in group-hover:bg-primary-container group-focus:bg-primary-container active:bg-primary-container">
         <div className="space-y-sm">
           {lastUpdated && (
             <div className="text-on-surface text-title-small">

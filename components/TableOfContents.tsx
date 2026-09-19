@@ -68,7 +68,7 @@ export default function TableOfContents({
       {/* Mobile toggle */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left dark:border-gray-700 dark:bg-gray-800 desktop:hidden"
+        className="flex w-full items-center justify-between rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-left desktop:hidden"
         aria-expanded={isExpanded}
       >
         <span className="text-title-small font-medium">Contents</span>
@@ -106,7 +106,7 @@ export default function TableOfContents({
                   className={`block w-full rounded px-3 py-1.5 text-left text-sm transition-colors ${indentClass} ${
                     isActive
                       ? 'bg-primary/10 font-medium text-primary'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+                      : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
                   }`}
                 >
                   {heading.text}

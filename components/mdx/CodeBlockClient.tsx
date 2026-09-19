@@ -23,7 +23,7 @@ export default function CodeBlockClient({ code }: CodeBlockClientProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className="rounded p-1 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+      className="rounded p-1 transition-colors hover:bg-surface-container-highest"
       aria-label={copied ? 'Copied!' : 'Copy code to clipboard'}
     >
       {copied ? (
@@ -37,7 +37,7 @@ export default function CodeBlockClient({ code }: CodeBlockClientProps) {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-green-500"
+          className="text-primary"
         >
           <polyline points="20 6 9 17 4 12" />
         </svg>

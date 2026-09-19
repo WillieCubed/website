@@ -101,7 +101,7 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
         href="/writings"
         className={`shrink-0 rounded-full px-3 py-1.5 text-label-large transition-colors ${
           !currentTag
-            ? 'bg-accent text-white'
+            ? 'bg-primary text-on-primary'
             : 'border border-line bg-card text-ink hover:border-accent hover:text-accent'
         }`}
       >
@@ -113,7 +113,7 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
           href={`/writings?tag=${encodeURIComponent(tag)}`}
           className={`shrink-0 rounded-full px-3 py-1.5 text-label-large transition-colors ${
             currentTag === tag
-              ? 'bg-accent text-white'
+              ? 'bg-primary text-on-primary'
               : 'border border-line bg-card text-ink hover:border-accent hover:text-accent'
           }`}
         >
@@ -208,7 +208,7 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
             <button
               type="submit"
               aria-label="Search"
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-white medium:size-9"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary medium:size-9"
             >
               <Icon name="search" size={16} />
             </button>

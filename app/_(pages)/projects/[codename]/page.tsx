@@ -101,11 +101,11 @@ export default async function ProjectDetailPage(props: ProjectDetailPageProps) {
               <Image
                 src={project.projectIconUrl}
                 alt={`${project.title} logo`}
-                className="bordered flex flex-col justify-center object-cover surface-alt dark:bg-slate-800 text-display-small text-center"
+                className="bordered surface-alt flex flex-col justify-center bg-surface-container-high object-cover text-center text-display-small"
                 fill
               />
             ) : (
-              <div className="bordered flex flex-col justify-center h-full w-full surface-alt dark:bg-slate-800 text-display-small text-center">
+              <div className="bordered surface-alt flex h-full w-full flex-col justify-center bg-surface-container-high text-center text-display-small">
                 {project.title[0]}
               </div>
             )}

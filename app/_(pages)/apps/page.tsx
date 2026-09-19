@@ -78,7 +78,7 @@ function AppCard({
     month: 'long',
   });
   return (
-    <div className="border-2 border-black bg-surface-foreground">
+    <div className="border-2 border-outline bg-surface-container-lowest">
       <a
         className="block md:flex p-6 text-center text-on-light"
         href="https://logdate.app"

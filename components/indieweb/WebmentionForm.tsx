@@ -52,7 +52,7 @@ export default function WebmentionForm({ target }: { target: string }) {
         <button
           type="submit"
           disabled={state === 'sending'}
-          className="rounded-full bg-accent px-4 py-2 text-label-large font-semibold text-white disabled:opacity-60"
+          className="rounded-full bg-primary px-4 py-2 text-label-large font-semibold text-on-primary disabled:opacity-60"
         >
           Send
         </button>

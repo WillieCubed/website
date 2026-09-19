@@ -81,7 +81,7 @@ export default function CollectionContent({
               : 'mx-auto max-w-breakpoint-md px-lg pb-xl desktop:px-0'
           }
         >
-          <article className="prose prose-lg max-w-none dark:prose-invert">
+          <article className="prose prose-theme prose-lg max-w-none">
             <MDXRemote source={series.content} components={mdxComponents} />
           </article>
         </section>

@@ -1,9 +1,7 @@
 export default function FeatureSectionWrapper() {
   return (
     <div className="inline-flex flex-col items-start gap-y-xl">
-      <h1 className="text-headline-small text-on-surface-foreground dark:text-on-surface-foreground-dark">
-        Features
-      </h1>
+      <h1 className="text-headline-small text-on-surface">Features</h1>
       <FeatureList />
     </div>
   );

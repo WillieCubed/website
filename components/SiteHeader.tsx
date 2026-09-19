@@ -171,7 +171,7 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
         </div>
         <button
           type="button"
-          className="size-[40px] print:hidden tablet:hidden rounded-lg text-on-surface-foreground dark:text-on-surface-foreground-dark flex flex-col justify-center items-center cursor-pointer"
+          className="flex size-[40px] cursor-pointer flex-col items-center justify-center rounded-lg text-on-surface print:hidden tablet:hidden"
           onClick={toggleShowMore}
         >
           <svg
@@ -195,7 +195,7 @@ export default function SiteHeader({ showTitle = true }: SiteHeaderProps) {
               width="24"
               height="24"
             >
-              <rect width="24" height="24" fill="#D9D9D9" />
+              <rect width="24" height="24" fill="none" />
             </mask>
             <g mask="url(#mask0_1239_718)">
               <path

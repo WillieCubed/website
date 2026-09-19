@@ -3,76 +3,82 @@
 @plugin 'tailwind-scrollbar';
 
 /*
- * The site's design tokens. The warm neutral palette, Atkinson Hyperlegible
- * type, and Material 3 window classes come from docs/design-principles.md.
- * The older Material role names (primary, surface, on-surface, maverick) stay
- * defined so existing pages keep compiling, but they now resolve to the warm
- * palette instead of the retired blue one.
+ * The site's design tokens. Components consume Material roles rather than
+ * palette values, so the role values below are the only theme boundary. The
+ * older site names remain aliases while parked pages are rebuilt.
  */
 @theme static {
-  /* Warm neutral palette */
-  --color-ground: #f4f5ef;
-  --color-tray: #e7eae2;
-  --color-card: #fbfcf9;
-  --color-ink: #1c231e;
-  --color-muted: #69736b;
-  --color-prose: #7f8981;
-  --color-line: #dfe3da;
-  --color-accent: #2f6f5e;
-  --color-mint: #8fd1b8;
-  /* Status codes and warnings in logs. Warm so it reads as a flag, not an alarm. */
-  --color-signal: #b4532a;
-
-  /* Green ramp derived from the accent */
-  --color-maverick-50: #f1f7f4;
-  --color-maverick-100: #dff0e8;
-  --color-maverick-200: #c9e8db;
-  --color-maverick-300: #8fd1b8;
-  --color-maverick-400: #5fb497;
-  --color-maverick-500: #2f6f5e;
-  --color-maverick-600: #28604f;
-  --color-maverick-700: #1f4e40;
-  --color-maverick-800: #183d32;
-  --color-maverick-900: #112c24;
-  --color-maverick-950: #0a1a15;
-
-  /* Material role aliases onto the warm palette */
-  --color-primary: var(--color-accent);
-  --color-primary-light-1: var(--color-mint);
-  --color-primary-light-2: var(--color-maverick-200);
-  --color-primary-dark-1: var(--color-maverick-600);
-  --color-primary-dark-2: var(--color-maverick-700);
+  /* Material 3 light roles. The dark values live at the theme boundary below. */
+  --color-primary: #2f6f5e;
   --color-on-primary: #ffffff;
-  --color-primary-container: var(--color-maverick-200);
+  --color-primary-container: #c9e8db;
   --color-on-primary-container: #0f2b23;
-  --color-secondary: var(--color-muted);
-  --color-secondary-light-1: #b9c2bb;
-  --color-secondary-dark-1: #4e574f;
-  --color-secondary-container: var(--color-tray);
-  --color-on-secondary-container: var(--color-ink);
+  --color-secondary: #4c635b;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d5e7df;
+  --color-on-secondary-container: #263d35;
   --color-tertiary: #a05a3c;
+  --color-on-tertiary: #ffffff;
   --color-tertiary-container: #f3dfd4;
   --color-on-tertiary-container: #3b1e12;
-  --color-accent-light-1: #d9f0e6;
-  --color-surface: var(--color-ground);
-  --color-on-surface: var(--color-ink);
-  --color-on-surface-variant: var(--color-muted);
-  --color-surface-container-lowest: var(--color-card);
-  --color-surface-container-low: var(--color-ground);
+  --color-surface: #f4f5ef;
+  --color-surface-dim: #e1e3dc;
+  --color-surface-bright: #fbfcf9;
+  --color-surface-container-lowest: #fbfcf9;
+  --color-surface-container-low: #f4f5ef;
   --color-surface-container: #eef0e9;
-  --color-surface-container-high: var(--color-tray);
-  --color-surface-container-highest: var(--color-line);
-  --color-surface-foreground: var(--color-card);
-  --color-surface-foreground-dark: var(--color-ink);
-  --color-on-surface-foreground: var(--color-ink);
-  --color-on-surface-foreground-dark: var(--color-ground);
-  --color-on-surface-border: var(--color-line);
-  --color-on-surface-border-dark: var(--color-accent);
-  --color-outline: var(--color-prose);
-  --color-outline-variant: var(--color-line);
-  --color-on-light: var(--color-ink);
-  --color-on-dark: var(--color-ground);
-  --color-dark: var(--color-ink);
+  --color-surface-container-high: #e7eae2;
+  --color-surface-container-highest: #dfe3da;
+  --color-on-surface: #1c231e;
+  --color-on-surface-variant: #69736b;
+  --color-outline: #7f8981;
+  --color-outline-variant: #dfe3da;
+  --color-error: #b3261e;
+  --color-on-error: #ffffff;
+  --color-error-container: #f9dedc;
+  --color-on-error-container: #410e0b;
+  --color-scrim: #000000;
+
+  /* Site-language aliases. Every alias resolves through a Material role. */
+  --color-ground: var(--color-surface);
+  --color-tray: var(--color-surface-container-high);
+  --color-card: var(--color-surface-container-lowest);
+  --color-ink: var(--color-on-surface);
+  --color-muted: var(--color-on-surface-variant);
+  --color-prose: var(--color-outline);
+  --color-line: var(--color-outline-variant);
+  --color-accent: var(--color-primary);
+  --color-mint: var(--color-primary-container);
+  --color-signal: var(--color-error);
+
+  /* Compatibility aliases for the older page components. */
+  --color-maverick-50: var(--color-surface-container-low);
+  --color-maverick-100: var(--color-primary-container);
+  --color-maverick-200: var(--color-primary-container);
+  --color-maverick-300: var(--color-primary-container);
+  --color-maverick-400: var(--color-primary);
+  --color-maverick-500: var(--color-primary);
+  --color-maverick-600: var(--color-primary);
+  --color-maverick-700: var(--color-primary-container);
+  --color-maverick-800: var(--color-surface-container-high);
+  --color-maverick-900: var(--color-surface-container);
+  --color-maverick-950: var(--color-surface-container-low);
+  --color-primary-light-1: var(--color-primary-container);
+  --color-primary-light-2: var(--color-primary-container);
+  --color-primary-dark-1: var(--color-primary);
+  --color-primary-dark-2: var(--color-primary);
+  --color-secondary-light-1: var(--color-secondary-container);
+  --color-secondary-dark-1: var(--color-secondary);
+  --color-accent-light-1: var(--color-primary-container);
+  --color-surface-foreground: var(--color-surface-container-lowest);
+  --color-surface-foreground-dark: var(--color-surface-container-lowest);
+  --color-on-surface-foreground: var(--color-on-surface);
+  --color-on-surface-foreground-dark: var(--color-on-surface);
+  --color-on-surface-border: var(--color-outline-variant);
+  --color-on-surface-border-dark: var(--color-outline-variant);
+  --color-on-light: var(--color-on-surface);
+  --color-on-dark: var(--color-on-surface);
+  --color-dark: var(--color-surface);
 
   /* Type */
   --font-sans:
@@ -178,15 +184,100 @@
 
   /* Motion */
   --ease-site: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-theme: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-theme: 520ms;
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #93d3bf;
+    --color-on-primary: #00382c;
+    --color-primary-container: #2f6f5e;
+    --color-on-primary-container: #aeefda;
+    --color-secondary: #b3ccc2;
+    --color-on-secondary: #1e352e;
+    --color-secondary-container: #374e46;
+    --color-on-secondary-container: #d0e8de;
+    --color-tertiary: #ffb4a8;
+    --color-on-tertiary: #53211a;
+    --color-tertiary-container: #72372f;
+    --color-on-tertiary-container: #ffd9d2;
+    --color-surface: #111413;
+    --color-surface-dim: #111413;
+    --color-surface-bright: #363a38;
+    --color-surface-container-lowest: #0b0f0e;
+    --color-surface-container-low: #191c1b;
+    --color-surface-container: #1d201f;
+    --color-surface-container-high: #272b29;
+    --color-surface-container-highest: #323534;
+    --color-on-surface: #e1e3e0;
+    --color-on-surface-variant: #bfc9c4;
+    --color-outline: #89938e;
+    --color-outline-variant: #3f4945;
+    --color-error: #ffb4ab;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-on-error-container: #ffdad6;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme-transition],
+  [data-theme-transition] *,
+  [data-theme-transition] *::before,
+  [data-theme-transition] *::after {
+    transition-property:
+      color, background-color, border-color, outline-color,
+      text-decoration-color, fill, stroke, box-shadow, caret-color !important;
+    transition-duration: var(--duration-theme) !important;
+    transition-timing-function: var(--ease-theme) !important;
+  }
 }
 
 ::selection {
   background: color-mix(in srgb, var(--color-accent) 24%, transparent);
   color: var(--color-ink);
+}
+
+/* Typography and syntax themes consume the same roles as the surrounding UI. */
+.prose-theme {
+  --tw-prose-body: var(--color-on-surface);
+  --tw-prose-headings: var(--color-on-surface);
+  --tw-prose-lead: var(--color-on-surface-variant);
+  --tw-prose-links: var(--color-primary);
+  --tw-prose-bold: var(--color-on-surface);
+  --tw-prose-counters: var(--color-on-surface-variant);
+  --tw-prose-bullets: var(--color-outline);
+  --tw-prose-hr: var(--color-outline-variant);
+  --tw-prose-quotes: var(--color-on-surface);
+  --tw-prose-quote-borders: var(--color-primary);
+  --tw-prose-captions: var(--color-on-surface-variant);
+  --tw-prose-kbd: var(--color-on-surface);
+  --tw-prose-kbd-shadows: color-mix(
+    in srgb,
+    var(--color-on-surface) 15%,
+    transparent
+  );
+  --tw-prose-code: var(--color-on-surface);
+  --tw-prose-pre-code: var(--color-on-surface);
+  --tw-prose-pre-bg: var(--color-surface-container-lowest);
+  --tw-prose-th-borders: var(--color-outline-variant);
+  --tw-prose-td-borders: var(--color-outline-variant);
+}
+
+@media (prefers-color-scheme: dark) {
+  .shiki,
+  .shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
 }
 
 @utility interactive-bg-surface-container {

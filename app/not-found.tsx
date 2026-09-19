@@ -54,7 +54,7 @@ export default async function NotFound() {
           <SiteLink
             preview={false}
             href="/"
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-label-large font-semibold text-white transition-colors hover:bg-accent/90"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-label-large font-semibold text-on-primary transition-colors hover:bg-primary/90"
           >
             <Icon name="arrow-left" size={16} />
             Back to the homepage

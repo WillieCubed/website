@@ -98,9 +98,9 @@ function ProjectTimelineItem({ project }: ProjectTimelineItemProps) {
   return (
     <div className="flex space-x-lg">
       <div className="flex flex-col">
-        <div className="size-8 bordered border-on-surface-foreground dark:border-on-surface-foreground-dark"></div>
+        <div className="bordered size-8 border-on-surface"></div>
         <div className="flex-grow flex justify-center">
-          <div className="w-[2px] h-full bg-on-surface-foreground dark:bg-on-surface-foreground-dark"></div>
+          <div className="h-full w-[2px] bg-on-surface"></div>
         </div>
       </div>
       <article className="space-y-xl pb-16">

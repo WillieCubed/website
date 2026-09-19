@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { themeSchemes } from './theme';
+
 /**
  * The single source of truth for the site's identity.
  *
@@ -19,7 +21,11 @@ export const site = {
   language: 'en',
   /** Dates on the site read in this zone whatever zone the server runs in. */
   timeZone: 'America/Los_Angeles',
-  themeColor: '#f4f5ef',
+  themeColor: themeSchemes.light.surface,
+  themeColors: {
+    light: themeSchemes.light.surface,
+    dark: themeSchemes.dark.surface,
+  },
   ogImage: '/brand/social/og-image.png',
   author: {
     name: 'Willie Chalmers III',

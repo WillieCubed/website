@@ -79,7 +79,11 @@
           var(--live-accent, var(--color-accent))
         )
         no-repeat 0 100% / 0% 3px,
-      linear-gradient(#cfd6cc, #cfd6cc) no-repeat 0 100% / 100% 2px;
+      linear-gradient(
+          var(--color-outline-variant),
+          var(--color-outline-variant)
+        )
+        no-repeat 0 100% / 100% 2px;
     font: inherit;
     letter-spacing: inherit;
     cursor: pointer;
@@ -207,7 +211,7 @@
     background: var(--color-tray);
     box-shadow:
       0 0 0 1.5px var(--color-ground),
-      0 1px 4px rgb(28 35 30 / 0.2);
+      0 1px 4px color-mix(in srgb, var(--color-scrim) 20%, transparent);
     font-style: normal;
     transition:
       rotate 460ms var(--ease-site),
@@ -338,7 +342,8 @@
   }
   .tile.hit {
     translate: 0 -3px;
-    box-shadow: 0 14px 30px -18px rgb(28 35 30 / 0.45);
+    box-shadow: 0 14px 30px -18px
+      color-mix(in srgb, var(--color-scrim) 45%, transparent);
   }
   .tile:active {
     scale: 0.985;
@@ -384,7 +389,8 @@
     padding: 3px 9px;
     border-radius: 999px;
     background: var(--color-card);
-    box-shadow: 0 1px 2px rgb(28 35 30 / 0.12);
+    box-shadow: 0 1px 2px
+      color-mix(in srgb, var(--color-scrim) 12%, transparent);
     color: var(--color-ink);
     opacity: 0;
     translate: 6px -50%;
@@ -455,7 +461,7 @@
   .active {
     margin: 14px 0 0;
     padding: 12px 0 0;
-    border-top: 1px solid #d5dad0;
+    border-top: 1px solid var(--color-outline-variant);
     color: var(--color-muted);
     font-size: 14px;
   }
@@ -473,8 +479,8 @@
     border-radius: 9px;
     background: var(--color-card);
     box-shadow:
-      0 1px 0 rgb(28 35 30 / 0.05),
-      0 18px 40px -22px rgb(28 35 30 / 0.5);
+      0 1px 0 color-mix(in srgb, var(--color-scrim) 5%, transparent),
+      0 18px 40px -22px color-mix(in srgb, var(--color-scrim) 50%, transparent);
     transition:
       transform 500ms var(--ease-site),
       translate 420ms var(--ease-site);
@@ -507,7 +513,7 @@
     background: var(--color-card);
     text-align: left;
     cursor: pointer;
-    box-shadow: 0 1px 0 rgb(28 35 30 / 0.05);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--color-scrim) 5%, transparent);
     transition:
       translate 360ms var(--ease-site),
       opacity 300ms var(--ease-site),
@@ -519,7 +525,7 @@
   }
   .product .p-media {
     overflow: hidden;
-    background: #e9ece5;
+    background: var(--color-surface-container-high);
   }
   .product .p-media img {
     width: 100%;
@@ -565,7 +571,8 @@
   .product:hover,
   .product:focus-visible {
     translate: 0 -6px;
-    box-shadow: 0 18px 34px -22px rgb(28 35 30 / 0.55);
+    box-shadow: 0 18px 34px -22px
+      color-mix(in srgb, var(--color-scrim) 55%, transparent);
   }
   .product:hover img,
   .product:focus-visible img {
@@ -680,7 +687,7 @@
   }
   .tile[data-branded]:is(.hover, .hit) .shot {
     box-shadow:
-      0 1px 0 rgb(28 35 30 / 0.05),
+      0 1px 0 color-mix(in srgb, var(--color-scrim) 5%, transparent),
       0 22px 44px -22px color-mix(in srgb, var(--b-primary) 55%, transparent);
   }
   .tile[data-branded]:is(.hover, .hit) .constellation line {
@@ -757,10 +764,11 @@
     border-radius: 18px;
     background: var(--color-ground);
     color: var(--color-ink);
-    box-shadow: 0 40px 80px -40px rgb(28 35 30 / 0.55);
+    box-shadow: 0 40px 80px -40px
+      color-mix(in srgb, var(--color-scrim) 55%, transparent);
   }
   dialog.detail::backdrop {
-    background: rgb(28 35 30 / 0.3);
+    background: color-mix(in srgb, var(--color-scrim) 30%, transparent);
     backdrop-filter: blur(6px);
   }
   .d-inner {
@@ -790,7 +798,8 @@
     max-height: 84%;
     object-fit: contain;
     border-radius: 12px;
-    box-shadow: 0 24px 50px -30px rgb(28 35 30 / 0.6);
+    box-shadow: 0 24px 50px -30px
+      color-mix(in srgb, var(--color-scrim) 60%, transparent);
   }
   .d-count {
     padding: 36px;
@@ -817,7 +826,8 @@
   .d-stack img {
     position: absolute;
     border-radius: 10px;
-    box-shadow: 0 24px 44px -26px rgb(28 35 30 / 0.6);
+    box-shadow: 0 24px 44px -26px
+      color-mix(in srgb, var(--color-scrim) 60%, transparent);
   }
   .d-stack img:nth-child(2) {
     left: 22%;
@@ -873,8 +883,13 @@
     padding: 0;
     border: 0;
     border-radius: 50%;
-    background: rgb(251 252 249 / 0.92);
-    box-shadow: 0 1px 3px rgb(28 35 30 / 0.2);
+    background: color-mix(
+      in srgb,
+      var(--color-surface-container-lowest) 92%,
+      transparent
+    );
+    box-shadow: 0 1px 3px
+      color-mix(in srgb, var(--color-scrim) 20%, transparent);
     font-size: 22px;
     cursor: pointer;
     transition:

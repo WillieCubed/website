@@ -9,7 +9,7 @@ export default function StyledBackButton({
   const router = useRouter();
   return (
     <button
-      className="inline-block p-[12px] border-black border-4 font-semibold font-display text-xl hover:shadow-xl transition bg-primary-dark-2 text-white"
+      className="inline-block border-4 border-on-surface bg-primary p-[12px] font-display text-xl font-semibold text-on-primary transition hover:shadow-xl"
       onClick={() => router.back()}
     >
       {children}

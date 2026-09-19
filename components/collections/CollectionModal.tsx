@@ -66,7 +66,7 @@ export default function CollectionModal({
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 overflow-y-auto bg-scrim/50 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="collection-title"

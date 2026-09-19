@@ -34,7 +34,7 @@ export default async function AboutPage() {
         </div>
       </section> */}
       <section id="resume" className="py-6">
-        <div className="p-6 max-w-4xl mx-auto bg-surface-foreground dark:bg-surface-foreground-dark border-black border-2">
+        <div className="mx-auto max-w-4xl border-2 border-outline bg-surface-container-lowest p-6">
           <h1 className="text-headline-large mb-6">Resume</h1>
           <VirtualResume {...resumeData} />
         </div>
@@ -396,7 +396,7 @@ function ResumeExperienceList({ items }: { items: ResumeExperienceItem[] }) {
 function BigWordsBox({ children }: React.PropsWithChildren) {
   return (
     <section className="h-[60vh] py-16 flex">
-      <blockquote className="my-auto max-w-6xl ml-48 p-16 text-[72px] font-display font-semibold bg-white/[0.13]">
+      <blockquote className="my-auto ml-48 max-w-6xl bg-surface-bright/[0.13] p-16 font-display text-[72px] font-semibold">
         {children}
       </blockquote>
     </section>

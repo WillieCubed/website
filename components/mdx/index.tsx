@@ -22,27 +22,21 @@ export {
 
 export const mdxComponents = {
   h1: ({ children }: PropsWithChildren) => (
-    <h1 className="mb-4 mt-8 text-3xl font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </h1>
+    <h1 className="mb-4 mt-8 text-3xl font-bold text-on-surface">{children}</h1>
   ),
   h2: ({ children }: PropsWithChildren) => (
-    <h2 className="mb-3 mt-8 text-2xl font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </h2>
+    <h2 className="mb-3 mt-8 text-2xl font-bold text-on-surface">{children}</h2>
   ),
   h3: ({ children }: PropsWithChildren) => (
-    <h3 className="mb-2 mt-6 text-xl font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </h3>
+    <h3 className="mb-2 mt-6 text-xl font-bold text-on-surface">{children}</h3>
   ),
   h4: ({ children }: PropsWithChildren) => (
-    <h4 className="mb-2 mt-4 text-lg font-semibold text-on-surface-foreground dark:text-on-surface-foreground-dark">
+    <h4 className="mb-2 mt-4 text-lg font-semibold text-on-surface">
       {children}
     </h4>
   ),
   p: ({ children }: PropsWithChildren) => (
-    <p className="my-4 text-body-medium leading-relaxed text-on-surface-foreground dark:text-on-surface-foreground-dark">
+    <p className="my-4 text-body-medium leading-relaxed text-on-surface">
       {children}
     </p>
   ),
@@ -75,47 +69,39 @@ export const mdxComponents = {
     <ol className="my-4 ml-6 list-decimal space-y-2">{children}</ol>
   ),
   li: ({ children }: PropsWithChildren) => (
-    <li className="text-body-medium text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </li>
+    <li className="text-body-medium text-on-surface">{children}</li>
   ),
   blockquote: ({ children }: PropsWithChildren) => (
     <blockquote className="my-6 -ml-[var(--bleed)] border-l-4 border-accent/40 pl-[calc(var(--bleed)-4px)] italic text-prose">
       {children}
     </blockquote>
   ),
-  hr: () => (
-    <hr className="my-8 border-t-2 border-on-surface-border dark:border-on-surface-border-dark" />
-  ),
+  hr: () => <hr className="my-8 border-t-2 border-outline-variant" />,
   strong: ({ children }: PropsWithChildren) => (
-    <strong className="font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </strong>
+    <strong className="font-bold text-on-surface">{children}</strong>
   ),
   em: ({ children }: PropsWithChildren) => (
     <em className="italic">{children}</em>
   ),
   code: ({ children }: PropsWithChildren) => (
-    <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm dark:bg-gray-800">
+    <code className="rounded bg-surface-container-high px-1.5 py-0.5 font-mono text-sm">
       {children}
     </code>
   ),
   table: ({ children }: PropsWithChildren) => (
     <div className="my-6 overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <table className="min-w-full divide-y divide-outline-variant">
         {children}
       </table>
     </div>
   ),
   th: ({ children }: PropsWithChildren) => (
-    <th className="bg-gray-50 px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-100">
+    <th className="bg-surface-container px-4 py-3 text-left text-sm font-semibold text-on-surface">
       {children}
     </th>
   ),
   td: ({ children }: PropsWithChildren) => (
-    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-      {children}
-    </td>
+    <td className="px-4 py-3 text-sm text-on-surface-variant">{children}</td>
   ),
   // Custom components for MDX
   YouTube: YouTubeEmbed,

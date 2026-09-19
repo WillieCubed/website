@@ -13,30 +13,28 @@ const variantStyles: Record<
   { container: string; icon: string; iconPath: string }
 > = {
   note: {
-    container:
-      'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950',
-    icon: 'text-blue-600 dark:text-blue-400',
+    container: 'border-primary bg-primary-container text-on-primary-container',
+    icon: 'text-primary',
     iconPath:
       'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z',
   },
   warning: {
     container:
-      'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950',
-    icon: 'text-yellow-600 dark:text-yellow-400',
+      'border-tertiary bg-tertiary-container text-on-tertiary-container',
+    icon: 'text-tertiary',
     iconPath:
       'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
   },
   tip: {
     container:
-      'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950',
-    icon: 'text-green-600 dark:text-green-400',
+      'border-secondary bg-secondary-container text-on-secondary-container',
+    icon: 'text-secondary',
     iconPath:
       'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
   },
   info: {
-    container:
-      'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800',
-    icon: 'text-gray-600 dark:text-gray-400',
+    container: 'border-outline bg-surface-container-high text-on-surface',
+    icon: 'text-on-surface-variant',
     iconPath: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
   },
 };
@@ -82,9 +80,7 @@ export default function Callout({
           >
             {displayTitle}
           </p>
-          <div className="text-sm text-gray-700 dark:text-gray-300 [&>p]:m-0">
-            {children}
-          </div>
+          <div className="text-sm text-inherit [&>p]:m-0">{children}</div>
         </div>
       </div>
     </div>

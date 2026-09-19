@@ -6,29 +6,21 @@ import Features from '@/components/projects/FeatureList';
 
 const mdxComponentsMap = {
   h1: ({ children }: PropsWithChildren) => (
-    <h1 className="text-headline-small font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
+    <h1 className="text-headline-small font-bold text-on-surface">
       {children}
     </h1>
   ),
   h2: ({ children }: PropsWithChildren) => (
-    <h2 className="text-title-medium font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </h2>
+    <h2 className="text-title-medium font-bold text-on-surface">{children}</h2>
   ),
   h3: ({ children }: PropsWithChildren) => (
-    <h3 className="text-title-small font-bold text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </h3>
+    <h3 className="text-title-small font-bold text-on-surface">{children}</h3>
   ),
   p: ({ children }: PropsWithChildren) => (
-    <p className="text-body-medium text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </p>
+    <p className="text-body-medium text-on-surface">{children}</p>
   ),
   strong: ({ children }: PropsWithChildren) => (
-    <strong className="text-body-medium text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </strong>
+    <strong className="text-body-medium text-on-surface">{children}</strong>
   ),
   a: ({ children, ...props }: PropsWithChildren) => (
     <a
@@ -42,9 +34,7 @@ const mdxComponentsMap = {
     <ul className="list-disc">{children}</ul>
   ),
   li: ({ children }: PropsWithChildren) => (
-    <li className="text-body-medium text-on-surface-foreground dark:text-on-surface-foreground-dark">
-      {children}
-    </li>
+    <li className="text-body-medium text-on-surface">{children}</li>
   ),
   FeatureList: ({ children }: PropsWithChildren) => <Features></Features>,
 };

@@ -23,6 +23,10 @@
   transition:
     opacity 180ms var(--ease-site),
     transform 220ms var(--ease-site),
+    background-color var(--duration-theme) var(--ease-theme),
+    color var(--duration-theme) var(--ease-theme),
+    outline-color var(--duration-theme) var(--ease-theme),
+    box-shadow var(--duration-theme) var(--ease-theme),
     display 220ms allow-discrete,
     overlay 220ms allow-discrete;
 }
@@ -40,6 +44,9 @@
     transition: opacity 120ms linear;
     transform: none;
   }
+  .link-preview__cover {
+    transition: none;
+  }
   @starting-style {
     .link-preview:popover-open {
       transform: none;
@@ -52,6 +59,7 @@
   aspect-ratio: 2 / 1;
   object-fit: cover;
   background: var(--b-primary-container, var(--color-tray));
+  transition: background-color var(--duration-theme) var(--ease-theme);
 }
 .link-preview__body {
   display: grid;

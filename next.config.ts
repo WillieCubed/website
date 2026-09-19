@@ -52,6 +52,7 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    cpus: 2,
     mdxRs: true,
   },
 };

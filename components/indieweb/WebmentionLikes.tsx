@@ -22,7 +22,7 @@ export default function WebmentionLikes({ likes }: WebmentionLikesProps) {
           <WebmentionAvatar key={like.id} author={like.author} size="sm" />
         ))}
         {remainingCount > 0 && (
-          <span className="ml-2 text-label-medium text-gray-500 dark:text-gray-400">
+          <span className="ml-2 text-label-medium text-muted">
             +{remainingCount} more
           </span>
         )}

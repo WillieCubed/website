@@ -65,7 +65,7 @@ export default function MediaPage() {
           </div>
           <div className="font-display mb-lg">
             <a
-              className="text-primary-dark-2 hover:text-primary-dark-1 dark:text-secondary-light-1 dark:hover:text-secondary underline underline-offset-2"
+              className="text-primary underline underline-offset-2 hover:text-primary/80"
               href="https://instagram.com/treesofutd"
             >
               @treesofutd

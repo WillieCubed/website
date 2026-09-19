@@ -19,6 +19,7 @@ import {
 } from '@/lib/indieweb/constants';
 import { site } from '@/lib/site';
 import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
+import { themeTransitionScript } from '@/lib/theme-transition';
 
 import './globals.css';
 
@@ -73,7 +74,17 @@ export const metadata: Metadata = isHiatus
     };
 
 export const viewport: Viewport = {
-  themeColor: site.themeColor,
+  colorScheme: 'light dark',
+  themeColor: [
+    {
+      media: '(prefers-color-scheme: light)',
+      color: site.themeColors.light,
+    },
+    {
+      media: '(prefers-color-scheme: dark)',
+      color: site.themeColors.dark,
+    },
+  ],
 };
 
 export default async function RootLayout({
@@ -88,6 +99,10 @@ export default async function RootLayout({
       className={`${sansFont.variable} ${monoFont.variable}`}
     >
       <head>
+        <script
+          id="theme-transition"
+          dangerouslySetInnerHTML={{ __html: themeTransitionScript }}
+        />
         {/* IndieWeb discovery: where to send mentions and posts, who vouches
             for this site, and where the feeds live. */}
         <link rel="author" href={`${site.origin}/`} />

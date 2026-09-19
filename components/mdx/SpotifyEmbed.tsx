@@ -26,7 +26,7 @@ export default function SpotifyEmbed({
   const parsed = parseSpotifyUrl(url);
 
   if (!parsed) {
-    return <p className="text-red-500">Invalid Spotify URL</p>;
+    return <p className="text-error">Invalid Spotify URL</p>;
   }
 
   const { type, id } = parsed;

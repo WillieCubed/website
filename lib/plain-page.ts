@@ -1,4 +1,5 @@
 import { site } from '@/lib/site';
+import { themeSchemes } from '@/lib/theme';
 
 export interface PlainPage {
   status?: number;
@@ -23,8 +24,8 @@ function wantsHtml(request: Request): boolean {
   return (request.headers.get('Accept') ?? '').includes('text/html');
 }
 
-// The colors are --color-ink and --color-accent from app/globals.css. These
-// pages are route handlers, so they cannot load the app's stylesheet.
+// These route handlers cannot load app/globals.css, so they reproduce its
+// semantic role boundary with the shared non-CSS theme values.
 function htmlDocument({ title, lines }: PlainPage): string {
   return `<!doctype html>
 <html lang="${site.language}">
@@ -32,14 +33,18 @@ function htmlDocument({ title, lines }: PlainPage): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="${site.themeColor}">
+<meta name="theme-color" media="(prefers-color-scheme:light)" content="${site.themeColors.light}">
+<meta name="theme-color" media="(prefers-color-scheme:dark)" content="${site.themeColors.dark}">
 <title>${escapeHtml(title)} · ${escapeHtml(site.name)}</title>
 <style>
-body{margin:0;padding:40px 20px;background:${site.themeColor};color:#1c231e;font:16px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root{color-scheme:light dark;--color-primary:${themeSchemes.light.primary};--color-surface:${themeSchemes.light.surface};--color-on-surface:${themeSchemes.light.onSurface}}
+@media(prefers-color-scheme:dark){:root{--color-primary:${themeSchemes.dark.primary};--color-surface:${themeSchemes.dark.surface};--color-on-surface:${themeSchemes.dark.onSurface}}}
+body{margin:0;padding:40px 20px;background:var(--color-surface);color:var(--color-on-surface);font:16px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 main{max-width:840px;margin:0 auto}
 h1{margin:0 0 1.5rem;font:600 1.5rem/1.3 system-ui,sans-serif}
 pre{margin:0 0 2rem;white-space:pre-wrap}
-a{color:#2f6f5e}
+a{color:var(--color-primary)}
+@media(prefers-reduced-motion:no-preference){body,a{transition:background-color 520ms cubic-bezier(.22,1,.36,1),color 520ms cubic-bezier(.22,1,.36,1)}}
 </style>
 </head>
 <body>

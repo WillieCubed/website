@@ -18,7 +18,7 @@ export default function ProjectSearchBox({
   return (
     <div className="bg-surface-foreground">
       <input
-        className="w-full px-4 h-[48px] text-label-large border-2 border-black "
+        className="h-[48px] w-full border-2 border-outline bg-surface-container-lowest px-4 text-label-large text-on-surface"
         type="text"
         placeholder="Search"
         value={query}

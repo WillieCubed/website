@@ -45,7 +45,7 @@ export default function ProjectCard({
         preview={false}
         key={label + url}
         href={url}
-        className="inline-block p-3 bg-slate-300 text-on-light"
+        className="inline-block bg-surface-container-high p-3 text-on-surface"
       >
         <div className="font-mono font-semibold">{label}</div>
       </SiteLink>
@@ -58,7 +58,7 @@ export default function ProjectCard({
 
   return (
     <article
-      className={`p-[16px] lg:p-[32px] mb-4 border-[4px] border-black bg-white text-on-light dark:bg-dark dark:text-on-dark ${
+      className={`mb-4 border-[4px] border-outline bg-surface-container-lowest p-[16px] text-on-surface lg:p-[32px] ${
         isDisplayOnly ? '' : 'hover:shadow-lg'
       } transition snap-start`}
     >
@@ -73,7 +73,7 @@ export default function ProjectCard({
       <div className="mt-6 space-y-6">
         {isResearch && collaborators && (
           <div className="space-y-2">
-            <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
+            <div className="font-display text-sm font-bold uppercase text-primary">
               Collaborators
             </div>
             <div className="space-x-4">{collaboratorsItems}</div>
@@ -81,21 +81,21 @@ export default function ProjectCard({
         )}
         {/* {isResearch && subjects.length > 0 && (
           <div className="space-y-2">
-            <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
+            <div className="font-display text-sm font-bold uppercase text-primary">
               Topics
             </div>
             <div className="space-y-2">{subjectTags}</div>
           </div>
         )} */}
         <div className="space-y-2">
-          <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
+          <div className="font-display text-sm font-bold uppercase text-primary">
             Overview
           </div>
           <p className="font-semibold font-display">{tagline}</p>
         </div>
         {/* {isResearch && questions && questions.length > 0 && (
           <div className="space-y-2">
-            <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
+            <div className="font-display text-sm font-bold uppercase text-primary">
               Questions Addressed
             </div>
             <ul className="space-y-2">{questionsContent}</ul>
@@ -103,7 +103,7 @@ export default function ProjectCard({
         )} */}
         {artifacts && (
           <div className="space-y-2">
-            <div className="uppercase font-bold font-display text-sm text-primary-dark-1">
+            <div className="font-display text-sm font-bold uppercase text-primary">
               Artifacts
             </div>
             <div className="space-x-4">{artifactsItems}</div>

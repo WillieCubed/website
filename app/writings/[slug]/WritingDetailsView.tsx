@@ -19,7 +19,7 @@ export default function WritingDetailsView({
   source,
 }: WritingDetailsViewProps) {
   return (
-    <article className="prose prose-lg max-w-none dark:prose-invert prose-headings:scroll-mt-20">
+    <article className="prose prose-theme prose-lg max-w-none prose-headings:scroll-mt-20">
       <MDXRemote
         source={source}
         components={mdxComponents}

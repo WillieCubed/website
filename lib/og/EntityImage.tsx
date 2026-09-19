@@ -6,6 +6,7 @@ import {
 } from '@material/material-color-utilities';
 
 import { site } from '@/lib/site';
+import { themeSchemes } from '@/lib/theme';
 
 export interface EntityImageProps {
   /** One line of context above the title, such as the parent or the part. */
@@ -20,12 +21,12 @@ export interface EntityImageProps {
 }
 
 const NEUTRAL = {
-  background: '#f4f5ef',
-  panel: '#fbfcf9',
-  ink: '#1c231e',
-  muted: '#69736b',
-  accent: '#2f6f5e',
-  line: '#dfe3da',
+  background: themeSchemes.light.surface,
+  panel: themeSchemes.light.surfaceContainerLowest,
+  ink: themeSchemes.light.onSurface,
+  muted: themeSchemes.light.onSurfaceVariant,
+  accent: themeSchemes.light.primary,
+  line: themeSchemes.light.outlineVariant,
 };
 
 function palette(brand?: string) {

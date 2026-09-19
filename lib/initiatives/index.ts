@@ -127,6 +127,24 @@ function loadInitiative(slug: string, now: Date): Initiative {
 }
 
 /**
+ * Every initiative read straight from disk with no Next.js cache involved.
+ *
+ * Build scripts run under plain Node, where `cacheLife()` throws, so they
+ * call this instead of {@link getInitiatives}. Drafts are excluded unless
+ * `includeDrafts` is set, and NODE_ENV is not consulted for the initiative
+ * itself. Parts come back as loaded, which includes draft parts outside
+ * production, so callers that must skip them filter on `part.draft`.
+ */
+export function loadAllInitiatives(
+  options: { includeDrafts?: boolean; now?: Date } = {}
+): Initiative[] {
+  const { includeDrafts = false, now = new Date() } = options;
+  return listInitiativeSlugs()
+    .map((slug) => loadInitiative(slug, now))
+    .filter((item) => includeDrafts || !item.draft);
+}
+
+/**
  * Every initiative slug a visitor can open: hidden ones excluded, and
  * drafts excluded in production.
  */

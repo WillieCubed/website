@@ -1,33 +1,13 @@
 import { cacheLife } from 'next/cache';
 
 import { getInitiatives } from '@/lib/initiatives';
-import { formatDate, routedPages, site } from '@/lib/site';
+import { formatDate, site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
+import { STATIC_PAGES } from './pages';
 import type { EntityCard } from './types';
 
 export type { EntityCard };
-
-/**
- * Pages that are not generated from content but still deserve a card:
- * the homepage and every routed page in the site manifest.
- */
-const STATIC_PAGES: EntityCard[] = [
-  {
-    href: '/',
-    kind: 'page',
-    title: site.name,
-    description: site.shortDescription,
-  },
-  ...routedPages.map(
-    (page): EntityCard => ({
-      href: page.path,
-      kind: 'page',
-      title: page.label,
-      description: page.description,
-    })
-  ),
-];
 
 function range(starts: Date, ends: Date) {
   const short = new Intl.DateTimeFormat('en-US', {

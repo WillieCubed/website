@@ -80,7 +80,5 @@ export async function searchContent(
 
 /** Site-relative URL for a search result. */
 export function searchResultPath(result: SearchResult): string {
-  return result.type === 'project'
-    ? `/projects/${result.slug}`
-    : `/writings/${result.slug}`;
+  return result.path;
 }

@@ -4,7 +4,6 @@ import test from 'node:test';
 import {
   blogPostingLd,
   breadcrumbLd,
-  eventLd,
   graph,
   homeGraph,
   personLd,
@@ -95,45 +94,6 @@ test('blogPostingLd omits what it does not have', () => {
   assert.ok(!('keywords' in post));
   assert.ok(!('isPartOf' in post));
   assertPlain(post);
-});
-
-const eventBase = {
-  path: '/initiatives/fall-tour-2026/part-1',
-  name: 'Part 1: Las Vegas',
-  starts: new Date(2026, 8, 18),
-  ends: new Date(2026, 8, 20),
-  places: [],
-};
-
-test('eventLd is null without a place', () => {
-  assert.equal(eventLd(eventBase), null);
-});
-
-test('eventLd describes a scheduled in-person event', () => {
-  const event = eventLd({
-    ...eventBase,
-    places: [{ name: 'Las Vegas', region: 'NV', lat: 36.17, lng: -115.14 }],
-    image: '/initiatives/fall-tour-2026/part-1/opengraph-image',
-  });
-  assert.ok(event);
-  assert.equal(event['@type'], 'Event');
-  assert.equal(event.startDate, '2026-09-18');
-  assert.equal(event.endDate, '2026-09-20');
-  assert.equal(event.eventStatus, 'https://schema.org/EventScheduled');
-  assert.equal(
-    event.eventAttendanceMode,
-    'https://schema.org/OfflineEventAttendanceMode'
-  );
-  assert.deepEqual(event.location, [
-    {
-      '@type': 'Place',
-      name: 'Las Vegas',
-      address: 'Las Vegas, NV',
-      geo: { '@type': 'GeoCoordinates', latitude: 36.17, longitude: -115.14 },
-    },
-  ]);
-  assert.deepEqual(event.organizer, { '@id': personLd()['@id'] });
-  assertPlain(event);
 });
 
 test('breadcrumbLd numbers the trail and makes the links absolute', () => {

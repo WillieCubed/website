@@ -30,7 +30,10 @@ export type SearchResult = SearchableItem & {
   snippet?: string;
 };
 
-export type SearchContentType = SearchableItem['type'] | 'all';
+/** What a query can be limited to. Projects are parked, so they never match. */
+export type SearchContentType =
+  | Exclude<SearchableItem['type'], 'project'>
+  | 'all';
 
 export interface SearchOptions {
   /** Filter by content type */

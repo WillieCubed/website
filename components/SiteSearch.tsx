@@ -31,7 +31,7 @@ export default async function SiteSearch({ query = '' }: SiteSearchProps) {
           type="search"
           name="q"
           defaultValue={query}
-          placeholder="Search writings…"
+          placeholder="Search…"
           autoComplete="off"
           className="w-full rounded-lg border border-outline-variant bg-surface-container px-4 py-3 pr-24 text-body-large placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -47,8 +47,8 @@ export default async function SiteSearch({ query = '' }: SiteSearchProps) {
         <SearchResults response={response} />
       ) : (
         <p className="text-body-medium text-on-surface-variant">
-          Type a word or two and press Search to look through every writing on
-          this site.
+          Type a word or two and press Search to look through everything on this
+          site.
         </p>
       )}
     </div>
@@ -85,9 +85,12 @@ function SearchResults({
 
 function SearchResultCard({ result }: { result: SearchResult }) {
   const published = new Date(result.published);
-  const formattedDate = Number.isNaN(published.getTime())
-    ? ''
-    : formatDate(published, 'short');
+  // Only writings show a date. Initiative dates are whole days and pages have
+  // none, and formatDate's zone shift would move a whole day back by one.
+  const formattedDate =
+    result.type === 'writing' && !Number.isNaN(published.getTime())
+      ? formatDate(published, 'short')
+      : '';
 
   return (
     <SiteLink

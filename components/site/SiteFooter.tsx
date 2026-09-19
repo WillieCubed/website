@@ -54,8 +54,8 @@ async function Tagline() {
   return <p className="text-title-large text-ink">{randomlyChooseTagline()}</p>;
 }
 
-const PILL =
-  'inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1.5 text-label-large text-ink transition-colors hover:border-accent hover:text-accent';
+const LINK =
+  'inline-flex items-center gap-2 py-1 text-label-large text-ink transition-colors hover:text-accent';
 
 /**
  * The end of every page: who this is, the way back to the main pages,
@@ -74,10 +74,10 @@ export default function SiteFooter() {
           </Suspense>
         </div>
         <nav aria-label="Pages" className="site-footer__pages">
-          <ul className="flex flex-wrap gap-1">
+          <ul className="flex flex-wrap gap-x-5 gap-y-1">
             {PAGES.map((page) => (
               <li key={page.href}>
-                <SiteLink preview={false} href={page.href} className={PILL}>
+                <SiteLink preview={false} href={page.href} className={LINK}>
                   {page.label}
                 </SiteLink>
               </li>
@@ -85,10 +85,10 @@ export default function SiteFooter() {
           </ul>
         </nav>
         <FeedsButton />
-        <ul className="site-footer__profiles flex flex-wrap gap-1">
+        <ul className="site-footer__profiles flex flex-wrap gap-x-5 gap-y-1">
           {site.social.map((profile) => (
             <li key={profile.href}>
-              <a href={profile.href} rel="me" className={PILL}>
+              <a href={profile.href} rel="me" className={LINK}>
                 <SocialIcon label={profile.label} />
                 {profile.label}
               </a>
@@ -96,7 +96,7 @@ export default function SiteFooter() {
           ))}
           {ELSEWHERE.map((place) => (
             <li key={place.href}>
-              <a href={place.href} className={PILL}>
+              <a href={place.href} className={LINK}>
                 <Icon name={place.icon} size={16} />
                 {place.label}
               </a>

@@ -1,5 +1,6 @@
-/* A reply's target sits above the post as the top of a thread. The short
-   line under the card runs down to the author's avatar in the byline. */
+/* A reply's target sits above the post as the top of a thread. The line
+   drops from under the reply mark in the card to the post's date, so the
+   two read as one thread. */
 .reply-target {
   display: flex;
   flex-direction: column;
@@ -7,8 +8,8 @@
 .reply-target__thread {
   display: block;
   width: 2px;
-  height: 20px;
-  margin: 6px 0 6px 26px;
+  height: 28px;
+  margin: 0 0 4px 26px;
   border-radius: 1px;
   background: var(--color-line);
 }

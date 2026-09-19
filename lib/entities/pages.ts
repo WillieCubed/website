@@ -25,6 +25,7 @@ export const STATIC_PAGES: EntityCard[] = [
     href: '/writings',
     kind: 'page',
     title: 'Writings',
-    description: 'Articles, notes, and replies from Willie.',
+    description:
+      'Thoughts, tutorials, and notes on software, music, and creativity.',
   },
 ];

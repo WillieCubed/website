@@ -37,6 +37,7 @@ the author leaves `status` out, and exposes `getInitiatives`, `getInitiative`,
 | `status`      | no       | `planned`, `active`, `paused`, `complete`, `archived`. Leave it out to derive it from `starts` and `ends`. |
 | `starts`      | no       | ISO date. Falls back to the first part's start.                                                            |
 | `ends`        | no       | ISO date. Falls back to the last part's end.                                                               |
+| `updated`     | no       | ISO date of the last real edit. Sets the sitemap's last-modified date; leave it out when unsure.           |
 | `brand`       | no       | A `#rrggbb` seed or a key in `lib/brand/seeds.json`. The page and its tile take that Material 3 scheme.    |
 | `cover`       | no       | `{ src, alt, aspect? }`. Used for the hero, the index card, and social images.                             |
 | `trailer`     | no       | `{ title, youtubeId?, poster? }`. Without `youtubeId` the page shows the cover with a coming-soon note.    |
@@ -56,6 +57,7 @@ the author leaves `status` out, and exposes `getInitiatives`, `getInitiative`,
 | `description` | no       | Meta description. Falls back to the tagline.                             |
 | `starts`      | yes      | ISO date.                                                                |
 | `ends`        | yes      | ISO date.                                                                |
+| `updated`     | no       | ISO date of the last real edit. Sets the sitemap's last-modified date.   |
 | `status`      | no       | Same values as above; derived from dates when missing.                   |
 | `places`      | no       | `[{ name, region?, lat, lng }]` in travel order. Drawn on the route map. |
 | `cover`       | no       | Hero media. Falls back to the initiative cover.                          |

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { sendWebmentionsForPost } from '@/lib/indieweb/send-webmention';
-import { getWriting } from '@/lib/writings';
+import { getPublishedWriting } from '@/lib/writings';
 
 /**
  * POST /api/webmention/send
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Get the post content
     let writing;
     try {
-      const data = await getWriting(slug);
+      const data = await getPublishedWriting(slug);
       writing = data;
     } catch {
       return NextResponse.json({ error: 'Post not found.' }, { status: 404 });

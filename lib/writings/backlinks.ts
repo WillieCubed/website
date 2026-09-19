@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { getWriting, getWritingSlugs } from './index';
+import { getPublishedWriting, getWritingSlugs } from './index';
 
 const HIDDEN_ITEM_PREFIX = '_';
 const writingsDirectory = join(process.cwd(), 'content/writings');
@@ -102,7 +102,7 @@ export async function getBacklinksForPost(slug: string): Promise<Backlink[]> {
       .filter((sourceSlug) => validSlugs.includes(sourceSlug))
       .map(async (sourceSlug) => {
         try {
-          const { writing } = await getWriting(sourceSlug);
+          const { writing } = await getPublishedWriting(sourceSlug);
           return {
             slug: writing.slug,
             title: writing.title,

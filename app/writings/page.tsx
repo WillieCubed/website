@@ -59,9 +59,9 @@ async function WritingsList({ tag }: { tag?: string }) {
 
   if (writings.length === 0) {
     return (
-      <div className="py-12 text-center text-body-medium text-muted">
-        No writings found{tag && ` with tag "${tag}"`}.
-      </div>
+      <p className="text-body-large text-muted">
+        {tag ? `Nothing tagged “${tag}”.` : 'Nothing published yet.'}
+      </p>
     );
   }
 
@@ -167,6 +167,8 @@ function WritingsContentFallback() {
 async function WritingsContent({ searchParams }: WritingsPageProps) {
   const params = await searchParams;
   const { tag } = params;
+  // With nothing published there is nothing to filter or search.
+  const published = await getAllWritings();
 
   return (
     <>
@@ -187,30 +189,32 @@ async function WritingsContent({ searchParams }: WritingsPageProps) {
           <WritingsList tag={tag} />
         </Suspense>
       </section>
-      <section className="flex flex-col gap-4 medium:flex-row medium:flex-wrap medium:items-center medium:justify-between">
-        <Suspense fallback={<div className="h-10" />}>
-          <TagFilter currentTag={tag} />
-        </Suspense>
-        <form action="/search" className="flex items-center gap-2">
-          <label htmlFor="writings-search" className="sr-only">
-            Search
-          </label>
-          <input
-            id="writings-search"
-            name="q"
-            type="search"
-            placeholder="Search"
-            className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2 text-body-medium text-ink medium:w-44 medium:flex-none medium:py-1.5"
-          />
-          <button
-            type="submit"
-            aria-label="Search"
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-white medium:size-9"
-          >
-            <Icon name="search" size={16} />
-          </button>
-        </form>
-      </section>
+      {published.length > 0 && (
+        <section className="flex flex-col gap-4 medium:flex-row medium:flex-wrap medium:items-center medium:justify-between">
+          <Suspense fallback={<div className="h-10" />}>
+            <TagFilter currentTag={tag} />
+          </Suspense>
+          <form action="/search" className="flex items-center gap-2">
+            <label htmlFor="writings-search" className="sr-only">
+              Search
+            </label>
+            <input
+              id="writings-search"
+              name="q"
+              type="search"
+              placeholder="Search"
+              className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2 text-body-medium text-ink medium:w-44 medium:flex-none medium:py-1.5"
+            />
+            <button
+              type="submit"
+              aria-label="Search"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-white medium:size-9"
+            >
+              <Icon name="search" size={16} />
+            </button>
+          </form>
+        </section>
+      )}
     </>
   );
 }

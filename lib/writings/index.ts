@@ -260,6 +260,33 @@ function deriveTitle(
   return { title: title || 'Untitled note', explicit: false };
 }
 
+/** Drafts render in development so they can be previewed, never in production. */
+export const showDrafts = process.env.NODE_ENV !== 'production';
+
+/**
+ * One writing, or a thrown error when it is a draft and drafts are not
+ * shown. Everything that serves a writing by its slug goes through this,
+ * so a draft never leaks through a page, an image, or an embed.
+ */
+export async function getPublishedWriting(slug: string) {
+  // Checked before the cached load: a missing file would throw inside the
+  // 'use cache' function, which fails a build prerender even when caught.
+  if (!(await getWritingSlugs()).includes(slug)) {
+    throw new Error(`No writing "${slug}"`);
+  }
+  const data = await getWriting(slug);
+  if (data.writing.draft && !showDrafts) {
+    throw new Error(`Writing "${slug}" is a draft`);
+  }
+  return data;
+}
+
+/** Slugs of the writings a visitor can open. */
+export async function getPublishedWritingSlugs(): Promise<string[]> {
+  const writings = await getAllWritings();
+  return writings.map((writing) => writing.slug);
+}
+
 /**
  * Gets all writings, optionally filtering by draft status.
  *
@@ -267,7 +294,7 @@ function deriveTitle(
  * @returns All writings sorted by publication date (newest first)
  */
 export async function getAllWritings(
-  includeDrafts = process.env.NODE_ENV !== 'production'
+  includeDrafts = showDrafts
 ): Promise<WritingData[]> {
   const slugs = await getWritingSlugs();
   const writings = await Promise.all(

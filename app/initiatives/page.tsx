@@ -21,6 +21,11 @@ export default async function InitiativesPage() {
       <TopBar crumbs={[{ label: 'Initiatives', href: '/initiatives' }]} />
       <main className="mx-auto max-w-[1200px] px-5 pb-20">
         <h1 className="text-display-small text-ink">Initiatives</h1>
+        {initiatives.length === 0 && (
+          <p className="mt-6 text-body-large text-muted">
+            Nothing published yet.
+          </p>
+        )}
         <ul className="mt-10 grid list-none gap-5 p-0 medium:grid-cols-2 large:grid-cols-3">
           {initiatives.map((item) => {
             const act = currentPart(item);

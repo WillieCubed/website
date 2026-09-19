@@ -1,3 +1,5 @@
+import { notFound } from 'next/navigation';
+
 import { formatRange } from '@/components/initiatives/dates';
 
 import { getPart } from '@/lib/initiatives';
@@ -12,9 +14,7 @@ export default async function Image(props: {
 }) {
   const { slug, part: partSlug } = await props.params;
   const found = await getPart(slug, partSlug);
-  if (!found) {
-    return renderEntityImage({ title: 'Not found' });
-  }
+  if (!found) notFound();
   const { initiative, part } = found;
   return renderEntityImage({
     kicker: `${initiative.title} · ${initiative.partLabel} ${part.number}`,

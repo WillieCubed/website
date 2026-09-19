@@ -10,7 +10,7 @@ import {
   getAllWebmentionActivities,
   getWebmentionActivitiesForPost,
 } from '@/lib/indieweb/webmention-storage';
-import { getWriting } from '@/lib/writings';
+import { getPublishedWriting } from '@/lib/writings';
 
 const titleCache = new Map<string, string>();
 
@@ -60,7 +60,7 @@ async function titleForTarget(targetUrl: string): Promise<string> {
   if (!slug) return fallbackTitle(targetUrl);
 
   try {
-    const { writing } = await getWriting(slug);
+    const { writing } = await getPublishedWriting(slug);
     titleCache.set(targetUrl, writing.title);
     return writing.title;
   } catch {

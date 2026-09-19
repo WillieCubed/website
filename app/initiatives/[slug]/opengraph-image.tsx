@@ -1,3 +1,5 @@
+import { notFound } from 'next/navigation';
+
 import { formatRange } from '@/components/initiatives/dates';
 
 import { getInitiative } from '@/lib/initiatives';
@@ -11,7 +13,7 @@ export default async function Image(props: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await props.params;
-  const initiative = await getInitiative(slug);
+  const initiative = await getInitiative(slug).catch(() => notFound());
   return renderEntityImage({
     title: initiative.title,
     description: initiative.tagline,

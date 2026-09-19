@@ -124,18 +124,47 @@ function loadInitiative(slug: string, now: Date): Initiative {
   };
 }
 
-/** Every initiative slug with an index.mdx, hidden ones excluded. */
+/** Drafts render in development so they can be previewed, never in production. */
+const showDrafts = process.env.NODE_ENV !== 'production';
+
+/**
+ * Every initiative slug a visitor can open: hidden ones excluded, and
+ * drafts excluded in production.
+ */
 export async function getInitiativeSlugs(): Promise<string[]> {
   'use cache';
   cacheLife('hours');
-  return listInitiativeSlugs();
+  const now = new Date();
+  return listInitiativeSlugs().filter(
+    (slug) => showDrafts || !loadInitiative(slug, now).draft
+  );
 }
 
-/** One initiative with its parts, statuses resolved against the clock. */
-export async function getInitiative(slug: string): Promise<Initiative> {
+/**
+ * The cached half of getInitiative. It returns null instead of throwing,
+ * because an error thrown inside a 'use cache' function fails the build's
+ * prerender even when the caller catches it.
+ */
+async function findPublishedInitiative(
+  slug: string
+): Promise<Initiative | null> {
   'use cache';
   cacheLife('hours');
-  return loadInitiative(slug, new Date());
+  if (!listInitiativeSlugs().includes(slug)) return null;
+  const initiative = loadInitiative(slug, new Date());
+  return initiative.draft && !showDrafts ? null : initiative;
+}
+
+/**
+ * One initiative with its parts, statuses resolved against the clock.
+ * Throws for a missing or hidden slug, and for a draft in production, so
+ * every page, image, and series link that loads an initiative by slug
+ * treats an unpublished one as missing.
+ */
+export async function getInitiative(slug: string): Promise<Initiative> {
+  const initiative = await findPublishedInitiative(slug);
+  if (!initiative) throw new Error(`No published initiative "${slug}"`);
+  return initiative;
 }
 
 /**
@@ -147,7 +176,7 @@ export async function getInitiatives(): Promise<Initiative[]> {
   const now = new Date();
   return listInitiativeSlugs()
     .map((slug) => loadInitiative(slug, now))
-    .filter((item) => !item.draft || process.env.NODE_ENV !== 'production')
+    .filter((item) => showDrafts || !item.draft)
     .sort((a, b) => (b.starts?.getTime() ?? 0) - (a.starts?.getTime() ?? 0));
 }
 
@@ -166,7 +195,8 @@ export async function getPart(
 ): Promise<{ initiative: Initiative; part: Part } | null> {
   const number = parsePartSlug(slug);
   if (number === null) return null;
-  const initiative = await getInitiative(initiativeSlug);
+  const initiative = await getInitiative(initiativeSlug).catch(() => null);
+  if (!initiative) return null;
   const part = initiative.parts.find((item) => item.number === number);
   return part ? { initiative, part } : null;
 }

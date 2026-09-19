@@ -19,9 +19,9 @@ import {
   SeriesWithWritings,
   WritingData,
   getAdjacentWritings,
+  getPublishedWriting,
+  getPublishedWritingSlugs,
   getSeriesWithWritings,
-  getWriting,
-  getWritingSlugs,
 } from '@/lib/writings';
 import { getBacklinksForPost } from '@/lib/writings/backlinks';
 
@@ -29,9 +29,12 @@ function generateCanonicalUrl(slug: string) {
   return absoluteRoute`/writings/${slug}`;
 }
 
+// Cache Components refuses an empty list at build time. When nothing is
+// published, one underscore path stands in: the loaders treat the prefix
+// as hidden, so it prerenders as a plain 404 and no draft is involved.
 export async function generateStaticParams() {
-  const slugs = await getWritingSlugs();
-  return slugs.map((slug) => ({ slug }));
+  const slugs = await getPublishedWritingSlugs();
+  return slugs.length > 0 ? slugs.map((slug) => ({ slug })) : [{ slug: '_' }];
 }
 
 export async function generateMetadata(props: {
@@ -41,7 +44,7 @@ export async function generateMetadata(props: {
   const { slug } = params;
   // An unknown slug has to reach notFound() here too; metadata that
   // resolved to nothing would replace the 404 page's title.
-  const { writing } = await getWriting(slug).catch(() => notFound());
+  const { writing } = await getPublishedWriting(slug).catch(() => notFound());
   const canonicalUrl = generateCanonicalUrl(writing.slug);
   return {
     title: writing.title,
@@ -76,7 +79,7 @@ interface WritingDetailPageProps {
 }
 
 async function fetchWritingData(slug: string) {
-  const writingData = await getWriting(slug);
+  const writingData = await getPublishedWriting(slug);
   return {
     content: writingData.content,
     writing: writingData.writing as WritingData,

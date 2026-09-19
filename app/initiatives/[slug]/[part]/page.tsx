@@ -17,6 +17,9 @@ import { getInitiative, getInitiativeSlugs, getPart } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { pageMetadata } from '@/lib/site';
 
+// Cache Components refuses an empty list at build time. When nothing is
+// published, one underscore path stands in: the loaders treat the prefix
+// as hidden, so it prerenders as a plain 404 and no draft is involved.
 export async function generateStaticParams() {
   const slugs = await getInitiativeSlugs();
   const params: Array<{ slug: string; part: string }> = [];
@@ -26,7 +29,7 @@ export async function generateStaticParams() {
       params.push({ slug, part: part.slug });
     }
   }
-  return params;
+  return params.length > 0 ? params : [{ slug: '_', part: 'part-1' }];
 }
 
 export async function generateMetadata(props: {

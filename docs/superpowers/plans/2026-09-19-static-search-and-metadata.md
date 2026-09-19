@@ -22,6 +22,7 @@ Spec: `docs/superpowers/specs/2026-09-18-static-search-and-metadata-design.md`.
 - Tests: `pnpm test` runs `tsx --test tests/unit/*.test.mts`. `.mts` tests are not typechecked. `pnpm typecheck` runs `tsc --noEmit`. Baseline before any change: 22 tests pass, typecheck clean.
 - Formatting: run `pnpm exec prettier --write <files>` and `pnpm exec eslint <ts/tsx files>` before every commit. The `.husky/pre-commit` hook is not executable, so lint-staged does not run on commit.
 - Prettier config: single quotes, `trailingComma: 'es5'`, 80 columns, imports grouped `@/components` → `@/lib` → relative.
+- Replace/with snippets are fragments. Prettier normalized their indentation when this plan was formatted, so match the target text by content rather than leading whitespace, keep the file's own indentation, and run prettier afterwards.
 - Commits use `type(scope): Subject` (`docs/commits.md`). Scopes in use: `indieweb` (search), `landing`, `writings`, `initiatives`, `docs`; omit the scope for site-wide metadata.
 
 ### Commit recipe
@@ -64,6 +65,7 @@ The plan refines four spec details. Task 12 edits the spec so it matches.
 | `lib/search/pagefind.ts`            | `toPagefindRecord()`, `buildPagefindIndex()`                                |
 | `lib/entities/pages.ts`             | `STATIC_PAGES`, shared by hover cards and search                            |
 | `lib/initiatives/index.ts`          | `loadAllInitiatives()`, an uncached loader for build scripts                |
+| `lib/initiatives/viewport.ts`       | Theme-colour lookup shared by the initiative and part pages                 |
 | `components/search/SearchModal.tsx` | Client component: mounts `<pagefind-modal>`, loads the Component UI at idle |
 | `components/search/search.css`      | `--pf-*` theme variables and trigger placeholder sizing                     |
 | `components/search/pagefind.d.ts`   | JSX types for the Pagefind custom elements                                  |
@@ -2901,16 +2903,71 @@ git restore --staged . && git add app/writings && git commit -F "$MSG"
 
 **Files:**
 
-- Create: `app/initiatives/opengraph-image.tsx`
+- Create: `lib/initiatives/viewport.ts`, `app/initiatives/opengraph-image.tsx`
 - Modify: `app/initiatives/page.tsx`, `app/initiatives/[slug]/page.tsx`, `app/initiatives/[slug]/[part]/page.tsx`
+- Test: `tests/unit/initiative-viewport.test.mts`
 
 **Interfaces:**
 
 - Consumes: `pageMetadata()` `imageAlt` and `labels` (Task 5); `breadcrumbLd`, `eventLd`, `graph`, `personLd` and `<JsonLd>` (Task 6)
+- Produces: `viewportForBrand(brand: string | undefined): Viewport` and `initiativeViewport(slug: string): Promise<Viewport>` from `@/lib/initiatives/viewport`
 
-This task is wiring, so it has no unit test; Step 6 verifies it.
+The theme-colour lookup lives once, in `lib/initiatives/viewport.ts`, and both pages call it (Steps 1 to 3). The rest of the task is wiring with no unit test of its own; Step 9 verifies it.
 
-- [ ] **Step 1: Add the index social card**
+- [ ] **Step 1: Write the failing test**
+
+Create `tests/unit/initiative-viewport.test.mts`:
+
+```ts
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { viewportForBrand } from '@/lib/initiatives/viewport';
+
+test('viewportForBrand uses a #rrggbb brand as the theme colour', () => {
+  assert.deepEqual(viewportForBrand('#ef8f2b'), { themeColor: '#ef8f2b' });
+});
+
+test('viewportForBrand leaves the site colour for a seed key or no brand', () => {
+  assert.deepEqual(viewportForBrand('lvbt'), {});
+  assert.deepEqual(viewportForBrand('#abc'), {});
+  assert.deepEqual(viewportForBrand(undefined), {});
+});
+```
+
+- [ ] **Step 2: Run the test to verify it fails**
+
+Run: `pnpm exec tsx --test tests/unit/initiative-viewport.test.mts`
+Expected: FAIL. The `@/lib/initiatives/viewport` module cannot be found.
+
+- [ ] **Step 3: Implement the helper and run the test**
+
+Create `lib/initiatives/viewport.ts`:
+
+```ts
+import type { Viewport } from 'next';
+
+import { getInitiative } from './index';
+
+/**
+ * Only a `#rrggbb` brand can be a theme colour. A seed key or no brand
+ * leaves the site colour set in the root layout.
+ */
+export function viewportForBrand(brand: string | undefined): Viewport {
+  return brand && /^#[0-9a-fA-F]{6}$/.test(brand) ? { themeColor: brand } : {};
+}
+
+/** Tints the browser chrome with an initiative's brand colour. */
+export async function initiativeViewport(slug: string): Promise<Viewport> {
+  const initiative = await getInitiative(slug).catch(() => null);
+  return viewportForBrand(initiative?.brand);
+}
+```
+
+Run: `pnpm exec tsx --test tests/unit/initiative-viewport.test.mts`
+Expected: PASS, 2 tests.
+
+- [ ] **Step 4: Add the index social card**
 
 Create `app/initiatives/opengraph-image.tsx`:
 
@@ -2946,7 +3003,7 @@ with:
 });
 ```
 
-- [ ] **Step 2: Initiative page: imports and metadata**
+- [ ] **Step 5: Initiative page: imports and metadata**
 
 In `app/initiatives/[slug]/page.tsx`, replace `import type { Metadata } from 'next';` with `import type { Metadata, Viewport } from 'next';`.
 
@@ -2976,6 +3033,7 @@ with:
 
 ```tsx
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
+import { initiativeViewport } from '@/lib/initiatives/viewport';
 import { breadcrumbLd, graph } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/site';
 ```
@@ -3001,7 +3059,7 @@ with:
     });
 ```
 
-- [ ] **Step 3: Initiative page: theme colour and breadcrumb graph**
+- [ ] **Step 6: Initiative page: theme colour and breadcrumb graph**
 
 In `app/initiatives/[slug]/page.tsx`, replace:
 
@@ -3017,10 +3075,7 @@ export async function generateViewport(props: {
   params: Promise<{ slug: string }>;
 }): Promise<Viewport> {
   const { slug } = await props.params;
-  const initiative = await getInitiative(slug).catch(() => null);
-  return initiative?.brand?.startsWith('#')
-    ? { themeColor: initiative.brand }
-    : {};
+  return initiativeViewport(slug);
 }
 
 export default async function InitiativePage(props: {
@@ -3046,7 +3101,7 @@ with:
       <TopBar crumbs={crumbs} column="content" />
 ```
 
-- [ ] **Step 4: Part page: imports, metadata, and theme colour**
+- [ ] **Step 7: Part page: imports, metadata, and theme colour**
 
 In `app/initiatives/[slug]/[part]/page.tsx`, replace `import type { Metadata } from 'next';` with `import type { Metadata, Viewport } from 'next';`.
 
@@ -3076,6 +3131,7 @@ with:
 
 ```tsx
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
+import { initiativeViewport } from '@/lib/initiatives/viewport';
 import { breadcrumbLd, eventLd, graph, personLd } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/site';
 ```
@@ -3125,16 +3181,13 @@ export async function generateViewport(props: {
   params: Promise<{ slug: string; part: string }>;
 }): Promise<Viewport> {
   const { slug } = await props.params;
-  const initiative = await getInitiative(slug).catch(() => null);
-  return initiative?.brand?.startsWith('#')
-    ? { themeColor: initiative.brand }
-    : {};
+  return initiativeViewport(slug);
 }
 
 export default async function PartPage(props: {
 ```
 
-- [ ] **Step 5: Part page: the breadcrumb and event graph**
+- [ ] **Step 8: Part page: the breadcrumb and event graph**
 
 In `app/initiatives/[slug]/[part]/page.tsx`, replace:
 
@@ -3177,10 +3230,10 @@ with:
       <TopBar
 ```
 
-- [ ] **Step 6: Typecheck and verify**
+- [ ] **Step 9: Typecheck and verify**
 
-Run: `pnpm typecheck`
-Expected: PASS.
+Run: `pnpm test && pnpm typecheck`
+Expected: PASS. 53 tests pass, typecheck clean.
 
 Every initiative is a draft, and drafts render only in development, so use the dev server (`PORT=3010 pnpm dev:app` as a background task):
 
@@ -3198,11 +3251,11 @@ Expected: a `theme-color` meta whose content is the initiative's hex brand (when
 
 If the fall-tour part has no places in its frontmatter, the Event is correctly absent: open `content/initiatives/fall-tour-2026/parts/1.mdx`, confirm `places:` is empty, and check `part-2` instead.
 
-- [ ] **Step 7: Format, lint, and commit**
+- [ ] **Step 10: Format, lint, and commit**
 
 ```bash
-pnpm exec prettier --write app/initiatives
-pnpm exec eslint app/initiatives
+pnpm exec prettier --write app/initiatives lib/initiatives/viewport.ts tests/unit/initiative-viewport.test.mts
+pnpm exec eslint app/initiatives lib/initiatives/viewport.ts
 MSG="$(git rev-parse --git-dir)/PLAN_COMMIT_MSG"
 cat > "$MSG" <<'EOF'
 feat(initiatives): Add breadcrumbs, event markup, and brand theme colour
@@ -3213,7 +3266,7 @@ gets its own social card.
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 EOF
-git restore --staged . && git add app/initiatives && git commit -F "$MSG"
+git restore --staged . && git add app/initiatives lib/initiatives/viewport.ts tests/unit/initiative-viewport.test.mts && git commit -F "$MSG"
 ```
 
 ---
@@ -3344,7 +3397,7 @@ with:
 - [ ] **Step 4: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 56 tests pass, typecheck clean.
+Expected: PASS. 58 tests pass, typecheck clean.
 
 - [ ] **Step 5: Format, lint, and commit**
 
@@ -3672,7 +3725,7 @@ with:
 - [ ] **Step 6: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
-Expected: PASS. 60 tests pass, typecheck clean.
+Expected: PASS. 62 tests pass, typecheck clean.
 
 - [ ] **Step 7: Format, lint, and commit**
 
@@ -3708,7 +3761,7 @@ pnpm typecheck
 git diff --name-only --diff-filter=d origin/main...HEAD -- '*.ts' '*.tsx' '*.mts' | xargs pnpm exec eslint
 ```
 
-Expected: 60 tests pass, typecheck clean, eslint reports nothing.
+Expected: 62 tests pass, typecheck clean, eslint reports nothing.
 
 - [ ] **Step 2: Build for production**
 

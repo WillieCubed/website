@@ -106,3 +106,71 @@ test('buildLlmsSummary leaves out a description that only repeats the title', ()
     summary.includes(`- [A short note.](${site.origin}/writings/note)\n`)
   );
 });
+
+const listItems = (summary: string) =>
+  summary.split('\n').filter((line) => line.startsWith('- '));
+
+test('buildLlmsSummary keeps a multi-line description on its list line', () => {
+  const summary = buildLlmsSummary([
+    { slug: 'a', title: 'A', description: 'line one\nline two\n' },
+  ]);
+
+  assert.ok(
+    summary.includes(`- [A](${site.origin}/writings/a): line one line two\n`)
+  );
+  assert.ok(!summary.split('\n').includes('line two'));
+  for (const item of listItems(summary)) assert.match(item, LIST_ITEM);
+});
+
+test('buildLlmsSummary percent-encodes a slug so the link stays one token', () => {
+  const summary = buildLlmsSummary([
+    { slug: 'a b', title: 'Spaced', description: 'x' },
+    { slug: 'foo)bar', title: 'Paren', description: 'y' },
+  ]);
+
+  assert.ok(summary.includes(`(${site.origin}/writings/a%20b)`));
+  assert.ok(summary.includes(`(${site.origin}/writings/foo%29bar)`));
+  for (const item of listItems(summary)) assert.match(item, LIST_ITEM);
+});
+
+test('buildLlmsSummary keeps brackets in a title from ending the link text', () => {
+  const summary = buildLlmsSummary([
+    {
+      slug: 'x',
+      title: 'Notes on [draft] specs',
+      description: 'About [things].',
+    },
+  ]);
+
+  assert.ok(
+    summary.includes(
+      `- [Notes on (draft) specs](${site.origin}/writings/x): About [things].`
+    )
+  );
+});
+
+test('buildLlmsSummary links every feed, index, and discovery file', () => {
+  const summary = buildLlmsSummary();
+  const links = [
+    ['Writings index', '/writings'],
+    ['Initiatives', '/initiatives'],
+    ['Site feed (RSS)', '/feed.xml'],
+    ['Site feed (Atom)', '/feed/atom'],
+    ['Site feed (JSON Feed)', '/feed/json'],
+    ['Writings feed (RSS)', '/writings/feed.xml'],
+    ['Writings feed (Atom)', '/writings/feed/atom'],
+    ['Writings feed (JSON Feed)', '/writings/feed/json'],
+    ['Public webmentions', '/webmentions?target='],
+    ['security.txt', '/.well-known/security.txt'],
+    ['OpenSearch description', '/opensearch.xml'],
+  ];
+
+  for (const [label, path] of links) {
+    assert.ok(
+      summary.includes(`[${label}](${site.origin}${path})`),
+      `${label} should link to ${path}`
+    );
+  }
+  assert.match(summary, /^## Read$/m);
+  assert.match(summary, /^## Protocols$/m);
+});

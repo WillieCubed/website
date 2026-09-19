@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 
+import { MCP_ENDPOINT } from '@/lib/mcp/constants';
 import { absoluteUrl } from '@/lib/site';
 
 /**
@@ -10,7 +11,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: ['*'],
-        allow: '/',
+        // llms.txt advertises the MCP server, which lives under /api/. The
+        // longer Allow wins over the Disallow (RFC 9309).
+        allow: ['/', MCP_ENDPOINT],
         disallow: ['/api/', '/admin/', '/hi/'],
       },
       // Maybe reconsider this?

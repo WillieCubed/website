@@ -82,8 +82,18 @@ function linkText(text: string): string {
   return text.replace(/\[/g, '(').replace(/\]/g, ')');
 }
 
+// encodeURIComponent leaves ( and ) alone, and either would end the link.
+function pathSegment(segment: string): string {
+  return encodeURIComponent(segment).replace(
+    /[()]/g,
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`
+  );
+}
+
 function llmsLink(label: string, path: string, notes?: string): string {
-  return `- [${linkText(label)}](${SITE_URL}${path})${notes ? `: ${notes}` : ''}`;
+  // The notes stay on the list line, so a description's line breaks collapse.
+  const text = notes?.replace(/\s+/g, ' ').trim();
+  return `- [${linkText(label)}](${SITE_URL}${path})${text ? `: ${text}` : ''}`;
 }
 
 /**
@@ -105,7 +115,7 @@ export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
         ...writings.map((writing) =>
           llmsLink(
             writing.title,
-            `/writings/${writing.slug}`,
+            `/writings/${pathSegment(writing.slug)}`,
             writing.description === writing.title
               ? undefined
               : writing.description

@@ -22,7 +22,7 @@ const eslintConfig = [
   {
     files: [
       '*.config.{js,cjs,mjs,ts}',
-      '.*rc.js',
+      '.*rc.{js,mjs}',
       'brand/**/*.mjs',
       'scripts/**/*.{js,mjs,ts,mts}',
     ],

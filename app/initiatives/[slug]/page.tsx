@@ -35,7 +35,7 @@ export async function generateMetadata(props: {
       image: `${initiative.href}/opengraph-image`,
     });
   } catch {
-    return {};
+    notFound();
   }
 }
 

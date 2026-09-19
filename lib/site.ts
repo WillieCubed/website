@@ -47,7 +47,31 @@ export const site = {
     'tour.willie.page': '/initiatives/fall-tour-2026',
     'diaries.willie.page': '/initiatives/twd',
   },
+  /**
+   * Paths that belonged to pages now parked in app/_(pages) while they are
+   * rebuilt. The 404 page tells visitors with old links that the page is
+   * coming back. Remove a path when its page is routed again.
+   */
+  parkedPaths: [
+    '/about',
+    '/apps',
+    '/colophon',
+    '/contact',
+    '/media',
+    '/now',
+    '/projects',
+    '/random',
+  ],
 } as const;
+
+/**
+ * True when a path belonged to a page that is parked while it is rebuilt.
+ */
+export function isParkedPath(path: string): boolean {
+  return site.parkedPaths.some(
+    (parked) => path === parked || path.startsWith(`${parked}/`)
+  );
+}
 
 /**
  * A calendar date the way the author saw it. Writing dates carry a Pacific

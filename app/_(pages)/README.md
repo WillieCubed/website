@@ -12,6 +12,8 @@ Then add it back in the places that skip parked pages on purpose:
 - the page list in `app/sitemap.ts`
 - the static page cards in `lib/entities/registry.ts`, so links to it get
   a hover card
+- `site.parkedPaths` in `lib/site.ts`, which makes the 404 page say the
+  page is being rebuilt; remove the path from it
 
 Projects also left the site feeds and search. When the project pages come
 back, restore the project items in the three site feeds under

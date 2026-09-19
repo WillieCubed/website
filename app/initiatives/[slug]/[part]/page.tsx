@@ -34,7 +34,7 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const { slug, part: partSlug } = await props.params;
   const found = await getPart(slug, partSlug).catch(() => null);
-  if (!found) return {};
+  if (!found) notFound();
   const { initiative, part } = found;
   return pageMetadata({
     title: `${initiative.partLabel} ${part.number}: ${part.title}`,

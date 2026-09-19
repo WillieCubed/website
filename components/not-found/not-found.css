@@ -1,0 +1,79 @@
+/* The log reaches past the text column by its own padding, so its text
+   starts on the same line as the heading above it. */
+.request-log {
+  margin: 0 -20px;
+  padding: 20px;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 599px) {
+  .request-log {
+    margin: 0 -12px;
+    padding: 16px 12px;
+    font-size: 13px;
+  }
+}
+/* Hanging indents keep a wrapped line under its own start on a phone:
+   a line continues 2ch in, a stack frame sits 4ch in and continues at 6ch. */
+.request-log__line {
+  display: block;
+  padding-inline-start: 2ch;
+  text-indent: -2ch;
+  animation: request-log-print 1ms steps(1) backwards;
+  animation-delay: calc(var(--line) * 140ms + 120ms);
+}
+.request-log__line[data-ready='false'] {
+  visibility: hidden;
+}
+.request-log__frame {
+  padding-inline-start: 6ch;
+}
+.request-log__gap {
+  display: block;
+  height: 1.7em;
+}
+.request-log__dim {
+  color: var(--color-muted);
+}
+.request-log__status {
+  color: var(--color-signal);
+  font-weight: 600;
+}
+.request-log__link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.request-log__cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  vertical-align: text-bottom;
+  background: var(--color-ink);
+  animation: request-log-blink 1.1s steps(1) infinite;
+}
+@keyframes request-log-print {
+  from {
+    visibility: hidden;
+  }
+}
+@keyframes request-log-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .request-log__line {
+    animation: none;
+  }
+  .request-log__cursor {
+    animation: none;
+  }
+}

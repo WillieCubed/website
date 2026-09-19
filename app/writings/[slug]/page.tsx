@@ -1,5 +1,5 @@
 import { cacheLife } from 'next/cache';
-import { redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Metadata } from 'next/types';
 
 import TopBar from '@/components/site/TopBar';
@@ -39,7 +39,9 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const params = await props.params;
   const { slug } = params;
-  const { writing } = await getWriting(slug);
+  // An unknown slug has to reach notFound() here too; metadata that
+  // resolved to nothing would replace the 404 page's title.
+  const { writing } = await getWriting(slug).catch(() => notFound());
   const canonicalUrl = generateCanonicalUrl(writing.slug);
   return {
     title: writing.title,
@@ -156,7 +158,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
     writing = data.writing;
     headings = data.headings;
   } catch {
-    return redirect('/404');
+    notFound();
   }
 
   // Fetch related data in parallel

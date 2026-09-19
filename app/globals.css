@@ -20,6 +20,8 @@
   --color-line: #dfe3da;
   --color-accent: #2f6f5e;
   --color-mint: #8fd1b8;
+  /* Status codes and warnings in logs. Warm so it reads as a flag, not an alarm. */
+  --color-signal: #b4532a;
 
   /* Green ramp derived from the accent */
   --color-maverick-50: #f1f7f4;

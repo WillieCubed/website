@@ -1,35 +1,83 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { cacheLife } from 'next/cache';
 
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
+import RequestLog from '@/components/not-found/RequestLog';
+import TopBar from '@/components/site/TopBar';
 
+import { getInitiatives } from '@/lib/initiatives';
+import { site } from '@/lib/site';
+import { getAllWritings } from '@/lib/writings';
+
+// Absolute because the writings segment's @modal slot renders this page's
+// metadata without the root title template.
 export const metadata: Metadata = {
-  title: "That's a 404!",
-  openGraph: {
-    title: 'Not Found',
-    description:
-      "If you're seeing this, you've found a broken link. Sorry about that!",
-    type: 'website',
-  },
+  title: { absolute: `Not found · ${site.name}` },
+  robots: { index: false },
 };
 
 /**
- * The 404 page for the site.
+ * Every routed page, for the log's closest-match line. Cached so the
+ * page prerenders like the loaders it reads from.
  */
-export default function NotFound() {
+async function routedPaths(): Promise<string[]> {
+  'use cache';
+  cacheLife('hours');
+  const [writings, initiatives] = await Promise.all([
+    getAllWritings(),
+    getInitiatives(),
+  ]);
+  return [
+    '/',
+    '/writings',
+    '/initiatives',
+    '/search',
+    ...writings.map((writing) => `/writings/${writing.slug}`),
+    ...initiatives.flatMap((initiative) => [
+      initiative.href,
+      ...initiative.parts.map((part) => `${initiative.href}/${part.slug}`),
+    ]),
+  ];
+}
+
+export default async function NotFound() {
+  const paths = await routedPaths();
   return (
-    <div className="p-lg pb-2xl desktop:pb-[128px] min-h-[80vh]">
-      <main className="max-w-breakpoint-lg mx-auto px-lg py-16 space-y-4">
-        <h2 className="text-display-large">Whoops!</h2>
-        <div className="text-headline-small">
-          Couldn&apos;t find what you were looking for. The link you found was
-          invalid or does not exist.
-        </div>
-        <div>
-          <SiteLink href="/" className="text-primary text-title-large">
-            Return Home
+    <>
+      <TopBar column="content" />
+      <main className="mx-auto flex max-w-[840px] flex-col gap-7 px-5 pb-8 pt-10">
+        <h1 className="text-display-small">No page lives at this address.</h1>
+        <RequestLog paths={paths} />
+        <nav
+          aria-label="Pages"
+          className="flex flex-wrap items-center gap-x-5 gap-y-3"
+        >
+          <SiteLink
+            preview={false}
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-label-large font-semibold text-white transition-colors hover:bg-accent/90"
+          >
+            <Icon name="arrow-left" size={16} />
+            Back to the homepage
           </SiteLink>
-        </div>
+          {/* The two links wrap as a pair, never one at a time. */}
+          <span className="flex items-center gap-x-5 whitespace-nowrap">
+            <SiteLink
+              href="/writings"
+              className="text-label-large text-ink hover:text-accent"
+            >
+              Writings
+            </SiteLink>
+            <SiteLink
+              href="/initiatives"
+              className="text-label-large text-ink hover:text-accent"
+            >
+              Initiatives
+            </SiteLink>
+          </span>
+        </nav>
       </main>
-    </div>
+    </>
   );
 }

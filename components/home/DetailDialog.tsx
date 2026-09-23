@@ -48,6 +48,9 @@ function sourceFor(id: string, from: HTMLElement | null): Source | null {
     : null;
 }
 
+// The detail view's pictures are never lazy: the morph snapshots the dialog
+// as soon as it opens, and the tile or row it grew from has usually loaded
+// the same file already.
 function Media({
   media,
   countdown,
@@ -68,6 +71,8 @@ function Media({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={media.src}
+          width={media.width}
+          height={media.height}
           alt={media.alt}
           className={media.fromLeft ? 'from-left' : undefined}
         />
@@ -75,9 +80,15 @@ function Media({
     case 'stack':
       return (
         <div className="d-stack">
-          {media.images.map((src) => (
+          {media.images.map((image) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={src} src={src} alt="" />
+            <img
+              key={image.src}
+              src={image.src}
+              width={image.width}
+              height={image.height}
+              alt=""
+            />
           ))}
         </div>
       );

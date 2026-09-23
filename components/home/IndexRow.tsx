@@ -25,10 +25,18 @@ export function IndexRow({ venture }: { venture: Venture }) {
         }}
       >
         <span className="stack">
-          {venture.stack?.map((src) => (
-            <i key={src}>
+          {/* The rail is on the first screen at every size, so these load
+              eagerly; the tiles below share the same files. */}
+          {venture.stack?.map((image) => (
+            <i key={image.src}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" />
+              <img
+                src={image.src}
+                width={image.width}
+                height={image.height}
+                alt=""
+                decoding="async"
+              />
             </i>
           ))}
         </span>

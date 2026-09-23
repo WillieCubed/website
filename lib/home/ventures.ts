@@ -18,8 +18,34 @@ export type BrandKey =
   | 'atlas'
   | 'hypertext';
 
+/**
+ * A picture with its intrinsic size, so the page reserves its box before the
+ * file arrives. The files are WebP; tests/unit/home-images.test.mts checks
+ * that each one exists and matches the size given here.
+ */
+export interface Picture {
+  src: string;
+  width: number;
+  height: number;
+}
+
 const A = '/assets/home/';
-const TRANSITMAPPER = `${A}transit-mapper.png`;
+const picture = (name: string, width: number, height: number): Picture => ({
+  src: `${A}${name}.webp`,
+  width,
+  height,
+});
+
+const TRANSITMAPPER = picture('transit-mapper', 1200, 630);
+const TRANSITMAPPER_THUMB = picture('thumb-transitmapper', 144, 108);
+const LVBT_HOME = picture('lvbt-home', 640, 400);
+const LVBT_PROJECTS = picture('lvbt-projects', 640, 400);
+const LOGDATE = picture('logdate-phone', 948, 1852);
+const DOCKET = picture('docket-app', 1600, 928);
+const CURFEW = picture('curfew-lockout', 1544, 960);
+const LOVELACE_ADA = picture('lovelace-ada', 1350, 580);
+const LOVELACE_HOME = picture('lovelace-home', 640, 400);
+const LOVELACE_MEMORY = picture('lovelace-memory', 640, 400);
 
 /** The LVBT countdown. The 2027 session opens on this date. */
 export const LVBT_DEADLINE = '2027-02-01';
@@ -40,16 +66,15 @@ export interface DetailListItem {
 
 export type DetailMedia =
   | { kind: 'countdown'; deadline: string; caption: string }
-  | {
+  | (Picture & {
       kind: 'image';
-      src: string;
       alt: string;
       /** Shown at 84% inside the panel with a shadow instead of edge to edge. */
       framed?: boolean;
       /** Anchor the cover crop to the left edge rather than the center. */
       fromLeft?: boolean;
-    }
-  | { kind: 'stack'; images: string[] }
+    })
+  | { kind: 'stack'; images: Picture[] }
   | { kind: 'constellation' };
 
 export interface Detail {
@@ -68,7 +93,7 @@ export interface Product {
   facets: Facet[];
   platform: string;
   copy: string;
-  image: string;
+  image: Picture;
   detail: Detail;
 }
 
@@ -80,7 +105,7 @@ export type TileBody =
       countdown: { deadline: string; caption: string };
       active: string[];
     }
-  | { kind: 'shot'; src: string; alt: string; low?: boolean }
+  | (Picture & { kind: 'shot'; alt: string; low?: boolean })
   | { kind: 'products'; products: Product[] }
   | { kind: 'atlas'; copy: string };
 
@@ -100,7 +125,7 @@ export interface Venture {
   /** The rail row's second line. */
   line?: string;
   /** Thumbnails for the rail row's fanning stack, back to front. */
-  stack?: string[];
+  stack?: Picture[];
   parent?: string;
   body: TileBody;
   detail: Detail;
@@ -117,11 +142,11 @@ export const products: Record<string, Product> = {
     facets: ['software', 'people'],
     platform: 'iOS · Android',
     copy: 'A lifelog and social journal',
-    image: `${A}logdate-phone.png`,
+    image: LOGDATE,
     detail: {
       media: {
         kind: 'image',
-        src: `${A}logdate-phone.png`,
+        ...LOGDATE,
         alt: 'The LogDate timeline on a phone',
       },
       body: [
@@ -138,11 +163,11 @@ export const products: Record<string, Product> = {
     facets: ['software', 'systems'],
     platform: 'Web',
     copy: 'Planning and scheduling, with Athena',
-    image: `${A}docket-app.png`,
+    image: DOCKET,
     detail: {
       media: {
         kind: 'image',
-        src: `${A}docket-app.png`,
+        ...DOCKET,
         alt: "Docket's Today view with tasks and a calendar",
         framed: true,
       },
@@ -162,11 +187,11 @@ export const products: Record<string, Product> = {
     facets: ['software', 'people'],
     platform: 'macOS',
     copy: 'A hard stop for your workday',
-    image: `${A}curfew-lockout.png`,
+    image: CURFEW,
     detail: {
       media: {
         kind: 'image',
-        src: `${A}curfew-lockout.png`,
+        ...CURFEW,
         alt: "Curfew's full-screen lockout reading 10:47 PM, that's the day",
       },
       body: [
@@ -192,11 +217,7 @@ export const ventures: Venture[] = [
     facets: ['systems', 'people'],
     hint: 'See what’s active',
     line: 'TransitMapper and organizing',
-    stack: [
-      `${A}thumb-transitmapper.png`,
-      `${A}lvbt-projects.png`,
-      `${A}lvbt-home.png`,
-    ],
+    stack: [TRANSITMAPPER_THUMB, LVBT_PROJECTS, LVBT_HOME],
     weight: 100,
     body: {
       kind: 'lead',
@@ -255,14 +276,14 @@ export const ventures: Venture[] = [
     weight: 80,
     body: {
       kind: 'shot',
-      src: TRANSITMAPPER,
+      ...TRANSITMAPPER,
       alt: 'TransitMapper showing a sample Las Vegas transit network on a street map',
       low: true,
     },
     detail: {
       media: {
         kind: 'image',
-        src: TRANSITMAPPER,
+        ...TRANSITMAPPER,
         alt: 'TransitMapper showing a sample Las Vegas transit network on a street map',
         fromLeft: true,
       },
@@ -318,21 +339,17 @@ export const ventures: Venture[] = [
     facets: ['software', 'systems'],
     hint: 'Meet Ada',
     line: 'Project Lovelace',
-    stack: [
-      `${A}lovelace-memory.png`,
-      `${A}lovelace-ada.png`,
-      `${A}lovelace-home.png`,
-    ],
+    stack: [LOVELACE_MEMORY, LOVELACE_ADA, LOVELACE_HOME],
     weight: 70,
     body: {
       kind: 'shot',
-      src: `${A}lovelace-ada.png`,
+      ...LOVELACE_ADA,
       alt: 'Ada, the Lovelace assistant, finishing a task and summarizing what she did',
     },
     detail: {
       media: {
         kind: 'image',
-        src: `${A}lovelace-ada.png`,
+        ...LOVELACE_ADA,
         alt: 'Ada finishing a task in Lovelace',
         framed: true,
       },

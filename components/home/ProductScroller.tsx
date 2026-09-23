@@ -10,7 +10,13 @@ import { brandStyle, prefersReducedMotion, useHome } from './HomeContext';
  * The studio tile's product cards. On compact screens they scroll and snap
  * sideways, and the pager follows whichever card has snapped into place.
  */
-export function ProductScroller({ products }: { products: Product[] }) {
+export function ProductScroller({
+  products,
+  loading,
+}: {
+  products: Product[];
+  loading: 'eager' | 'lazy';
+}) {
   const { openDetail, brands } = useHome();
   const scroller = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
@@ -50,7 +56,14 @@ export function ProductScroller({ products }: { products: Product[] }) {
             >
               <span className="p-media">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={product.image} alt="" />
+                <img
+                  src={product.image.src}
+                  width={product.image.width}
+                  height={product.image.height}
+                  alt=""
+                  loading={loading}
+                  decoding="async"
+                />
               </span>
               <span className="p-text">
                 <b>{product.name}</b>

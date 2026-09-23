@@ -1,6 +1,7 @@
-// Generates every WillieCubed brand asset and the willie.page/brand download
-// page from one geometry and one palette. Run `pnpm brand:build` after
-// changing either; never edit files under public/brand by hand.
+// Generates every WillieCubed brand asset, and the manifest the
+// willie.page/brand download page renders, from one geometry and one palette.
+// Run `pnpm brand:build` after changing either; never edit files under
+// public/brand or lib/brand/kit.json by hand.
 import { Resvg } from '@resvg/resvg-js';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -9,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import opentype from 'opentype.js';
 import PDFDocument from 'pdfkit';
+import * as prettier from 'prettier';
 import SVGtoPDF from 'svg-to-pdfkit';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -214,8 +216,10 @@ function lockup({ label, color }) {
   );
 }
 
+const WORDMARK_PX = 96;
+
 function wordmark(color) {
-  const size = 96;
+  const size = WORDMARK_PX;
   const pad = 16;
   const p = BOLD.getPath('williecubed', 0, 0, size);
   const box = p.getBoundingBox();
@@ -823,17 +827,11 @@ execFileSync(
 );
 const zipBytes = fs.statSync(path.join(OUT, 'williecubed-brand.zip')).size;
 
-// ---------- Download page ----------
+// ---------- Manifest for /brand ----------
 
-const kb = (b) =>
-  b < 1024
-    ? `${b} B`
-    : b < 1048576
-      ? `${(b / 1024).toFixed(b < 10240 ? 1 : 0)} KB`
-      : `${(b / 1048576).toFixed(1)} MB`;
-const size = (rel) => kb(fs.statSync(path.join(OUT, rel)).size);
-const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-
+// app/brand/page.tsx renders the download page from this list, inside the
+// site's own layout, so every label, note, and size it shows comes from the
+// files written above.
 function oklch(hex) {
   const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
   const [r, g, b] = [1, 3, 5].map((i) =>
@@ -851,185 +849,107 @@ function oklch(hex) {
 const rgb = (hex) =>
   `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(' ')})`;
 
-const link = (rel, label) =>
-  `<a href="/brand/${rel}" download>${label}<span class="size">${size(rel)}</span></a>`;
-const fileRows = (group) =>
+const href = (rel) => `/brand/${rel}`;
+const download = (rel, label) => ({
+  label,
+  href: href(rel),
+  bytes: fs.statSync(path.join(OUT, rel)).size,
+});
+const viewBox = (s) =>
+  s
+    .match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/)
+    .slice(1)
+    .map(Number);
+const fileList = (group) =>
   files
     .filter((f) => f.group === group)
-    .map(
-      (f) =>
-        `<li><a href="/brand/${f.rel}" download><code>${esc(
-          f.rel
-            .split('/')
-            .slice(1)
-            .join('/')
-            .replace(/^res\//, '')
-            .replace(/^AppIcon\.appiconset\//, 'AppIcon.appiconset/')
-        )}</code><span class="size">${kb(f.bytes)}</span></a><span class="purpose">${esc(f.purpose ?? '')}</span></li>`
-    )
-    .join('\n');
+    .map((f) => ({
+      name: f.rel
+        .split('/')
+        .slice(1)
+        .join('/')
+        .replace(/^res\//, ''),
+      href: href(f.rel),
+      bytes: f.bytes,
+      purpose: f.purpose ?? '',
+    }));
 
-const markCards = Object.entries(MARKS)
-  .map(
-    ([name, m]) => `
-        <figure class="asset${m.dark ? ' asset-dark' : ''}">
-          <div class="asset-preview"><img src="/brand/mark/${name}.svg" alt="${m.label}" width="160" height="160" /></div>
-          <figcaption>
-            <h3>${m.label}</h3>
-            <p>${m.note}</p>
-            <p class="downloads">${link(`mark/${name}.svg`, 'SVG')}${link(`mark/${name}.pdf`, 'PDF')}${[512, 1024, 2048].map((s) => link(`mark/png/${name}-${s}.png`, `PNG ${s}`)).join('')}</p>
-          </figcaption>
-        </figure>`
-  )
-  .join('');
-
-const lockupCards = Object.keys(LOCKUPS)
-  .map((name) => {
+const kit = {
+  archive: download('williecubed-brand.zip', 'Download brand kit'),
+  marks: Object.entries(MARKS).map(([name, m]) => ({
+    name,
+    label: m.label,
+    note: m.note,
+    dark: Boolean(m.dark),
+    preview: href(`mark/${name}.svg`),
+    downloads: [
+      download(`mark/${name}.svg`, 'SVG'),
+      download(`mark/${name}.pdf`, 'PDF'),
+      ...[512, 1024, 2048].map((s) =>
+        download(`mark/png/${name}-${s}.png`, `PNG ${s}`)
+      ),
+    ],
+  })),
+  lockups: Object.entries(LOCKUPS).map(([name, s]) => {
+    const [width, height] = viewBox(s);
     const dark = name.endsWith('paper');
     const label = name
       .replace(/-(ink|paper)$/, '')
       .replace('williecubed-wordmark', 'Wordmark')
       .replace('williecubed-lockup', 'williecubed lockup')
       .replace('willie-chalmers-iii-lockup', 'Name lockup');
-    return `
-        <figure class="asset asset-wide${dark ? ' asset-dark' : ''}">
-          <div class="asset-preview"><img src="/brand/lockups/${name}.svg" alt="${label}" /></div>
-          <figcaption>
-            <h3>${label}, ${dark ? 'on dark' : 'on light'}</h3>
-            <p class="downloads">${link(`lockups/${name}.svg`, 'SVG')}${link(`lockups/${name}.pdf`, 'PDF')}${link(`lockups/png/${name}@2x.png`, 'PNG')}</p>
-          </figcaption>
-        </figure>`;
+    return {
+      name,
+      label: `${label}, ${dark ? 'on dark' : 'on light'}`,
+      dark,
+      preview: href(`lockups/${name}.svg`),
+      width,
+      height,
+      // The label's cap height in the SVG's own units, so the page can show
+      // every lockup at one cap height however wide it is.
+      cap: fmt(name.includes('wordmark') ? WORDMARK_PX * CAP_HEIGHT : CAP_PX),
+      downloads: [
+        download(`lockups/${name}.svg`, 'SVG'),
+        download(`lockups/${name}.pdf`, 'PDF'),
+        download(`lockups/png/${name}@2x.png`, 'PNG'),
+      ],
+    };
+  }),
+  colors: Object.entries(COLOR).map(([key, v]) => ({
+    key,
+    name: v.name,
+    role: v.role,
+    hex: v.hex,
+    rgb: rgb(v.hex),
+    oklch: oklch(v.hex),
+  })),
+  tokens: [
+    download('tokens/williecubed.tokens.json', 'Design tokens (DTCG JSON)'),
+    download('tokens/williecubed.css', 'CSS custom properties'),
+  ],
+  appIcons: glassRenders
+    .filter((r) => r.label === 'ios')
+    .map((r) => ({
+      appearance: r.appearance,
+      preview: href(r.rel),
+      downloads: [download(r.rel, 'PNG 1024')],
+    })),
+  platforms: [
+    ['Web and PWA', 'web'],
+    ['Apple platforms', 'apple'],
+    ['Android', 'android'],
+    ['Social', 'social'],
+  ].map(([title, group]) => ({ title, files: fileList(group) })),
+};
+
+const KIT = path.join(HERE, '..', 'lib/brand/kit.json');
+fs.writeFileSync(
+  KIT,
+  await prettier.format(JSON.stringify(kit), {
+    ...(await prettier.resolveConfig(KIT)),
+    filepath: KIT,
   })
-  .join('');
-
-const swatches = Object.entries(COLOR)
-  .map(
-    ([key, v]) => `
-        <li class="swatch">
-          <span class="chip chip-${key}"></span>
-          <h3>${v.name}</h3>
-          <p>${v.role}</p>
-          <dl><dt>Hex</dt><dd><code>${v.hex}</code></dd><dt>RGB</dt><dd><code>${rgb(v.hex)}</code></dd><dt>OKLCH</dt><dd><code>${oklch(v.hex)}</code></dd></dl>
-        </li>`
-  )
-  .join('');
-
-const page = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Brand · Willie Chalmers III</title>
-    <meta name="description" content="Download the WillieCubed mark, lockups, app icons, and color and type tokens." />
-    <link rel="canonical" href="https://willie.page/brand" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Willie Chalmers III" />
-    <meta property="og:title" content="WillieCubed brand" />
-    <meta property="og:description" content="Download the WillieCubed mark, lockups, app icons, and color and type tokens." />
-    <meta property="og:url" content="https://willie.page/brand" />
-    <meta property="og:image" content="https://willie.page/brandsocial/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Willie Chalmers III builds software and systems for people." />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="${C.paper}" />
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;500&amp;family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/assets/brand.css" />
-  </head>
-  <body class="brand">
-    <header class="brand-header">
-      <a href="/" class="brand-home">Willie Chalmers III</a>
-    </header>
-    <main class="brand-main">
-      <section class="brand-intro" aria-labelledby="brand-title">
-        <img src="/brand/mark/williecubed-mark.svg" alt="" width="96" height="96" />
-        <div>
-          <h1 id="brand-title">WillieCubed brand</h1>
-          <p>Marks, lockups, app icons, colors, and type.</p>
-          <p class="downloads">${link('williecubed-brand.zip', 'Download brand kit')}</p>
-        </div>
-      </section>
-
-      <section aria-labelledby="mark">
-        <h2 id="mark">Mark</h2>
-        <div class="asset-grid">${markCards}
-        </div>
-      </section>
-
-      <section aria-labelledby="lockups">
-        <h2 id="lockups">Wordmark and lockups</h2>
-        <div class="asset-grid asset-grid-wide">${lockupCards}
-        </div>
-      </section>
-
-      <section aria-labelledby="color">
-        <h2 id="color">Color</h2>
-        <ul class="swatches">${swatches}
-        </ul>
-        <p class="downloads">${link('tokens/williecubed.tokens.json', 'Design tokens (DTCG JSON)')}${link('tokens/williecubed.css', 'CSS custom properties')}</p>
-      </section>
-
-      <section aria-labelledby="type">
-        <h2 id="type">Typography</h2>
-        <div class="type-specimens">
-          <div class="specimen"><p class="specimen-sample">Atkinson Hyperlegible Next</p><p>Headlines, body text, and the wordmark. Designed by the Braille Institute for legibility.</p><p class="downloads"><a href="https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next">Google Fonts</a></p></div>
-          <div class="specimen"><p class="specimen-sample specimen-mono">Atkinson Hyperlegible Mono</p><p>Labels, captions, and code.</p><p class="downloads"><a href="https://fonts.google.com/specimen/Atkinson+Hyperlegible+Mono">Google Fonts</a></p></div>
-        </div>
-      </section>
-
-${
-  glassRenders.length
-    ? `<section aria-labelledby="app-icon">
-        <h2 id="app-icon">App icon</h2>
-        <div class="asset-grid">${glassRenders
-          .filter((r) => r.label === 'ios')
-          .map(
-            (r) => `
-          <figure class="asset${r.appearance === 'default' ? '' : ' asset-dark'}">
-            <div class="asset-preview"><img src="/brand/${r.rel}" alt="WillieCubed app icon, ${r.appearance} appearance" width="160" height="160" /></div>
-            <figcaption>
-              <h3>${r.appearance[0].toUpperCase() + r.appearance.slice(1)}</h3>
-              <p>Liquid Glass, rendered by Xcode from the Icon Composer document.</p>
-              <p class="downloads">${link(r.rel, 'PNG 1024')}</p>
-            </figcaption>
-          </figure>`
-          )
-          .join('')}
-        </div>
-      </section>
-
-      `
-    : ''
-}<section aria-labelledby="platforms">
-        <h2 id="platforms">Platform icons</h2>
-        <div class="file-groups">
-          <div><h3>Web and PWA</h3><ul class="files">${fileRows('web')}</ul></div>
-          <div><h3>Apple platforms</h3><ul class="files">${fileRows('apple')}</ul></div>
-          <div><h3>Android</h3><ul class="files">${fileRows('android')}</ul></div>
-          <div><h3>Social</h3><ul class="files">${fileRows('social')}</ul></div>
-        </div>
-      </section>
-
-      <section aria-labelledby="usage">
-        <h2 id="usage">Usage</h2>
-        <ul class="usage">
-          <li>Keep clear space around the mark equal to one facet gap at the size you use it.</li>
-          <li>Use the tiled mark below 32px; the facet gaps are widened for small sizes.</li>
-          <li>Don’t recolor, rotate, stretch, or add effects to the cube.</li>
-          <li>Use the one-color versions only where color reproduction isn’t available.</li>
-        </ul>
-      </section>
-    </main>
-  </body>
-</html>
-`;
-write('index.html', page);
+);
 console.log(
-  `Wrote ${files.length} files to public/brand (archive ${kb(zipBytes)}).`
+  `Wrote ${files.length} files to public/brand (archive ${(zipBytes / 1048576).toFixed(1)} MB) and lib/brand/kit.json.`
 );

@@ -44,10 +44,6 @@ const nextConfig: NextConfig = {
     ];
     return [...legacy, ...aliases, ...retired, ...feedGuesses];
   },
-  // Pages that ship as static HTML in public/ rather than as app routes.
-  async rewrites() {
-    return [{ source: '/brand', destination: '/brand/index.html' }];
-  },
   cacheComponents: true,
   allowedDevOrigins: ['williecubed.localhost'],
   images: {

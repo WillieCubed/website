@@ -2,8 +2,8 @@
 
 Next.js never routes a folder whose name starts with an underscore, so
 every page in here returns a 404. These are the pages from the old site
-that have not been rebuilt in the new design yet. Landing, writings, and
-initiatives are the only routed pages.
+that have not been rebuilt in the new design yet. Landing, writings,
+initiatives, and brand are the only routed pages.
 
 To bring a page back, rebuild it, move its folder to `app/<route>`, and
 set its `routed` flag to true in `sitePages` in `lib/site.ts`. The footer

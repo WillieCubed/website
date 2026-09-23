@@ -1,0 +1,706 @@
+{
+  "archive": {
+    "label": "Download brand kit",
+    "href": "/brand/williecubed-brand.zip",
+    "bytes": 4670097
+  },
+  "marks": [
+    {
+      "name": "williecubed-mark",
+      "label": "Mark",
+      "note": "Default. Use wherever the mark stands alone.",
+      "dark": false,
+      "preview": "/brand/mark/williecubed-mark.svg",
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/mark/williecubed-mark.svg",
+          "bytes": 601
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/mark/williecubed-mark.pdf",
+          "bytes": 1858
+        },
+        {
+          "label": "PNG 512",
+          "href": "/brand/mark/png/williecubed-mark-512.png",
+          "bytes": 12971
+        },
+        {
+          "label": "PNG 1024",
+          "href": "/brand/mark/png/williecubed-mark-1024.png",
+          "bytes": 31920
+        },
+        {
+          "label": "PNG 2048",
+          "href": "/brand/mark/png/williecubed-mark-2048.png",
+          "bytes": 77920
+        }
+      ]
+    },
+    {
+      "name": "williecubed-mark-square",
+      "label": "Full-bleed square",
+      "note": "For platforms that apply their own mask, like app stores and avatars.",
+      "dark": false,
+      "preview": "/brand/mark/williecubed-mark-square.svg",
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/mark/williecubed-mark-square.svg",
+          "bytes": 592
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/mark/williecubed-mark-square.pdf",
+          "bytes": 1722
+        },
+        {
+          "label": "PNG 512",
+          "href": "/brand/mark/png/williecubed-mark-square-512.png",
+          "bytes": 9402
+        },
+        {
+          "label": "PNG 1024",
+          "href": "/brand/mark/png/williecubed-mark-square-1024.png",
+          "bytes": 24116
+        },
+        {
+          "label": "PNG 2048",
+          "href": "/brand/mark/png/williecubed-mark-square-2048.png",
+          "bytes": 61984
+        }
+      ]
+    },
+    {
+      "name": "williecubed-cube-on-light",
+      "label": "Cube on light",
+      "note": "For light backgrounds without the tile.",
+      "dark": false,
+      "preview": "/brand/mark/williecubed-cube-on-light.svg",
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/mark/williecubed-cube-on-light.svg",
+          "bytes": 528
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/mark/williecubed-cube-on-light.pdf",
+          "bytes": 1698
+        },
+        {
+          "label": "PNG 512",
+          "href": "/brand/mark/png/williecubed-cube-on-light-512.png",
+          "bytes": 10721
+        },
+        {
+          "label": "PNG 1024",
+          "href": "/brand/mark/png/williecubed-cube-on-light-1024.png",
+          "bytes": 28443
+        },
+        {
+          "label": "PNG 2048",
+          "href": "/brand/mark/png/williecubed-cube-on-light-2048.png",
+          "bytes": 67763
+        }
+      ]
+    },
+    {
+      "name": "williecubed-cube-on-dark",
+      "label": "Cube on dark",
+      "note": "For dark backgrounds without the tile.",
+      "dark": true,
+      "preview": "/brand/mark/williecubed-cube-on-dark.svg",
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/mark/williecubed-cube-on-dark.svg",
+          "bytes": 528
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/mark/williecubed-cube-on-dark.pdf",
+          "bytes": 1690
+        },
+        {
+          "label": "PNG 512",
+          "href": "/brand/mark/png/williecubed-cube-on-dark-512.png",
+          "bytes": 10716
+        },
+        {
+          "label": "PNG 1024",
+          "href": "/brand/mark/png/williecubed-cube-on-dark-1024.png",
+          "bytes": 28448
+        },
+        {
+          "label": "PNG 2048",
+          "href": "/brand/mark/png/williecubed-cube-on-dark-2048.png",
+          "bytes": 68506
+        }
+      ]
+    },
+    {
+      "name": "williecubed-cube-black",
+      "label": "One color, black",
+      "note": "For single-color printing and embossing.",
+      "dark": false,
+      "preview": "/brand/mark/williecubed-cube-black.svg",
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/mark/williecubed-cube-black.svg",
+          "bytes": 528
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/mark/williecubed-cube-black.pdf",
+          "bytes": 1613
+        },
+        {
+          "label": "PNG 512",
+          "href": "/brand/mark/png/williecubed-cube-black-512.png",
+          "bytes": 10733
+        },
+        {
+          "label": "PNG 1024",
+          "href": "/brand/mark/png/williecubed-cube-black-1024.png",
+          "bytes": 24101
+        },
+        {
+          "label": "PNG 2048",
+          "href": "/brand/mark/png/williecubed-cube-black-2048.png",
+          "bytes": 53601
+        }
+      ]
+    },
+    {
+      "name": "williecubed-cube-white",
+      "label": "One color, white",
+      "note": "For single-color use on dark or photographic backgrounds.",
+      "dark": true,
+      "preview": "/brand/mark/williecubed-cube-white.svg",
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/mark/williecubed-cube-white.svg",
+          "bytes": 528
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/mark/williecubed-cube-white.pdf",
+          "bytes": 1613
+        },
+        {
+          "label": "PNG 512",
+          "href": "/brand/mark/png/williecubed-cube-white-512.png",
+          "bytes": 11898
+        },
+        {
+          "label": "PNG 1024",
+          "href": "/brand/mark/png/williecubed-cube-white-1024.png",
+          "bytes": 27261
+        },
+        {
+          "label": "PNG 2048",
+          "href": "/brand/mark/png/williecubed-cube-white-2048.png",
+          "bytes": 66334
+        }
+      ]
+    }
+  ],
+  "lockups": [
+    {
+      "name": "williecubed-wordmark-ink",
+      "label": "Wordmark, on light",
+      "dark": false,
+      "preview": "/brand/lockups/williecubed-wordmark-ink.svg",
+      "width": 541,
+      "height": 106,
+      "cap": 64.13,
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/lockups/williecubed-wordmark-ink.svg",
+          "bytes": 5629
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/lockups/williecubed-wordmark-ink.pdf",
+          "bytes": 4556
+        },
+        {
+          "label": "PNG",
+          "href": "/brand/lockups/png/williecubed-wordmark-ink@2x.png",
+          "bytes": 18475
+        }
+      ]
+    },
+    {
+      "name": "williecubed-wordmark-paper",
+      "label": "Wordmark, on dark",
+      "dark": true,
+      "preview": "/brand/lockups/williecubed-wordmark-paper.svg",
+      "width": 541,
+      "height": 106,
+      "cap": 64.13,
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/lockups/williecubed-wordmark-paper.svg",
+          "bytes": 5629
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/lockups/williecubed-wordmark-paper.pdf",
+          "bytes": 4550
+        },
+        {
+          "label": "PNG",
+          "href": "/brand/lockups/png/williecubed-wordmark-paper@2x.png",
+          "bytes": 19357
+        }
+      ]
+    },
+    {
+      "name": "williecubed-lockup-ink",
+      "label": "williecubed lockup, on light",
+      "dark": false,
+      "preview": "/brand/lockups/williecubed-lockup-ink.svg",
+      "width": 1221,
+      "height": 229,
+      "cap": 120,
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/lockups/williecubed-lockup-ink.svg",
+          "bytes": 6663
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/lockups/williecubed-lockup-ink.pdf",
+          "bytes": 5123
+        },
+        {
+          "label": "PNG",
+          "href": "/brand/lockups/png/williecubed-lockup-ink@2x.png",
+          "bytes": 50770
+        }
+      ]
+    },
+    {
+      "name": "williecubed-lockup-paper",
+      "label": "williecubed lockup, on dark",
+      "dark": true,
+      "preview": "/brand/lockups/williecubed-lockup-paper.svg",
+      "width": 1221,
+      "height": 229,
+      "cap": 120,
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/lockups/williecubed-lockup-paper.svg",
+          "bytes": 6663
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/lockups/williecubed-lockup-paper.pdf",
+          "bytes": 5121
+        },
+        {
+          "label": "PNG",
+          "href": "/brand/lockups/png/williecubed-lockup-paper@2x.png",
+          "bytes": 51925
+        }
+      ]
+    },
+    {
+      "name": "willie-chalmers-iii-lockup-ink",
+      "label": "Name lockup, on light",
+      "dark": false,
+      "preview": "/brand/lockups/willie-chalmers-iii-lockup-ink.svg",
+      "width": 1871,
+      "height": 229,
+      "cap": 120,
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/lockups/willie-chalmers-iii-lockup-ink.svg",
+          "bytes": 9244
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/lockups/willie-chalmers-iii-lockup-ink.pdf",
+          "bytes": 6382
+        },
+        {
+          "label": "PNG",
+          "href": "/brand/lockups/png/willie-chalmers-iii-lockup-ink@2x.png",
+          "bytes": 74088
+        }
+      ]
+    },
+    {
+      "name": "willie-chalmers-iii-lockup-paper",
+      "label": "Name lockup, on dark",
+      "dark": true,
+      "preview": "/brand/lockups/willie-chalmers-iii-lockup-paper.svg",
+      "width": 1871,
+      "height": 229,
+      "cap": 120,
+      "downloads": [
+        {
+          "label": "SVG",
+          "href": "/brand/lockups/willie-chalmers-iii-lockup-paper.svg",
+          "bytes": 9244
+        },
+        {
+          "label": "PDF",
+          "href": "/brand/lockups/willie-chalmers-iii-lockup-paper.pdf",
+          "bytes": 6383
+        },
+        {
+          "label": "PNG",
+          "href": "/brand/lockups/png/willie-chalmers-iii-lockup-paper@2x.png",
+          "bytes": 75464
+        }
+      ]
+    }
+  ],
+  "colors": [
+    {
+      "key": "green",
+      "name": "Accent green",
+      "role": "The mark’s tile and the site’s accent.",
+      "hex": "#2f6f5e",
+      "rgb": "rgb(47 111 94)",
+      "oklch": "oklch(49.5% 0.072 173.3)"
+    },
+    {
+      "key": "ink",
+      "name": "Ink",
+      "role": "Text and the mark’s shadow facet.",
+      "hex": "#1c231e",
+      "rgb": "rgb(28 35 30)",
+      "oklch": "oklch(24.7% 0.014 154.2)"
+    },
+    {
+      "key": "paper",
+      "name": "Paper",
+      "role": "Page background and the mark’s top facet.",
+      "hex": "#f4f5ef",
+      "rgb": "rgb(244 245 239)",
+      "oklch": "oklch(96.8% 0.008 114.2)"
+    },
+    {
+      "key": "mint",
+      "name": "Mint",
+      "role": "The mark’s lit facet.",
+      "hex": "#8fd1b8",
+      "rgb": "rgb(143 209 184)",
+      "oklch": "oklch(80.9% 0.076 168.8)"
+    },
+    {
+      "key": "tray",
+      "name": "Tray",
+      "role": "Card and tile surfaces.",
+      "hex": "#e7eae2",
+      "rgb": "rgb(231 234 226)",
+      "oklch": "oklch(93.3% 0.011 123.5)"
+    },
+    {
+      "key": "muted",
+      "name": "Muted",
+      "role": "Secondary text.",
+      "hex": "#69736b",
+      "rgb": "rgb(105 115 107)",
+      "oklch": "oklch(54.5% 0.017 151.5)"
+    }
+  ],
+  "tokens": [
+    {
+      "label": "Design tokens (DTCG JSON)",
+      "href": "/brand/tokens/williecubed.tokens.json",
+      "bytes": 1164
+    },
+    {
+      "label": "CSS custom properties",
+      "href": "/brand/tokens/williecubed.css",
+      "bytes": 291
+    }
+  ],
+  "appIcons": [
+    {
+      "appearance": "default",
+      "preview": "/brand/apple/liquid-glass/williecubed-ios-default.png",
+      "downloads": [
+        {
+          "label": "PNG 1024",
+          "href": "/brand/apple/liquid-glass/williecubed-ios-default.png",
+          "bytes": 688541
+        }
+      ]
+    },
+    {
+      "appearance": "dark",
+      "preview": "/brand/apple/liquid-glass/williecubed-ios-dark.png",
+      "downloads": [
+        {
+          "label": "PNG 1024",
+          "href": "/brand/apple/liquid-glass/williecubed-ios-dark.png",
+          "bytes": 669717
+        }
+      ]
+    },
+    {
+      "appearance": "tinted",
+      "preview": "/brand/apple/liquid-glass/williecubed-ios-tinted.png",
+      "downloads": [
+        {
+          "label": "PNG 1024",
+          "href": "/brand/apple/liquid-glass/williecubed-ios-tinted.png",
+          "bytes": 203828
+        }
+      ]
+    }
+  ],
+  "platforms": [
+    {
+      "title": "Web and PWA",
+      "files": [
+        {
+          "name": "favicon.svg",
+          "href": "/brand/web/favicon.svg",
+          "bytes": 601,
+          "purpose": "SVG favicon for modern browsers"
+        },
+        {
+          "name": "favicon.ico",
+          "href": "/brand/web/favicon.ico",
+          "bytes": 2784,
+          "purpose": "ICO favicon with 16, 32, and 48px images"
+        },
+        {
+          "name": "apple-touch-icon.png",
+          "href": "/brand/web/apple-touch-icon.png",
+          "bytes": 3189,
+          "purpose": "Home screen icon for iPhone and iPad (180px, full bleed)"
+        },
+        {
+          "name": "icon-48.png",
+          "href": "/brand/web/icon-48.png",
+          "bytes": 1270,
+          "purpose": "Manifest icon, 48px"
+        },
+        {
+          "name": "icon-72.png",
+          "href": "/brand/web/icon-72.png",
+          "bytes": 1863,
+          "purpose": "Manifest icon, 72px"
+        },
+        {
+          "name": "icon-96.png",
+          "href": "/brand/web/icon-96.png",
+          "bytes": 2366,
+          "purpose": "Manifest icon, 96px"
+        },
+        {
+          "name": "icon-144.png",
+          "href": "/brand/web/icon-144.png",
+          "bytes": 3642,
+          "purpose": "Manifest icon, 144px"
+        },
+        {
+          "name": "icon-192.png",
+          "href": "/brand/web/icon-192.png",
+          "bytes": 4958,
+          "purpose": "Manifest icon, 192px"
+        },
+        {
+          "name": "icon-512.png",
+          "href": "/brand/web/icon-512.png",
+          "bytes": 12971,
+          "purpose": "Manifest icon, 512px"
+        },
+        {
+          "name": "icon-maskable-192.png",
+          "href": "/brand/web/icon-maskable-192.png",
+          "bytes": 2907,
+          "purpose": "Maskable manifest icon, 192px"
+        },
+        {
+          "name": "icon-maskable-512.png",
+          "href": "/brand/web/icon-maskable-512.png",
+          "bytes": 7787,
+          "purpose": "Maskable manifest icon, 512px"
+        },
+        {
+          "name": "icon-monochrome.svg",
+          "href": "/brand/web/icon-monochrome.svg",
+          "bytes": 533,
+          "purpose": "Monochrome manifest icon for themed launchers"
+        },
+        {
+          "name": "icon-monochrome-512.png",
+          "href": "/brand/web/icon-monochrome-512.png",
+          "bytes": 7468,
+          "purpose": "Monochrome manifest icon, 512px"
+        },
+        {
+          "name": "manifest.webmanifest",
+          "href": "/brand/web/manifest.webmanifest",
+          "bytes": 1688,
+          "purpose": "Web app manifest"
+        }
+      ]
+    },
+    {
+      "title": "Apple platforms",
+      "files": [
+        {
+          "name": "AppIcon.appiconset/icon-1024.png",
+          "href": "/brand/apple/AppIcon.appiconset/icon-1024.png",
+          "bytes": 24116,
+          "purpose": "Flat app icon for Xcode 16 and earlier"
+        },
+        {
+          "name": "AppIcon.appiconset/Contents.json",
+          "href": "/brand/apple/AppIcon.appiconset/Contents.json",
+          "bytes": 336,
+          "purpose": "Xcode asset catalog for the flat icon"
+        },
+        {
+          "name": "WillieCubed.icon/icon.json",
+          "href": "/brand/apple/WillieCubed.icon/icon.json",
+          "bytes": 1168,
+          "purpose": "Icon Composer document with Liquid Glass layers (Xcode 26)"
+        },
+        {
+          "name": "liquid-glass/williecubed-ios-default.png",
+          "href": "/brand/apple/liquid-glass/williecubed-ios-default.png",
+          "bytes": 688541,
+          "purpose": "iOS and iPadOS default appearance, rendered by actool"
+        },
+        {
+          "name": "liquid-glass/williecubed-ios-dark.png",
+          "href": "/brand/apple/liquid-glass/williecubed-ios-dark.png",
+          "bytes": 669717,
+          "purpose": "iOS and iPadOS dark appearance, rendered by actool"
+        },
+        {
+          "name": "liquid-glass/williecubed-ios-tinted.png",
+          "href": "/brand/apple/liquid-glass/williecubed-ios-tinted.png",
+          "bytes": 203828,
+          "purpose": "iOS and iPadOS tinted appearance, rendered by actool"
+        },
+        {
+          "name": "liquid-glass/williecubed-macos-default.png",
+          "href": "/brand/apple/liquid-glass/williecubed-macos-default.png",
+          "bytes": 902554,
+          "purpose": "macOS default appearance, rendered by actool"
+        },
+        {
+          "name": "macos/WillieCubed.icns",
+          "href": "/brand/apple/macos/WillieCubed.icns",
+          "bytes": 1343055,
+          "purpose": "macOS app icon with Liquid Glass (ICNS, 16 to 1024px)"
+        }
+      ]
+    },
+    {
+      "title": "Android",
+      "files": [
+        {
+          "name": "drawable/ic_launcher_background.xml",
+          "href": "/brand/android/res/drawable/ic_launcher_background.xml",
+          "bytes": 307,
+          "purpose": "Adaptive icon background layer"
+        },
+        {
+          "name": "drawable/ic_launcher_foreground.xml",
+          "href": "/brand/android/res/drawable/ic_launcher_foreground.xml",
+          "bytes": 808,
+          "purpose": "Adaptive icon foreground layer"
+        },
+        {
+          "name": "drawable/ic_launcher_monochrome.xml",
+          "href": "/brand/android/res/drawable/ic_launcher_monochrome.xml",
+          "bytes": 808,
+          "purpose": "Themed icon layer (Android 13 and later)"
+        },
+        {
+          "name": "mipmap-anydpi-v26/ic_launcher.xml",
+          "href": "/brand/android/res/mipmap-anydpi-v26/ic_launcher.xml",
+          "bytes": 341,
+          "purpose": "Adaptive icon definition (API 26 and later)"
+        },
+        {
+          "name": "mipmap-mdpi/ic_launcher.png",
+          "href": "/brand/android/res/mipmap-mdpi/ic_launcher.png",
+          "bytes": 1270,
+          "purpose": "Legacy launcher icon, mdpi (48px)"
+        },
+        {
+          "name": "mipmap-hdpi/ic_launcher.png",
+          "href": "/brand/android/res/mipmap-hdpi/ic_launcher.png",
+          "bytes": 1863,
+          "purpose": "Legacy launcher icon, hdpi (72px)"
+        },
+        {
+          "name": "mipmap-xhdpi/ic_launcher.png",
+          "href": "/brand/android/res/mipmap-xhdpi/ic_launcher.png",
+          "bytes": 2366,
+          "purpose": "Legacy launcher icon, xhdpi (96px)"
+        },
+        {
+          "name": "mipmap-xxhdpi/ic_launcher.png",
+          "href": "/brand/android/res/mipmap-xxhdpi/ic_launcher.png",
+          "bytes": 3642,
+          "purpose": "Legacy launcher icon, xxhdpi (144px)"
+        },
+        {
+          "name": "mipmap-xxxhdpi/ic_launcher.png",
+          "href": "/brand/android/res/mipmap-xxxhdpi/ic_launcher.png",
+          "bytes": 4958,
+          "purpose": "Legacy launcher icon, xxxhdpi (192px)"
+        },
+        {
+          "name": "play-store-512.png",
+          "href": "/brand/android/play-store-512.png",
+          "bytes": 8970,
+          "purpose": "Google Play store listing icon (512px, full bleed)"
+        }
+      ]
+    },
+    {
+      "title": "Social",
+      "files": [
+        {
+          "name": "og-image.png",
+          "href": "/brand/social/og-image.png",
+          "bytes": 35616,
+          "purpose": "Link preview image for Open Graph and X (1200×630)"
+        },
+        {
+          "name": "og-image.svg",
+          "href": "/brand/social/og-image.svg",
+          "bytes": 38361,
+          "purpose": "Link preview image, vector source"
+        },
+        {
+          "name": "avatar-400.png",
+          "href": "/brand/social/avatar-400.png",
+          "bytes": 6892,
+          "purpose": "Profile picture, safe for circular crops (400px)"
+        },
+        {
+          "name": "avatar-1024.png",
+          "href": "/brand/social/avatar-1024.png",
+          "bytes": 24244,
+          "purpose": "Profile picture, safe for circular crops (1024px)"
+        }
+      ]
+    }
+  ]
+}

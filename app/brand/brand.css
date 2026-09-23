@@ -1,0 +1,320 @@
+/* The /brand download page. It follows the site's scheme, light or dark,
+   except inside the asset previews: those show each asset on the background
+   it was drawn for, so they keep the kit's own paper and ink, which the page
+   sets as --brand-paper and --brand-ink. The light one is lifted off the
+   paper so a preview still reads as a card on a paper-colored page. */
+.brand-page {
+  --brand-on-light: color-mix(in srgb, var(--brand-paper) 35%, white);
+  --brand-on-dark: var(--brand-ink);
+  /* Every lockup preview shows its label at this cap height. */
+  --lockup-cap: 24px;
+  display: grid;
+  gap: 72px;
+  padding-top: 32px;
+}
+@media (min-width: 600px) {
+  .brand-page {
+    --lockup-cap: 30px;
+  }
+}
+@media (max-width: 599px) {
+  .brand-page {
+    gap: 56px;
+  }
+}
+
+.brand-page h2 {
+  margin: 0 0 20px;
+  color: var(--color-ink);
+  font-size: var(--text-title-large);
+  line-height: var(--text-title-large--line-height);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.brand-page h3 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.brand-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 28px;
+}
+.brand-intro img {
+  flex: none;
+}
+.brand-intro div {
+  flex: 1 1 320px;
+}
+.brand-intro h1 {
+  text-wrap: balance;
+}
+.brand-intro p {
+  max-width: 60ch;
+  margin: 12px 0 0;
+  color: var(--color-muted);
+  font-size: 17px;
+  text-wrap: pretty;
+}
+
+.brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+/* A lockup needs a whole row until two fit at the preview's cap height. */
+.brand-grid-wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 1200px) {
+  .brand-grid-wide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.brand-asset {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-tray);
+}
+.brand-preview {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  padding: 28px;
+  background: var(--brand-on-light);
+}
+.brand-asset[data-dark] .brand-preview {
+  background: var(--brand-on-dark);
+}
+/* Sized by height, so a wide lockup keeps its cap height and scrolls in
+   its own card on a phone rather than shrinking to a sliver. */
+.brand-asset-wide .brand-preview {
+  display: flex;
+  align-items: center;
+  justify-content: safe center;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.brand-asset-wide .brand-preview img {
+  flex: none;
+  width: auto;
+  max-width: none;
+  height: calc(var(--lockup-cap) * var(--lockup-ratio));
+}
+.brand-app-icon {
+  mask-image: var(--ios-mask);
+  mask-size: 100% 100%;
+}
+
+.brand-asset figcaption {
+  padding: 14px 16px 16px;
+}
+.brand-asset figcaption p {
+  margin: 4px 0 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.brand-page .brand-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+}
+.brand-downloads a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+.brand-downloads a:hover {
+  background: var(--color-ink);
+  color: var(--color-ground);
+  translate: 0 -1px;
+}
+.brand-size {
+  color: var(--color-muted);
+  font: 400 11px/1 var(--font-mono);
+}
+.brand-downloads a:hover .brand-size {
+  color: inherit;
+  opacity: 0.7;
+}
+.brand-intro .brand-downloads a {
+  padding: 10px 14px;
+  background: var(--color-accent);
+  color: var(--color-on-primary);
+  font-size: 15px;
+}
+.brand-intro .brand-downloads .brand-size {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.brand-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.brand-swatch {
+  overflow: hidden;
+  padding-bottom: 14px;
+  border-radius: 14px;
+  background: var(--color-tray);
+}
+.brand-swatch h3,
+.brand-swatch p,
+.brand-swatch dl {
+  margin-inline: 16px;
+}
+.brand-page .brand-swatch h3 {
+  margin-block: 12px 0;
+}
+.brand-swatch p {
+  margin-block: 2px 10px;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+.brand-swatch dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin-block: 0;
+  color: var(--color-ink);
+  font-size: 12px;
+}
+.brand-swatch dt {
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+}
+.brand-swatch code,
+.brand-files code {
+  font-family: var(--font-mono);
+}
+/* The line keeps Paper and Tray visible against a tray of the same color. */
+.brand-chip {
+  display: block;
+  height: 88px;
+  box-shadow: inset 0 -1px 0 var(--color-line);
+}
+
+.brand-specimens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+.brand-specimen {
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--color-tray);
+}
+.brand-specimen p {
+  margin: 6px 0 0;
+  color: var(--color-muted);
+}
+.brand-specimen p.brand-specimen-sample {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.brand-specimen p.brand-specimen-mono {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.brand-file-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 32px 40px;
+}
+.brand-page .brand-file-groups h3 {
+  margin-bottom: 8px;
+}
+.brand-files {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.brand-files li {
+  padding-block: 8px;
+  border-top: 1px solid var(--color-line);
+}
+.brand-files a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-ink);
+}
+.brand-files a:hover code {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.brand-files code {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.brand-purpose {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.brand-usage {
+  max-width: 64ch;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--color-muted);
+  list-style: disc;
+}
+.brand-usage li + li {
+  margin-top: 6px;
+}
+
+.brand-page a {
+  outline: 2px solid transparent;
+  outline-offset: 10px;
+  transition:
+    outline-offset 280ms var(--ease-site),
+    outline-color 200ms var(--ease-site);
+}
+.brand-page a:focus-visible {
+  outline-color: var(--color-ink);
+  outline-offset: 3px;
+}
+.brand-page .brand-downloads a {
+  transition:
+    background-color 200ms var(--ease-site),
+    color 200ms var(--ease-site),
+    translate 200ms var(--ease-site),
+    outline-offset 280ms var(--ease-site),
+    outline-color 200ms var(--ease-site);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-downloads a:hover {
+    translate: none;
+  }
+}

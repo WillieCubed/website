@@ -2,6 +2,7 @@ import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { MICROPUB_MEDIA_ENDPOINT } from '@/lib/indieweb/constants';
+import { getMediaStore } from '@/lib/indieweb/media';
 import type {
   GitHubContentsCommitResponse,
   MicropubCommitOptions,
@@ -54,9 +55,13 @@ export function getMicropubSyndicationTargets(): MicropubSyndicationTarget[] {
   return MICROPUB_SYNDICATION_TARGETS.map((target) => ({ ...target }));
 }
 
-export function getMicropubConfig(): MicropubConfigResponse {
+export function getMicropubConfig(
+  mediaAvailable = Boolean(getMediaStore())
+): MicropubConfigResponse {
   return {
-    'media-endpoint': absoluteRoute`${MICROPUB_MEDIA_ENDPOINT}`,
+    ...(mediaAvailable
+      ? { 'media-endpoint': absoluteRoute`${MICROPUB_MEDIA_ENDPOINT}` }
+      : {}),
     'syndicate-to': getMicropubSyndicationTargets(),
     'post-types': [
       { type: 'note', name: 'Note' },

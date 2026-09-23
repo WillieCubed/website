@@ -1,3 +1,4 @@
+import { POST as postMicropub } from '@/app/micropub/route';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -22,13 +23,38 @@ const baseEntry: MicropubCreateRequest = {
 };
 
 test('getMicropubConfig advertises supported personal-site post types', () => {
-  const config = getMicropubConfig();
+  const config = getMicropubConfig(true);
 
   assert.equal(config['media-endpoint'], `${site.origin}/micropub/media`);
   assert.deepEqual(
     config['post-types'].map((postType) => postType.type),
     ['note', 'photo', 'article', 'reply', 'like', 'repost', 'bookmark', 'rsvp']
   );
+});
+
+test('getMicropubConfig omits unavailable media uploads', () => {
+  const config = getMicropubConfig(false);
+
+  assert.equal(config['media-endpoint'], undefined);
+  assert.ok(config['post-types'].some((postType) => postType.type === 'photo'));
+});
+
+test('POST /micropub rejects a bearer token sent in both places', async () => {
+  const body = new URLSearchParams({
+    h: 'entry',
+    content: 'This must not be published.',
+    access_token: 'duplicate-token',
+  });
+  const response = await postMicropub(
+    new Request(`${site.origin}/micropub`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer duplicate-token' },
+      body,
+    })
+  );
+
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error, 'invalid_request');
 });
 
 test('parseMicropubCreateRequest accepts form-encoded replies', async () => {

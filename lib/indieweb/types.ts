@@ -499,7 +499,7 @@ export interface GitHubContentsCommitResponse {
 }
 
 export interface MicropubConfigResponse {
-  'media-endpoint': string;
+  'media-endpoint'?: string;
   'syndicate-to': MicropubSyndicationTarget[];
   'post-types': MicropubPostTypeConfig[];
 }

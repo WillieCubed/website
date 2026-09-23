@@ -197,8 +197,9 @@ the copy's permalink.
 
 ### Photos
 
-`?q=config` advertises `/micropub/media` as the `media-endpoint`, so a client
-such as Quill uploads each photo there first. The upload is the multipart
+`?q=config` advertises `/micropub/media` as the `media-endpoint` only when
+`BLOB_READ_WRITE_TOKEN` configures storage. A client such as Quill uploads
+each photo there first. The upload is the multipart
 `file` part, and the token needs the `media` or the `create` scope. JPEG, PNG,
 GIF, WebP, AVIF, and HEIC are accepted; SVG and anything else get a 400. The
 file is stored as a public blob in Vercel Blob under

@@ -59,6 +59,14 @@ origin at build time. Confirm the returned `Location`, branch commit, deployed
 permalink, and feed entry. Keep GitHub credentials out of the repository and
 do not give a public test deployment a broad personal token.
 
+Micropub Rocks requires an email sign-in before its server cases. Try its
+IndieAuth flow first. If its client does not send a PKCE verifier, register a
+short-lived `create` token manually against the isolated endpoint and record
+that authorization failure separately from the Micropub case results. Run
+write cases only where the endpoint has an isolated publishing path. Revoke
+the test token after the run. The [verification record](verification-2026-09-23.md)
+shows the responses from both paths.
+
 Record the deployment revision, date, test URL, response, and any case that
 could not run. The [2026-09-23 record](verification-2026-09-23.md) shows the
 format.

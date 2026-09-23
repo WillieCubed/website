@@ -1,3 +1,5 @@
 .next
 public/pagefind/
 public/search-index.json
+test-results/
+playwright-report/

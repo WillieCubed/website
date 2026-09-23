@@ -12,6 +12,8 @@ const eslintConfig = [
       'out/**',
       'build/**',
       'public/pagefind/**',
+      'test-results/**',
+      'playwright-report/**',
       'next-env.d.ts',
     ],
   },

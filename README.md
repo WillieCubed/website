@@ -47,6 +47,7 @@ Both commands regenerate the search index first.
 | `pnpm build`            | Generates the search index, builds for production, and runs the postbuild scripts    |
 | `pnpm start`            | Serves the production build                                                          |
 | `pnpm test`             | Runs the unit tests in `tests/unit` with Node's test runner                          |
+| `pnpm test:e2e`         | Runs the Playwright smoke and axe tests in `tests/e2e` against the production build  |
 | `pnpm lint`             | Runs ESLint                                                                          |
 | `pnpm typecheck`        | Generates route types and runs `tsc`                                                 |
 | `pnpm check`            | Runs test, lint, typecheck, and build in order; run it before opening a pull request |

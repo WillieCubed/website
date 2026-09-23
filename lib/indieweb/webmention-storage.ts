@@ -14,6 +14,7 @@ import type {
   WebmentionActivity,
   WebmentionGroup,
   WebmentionModerationStore,
+  WebmentionRateLimitStore,
   WebmentionRow,
   WebmentionTargetRequest,
   WebmentionType,
@@ -55,6 +56,28 @@ export async function initializeWebmentionsTable() {
   await sql`
     CREATE INDEX IF NOT EXISTS idx_webmentions_verified
     ON webmentions(is_verified, is_approved)
+  `;
+
+  await initializeWebmentionRateLimitTable();
+}
+
+/**
+ * Initialize the table that counts requests to the receiving endpoint. Also
+ * in `lib/db/migrations/002_webmention_rate_limits.sql` for databases that
+ * already have the webmentions table.
+ */
+export async function initializeWebmentionRateLimitTable() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS webmention_rate_limits (
+      key TEXT PRIMARY KEY,
+      window_start TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      hits INTEGER NOT NULL DEFAULT 1
+    )
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_webmention_rate_limits_window
+    ON webmention_rate_limits(window_start)
   `;
 }
 
@@ -351,6 +374,43 @@ export const webmentionModerationStore: WebmentionModerationStore = {
   listPending: getPendingWebmentions,
   approve: approveWebmention,
   reject: rejectWebmention,
+};
+
+/**
+ * The Postgres-backed store the receiving endpoint's rate limit counts in.
+ * `hit` is one upsert, so concurrent requests on different instances each
+ * see their own increment: the row lock serializes them, and a window that
+ * has ended restarts at 1.
+ */
+export const webmentionRateLimitStore: WebmentionRateLimitStore = {
+  async hit(key, windowMs) {
+    const result = await sql`
+      INSERT INTO webmention_rate_limits (key, window_start, hits)
+      VALUES (${key}, NOW(), 1)
+      ON CONFLICT (key) DO UPDATE SET
+        hits = CASE
+          WHEN webmention_rate_limits.window_start
+            <= NOW() - ${windowMs}::integer * INTERVAL '1 millisecond'
+          THEN 1
+          ELSE webmention_rate_limits.hits + 1
+        END,
+        window_start = CASE
+          WHEN webmention_rate_limits.window_start
+            <= NOW() - ${windowMs}::integer * INTERVAL '1 millisecond'
+          THEN NOW()
+          ELSE webmention_rate_limits.window_start
+        END
+      RETURNING hits
+    `;
+    return Number(result.rows[0].hits);
+  },
+  async prune(windowMs) {
+    await sql`
+      DELETE FROM webmention_rate_limits
+      WHERE window_start
+        <= NOW() - ${windowMs}::integer * INTERVAL '1 millisecond'
+    `;
+  },
 };
 
 /**

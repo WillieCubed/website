@@ -165,6 +165,17 @@ export interface WebmentionModerationStore {
   reject: (id: string) => Promise<boolean>;
 }
 
+/**
+ * The storage calls the receiving endpoint's rate limit needs. `hit` records
+ * one request for `key` and resolves to the number of requests that key has
+ * made in its current window, this one included. `prune` drops keys whose
+ * window has ended.
+ */
+export interface WebmentionRateLimitStore {
+  hit: (key: string, windowMs: number) => Promise<number>;
+  prune: (windowMs: number) => Promise<void>;
+}
+
 export interface WebmentionModerationRequest {
   action: WebmentionModerationAction;
   id: string;

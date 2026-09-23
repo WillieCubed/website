@@ -10,8 +10,8 @@ import { getInitiatives } from '@/lib/initiatives';
 import { site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
-// Absolute because the writings segment's @modal slot renders this page's
-// metadata without the root title template.
+// Absolute so the title never depends on which segment renders the page;
+// it spells out the same string the root title template would.
 export const metadata: Metadata = {
   title: { absolute: `Not found · ${site.name}` },
   robots: { index: false },

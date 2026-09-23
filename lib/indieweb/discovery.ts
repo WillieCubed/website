@@ -12,14 +12,28 @@ import type { HostMetaResponse, WebFingerResponse } from '@/lib/indieweb/types';
 import { absoluteSiteUrl } from '@/lib/indieweb/utils';
 import { MCP_ENDPOINT } from '@/lib/mcp/constants';
 
+/**
+ * The resources WebFinger answers for: the author's acct: URI and the home
+ * page. The home page also resolves without its trailing slash, the form
+ * the response lists as an alias.
+ */
+const WEBFINGER_RESOURCES = new Set([
+  `acct:${SITE_AUTHOR_HANDLE}@${new URL(SITE_URL).hostname}`,
+  new URL(SITE_URL).href,
+  SITE_URL,
+]);
+
+/**
+ * The JRD for a resource this site describes, or null for any other
+ * resource, which RFC 7033 answers with a 404.
+ */
 export function buildWebFingerResponse(
-  resource: string | null
-): WebFingerResponse {
-  const subject =
-    resource || `acct:${SITE_AUTHOR_HANDLE}@${new URL(SITE_URL).hostname}`;
+  resource: string
+): WebFingerResponse | null {
+  if (!WEBFINGER_RESOURCES.has(resource)) return null;
 
   return {
-    subject,
+    subject: resource,
     aliases: [SITE_URL],
     links: [
       {

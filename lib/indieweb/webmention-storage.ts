@@ -12,6 +12,7 @@ import type {
   UpdateVerifiedWebmentionData,
   Webmention,
   WebmentionActivity,
+  WebmentionAuthorBackfillStore,
   WebmentionGroup,
   WebmentionModerationStore,
   WebmentionRateLimitStore,
@@ -382,6 +383,37 @@ export const webmentionModerationStore: WebmentionModerationStore = {
   listPending: getPendingWebmentions,
   approve: approveWebmention,
   reject: rejectWebmention,
+};
+
+/**
+ * The Postgres-backed store `pnpm webmentions:backfill-authors` acts through.
+ * It lists verified mentions with no author photo whose stored entry has
+ * properties, and sets a photo only on a row that still has none.
+ */
+export const webmentionAuthorBackfillStore: WebmentionAuthorBackfillStore = {
+  async listMissingPhotos() {
+    const result = await sql`
+      SELECT id, raw_mf2_json
+      FROM webmentions
+      WHERE is_verified = TRUE
+        AND author_photo IS NULL
+        AND jsonb_typeof(raw_mf2_json -> 'properties') = 'object'
+      ORDER BY received_at
+    `;
+    return result.rows.map((row) => ({
+      id: row.id,
+      rawMf2: row.raw_mf2_json,
+    }));
+  },
+  async setPhoto(id, photo) {
+    const result = await sql`
+      UPDATE webmentions
+      SET author_photo = ${photo}
+      WHERE id = ${id}
+        AND author_photo IS NULL
+    `;
+    return (result.rowCount ?? 0) > 0;
+  },
 };
 
 /**

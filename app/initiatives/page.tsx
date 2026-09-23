@@ -1,11 +1,12 @@
 import Image from 'next/image';
 
+import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
 import TopBar from '@/components/site/TopBar';
 
 import { currentPart, getInitiatives } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
-import { pageMetadata } from '@/lib/site';
+import { absoluteUrl, pageMetadata } from '@/lib/site';
 
 export const metadata = pageMetadata({
   title: 'Initiatives',
@@ -21,8 +22,12 @@ export default async function InitiativesPage() {
   return (
     <>
       <TopBar crumbs={[{ label: 'Initiatives', href: '/initiatives' }]} />
-      <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
-        <h1 className="text-display-small text-ink">Initiatives</h1>
+      <main id="main" className="h-feed mx-auto max-w-[1200px] px-5 pb-20">
+        {/* h-feed: u-url so parsers know which page this feed is, and
+            p-author so they know whose it is */}
+        <a href={absoluteUrl('/initiatives')} className="u-url hidden" />
+        <FeedAuthor />
+        <h1 className="p-name text-display-small text-ink">Initiatives</h1>
         {initiatives.length === 0 && (
           <p className="mt-6 text-body-large text-muted">
             Nothing published yet.
@@ -34,7 +39,7 @@ export default async function InitiativesPage() {
             return (
               <li
                 key={item.slug}
-                className="initiative act-card relative overflow-hidden rounded-2xl"
+                className="initiative act-card h-entry relative overflow-hidden rounded-2xl"
                 style={schemeStyleFromHex(item.brand)}
               >
                 {item.cover && (
@@ -50,16 +55,16 @@ export default async function InitiativesPage() {
                   </div>
                 )}
                 <div className="p-5">
-                  <h2 className="mt-1 text-title-large text-ink">
+                  <h2 className="p-name mt-1 text-title-large text-ink">
                     <SiteLink
                       preview={false}
                       href={item.href}
-                      className="after:absolute after:inset-0 focus-visible:outline-none"
+                      className="u-url after:absolute after:inset-0 focus-visible:outline-none"
                     >
                       {item.title}
                     </SiteLink>
                   </h2>
-                  <p className="mt-2 text-body-medium text-muted">
+                  <p className="p-summary mt-2 text-body-medium text-muted">
                     {item.tagline}
                   </p>
                   {act && (

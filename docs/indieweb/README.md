@@ -52,9 +52,14 @@ photo and email are `<data class="u-photo">` and `<data class="u-email">`,
 because on the homepage the contact links belong to the footer, which grows
 out of the rail's foot. The `rel="me"` links are the footer's profile links,
 on every page.
-`/writings` is an `h-feed` with its own `p-name` and `u-url`. Notes omit the visible headline; the loader derives
-`title` from the first sentence so feeds and the index still have text, and
-`WritingHeader` renders that derived title inside an `sr-only` heading.
+`/writings` and `/initiatives` are each an `h-feed` with its own `p-name`,
+`u-url`, and a hidden `p-author h-card` (`components/indieweb/FeedAuthor.tsx`)
+that links to the homepage, so the entries listed in them inherit an author
+without a byline. Each initiative on `/initiatives` is an `h-entry` with
+`p-name`, `u-url`, and `p-summary`. Notes omit the visible headline; the
+loader derives `title` from the first sentence so feeds and the index still
+have text, and `WritingHeader` renders that derived title inside an
+`sr-only` heading.
 
 Post kinds map to these properties in `WritingHeader.tsx` and
 `ReplyTarget.tsx`, and person tags in `WritingContent.tsx`.

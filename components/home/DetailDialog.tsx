@@ -36,7 +36,7 @@ const morph = (update: () => void): Promise<void> => {
 // card, a tile, or a list row's front preview card.
 function sourceFor(id: string, from: HTMLElement | null): Source | null {
   if (from?.classList.contains('product')) {
-    return { card: from, media: from.querySelector('.p-media') };
+    return { card: from, media: from.querySelector('.product-media') };
   }
   const row = from?.closest<HTMLElement>('.index a');
   if (row)

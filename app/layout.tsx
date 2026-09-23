@@ -110,7 +110,6 @@ export default async function RootLayout({
         />
         <link rel="token_endpoint" href={INDIEAUTH_TOKEN_ENDPOINT} />
         <link rel="hub" href={WEBSUB_HUB} />
-        <link rel="self" href={site.origin} />
         <link
           rel="alternate"
           type="application/rss+xml"

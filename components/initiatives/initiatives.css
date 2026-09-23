@@ -95,6 +95,18 @@
   fill: var(--accent-live);
 }
 
+/* The link to an initiative's own website, filled in its brand primary. */
+.initiative-site {
+  background: var(--accent-live);
+  color: var(--b-on-primary, var(--color-on-primary));
+  transition: box-shadow 260ms var(--ease-site);
+}
+.initiative-site:hover,
+.initiative-site:focus-visible {
+  box-shadow: 0 10px 24px -14px
+    color-mix(in srgb, var(--accent-live) 70%, transparent);
+}
+
 .initiative-prose :is(h2, h3) {
   color: var(--color-ink);
 }

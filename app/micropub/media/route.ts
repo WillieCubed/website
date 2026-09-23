@@ -1,4 +1,4 @@
-import { INDIEAUTH_TOKEN_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
+import { SITE_URL } from '@/lib/indieweb/constants';
 import { getBearerToken, verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
 import {
   MediaUploadError,
@@ -33,7 +33,6 @@ export async function POST(request: Request) {
   // the create scope they already hold for the post itself.
   const tokenIsValid = await verifyIndieAuthToken({
     bearer,
-    endpoint: process.env.INDIEAUTH_TOKEN_ENDPOINT ?? INDIEAUTH_TOKEN_ENDPOINT,
     expectedMe: SITE_URL,
     requiredScope: ['media', 'create'],
   }).catch(() => false);

@@ -1,37 +1,29 @@
-import { INDIEAUTH_TOKEN_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
-import type {
-  IndieAuthTokenResponse,
-  IndieAuthVerificationOptions,
-} from '@/lib/indieweb/types';
+import { SITE_URL } from '@/lib/indieweb/constants';
+import { findActiveToken } from '@/lib/indieweb/indieauth-server';
+import { indieAuthStore } from '@/lib/indieweb/indieauth-storage';
+import type { IndieAuthVerificationOptions } from '@/lib/indieweb/types';
 import { sameOrigin } from '@/lib/indieweb/utils';
 
+/**
+ * Check a bearer token that this site's own token endpoint issued. The
+ * lookup is local: the token's digest is found in the database, so Micropub
+ * never calls out to verify a request.
+ */
 export async function verifyIndieAuthToken({
   bearer,
-  endpoint = INDIEAUTH_TOKEN_ENDPOINT,
   expectedMe = SITE_URL,
   requiredScope,
+  store = indieAuthStore,
+  now = new Date(),
 }: IndieAuthVerificationOptions): Promise<boolean> {
-  const response = await fetch(endpoint, {
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${bearer}`,
-    },
-  });
-
-  if (!response.ok) return false;
-
-  const data = (await response
-    .json()
-    .catch(() => null)) as IndieAuthTokenResponse | null;
-
-  if (!data?.me || !sameOrigin(data.me, expectedMe)) return false;
+  const record = await findActiveToken(store, bearer, now);
+  if (!record || !sameOrigin(record.me, expectedMe)) return false;
   if (!requiredScope) return true;
 
-  const granted = (data.scope ?? '').split(/\s+/);
   const accepted = Array.isArray(requiredScope)
     ? requiredScope
     : [requiredScope];
-  return accepted.some((scope) => granted.includes(scope));
+  return accepted.some((scope) => record.scope.includes(scope));
 }
 
 /** The bearer token from an `Authorization` header, or null when absent. */

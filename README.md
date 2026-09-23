@@ -68,8 +68,10 @@ empty. `.env.example` describes each one. They cover:
   feeds, and Postgres-backed search.
 - **Webmentions:** the secrets for sending and moderating webmentions, and the
   switches for the postbuild pings.
-- **Micropub:** the IndieAuth token endpoint, where new posts are committed,
-  and the Vercel Blob token that stores uploaded photos.
+- **IndieAuth:** the owner's sign-in code secret and the introspection
+  secret for the site's own IndieAuth server.
+- **Micropub:** where new posts are committed, and the Vercel Blob token that
+  stores uploaded photos.
 - **Search:** the search backend and the reindex secret.
 - **Analytics:** the Google Analytics measurement ID.
 
@@ -91,9 +93,9 @@ Feeds, IndieWeb, and protocol routes:
 - RSS, Atom, and JSON feeds at `/feed.xml`, `/writings/feed.xml`, and
   `/activity/feed.xml`, with `/feed/atom`, `/feed/json`, and the matching
   paths under `/writings` and `/activity`.
-- `/webmention`, `/webmentions`, `/micropub`, `/micropub/media`, and
-  `/oembed`, plus WebFinger,
-  host-meta, and the AT Protocol DID under `/.well-known`. See
+- `/webmention`, `/webmentions`, `/micropub`, `/micropub/media`, `/oembed`,
+  and the IndieAuth server under `/indieauth`, plus WebFinger, host-meta, the
+  IndieAuth metadata, and the AT Protocol DID under `/.well-known`. See
   [docs/indieweb/README.md](docs/indieweb/README.md).
 - `/coffee`, `/tea`, `/whoami`, `/.well-known/security.txt`,
   `/opensearch.xml`, `/llms.txt`, and the MCP server at `/api/mcp`. See

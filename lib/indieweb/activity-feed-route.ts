@@ -7,6 +7,7 @@ import type {
   ActivityFeedItem,
   ActivityFeedRouteConfig,
 } from '@/lib/indieweb/types';
+import { webSubLinkHeader } from '@/lib/indieweb/websub-discovery';
 
 export type ActivityFeedFormat = 'rss' | 'atom' | 'json';
 
@@ -33,6 +34,7 @@ export function createActivityFeedResponse({
     headers: {
       'Content-Type': CONTENT_TYPES[format],
       'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
+      ...(format === 'json' ? { Link: webSubLinkHeader(config.feedUrl) } : {}),
     },
   });
 }

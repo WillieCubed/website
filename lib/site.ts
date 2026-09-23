@@ -12,7 +12,9 @@ import { themeSchemes } from './theme';
 export const site = {
   name: 'Willie Chalmers III',
   shortName: 'WillieCubed',
-  origin: 'https://willie.page',
+  origin:
+    process.env.NEXT_PUBLIC_SITE_ORIGIN?.replace(/\/+$/, '') ||
+    'https://willie.page',
   description:
     'Willie Chalmers III builds software and systems for people. He runs Las Vegans for Better Transit, the design lab Hypertext Studio, and the Reasonable Tech Company.',
   shortDescription:

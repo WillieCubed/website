@@ -1,3 +1,4 @@
+import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
@@ -19,9 +20,8 @@ interface WritingHeaderProps {
  * An article opens with its title, a note opens with its date and goes
  * straight into the text. A post that answers another page carries that
  * page above it as the top of the thread. A photo post shows its photos
- * under the date, each a u-photo, before the caption. No byline names the author:
- * the top bar's way home is rel="author", and the homepage h-card is the
- * representative card, which is the authorship algorithm's own path.
+ * under the date, each a u-photo, before the caption. The hidden h-card gives
+ * parsers an explicit author without adding a repeated visible byline.
  */
 export default function WritingHeader({
   writing,
@@ -37,6 +37,7 @@ export default function WritingHeader({
     <header className="mx-auto max-w-breakpoint-md px-lg pb-md pt-8 desktop:px-0">
       {/* Permalink for parsers. u-uid marks it as the canonical identity. */}
       <a href={canonicalUrl} className="u-url u-uid hidden" />
+      <FeedAuthor />
       {updatedIso !== publishedIso && (
         <time className="dt-updated hidden" dateTime={updatedIso} />
       )}

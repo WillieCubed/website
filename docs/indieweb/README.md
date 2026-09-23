@@ -1,5 +1,10 @@
 # IndieWeb
 
+The [supported-behavior specification](spec.md) states what clients can rely
+on and how each behavior is checked. The [HTTP test runbook](testing.md)
+shows how to repeat the checks. This page records the routes, setup, and
+operating details.
+
 This page is for whoever changes an IndieWeb route, a feed, or a post kind on
 this site, Willie or an agent. It lists what the site exposes, which
 environment variables switch each part on, and where the site stands against
@@ -8,7 +13,8 @@ or remove a route, update the tables here and rerun `pnpm test`.
 
 The canonical origin, author name, photo, and social profiles all come from
 `lib/site.ts`. Protocol endpoints and the WebSub hub are named once in
-`lib/indieweb/constants.ts`. Do not write the hostname anywhere else.
+`lib/indieweb/constants.ts`. `NEXT_PUBLIC_SITE_ORIGIN` overrides the origin
+for an isolated deployment. Do not write the hostname anywhere else.
 
 ## Routes
 

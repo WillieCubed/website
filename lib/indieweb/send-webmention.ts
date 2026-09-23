@@ -242,14 +242,16 @@ export async function sendWebmention(
 }
 
 /**
- * Extract all external links from HTML content.
+ * Extract external links from rendered HTML or the Markdown source saved by Micropub.
  */
-export function extractExternalLinks(html: string): string[] {
+export function extractExternalLinks(content: string): string[] {
   const linkRegex = /href=["']([^"']+)["']/gi;
+  const markdownLinkRegex = /\]\((https:\/\/[^)\s]+)\)/g;
   const links: string[] = [];
-  let match;
-
-  while ((match = linkRegex.exec(html)) !== null) {
+  for (const match of [
+    ...content.matchAll(linkRegex),
+    ...content.matchAll(markdownLinkRegex),
+  ]) {
     const url = match[1];
     try {
       const parsed = new URL(url);

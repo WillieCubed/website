@@ -1,3 +1,5 @@
+import { type DefaultTreeAdapterMap, parse } from 'parse5';
+
 import { site } from '@/lib/site';
 
 const SITE_URL = site.origin;
@@ -13,7 +15,8 @@ interface SendResult {
 
 /**
  * Discover the webmention endpoint for a target URL.
- * Checks both HTTP Link header and HTML <link> element.
+ * Checks the HTTP Link header first, then the page's <link> and <a> elements.
+ * A relative endpoint resolves against the URL reached after any redirects.
  */
 export async function discoverWebmentionEndpoint(
   targetUrl: string
@@ -36,13 +39,8 @@ export async function discoverWebmentionEndpoint(
     }
 
     // Check Link header first
-    const linkHeader = response.headers.get('Link');
-    if (linkHeader) {
-      const endpoint = parseLinkHeader(linkHeader, 'webmention');
-      if (endpoint) {
-        return resolveUrl(endpoint, targetUrl);
-      }
-    }
+    const headEndpoint = endpointFromLinkHeader(response, targetUrl);
+    if (headEndpoint) return headEndpoint;
 
     // If no header, fetch the full page and check HTML
     const controller2 = new AbortController();
@@ -63,18 +61,33 @@ export async function discoverWebmentionEndpoint(
 
     if (!htmlResponse.ok) return null;
 
+    // A server that leaves Link off its HEAD response still sends it here.
+    const getEndpoint = endpointFromLinkHeader(htmlResponse, targetUrl);
+    if (getEndpoint) return getEndpoint;
+
     const html = await htmlResponse.text();
-    const endpoint = parseHtmlForWebmentionEndpoint(html);
-
-    if (endpoint) {
-      return resolveUrl(endpoint, targetUrl);
-    }
-
-    return null;
+    return parseHtmlForWebmentionEndpoint(html, htmlResponse.url || targetUrl);
   } catch (error) {
     console.error('Endpoint discovery failed:', error);
     return null;
   }
+}
+
+/**
+ * The webmention endpoint in a response's Link header, resolved against the
+ * URL the response came from after any redirects.
+ */
+function endpointFromLinkHeader(
+  response: Response,
+  targetUrl: string
+): string | null {
+  const linkHeader = response.headers.get('Link');
+  if (!linkHeader) return null;
+  const endpoint = parseLinkHeader(linkHeader, 'webmention');
+  // An empty URI reference is the page itself, so only null means none.
+  return endpoint === null
+    ? null
+    : resolveUrl(endpoint, response.url || targetUrl);
 }
 
 /**
@@ -108,28 +121,57 @@ export function parseLinkHeader(header: string, rel: string): string | null {
   return null;
 }
 
+type Element = DefaultTreeAdapterMap['element'];
+type ParentNode = DefaultTreeAdapterMap['parentNode'];
+
+/** Every element under `node`, in document order. */
+function* elements(node: ParentNode): Generator<Element> {
+  for (const child of node.childNodes) {
+    if (!('tagName' in child)) continue;
+    yield child;
+    yield* elements(child);
+  }
+}
+
+function attribute(element: Element, name: string): string | undefined {
+  return element.attrs.find((attr) => attr.name === name)?.value;
+}
+
 /**
- * Parse HTML for webmention endpoint.
+ * Find the first <link> or <a> with rel=webmention in document order. The page
+ * is parsed as HTML, so markup inside comments or escaped as text never counts,
+ * and an element with no href is skipped. The href resolves against the page's
+ * <base> or else `pageUrl`, so an empty href is the page itself.
+ *
+ * microformats-parser also reads rels, but it throws on a page whose body has
+ * no elements and matches rel values by case and single spaces, so this walks
+ * the parse5 tree it is built on.
  */
-function parseHtmlForWebmentionEndpoint(html: string): string | null {
-  // Look for <link rel="webmention" href="...">
-  const linkMatch = html.match(
-    /<link[^>]*rel=["']?webmention["']?[^>]*href=["']([^"']+)["']/i
-  );
-  if (linkMatch) return linkMatch[1];
+export function parseHtmlForWebmentionEndpoint(
+  html: string,
+  pageUrl: string
+): string | null {
+  const document = parse(html);
+  let base = pageUrl;
+  // Only the first <base> with an href sets the document's base URL.
+  for (const element of elements(document)) {
+    if (element.tagName !== 'base') continue;
+    const href = attribute(element, 'href');
+    if (href === undefined) continue;
+    if (URL.canParse(href, pageUrl)) base = new URL(href, pageUrl).href;
+    break;
+  }
 
-  // Also check reverse attribute order
-  const linkMatch2 = html.match(
-    /<link[^>]*href=["']([^"']+)["'][^>]*rel=["']?webmention["']?/i
-  );
-  if (linkMatch2) return linkMatch2[1];
-
-  // Check for <a rel="webmention" href="...">
-  const anchorMatch = html.match(
-    /<a[^>]*rel=["']?webmention["']?[^>]*href=["']([^"']+)["']/i
-  );
-  if (anchorMatch) return anchorMatch[1];
-
+  for (const element of elements(document)) {
+    if (element.tagName !== 'link' && element.tagName !== 'a') continue;
+    const href = attribute(element, 'href');
+    if (href === undefined) continue;
+    // Relation types compare case-insensitively and split on any whitespace.
+    const rels = attribute(element, 'rel')
+      ?.toLowerCase()
+      .split(/[\t\n\f\r ]+/);
+    if (rels?.includes('webmention')) return resolveUrl(href, base);
+  }
   return null;
 }
 

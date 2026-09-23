@@ -92,9 +92,5 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,mts}": "eslint --cache --fix",
     "*.{js,jsx,ts,tsx,mjs,mts,css,md}": "prettier --write"
-  },
-  "overrides": {
-    "@types/react": "19.2.16",
-    "@types/react-dom": "19.2.3"
   }
 }

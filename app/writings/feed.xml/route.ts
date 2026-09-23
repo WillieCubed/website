@@ -1,6 +1,7 @@
 import { cacheLife } from 'next/cache';
 import RSS from 'rss';
 
+import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import { site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
@@ -22,20 +23,7 @@ async function buildWritingsFeed() {
     pubDate: new Date(),
     copyright: `${new Date().getFullYear()} ${site.author.name}`,
     generator: 'Next.js + RSS',
-    custom_namespaces: {
-      atom: 'http://www.w3.org/2005/Atom',
-    },
-    custom_elements: [
-      {
-        'atom:link': {
-          _attr: {
-            href: `${SITE_URL}/writings/feed.xml`,
-            rel: 'self',
-            type: 'application/rss+xml',
-          },
-        },
-      },
-    ],
+    hub: WEBSUB_HUB,
   });
 
   for (const writing of writings) {

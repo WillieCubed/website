@@ -1,5 +1,6 @@
 import RSS from 'rss';
 
+import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import { site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
@@ -17,28 +18,7 @@ export async function GET() {
     pubDate: new Date(),
     copyright: `${new Date().getFullYear()} ${site.author.name}`,
     generator: 'Next.js + RSS',
-    custom_namespaces: {
-      atom: 'http://www.w3.org/2005/Atom',
-    },
-    custom_elements: [
-      {
-        'atom:link': {
-          _attr: {
-            href: `${SITE_URL}/feed.xml`,
-            rel: 'self',
-            type: 'application/rss+xml',
-          },
-        },
-      },
-      {
-        'atom:link': {
-          _attr: {
-            href: 'https://pubsubhubbub.appspot.com/',
-            rel: 'hub',
-          },
-        },
-      },
-    ],
+    hub: WEBSUB_HUB,
   });
 
   // Add writings

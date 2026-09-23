@@ -764,10 +764,8 @@ fs.copyFileSync(
   path.join(OUT, 'web/apple-touch-icon.png'),
   path.join(PUBLIC, 'apple-touch-icon.png')
 );
-fs.copyFileSync(
-  path.join(OUT, 'web/manifest.webmanifest'),
-  path.join(PUBLIC, 'manifest.webmanifest')
-);
+// The site serves its own manifest from app/manifest.ts, with colors from
+// lib/theme; web/manifest.webmanifest stays in the kit only.
 
 // Everything in one archive.
 for (const f of fs.readdirSync(OUT, { recursive: true }))

@@ -78,14 +78,31 @@ export async function discoverWebmentionEndpoint(
 }
 
 /**
- * Parse Link header for a specific rel type.
+ * One link-value from RFC 8288: a URI reference in angle brackets and its
+ * parameters, up to the comma that ends it. Commas inside the brackets or a
+ * quoted parameter value belong to the link, not the list. Tokens exclude `"`
+ * so a quoted value reads only one way; otherwise a header that fails to match
+ * backtracks exponentially.
  */
-function parseLinkHeader(header: string, rel: string): string | null {
-  const links = header.split(',');
-  for (const link of links) {
-    const match = link.match(/<([^>]+)>.*rel=["']?([^"'\s;]+)/i);
-    if (match && match[2].split(/\s+/).includes(rel)) {
-      return match[1];
+const LINK_VALUE =
+  /[\s,]*<([^>]*)>((?:\s*;\s*[^\s=;,"]+(?:\s*=\s*(?:"(?:[^"\\]|\\.)*"|[^\s;,"]*))?)*)\s*(?:,|$)/gy;
+const LINK_PARAM =
+  /;\s*([^\s=;,"]+)(?:\s*=\s*(?:"((?:[^"\\]|\\.)*)"|([^\s;,"]*)))?/g;
+
+/**
+ * Find the first link in a Link header whose rel list includes `rel`.
+ * Several Link headers arrive joined with commas, so they parse the same way.
+ */
+export function parseLinkHeader(header: string, rel: string): string | null {
+  const wanted = rel.toLowerCase();
+  // The sticky flag stops at the first malformed link rather than guessing.
+  for (const link of header.matchAll(LINK_VALUE)) {
+    for (const param of link[2].matchAll(LINK_PARAM)) {
+      if (param[1].toLowerCase() !== 'rel') continue;
+      // Only the first rel counts; relation types compare case-insensitively.
+      const value = param[2]?.replace(/\\(.)/g, '$1') ?? param[3] ?? '';
+      if (value.toLowerCase().split(/\s+/).includes(wanted)) return link[1];
+      break;
     }
   }
   return null;

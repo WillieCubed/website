@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 
 import { mdxComponents } from '@/components/mdx';
 
+import { remarkBrews } from '@/lib/writings/remark-brews';
 import { remarkMentions } from '@/lib/writings/remark-mentions';
 import { remarkSidenotes } from '@/lib/writings/remark-sidenotes';
 import { remarkSpotify } from '@/lib/writings/remark-spotify';
@@ -32,6 +33,7 @@ export default function WritingDetailsView({
               remarkSidenotes,
               remarkSpotify,
               remarkMentions,
+              remarkBrews,
             ],
             rehypePlugins: [
               rehypeSlug,

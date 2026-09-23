@@ -1,5 +1,6 @@
 import { AnchorHTMLAttributes, PropsWithChildren } from 'react';
 
+import BrewLink from '@/components/link/BrewLink';
 import SiteLink from '@/components/link/SiteLink';
 import { Ref } from '@/components/references/Ref';
 import { RefMark } from '@/components/references/RefMark';
@@ -117,4 +118,6 @@ export const mdxComponents = {
   RefMark,
   FootnoteRef: RefMark,
   Ref,
+  // "coffee" and "tea" in prose, from remarkBrews.
+  BrewLink,
 };

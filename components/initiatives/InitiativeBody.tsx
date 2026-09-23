@@ -4,6 +4,8 @@ import remarkGfm from 'remark-gfm';
 
 import { mdxComponents } from '@/components/mdx';
 
+import { remarkBrews } from '@/lib/writings/remark-brews';
+
 import Gallery from './Gallery';
 import RouteMap from './RouteMap';
 import Scene from './Scene';
@@ -24,7 +26,7 @@ export default function InitiativeBody({ source }: { source: string }) {
         components={components}
         options={{
           mdxOptions: {
-            remarkPlugins: [remarkGfm],
+            remarkPlugins: [remarkGfm, remarkBrews],
             rehypePlugins: [rehypeSlug],
           },
         }}

@@ -9,6 +9,7 @@ import {
   personLd,
   profilePageLd,
   serializeJsonLd,
+  webPageLd,
   websiteLd,
 } from '@/lib/seo/jsonld';
 import { site } from '@/lib/site';
@@ -23,7 +24,7 @@ test('websiteLd names the site and its short name', () => {
   assert.equal(node['@type'], 'WebSite');
   assert.equal(node.name, site.name);
   assert.equal(node.alternateName, 'WillieCubed');
-  assert.equal(node.url, `${site.origin}/`);
+  assert.equal(node.url, site.origin);
   assertPlain(node);
 });
 
@@ -115,6 +116,50 @@ test('breadcrumbLd numbers the trail and makes the links absolute', () => {
       item: `${site.origin}/initiatives/fall-tour-2026`,
     },
   ]);
+});
+
+test('webPageLd lists an index and links the website and the person', () => {
+  const page = webPageLd({
+    type: 'CollectionPage',
+    name: 'Initiatives',
+    description: 'What Willie is running.',
+    path: '/initiatives',
+    image: '/initiatives/opengraph-image',
+    items: [{ name: 'Fall Tour', path: '/initiatives/fall-tour-2026' }],
+  });
+  assert.equal(page['@type'], 'CollectionPage');
+  assert.equal(page.url, `${site.origin}/initiatives`);
+  assert.deepEqual(page.isPartOf, { '@id': websiteLd()['@id'] });
+  assert.deepEqual(page.author, { '@id': personLd()['@id'] });
+  assert.deepEqual(page.primaryImageOfPage, {
+    '@type': 'ImageObject',
+    url: `${site.origin}/initiatives/opengraph-image`,
+  });
+  assert.deepEqual(page.mainEntity, {
+    '@type': 'ItemList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Fall Tour',
+        url: `${site.origin}/initiatives/fall-tour-2026`,
+      },
+    ],
+  });
+  assertPlain(page);
+});
+
+test('webPageLd omits what it does not have', () => {
+  const page = webPageLd({
+    name: 'Fall Tour',
+    description: 'A tour.',
+    path: '/initiatives/fall-tour-2026',
+    items: [],
+  });
+  assert.equal(page['@type'], 'WebPage');
+  assert.ok(!('primaryImageOfPage' in page));
+  assert.ok(!('mainEntity' in page));
+  assertPlain(page);
 });
 
 test('serializeJsonLd cannot close its own script tag', () => {

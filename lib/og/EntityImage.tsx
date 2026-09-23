@@ -101,7 +101,6 @@ export default function EntityImage({
               fontSize: titleSize,
               fontWeight: 700,
               lineHeight: 1.05,
-              letterSpacing: -2,
               maxWidth: cover ? 620 : 1000,
             }}
           >

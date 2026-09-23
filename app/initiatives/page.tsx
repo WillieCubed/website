@@ -2,18 +2,24 @@ import Image from 'next/image';
 
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
+import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 
 import { currentPart, getInitiatives } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
+import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
 import { absoluteUrl, pageMetadata } from '@/lib/site';
 
-export const metadata = pageMetadata({
+const INITIATIVES = {
   title: 'Initiatives',
   description:
     'The campaigns, series, and projects Willie is running right now, each with its own page and story.',
   path: '/initiatives',
   image: '/initiatives/opengraph-image',
+};
+
+export const metadata = pageMetadata({
+  ...INITIATIVES,
   imageAlt: 'Initiatives from Willie Chalmers III',
 });
 
@@ -21,6 +27,23 @@ export default async function InitiativesPage() {
   const initiatives = await getInitiatives();
   return (
     <>
+      <JsonLd
+        data={graph(
+          webPageLd({
+            type: 'CollectionPage',
+            name: INITIATIVES.title,
+            description: INITIATIVES.description,
+            path: INITIATIVES.path,
+            image: INITIATIVES.image,
+            items: initiatives.map((item) => ({
+              name: item.title,
+              path: item.href,
+            })),
+          }),
+          websiteLd(),
+          personLd()
+        )}
+      />
       <TopBar crumbs={[{ label: 'Initiatives', href: '/initiatives' }]} />
       <main id="main" className="h-feed mx-auto max-w-[1200px] px-5 pb-20">
         {/* h-feed: u-url so parsers know which page this feed is, and

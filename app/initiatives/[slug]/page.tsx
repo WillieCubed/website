@@ -18,7 +18,13 @@ import {
 } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
-import { breadcrumbLd, graph } from '@/lib/seo/jsonld';
+import {
+  breadcrumbLd,
+  graph,
+  personLd,
+  webPageLd,
+  websiteLd,
+} from '@/lib/seo/jsonld';
 import { absoluteUrl, pageMetadata } from '@/lib/site';
 
 // Cache Components refuses an empty list at build time. When nothing is
@@ -85,10 +91,18 @@ export default async function InitiativePage(props: {
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
       <JsonLd
         data={graph(
+          webPageLd({
+            name: initiative.title,
+            description: initiative.description,
+            path: initiative.href,
+            image: `${initiative.href}/opengraph-image`,
+          }),
           breadcrumbLd([
             ...crumbs.map((crumb) => ({ name: crumb.label, path: crumb.href })),
             { name: initiative.title, path: initiative.href },
-          ])
+          ]),
+          websiteLd(),
+          personLd()
         )}
       />
       <TopBar crumbs={crumbs} column="content" />

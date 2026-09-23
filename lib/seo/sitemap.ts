@@ -1,16 +1,19 @@
 import type { MetadataRoute } from 'next';
 
 import type { Initiative } from '@/lib/initiatives';
-import { absoluteUrl, routedPages } from '@/lib/site';
+import { canonicalUrl, routedPages } from '@/lib/site';
 import type { WritingData } from '@/lib/writings';
 
 type Entry = MetadataRoute.Sitemap[number];
 
-/** An entry with a lastModified only when there is a real edit date to give. */
+/**
+ * An entry under the page's canonical address, with a lastModified only when
+ * there is a real edit date to give.
+ */
 function entry(path: string, lastModified?: Date | string): Entry {
   return lastModified
-    ? { url: absoluteUrl(path), lastModified }
-    : { url: absoluteUrl(path) };
+    ? { url: canonicalUrl(path), lastModified }
+    : { url: canonicalUrl(path) };
 }
 
 /**

@@ -18,7 +18,13 @@ import TopBar from '@/components/site/TopBar';
 import { getInitiative, getInitiativeSlugs, getPart } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
-import { breadcrumbLd, graph } from '@/lib/seo/jsonld';
+import {
+  breadcrumbLd,
+  graph,
+  personLd,
+  webPageLd,
+  websiteLd,
+} from '@/lib/seo/jsonld';
 import { absoluteUrl, pageMetadata } from '@/lib/site';
 
 // Cache Components refuses an empty list at build time. When nothing is
@@ -86,10 +92,18 @@ export default async function PartPage(props: {
   if (parent) crumbs.push({ label: parent.title, href: parent.href });
   crumbs.push({ label: initiative.title, href: initiative.href });
   const partGraph = graph(
+    webPageLd({
+      name: partTitle,
+      description: part.description || part.tagline || initiative.description,
+      path: partPath,
+      image: `${partPath}/opengraph-image`,
+    }),
     breadcrumbLd([
       ...crumbs.map((crumb) => ({ name: crumb.label, path: crumb.href })),
       { name: partTitle, path: partPath },
-    ])
+    ]),
+    websiteLd(),
+    personLd()
   );
 
   return (

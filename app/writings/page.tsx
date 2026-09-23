@@ -4,9 +4,11 @@ import { Suspense } from 'react';
 import Icon from '@/components/icons/Icon';
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
+import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 import WritingItem from '@/components/writings/WritingItem';
 
+import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
 import { absoluteUrl, pageMetadata, site } from '@/lib/site';
 import {
   getAllTags,
@@ -15,12 +17,16 @@ import {
   getWritingsByTag,
 } from '@/lib/writings';
 
-const writingsMetadata = pageMetadata({
+const WRITINGS = {
   title: 'Writings',
   description:
     'Thoughts, tutorials, and notes on software, music, and creativity.',
   path: '/writings',
   image: '/writings/opengraph-image',
+};
+
+const writingsMetadata = pageMetadata({
+  ...WRITINGS,
   imageAlt: 'Writings by Willie Chalmers III',
 });
 
@@ -126,9 +132,31 @@ async function TagFilter({ currentTag }: { currentTag?: string }) {
   );
 }
 
-export default function WritingsPage({ searchParams }: WritingsPageProps) {
+export default async function WritingsPage({
+  searchParams,
+}: WritingsPageProps) {
+  // The structured data lists every writing, as the canonical unfiltered
+  // page does, whatever tag the visitor picked.
+  const writings = await getAllWritings();
   return (
     <>
+      <JsonLd
+        data={graph(
+          webPageLd({
+            type: 'CollectionPage',
+            name: WRITINGS.title,
+            description: WRITINGS.description,
+            path: WRITINGS.path,
+            image: WRITINGS.image,
+            items: writings.map((writing) => ({
+              name: writing.title,
+              path: `/writings/${writing.slug}`,
+            })),
+          }),
+          websiteLd(),
+          personLd()
+        )}
+      />
       <TopBar
         column="content"
         crumbs={[{ label: 'Writings', href: '/writings' }]}

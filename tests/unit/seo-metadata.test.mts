@@ -1,7 +1,9 @@
+import { resolveAbsoluteUrlWithPathname } from 'next/dist/lib/metadata/resolvers/resolve-url.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { absoluteUrl, pageMetadata, site } from '@/lib/site';
+import { homeGraph, webPageLd } from '@/lib/seo/jsonld';
+import { absoluteUrl, canonicalUrl, pageMetadata, site } from '@/lib/site';
 
 type Loose = Record<string, unknown>;
 type Meta = ReturnType<typeof pageMetadata>;
@@ -22,6 +24,46 @@ test('the site card is the default image, with dimensions and alt text', () => {
   assert.equal(openGraph(meta).title, 'Writings');
   assert.equal(openGraph(meta).url, '/writings');
   assert.deepEqual(meta.alternates, { canonical: '/writings' });
+});
+
+/** The canonical link Next.js renders for a page's `alternates.canonical`. */
+function renderedCanonical(meta: Meta, pathname: string): string {
+  return resolveAbsoluteUrlWithPathname(
+    String((meta.alternates as Loose).canonical),
+    new URL(site.origin),
+    pathname,
+    { trailingSlash: false }
+  );
+}
+
+test('canonical URLs are absolute on the origin, with a bare homepage', () => {
+  assert.equal(canonicalUrl('/'), 'https://willie.page');
+  assert.equal(canonicalUrl(), site.origin);
+  assert.equal(canonicalUrl('/writings'), `${site.origin}/writings`);
+  assert.equal(
+    canonicalUrl('/writings/hello'),
+    `${site.origin}/writings/hello`
+  );
+});
+
+test('canonicalUrl spells each page the way Next.js renders its canonical', () => {
+  for (const path of ['/', '/writings', '/initiatives/fall-tour-2026/part-1']) {
+    const meta = pageMetadata({ ...input, path });
+    assert.equal(renderedCanonical(meta, path), canonicalUrl(path));
+  }
+});
+
+test('structured data names a page by its rendered canonical', () => {
+  const nodes = homeGraph()['@graph'] as Loose[];
+  const home = renderedCanonical({ alternates: { canonical: '/' } }, '/');
+  for (const node of nodes) assert.equal(node.url, home);
+
+  const page = webPageLd({
+    name: 'Writings',
+    description: 'Notes.',
+    path: '/writings',
+  });
+  assert.equal(page.url, renderedCanonical(pageMetadata(input), '/writings'));
 });
 
 test('a custom image takes its alt from imageAlt, else the title', () => {

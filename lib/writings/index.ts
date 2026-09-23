@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import readingTime from 'reading-time';
 
-import { showDrafts } from '@/lib/site-mode';
+import { showDrafts } from '@/lib/drafts';
 
 // =============================================================================
 // Series functions - delegating to collections module

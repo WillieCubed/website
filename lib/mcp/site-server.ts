@@ -43,23 +43,6 @@ export interface SiteContent {
 const DEFAULT_SEARCH_LIMIT = 10;
 
 /**
- * In hiatus mode proxy.ts 404s /writings, so the tools must not serve
- * writings either. Initiatives stay: their pages are not blocked.
- */
-export function contentForMode(
-  hiatus: boolean,
-  content: SiteContent
-): SiteContent {
-  if (!hiatus) return content;
-  return {
-    ...content,
-    listWritings: async () => [],
-    readWriting: async () => null,
-    searchWritings: async () => [],
-  };
-}
-
-/**
  * A writing reduced to what a client needs. `published` is a Date on a
  * WritingData and an ISO string on a SearchResult.
  */

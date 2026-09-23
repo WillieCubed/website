@@ -3,7 +3,7 @@ import { cacheLife } from 'next/cache';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { showDrafts } from '@/lib/site-mode';
+import { showDrafts } from '@/lib/drafts';
 
 import {
   type Initiative,

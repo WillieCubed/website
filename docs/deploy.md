@@ -28,6 +28,10 @@ and then attaching the hostname to the hosting project so requests for it
 reach the app at all. A redirect rule for a host that is not attached does
 nothing.
 
+The same table sends two retired pages to their replacements with a 307:
+`/media` goes to `/initiatives/twd` and `/apps` goes to `/projects`. They
+stay temporary while `/projects` is rebuilt.
+
 ## Hosting today: Vercel
 
 The app deploys to Vercel from the GitHub repository. Vercel-specific

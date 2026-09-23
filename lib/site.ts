@@ -110,12 +110,6 @@ export const sitePages: SitePage[] = [
     routed: false,
   },
   {
-    path: '/apps',
-    label: 'Apps',
-    description: 'The apps Willie has shipped.',
-    routed: false,
-  },
-  {
     path: '/colophon',
     label: 'Colophon',
     description: 'How this site is made.',
@@ -125,12 +119,6 @@ export const sitePages: SitePage[] = [
     path: '/contact',
     label: 'Contact',
     description: "How to get in touch with Willie. It's pretty simple.",
-    routed: false,
-  },
-  {
-    path: '/media',
-    label: 'Media',
-    description: 'The Willie Diaries and other creative work.',
     routed: false,
   },
   {

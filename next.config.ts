@@ -28,7 +28,13 @@ const nextConfig: NextConfig = {
       destination: `${site.origin}${path}`,
       permanent: false,
     }));
-    return [...legacy, ...aliases];
+    // Retired pages point at their nearest replacement. Temporary while
+    // /projects is rebuilt, so the targets can still change.
+    const retired = [
+      { source: '/media', destination: '/initiatives/twd', permanent: false },
+      { source: '/apps', destination: '/projects', permanent: false },
+    ];
+    return [...legacy, ...aliases, ...retired];
   },
   // Pages that ship as static HTML in public/ rather than as app routes.
   async rewrites() {
@@ -38,18 +44,6 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['williecubed.localhost'],
   images: {
     remotePatterns: [
-      {
-        hostname: 'lh3.googleusercontent.com',
-      },
-      {
-        hostname: 'cdn.dribbble.com',
-      },
-      {
-        hostname: 'i.scdn.co',
-      },
-      {
-        hostname: 'picsum.photos',
-      },
       {
         hostname: 'i.ytimg.com',
       },

@@ -80,8 +80,6 @@ export interface SitePage {
   description: string;
   /** False while the page is parked in app/_(pages) for a rebuild. */
   routed: boolean;
-  changeFrequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  priority: number;
 }
 
 /**
@@ -97,8 +95,6 @@ export const sitePages: SitePage[] = [
     description:
       'Thoughts, tutorials, and notes on software, music, and creativity.',
     routed: true,
-    changeFrequency: 'daily',
-    priority: 0.9,
   },
   {
     path: '/initiatives',
@@ -106,72 +102,54 @@ export const sitePages: SitePage[] = [
     description:
       'The campaigns, series, and projects Willie is running right now.',
     routed: true,
-    changeFrequency: 'weekly',
-    priority: 0.9,
   },
   {
     path: '/about',
     label: 'About',
     description: 'Who Willie is, what he has done, and where he is going.',
     routed: false,
-    changeFrequency: 'yearly',
-    priority: 0.75,
   },
   {
     path: '/apps',
     label: 'Apps',
     description: 'The apps Willie has shipped.',
     routed: false,
-    changeFrequency: 'monthly',
-    priority: 0.3,
   },
   {
     path: '/colophon',
     label: 'Colophon',
     description: 'How this site is made.',
     routed: false,
-    changeFrequency: 'yearly',
-    priority: 0.3,
   },
   {
     path: '/contact',
     label: 'Contact',
     description: "How to get in touch with Willie. It's pretty simple.",
     routed: false,
-    changeFrequency: 'yearly',
-    priority: 0.6,
   },
   {
     path: '/media',
     label: 'Media',
     description: 'The Willie Diaries and other creative work.',
     routed: false,
-    changeFrequency: 'monthly',
-    priority: 0.6,
   },
   {
     path: '/now',
     label: 'Now',
     description: "What Willie is working on and what's coming up next.",
     routed: false,
-    changeFrequency: 'weekly',
-    priority: 0.5,
   },
   {
     path: '/projects',
     label: 'Projects',
     description: 'Apps and other things Willie has built.',
     routed: false,
-    changeFrequency: 'monthly',
-    priority: 0.9,
   },
   {
     path: '/random',
     label: 'Random',
     description: 'A page picked at random.',
     routed: false,
-    changeFrequency: 'yearly',
-    priority: 0.1,
   },
 ];
 

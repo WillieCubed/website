@@ -1,8 +1,8 @@
 import { cacheLife } from 'next/cache';
 
-import { getInitiatives } from '@/lib/initiatives';
+import { type Initiative, getInitiatives } from '@/lib/initiatives';
 import { formatDate, site } from '@/lib/site';
-import { getAllWritings } from '@/lib/writings';
+import { type WritingData, getAllWritings } from '@/lib/writings';
 
 import { STATIC_PAGES } from './pages';
 import type { EntityCard } from './types';
@@ -31,7 +31,17 @@ export async function getEntityRegistry(): Promise<EntityCard[]> {
     getAllWritings(false),
     getInitiatives(),
   ]);
+  return entityCards(writings, initiatives);
+}
 
+/**
+ * The cards for the static pages and ventures plus the given writings and
+ * initiatives. Kept apart from the cached loader so it runs under plain Node.
+ */
+export function entityCards(
+  writings: WritingData[],
+  initiatives: Initiative[]
+): EntityCard[] {
   const cards: EntityCard[] = [...STATIC_PAGES, ...VENTURE_CARDS];
 
   for (const writing of writings) {

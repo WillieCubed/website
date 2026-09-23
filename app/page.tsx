@@ -11,6 +11,7 @@ import JsonLd from '@/components/seo/JsonLd';
 import DockFooter from '@/components/site/DockFooter';
 
 import { allBrandVars } from '@/lib/brand/scheme';
+import { detailMetadata } from '@/lib/home/detail-metadata';
 import { facetEntries, getFeaturedTiles } from '@/lib/home/featured';
 import { LVBT_DEADLINE, getHomeTiles } from '@/lib/home/ventures';
 import { getFeaturedInitiatives } from '@/lib/initiatives';
@@ -18,7 +19,13 @@ import { homeGraph } from '@/lib/seo/jsonld';
 import { site } from '@/lib/site';
 import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 
-export function generateMetadata(): Metadata {
+interface HomePageProps {
+  searchParams: Promise<{ detail?: string | string[] }>;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: HomePageProps): Promise<Metadata> {
   if (isHiatusMode()) {
     return {
       title: { absolute: HIATUS_MESSAGE },
@@ -32,6 +39,12 @@ export function generateMetadata(): Metadata {
       twitter: { title: HIATUS_MESSAGE, description: HIATUS_MESSAGE },
     };
   }
+
+  // An open detail view names its venture, matching the first `detail`
+  // value the way the dialog's useSearchParams().get() does.
+  const { detail } = await searchParams;
+  const opened = detailMetadata(Array.isArray(detail) ? detail[0] : detail);
+  if (opened) return opened;
 
   return {
     title: { absolute: site.name },

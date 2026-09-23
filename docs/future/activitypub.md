@@ -1,5 +1,7 @@
 # ActivityPub Integration (Planned)
 
+ActivityPub is post-launch: it is not part of the willie.page launch.
+
 This document outlines the planned ActivityPub implementation for federating the
 site with Mastodon and other fediverse platforms.
 

@@ -21,7 +21,8 @@
     "test": "tsx --test tests/unit/*.test.mts",
     "search:index": "tsx scripts/generate-search-index.ts",
     "websub:ping": "tsx scripts/websub-ping.mts",
-    "webmentions:send": "tsx scripts/send-webmentions.mts"
+    "webmentions:send": "tsx scripts/send-webmentions.mts",
+    "webmentions:moderate": "tsx scripts/moderate-webmentions.mts"
   },
   "dependencies": {
     "@material/material-color-utilities": "^0.3.0",

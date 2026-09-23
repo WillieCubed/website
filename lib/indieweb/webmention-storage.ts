@@ -13,6 +13,7 @@ import type {
   Webmention,
   WebmentionActivity,
   WebmentionGroup,
+  WebmentionModerationStore,
   WebmentionRow,
   WebmentionTargetRequest,
   WebmentionType,
@@ -98,14 +99,18 @@ export async function updateVerifiedWebmention(
 }
 
 /**
- * Approve a webmention for display.
+ * Approve a verified webmention for display. Resolves to false when the id
+ * names no verified, unrejected webmention.
  */
-export async function approveWebmention(id: string): Promise<void> {
-  await sql`
+export async function approveWebmention(id: string): Promise<boolean> {
+  const result = await sql`
     UPDATE webmentions
     SET is_approved = TRUE
     WHERE id = ${id}
+      AND is_verified = TRUE
+      AND (is_deleted IS NULL OR is_deleted = FALSE)
   `;
+  return (result.rowCount ?? 0) > 0;
 }
 
 /**
@@ -131,10 +136,18 @@ export async function markWebmentionDeleted(id: string): Promise<void> {
 }
 
 /**
- * Reject a webmention without removing the row.
+ * Reject a webmention without removing the row, so a resent mention from the
+ * same source stays hidden. Resolves to false when the id names no webmention
+ * that is still live.
  */
-export async function rejectWebmention(id: string): Promise<void> {
-  await markWebmentionDeleted(id);
+export async function rejectWebmention(id: string): Promise<boolean> {
+  const result = await sql`
+    UPDATE webmentions
+    SET is_deleted = TRUE, deleted_at = NOW(), is_approved = FALSE
+    WHERE id = ${id}
+      AND (is_deleted IS NULL OR is_deleted = FALSE)
+  `;
+  return (result.rowCount ?? 0) > 0;
 }
 
 /**
@@ -303,7 +316,8 @@ export async function getAllWebmentionActivities({
 }
 
 /**
- * Get pending (unverified) webmentions for moderation.
+ * Get webmentions awaiting moderation: not yet approved and not rejected.
+ * Unverified ones are listed too, though only verified ones can be approved.
  */
 export async function getPendingWebmentions(): Promise<Webmention[]> {
   const result = await sql`
@@ -322,12 +336,22 @@ export async function getPendingWebmentions(): Promise<Webmention[]> {
       is_verified,
       is_approved
     FROM webmentions
-    WHERE is_verified = FALSE OR is_approved = FALSE
+    WHERE is_approved = FALSE
+      AND (is_deleted IS NULL OR is_deleted = FALSE)
     ORDER BY received_at DESC
   `;
 
   return rowsToWebmentions(result.rows);
 }
+
+/**
+ * The Postgres-backed store the moderation route and CLI act through.
+ */
+export const webmentionModerationStore: WebmentionModerationStore = {
+  listPending: getPendingWebmentions,
+  approve: approveWebmention,
+  reject: rejectWebmention,
+};
 
 /**
  * Get public, grouped webmentions for any approved target on this site.

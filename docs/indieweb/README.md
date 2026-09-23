@@ -12,24 +12,25 @@ The canonical origin, author name, photo, and social profiles all come from
 
 ## Routes
 
-| Route                                                              | Purpose                                                                                   | Needs                             |
-| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- | --------------------------------- |
-| `/webmention` (alias of `/api/webmention`)                         | Receives webmentions, verifies the source, stores them for moderation                     | Postgres                          |
-| `/webmentions?target=`                                             | Public JSON list of approved webmentions for one page                                     | Postgres                          |
-| `/api/webmention/send`, `/api/webmention/send-all`                 | Send webmentions for one post or every post; bearer `WEBMENTION_SECRET`                   | Postgres, `WEBMENTION_SECRET`     |
-| `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                  | Postgres (optional)               |
-| `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                  | Postgres (optional)               |
-| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates a note or article                   | IndieAuth token; see Micropub     |
-| `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                                      | nothing                           |
-| `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, initiatives, and pages, answered from this domain   | nothing (Postgres optional)       |
-| `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres`          | Postgres, `SEARCH_REINDEX_SECRET` |
-| ⌘K where the search button shows                                   | Pagefind dialog over the same content as `/search`; its index is served from `/pagefind/` | nothing                           |
-| `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints                      | nothing                           |
-| `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                                 | nothing                           |
-| `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                          | nothing                           |
-| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`                               | nothing                           |
-| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and projects; each declares the WebSub hub                        | nothing                           |
-| `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                          | nothing                           |
+| Route                                                              | Purpose                                                                                   | Needs                                    |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `/webmention` (alias of `/api/webmention`)                         | Receives webmentions, verifies the source, stores them for moderation                     | Postgres                                 |
+| `/webmentions?target=`                                             | Public JSON list of approved webmentions for one page                                     | Postgres                                 |
+| `/api/webmention/send`, `/api/webmention/send-all`                 | Send webmentions for one post or every post; bearer `WEBMENTION_SECRET`                   | Postgres, `WEBMENTION_SECRET`            |
+| `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation           | Postgres, `WEBMENTION_MODERATION_SECRET` |
+| `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                  | Postgres (optional)                      |
+| `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                  | Postgres (optional)                      |
+| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates a note or article                   | IndieAuth token; see Micropub            |
+| `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                                      | nothing                                  |
+| `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, initiatives, and pages, answered from this domain   | nothing (Postgres optional)              |
+| `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres`          | Postgres, `SEARCH_REINDEX_SECRET`        |
+| ⌘K where the search button shows                                   | Pagefind dialog over the same content as `/search`; its index is served from `/pagefind/` | nothing                                  |
+| `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints                      | nothing                                  |
+| `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                                 | nothing                                  |
+| `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                          | nothing                                  |
+| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`                               | nothing                                  |
+| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and projects; each declares the WebSub hub                        | nothing                                  |
+| `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                          | nothing                                  |
 
 Every route that says "Postgres" reads `POSTGRES_URL` through
 `@vercel/postgres`. Without it the webmention routes return errors and the
@@ -71,6 +72,34 @@ Post kinds map to these properties in `WritingHeader.tsx` and
 other handle links to `https://instagram.com/<handle>`. Add an entry to
 `MENTION_TARGETS` when a handle lives somewhere else.
 
+## Moderation
+
+A received webmention is stored unapproved, and every page, feed, and
+`/webmentions` query shows only verified, approved ones, so nothing appears
+until Willie approves it. There is no auto-approve rule. Moderate from a
+terminal with the database URL in the environment:
+
+```sh
+pnpm webmentions:moderate                   # list what is waiting
+pnpm webmentions:moderate approve <id...>   # show them on the site
+pnpm webmentions:moderate reject <id...>    # hide them for good
+```
+
+Or over HTTP with `Authorization: Bearer $WEBMENTION_MODERATION_SECRET`:
+`GET /api/webmention/moderate` returns `{ count, pending }`, and `POST` with
+`{ "action": "approve" | "reject", "id": "<uuid>" }` applies one decision.
+Without the secret the route answers 503; with a wrong one, 401. The route is
+meant to move behind Cloudflare Access later, with the secret kept as a
+second check.
+
+Only a verified mention can be approved; unverified ones are listed, marked
+`(unverified)`, so they can be rejected. Rejecting sets `is_deleted`, the same
+soft delete the verifier uses when a source goes away, so a resent mention from
+that source stays hidden. Approving or rejecting an id that is not in a state
+to change answers 404 from the route and exits 1 from the script.
+Moderation logic and its tests live in `lib/indieweb/webmention-moderation.ts`
+and `tests/unit/webmention-moderation.test.mts`.
+
 ## Micropub
 
 `POST /micropub` accepts form-encoded or JSON `h-entry` bodies with a bearer
@@ -94,6 +123,7 @@ correct outcome on Vercel and Workers: set the GitHub variables there.
 | `pnpm search:index` (runs as `prebuild`)      | Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives and their parts, and pages. Both are gitignored. The Pagefind step needs its platform binary, which the `pagefind` package installs. |
 | `pnpm websub:ping`                            | POSTs `hub.mode=publish` with the six feed URLs to `WEBSUB_HUB`.                                                                                                                                                                                         |
 | `pnpm webmentions:send`                       | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                                                                                                                              |
+| `pnpm webmentions:moderate`                   | Lists pending webmentions, or approves or rejects them by id; see Moderation. Needs `POSTGRES_URL`.                                                                                                                                                      |
 | `scripts/postbuild.mts` (runs as `postbuild`) | Runs the two scripts above only when `INDIEWEB_POSTBUILD=1`, and never fails the build.                                                                                                                                                                  |
 | `pnpm test`                                   | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                       |
 
@@ -103,6 +133,7 @@ correct outcome on Vercel and Workers: set the GitHub variables there.
 | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------- |
 | `POSTGRES_URL` / `DATABASE_URL`                                                                    | webmentions, reply context, activity feeds, Postgres search | unset, features degrade                 |
 | `WEBMENTION_SECRET`                                                                                | `/api/webmention/send*`                                     | unset, routes refuse                    |
+| `WEBMENTION_MODERATION_SECRET`                                                                     | `/api/webmention/moderate`                                  | unset, route refuses                    |
 | `INDIEAUTH_TOKEN_ENDPOINT`                                                                         | Micropub token verification                                 | `https://indieauth.com/token`           |
 | `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                            | local write, `main`, `content/writings` |
 | `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                      | JSON index                              |

@@ -153,6 +153,43 @@ export interface GetAllWebmentionActivitiesOptions {
   limit?: number;
 }
 
+export type WebmentionModerationAction = 'approve' | 'reject';
+
+/**
+ * The storage calls moderation needs. `approve` and `reject` resolve to
+ * false when no row was in a state they could change.
+ */
+export interface WebmentionModerationStore {
+  listPending: () => Promise<Webmention[]>;
+  approve: (id: string) => Promise<boolean>;
+  reject: (id: string) => Promise<boolean>;
+}
+
+export interface WebmentionModerationRequest {
+  action: WebmentionModerationAction;
+  id: string;
+}
+
+export interface WebmentionModerationRouteOptions {
+  store: WebmentionModerationStore;
+  secret: string | undefined;
+}
+
+export type WebmentionModerationCommand =
+  | { command: 'list' }
+  | { command: WebmentionModerationAction; ids: string[] };
+
+export interface PendingWebmentionSummary {
+  id: string;
+  source: string;
+  target: string;
+  type: WebmentionType;
+  author?: string;
+  content?: string;
+  received: string;
+  verified: boolean;
+}
+
 export interface WebmentionRow {
   id: string;
   source_url: string;
@@ -184,27 +221,6 @@ export interface WebmentionVerificationResult {
   error?: string;
   isUpdate?: boolean;
   isDeleted?: boolean;
-}
-
-export type WebmentionModerationAction =
-  | 'approve'
-  | 'reject'
-  | 'delete'
-  | 'reverify';
-
-export interface WebmentionModerationRequest {
-  action: WebmentionModerationAction;
-  id: string;
-}
-
-export interface WebmentionModerationResponse {
-  status: 'ok';
-  action: WebmentionModerationAction;
-  id: string;
-}
-
-export interface WebmentionModerationListResponse {
-  pending: Webmention[];
 }
 
 export interface WebmentionTargetRequest {

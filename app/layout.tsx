@@ -1,9 +1,5 @@
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import {
-  Atkinson_Hyperlegible_Mono,
-  Atkinson_Hyperlegible_Next,
-} from 'next/font/google';
 import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
@@ -22,18 +18,8 @@ import { site } from '@/lib/site';
 import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
+import { monoFont, sansFont } from './fonts';
 import './globals.css';
-
-const sansFont = Atkinson_Hyperlegible_Next({
-  variable: '--font-atkinson',
-  display: 'swap',
-  subsets: ['latin'],
-});
-const monoFont = Atkinson_Hyperlegible_Mono({
-  variable: '--font-atkinson-mono',
-  display: 'swap',
-  subsets: ['latin'],
-});
 
 /** Google shows the favicon in results only when it is a multiple of 48px. */
 const SITE_ICONS: Metadata['icons'] = {

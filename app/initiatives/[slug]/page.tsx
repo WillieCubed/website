@@ -104,6 +104,17 @@ export default async function InitiativePage(props: {
               {formatRange(initiative.starts, initiative.ends, true)}
             </p>
           )}
+          {initiative.website && (
+            <p className="mt-6">
+              <SiteLink
+                href={initiative.website}
+                className="initiative-site inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-label-large font-semibold"
+              >
+                Visit {new URL(initiative.website).hostname}
+                <span aria-hidden="true">↗</span>
+              </SiteLink>
+            </p>
+          )}
         </header>
 
         <div className="mx-auto mt-8 max-w-[840px]">

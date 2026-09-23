@@ -136,6 +136,15 @@ export const InitiativeFrontmatterSchema = z.object({
   trailer: TrailerSchema.optional(),
   /** The word before an act number. "Part" renders as "Part 1". */
   partLabel: z.string().min(1).default('Part'),
+  /**
+   * The initiative's own website, when it has one. The page leads with a
+   * link to it rather than repeating what lives there.
+   */
+  website: z
+    .string()
+    .url()
+    .regex(/^https:\/\//)
+    .optional(),
   links: z.array(LinkSchema).default([]),
   syndication: z.array(SyndicationSchema).default([]),
   feature: FeatureSchema.optional(),

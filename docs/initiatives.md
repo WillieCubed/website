@@ -42,6 +42,7 @@ the author leaves `status` out, and exposes `getInitiatives`, `getInitiative`,
 | `cover`       | no       | `{ src, alt, aspect? }`. Used for the hero, the index card, and social images.                             |
 | `trailer`     | no       | `{ title, youtubeId?, poster? }`. Without `youtubeId` the page shows the cover with a coming-soon note.    |
 | `partLabel`   | no       | The word before an act number. Defaults to `Part`; The Willie Diaries uses `Era`.                          |
+| `website`     | no       | The initiative's own site, as an `https://` URL. The hero links to it; Superbloom points at its own site.  |
 | `links`       | no       | `[{ label, href }]`. Rendered as chips at the end of the page.                                             |
 | `syndication` | no       | `[{ platform, url }]`. Copies of this page elsewhere.                                                      |
 | `feature`     | no       | Puts the initiative on the homepage. See below.                                                            |

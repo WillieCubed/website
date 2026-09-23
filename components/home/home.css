@@ -1233,7 +1233,8 @@
       aspect-ratio: auto;
       min-height: 300px;
     }
-    .tile.studio {
+    .tile.studio,
+    .tile.full {
       grid-column: 1 / -1;
     }
     .tile.studio .products {
@@ -1286,6 +1287,9 @@
     .tile.studio {
       grid-column: 1 / -1;
       aspect-ratio: auto;
+    }
+    .tile.full {
+      grid-column: 1 / -1;
     }
     .tile.studio .products {
       position: static;

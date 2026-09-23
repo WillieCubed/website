@@ -36,10 +36,9 @@ export async function getFileSlugs(
  */
 const DEFAULT_FILTER = (file: string) => {
   return (
-    file.endsWith('.mdx') ||
-    (file.endsWith('.md') && // Only include markdown files
-      !file.startsWith(HIDDEN_ITEM_PREFIX))
-  ); // Remove special files, including template files
+    (file.endsWith('.mdx') || file.endsWith('.md')) && // Only include markdown files
+    !file.startsWith(HIDDEN_ITEM_PREFIX) // Remove special files, including template files
+  );
 };
 
 const MDX_OPTIONS = {

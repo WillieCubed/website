@@ -1,3 +1,4 @@
+import { cacheLife } from 'next/cache';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
@@ -11,7 +12,27 @@ import {
   storeWebmention,
   webmentionRateLimitStore,
 } from '@/lib/indieweb/webmention-storage';
+import { canonicalWebmentionTarget } from '@/lib/indieweb/webmention-targets';
 import { verifyWebmention } from '@/lib/indieweb/webmention-verifier';
+import { getInitiatives } from '@/lib/initiatives';
+import { buildSitemap } from '@/lib/seo/sitemap';
+import { getAllWritings } from '@/lib/writings';
+
+/**
+ * Every page a webmention may target: the sitemap's list, which covers the
+ * homepage, the routed pages, initiatives and their parts, and published
+ * writings. Cached for an hour like the loaders it reads from.
+ */
+async function existingPages(): Promise<string[]> {
+  'use cache';
+  cacheLife('hours');
+
+  const [initiatives, writings] = await Promise.all([
+    getInitiatives(),
+    getAllWritings(),
+  ]);
+  return buildSitemap({ initiatives, writings }).map((entry) => entry.url);
+}
 
 /**
  * POST /api/webmention
@@ -94,22 +115,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Target must be a writings page
-    if (!target.includes('/writings/')) {
+    // Target must be a page that exists, stored under its canonical address
+    const canonicalTarget = canonicalWebmentionTarget(
+      target,
+      await existingPages()
+    );
+    if (!canonicalTarget) {
       return NextResponse.json(
-        { error: 'Target must be a blog post.' },
+        { error: 'Target must be a page on this site.' },
         { status: 400 }
       );
     }
 
     // Store the webmention (unverified)
-    const id = await storeWebmention(source, target);
+    const id = await storeWebmention(source, canonicalTarget);
 
     // Verify after the response is sent. `after` keeps the invocation alive
     // until the callback settles, where a bare promise could be cut off.
     after(async () => {
       try {
-        await verifyWebmention(id, source, target);
+        await verifyWebmention(id, source, canonicalTarget);
       } catch (error) {
         console.error('Webmention verification failed:', error);
       }

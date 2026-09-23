@@ -87,6 +87,9 @@ after the page, outside the `h-entry`, and parsers lose the comments.
 Author photos load straight from the author's site, since the image
 optimizer only accepts the hosts in `next.config.ts`.
 `tests/unit/webmention-display.test.mts` parses the rendered markup.
+Initiative and part pages show their approved mentions the same way through
+`components/indieweb/PageWebmentions.tsx`, at the foot of the page. Those
+pages carry no `h-entry`, so the mentions there are standalone `h-cite`s.
 
 `@handle` in prose becomes a link through `lib/writings/remark-mentions.ts`.
 `@thewilliediaries` and `@williecubed` map to their Instagram profiles, and any
@@ -122,6 +125,16 @@ Moderation logic and its tests live in `lib/indieweb/webmention-moderation.ts`
 and `tests/unit/webmention-moderation.test.mts`.
 
 ## Receiving
+
+A target may be any page on the canonical origin that exists: the homepage,
+a routed page, an initiative or one of its parts, or a published writing,
+which is the sitemap's list. Anything else gets a 400. The target is stored
+under its canonical address, without a trailing slash, query, or fragment,
+so it matches the address the page reads its mentions from. The verifier
+then needs the source to link to that address, or to its path below the
+homepage; a bare `/` never counts, since every page links to it. The logic
+and its tests live in `lib/indieweb/webmention-targets.ts` and
+`tests/unit/webmention-targets.test.mts`.
 
 `POST /api/webmention` answers 202 once the mention is stored, then verifies
 the source inside `after()` from `next/server`, which keeps a serverless

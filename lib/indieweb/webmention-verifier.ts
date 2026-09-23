@@ -13,6 +13,7 @@ import {
   markWebmentionDeleted,
   updateVerifiedWebmention,
 } from '@/lib/indieweb/webmention-storage';
+import { linksToTarget } from '@/lib/indieweb/webmention-targets';
 
 // Extract MicroformatRoot type from the mf2 return type
 type ParsedDocument = ReturnType<typeof mf2>;
@@ -29,9 +30,8 @@ export async function verifyWebmention(
   targetUrl: string
 ): Promise<WebmentionVerificationResult> {
   try {
-    // Validate URLs
+    // Validate the source URL; sameOrigin rejects an invalid target below
     const source = new URL(sourceUrl);
-    const target = new URL(targetUrl);
 
     // Reject if source is from our own domain (unless intentional)
     if (source.hostname === new URL(SITE_URL).hostname) {
@@ -90,18 +90,14 @@ export async function verifyWebmention(
     const html = await response.text();
 
     // Check if the source actually links to the target
-    if (!html.includes(targetUrl)) {
-      // Also check for relative URLs or variations
-      const targetPath = target.pathname;
-      if (!html.includes(targetPath)) {
-        // Source no longer links to target - this is a delete
-        await markWebmentionDeleted(id);
-        return {
-          success: true,
-          isDeleted: true,
-          error: 'Source no longer links to target',
-        };
-      }
+    if (!linksToTarget(html, targetUrl)) {
+      // Source no longer links to target - this is a delete
+      await markWebmentionDeleted(id);
+      return {
+        success: true,
+        isDeleted: true,
+        error: 'Source no longer links to target',
+      };
     }
 
     // Parse microformats
@@ -171,16 +167,22 @@ function determineWebmentionType(
   const properties = hEntry.properties;
 
   // Check for specific interaction types
-  if (properties['like-of']?.some((v) => String(v).includes(targetUrl))) {
+  if (properties['like-of']?.some((v) => linksToTarget(String(v), targetUrl))) {
     return 'like';
   }
-  if (properties['repost-of']?.some((v) => String(v).includes(targetUrl))) {
+  if (
+    properties['repost-of']?.some((v) => linksToTarget(String(v), targetUrl))
+  ) {
     return 'repost';
   }
-  if (properties['in-reply-to']?.some((v) => String(v).includes(targetUrl))) {
+  if (
+    properties['in-reply-to']?.some((v) => linksToTarget(String(v), targetUrl))
+  ) {
     return 'reply';
   }
-  if (properties['bookmark-of']?.some((v) => String(v).includes(targetUrl))) {
+  if (
+    properties['bookmark-of']?.some((v) => linksToTarget(String(v), targetUrl))
+  ) {
     return 'bookmark';
   }
 

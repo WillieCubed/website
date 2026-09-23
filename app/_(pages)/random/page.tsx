@@ -25,7 +25,6 @@ const PAGES = [
   '/projects/logdate',
   '/research/concept-learning',
   '/research/court-polarization',
-  '/media/playlists',
 ];
 
 /**

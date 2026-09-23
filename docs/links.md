@@ -42,8 +42,14 @@ shows intent. A page that is not in the registry gets no card, which is the
 signal to add it: content pages come from their loaders, and hand-written
 pages are listed in `STATIC_PAGES` in `lib/entities/pages.ts`.
 
-An initiative or part with a `brand` seed paints its card in that Material 3
-scheme, the same way its page and tile do.
+The homepage ventures and studio products come from `lib/home/ventures.ts`
+through `VENTURE_CARDS` in `lib/entities/ventures.ts`, one card per detail
+view, keyed as `/?detail=<id>`. That query is the only one the registry key
+keeps; every other link is keyed by its path alone. A venture marked `hidden`
+gets no card, and site search leaves it out too.
+
+An initiative, part, venture, or product with a `brand` seed paints its card
+in that Material 3 scheme, the same way its page and tile do.
 
 ## Behaviour and accessibility
 
@@ -63,7 +69,5 @@ opacity.
 
 ## Open questions
 
-The registry does not yet include the ventures on the homepage, so a link to
-a venture tile's detail view has no card until `lib/home/ventures.ts` feeds
-it. Cards for external sites were considered and rejected: fetching remote
+Cards for external sites were considered and rejected: fetching remote
 metadata on hover leaks the visitor's interest to a third party.

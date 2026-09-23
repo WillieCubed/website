@@ -6,6 +6,7 @@ import { getAllWritings } from '@/lib/writings';
 
 import { STATIC_PAGES } from './pages';
 import type { EntityCard } from './types';
+import { VENTURE_CARDS } from './ventures';
 
 export type { EntityCard };
 
@@ -31,7 +32,7 @@ export async function getEntityRegistry(): Promise<EntityCard[]> {
     getInitiatives(),
   ]);
 
-  const cards: EntityCard[] = [...STATIC_PAGES];
+  const cards: EntityCard[] = [...STATIC_PAGES, ...VENTURE_CARDS];
 
   for (const writing of writings) {
     cards.push({

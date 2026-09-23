@@ -1,6 +1,9 @@
 /** What a hover card needs to know about a page on this site. */
 export interface EntityCard {
-  /** Site-relative path, no trailing slash, no query or hash. */
+  /**
+   * Site-relative path, no trailing slash, no query or hash, except that a
+   * homepage detail view keeps its `?detail=<id>` query.
+   */
   href: string;
   kind:
     | 'page'

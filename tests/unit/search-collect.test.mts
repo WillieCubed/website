@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import type { EntityCard } from '@/lib/entities/types';
+import { entries, ventures } from '@/lib/home/ventures';
 import {
   type Initiative,
   type Part,
@@ -9,6 +10,7 @@ import {
 } from '@/lib/initiatives';
 import {
   collectSearchDocuments,
+  entryToItem,
   initiativeToItems,
   pageToItem,
   writingToItem,
@@ -227,4 +229,36 @@ test('the search text keeps prose that JSX, code spans, and underscores used to 
     text('An _emphasised_ word and __strong__ one.'),
     'An emphasised word and strong one.'
   );
+});
+
+test('entryToItem links a venture to its detail view and keeps its list searchable', () => {
+  const item = entryToItem(entries.lvbt);
+  assert.equal(item.slug, 'ventures/lvbt');
+  assert.equal(item.path, '/?detail=lvbt');
+  assert.equal(item.title, 'Las Vegans for Better Transit');
+  assert.equal(item.description, entries.lvbt.detail.body[0]);
+  assert.ok(item.content.includes('Week Without Driving'));
+  assert.equal(item.type, 'page');
+  assert.equal(item.published, UNDATED);
+});
+
+test('entryToItem tags a product with the studio it belongs to', () => {
+  const item = entryToItem(entries.logdate);
+  assert.equal(item.path, '/?detail=logdate');
+  assert.deepEqual(item.tags, ['Hypertext Studio']);
+});
+
+test('collectSearchDocuments indexes every shown venture and product, and no hidden one', async () => {
+  const keys = new Set(
+    (await collectSearchDocuments()).map((item) => item.slug)
+  );
+  for (const id of Object.keys(entries)) {
+    assert.ok(keys.has(`ventures/${id}`), `${id} is indexed`);
+  }
+  for (const venture of ventures.filter((v) => v.hidden)) {
+    assert.ok(
+      !keys.has(`ventures/${venture.id}`),
+      `hidden ${venture.id} was indexed`
+    );
+  }
 });

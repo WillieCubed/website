@@ -6,7 +6,8 @@ import { defineConfig, devices } from '@playwright/test';
  * already running on the port is reused.
  */
 const port = Number(process.env.SMOKE_PORT ?? 3100);
-const baseURL = `http://localhost:${port}`;
+const remoteURL = process.env.INDIEWEB_TEST_BASE_URL;
+const baseURL = remoteURL ?? `http://localhost:${port}`;
 const ci = Boolean(process.env.CI);
 
 export default defineConfig({
@@ -34,10 +35,12 @@ export default defineConfig({
       use: { ...devices['Pixel 7'] },
     },
   ],
-  webServer: {
-    command: `pnpm start --port ${port}`,
-    url: baseURL,
-    reuseExistingServer: !ci,
-    timeout: 60_000,
-  },
+  webServer: remoteURL
+    ? undefined
+    : {
+        command: `pnpm start --port ${port}`,
+        url: baseURL,
+        reuseExistingServer: !ci,
+        timeout: 60_000,
+      },
 });

@@ -2,6 +2,8 @@ import { cacheLife } from 'next/cache';
 
 import { generateWritingsJsonFeed } from '@/lib/feeds';
 import { getWritingFeedItems } from '@/lib/feeds/items';
+import { webSubLinkHeader } from '@/lib/indieweb/websub-discovery';
+import { absoluteRoute } from '@/lib/site';
 
 async function buildWritingsFeed() {
   'use cache';
@@ -17,6 +19,7 @@ export async function GET() {
     headers: {
       'Content-Type': 'application/feed+json; charset=utf-8',
       'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+      Link: webSubLinkHeader(absoluteRoute`/writings/feed/json`),
     },
   });
 }

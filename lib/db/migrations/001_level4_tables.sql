@@ -65,18 +65,29 @@ CREATE TABLE IF NOT EXISTS search_index (
   published_at TIMESTAMPTZ NOT NULL,
   updated_at TIMESTAMPTZ,
   url TEXT NOT NULL,
-  -- Generated full-text search vector with weights:
-  -- A (highest): title
-  -- B: description, tags
-  -- C: content
-  search_vector TSVECTOR GENERATED ALWAYS AS (
-    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
-    setweight(to_tsvector('english', coalesce(description, '')), 'B') ||
-    setweight(to_tsvector('english', coalesce(array_to_string(tags, ' '), '')), 'B') ||
-    setweight(to_tsvector('english', coalesce(content_text, '')), 'C')
-  ) STORED,
+  search_vector TSVECTOR NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- array_to_string(text[], text) is STABLE, so PostgreSQL rejects it in a
+-- generated column. A trigger keeps the vector current on every write.
+CREATE OR REPLACE FUNCTION update_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.search_vector :=
+    setweight(to_tsvector('english', coalesce(NEW.title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(NEW.description, '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(array_to_string(NEW.tags, ' '), '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(NEW.content_text, '')), 'C');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS set_search_vector ON search_index;
+CREATE TRIGGER set_search_vector
+  BEFORE INSERT OR UPDATE OF title, description, tags, content_text
+  ON search_index
+  FOR EACH ROW EXECUTE FUNCTION update_search_vector();
 
 CREATE INDEX IF NOT EXISTS idx_search_vector ON search_index USING GIN (search_vector);
 CREATE INDEX IF NOT EXISTS idx_search_published ON search_index(published_at DESC);

@@ -142,10 +142,14 @@ test('only external https links are sent webmentions, once each', () => {
     <a href="https://tour.willie.page/">own subdomain</a>
     <a href="/relative">relative</a>
     <a href="mailto:hi@example.com">mail</a>
+    [Micropub note](https://webmention.rocks/test/1)
+    [duplicate](https://example.com/a)
+    [own Markdown link](${site.origin}/writings/other)
   `;
   assert.deepEqual(extractExternalLinks(html), [
     'https://example.com/a',
     'https://example.org/b',
+    'https://webmention.rocks/test/1',
   ]);
   assert.deepEqual(extractExternalLinks('<p>No links.</p>'), []);
 });

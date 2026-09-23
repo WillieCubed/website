@@ -166,6 +166,31 @@ export interface WebmentionModerationStore {
 }
 
 /**
+ * A verified webmention stored without an author photo, with the h-entry the
+ * verifier kept as `raw_mf2_json`.
+ */
+export interface WebmentionAuthorBackfillRow {
+  id: string;
+  rawMf2: unknown;
+}
+
+/**
+ * The storage calls the author photo backfill needs. `setPhoto` resolves to
+ * false when the row already has a photo, so a second run changes nothing.
+ */
+export interface WebmentionAuthorBackfillStore {
+  listMissingPhotos: () => Promise<WebmentionAuthorBackfillRow[]>;
+  setPhoto: (id: string, photo: string) => Promise<boolean>;
+}
+
+export interface WebmentionAuthorBackfillResult {
+  /** Mentions that now have the photo their stored entry names. */
+  filled: { id: string; photo: string }[];
+  /** Mentions whose stored entry names no author photo, left as they were. */
+  skipped: string[];
+}
+
+/**
  * The storage calls the receiving endpoint's rate limit needs. `hit` records
  * one request for `key` and resolves to the number of requests that key has
  * made in its current window, this one included. `prune` drops keys whose

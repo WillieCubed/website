@@ -187,6 +187,19 @@ export function absoluteUrl(path = '/'): string {
 }
 
 /**
+ * The canonical address of a page, spelled the way Next.js renders
+ * `alternates.canonical` and og:url: the homepage is the bare origin with no
+ * trailing slash. Structured data and the sitemap name pages with this so
+ * every place a page's address appears agrees on one string.
+ */
+export function canonicalUrl(path = '/'): string {
+  const url = new URL(path, site.origin);
+  return url.pathname === '/' && !url.search && !url.hash
+    ? url.origin
+    : url.href;
+}
+
+/**
  * Tagged template for absolute site URLs.
  *
  * @example absoluteRoute`/writings/${slug}`

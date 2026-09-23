@@ -65,7 +65,7 @@ test('every entry is absolute, unique, and free of ignored hints', () => {
   });
   const urls = entries.map((entry) => entry.url);
   assert.deepEqual(urls, [
-    `${site.origin}/`,
+    site.origin,
     `${site.origin}/writings`,
     `${site.origin}/initiatives`,
     `${site.origin}/initiatives/fall-tour-2026`,
@@ -93,7 +93,7 @@ test('lastModified is set only from a known edit date', () => {
     ],
   });
   const byUrl = new Map(entries.map((entry) => [entry.url, entry]));
-  assert.equal(byUrl.get(`${site.origin}/`)?.lastModified, undefined);
+  assert.equal(byUrl.get(site.origin)?.lastModified, undefined);
   assert.deepEqual(
     byUrl.get(`${site.origin}/initiatives/fall-tour-2026`)?.lastModified,
     new Date(2026, 8, 1)

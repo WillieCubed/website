@@ -1,4 +1,8 @@
-import { absoluteUrl, site } from '@/lib/site';
+import { absoluteUrl, canonicalUrl, site } from '@/lib/site';
+
+// A page's address here always comes from `canonicalUrl`, so the structured
+// data names a page exactly as its canonical link does. Ids and image URLs
+// are not page addresses and use `absoluteUrl`.
 
 export type JsonLdNode = Record<string, unknown>;
 
@@ -24,7 +28,7 @@ export function websiteLd(): JsonLdNode {
   return {
     '@type': 'WebSite',
     '@id': ids.website,
-    url: absoluteUrl('/'),
+    url: canonicalUrl('/'),
     name: site.name,
     alternateName: site.shortName,
     description: site.description,
@@ -40,7 +44,7 @@ export function personLd(): JsonLdNode {
     name: site.author.name,
     givenName: site.author.givenName,
     familyName: site.author.familyName,
-    url: absoluteUrl('/'),
+    url: canonicalUrl('/'),
     image: absoluteUrl(site.author.photo),
     description: site.shortDescription,
     sameAs: site.social.map((profile) => profile.href),
@@ -57,7 +61,7 @@ export function profilePageLd(): JsonLdNode {
   return {
     '@type': 'ProfilePage',
     '@id': absoluteUrl('/#profile'),
-    url: absoluteUrl('/'),
+    url: canonicalUrl('/'),
     name: site.name,
     inLanguage: site.language,
     mainEntity: { '@id': ids.person },
@@ -82,7 +86,7 @@ export interface BlogPostingInput {
 }
 
 export function blogPostingLd(input: BlogPostingInput): JsonLdNode {
-  const url = absoluteUrl(input.path);
+  const url = canonicalUrl(input.path);
   return {
     '@type': 'BlogPosting',
     '@id': `${url}#article`,
@@ -105,6 +109,58 @@ export function blogPostingLd(input: BlogPostingInput): JsonLdNode {
   };
 }
 
+export interface WebPageInput {
+  path: string;
+  name: string;
+  description: string;
+  /** CollectionPage for an index that lists other pages. */
+  type?: 'WebPage' | 'CollectionPage';
+  /** Site-relative or absolute URL of the page's social image. */
+  image?: string;
+  /** The pages an index lists, in order. An empty list is left out. */
+  items?: Array<{ name: string; path: string }>;
+}
+
+/**
+ * A page that is not an article: an index or an initiative. It points at the
+ * website and the person, so its graph includes `websiteLd()` and
+ * `personLd()` as well.
+ */
+export function webPageLd(input: WebPageInput): JsonLdNode {
+  const url = canonicalUrl(input.path);
+  return {
+    '@type': input.type ?? 'WebPage',
+    '@id': `${url}#webpage`,
+    url,
+    name: input.name,
+    description: input.description,
+    inLanguage: site.language,
+    isPartOf: { '@id': ids.website },
+    author: { '@id': ids.person },
+    ...(input.image
+      ? {
+          primaryImageOfPage: {
+            '@type': 'ImageObject',
+            url: absoluteUrl(input.image),
+          },
+        }
+      : {}),
+    ...(input.items && input.items.length > 0
+      ? {
+          mainEntity: {
+            '@type': 'ItemList',
+            itemListElement: input.items.map((item, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: item.name,
+              url: canonicalUrl(item.path),
+            })),
+          },
+        }
+      : {}),
+  };
+}
+
 export function breadcrumbLd(
   crumbs: Array<{ name: string; path: string }>
 ): JsonLdNode {
@@ -114,7 +170,7 @@ export function breadcrumbLd(
       '@type': 'ListItem',
       position: index + 1,
       name: crumb.name,
-      item: absoluteUrl(crumb.path),
+      item: canonicalUrl(crumb.path),
     })),
   };
 }

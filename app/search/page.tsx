@@ -4,16 +4,16 @@ import { Suspense } from 'react';
 import SiteSearch from '@/components/SiteSearch';
 import TopBar, { COLUMN } from '@/components/site/TopBar';
 
-import { site } from '@/lib/site';
+import { pageMetadata, site } from '@/lib/site';
 
-export const metadata: Metadata = {
+// Kept out of the index on purpose: a results page for every query would
+// crowd out the pages it links to. The canonical drops the query.
+export const metadata: Metadata = pageMetadata({
   title: 'Search',
   description: `Search everything on ${new URL(site.origin).hostname}.`,
-  robots: {
-    index: false,
-    follow: true,
-  },
-};
+  path: '/search',
+  noIndex: true,
+});
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>;

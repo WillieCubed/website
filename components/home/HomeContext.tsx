@@ -7,6 +7,14 @@ import type { Facet } from '@/lib/home/ventures';
 /** What the visitor is pointing at: a facet key or one entry. */
 export type Preview = { facet: Facet } | { id: string } | null;
 
+/**
+ * Whether a facet key is switched on. Previewing an entry lights the keys for
+ * its facets, but only the key's own preview presses it.
+ */
+export function isFacetPressed(preview: Preview, facet: Facet): boolean {
+  return preview !== null && 'facet' in preview && preview.facet === facet;
+}
+
 export interface HomeContextValue {
   preview: Preview;
   /** Set the preview right away, cancelling any pending clear. */

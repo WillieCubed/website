@@ -21,6 +21,7 @@ test('writeMicropubWritingLocally writes a note into the content directory', asy
         categories: ['note'],
         postType: 'note',
         syndication: [],
+        syndicateTo: [],
         slug: 'hello-micropub',
         published: new Date('2026-09-18T12:00:00Z'),
       },
@@ -44,6 +45,7 @@ test('writeMicropubWritingLocally writes a note into the content directory', asy
           categories: [],
           postType: 'note',
           syndication: [],
+          syndicateTo: [],
           slug: 'hello-micropub',
         },
         contentPath
@@ -65,6 +67,7 @@ test('writeMicropubWritingLocally reports an unwritable directory as a storage e
         categories: [],
         postType: 'note',
         syndication: [],
+        syndicateTo: [],
       },
       relative(process.cwd(), '/dev/null/writings')
     ),

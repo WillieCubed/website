@@ -116,6 +116,25 @@ the route writes into the local checkout. On a read-only deploy that write
 fails with a 500 whose `error_description` names the reason, which is the
 correct outcome on Vercel and Workers: set the GitHub variables there.
 
+`?q=config` and `?q=syndicate-to` list two syndication targets, from
+`MICROPUB_SYNDICATION_TARGETS` in `lib/indieweb/micropub.ts`:
+
+| Name    | `uid`                                  |
+| ------- | -------------------------------------- |
+| Bluesky | `https://bsky.app/profile/willie.page` |
+| Threads | `https://www.threads.com/@williecubed` |
+
+Each `uid` is the profile URL and stays the same between releases, so a
+client's saved choice keeps working. When a request carries
+`mp-syndicate-to` (form `mp-syndicate-to` or `mp-syndicate-to[]`, or the JSON
+property), each chosen target is written into the post's `syndication`
+frontmatter under the target's name, and the page renders it as a
+`u-syndication` link. A `uid` the endpoint never listed gets a 400
+`invalid_request`. Nothing cross-posts: the endpoint does not publish to
+Bluesky or Threads, so the recorded link points at the profile rather than a
+copy of the post. Once a copy exists, replace that URL in the frontmatter with
+the copy's permalink.
+
 ## Scripts
 
 | Script                                        | What it does                                                                                                                                                                                                                                             |

@@ -11,6 +11,7 @@ import type {
   MicropubPostType,
   MicropubPostTypeSource,
   MicropubRsvpStatus,
+  MicropubSyndicationTarget,
   RawMicropubEntry,
 } from '@/lib/indieweb/types';
 import {
@@ -34,10 +35,27 @@ export class MicropubStorageError extends Error {
   }
 }
 
+/**
+ * Where posts can be syndicated, as Micropub clients offer them.
+ *
+ * Each uid is the profile URL, which stays put when a post is added. The
+ * endpoint only records a chosen target as a syndication link; nothing
+ * cross-posts yet.
+ */
+export const MICROPUB_SYNDICATION_TARGETS: readonly MicropubSyndicationTarget[] =
+  [
+    { uid: 'https://bsky.app/profile/willie.page', name: 'Bluesky' },
+    { uid: 'https://www.threads.com/@williecubed', name: 'Threads' },
+  ];
+
+export function getMicropubSyndicationTargets(): MicropubSyndicationTarget[] {
+  return MICROPUB_SYNDICATION_TARGETS.map((target) => ({ ...target }));
+}
+
 export function getMicropubConfig(): MicropubConfigResponse {
   return {
     'media-endpoint': null,
-    'syndicate-to': [],
+    'syndicate-to': getMicropubSyndicationTargets(),
     'post-types': [
       { type: 'note', name: 'Note' },
       { type: 'article', name: 'Article' },
@@ -96,10 +114,11 @@ export function buildMicropubWritingFile(
     lines.push(`  eventUrl: ${JSON.stringify(entry.inReplyTo)}`);
     lines.push(`  status: ${JSON.stringify(entry.rsvp)}`);
   }
-  if (entry.syndication.length > 0) {
+  const syndication = syndicationLinks(entry);
+  if (syndication.length > 0) {
     lines.push('syndication:');
-    entry.syndication.forEach((url) => {
-      lines.push(`  - name: ${JSON.stringify(new URL(url).hostname)}`);
+    syndication.forEach(({ name, url }) => {
+      lines.push(`  - name: ${JSON.stringify(name)}`);
       lines.push(`    url: ${JSON.stringify(url)}`);
     });
   }
@@ -227,6 +246,7 @@ function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
     bookmarkOf: firstString(properties['bookmark-of']),
     rsvp: firstString(properties.rsvp),
     syndication: properties.syndication ?? [],
+    syndicateTo: properties['mp-syndicate-to'] ?? [],
   });
 }
 
@@ -245,6 +265,7 @@ function parseFormData(formData: FormData): MicropubCreateRequest {
     bookmarkOf: optionalFormString(formData.get('bookmark-of')),
     rsvp: optionalFormString(formData.get('rsvp')),
     syndication: formStringList(formData, 'syndication'),
+    syndicateTo: formStringList(formData, 'mp-syndicate-to'),
   });
 }
 
@@ -269,7 +290,38 @@ function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
     bookmarkOf: entry.bookmarkOf,
     rsvp: normalizeRsvp(entry.rsvp),
     syndication: entry.syndication.filter(Boolean),
+    syndicateTo: resolveSyndicationTargets(entry.syndicateTo),
   };
+}
+
+// A client only offers the uids q=syndicate-to listed, so an unknown one is a
+// bad request rather than something to drop quietly.
+function resolveSyndicationTargets(
+  uids: string[]
+): MicropubSyndicationTarget[] {
+  const chosen = new Set(uids.filter(Boolean));
+  for (const uid of chosen) {
+    if (!MICROPUB_SYNDICATION_TARGETS.some((target) => target.uid === uid)) {
+      throw new Error('invalid_request');
+    }
+  }
+  return MICROPUB_SYNDICATION_TARGETS.filter((target) =>
+    chosen.has(target.uid)
+  ).map((target) => ({ ...target }));
+}
+
+// Copies the client already made keep their hostname as the label; chosen
+// targets use the target's name. A URL listed both ways appears once.
+function syndicationLinks(
+  entry: MicropubCreateRequest
+): { name: string; url: string }[] {
+  const links = [
+    ...entry.syndication.map((url) => ({ name: new URL(url).hostname, url })),
+    ...entry.syndicateTo.map(({ name, uid }) => ({ name, url: uid })),
+  ];
+  return links.filter(
+    (link, index) => links.findIndex(({ url }) => url === link.url) === index
+  );
 }
 
 function inferPostType(entry: MicropubPostTypeSource): MicropubPostType {

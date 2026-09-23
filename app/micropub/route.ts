@@ -4,6 +4,7 @@ import {
   MicropubStorageError,
   commitMicropubWriting,
   getMicropubConfig,
+  getMicropubSyndicationTargets,
   parseMicropubCreateRequest,
   writeMicropubWritingLocally,
 } from '@/lib/indieweb/micropub';
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
   }
 
   if (query === 'syndicate-to') {
-    return jsonResponse({ 'syndicate-to': [] });
+    return jsonResponse({ 'syndicate-to': getMicropubSyndicationTargets() });
   }
 
   if (query) {

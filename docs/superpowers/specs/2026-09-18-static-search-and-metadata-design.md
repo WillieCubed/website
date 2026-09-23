@@ -1,6 +1,10 @@
 # Site-wide search and metadata
 
-Status: approved design, 2026-09-18. Based on `origin/main` at `c4b0ffd`.
+Status: implemented. Designed 2026-09-18 from `origin/main` at `c4b0ffd`; the
+[plan](../plans/2026-09-19-static-search-and-metadata.md) has been executed.
+Since then hiatus mode has been removed (#77), so the ⌘K modal and trigger
+render on every page, and the site follows the visitor's light or dark theme.
+The text below describes the site as it stands.
 
 Two independent parts share only `app/layout.tsx` and `lib/site.ts`:
 
@@ -82,7 +86,7 @@ result excerpt.
   apply (a type badge for non-writings, a date for writings, tags), so a
   separator never dangles.
 - `app/search/page.tsx`: description reads "Search everything on willie.page";
-  a line under the heading, hidden in hiatus mode, tells visitors ⌘K opens
+  a line under the heading tells visitors ⌘K opens
   instant search on any page.
 - `app/api/search/route.ts`: doc comment lists the new `type` values.
 
@@ -114,8 +118,7 @@ writes `public/search-index.json` as it does today, then calls
   and `hideShortcut`) and `PagefindDialog`. They create the custom elements
   with `createElement`, so the project needs no global JSX type declarations.
 - Trigger: the top bar's `PagefindTrigger` is `compact hide-shortcut` (icon
-  only) at the right end of `components/site/TopBar.tsx`, and is not rendered
-  in hiatus mode; the home rail in `components/home/Rail.tsx` carries the full
+  only) at the right end of `components/site/TopBar.tsx`; the home rail in `components/home/Rail.tsx` carries the full
   trigger. The default shortcut `mod+k` gives ⌘K on macOS and Ctrl+K elsewhere;
   Esc closes; focus is trapped. The shortcut is suppressed while an input,
   textarea or contentEditable has focus (Pagefind's own behavior).
@@ -127,10 +130,11 @@ writes `public/search-index.json` as it does today, then calls
   The block is written on `:root:root`, because Pagefind's own stylesheet loads
   later and sets the same variables on `:root`, so it would otherwise win.
   Input height and font size stay at Pagefind's defaults: the trigger's height
-  follows the input's. The Component UI does not follow `prefers-color-scheme`,
-  and the site has one theme.
-- `app/layout.tsx` mounts `<SearchModal />` beside `<SiteFooter />` unless
-  `isHiatusMode()`.
+  follows the input's. The Component UI does not follow `prefers-color-scheme`
+  by itself, but the tokens it maps to do, so the modal changes theme with the
+  rest of the site.
+- `app/layout.tsx` mounts `<SearchModal />` beside `<SiteFooter />` on every
+  page.
 
 ### Failure modes
 
@@ -216,7 +220,7 @@ now carries all four links.
   `ClaudeBot`, `Applebot-Extended` and `meta-externalagent`; keep `GPTBot`,
   `CCBot`, `anthropic-ai`, `FacebookBot`, `Omgilibot`. Same rule: disallow
   `/writings/` only. `ChatGPT-User` stays listed as today.
-- Root `metadata.robots` (live mode): `index`, `follow`, and
+- Root `metadata.robots`: `index`, `follow`, and
   `googleBot: { 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 }`.
 - `app/sitemap.ts` and `lib/seo/sitemap.ts`: a pure `buildSitemap()` builds the
   entries and `app/sitemap.ts` feeds it the loaders' data. Remove

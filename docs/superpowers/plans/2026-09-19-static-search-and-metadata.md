@@ -1,5 +1,12 @@
 # Site-wide Search and Metadata Implementation Plan
 
+> **Status:** executed. Every task below has shipped to `main`, every step is
+> checked, and Task 12 reconciled the spec with what was built. Hiatus mode was
+> removed afterwards (#77), so the steps that gate the ⌘K modal on
+> `isHiatusMode()` describe code that no longer exists. The checks that need a
+> deployed URL (Google's Rich Results Test and an Open Graph preview) are not
+> steps in this plan and are not tracked here.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a Pagefind-backed ⌘K search over the whole site, widen the existing server-rendered `/search` to the same content, and ship JSON-LD, Open Graph, robots, and sitemap improvements.
@@ -97,7 +104,7 @@ The plan refines four spec details. Task 12 edits the spec so it matches.
   - `loadAllInitiatives(options?: { includeDrafts?: boolean; now?: Date }): Initiative[]` from `@/lib/initiatives`
   - `STATIC_PAGES: EntityCard[]` from `@/lib/entities/pages`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/search-collect.test.mts`:
 
@@ -295,12 +302,12 @@ test('collectSearchDocuments returns unique keys, rooted paths, and the static p
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `pnpm exec tsx --test tests/unit/search-collect.test.mts`
 Expected: FAIL. The `@/lib/search/collect` module cannot be found.
 
-- [ ] **Step 3: Update the item model**
+- [x] **Step 3: Update the item model**
 
 In `lib/search/types.ts`, replace the `SearchableItem` type:
 
@@ -347,7 +354,7 @@ export type SearchableItem = {
 };
 ```
 
-- [ ] **Step 4: Share the static page list**
+- [x] **Step 4: Share the static page list**
 
 Create `lib/entities/pages.ts`:
 
@@ -433,7 +440,7 @@ const STATIC_PAGES: EntityCard[] = [
 
 `site` and `formatDate` stay imported: `range()` still uses `site.timeZone`.
 
-- [ ] **Step 5: Add an uncached initiative loader for build scripts**
+- [x] **Step 5: Add an uncached initiative loader for build scripts**
 
 In `lib/initiatives/index.ts`, insert this immediately above the line `/** Drafts render in development so they can be previewed, never in production. */`:
 
@@ -457,7 +464,7 @@ export function loadAllInitiatives(
 }
 ```
 
-- [ ] **Step 6: Create the collector from the existing index module**
+- [x] **Step 6: Create the collector from the existing index module**
 
 Run: `cp lib/search/index.ts lib/search/collect.ts`
 
@@ -585,7 +592,7 @@ export async function collectSearchDocuments(): Promise<SearchableItem[]> {
 }
 ```
 
-- [ ] **Step 7: Point the old entry at the collector**
+- [x] **Step 7: Point the old entry at the collector**
 
 Replace the entire contents of `lib/search/index.ts` with:
 
@@ -604,7 +611,7 @@ export async function generateSearchIndex(): Promise<SearchableItem[]> {
 export type { SearchableItem, SearchResult } from './types';
 ```
 
-- [ ] **Step 8: Carry `path` through the other search modules**
+- [x] **Step 8: Carry `path` through the other search modules**
 
 In `lib/search/postgres.ts`, in the `results` mapping inside `searchPostgres`, replace:
 
@@ -682,12 +689,12 @@ with:
     title: 'Project Superbloom',
 ```
 
-- [ ] **Step 9: Run the tests and typecheck**
+- [x] **Step 9: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 30 tests pass (22 existing plus the 8 new ones), typecheck clean.
 
-- [ ] **Step 10: Format, lint, and commit**
+- [x] **Step 10: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write lib/search lib/entities lib/initiatives/index.ts tests/unit/search-collect.test.mts tests/unit/search-rank.test.mts
@@ -718,7 +725,7 @@ git restore --staged . && git add lib/search lib/entities lib/initiatives/index.
 - Consumes: `SearchableItem`, `UNDATED` (Task 1)
 - Produces: `selectSearchable(items: SearchableItem[], type: SearchContentType): SearchableItem[]` from `@/lib/search/server`; `SearchContentType = 'writing' | 'initiative' | 'page' | 'all'`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/search-server.test.mts`:
 
@@ -782,12 +789,12 @@ test('rankItems keeps the path of an initiative result', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `pnpm exec tsx --test tests/unit/search-server.test.mts`
 Expected: FAIL. `selectSearchable` is not exported from `@/lib/search/server`.
 
-- [ ] **Step 3: Narrow the content type**
+- [x] **Step 3: Narrow the content type**
 
 In `lib/search/types.ts`, replace:
 
@@ -804,7 +811,7 @@ export type SearchContentType =
   | 'all';
 ```
 
-- [ ] **Step 4: Widen `searchContent`**
+- [x] **Step 4: Widen `searchContent`**
 
 Replace the entire contents of `lib/search/server.ts` with:
 
@@ -905,7 +912,7 @@ export function searchResultPath(result: SearchResult): string {
 }
 ```
 
-- [ ] **Step 5: Update the API route**
+- [x] **Step 5: Update the API route**
 
 In `app/api/search/route.ts`, replace:
 
@@ -936,7 +943,7 @@ with:
  * - type: 'writing' | 'initiative' | 'page' | 'all' (default: 'all')
 ```
 
-- [ ] **Step 6: Update the search UI copy and date rule**
+- [x] **Step 6: Update the search UI copy and date rule**
 
 In `components/SiteSearch.tsx`, replace `placeholder="Search writings…"` with `placeholder="Search…"`.
 
@@ -1024,11 +1031,11 @@ async function SearchResults({ searchParams }: SearchPageProps) {
 }
 ```
 
-- [ ] **Step 7: Update the IndieWeb doc row**
+- [x] **Step 7: Update the IndieWeb doc row**
 
 In `docs/indieweb/README.md`, replace `Server-rendered search over writings, answered from this domain` with `Server-rendered search over writings, initiatives, and pages, answered from this domain`.
 
-- [ ] **Step 8: Run the tests, typecheck, and check the live route**
+- [x] **Step 8: Run the tests, typecheck, and check the live route**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 33 tests pass, typecheck clean.
@@ -1042,7 +1049,7 @@ curl -s 'http://localhost:3010/search?q=writings' | grep -o 'result[s]* for'
 
 Expected: the JSON has `"total"` of at least 1 and a result with `"path":"/initiatives"` and `"type":"page"`; the second command prints `result for` or `results for`. Every initiative and writing in `content/` is currently a draft, so only the three static pages are searchable until one is published.
 
-- [ ] **Step 9: Format, lint, and commit**
+- [x] **Step 9: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write lib/search app/api/search/route.ts app/search/page.tsx components/SiteSearch.tsx docs/indieweb/README.md tests/unit/search-server.test.mts
@@ -1074,12 +1081,12 @@ git restore --staged . && git add lib/search app/api/search/route.ts app/search/
 - Consumes: `SearchableItem`, `UNDATED` (Task 1); `site.language` from `@/lib/site`
 - Produces: `toPagefindRecord(item: SearchableItem): PagefindRecord` and `buildPagefindIndex(items: SearchableItem[], outputPath: string): Promise<void>` from `@/lib/search/pagefind`; `public/pagefind/` written by `pnpm search:index`
 
-- [ ] **Step 1: Add the dependency**
+- [x] **Step 1: Add the dependency**
 
 Run: `pnpm add -D pagefind`
 Expected: `package.json` gains `"pagefind"` under `devDependencies`. If pnpm prints `Ignored build scripts: pagefind`, add `pagefind: true` under `allowBuilds:` in `pnpm-workspace.yaml` and run `pnpm install`. Confirm with `pnpm exec pagefind --version`, which prints a version.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `tests/unit/search-pagefind.test.mts`:
 
@@ -1124,12 +1131,12 @@ test('toPagefindRecord omits empty tags and the sort key for undated items', () 
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `pnpm exec tsx --test tests/unit/search-pagefind.test.mts`
 Expected: FAIL. The `@/lib/search/pagefind` module cannot be found.
 
-- [ ] **Step 4: Implement the mapper and index builder**
+- [x] **Step 4: Implement the mapper and index builder**
 
 Create `lib/search/pagefind.ts`:
 
@@ -1204,12 +1211,12 @@ export async function buildPagefindIndex(
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `pnpm exec tsx --test tests/unit/search-pagefind.test.mts`
 Expected: PASS, 2 tests.
 
-- [ ] **Step 6: Build the index from the prebuild script**
+- [x] **Step 6: Build the index from the prebuild script**
 
 Replace the entire contents of `scripts/generate-search-index.ts` with:
 
@@ -1262,7 +1269,7 @@ with:
 /public/pagefind/
 ```
 
-- [ ] **Step 7: Run it and check what Pagefind emitted**
+- [x] **Step 7: Run it and check what Pagefind emitted**
 
 Run: `pnpm search:index && ls public/pagefind`
 Expected: output ends with `Pagefind index written to .../public/pagefind`, and the listing includes `pagefind.js`, `pagefind-entry.json`, an `index` directory, and a `fragment` directory.
@@ -1273,11 +1280,11 @@ Expected: `pagefind-component-ui.css` and `pagefind-component-ui.js`. **Record w
 Run: `git status --short public`
 Expected: no output. Both generated paths are ignored.
 
-- [ ] **Step 8: Document the script**
+- [x] **Step 8: Document the script**
 
 In `docs/indieweb/README.md`, replace ``Writes `public/search-index.json` from published writings. The file is gitignored.`` with ``Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives, and pages. Both are gitignored.``
 
-- [ ] **Step 9: Typecheck, format, lint, and commit**
+- [x] **Step 9: Typecheck, format, lint, and commit**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 38 tests pass, typecheck clean. If `import('pagefind')` reports missing types, read `node_modules/pagefind/types/index.d.ts` and adjust the destructuring in `buildPagefindIndex` to the declared names.
@@ -1313,7 +1320,7 @@ git restore --staged . && git add lib/search/pagefind.ts scripts/generate-search
 
 This task is UI, so it has no unit test. Verification is a typecheck, a curl check, and a browser check in Step 9.
 
-- [ ] **Step 1: Declare the custom elements for JSX**
+- [x] **Step 1: Declare the custom elements for JSX**
 
 Create `components/search/pagefind.d.ts`:
 
@@ -1345,7 +1352,7 @@ declare module 'react' {
 }
 ```
 
-- [ ] **Step 2: Theme the components with the site palette**
+- [x] **Step 2: Theme the components with the site palette**
 
 Create `components/search/search.css`:
 
@@ -1377,7 +1384,7 @@ pagefind-modal-trigger:not(:defined) {
 }
 ```
 
-- [ ] **Step 3: Write the dialog component**
+- [x] **Step 3: Write the dialog component**
 
 Create `components/search/SearchModal.tsx`:
 
@@ -1431,7 +1438,7 @@ export default function SearchModal() {
 }
 ```
 
-- [ ] **Step 4: Mount it once in the root layout**
+- [x] **Step 4: Mount it once in the root layout**
 
 In `app/layout.tsx`, replace:
 
@@ -1467,7 +1474,7 @@ with:
 <Analytics />;
 ```
 
-- [ ] **Step 5: Add the trigger to the top bar**
+- [x] **Step 5: Add the trigger to the top bar**
 
 In `components/site/TopBar.tsx`, replace:
 
@@ -1501,7 +1508,7 @@ with:
     </header>
 ```
 
-- [ ] **Step 6: Add the trigger to the home rail**
+- [x] **Step 6: Add the trigger to the home rail**
 
 In `components/home/Rail.tsx`, replace:
 
@@ -1519,7 +1526,7 @@ with:
         <nav className="index" aria-label="What he’s building">
 ```
 
-- [ ] **Step 7: Document the dialog**
+- [x] **Step 7: Document the dialog**
 
 In `docs/indieweb/README.md`, replace ``Postgres, `SEARCH_REINDEX_SECRET` |`` with:
 
@@ -1528,12 +1535,12 @@ Postgres, `SEARCH_REINDEX_SECRET` |
 | ⌘K on any page | Pagefind dialog over the same content as `/search`; its index is served from `/pagefind/` | nothing |
 ```
 
-- [ ] **Step 8: Typecheck and lint**
+- [x] **Step 8: Typecheck and lint**
 
 Run: `pnpm typecheck && pnpm exec eslint components/search components/site/TopBar.tsx components/home/Rail.tsx app/layout.tsx`
 Expected: PASS. If typecheck reports that `pagefind-modal` is not a valid JSX element, confirm `components/search/pagefind.d.ts` is inside the `include` globs (`**/*.ts` covers it) and that the file begins with an `import` (that is what makes the `declare module 'react'` block an augmentation).
 
-- [ ] **Step 9: Verify in the browser**
+- [x] **Step 9: Verify in the browser**
 
 Run: `pnpm search:index`
 Start the dev server as a background task (`PORT=3010 pnpm dev:app`); stop that task when done.
@@ -1555,7 +1562,7 @@ In a browser at `http://localhost:3010/initiatives`:
 
 If the trigger looks wrong against the warm palette, adjust the `--pf-*` values in `components/search/search.css` until it fits.
 
-- [ ] **Step 10: Fallback if the Component UI files were not emitted**
+- [x] **Step 10: Fallback if the Component UI files were not emitted**
 
 Only if Task 3 Step 7 found no `pagefind-component-ui.*` in `public/pagefind/`, or Step 9's curl returned 404:
 
@@ -1594,7 +1601,7 @@ declare module '@pagefind/component-ui/css';
 
 Re-run Step 9 (skip the curl for the script file).
 
-- [ ] **Step 11: Format and commit**
+- [x] **Step 11: Format and commit**
 
 ```bash
 pnpm exec prettier --write components/search app/layout.tsx components/site/TopBar.tsx components/home/Rail.tsx docs/indieweb/README.md
@@ -1624,7 +1631,7 @@ git restore --staged . && git add components/search app/layout.tsx components/si
 
 - Produces (used by Tasks 8 and 9): `pageMetadata()` also accepts `imageAlt?: string`, `publishedTime?: Date | string`, `modifiedTime?: Date | string`, `tags?: string[]`, `section?: string`, and `labels?: Array<[label: string, value: string]>`. Images come out as `{ url, width: 1200, height: 630, alt }` for Open Graph and `{ url, alt }` for Twitter.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/seo-metadata.test.mts`:
 
@@ -1717,12 +1724,12 @@ test('noIndex keeps links followable', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `pnpm exec tsx --test tests/unit/seo-metadata.test.mts`
 Expected: FAIL. The image assertions fail because images are still plain strings.
 
-- [ ] **Step 3: Extend the input type**
+- [x] **Step 3: Extend the input type**
 
 In `lib/site.ts`, replace:
 
@@ -1756,7 +1763,7 @@ with:
 }
 ```
 
-- [ ] **Step 4: Add two helpers above the function**
+- [x] **Step 4: Add two helpers above the function**
 
 In `lib/site.ts`, replace:
 
@@ -1788,7 +1795,7 @@ function slackLabels(labels: Array<[string, string]>): Record<string, string> {
  * Build page metadata that keeps the site name out of the OpenGraph title.
 ```
 
-- [ ] **Step 5: Extend the function**
+- [x] **Step 5: Extend the function**
 
 In `lib/site.ts`, replace:
 
@@ -1884,12 +1891,12 @@ with:
 }
 ```
 
-- [ ] **Step 6: Run the tests and typecheck**
+- [x] **Step 6: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 43 tests pass, typecheck clean. Existing callers pass a subset of the new input, so none should break. If TypeScript rejects the `openGraph` conditional, annotate each branch with `satisfies NonNullable<Metadata['openGraph']>` rather than loosening the type.
 
-- [ ] **Step 7: Format, lint, and commit**
+- [x] **Step 7: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write lib/site.ts tests/unit/seo-metadata.test.mts
@@ -1930,7 +1937,7 @@ git restore --staged . && git add lib/site.ts tests/unit/seo-metadata.test.mts &
   - `<JsonLd data={JsonLdNode} />` as the default export of `components/seo/JsonLd.tsx`
   - `site.ventures: readonly { key: string; name: string; url: string }[]`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/seo-jsonld.test.mts`:
 
@@ -2108,12 +2115,12 @@ test('graph wraps nodes with the schema.org context', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `pnpm exec tsx --test tests/unit/seo-jsonld.test.mts`
 Expected: FAIL. The `@/lib/seo/jsonld` module cannot be found.
 
-- [ ] **Step 3: List the ventures in the site config**
+- [x] **Step 3: List the ventures in the site config**
 
 In `lib/site.ts`, replace:
 
@@ -2145,7 +2152,7 @@ with:
   /** Hostnames that redirect into the canonical origin. */
 ```
 
-- [ ] **Step 4: Write the builders**
+- [x] **Step 4: Write the builders**
 
 Create `lib/seo/jsonld.ts`:
 
@@ -2346,12 +2353,12 @@ export default function JsonLd({ data }: { data: JsonLdNode }) {
 }
 ```
 
-- [ ] **Step 5: Run the tests and typecheck**
+- [x] **Step 5: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 54 tests pass, typecheck clean.
 
-- [ ] **Step 6: Format, lint, and commit**
+- [x] **Step 6: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write lib/site.ts lib/seo components/seo tests/unit/seo-jsonld.test.mts
@@ -2382,7 +2389,7 @@ git restore --staged . && git add lib/site.ts lib/seo components/seo tests/unit/
 
 This task is wiring, so it has no unit test; Step 5 verifies it against the built HTML.
 
-- [ ] **Step 1: Declare icons and the manifest in the root metadata**
+- [x] **Step 1: Declare icons and the manifest in the root metadata**
 
 In `app/layout.tsx`, replace:
 
@@ -2476,7 +2483,7 @@ with:
         ],
 ```
 
-- [ ] **Step 2: Give the home page's social card an explicit image**
+- [x] **Step 2: Give the home page's social card an explicit image**
 
 In `app/page.tsx`, the live metadata sets its own `openGraph`, which replaces the layout's, so the card had no explicit image. Replace:
 
@@ -2524,7 +2531,7 @@ with:
     },
 ```
 
-- [ ] **Step 3: Render the home graph**
+- [x] **Step 3: Render the home graph**
 
 In `app/page.tsx`, replace:
 
@@ -2585,12 +2592,12 @@ return (
 );
 ```
 
-- [ ] **Step 4: Typecheck**
+- [x] **Step 4: Typecheck**
 
 Run: `pnpm typecheck`
 Expected: PASS. If `Metadata['icons']` rejects the `sizes` or `type` keys, read the `Icon` type in `node_modules/next/dist/lib/metadata/types/metadata-types.d.ts` and match its field names.
 
-- [ ] **Step 5: Verify the rendered head**
+- [x] **Step 5: Verify the rendered head**
 
 Start the dev server as a background task (`PORT=3010 pnpm dev:app`), then:
 
@@ -2612,7 +2619,7 @@ Expected:
 - exactly one `og:image` tag, pointing at `/brand/social/og-image.png` on `willie.page`. If there are two, the file-based `app/opengraph-image.png` is also being injected: remove `images` from the `openGraph` block in Step 2 and keep the twitter images.
 - the last command prints `WebSite,Person,ProfilePage`
 
-- [ ] **Step 6: Format, lint, and commit**
+- [x] **Step 6: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write app/layout.tsx app/page.tsx
@@ -2645,7 +2652,7 @@ git restore --staged . && git add app/layout.tsx app/page.tsx && git commit -F "
 
 This task is wiring, so it has no unit test; Step 6 verifies it.
 
-- [ ] **Step 1: Add the index social card**
+- [x] **Step 1: Add the index social card**
 
 Create `app/writings/opengraph-image.tsx`:
 
@@ -2665,7 +2672,7 @@ export default async function Image() {
 }
 ```
 
-- [ ] **Step 2: Move the index page onto `pageMetadata`**
+- [x] **Step 2: Move the index page onto `pageMetadata`**
 
 In `app/writings/page.tsx`, replace `import { absoluteUrl, site } from '@/lib/site';` with `import { absoluteUrl, pageMetadata, site } from '@/lib/site';`.
 
@@ -2718,7 +2725,7 @@ export const metadata: Metadata = {
 };
 ```
 
-- [ ] **Step 3: Move a post's metadata onto `pageMetadata`**
+- [x] **Step 3: Move a post's metadata onto `pageMetadata`**
 
 In `app/writings/[slug]/page.tsx`, replace:
 
@@ -2812,7 +2819,7 @@ with:
 }
 ```
 
-- [ ] **Step 4: Render the article graph**
+- [x] **Step 4: Render the article graph**
 
 In the page component of `app/writings/[slug]/page.tsx`, replace:
 
@@ -2856,12 +2863,12 @@ with:
         column="reading"
 ```
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 Run: `pnpm typecheck`
 Expected: PASS. If the `openGraph` spread in `generateMetadata` conflicts with `Metadata`, the `...metadata` spread and the `alternates` override are the only shape changes; check the `alternates` type first.
 
-- [ ] **Step 6: Verify the rendered pages**
+- [x] **Step 6: Verify the rendered pages**
 
 Every writing is a draft, and drafts render only in development, so use the dev server (`PORT=3010 pnpm dev:app` as a background task):
 
@@ -2879,7 +2886,7 @@ curl -s http://localhost:3010/writings | grep -o '<meta property="og:image"[^>]*
 
 Expected: `og:image` ends in `/writings/project-superbloom/opengraph-image`; one `article:tag` for `personal`; a `twitter:label1` of `Reading time`; a canonical of `https://willie.page/writings/project-superbloom`; the JSON-LD types `BlogPosting,BreadcrumbList,Person`; then `200 image/png`; then an `og:image` ending in `/writings/opengraph-image`.
 
-- [ ] **Step 7: Format, lint, and commit**
+- [x] **Step 7: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write app/writings
@@ -2914,7 +2921,7 @@ git restore --staged . && git add app/writings && git commit -F "$MSG"
 
 The theme-colour lookup lives once, in `lib/initiatives/viewport.ts`, and both pages call it (Steps 1 to 3). The rest of the task is wiring with no unit test of its own; Step 9 verifies it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/initiative-viewport.test.mts`:
 
@@ -2935,12 +2942,12 @@ test('viewportForBrand leaves the site colour for a seed key or no brand', () =>
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `pnpm exec tsx --test tests/unit/initiative-viewport.test.mts`
 Expected: FAIL. The `@/lib/initiatives/viewport` module cannot be found.
 
-- [ ] **Step 3: Implement the helper and run the test**
+- [x] **Step 3: Implement the helper and run the test**
 
 Create `lib/initiatives/viewport.ts`:
 
@@ -2967,7 +2974,7 @@ export async function initiativeViewport(slug: string): Promise<Viewport> {
 Run: `pnpm exec tsx --test tests/unit/initiative-viewport.test.mts`
 Expected: PASS, 2 tests.
 
-- [ ] **Step 4: Add the index social card**
+- [x] **Step 4: Add the index social card**
 
 Create `app/initiatives/opengraph-image.tsx`:
 
@@ -3003,7 +3010,7 @@ with:
 });
 ```
 
-- [ ] **Step 5: Initiative page: imports and metadata**
+- [x] **Step 5: Initiative page: imports and metadata**
 
 In `app/initiatives/[slug]/page.tsx`, replace `import type { Metadata } from 'next';` with `import type { Metadata, Viewport } from 'next';`.
 
@@ -3059,7 +3066,7 @@ with:
     });
 ```
 
-- [ ] **Step 6: Initiative page: theme colour and breadcrumb graph**
+- [x] **Step 6: Initiative page: theme colour and breadcrumb graph**
 
 In `app/initiatives/[slug]/page.tsx`, replace:
 
@@ -3101,7 +3108,7 @@ with:
       <TopBar crumbs={crumbs} column="content" />
 ```
 
-- [ ] **Step 7: Part page: imports, metadata, and theme colour**
+- [x] **Step 7: Part page: imports, metadata, and theme colour**
 
 In `app/initiatives/[slug]/[part]/page.tsx`, replace `import type { Metadata } from 'next';` with `import type { Metadata, Viewport } from 'next';`.
 
@@ -3187,7 +3194,7 @@ export async function generateViewport(props: {
 export default async function PartPage(props: {
 ```
 
-- [ ] **Step 8: Part page: the breadcrumb graph**
+- [x] **Step 8: Part page: the breadcrumb graph**
 
 In `app/initiatives/[slug]/[part]/page.tsx`, replace:
 
@@ -3219,7 +3226,7 @@ with:
       <TopBar
 ```
 
-- [ ] **Step 9: Typecheck and verify**
+- [x] **Step 9: Typecheck and verify**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 54 tests pass, typecheck clean.
@@ -3238,7 +3245,7 @@ curl -s http://localhost:3010/initiatives | grep -o '<meta property="og:image"[^
 
 Expected: a `theme-color` meta whose content is the initiative's hex brand (when its frontmatter `brand` is a `#rrggbb`; a key such as `lvbt` leaves the site colour); a `twitter:label1` of `When`; the JSON-LD type `BreadcrumbList` and no `Event`; then `200 image/png`; then an `og:image` ending in `/initiatives/opengraph-image`.
 
-- [ ] **Step 10: Format, lint, and commit**
+- [x] **Step 10: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write app/initiatives lib/initiatives/viewport.ts tests/unit/initiative-viewport.test.mts
@@ -3264,7 +3271,7 @@ git restore --staged . && git add app/initiatives lib/initiatives/viewport.ts te
 - Modify: `app/robots.ts`
 - Test: `tests/unit/seo-robots.test.mts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/seo-robots.test.mts`:
 
@@ -3330,12 +3337,12 @@ test('the sitemap is announced on the canonical origin', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `pnpm exec tsx --test tests/unit/seo-robots.test.mts`
 Expected: FAIL. `Google-Extended`, `ClaudeBot`, `Applebot-Extended`, and `meta-externalagent` are not blocked yet, and `Googlebot-Extended` still is.
 
-- [ ] **Step 3: Correct the crawler list**
+- [x] **Step 3: Correct the crawler list**
 
 In `app/robots.ts`, replace:
 
@@ -3380,12 +3387,12 @@ with:
       },
 ```
 
-- [ ] **Step 4: Run the tests and typecheck**
+- [x] **Step 4: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 59 tests pass, typecheck clean.
 
-- [ ] **Step 5: Format, lint, and commit**
+- [x] **Step 5: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write app/robots.ts tests/unit/seo-robots.test.mts
@@ -3417,7 +3424,7 @@ git restore --staged . && git add app/robots.ts tests/unit/seo-robots.test.mts &
 
 - Produces: `buildSitemap(input: { writings: WritingData[]; initiatives: Initiative[] }): MetadataRoute.Sitemap` from `@/lib/seo/sitemap`; `updated?: Date` on `Initiative` and `Part`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/seo-sitemap.test.mts`:
 
@@ -3560,12 +3567,12 @@ test('drafts are left out even if a loader hands them over', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `pnpm exec tsx --test tests/unit/seo-sitemap.test.mts`
 Expected: FAIL. The `@/lib/seo/sitemap` module cannot be found.
 
-- [ ] **Step 3: Add the optional `updated` date to the schema**
+- [x] **Step 3: Add the optional `updated` date to the schema**
 
 In `lib/initiatives/schema.ts`, in `InitiativeFrontmatterSchema`, replace:
 
@@ -3605,7 +3612,7 @@ with:
   places: z.array(PlaceSchema).default([]),
 ```
 
-- [ ] **Step 4: Write the sitemap builder**
+- [x] **Step 4: Write the sitemap builder**
 
 Create `lib/seo/sitemap.ts`:
 
@@ -3680,7 +3687,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 ```
 
-- [ ] **Step 5: Document the field**
+- [x] **Step 5: Document the field**
 
 In `docs/initiatives.md`, replace the initiative row:
 
@@ -3708,12 +3715,12 @@ with:
 | `updated`     | no       | ISO date of the last real edit. Sets the sitemap's last-modified date.   |
 ```
 
-- [ ] **Step 6: Run the tests and typecheck**
+- [x] **Step 6: Run the tests and typecheck**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 63 tests pass, typecheck clean.
 
-- [ ] **Step 7: Format, lint, and commit**
+- [x] **Step 7: Format, lint, and commit**
 
 ```bash
 pnpm exec prettier --write lib/seo/sitemap.ts app/sitemap.ts lib/initiatives/schema.ts docs/initiatives.md tests/unit/seo-sitemap.test.mts
@@ -3739,7 +3746,7 @@ git restore --staged . && git add lib/seo/sitemap.ts app/sitemap.ts lib/initiati
 
 - Modify: `docs/superpowers/specs/2026-09-18-static-search-and-metadata-design.md`
 
-- [ ] **Step 1: Run every check**
+- [x] **Step 1: Run every check**
 
 ```bash
 pnpm test
@@ -3749,14 +3756,14 @@ git diff --name-only --diff-filter=d origin/main...HEAD -- '*.ts' '*.tsx' '*.mts
 
 Expected: 63 tests pass, typecheck clean, eslint reports nothing.
 
-- [ ] **Step 2: Build for production**
+- [x] **Step 2: Build for production**
 
 Run: `pnpm build`
 Expected: the prebuild prints `Search index generated with 3 items` and `Pagefind index written to .../public/pagefind` (three items because every writing and initiative is a draft today), `next build` completes, and the route list includes `/search`, `/initiatives`, `/writings`, `/sitemap.xml`, and `/robots.txt`.
 
 If the build fails on a `generateViewport` error under Cache Components, delete the `generateViewport` export from the failing initiative page (the per-initiative theme colour is a nicety), rebuild, and record the removal in the Task 9 follow-up commit. If it fails because Google Fonts cannot be fetched, that is a network issue unrelated to this change: say so, and rely on the dev-server checks from Tasks 4 and 7 to 9.
 
-- [ ] **Step 3: Check the production output**
+- [x] **Step 3: Check the production output**
 
 Start the production server as a background task (`PORT=3010 pnpm start`), then:
 
@@ -3776,13 +3783,13 @@ Expected:
 - the search JSON has a result with `"path":"/writings"` and `"type":"page"`
 - `404` for the draft post, because production hides drafts
 
-- [ ] **Step 4: Check ⌘K on the production build**
+- [x] **Step 4: Check ⌘K on the production build**
 
 In a browser at `http://localhost:3010/initiatives`, press Cmd+K (Ctrl+K off macOS), type `writings`, confirm a result linking to `/writings` appears, then press Esc. Do the same on `http://localhost:3010/`.
 
 Stop the server task when done.
 
-- [ ] **Step 5: Reconcile the spec with what was built**
+- [x] **Step 5: Reconcile the spec with what was built**
 
 In `docs/superpowers/specs/2026-09-18-static-search-and-metadata-design.md`, make these replacements.
 
@@ -3844,7 +3851,7 @@ Replace `the six new test files above.` with ``the new test files named in each 
 
 Replace `` `app/globals.css`, `tests/unit/search-rank.test.mts`.`` with `` `lib/initiatives/index.ts` (adds `loadAllInitiatives`), `tests/unit/search-rank.test.mts`.``
 
-- [ ] **Step 6: Format and commit**
+- [x] **Step 6: Format and commit**
 
 ```bash
 pnpm exec prettier --write docs/superpowers/specs/2026-09-18-static-search-and-metadata-design.md
@@ -3860,6 +3867,6 @@ EOF
 git restore --staged . && git add docs/superpowers/specs/2026-09-18-static-search-and-metadata-design.md && git commit -F "$MSG"
 ```
 
-- [ ] **Step 7: Hand off**
+- [x] **Step 7: Hand off**
 
 Report to the user: the commits made, which Task 3 branch applied (emitted Component UI files or the npm fallback), whether `generateViewport` survived the production build, and what still needs a deployed URL: Google's Rich Results Test for the `BlogPosting` markup, an Open Graph preview check, and confirming the `pagefind` binary installs on Vercel's Linux build. Nothing is pushed.

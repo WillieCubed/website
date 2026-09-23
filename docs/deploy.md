@@ -35,10 +35,11 @@ stay temporary while `/projects` is rebuilt.
 ## Hosting today: Vercel
 
 The app deploys to Vercel from the GitHub repository. Vercel-specific
-dependencies are `@vercel/postgres` (webmention storage, behind
-`lib/indieweb/webmention-storage.ts`), `@vercel/edge-config` (`lib/config`,
-unused by any live page), `@vercel/analytics`, and `@vercel/speed-insights`.
-Nothing else assumes Vercel.
+dependencies are `@vercel/postgres`, `@vercel/analytics`, and
+`@vercel/speed-insights`. Postgres holds webmentions and their rate limits
+(`lib/indieweb/webmention-storage.ts`), outgoing webmention hashes and reply
+contexts, and the optional search backend (`lib/search/postgres.ts`); the two
+webmention scripts under `scripts/` read it too. Nothing else assumes Vercel.
 
 DNS for both zones is at Cloudflare. Records that point at Vercel must be
 DNS-only (grey cloud); proxying them through Cloudflare puts two TLS
@@ -53,22 +54,21 @@ Willie is considering moving the whole site to Cloudflare Workers. The code
 is kept host-agnostic so that move is a spike, not a rewrite. What it would
 take, as of September 2026:
 
-| Concern            | Vercel (now)               | Cloudflare via OpenNext                                                                                                 | Cloudflare via vinext                                                                 |
-| ------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Runtime            | Next 16, `cacheComponents` | Next 16 supported; PPR and `use cache` listed as supported; Node middleware (`proxy.ts`) not yet, and the site has none | A Vite reimplementation of Next; `cacheComponents`, `next/og`, `next/font` unverified |
-| Webmention storage | Vercel Postgres            | Hyperdrive to the same Postgres, or D1; one module to change                                                            | same                                                                                  |
-| Remote config      | Edge Config                | delete `lib/config`; nothing live reads it                                                                              | same                                                                                  |
-| Analytics          | Vercel Analytics           | Cloudflare Web Analytics beacon                                                                                         | same                                                                                  |
-| Redirects          | `next.config.ts`           | same file                                                                                                               | same file, if supported                                                               |
-| Social images      | `next/og`                  | documented as working on workerd; verify                                                                                | unverified                                                                            |
-| Deploy             | git integration            | `wrangler deploy` with `@opennextjs/cloudflare`                                                                         | `create-vinext` / `migrate-to-vinext`                                                 |
+| Concern       | Vercel (now)               | Cloudflare via OpenNext                                                                                                 | Cloudflare via vinext                                                                 |
+| ------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Runtime       | Next 16, `cacheComponents` | Next 16 supported; PPR and `use cache` listed as supported; Node middleware (`proxy.ts`) not yet, and the site has none | A Vite reimplementation of Next; `cacheComponents`, `next/og`, `next/font` unverified |
+| Postgres      | Vercel Postgres            | Hyperdrive to the same Postgres, or D1; every module that imports `@vercel/postgres` changes                            | same                                                                                  |
+| Analytics     | Vercel Analytics           | Cloudflare Web Analytics beacon                                                                                         | same                                                                                  |
+| Redirects     | `next.config.ts`           | same file                                                                                                               | same file, if supported                                                               |
+| Social images | `next/og`                  | documented as working on workerd; verify                                                                                | unverified                                                                            |
+| Deploy        | git integration            | `wrangler deploy` with `@opennextjs/cloudflare`                                                                         | `create-vinext` / `migrate-to-vinext`                                                 |
 
 The spike, in order:
 
 1. In a fresh worktree, run the OpenNext Cloudflare adapter's build and note
    every warning.
-2. Point `lib/indieweb/webmention-storage.ts` at Hyperdrive with the `postgres`
-   driver and run the webmention tests.
+2. Point the modules that import `@vercel/postgres` at Hyperdrive with the
+   `postgres` driver and run the webmention and search tests.
 3. Render one `opengraph-image` route on workerd and compare it with the
    Vercel output.
 4. Preview on a `*.workers.dev` hostname before touching DNS.

@@ -1,14 +1,18 @@
 import assert from 'node:assert/strict';
+import { readFile, readdir } from 'node:fs/promises';
+import path from 'node:path';
 import test from 'node:test';
 
 import {
   type FeedItem,
   generateActivityAtomFeed,
   generateAtomFeed,
+  generateJsonFeed,
   generateRssFeed,
   generateWritingsAtomFeed,
 } from '@/lib/feeds';
 import { writingActivityFeedConfig } from '@/lib/indieweb/activity-feed-config';
+import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import { site } from '@/lib/site';
 
 const item: FeedItem = {
@@ -105,4 +109,52 @@ test('a writing activity Atom feed links to its writing', () => {
   });
 
   assert.equal(alternateLink(xml), `${site.origin}/writings/original-post`);
+});
+
+test('the generated RSS, Atom, and JSON feeds declare the WebSub hub', () => {
+  assert.ok(
+    generateRssFeed([item]).includes(
+      `<atom:link href="${WEBSUB_HUB}" rel="hub"/>`
+    )
+  );
+  assert.ok(
+    generateAtomFeed([item]).includes(`<link href="${WEBSUB_HUB}" rel="hub"/>`)
+  );
+  assert.deepEqual(JSON.parse(generateJsonFeed([item])).hubs, [
+    { type: 'WebSub', url: WEBSUB_HUB },
+  ]);
+});
+
+/** Every route handler under a `feed` or `feed.xml` directory in `app/`. */
+async function feedRoutes(directory = path.join(process.cwd(), 'app')) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map(async (entry): Promise<string[]> => {
+      const target = path.join(directory, entry.name);
+      if (entry.isDirectory()) return feedRoutes(target);
+      return entry.name === 'route.ts' && /\/feed(?:\.xml)?\//.test(target)
+        ? [target]
+        : [];
+    })
+  );
+  return files.flat();
+}
+
+test('the routes that build RSS with the rss package declare WEBSUB_HUB', async () => {
+  const routes = await feedRoutes();
+  const rssPackageRoutes: string[] = [];
+
+  for (const route of routes) {
+    const source = await readFile(route, 'utf8');
+    // The hub URL lives in lib/indieweb/constants.ts and nowhere else.
+    assert.ok(!source.includes(new URL(WEBSUB_HUB).host), route);
+    if (!source.includes('new RSS(')) continue;
+    rssPackageRoutes.push(path.relative(process.cwd(), route));
+    assert.match(source, /\bhub: WEBSUB_HUB\b/, route);
+  }
+
+  assert.deepEqual(rssPackageRoutes.sort(), [
+    'app/feed.xml/route.ts',
+    'app/writings/feed.xml/route.ts',
+  ]);
 });

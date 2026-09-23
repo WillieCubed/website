@@ -1,5 +1,8 @@
 import {
   AT_PROTOCOL_DID,
+  INDIEAUTH_AUTHORIZATION_ENDPOINT,
+  INDIEAUTH_METADATA_ENDPOINT,
+  INDIEAUTH_TOKEN_ENDPOINT,
   MICROPUB_ENDPOINT,
   OEMBED_ENDPOINT,
   PUBLIC_WEBMENTIONS_ENDPOINT,
@@ -11,6 +14,18 @@ import {
 import type { HostMetaResponse, WebFingerResponse } from '@/lib/indieweb/types';
 import { absoluteSiteUrl } from '@/lib/indieweb/utils';
 import { MCP_ENDPOINT } from '@/lib/mcp/constants';
+
+/**
+ * How a client finds the IndieAuth server. `indieauth-metadata` is the
+ * current mechanism; the two endpoint links serve clients written before it.
+ * The head in `app/layout.tsx` and the WebFinger response both render this
+ * list, so they cannot drift apart.
+ */
+export const INDIEAUTH_DISCOVERY_LINKS = [
+  { rel: 'indieauth-metadata', href: INDIEAUTH_METADATA_ENDPOINT },
+  { rel: 'authorization_endpoint', href: INDIEAUTH_AUTHORIZATION_ENDPOINT },
+  { rel: 'token_endpoint', href: INDIEAUTH_TOKEN_ENDPOINT },
+] as const;
 
 /**
  * The resources WebFinger answers for: the author's acct: URI and the home
@@ -58,6 +73,11 @@ export function buildWebFingerResponse(
         rel: 'http://purl.org/indieauth',
         href: SITE_URL,
       },
+      // The same IndieAuth links the HTML head carries.
+      ...INDIEAUTH_DISCOVERY_LINKS.map(({ rel, href }) => ({
+        rel,
+        href: absoluteSiteUrl(href, SITE_URL),
+      })),
     ],
   };
 }
@@ -180,6 +200,11 @@ export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
       ),
       llmsLink('Webmention activity feed', '/activity/feed.xml'),
       llmsLink('Micropub endpoint', MICROPUB_ENDPOINT),
+      llmsLink(
+        'IndieAuth server metadata',
+        INDIEAUTH_METADATA_ENDPOINT,
+        'sign in as this site with IndieAuth'
+      ),
       llmsLink('oEmbed provider', `${OEMBED_ENDPOINT}?url=`),
       llmsLink('WebFinger', '/.well-known/webfinger'),
       llmsLink('security.txt', '/.well-known/security.txt'),

@@ -1,75 +1,100 @@
 import assert from 'node:assert/strict';
-import { afterEach, mock, test } from 'node:test';
+import test from 'node:test';
 
-import { INDIEAUTH_TOKEN_ENDPOINT } from '@/lib/indieweb/constants';
-import { verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
+import { getBearerToken, verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
+import { hashSecret } from '@/lib/indieweb/indieauth-server';
+import type { IndieAuthTokenRecord } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
-const options = {
-  bearer: 'token-123',
-  endpoint: INDIEAUTH_TOKEN_ENDPOINT,
-  expectedMe: site.origin,
-};
+import { memoryIndieAuthStore } from './indieauth-memory-store.mts';
 
-/** Answer the token endpoint with `body` and `status`. */
-function tokenEndpoint(body: unknown, status = 200) {
-  return mock.method(globalThis, 'fetch', async () =>
-    typeof body === 'string'
-      ? new Response(body, { status })
-      : Response.json(body, { status })
-  );
+const NOW = new Date('2026-09-22T12:00:00Z');
+
+/** A store holding one token, `token-123`, with the given grant. */
+async function storeWith(grant: Partial<IndieAuthTokenRecord> = {}) {
+  const { store } = memoryIndieAuthStore();
+  await store.saveToken(hashSecret('token-123'), {
+    clientId: 'https://client.example/',
+    me: `${site.origin}/`,
+    scope: ['create'],
+    issuedAt: new Date('2026-09-01T00:00:00Z'),
+    expiresAt: new Date('2026-12-01T00:00:00Z'),
+    ...grant,
+  });
+  return store;
 }
 
-afterEach(() => mock.restoreAll());
+const options = { bearer: 'token-123', expectedMe: site.origin, now: NOW };
 
-test('a token issued for this site is accepted', async () => {
-  const fetch = tokenEndpoint({ me: `${site.origin}/`, scope: 'create' });
-  assert.equal(await verifyIndieAuthToken(options), true);
+test('a token this site issued is accepted without calling out', async (t) => {
+  const fetch = t.mock.method(globalThis, 'fetch');
+  const store = await storeWith();
 
-  const [url, init] = fetch.mock.calls[0].arguments as [string, RequestInit];
-  assert.equal(url, INDIEAUTH_TOKEN_ENDPOINT);
-  assert.equal(
-    new Headers(init.headers).get('Authorization'),
-    'Bearer token-123'
-  );
+  assert.equal(await verifyIndieAuthToken({ ...options, store }), true);
+  assert.equal(fetch.mock.callCount(), 0);
 });
 
 test('a token must carry the required scope', async () => {
-  tokenEndpoint({ me: site.origin, scope: 'create update' });
+  const store = await storeWith({ scope: ['create', 'update'] });
   assert.equal(
-    await verifyIndieAuthToken({ ...options, requiredScope: 'update' }),
+    await verifyIndieAuthToken({ ...options, store, requiredScope: 'update' }),
     true
   );
   assert.equal(
-    await verifyIndieAuthToken({ ...options, requiredScope: 'delete' }),
+    await verifyIndieAuthToken({ ...options, store, requiredScope: 'delete' }),
     false
   );
   // A scope that only starts the same way is not the same scope.
   assert.equal(
-    await verifyIndieAuthToken({ ...options, requiredScope: 'up' }),
+    await verifyIndieAuthToken({ ...options, store, requiredScope: 'up' }),
     false
   );
-});
-
-test('a token with no scope fails a scope check', async () => {
-  tokenEndpoint({ me: site.origin });
+  // Given a list, any one scope passes.
   assert.equal(
-    await verifyIndieAuthToken({ ...options, requiredScope: 'create' }),
+    await verifyIndieAuthToken({
+      ...options,
+      store,
+      requiredScope: ['media', 'create'],
+    }),
+    true
+  );
+});
+
+test('an unknown, expired, or foreign token is refused', async () => {
+  const store = await storeWith();
+  assert.equal(
+    await verifyIndieAuthToken({ ...options, store, bearer: 'token-456' }),
+    false
+  );
+  assert.equal(
+    await verifyIndieAuthToken({
+      ...options,
+      store,
+      now: new Date('2026-12-02T00:00:00Z'),
+    }),
+    false
+  );
+
+  const foreign = await storeWith({ me: 'https://example.com/' });
+  assert.equal(
+    await verifyIndieAuthToken({ ...options, store: foreign }),
     false
   );
 });
 
-test('a token issued for another site is refused', async () => {
-  tokenEndpoint({ me: 'https://example.com/', scope: 'create' });
-  assert.equal(await verifyIndieAuthToken(options), false);
+test('a revoked token is refused', async () => {
+  const store = await storeWith();
+  await store.revokeToken(hashSecret('token-123'), NOW);
+  assert.equal(await verifyIndieAuthToken({ ...options, store }), false);
 });
 
-test('a token the endpoint rejects is refused', async () => {
-  tokenEndpoint({ error: 'invalid_token' }, 401);
-  assert.equal(await verifyIndieAuthToken(options), false);
-});
-
-test('an endpoint response that is not JSON is refused', async () => {
-  tokenEndpoint('me=https://willie.page/');
-  assert.equal(await verifyIndieAuthToken(options), false);
+test('getBearerToken reads the Authorization header', () => {
+  const request = (authorization?: string) =>
+    new Request(`${site.origin}/micropub`, {
+      headers: authorization ? { Authorization: authorization } : {},
+    });
+  assert.equal(getBearerToken(request('Bearer abc ')), 'abc');
+  assert.equal(getBearerToken(request('bearer abc')), 'abc');
+  assert.equal(getBearerToken(request('Basic abc')), null);
+  assert.equal(getBearerToken(request()), null);
 });

@@ -1,4 +1,4 @@
-import { INDIEAUTH_TOKEN_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
+import { SITE_URL } from '@/lib/indieweb/constants';
 import { getBearerToken, verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
 import {
   MicropubStorageError,
@@ -53,9 +53,9 @@ export async function POST(request: Request) {
 
   const environment = getMicropubEnvironment();
 
+  // Tokens come from this site's own token endpoint and are checked locally.
   const tokenIsValid = await verifyIndieAuthToken({
     bearer,
-    endpoint: environment.indieAuthTokenEndpoint,
     expectedMe: SITE_URL,
     requiredScope: 'create',
   }).catch(() => false);
@@ -104,7 +104,5 @@ function getMicropubEnvironment(): MicropubRouteEnvironment {
     githubToken: process.env.MICROPUB_GITHUB_TOKEN,
     defaultBranch: process.env.MICROPUB_GITHUB_BRANCH ?? 'main',
     contentPath: process.env.MICROPUB_CONTENT_PATH ?? 'content/writings',
-    indieAuthTokenEndpoint:
-      process.env.INDIEAUTH_TOKEN_ENDPOINT ?? INDIEAUTH_TOKEN_ENDPOINT,
   };
 }

@@ -9,12 +9,11 @@ import SiteFooter from '@/components/site/SiteFooter';
 import SkipLink from '@/components/site/SkipLink';
 
 import {
-  INDIEAUTH_AUTHORIZATION_ENDPOINT,
-  INDIEAUTH_TOKEN_ENDPOINT,
   MICROPUB_ENDPOINT,
   WEBMENTION_ENDPOINT,
   WEBSUB_HUB,
 } from '@/lib/indieweb/constants';
+import { INDIEAUTH_DISCOVERY_LINKS } from '@/lib/indieweb/discovery';
 import { site } from '@/lib/site';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
@@ -104,11 +103,9 @@ export default async function RootLayout({
         <link rel="author" href={`${site.origin}/`} />
         <link rel="webmention" href={WEBMENTION_ENDPOINT} />
         <link rel="micropub" href={MICROPUB_ENDPOINT} />
-        <link
-          rel="authorization_endpoint"
-          href={INDIEAUTH_AUTHORIZATION_ENDPOINT}
-        />
-        <link rel="token_endpoint" href={INDIEAUTH_TOKEN_ENDPOINT} />
+        {INDIEAUTH_DISCOVERY_LINKS.map(({ rel, href }) => (
+          <link key={rel} rel={rel} href={href} />
+        ))}
         <link rel="hub" href={WEBSUB_HUB} />
         <link
           rel="alternate"

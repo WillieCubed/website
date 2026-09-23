@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  INDIEAUTH_DISCOVERY_LINKS,
   buildAtProtocolDid,
   buildHostMetaResponse,
   buildHostMetaXml,
@@ -22,6 +23,48 @@ test('buildWebFingerResponse exposes profile, webmention, and Micropub links', (
   assert.ok(
     response.links.some((link) => link.href === `${site.origin}/webmention`)
   );
+});
+
+test('WebFinger advertises the same IndieAuth server as the HTML head', () => {
+  const response = buildWebFingerResponse(acct);
+  assert.ok(response);
+
+  assert.deepEqual(
+    INDIEAUTH_DISCOVERY_LINKS.map(({ rel }) => rel),
+    ['indieauth-metadata', 'authorization_endpoint', 'token_endpoint']
+  );
+  for (const { rel, href } of INDIEAUTH_DISCOVERY_LINKS) {
+    assert.equal(
+      response.links.find((link) => link.rel === rel)?.href,
+      `${site.origin}${href}`,
+      rel
+    );
+  }
+});
+
+test('the IndieAuth metadata route serves this site as the issuer', async () => {
+  const { GET } =
+    await import('@/app/.well-known/oauth-authorization-server/route');
+  const response = await GET();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), '*');
+  const metadata = await response.json();
+  assert.equal(metadata.issuer, `${site.origin}/`);
+
+  const indieauthMetadata = INDIEAUTH_DISCOVERY_LINKS.find(
+    (link) => link.rel === 'indieauth-metadata'
+  );
+  assert.equal(
+    indieauthMetadata?.href,
+    '/.well-known/oauth-authorization-server'
+  );
+  // The issuer must be a prefix of the metadata URL.
+  assert.ok(
+    `${site.origin}${indieauthMetadata.href}`.startsWith(metadata.issuer)
+  );
+  for (const { rel, href } of INDIEAUTH_DISCOVERY_LINKS.slice(1)) {
+    assert.equal(metadata[rel], `${site.origin}${href}`, rel);
+  }
 });
 
 const webfinger = async (query: string) => {
@@ -124,6 +167,7 @@ test('buildLlmsSummary links the protocol surfaces by name', () => {
     ['Search', '/search?q='],
     ['oEmbed provider', '/oembed?url='],
     ['WebFinger', '/.well-known/webfinger'],
+    ['IndieAuth server metadata', '/.well-known/oauth-authorization-server'],
     ['MCP server', '/api/mcp'],
   ];
 

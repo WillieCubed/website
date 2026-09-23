@@ -24,7 +24,8 @@
     "websub:ping": "tsx scripts/websub-ping.mts",
     "webmentions:send": "tsx scripts/send-webmentions.mts",
     "webmentions:moderate": "tsx scripts/moderate-webmentions.mts",
-    "webmentions:backfill-authors": "tsx scripts/backfill-webmention-authors.mts"
+    "webmentions:backfill-authors": "tsx scripts/backfill-webmention-authors.mts",
+    "indieauth:totp": "tsx scripts/indieauth-totp.mts"
   },
   "dependencies": {
     "@material/material-color-utilities": "^0.3.0",
@@ -58,6 +59,7 @@
     "remark-rehype": "^11.1.2",
     "sanitize-html": "^2.17.7",
     "shiki": "^3.23.0",
+    "undici": "^8.11.0",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0",
     "zod": "^4.6.5"

@@ -74,7 +74,7 @@ export type DetailMedia =
       /** Anchor the cover crop to the left edge rather than the center. */
       fromLeft?: boolean;
     })
-  | { kind: 'stack'; images: Picture[] }
+  | { kind: 'stack'; images: (Picture & { alt: string })[] }
   | { kind: 'constellation' };
 
 export interface Detail {
@@ -94,7 +94,8 @@ export interface Product {
   platform: string;
   copy: string;
   image: Picture;
-  detail: Detail;
+  /** Always a screenshot, so the studio's detail view can reuse its alt text. */
+  detail: Detail & { media: Extract<DetailMedia, { kind: 'image' }> };
 }
 
 export type TileBody =
@@ -315,7 +316,13 @@ export const ventures: Venture[] = [
     weight: 75,
     body: { kind: 'products', products: productList },
     detail: {
-      media: { kind: 'stack', images: productList.map((p) => p.image) },
+      media: {
+        kind: 'stack',
+        images: productList.map((p) => ({
+          ...p.image,
+          alt: p.detail.media.alt,
+        })),
+      },
       body: [
         'Hypertext Studio is Willie’s design lab and small business. It builds software for humans.',
       ],

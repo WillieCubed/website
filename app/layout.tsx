@@ -6,6 +6,7 @@ import React from 'react';
 
 import SearchModal from '@/components/search/SearchModal';
 import SiteFooter from '@/components/site/SiteFooter';
+import SkipLink from '@/components/site/SkipLink';
 
 import {
   INDIEAUTH_AUTHORIZATION_ENDPOINT,
@@ -161,6 +162,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink font-sans antialiased">
+        <SkipLink />
         {process.env.NODE_ENV === 'production' &&
           process.env.NEXT_PUBLIC_GTAG_ID && (
             <>

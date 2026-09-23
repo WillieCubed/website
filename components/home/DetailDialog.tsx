@@ -87,7 +87,7 @@ function Media({
               src={image.src}
               width={image.width}
               height={image.height}
-              alt=""
+              alt={image.alt}
             />
           ))}
         </div>

@@ -24,6 +24,8 @@ export function IndexRow({ venture }: { venture: Venture }) {
           openDetail(venture.id, event.currentTarget);
         }}
       >
+        {/* Decorative: the row's text already names the venture, and the
+            detail view it opens describes the same screenshots. */}
         <span className="stack">
           {/* The rail is on the first screen at every size, so these load
               eagerly; the tiles below share the same files. */}

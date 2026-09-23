@@ -47,7 +47,10 @@ export default async function NotFound() {
   return (
     <>
       <TopBar column="content" />
-      <main className="mx-auto flex max-w-[840px] flex-col gap-7 px-5 pb-8 pt-10">
+      <main
+        id="main"
+        className="mx-auto flex max-w-[840px] flex-col gap-7 px-5 pb-8 pt-10"
+      >
         <h1 className="text-display-small">No page lives at this address.</h1>
         <RequestLog paths={paths} />
         <div>

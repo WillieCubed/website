@@ -21,7 +21,7 @@ export default async function InitiativesPage() {
   return (
     <>
       <TopBar crumbs={[{ label: 'Initiatives', href: '/initiatives' }]} />
-      <main className="mx-auto max-w-[1200px] px-5 pb-20">
+      <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
         <h1 className="text-display-small text-ink">Initiatives</h1>
         {initiatives.length === 0 && (
           <p className="mt-6 text-body-large text-muted">

@@ -54,6 +54,8 @@ export function ProductScroller({
               style={style}
               onClick={(event) => openDetail(product.id, event.currentTarget)}
             >
+              {/* Decorative: the card's text names the product, and the
+                  detail view it opens describes the screenshot. */}
               <span className="p-media">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img

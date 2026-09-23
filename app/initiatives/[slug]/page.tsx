@@ -91,7 +91,7 @@ export default async function InitiativePage(props: {
         )}
       />
       <TopBar crumbs={crumbs} column="content" />
-      <main className="mx-auto max-w-[1200px] px-5 pb-20">
+      <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
         <header className="mx-auto max-w-[840px]">
           <h1 className="mt-2 text-display-medium text-ink">
             {initiative.title}

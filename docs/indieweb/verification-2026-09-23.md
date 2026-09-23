@@ -18,14 +18,14 @@ It uses Vercel project `indieweb-acceptance` and Neon project
 `willie-page-indieweb-acceptance`, both separate from production. The local
 checkout is based on the production commit above. Disposable writings were
 built into the acceptance deployment and were not added to the feature branch.
-The final acceptance deployment is `dpl_6NUqaPwf2AiN1j5yN8AwASzYzZSR`.
+The final acceptance deployment is `dpl_D3FNft927Yoccz75EoJbGa1tbzin`.
 A separate publishing branch, `codex/indieweb-test-publish-20260923`, holds
 the Micropub commits. The acceptance site's canonical origin was set with
 `NEXT_PUBLIC_SITE_ORIGIN` at build time.
 
 | Check                           | Result                                                   | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Repository suite                | 418 unit tests passed; lint, typecheck, and build passed | The production build reported existing `::highlight` CSS warnings. IndieWeb postbuild was disabled for the local build.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Repository suite                | 420 unit tests passed; lint, typecheck, and build passed | The production build reported existing `::highlight` CSS warnings. IndieWeb postbuild was disabled for the local build.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | Public production HTTP          | 7 passed, 1 skipped                                      | [Homepage](https://willie.page/), [writings](https://willie.page/writings), feeds, WebFinger, IndieAuth metadata, and invalid requests passed. The post case skipped because production has no published writing.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | Acceptance HTTP                 | 8 passed                                                 | The [test writing](https://indieweb-acceptance.vercel.app/writings/indieweb-acceptance-20260923) exposes a parsed author, canonical URL, date, and content. Its entry appears in [JSON Feed](https://indieweb-acceptance.vercel.app/writings/feed/json). Missing and invalid Micropub tokens returned 401 and 403.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | Independent microformats parser | Passed                                                   | [Go Microformats Parser](https://go.microformats.io/?url=https%3A%2F%2Findieweb-acceptance.vercel.app%2Fwritings%2Findieweb-acceptance-20260923) returned an `h-entry` with an `h-card` author, permalink, publication date, and content. The [homepage parse](https://go.microformats.io/?url=https%3A%2F%2Findieweb-acceptance.vercel.app%2F) returned the representative `h-card`.                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -38,15 +38,71 @@ the Micropub commits. The acceptance site's canonical origin was set with
 The independent [Authorship Rocks](https://authorship.rocks/) site supplies
 sample posts for software that discovers authors of _other_ sites. It does
 not accept an arbitrary URL to validate this site's post, so its cases do
-not apply to the implemented publisher behavior. [Micropub Rocks](https://micropub.rocks/)
-server cases require its email sign-in, which was requested but not completed
-at the time of this record. The local and hosted Micropub HTTP checks establish
-the behavior above, but they are not a Micropub Rocks conformance result.
-Webmention Rocks update and delete cases were not run. The discovery cases
+not apply to the implemented publisher behavior. Webmention Rocks update and
+delete cases were not run. The discovery cases
 verify the sender's endpoint handling with a public source page, while the
 test writing verifies the published-post send route for case #1.
 
-Two failures were found and fixed during the run. Before the change, WebSub
+## Micropub Rocks
+
+Email sign-in completed for the test account. Its endpoint discovery found the
+authorization, token, and Micropub endpoints on the isolated site. Its
+[authorization callback](https://micropub.rocks/endpoints/callback) failed to
+obtain a token: the site's token endpoint returned HTTP 400 with
+`{"error":"invalid_request","error_description":"code, client_id, redirect_uri, and code_verifier are all required."}`.
+Micropub Rocks did not send a PKCE verifier. The site kept the verifier
+requirement and used a short-lived, manually registered test token for the
+server cases.
+
+Cases [600](https://micropub.rocks/server-tests/600?endpoint=1003) and
+[601](https://micropub.rocks/server-tests/601?endpoint=1003) returned HTTP 200
+with valid configuration and syndication JSON. Case
+[803](https://micropub.rocks/server-tests/803?endpoint=1003) returned HTTP 401
+with `{"error":"unauthorized"}` for a missing token. Micropub Rocks marked all
+three as passing. Case
+[100](https://micropub.rocks/server-tests/100?endpoint=1004) returned HTTP 202
+with a `Location` from the tunneled local build. The post landed on the
+disposable publishing branch in commit
+`b9d9b6387994b273808adda164c484eac0f61363`; its
+[permalink](https://indieweb-acceptance.vercel.app/writings/micropub-test-of-creating-a-basic-h-entry)
+returned HTTP 200 after the isolated deployment included the commit. The same
+case against the Vercel endpoint returned HTTP 500 with
+`{"error":"server_error","error_description":"The content directory is read-only (EROFS). Configure MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN so posts commit through GitHub instead."}`.
+The public Vercel project deliberately has no GitHub publishing token.
+
+Case [804](https://micropub.rocks/server-tests/804?endpoint=1003) used a valid
+token without `create` scope. It received HTTP 403 with
+`{"error":"forbidden"}`, while Micropub Rocks expects HTTP 401 with
+`{"error":"insufficient_scope"}`. The current
+[IndieAuth specification](https://indieauth.spec.indieweb.org/#error-responses)
+recommends HTTP 403 for insufficient scope, but the site's error code could
+name that condition more precisely. Case
+[805](https://micropub.rocks/server-tests/805?endpoint=1003) now receives HTTP
+400 with `{"error":"invalid_request"}` when the token appears in both the
+header and form body. The publishing branch did not change. Micropub Rocks
+still marks it failing because it expects the literal error string `bad
+request`, whereas the [Micropub error
+definition](https://www.w3.org/TR/micropub/#error-response) names
+`invalid_request`.
+
+The first tunnel expired while running cases
+[101](https://micropub.rocks/server-tests/101?endpoint=1004),
+[104](https://micropub.rocks/server-tests/104?endpoint=1004),
+[107](https://micropub.rocks/server-tests/107?endpoint=1004),
+[200](https://micropub.rocks/server-tests/200?endpoint=1004),
+[201](https://micropub.rocks/server-tests/201?endpoint=1004),
+[202](https://micropub.rocks/server-tests/202?endpoint=1004),
+[203](https://micropub.rocks/server-tests/203?endpoint=1004),
+[204](https://micropub.rocks/server-tests/204?endpoint=1004),
+[205](https://micropub.rocks/server-tests/205?endpoint=1004), and
+[206](https://micropub.rocks/server-tests/206?endpoint=1004). Each received
+HTTP 503 with `no tunnel here :(` from the tunnel provider. Those are
+unverified cases, not site results. The old Vercel deployment also advertised
+`media-endpoint` while `POST /micropub/media` returned HTTP 503 with
+`{"error":"temporarily_unavailable"}`. The final isolated deployment omits
+the media endpoint from `q=config` until upload storage is configured.
+
+Earlier checks also found and fixed three defects. Before the change, WebSub
 Rocks reported `hub: false` and `self: false` for
 [`/writings/feed/json`](https://indieweb-acceptance.vercel.app/writings/feed/json),
 even though the JSON body contained them. The feed now uses HTTP `Link`

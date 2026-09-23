@@ -79,6 +79,18 @@ test('buildHostMetaResponse points LRDD clients to WebFinger', () => {
   assert.match(buildHostMetaXml(), /webfinger\?resource=\{uri\}/);
 });
 
+test('host-meta.json serves the LRDD link as JSON', async () => {
+  const { GET } = await import('@/app/.well-known/host-meta.json/route');
+  const response = await GET();
+
+  assert.equal(response.status, 200);
+  assert.match(
+    response.headers.get('Content-Type') ?? '',
+    /^application\/json/
+  );
+  assert.deepEqual(await response.json(), buildHostMetaResponse());
+});
+
 test('buildAtProtocolDid returns the configured DID document pointer', () => {
   assert.equal(buildAtProtocolDid(), `${site.author.atprotoDid}\n`);
 });

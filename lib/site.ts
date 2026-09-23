@@ -187,7 +187,8 @@ export function absoluteUrl(path = '/'): string {
 }
 
 /**
- * Tagged template for absolute site URLs.
+ * Tagged template for absolute site URLs. The result is always on the
+ * canonical origin, whatever the interpolated values hold.
  *
  * @example absoluteRoute`/writings/${slug}`
  */
@@ -198,9 +199,16 @@ export function absoluteRoute(
   let path = '';
   strings.forEach((part, index) => {
     path += part;
-    if (values[index] !== undefined) path += String(values[index]);
+    if (values[index] === undefined) return;
+    const value = String(values[index]);
+    // A value after a slash drops its own leading slashes, so
+    // `/${'/evil.example'}` cannot become `//evil.example`.
+    path += /[\\/]$/.test(path) ? value.replace(/^[\\/]+/, '') : value;
   });
-  return absoluteUrl(path || '/');
+  // The URL parser reads a leading `//` (or `\\`, or either split by a tab
+  // or newline, which it strips) as a host, and a bare `https://…` as a
+  // whole URL. Rooting the path at a single slash keeps both on this origin.
+  return absoluteUrl(`/${path.replace(/^[\s\\/]+/, '')}`);
 }
 
 export interface PageMetadataInput {

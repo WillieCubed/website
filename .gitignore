@@ -50,3 +50,7 @@ yarn-error.log*
 
 # Browser automation output (Playwright MCP screenshots, logs, snapshots)
 /.playwright-mcp/
+
+# Playwright smoke test output (tests/e2e)
+/test-results/
+/playwright-report/

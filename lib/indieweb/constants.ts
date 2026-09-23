@@ -9,6 +9,7 @@ export const INDIEAUTH_AUTHORIZATION_ENDPOINT = 'https://indieauth.com/auth';
 export const INDIEAUTH_TOKEN_ENDPOINT = 'https://indieauth.com/token';
 export const WEBMENTION_ENDPOINT = '/webmention';
 export const MICROPUB_ENDPOINT = '/micropub';
+export const MICROPUB_MEDIA_ENDPOINT = '/micropub/media';
 export const PUBLIC_WEBMENTIONS_ENDPOINT = '/webmentions';
 export const OEMBED_ENDPOINT = '/oembed';
 export const WEBSUB_HUB = 'https://pubsubhubbub.appspot.com/';

@@ -40,6 +40,14 @@ export type PersonTag = {
   url: string;
 };
 
+/** A photo in a photo post, rendered as a `u-photo`. */
+export type WritingPhoto = {
+  /** Absolute URL of the image, usually from the Micropub media endpoint */
+  url: string;
+  /** Alternative text; empty when the photo is decorative */
+  alt?: string;
+};
+
 /** RSVP status values per IndieWeb spec */
 export type RSVPStatus = 'yes' | 'no' | 'maybe' | 'interested';
 
@@ -74,6 +82,8 @@ export type WritingData = {
     slug: string;
     part: number;
   };
+  /** Photos the post is about, each a `u-photo`. Absent when there are none. */
+  photos?: WritingPhoto[];
   /** Links to syndicated copies on other platforms (POSSE) */
   syndication?: SyndicationLink[];
   /** Type of post for IndieWeb h-entry classification */

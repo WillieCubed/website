@@ -26,6 +26,7 @@ import type {
   SyndicationLink,
   TOCHeading,
   WritingData,
+  WritingPhoto,
 } from './types';
 
 // Re-export series types from collections module
@@ -65,6 +66,8 @@ interface RawFrontmatter {
     part: number;
   };
   syndication?: SyndicationLink[];
+  /** Photos, each `{ url, alt }`, as the Micropub endpoint writes them. */
+  photo?: unknown;
   postType?: PostType;
   inReplyTo?: string;
   // Interaction post fields (IndieWeb Level 4)
@@ -241,6 +244,7 @@ export async function loadWriting(slug: string) {
     readingTime: Math.ceil(stats.minutes),
     series: frontmatter.series,
     syndication: frontmatter.syndication,
+    photos: parsePhotos(frontmatter.photo),
     postType,
     inReplyTo: frontmatter.inReplyTo,
     // Interaction post fields
@@ -251,6 +255,22 @@ export async function loadWriting(slug: string) {
   };
 
   return { content, writing, headings };
+}
+
+/**
+ * `photo` frontmatter as a list of photos. An entry may be a bare URL or
+ * `{ url, alt }`; anything without a URL is skipped.
+ */
+function parsePhotos(value: unknown): WritingPhoto[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const photos = value.flatMap((item: unknown): WritingPhoto[] => {
+    if (typeof item === 'string') return item ? [{ url: item }] : [];
+    if (!item || typeof item !== 'object') return [];
+    const { url, alt } = item as { url?: unknown; alt?: unknown };
+    if (typeof url !== 'string' || !url) return [];
+    return [typeof alt === 'string' && alt ? { url, alt } : { url }];
+  });
+  return photos.length > 0 ? photos : undefined;
 }
 
 /**

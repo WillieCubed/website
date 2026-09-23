@@ -1,6 +1,7 @@
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { MICROPUB_MEDIA_ENDPOINT } from '@/lib/indieweb/constants';
 import type {
   GitHubContentsCommitResponse,
   MicropubCommitOptions,
@@ -8,6 +9,7 @@ import type {
   MicropubConfigResponse,
   MicropubCreateRequest,
   MicropubJsonBody,
+  MicropubPhoto,
   MicropubPostType,
   MicropubPostTypeSource,
   MicropubRsvpStatus,
@@ -54,10 +56,11 @@ export function getMicropubSyndicationTargets(): MicropubSyndicationTarget[] {
 
 export function getMicropubConfig(): MicropubConfigResponse {
   return {
-    'media-endpoint': null,
+    'media-endpoint': absoluteRoute`${MICROPUB_MEDIA_ENDPOINT}`,
     'syndicate-to': getMicropubSyndicationTargets(),
     'post-types': [
       { type: 'note', name: 'Note' },
+      { type: 'photo', name: 'Photo' },
       { type: 'article', name: 'Article' },
       { type: 'reply', name: 'Reply' },
       { type: 'like', name: 'Like' },
@@ -89,8 +92,10 @@ export function buildMicropubWritingFile(
   const title = entry.name ?? titleForEntry(entry, published);
   const description =
     entry.summary ??
-    plainTextExcerpt(entry.content) ??
-    `A short note from ${site.author.givenName}.`;
+    (plainTextExcerpt(entry.content) ||
+      (entry.postType === 'photo'
+        ? `A photo from ${site.author.givenName}.`
+        : `A short note from ${site.author.givenName}.`));
   const lines = [
     '---',
     `title: ${JSON.stringify(title)}`,
@@ -108,6 +113,13 @@ export function buildMicropubWritingFile(
   if (entry.repostOf) lines.push(`repostOf: ${JSON.stringify(entry.repostOf)}`);
   if (entry.bookmarkOf) {
     lines.push(`bookmarkOf: ${JSON.stringify(entry.bookmarkOf)}`);
+  }
+  if (entry.photos.length > 0) {
+    lines.push('photo:');
+    entry.photos.forEach(({ url, alt }) => {
+      lines.push(`  - url: ${JSON.stringify(url)}`);
+      if (alt) lines.push(`    alt: ${JSON.stringify(alt)}`);
+    });
   }
   if (entry.rsvp && entry.inReplyTo) {
     lines.push('rsvp:');
@@ -131,7 +143,12 @@ export function micropubWritingPath(
   entry: MicropubCreateRequest,
   contentPath = DEFAULT_CONTENT_PATH
 ): { slug: string; path: string } {
-  const slug = entry.slug || makeIndieWebSlug(entry.name || entry.content);
+  const slug =
+    entry.slug ||
+    makeIndieWebSlug(
+      entry.name || entry.content,
+      entry.postType === 'photo' ? 'photo' : undefined
+    );
   return { slug, path: `${contentPath}/${slug}.mdx` };
 }
 
@@ -245,6 +262,7 @@ function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
     repostOf: firstString(properties['repost-of']),
     bookmarkOf: firstString(properties['bookmark-of']),
     rsvp: firstString(properties.rsvp),
+    photos: parseJsonPhotos((properties as Record<string, unknown>).photo),
     syndication: properties.syndication ?? [],
     syndicateTo: properties['mp-syndicate-to'] ?? [],
   });
@@ -264,6 +282,7 @@ function parseFormData(formData: FormData): MicropubCreateRequest {
     repostOf: optionalFormString(formData.get('repost-of')),
     bookmarkOf: optionalFormString(formData.get('bookmark-of')),
     rsvp: optionalFormString(formData.get('rsvp')),
+    photos: parseFormPhotos(formData),
     syndication: formStringList(formData, 'syndication'),
     syndicateTo: formStringList(formData, 'mp-syndicate-to'),
   });
@@ -271,7 +290,8 @@ function parseFormData(formData: FormData): MicropubCreateRequest {
 
 function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
   const content = entry.content?.trim() ?? '';
-  if (entry.h !== 'entry' || !content) {
+  // A photo post may be the photo alone, without a caption.
+  if (entry.h !== 'entry' || (!content && entry.photos.length === 0)) {
     throw new Error('invalid_request');
   }
 
@@ -289,9 +309,49 @@ function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
     repostOf: entry.repostOf,
     bookmarkOf: entry.bookmarkOf,
     rsvp: normalizeRsvp(entry.rsvp),
+    photos: entry.photos,
     syndication: entry.syndication.filter(Boolean),
     syndicateTo: resolveSyndicationTargets(entry.syndicateTo),
   };
+}
+
+// Form bodies carry photo URLs only, as `photo` or `photo[]`. A file sent
+// here instead of to the media endpoint is refused rather than dropped, so a
+// post never publishes without the photo its author attached.
+function parseFormPhotos(formData: FormData): MicropubPhoto[] {
+  const values = [...formData.getAll('photo'), ...formData.getAll('photo[]')];
+  return values.map((value) => {
+    if (typeof value !== 'string') throw new Error('invalid_request');
+    return { url: photoUrl(value) };
+  });
+}
+
+// JSON bodies give each photo as a URL or as `{ value, alt }`.
+function parseJsonPhotos(values: unknown): MicropubPhoto[] {
+  if (values === undefined) return [];
+  if (!Array.isArray(values)) throw new Error('invalid_request');
+  return values.map((value: unknown) => {
+    if (typeof value === 'string') return { url: photoUrl(value) };
+    if (value && typeof value === 'object' && 'value' in value) {
+      const { value: url, alt } = value as { value: unknown; alt?: unknown };
+      if (typeof url !== 'string') throw new Error('invalid_request');
+      const text = typeof alt === 'string' ? alt.trim() : '';
+      return text ? { url: photoUrl(url), alt: text } : { url: photoUrl(url) };
+    }
+    throw new Error('invalid_request');
+  });
+}
+
+function photoUrl(value: string): string {
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol === 'https:' || url.protocol === 'http:') {
+      return url.toString();
+    }
+  } catch {
+    // Falls through to the rejection below.
+  }
+  throw new Error('invalid_request');
 }
 
 // A client only offers the uids q=syndicate-to listed, so an unknown one is a
@@ -330,6 +390,7 @@ function inferPostType(entry: MicropubPostTypeSource): MicropubPostType {
   if (entry.repostOf) return 'repost';
   if (entry.bookmarkOf) return 'bookmark';
   if (entry.inReplyTo) return 'reply';
+  if (entry.photos?.length) return 'photo';
   return entry.name ? 'article' : 'note';
 }
 
@@ -362,6 +423,9 @@ function titleForEntry(entry: MicropubCreateRequest, published: Date): string {
     return `Bookmark from ${formatDate(published)}`;
   }
   if (entry.postType === 'rsvp') return `RSVP from ${formatDate(published)}`;
+  if (entry.postType === 'photo') {
+    return `Photo from ${formatDate(published)}`;
+  }
   return `Note from ${formatDate(published)}`;
 }
 

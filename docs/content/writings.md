@@ -23,6 +23,7 @@ reads these fields:
 | `draft`                             | no       | `true` hides the post in production and from the search index. Defaults to `false`.          |
 | `postType`                          | no       | `article` (default), `note`, `photo`, `like`, `repost`, `bookmark`, or `rsvp`.               |
 | `syndication`                       | no       | List of `{ name, url }` copies on other services. Each renders as a `u-syndication` link.    |
+| `photo`                             | no       | List of `{ url, alt }` photos shown under the date. Each renders as a `u-photo`.             |
 | `inReplyTo`                         | no       | URL this post answers. Makes any post kind a reply and renders `u-in-reply-to`.              |
 | `likeOf`, `repostOf`, `bookmarkOf`  | no       | Target URL for an interaction post. Setting one implies the matching `postType`.             |
 | `rsvp`                              | no       | `{ eventUrl, status }` with status `yes`, `no`, `maybe`, or `interested`.                    |
@@ -87,6 +88,7 @@ a mark and its entry cannot drift apart.
 
 ## Publishing from a client
 
-A Micropub client signed in through IndieAuth can create notes and articles
-through `POST /micropub`. The route writes the same frontmatter this page
+A Micropub client signed in through IndieAuth can create notes, photo notes,
+and articles through `POST /micropub`, after uploading any photos to
+`POST /micropub/media`. The route writes the same frontmatter this page
 describes. Details are in [the IndieWeb page](../indieweb/README.md#micropub).

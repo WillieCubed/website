@@ -27,5 +27,16 @@ export async function verifyIndieAuthToken({
   if (!data?.me || !sameOrigin(data.me, expectedMe)) return false;
   if (!requiredScope) return true;
 
-  return (data.scope ?? '').split(/\s+/).includes(requiredScope);
+  const granted = (data.scope ?? '').split(/\s+/);
+  const accepted = Array.isArray(requiredScope)
+    ? requiredScope
+    : [requiredScope];
+  return accepted.some((scope) => granted.includes(scope));
+}
+
+/** The bearer token from an `Authorization` header, or null when absent. */
+export function getBearerToken(request: Request): string | null {
+  const authorization = request.headers.get('authorization');
+  if (!authorization?.toLowerCase().startsWith('bearer ')) return null;
+  return authorization.slice(7).trim();
 }

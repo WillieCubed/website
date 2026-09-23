@@ -1,5 +1,5 @@
 import { INDIEAUTH_TOKEN_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
-import { verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
+import { getBearerToken, verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
 import {
   MicropubStorageError,
   commitMicropubWriting,
@@ -96,12 +96,6 @@ export async function POST(request: Request) {
     console.error('Micropub create failed:', error);
     return jsonError('server_error', 500);
   }
-}
-
-function getBearerToken(request: Request): string | null {
-  const authorization = request.headers.get('authorization');
-  if (!authorization?.toLowerCase().startsWith('bearer ')) return null;
-  return authorization.slice(7).trim();
 }
 
 function getMicropubEnvironment(): MicropubRouteEnvironment {

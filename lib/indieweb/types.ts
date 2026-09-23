@@ -276,6 +276,7 @@ export interface RawMicropubEntry {
   bookmarkOf?: string;
   rsvp?: string;
   syndication: string[];
+  syndicateTo: string[];
 }
 
 export interface MicropubPostTypeSource {
@@ -302,6 +303,14 @@ export interface MicropubCreateRequest {
   bookmarkOf?: string;
   rsvp?: MicropubRsvpStatus;
   syndication: string[];
+  /** Targets chosen with `mp-syndicate-to`, recorded as syndication links. */
+  syndicateTo: MicropubSyndicationTarget[];
+}
+
+/** A place a post can be syndicated to, as `q=syndicate-to` lists it. */
+export interface MicropubSyndicationTarget {
+  uid: string;
+  name: string;
 }
 
 export interface MicropubCommitOptions {
@@ -331,7 +340,7 @@ export interface GitHubContentsCommitResponse {
 
 export interface MicropubConfigResponse {
   'media-endpoint': null;
-  'syndicate-to': string[];
+  'syndicate-to': MicropubSyndicationTarget[];
   'post-types': MicropubPostTypeConfig[];
 }
 

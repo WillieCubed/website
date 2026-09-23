@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   buildMicropubWritingFile,
   getMicropubConfig,
+  getMicropubSyndicationTargets,
   parseMicropubCreateRequest,
 } from '@/lib/indieweb/micropub';
 import type { MicropubCreateRequest } from '@/lib/indieweb/types';
@@ -16,6 +17,7 @@ const baseEntry: MicropubCreateRequest = {
   published: new Date('2026-05-19T12:00:00Z'),
   postType: 'note',
   syndication: [],
+  syndicateTo: [],
 };
 
 test('getMicropubConfig advertises supported personal-site post types', () => {
@@ -60,4 +62,88 @@ test('buildMicropubWritingFile emits reusable writing frontmatter', () => {
   assert.match(file, /tags: \["indieweb"\]/);
   assert.match(file, /published: 2026-05-19T12:00:00.000Z/);
   assert.match(file, /A small note from the IndieWeb\./);
+});
+
+test('getMicropubConfig advertises Bluesky and Threads by stable uid', () => {
+  const expected = [
+    { uid: 'https://bsky.app/profile/willie.page', name: 'Bluesky' },
+    { uid: 'https://www.threads.com/@williecubed', name: 'Threads' },
+  ];
+
+  assert.deepEqual(getMicropubConfig()['syndicate-to'], expected);
+  assert.deepEqual(getMicropubSyndicationTargets(), expected);
+});
+
+function micropubRequest(body: URLSearchParams | object): Request {
+  const json = !(body instanceof URLSearchParams);
+  return new Request(`${site.origin}/micropub`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': json
+        ? 'application/json'
+        : 'application/x-www-form-urlencoded',
+    },
+    body: json ? JSON.stringify(body) : body,
+  });
+}
+
+test('parseMicropubCreateRequest resolves form mp-syndicate-to[] targets', async () => {
+  const body = new URLSearchParams([
+    ['h', 'entry'],
+    ['content', 'Cross-posted note.'],
+    ['mp-syndicate-to[]', 'https://www.threads.com/@williecubed'],
+    ['mp-syndicate-to[]', 'https://bsky.app/profile/willie.page'],
+  ]);
+
+  const entry = await parseMicropubCreateRequest(micropubRequest(body));
+
+  assert.deepEqual(
+    entry.syndicateTo.map((target) => target.name),
+    ['Bluesky', 'Threads']
+  );
+});
+
+test('parseMicropubCreateRequest resolves JSON mp-syndicate-to targets', async () => {
+  const entry = await parseMicropubCreateRequest(
+    micropubRequest({
+      type: ['h-entry'],
+      properties: {
+        content: ['Cross-posted note.'],
+        'mp-syndicate-to': ['https://bsky.app/profile/willie.page'],
+      },
+    })
+  );
+
+  assert.deepEqual(entry.syndicateTo, [
+    { uid: 'https://bsky.app/profile/willie.page', name: 'Bluesky' },
+  ]);
+});
+
+test('parseMicropubCreateRequest rejects a target it never advertised', async () => {
+  const body = new URLSearchParams({
+    h: 'entry',
+    content: 'Cross-posted note.',
+    'mp-syndicate-to': 'https://example.com/elsewhere',
+  });
+
+  await assert.rejects(
+    parseMicropubCreateRequest(micropubRequest(body)),
+    /invalid_request/
+  );
+});
+
+test('buildMicropubWritingFile records chosen targets as syndication links', () => {
+  const file = buildMicropubWritingFile(
+    {
+      ...baseEntry,
+      syndication: ['https://bsky.app/profile/willie.page'],
+      syndicateTo: getMicropubSyndicationTargets(),
+    },
+    'small-note'
+  );
+
+  assert.match(
+    file,
+    /syndication:\n {2}- name: "bsky\.app"\n {4}url: "https:\/\/bsky\.app\/profile\/willie\.page"\n {2}- name: "Threads"\n {4}url: "https:\/\/www\.threads\.com\/@williecubed"\n---/
+  );
 });

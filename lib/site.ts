@@ -43,8 +43,8 @@ export const site = {
       href: 'https://www.linkedin.com/in/willie-chalmers-iii',
     },
     { label: 'GitHub', href: 'https://github.com/WillieCubed' },
-    { label: 'Threads', href: 'https://threads.net/@williecubed' },
-    { label: 'Instagram', href: 'https://instagram.com/williecubed' },
+    { label: 'Threads', href: 'https://www.threads.com/@williecubed' },
+    { label: 'Instagram', href: 'https://www.instagram.com/williecubed' },
   ],
   /** The ventures Willie runs, for structured data. */
   ventures: [

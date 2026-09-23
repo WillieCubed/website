@@ -183,9 +183,7 @@ export const products: Record<string, Product> = {
       body: [
         'One tool for planning, scheduling, and tracking every kind of work. Each task carries its estimate, its place on the calendar, and the hours it took. Athena, a digital chief of staff, is built in.',
       ],
-      links: [
-        { label: 'Visit Docket', href: 'https://docket.hypertext.studio/' },
-      ],
+      links: [{ label: 'Visit Docket', href: 'https://clearthedocket.com/' }],
     },
   },
   curfew: {
@@ -410,7 +408,7 @@ export const ventures: Venture[] = [
       links: [
         {
           label: 'The Rebuilding America Project',
-          href: 'https://rebuildingus.org/',
+          href: 'https://www.rebuildingus.org/',
         },
       ],
     },

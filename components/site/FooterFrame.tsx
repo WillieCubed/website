@@ -3,6 +3,11 @@
 import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 
 import { visibleElement } from '@/lib/dom/visible';
+import {
+  getPageColumn,
+  getPageColumnOnServer,
+  subscribeTopBar,
+} from '@/lib/footer/column';
 import { footerProgress } from '@/lib/footer/dock';
 import {
   getFooterDocked,
@@ -22,7 +27,8 @@ const REDUCE = '(prefers-reduced-motion: reduce)';
  * row until the page ends and then opens into the full footer: this marks
  * it for footer-dock.css to draw and writes how far open it is as --p,
  * which the stylesheet derives everything else from. It also runs the
- * name's letter wave.
+ * name's letter wave. On every page it carries the column the top bar
+ * registered (lib/footer/column.ts), so its text lines up with the page's.
  *
  * Both the mark and the opening are client-side, so a visitor without
  * scripting gets the plain footer rather than one stuck shut.
@@ -33,6 +39,11 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     subscribeFooterDocked,
     getFooterDocked,
     getFooterDockedOnServer
+  );
+  const column = useSyncExternalStore(
+    subscribeTopBar,
+    getPageColumn,
+    getPageColumnOnServer
   );
 
   useEffect(() => {
@@ -139,7 +150,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
   }, [docked]);
 
   return (
-    <footer ref={ref} className="site-footer">
+    <footer ref={ref} className="site-footer" data-column={column ?? undefined}>
       {children}
     </footer>
   );

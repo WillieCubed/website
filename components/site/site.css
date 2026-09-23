@@ -1,7 +1,7 @@
 /* The footer's text sits on the same vertical line as the page above
-   it. The top bar carries the page's column as data-column, and the
-   footer follows it from here. Buttons keep their outer edge on the line;
-   only cards and quotes reach past it. */
+   it. The top bar registers the page's column, the footer carries it as
+   data-column, and the widths follow from here. Buttons keep their outer
+   edge on the line; only cards and quotes reach past it. */
 .site-footer {
   margin-top: 64px;
   background: var(--color-tray);
@@ -60,21 +60,43 @@
     gap: 16px;
   }
 }
-body:has([data-column='content']) .site-footer__inner {
+/* The footer carries the column its page's top bar registered
+   (lib/footer/column.ts). The :has() rules are only the first paint's
+   fallback, before any script has run: the document then holds one page,
+   so the top bar in it is the one on screen. After a client-side
+   navigation it may not be, so once the footer has a column of its own the
+   markup is never consulted again. */
+.site-footer[data-column='content'] .site-footer__inner,
+body:has(header[data-column='content'])
+  .site-footer:not([data-column])
+  .site-footer__inner {
   max-width: 840px;
 }
-body:has([data-column='reading']) .site-footer__inner {
+.site-footer[data-column='reading'] .site-footer__inner,
+body:has(header[data-column='reading'])
+  .site-footer:not([data-column])
+  .site-footer__inner {
   max-width: 640px;
   padding-inline: var(--spacing-lg);
 }
-body:has([data-column='reading']) .site-footer__top {
+.site-footer[data-column='reading'] .site-footer__top,
+body:has(header[data-column='reading'])
+  .site-footer:not([data-column])
+  .site-footer__top {
   grid-template-columns: minmax(0, 1fr);
 }
-body:has([data-column='reading']) .site-footer__pages ul {
+.site-footer[data-column='reading'] .site-footer__pages ul,
+body:has(header[data-column='reading'])
+  .site-footer:not([data-column])
+  .site-footer__pages
+  ul {
   justify-content: flex-start;
 }
 @media (min-width: 1200px) {
-  body:has([data-column='reading']) .site-footer__inner {
+  .site-footer[data-column='reading'] .site-footer__inner,
+  body:has(header[data-column='reading'])
+    .site-footer:not([data-column])
+    .site-footer__inner {
     padding-inline: 0;
   }
 }

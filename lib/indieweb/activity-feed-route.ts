@@ -51,6 +51,7 @@ function serializeActivityFeed({
       title: config.title,
       subtitle: config.description,
       feedUrl: config.feedUrl,
+      alternateUrl: config.alternateUrl,
     });
   }
 

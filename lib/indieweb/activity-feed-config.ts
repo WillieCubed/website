@@ -30,5 +30,6 @@ export function writingActivityFeedConfig(
     title: `IndieWeb Activity for ${slug}`,
     description: `Likes, reposts, bookmarks, replies, and mentions for ${slug}.`,
     feedUrl: absoluteRoute`/writings/${slug}/activity/${FEED_PATHS[format]}`,
+    alternateUrl: absoluteRoute`/writings/${slug}`,
   };
 }

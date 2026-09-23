@@ -104,6 +104,9 @@ function llmsLink(label: string, path: string, notes?: string): string {
 export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
   const sections = [
     `# ${SITE_NAME}\n\n> ${SITE_URL} is the personal website, writing archive, and IndieWeb home of ${SITE_NAME}.`,
+    // app/robots.ts holds the same line: agents reading for a person and AI
+    // search are welcome, training crawlers are disallowed site-wide.
+    `Assistants fetching pages for a reader and AI search engines are welcome to use this file, the pages it links, and the MCP server. AI training crawlers are not: [robots.txt](${SITE_URL}/robots.txt) disallows them across the whole site.`,
   ];
 
   if (writings.length > 0) {

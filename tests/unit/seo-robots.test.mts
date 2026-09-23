@@ -11,12 +11,12 @@ function agents(rule: { userAgent?: string | string[] }): string[] {
   return [rule.userAgent ?? []].flat();
 }
 
-/** Every user agent that is kept out of /writings/. */
-const blockedFromWritings = rules
-  .filter((rule) => [rule.disallow ?? []].flat().includes('/writings/'))
+/** Every user agent that is kept off the whole site. */
+const blockedSiteWide = rules
+  .filter((rule) => [rule.disallow ?? []].flat().includes('/'))
   .flatMap(agents);
 
-test('training crawlers are kept out of /writings/ under their real tokens', () => {
+test('training crawlers are kept off the whole site under their real tokens', () => {
   for (const token of [
     'GPTBot',
     'Google-Extended',
@@ -25,25 +25,17 @@ test('training crawlers are kept out of /writings/ under their real tokens', () 
     'Applebot-Extended',
     'meta-externalagent',
     'CCBot',
+    'Bytespider',
   ]) {
-    assert.ok(blockedFromWritings.includes(token), `${token} is not blocked`);
-  }
-});
-
-test('training crawlers are also kept off the full-text copies of the writings', () => {
-  const group = rules.find((rule) => agents(rule).includes('GPTBot'));
-  assert.ok(group);
-  const disallowed = [group.disallow ?? []].flat();
-  for (const path of ['/pagefind/', '/search-index.json', '/api/search']) {
-    assert.ok(disallowed.includes(path), `${path} is not disallowed`);
+    assert.ok(blockedSiteWide.includes(token), `${token} is not blocked`);
   }
 });
 
 test('the invented Googlebot-Extended token is gone', () => {
-  assert.ok(!blockedFromWritings.includes('Googlebot-Extended'));
+  assert.ok(!blockedSiteWide.includes('Googlebot-Extended'));
 });
 
-test('search and link-preview bots are never blocked from /writings/', () => {
+test('search, link-preview, and reader-triggered agents are never blocked', () => {
   for (const bot of [
     'Googlebot',
     'Bingbot',
@@ -51,8 +43,14 @@ test('search and link-preview bots are never blocked from /writings/', () => {
     'LinkedInBot',
     'facebookexternalhit',
     'Twitterbot',
+    'ChatGPT-User',
+    'OAI-SearchBot',
+    'Claude-User',
+    'Claude-SearchBot',
+    'PerplexityBot',
+    'Perplexity-User',
   ]) {
-    assert.ok(!blockedFromWritings.includes(bot), `${bot} must stay allowed`);
+    assert.ok(!blockedSiteWide.includes(bot), `${bot} must stay allowed`);
   }
 });
 

@@ -1,13 +1,12 @@
 // Generates every WillieCubed brand asset and the willie.page/brand download
 // page from one geometry and one palette. Run `pnpm brand:build` after
 // changing either; never edit files under public/brand by hand.
+import { Resvg } from '@resvg/resvg-js';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-import { Resvg } from '@resvg/resvg-js';
 import opentype from 'opentype.js';
 import PDFDocument from 'pdfkit';
 import SVGtoPDF from 'svg-to-pdfkit';
@@ -18,12 +17,26 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BUILD_EPOCH = new Date('2026-01-01T00:00:00Z');
 const PUBLIC = path.join(HERE, '..', 'public');
 const OUT = path.join(PUBLIC, 'brand');
-const BOLD = opentype.loadSync(path.join(HERE, 'fonts/AtkinsonHyperlegibleNext-Bold.ttf'));
+const BOLD = opentype.loadSync(
+  path.join(HERE, 'fonts/AtkinsonHyperlegibleNext-Bold.ttf')
+);
 
 const COLOR = {
-  green: { hex: '#2f6f5e', name: 'Accent green', role: 'The mark’s tile and the site’s accent.' },
-  ink: { hex: '#1c231e', name: 'Ink', role: 'Text and the mark’s shadow facet.' },
-  paper: { hex: '#f4f5ef', name: 'Paper', role: 'Page background and the mark’s top facet.' },
+  green: {
+    hex: '#2f6f5e',
+    name: 'Accent green',
+    role: 'The mark’s tile and the site’s accent.',
+  },
+  ink: {
+    hex: '#1c231e',
+    name: 'Ink',
+    role: 'Text and the mark’s shadow facet.',
+  },
+  paper: {
+    hex: '#f4f5ef',
+    name: 'Paper',
+    role: 'Page background and the mark’s top facet.',
+  },
   mint: { hex: '#8fd1b8', name: 'Mint', role: 'The mark’s lit facet.' },
   tray: { hex: '#e7eae2', name: 'Tray', role: 'Card and tile surfaces.' },
   muted: { hex: '#69736b', name: 'Muted', role: 'Secondary text.' },
@@ -45,12 +58,17 @@ function inset(points, distance) {
     nx /= length;
     ny /= length;
     if ((cx - p[0]) * nx + (cy - p[1]) * ny < 0) [nx, ny] = [-nx, -ny];
-    return [[p[0] + nx * distance, p[1] + ny * distance], [q[0] + nx * distance, q[1] + ny * distance]];
+    return [
+      [p[0] + nx * distance, p[1] + ny * distance],
+      [q[0] + nx * distance, q[1] + ny * distance],
+    ];
   });
   return lines.map((line, i) => {
     const [[x1, y1], [x2, y2]] = lines[(i + lines.length - 1) % lines.length];
     const [[x3, y3], [x4, y4]] = line;
-    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
+    const t =
+      ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) /
+      ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
     return [x1 + t * (x2 - x1), y1 + t * (y2 - y1)];
   });
 }
@@ -61,10 +79,16 @@ const fmt = (n) => Number(n.toFixed(2));
 // its center. Each facet is inset by its corner radius plus half the gap, then
 // stroked with round joins, which adds the radius back as rounded corners.
 function facets({ cx, cy, r, corner = r * 0.097, gap = r * 0.118 }) {
-  const at = (deg) => [cx + r * Math.cos((deg * Math.PI) / 180), cy + r * Math.sin((deg * Math.PI) / 180)];
-  const [top, upperRight, lowerRight, bottom, lowerLeft, upperLeft] = [-90, -30, 30, 90, 150, 210].map(at);
+  const at = (deg) => [
+    cx + r * Math.cos((deg * Math.PI) / 180),
+    cy + r * Math.sin((deg * Math.PI) / 180),
+  ];
+  const [top, upperRight, lowerRight, bottom, lowerLeft, upperLeft] = [
+    -90, -30, 30, 90, 150, 210,
+  ].map(at);
   const center = [cx, cy];
-  const shape = (points) => inset(points, corner + gap / 2).map(([x, y]) => [fmt(x), fmt(y)]);
+  const shape = (points) =>
+    inset(points, corner + gap / 2).map(([x, y]) => [fmt(x), fmt(y)]);
   return {
     stroke: fmt(corner * 2),
     top: shape([top, upperRight, center, upperLeft]),
@@ -75,12 +99,22 @@ function facets({ cx, cy, r, corner = r * 0.097, gap = r * 0.118 }) {
 
 // At favicon sizes the gap has to be proportionally wider to stay visible.
 const SMALL = { corner: 0.07, gap: 0.19 };
-const tuned = (spec, small) => (small ? { ...spec, corner: spec.r * SMALL.corner, gap: spec.r * SMALL.gap } : spec);
+const tuned = (spec, small) =>
+  small
+    ? { ...spec, corner: spec.r * SMALL.corner, gap: spec.r * SMALL.gap }
+    : spec;
 
 const pathD = (points) => `M${points.map((p) => p.join(' ')).join('L')}Z`;
 const facetSvg = (f, [top, left, right]) =>
-  [['top', top], ['left', left], ['right', right]]
-    .map(([k, fill]) => `<path d="${pathD(f[k])}" fill="${fill}" stroke="${fill}" stroke-width="${f.stroke}" stroke-linejoin="round"/>`)
+  [
+    ['top', top],
+    ['left', left],
+    ['right', right],
+  ]
+    .map(
+      ([k, fill]) =>
+        `<path d="${pathD(f[k])}" fill="${fill}" stroke="${fill}" stroke-width="${f.stroke}" stroke-linejoin="round"/>`
+    )
     .join('');
 
 const svg = (w, h, body, title) =>
@@ -93,9 +127,27 @@ const ON_DARK = [C.paper, C.mint, C.green];
 // ---------- Mark variants (512 canvas unless noted) ----------
 
 const mark = {
-  tile: (small = false) => svg(512, 512, `<rect width="512" height="512" rx="112" fill="${C.green}"/>${facetSvg(facets(tuned({ cx: 256, cy: 256, r: small ? 214 : 204 }, small)), ON_TILE)}`, 'WillieCubed'),
-  square: (r = 204, colors = ON_TILE, bg = C.green) => svg(512, 512, `${bg ? `<rect width="512" height="512" fill="${bg}"/>` : ''}${facetSvg(facets({ cx: 256, cy: 256, r }), colors)}`, 'WillieCubed'),
-  cube: (colors, small = false) => svg(512, 512, facetSvg(facets(tuned({ cx: 256, cy: 256, r: 250 }, small)), colors), 'WillieCubed'),
+  tile: (small = false) =>
+    svg(
+      512,
+      512,
+      `<rect width="512" height="512" rx="112" fill="${C.green}"/>${facetSvg(facets(tuned({ cx: 256, cy: 256, r: small ? 214 : 204 }, small)), ON_TILE)}`,
+      'WillieCubed'
+    ),
+  square: (r = 204, colors = ON_TILE, bg = C.green) =>
+    svg(
+      512,
+      512,
+      `${bg ? `<rect width="512" height="512" fill="${bg}"/>` : ''}${facetSvg(facets({ cx: 256, cy: 256, r }), colors)}`,
+      'WillieCubed'
+    ),
+  cube: (colors, small = false) =>
+    svg(
+      512,
+      512,
+      facetSvg(facets(tuned({ cx: 256, cy: 256, r: 250 }, small)), colors),
+      'WillieCubed'
+    ),
 };
 
 // ---------- Text ----------
@@ -112,8 +164,20 @@ function lockup({ label, color, tile = true }) {
   const glyphs = BOLD.getPath(label, textX, baseline, size).toPathData(2);
   const markBody = tile
     ? `<rect x="${pad}" y="${pad}" width="${markSize}" height="${markSize}" rx="${(markSize * 112) / 512}" fill="${C.green}"/>${facetSvg(facets({ cx: pad + markSize / 2, cy: pad + markSize / 2, r: markSize * (204 / 512) }), ON_TILE)}`
-    : facetSvg(facets({ cx: pad + markSize / 2, cy: pad + markSize / 2, r: markSize * 0.47 }), color === C.ink ? ON_LIGHT : ON_DARK);
-  return svg(width, height, `${markBody}<path d="${glyphs}" fill="${color}"/>`, label);
+    : facetSvg(
+        facets({
+          cx: pad + markSize / 2,
+          cy: pad + markSize / 2,
+          r: markSize * 0.47,
+        }),
+        color === C.ink ? ON_LIGHT : ON_DARK
+      );
+  return svg(
+    width,
+    height,
+    `${markBody}<path d="${glyphs}" fill="${color}"/>`,
+    label
+  );
 }
 
 function wordmark(color) {
@@ -123,7 +187,12 @@ function wordmark(color) {
   const box = p.getBoundingBox();
   const width = Math.ceil(box.x2 - box.x1 + pad * 2);
   const height = Math.ceil(box.y2 - box.y1 + pad * 2);
-  const d = BOLD.getPath('williecubed', pad - box.x1, pad - box.y1, size).toPathData(2);
+  const d = BOLD.getPath(
+    'williecubed',
+    pad - box.x1,
+    pad - box.y1,
+    size
+  ).toPathData(2);
   return svg(width, height, `<path d="${d}" fill="${color}"/>`, 'williecubed');
 }
 
@@ -131,11 +200,21 @@ function ogImage() {
   const w = 1200;
   const h = 630;
   const name = BOLD.getPath('Willie Chalmers III', 96, 360, 76).toPathData(2);
-  const line1 = BOLD.getPath('builds software and systems', 96, 450, 52).toPathData(2);
+  const line1 = BOLD.getPath(
+    'builds software and systems',
+    96,
+    450,
+    52
+  ).toPathData(2);
   const line2 = BOLD.getPath('for people.', 96, 516, 52).toPathData(2);
   const url = BOLD.getPath('willie.page', 96, 150, 34).toPathData(2);
   const markBox = `<rect x="936" y="96" width="168" height="168" rx="${(168 * 112) / 512}" fill="${C.green}"/>${facetSvg(facets({ cx: 1020, cy: 180, r: 168 * (204 / 512) }), ON_TILE)}`;
-  return svg(w, h, `<rect width="${w}" height="${h}" fill="${C.paper}"/>${markBox}<path d="${url}" fill="${C.green}"/><path d="${name}" fill="${C.ink}"/><path d="${line1}" fill="${C.muted}"/><path d="${line2}" fill="${C.muted}"/>`, 'Willie Chalmers III');
+  return svg(
+    w,
+    h,
+    `<rect width="${w}" height="${h}" fill="${C.paper}"/>${markBox}<path d="${url}" fill="${C.green}"/><path d="${name}" fill="${C.ink}"/><path d="${line1}" fill="${C.muted}"/><path d="${line2}" fill="${C.muted}"/>`,
+    'Willie Chalmers III'
+  );
 }
 
 // ---------- Writers ----------
@@ -148,11 +227,28 @@ function write(rel, data, meta = {}) {
   files.push({ rel, bytes: fs.statSync(abs).size, ...meta });
   return abs;
 }
-const png = (svgText, width) => new Resvg(svgText, { fitTo: { mode: 'width', value: width }, font: { loadSystemFonts: false } }).render().asPng();
+const png = (svgText, width) =>
+  new Resvg(svgText, {
+    fitTo: { mode: 'width', value: width },
+    font: { loadSystemFonts: false },
+  })
+    .render()
+    .asPng();
 
 function pdf(rel, svgText) {
-  const [, w, h] = svgText.match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/).map(Number);
-  const doc = new PDFDocument({ size: [w, h], margin: 0, info: { Title: 'WillieCubed', Author: 'Willie Chalmers III', CreationDate: BUILD_EPOCH, ModDate: BUILD_EPOCH } });
+  const [, w, h] = svgText
+    .match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/)
+    .map(Number);
+  const doc = new PDFDocument({
+    size: [w, h],
+    margin: 0,
+    info: {
+      Title: 'WillieCubed',
+      Author: 'Willie Chalmers III',
+      CreationDate: BUILD_EPOCH,
+      ModDate: BUILD_EPOCH,
+    },
+  });
   const chunks = [];
   doc.on('data', (c) => chunks.push(c));
   const done = new Promise((resolve) => doc.on('end', resolve));
@@ -189,17 +285,48 @@ const pending = [];
 
 // Mark
 const MARKS = {
-  'williecubed-mark': { svg: mark.tile(), label: 'Mark', note: 'Default. Use wherever the mark stands alone.' },
-  'williecubed-mark-square': { svg: mark.square(), label: 'Full-bleed square', note: 'For platforms that apply their own mask, like app stores and avatars.' },
-  'williecubed-cube-on-light': { svg: mark.cube(ON_LIGHT), label: 'Cube on light', note: 'For light backgrounds without the tile.' },
-  'williecubed-cube-on-dark': { svg: mark.cube(ON_DARK), label: 'Cube on dark', note: 'For dark backgrounds without the tile.', dark: true },
-  'williecubed-cube-black': { svg: mark.cube(['#000000', '#000000', '#000000']), label: 'One color, black', note: 'For single-color printing and embossing.' },
-  'williecubed-cube-white': { svg: mark.cube(['#ffffff', '#ffffff', '#ffffff']), label: 'One color, white', note: 'For single-color use on dark or photographic backgrounds.', dark: true },
+  'williecubed-mark': {
+    svg: mark.tile(),
+    label: 'Mark',
+    note: 'Default. Use wherever the mark stands alone.',
+  },
+  'williecubed-mark-square': {
+    svg: mark.square(),
+    label: 'Full-bleed square',
+    note: 'For platforms that apply their own mask, like app stores and avatars.',
+  },
+  'williecubed-cube-on-light': {
+    svg: mark.cube(ON_LIGHT),
+    label: 'Cube on light',
+    note: 'For light backgrounds without the tile.',
+  },
+  'williecubed-cube-on-dark': {
+    svg: mark.cube(ON_DARK),
+    label: 'Cube on dark',
+    note: 'For dark backgrounds without the tile.',
+    dark: true,
+  },
+  'williecubed-cube-black': {
+    svg: mark.cube(['#000000', '#000000', '#000000']),
+    label: 'One color, black',
+    note: 'For single-color printing and embossing.',
+  },
+  'williecubed-cube-white': {
+    svg: mark.cube(['#ffffff', '#ffffff', '#ffffff']),
+    label: 'One color, white',
+    note: 'For single-color use on dark or photographic backgrounds.',
+    dark: true,
+  },
 };
 for (const [name, m] of Object.entries(MARKS)) {
   write(`mark/${name}.svg`, m.svg, { group: 'mark', variant: name });
   pending.push(pdf(`mark/${name}.pdf`, m.svg));
-  for (const size of [256, 512, 1024, 2048]) write(`mark/png/${name}-${size}.png`, png(m.svg, size), { group: 'mark-png', variant: name, size });
+  for (const size of [256, 512, 1024, 2048])
+    write(`mark/png/${name}-${size}.png`, png(m.svg, size), {
+      group: 'mark-png',
+      variant: name,
+      size,
+    });
 }
 
 // Lockups and wordmark
@@ -208,26 +335,61 @@ const LOCKUPS = {
   'williecubed-wordmark-paper': wordmark(C.paper),
   'williecubed-lockup-ink': lockup({ label: 'williecubed', color: C.ink }),
   'williecubed-lockup-paper': lockup({ label: 'williecubed', color: C.paper }),
-  'willie-chalmers-iii-lockup-ink': lockup({ label: 'Willie Chalmers III', color: C.ink }),
-  'willie-chalmers-iii-lockup-paper': lockup({ label: 'Willie Chalmers III', color: C.paper }),
+  'willie-chalmers-iii-lockup-ink': lockup({
+    label: 'Willie Chalmers III',
+    color: C.ink,
+  }),
+  'willie-chalmers-iii-lockup-paper': lockup({
+    label: 'Willie Chalmers III',
+    color: C.paper,
+  }),
 };
 for (const [name, s] of Object.entries(LOCKUPS)) {
   write(`lockups/${name}.svg`, s, { group: 'lockup', variant: name });
   pending.push(pdf(`lockups/${name}.pdf`, s));
   const w = Number(s.match(/viewBox="0 0 (\d+)/)[1]);
-  write(`lockups/png/${name}@2x.png`, png(s, w * 2), { group: 'lockup-png', variant: name });
+  write(`lockups/png/${name}@2x.png`, png(s, w * 2), {
+    group: 'lockup-png',
+    variant: name,
+  });
 }
 
 // Web and PWA
 const favicon = mark.tile(true);
-write('web/favicon.svg', favicon, { group: 'web', purpose: 'SVG favicon for modern browsers' });
-write('web/favicon.ico', ico([16, 32, 48], (s) => mark.tile(s <= 48)), { group: 'web', purpose: 'ICO favicon with 16, 32, and 48px images' });
-write('web/apple-touch-icon.png', png(mark.square(), 180), { group: 'web', purpose: 'Home screen icon for iPhone and iPad (180px, full bleed)' });
-for (const s of [48, 72, 96, 144, 192, 512]) write(`web/icon-${s}.png`, png(s <= 48 ? mark.tile(true) : mark.tile(), s), { group: 'web', purpose: `Manifest icon, ${s}px` });
+write('web/favicon.svg', favicon, {
+  group: 'web',
+  purpose: 'SVG favicon for modern browsers',
+});
+write(
+  'web/favicon.ico',
+  ico([16, 32, 48], (s) => mark.tile(s <= 48)),
+  { group: 'web', purpose: 'ICO favicon with 16, 32, and 48px images' }
+);
+write('web/apple-touch-icon.png', png(mark.square(), 180), {
+  group: 'web',
+  purpose: 'Home screen icon for iPhone and iPad (180px, full bleed)',
+});
+for (const s of [48, 72, 96, 144, 192, 512])
+  write(`web/icon-${s}.png`, png(s <= 48 ? mark.tile(true) : mark.tile(), s), {
+    group: 'web',
+    purpose: `Manifest icon, ${s}px`,
+  });
 // Maskable icons keep the cube inside the central 80% safe circle.
-for (const s of [192, 512]) write(`web/icon-maskable-${s}.png`, png(mark.square(150), s), { group: 'web', purpose: `Maskable manifest icon, ${s}px` });
-write('web/icon-monochrome.svg', mark.square(150, ['#000000', '#000000', '#000000'], null), { group: 'web', purpose: 'Monochrome manifest icon for themed launchers' });
-write('web/icon-monochrome-512.png', png(mark.square(150, ['#000000', '#000000', '#000000'], null), 512), { group: 'web', purpose: 'Monochrome manifest icon, 512px' });
+for (const s of [192, 512])
+  write(`web/icon-maskable-${s}.png`, png(mark.square(150), s), {
+    group: 'web',
+    purpose: `Maskable manifest icon, ${s}px`,
+  });
+write(
+  'web/icon-monochrome.svg',
+  mark.square(150, ['#000000', '#000000', '#000000'], null),
+  { group: 'web', purpose: 'Monochrome manifest icon for themed launchers' }
+);
+write(
+  'web/icon-monochrome-512.png',
+  png(mark.square(150, ['#000000', '#000000', '#000000'], null), 512),
+  { group: 'web', purpose: 'Monochrome manifest icon, 512px' }
+);
 
 const manifest = {
   id: '/',
@@ -242,39 +404,103 @@ const manifest = {
   background_color: C.paper,
   theme_color: C.green,
   icons: [
-    { src: '/brand/web/favicon.svg', type: 'image/svg+xml', sizes: 'any', purpose: 'any' },
-    ...[48, 72, 96, 144, 192, 512].map((s) => ({ src: `/brand/web/icon-${s}.png`, type: 'image/png', sizes: `${s}x${s}`, purpose: 'any' })),
-    ...[192, 512].map((s) => ({ src: `/brand/web/icon-maskable-${s}.png`, type: 'image/png', sizes: `${s}x${s}`, purpose: 'maskable' })),
-    { src: '/brand/web/icon-monochrome-512.png', type: 'image/png', sizes: '512x512', purpose: 'monochrome' },
+    {
+      src: '/brand/web/favicon.svg',
+      type: 'image/svg+xml',
+      sizes: 'any',
+      purpose: 'any',
+    },
+    ...[48, 72, 96, 144, 192, 512].map((s) => ({
+      src: `/brand/web/icon-${s}.png`,
+      type: 'image/png',
+      sizes: `${s}x${s}`,
+      purpose: 'any',
+    })),
+    ...[192, 512].map((s) => ({
+      src: `/brand/web/icon-maskable-${s}.png`,
+      type: 'image/png',
+      sizes: `${s}x${s}`,
+      purpose: 'maskable',
+    })),
+    {
+      src: '/brand/web/icon-monochrome-512.png',
+      type: 'image/png',
+      sizes: '512x512',
+      purpose: 'monochrome',
+    },
   ],
 };
-write('web/manifest.webmanifest', JSON.stringify(manifest, null, 2) + '\n', { group: 'web', purpose: 'Web app manifest' });
+write('web/manifest.webmanifest', JSON.stringify(manifest, null, 2) + '\n', {
+  group: 'web',
+  purpose: 'Web app manifest',
+});
 
 // Social
-write('social/og-image.png', png(ogImage(), 1200), { group: 'social', purpose: 'Link preview image for Open Graph and X (1200×630)' });
-write('social/og-image.svg', ogImage(), { group: 'social', purpose: 'Link preview image, vector source' });
-for (const s of [400, 1024]) write(`social/avatar-${s}.png`, png(mark.square(190), s), { group: 'social', purpose: `Profile picture, safe for circular crops (${s}px)` });
+write('social/og-image.png', png(ogImage(), 1200), {
+  group: 'social',
+  purpose: 'Link preview image for Open Graph and X (1200×630)',
+});
+write('social/og-image.svg', ogImage(), {
+  group: 'social',
+  purpose: 'Link preview image, vector source',
+});
+for (const s of [400, 1024])
+  write(`social/avatar-${s}.png`, png(mark.square(190), s), {
+    group: 'social',
+    purpose: `Profile picture, safe for circular crops (${s}px)`,
+  });
 
 // Apple platforms. An Icon Composer document is the source for iOS, iPadOS,
 // macOS, watchOS, and visionOS 26 and later; Xcode's actool renders its
 // Liquid Glass appearances. The flat asset catalog serves older Xcode versions,
 // which require an opaque full-bleed square.
 const flatIcon = mark.square();
-write('apple/AppIcon.appiconset/icon-1024.png', png(flatIcon, 1024), { group: 'apple', purpose: 'Flat app icon for Xcode 16 and earlier' });
-write('apple/AppIcon.appiconset/Contents.json', JSON.stringify({
-  images: [
-    { filename: 'icon-1024.png', idiom: 'universal', platform: 'ios', size: '1024x1024' },
-    { filename: 'icon-1024.png', idiom: 'universal', platform: 'watchos', size: '1024x1024' },
-  ],
-  info: { author: 'xcode', version: 1 },
-}, null, 2) + '\n', { group: 'apple', purpose: 'Xcode asset catalog for the flat icon' });
+write('apple/AppIcon.appiconset/icon-1024.png', png(flatIcon, 1024), {
+  group: 'apple',
+  purpose: 'Flat app icon for Xcode 16 and earlier',
+});
+write(
+  'apple/AppIcon.appiconset/Contents.json',
+  JSON.stringify(
+    {
+      images: [
+        {
+          filename: 'icon-1024.png',
+          idiom: 'universal',
+          platform: 'ios',
+          size: '1024x1024',
+        },
+        {
+          filename: 'icon-1024.png',
+          idiom: 'universal',
+          platform: 'watchos',
+          size: '1024x1024',
+        },
+      ],
+      info: { author: 'xcode', version: 1 },
+    },
+    null,
+    2
+  ) + '\n',
+  { group: 'apple', purpose: 'Xcode asset catalog for the flat icon' }
+);
 
 const LAYER = 1024;
 const layerFacets = facets({ cx: 512, cy: 512, r: 420 });
-const layerSvg = (points, fill, title) => svg(LAYER, LAYER, `<path d="${pathD(points)}" fill="${fill}" stroke="${fill}" stroke-width="${layerFacets.stroke}" stroke-linejoin="round"/>`, title);
-const srgb = (hex) => `srgb:${[1, 3, 5].map((i) => (parseInt(hex.slice(i, i + 2), 16) / 255).toFixed(5)).join(',')},1.00000`;
+const layerSvg = (points, fill, title) =>
+  svg(
+    LAYER,
+    LAYER,
+    `<path d="${pathD(points)}" fill="${fill}" stroke="${fill}" stroke-width="${layerFacets.stroke}" stroke-linejoin="round"/>`,
+    title
+  );
+const srgb = (hex) =>
+  `srgb:${[1, 3, 5].map((i) => (parseInt(hex.slice(i, i + 2), 16) / 255).toFixed(5)).join(',')},1.00000`;
 const iconDocument = {
-  'fill-specializations': [{ value: { solid: srgb(C.green) } }, { appearance: 'dark', value: { solid: srgb(C.ink) } }],
+  'fill-specializations': [
+    { value: { solid: srgb(C.green) } },
+    { appearance: 'dark', value: { solid: srgb(C.ink) } },
+  ],
   groups: [
     {
       name: 'Cube',
@@ -282,7 +508,14 @@ const iconDocument = {
         { name: 'Top', 'image-name': 'facet-top.svg', glass: true },
         { name: 'Left', 'image-name': 'facet-left.svg', glass: true },
         // Ink vanishes against the dark background, so this facet turns green in dark mode.
-        { name: 'Right', 'image-name': 'facet-right.svg', glass: true, 'fill-specializations': [{ appearance: 'dark', value: { solid: srgb(C.green) } }] },
+        {
+          name: 'Right',
+          'image-name': 'facet-right.svg',
+          glass: true,
+          'fill-specializations': [
+            { appearance: 'dark', value: { solid: srgb(C.green) } },
+          ],
+        },
       ],
       lighting: 'combined',
       shadow: { kind: 'neutral', opacity: 0.5 },
@@ -291,31 +524,93 @@ const iconDocument = {
   ],
   'supported-platforms': { circles: ['watchOS'], squares: 'shared' },
 };
-write('apple/WillieCubed.icon/icon.json', JSON.stringify(iconDocument, null, 2) + '\n', { group: 'apple', purpose: 'Icon Composer document with Liquid Glass layers (Xcode 26)' });
-write('apple/WillieCubed.icon/Assets/facet-top.svg', layerSvg(layerFacets.top, C.paper, 'Top facet'));
-write('apple/WillieCubed.icon/Assets/facet-left.svg', layerSvg(layerFacets.left, C.mint, 'Left facet'));
-write('apple/WillieCubed.icon/Assets/facet-right.svg', layerSvg(layerFacets.right, C.ink, 'Right facet'));
+write(
+  'apple/WillieCubed.icon/icon.json',
+  JSON.stringify(iconDocument, null, 2) + '\n',
+  {
+    group: 'apple',
+    purpose: 'Icon Composer document with Liquid Glass layers (Xcode 26)',
+  }
+);
+write(
+  'apple/WillieCubed.icon/Assets/facet-top.svg',
+  layerSvg(layerFacets.top, C.paper, 'Top facet')
+);
+write(
+  'apple/WillieCubed.icon/Assets/facet-left.svg',
+  layerSvg(layerFacets.left, C.mint, 'Left facet')
+);
+write(
+  'apple/WillieCubed.icon/Assets/facet-right.svg',
+  layerSvg(layerFacets.right, C.ink, 'Right facet')
+);
 
 const glassRenders = [];
 function renderLiquidGlass() {
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'williecubed-icon-'));
   const extractor = path.join(work, 'extract-renders');
-  execFileSync('xcrun', ['swiftc', '-O', path.join(HERE, 'apple/extract-renders.swift'), '-o', extractor], { stdio: 'ignore' });
+  execFileSync(
+    'xcrun',
+    [
+      'swiftc',
+      '-O',
+      path.join(HERE, 'apple/extract-renders.swift'),
+      '-o',
+      extractor,
+    ],
+    { stdio: 'ignore' }
+  );
   const document = path.join(OUT, 'apple/WillieCubed.icon');
-  for (const [platform, label, target, devices] of [['iphoneos', 'ios', '17.0', ['iphone']], ['macosx', 'macos', '14.0', []]]) {
+  for (const [platform, label, target, devices] of [
+    ['iphoneos', 'ios', '17.0', ['iphone']],
+    ['macosx', 'macos', '14.0', []],
+  ]) {
     const compiled = path.join(work, label);
     const extracted = path.join(work, `${label}-renders`);
     fs.mkdirSync(compiled);
     fs.mkdirSync(extracted);
-    execFileSync('xcrun', ['actool', document, '--compile', compiled, '--platform', platform, ...devices.flatMap((d) => ['--target-device', d]), '--minimum-deployment-target', target, '--app-icon', 'WillieCubed', '--output-partial-info-plist', path.join(compiled, 'partial.plist')], { stdio: 'ignore' });
-    execFileSync(extractor, [path.join(compiled, 'Assets.car'), extracted], { stdio: 'ignore' });
-    const largest = fs.readdirSync(extracted).filter((f) => f.startsWith('WillieCubed-')).sort((a, b) => parseInt(b.split('-').at(-1)) - parseInt(a.split('-').at(-1)));
-    const pick = (test) => largest.find((f) => test(f.split('-').slice(1, -1).join('-')));
-    const appearances = { default: pick((a) => !/dark|tint/i.test(a)), dark: pick((a) => /dark/i.test(a)), tinted: pick((a) => /tint/i.test(a)) };
+    execFileSync(
+      'xcrun',
+      [
+        'actool',
+        document,
+        '--compile',
+        compiled,
+        '--platform',
+        platform,
+        ...devices.flatMap((d) => ['--target-device', d]),
+        '--minimum-deployment-target',
+        target,
+        '--app-icon',
+        'WillieCubed',
+        '--output-partial-info-plist',
+        path.join(compiled, 'partial.plist'),
+      ],
+      { stdio: 'ignore' }
+    );
+    execFileSync(extractor, [path.join(compiled, 'Assets.car'), extracted], {
+      stdio: 'ignore',
+    });
+    const largest = fs
+      .readdirSync(extracted)
+      .filter((f) => f.startsWith('WillieCubed-'))
+      .sort(
+        (a, b) => parseInt(b.split('-').at(-1)) - parseInt(a.split('-').at(-1))
+      );
+    const pick = (test) =>
+      largest.find((f) => test(f.split('-').slice(1, -1).join('-')));
+    const appearances = {
+      default: pick((a) => !/dark|tint/i.test(a)),
+      dark: pick((a) => /dark/i.test(a)),
+      tinted: pick((a) => /tint/i.test(a)),
+    };
     for (const [appearance, file] of Object.entries(appearances)) {
       if (!file) continue;
       const rel = `apple/liquid-glass/williecubed-${label}-${appearance}.png`;
-      write(rel, fs.readFileSync(path.join(extracted, file)), { group: 'apple', purpose: `${label === 'ios' ? 'iOS and iPadOS' : 'macOS'} ${appearance} appearance, rendered by actool` });
+      write(rel, fs.readFileSync(path.join(extracted, file)), {
+        group: 'apple',
+        purpose: `${label === 'ios' ? 'iOS and iPadOS' : 'macOS'} ${appearance} appearance, rendered by actool`,
+      });
       glassRenders.push({ rel, label, appearance });
     }
     if (label === 'macos' && appearances.default) {
@@ -324,12 +619,32 @@ function renderLiquidGlass() {
       fs.mkdirSync(iconset);
       const source = path.join(extracted, appearances.default);
       for (const base of [16, 32, 128, 256, 512]) {
-        for (const [suffix, px] of [['', base], ['@2x', base * 2]]) execFileSync('sips', ['-z', String(px), String(px), source, '--out', path.join(iconset, `icon_${base}x${base}${suffix}.png`)], { stdio: 'ignore' });
+        for (const [suffix, px] of [
+          ['', base],
+          ['@2x', base * 2],
+        ])
+          execFileSync(
+            'sips',
+            [
+              '-z',
+              String(px),
+              String(px),
+              source,
+              '--out',
+              path.join(iconset, `icon_${base}x${base}${suffix}.png`),
+            ],
+            { stdio: 'ignore' }
+          );
       }
       const icns = path.join(OUT, 'apple/macos/WillieCubed.icns');
       fs.mkdirSync(path.dirname(icns), { recursive: true });
       execFileSync('iconutil', ['-c', 'icns', iconset, '-o', icns]);
-      files.push({ rel: 'apple/macos/WillieCubed.icns', bytes: fs.statSync(icns).size, group: 'apple', purpose: 'macOS app icon with Liquid Glass (ICNS, 16 to 1024px)' });
+      files.push({
+        rel: 'apple/macos/WillieCubed.icns',
+        bytes: fs.statSync(icns).size,
+        group: 'apple',
+        purpose: 'macOS app icon with Liquid Glass (ICNS, 16 to 1024px)',
+      });
     }
   }
   fs.rmSync(work, { recursive: true, force: true });
@@ -337,58 +652,161 @@ function renderLiquidGlass() {
 try {
   renderLiquidGlass();
 } catch (error) {
-  console.warn(`Skipped Liquid Glass renders; they need Xcode 26 on macOS (${error.message.split('\n')[0]})`);
+  console.warn(
+    `Skipped Liquid Glass renders; they need Xcode 26 on macOS (${error.message.split('\n')[0]})`
+  );
 }
 
 // Android adaptive icons: 108dp layers with the cube inside the 66dp safe zone.
 const dp = facets({ cx: 54, cy: 54, r: 30 });
-const vectorPath = (points, fill) => `    <path android:pathData="${pathD(points)}" android:fillColor="${fill}" android:strokeColor="${fill}" android:strokeWidth="${dp.stroke}" android:strokeLineJoin="round"/>`;
-const vector = (body) => `<?xml version="1.0" encoding="utf-8"?>\n<vector xmlns:android="http://schemas.android.com/apk/res/android"\n    android:width="108dp" android:height="108dp"\n    android:viewportWidth="108" android:viewportHeight="108">\n${body}\n</vector>\n`;
+const vectorPath = (points, fill) =>
+  `    <path android:pathData="${pathD(points)}" android:fillColor="${fill}" android:strokeColor="${fill}" android:strokeWidth="${dp.stroke}" android:strokeLineJoin="round"/>`;
+const vector = (body) =>
+  `<?xml version="1.0" encoding="utf-8"?>\n<vector xmlns:android="http://schemas.android.com/apk/res/android"\n    android:width="108dp" android:height="108dp"\n    android:viewportWidth="108" android:viewportHeight="108">\n${body}\n</vector>\n`;
 const argb = (hex) => `#FF${hex.slice(1).toUpperCase()}`;
-write('android/res/drawable/ic_launcher_background.xml', vector(`    <path android:pathData="M0,0h108v108h-108z" android:fillColor="${argb(C.green)}"/>`), { group: 'android', purpose: 'Adaptive icon background layer' });
-write('android/res/drawable/ic_launcher_foreground.xml', vector([vectorPath(dp.top, argb(C.paper)), vectorPath(dp.left, argb(C.mint)), vectorPath(dp.right, argb(C.ink))].join('\n')), { group: 'android', purpose: 'Adaptive icon foreground layer' });
-write('android/res/drawable/ic_launcher_monochrome.xml', vector([dp.top, dp.left, dp.right].map((p) => vectorPath(p, '#FF000000')).join('\n')), { group: 'android', purpose: 'Themed icon layer (Android 13 and later)' });
+write(
+  'android/res/drawable/ic_launcher_background.xml',
+  vector(
+    `    <path android:pathData="M0,0h108v108h-108z" android:fillColor="${argb(C.green)}"/>`
+  ),
+  { group: 'android', purpose: 'Adaptive icon background layer' }
+);
+write(
+  'android/res/drawable/ic_launcher_foreground.xml',
+  vector(
+    [
+      vectorPath(dp.top, argb(C.paper)),
+      vectorPath(dp.left, argb(C.mint)),
+      vectorPath(dp.right, argb(C.ink)),
+    ].join('\n')
+  ),
+  { group: 'android', purpose: 'Adaptive icon foreground layer' }
+);
+write(
+  'android/res/drawable/ic_launcher_monochrome.xml',
+  vector(
+    [dp.top, dp.left, dp.right]
+      .map((p) => vectorPath(p, '#FF000000'))
+      .join('\n')
+  ),
+  { group: 'android', purpose: 'Themed icon layer (Android 13 and later)' }
+);
 const adaptive = `<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@drawable/ic_launcher_background"/>\n    <foreground android:drawable="@drawable/ic_launcher_foreground"/>\n    <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>\n</adaptive-icon>\n`;
-write('android/res/mipmap-anydpi-v26/ic_launcher.xml', adaptive, { group: 'android', purpose: 'Adaptive icon definition (API 26 and later)' });
-for (const [density, s] of [['mdpi', 48], ['hdpi', 72], ['xhdpi', 96], ['xxhdpi', 144], ['xxxhdpi', 192]]) {
-  write(`android/res/mipmap-${density}/ic_launcher.png`, png(mark.tile(s <= 48), s), { group: 'android', purpose: `Legacy launcher icon, ${density} (${s}px)` });
+write('android/res/mipmap-anydpi-v26/ic_launcher.xml', adaptive, {
+  group: 'android',
+  purpose: 'Adaptive icon definition (API 26 and later)',
+});
+for (const [density, s] of [
+  ['mdpi', 48],
+  ['hdpi', 72],
+  ['xhdpi', 96],
+  ['xxhdpi', 144],
+  ['xxxhdpi', 192],
+]) {
+  write(
+    `android/res/mipmap-${density}/ic_launcher.png`,
+    png(mark.tile(s <= 48), s),
+    { group: 'android', purpose: `Legacy launcher icon, ${density} (${s}px)` }
+  );
 }
-write('android/play-store-512.png', png(mark.square(186), 512), { group: 'android', purpose: 'Google Play store listing icon (512px, full bleed)' });
+write('android/play-store-512.png', png(mark.square(186), 512), {
+  group: 'android',
+  purpose: 'Google Play store listing icon (512px, full bleed)',
+});
 
 // Design tokens in the W3C Design Tokens Community Group format.
 const tokens = {
   $description: 'WillieCubed brand tokens',
-  color: Object.fromEntries(Object.entries(COLOR).map(([k, v]) => [k, { $type: 'color', $value: v.hex, $description: v.role }])),
+  color: Object.fromEntries(
+    Object.entries(COLOR).map(([k, v]) => [
+      k,
+      { $type: 'color', $value: v.hex, $description: v.role },
+    ])
+  ),
   font: {
-    display: { $type: 'fontFamily', $value: ['Atkinson Hyperlegible Next', 'system-ui', 'sans-serif'] },
-    mono: { $type: 'fontFamily', $value: ['Atkinson Hyperlegible Mono', 'ui-monospace', 'monospace'] },
+    display: {
+      $type: 'fontFamily',
+      $value: ['Atkinson Hyperlegible Next', 'system-ui', 'sans-serif'],
+    },
+    mono: {
+      $type: 'fontFamily',
+      $value: ['Atkinson Hyperlegible Mono', 'ui-monospace', 'monospace'],
+    },
   },
 };
-write('tokens/williecubed.tokens.json', JSON.stringify(tokens, null, 2) + '\n', { group: 'tokens', purpose: 'Design tokens (W3C DTCG format)' });
-write('tokens/williecubed.css', `:root {\n${Object.entries(COLOR).map(([k, v]) => `  --wc-${k}: ${v.hex};`).join('\n')}\n  --wc-font-display: 'Atkinson Hyperlegible Next', system-ui, sans-serif;\n  --wc-font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;\n}\n`, { group: 'tokens', purpose: 'CSS custom properties' });
+write(
+  'tokens/williecubed.tokens.json',
+  JSON.stringify(tokens, null, 2) + '\n',
+  { group: 'tokens', purpose: 'Design tokens (W3C DTCG format)' }
+);
+write(
+  'tokens/williecubed.css',
+  `:root {\n${Object.entries(COLOR)
+    .map(([k, v]) => `  --wc-${k}: ${v.hex};`)
+    .join(
+      '\n'
+    )}\n  --wc-font-display: 'Atkinson Hyperlegible Next', system-ui, sans-serif;\n  --wc-font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;\n}\n`,
+  { group: 'tokens', purpose: 'CSS custom properties' }
+);
 
 await Promise.all(pending);
 
 // Root copies live where browsers and crawlers look for them by convention.
-fs.copyFileSync(path.join(OUT, 'web/favicon.ico'), path.join(PUBLIC, 'favicon.ico'));
-fs.copyFileSync(path.join(OUT, 'web/favicon.svg'), path.join(PUBLIC, 'icon.svg'));
-fs.copyFileSync(path.join(OUT, 'web/apple-touch-icon.png'), path.join(PUBLIC, 'apple-touch-icon.png'));
-fs.copyFileSync(path.join(OUT, 'web/manifest.webmanifest'), path.join(PUBLIC, 'manifest.webmanifest'));
+fs.copyFileSync(
+  path.join(OUT, 'web/favicon.ico'),
+  path.join(PUBLIC, 'favicon.ico')
+);
+fs.copyFileSync(
+  path.join(OUT, 'web/favicon.svg'),
+  path.join(PUBLIC, 'icon.svg')
+);
+fs.copyFileSync(
+  path.join(OUT, 'web/apple-touch-icon.png'),
+  path.join(PUBLIC, 'apple-touch-icon.png')
+);
+fs.copyFileSync(
+  path.join(OUT, 'web/manifest.webmanifest'),
+  path.join(PUBLIC, 'manifest.webmanifest')
+);
 
 // Everything in one archive.
-for (const f of fs.readdirSync(OUT, { recursive: true })) fs.utimesSync(path.join(OUT, f), BUILD_EPOCH, BUILD_EPOCH);
-execFileSync('zip', ['-qrX', 'williecubed-brand.zip', 'mark', 'lockups', 'web', 'social', 'apple', 'android', 'tokens', '-x', '*.DS_Store'], { cwd: OUT });
+for (const f of fs.readdirSync(OUT, { recursive: true }))
+  fs.utimesSync(path.join(OUT, f), BUILD_EPOCH, BUILD_EPOCH);
+execFileSync(
+  'zip',
+  [
+    '-qrX',
+    'williecubed-brand.zip',
+    'mark',
+    'lockups',
+    'web',
+    'social',
+    'apple',
+    'android',
+    'tokens',
+    '-x',
+    '*.DS_Store',
+  ],
+  { cwd: OUT }
+);
 const zipBytes = fs.statSync(path.join(OUT, 'williecubed-brand.zip')).size;
 
 // ---------- Download page ----------
 
-const kb = (b) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(b < 10240 ? 1 : 0)} KB` : `${(b / 1048576).toFixed(1)} MB`);
+const kb = (b) =>
+  b < 1024
+    ? `${b} B`
+    : b < 1048576
+      ? `${(b / 1024).toFixed(b < 10240 ? 1 : 0)} KB`
+      : `${(b / 1048576).toFixed(1)} MB`;
 const size = (rel) => kb(fs.statSync(path.join(OUT, rel)).size);
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function oklch(hex) {
   const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-  const [r, g, b] = [1, 3, 5].map((i) => lin(parseInt(hex.slice(i, i + 2), 16) / 255));
+  const [r, g, b] = [1, 3, 5].map((i) =>
+    lin(parseInt(hex.slice(i, i + 2), 16) / 255)
+  );
   const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
   const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
   const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
@@ -398,13 +816,30 @@ function oklch(hex) {
   const h = (Math.atan2(B, A) * 180) / Math.PI;
   return `oklch(${(L * 100).toFixed(1)}% ${Math.hypot(A, B).toFixed(3)} ${((h + 360) % 360).toFixed(1)})`;
 }
-const rgb = (hex) => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(' ')})`;
+const rgb = (hex) =>
+  `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(' ')})`;
 
-const link = (rel, label) => `<a href="/brand/${rel}" download>${label}<span class="size">${size(rel)}</span></a>`;
+const link = (rel, label) =>
+  `<a href="/brand/${rel}" download>${label}<span class="size">${size(rel)}</span></a>`;
 const fileRows = (group) =>
-  files.filter((f) => f.group === group).map((f) => `<li><a href="/brand/${f.rel}" download><code>${esc(f.rel.split('/').slice(1).join('/').replace(/^res\//, '').replace(/^AppIcon\.appiconset\//, 'AppIcon.appiconset/'))}</code><span class="size">${kb(f.bytes)}</span></a><span class="purpose">${esc(f.purpose ?? '')}</span></li>`).join('\n');
+  files
+    .filter((f) => f.group === group)
+    .map(
+      (f) =>
+        `<li><a href="/brand/${f.rel}" download><code>${esc(
+          f.rel
+            .split('/')
+            .slice(1)
+            .join('/')
+            .replace(/^res\//, '')
+            .replace(/^AppIcon\.appiconset\//, 'AppIcon.appiconset/')
+        )}</code><span class="size">${kb(f.bytes)}</span></a><span class="purpose">${esc(f.purpose ?? '')}</span></li>`
+    )
+    .join('\n');
 
-const markCards = Object.entries(MARKS).map(([name, m]) => `
+const markCards = Object.entries(MARKS)
+  .map(
+    ([name, m]) => `
         <figure class="asset${m.dark ? ' asset-dark' : ''}">
           <div class="asset-preview"><img src="/brand/mark/${name}.svg" alt="${m.label}" width="160" height="160" /></div>
           <figcaption>
@@ -412,12 +847,19 @@ const markCards = Object.entries(MARKS).map(([name, m]) => `
             <p>${m.note}</p>
             <p class="downloads">${link(`mark/${name}.svg`, 'SVG')}${link(`mark/${name}.pdf`, 'PDF')}${[512, 1024, 2048].map((s) => link(`mark/png/${name}-${s}.png`, `PNG ${s}`)).join('')}</p>
           </figcaption>
-        </figure>`).join('');
+        </figure>`
+  )
+  .join('');
 
-const lockupCards = Object.keys(LOCKUPS).map((name) => {
-  const dark = name.endsWith('paper');
-  const label = name.replace(/-(ink|paper)$/, '').replace('williecubed-wordmark', 'Wordmark').replace('williecubed-lockup', 'williecubed lockup').replace('willie-chalmers-iii-lockup', 'Name lockup');
-  return `
+const lockupCards = Object.keys(LOCKUPS)
+  .map((name) => {
+    const dark = name.endsWith('paper');
+    const label = name
+      .replace(/-(ink|paper)$/, '')
+      .replace('williecubed-wordmark', 'Wordmark')
+      .replace('williecubed-lockup', 'williecubed lockup')
+      .replace('willie-chalmers-iii-lockup', 'Name lockup');
+    return `
         <figure class="asset asset-wide${dark ? ' asset-dark' : ''}">
           <div class="asset-preview"><img src="/brand/lockups/${name}.svg" alt="${label}" /></div>
           <figcaption>
@@ -425,15 +867,20 @@ const lockupCards = Object.keys(LOCKUPS).map((name) => {
             <p class="downloads">${link(`lockups/${name}.svg`, 'SVG')}${link(`lockups/${name}.pdf`, 'PDF')}${link(`lockups/png/${name}@2x.png`, 'PNG')}</p>
           </figcaption>
         </figure>`;
-}).join('');
+  })
+  .join('');
 
-const swatches = Object.entries(COLOR).map(([key, v]) => `
+const swatches = Object.entries(COLOR)
+  .map(
+    ([key, v]) => `
         <li class="swatch">
           <span class="chip chip-${key}"></span>
           <h3>${v.name}</h3>
           <p>${v.role}</p>
           <dl><dt>Hex</dt><dd><code>${v.hex}</code></dd><dt>RGB</dt><dd><code>${rgb(v.hex)}</code></dd><dt>OKLCH</dt><dd><code>${oklch(v.hex)}</code></dd></dl>
-        </li>`).join('');
+        </li>`
+  )
+  .join('');
 
 const page = `<!doctype html>
 <html lang="en">
@@ -504,9 +951,14 @@ const page = `<!doctype html>
         </div>
       </section>
 
-${glassRenders.length ? `<section aria-labelledby="app-icon">
+${
+  glassRenders.length
+    ? `<section aria-labelledby="app-icon">
         <h2 id="app-icon">App icon</h2>
-        <div class="asset-grid">${glassRenders.filter((r) => r.label === 'ios').map((r) => `
+        <div class="asset-grid">${glassRenders
+          .filter((r) => r.label === 'ios')
+          .map(
+            (r) => `
           <figure class="asset${r.appearance === 'default' ? '' : ' asset-dark'}">
             <div class="asset-preview"><img src="/brand/${r.rel}" alt="WillieCubed app icon, ${r.appearance} appearance" width="160" height="160" /></div>
             <figcaption>
@@ -514,11 +966,15 @@ ${glassRenders.length ? `<section aria-labelledby="app-icon">
               <p>Liquid Glass, rendered by Xcode from the Icon Composer document.</p>
               <p class="downloads">${link(r.rel, 'PNG 1024')}</p>
             </figcaption>
-          </figure>`).join('')}
+          </figure>`
+          )
+          .join('')}
         </div>
       </section>
 
-      ` : ''}<section aria-labelledby="platforms">
+      `
+    : ''
+}<section aria-labelledby="platforms">
         <h2 id="platforms">Platform icons</h2>
         <div class="file-groups">
           <div><h3>Web and PWA</h3><ul class="files">${fileRows('web')}</ul></div>
@@ -542,4 +998,6 @@ ${glassRenders.length ? `<section aria-labelledby="app-icon">
 </html>
 `;
 write('index.html', page);
-console.log(`Wrote ${files.length} files to public/brand (archive ${kb(zipBytes)}).`);
+console.log(
+  `Wrote ${files.length} files to public/brand (archive ${kb(zipBytes)}).`
+);

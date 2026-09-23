@@ -27,6 +27,10 @@ The root layout advertises the three site feeds on every page, and
 `alternates.types`. Each writing page advertises its own activity feeds and
 the oEmbed endpoint.
 
+Feed readers that guess instead of reading those links land on the site feeds
+too: `next.config.ts` permanently redirects `/rss.xml`, `/rss`, `/feed`, and
+`/index.xml` to `/feed.xml`, and `/atom.xml` to `/feed/atom`.
+
 ## Full content
 
 Every site and writings item carries its whole body as HTML: `content:encoded`

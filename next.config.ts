@@ -34,7 +34,15 @@ const nextConfig: NextConfig = {
       { source: '/media', destination: '/initiatives/twd', permanent: false },
       { source: '/apps', destination: '/projects', permanent: false },
     ];
-    return [...legacy, ...aliases, ...retired];
+    // Paths feed readers guess when they cannot find an autodiscovery link.
+    const feedGuesses = [
+      { source: '/rss.xml', destination: '/feed.xml', permanent: true },
+      { source: '/rss', destination: '/feed.xml', permanent: true },
+      { source: '/feed', destination: '/feed.xml', permanent: true },
+      { source: '/index.xml', destination: '/feed.xml', permanent: true },
+      { source: '/atom.xml', destination: '/feed/atom', permanent: true },
+    ];
+    return [...legacy, ...aliases, ...retired, ...feedGuesses];
   },
   // Pages that ship as static HTML in public/ rather than as app routes.
   async rewrites() {

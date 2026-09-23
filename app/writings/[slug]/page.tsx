@@ -14,6 +14,7 @@ import {
   type ReplyContext,
   getReplyContext,
 } from '@/lib/indieweb/reply-context';
+import type { WebmentionGroup } from '@/lib/indieweb/types';
 import { getWebmentionsForPost } from '@/lib/indieweb/webmention-storage';
 import { blogPostingLd, breadcrumbLd, graph, personLd } from '@/lib/seo/jsonld';
 import { absoluteRoute, formatDate, pageMetadata } from '@/lib/site';
@@ -108,15 +109,25 @@ async function fetchSeriesData(
 
 async function fetchInteractions(slug: string) {
   const backlinks = await getBacklinksForPost(slug);
-
-  let webmentions = null;
-  try {
-    webmentions = await getWebmentionsForPost(slug);
-  } catch {
-    // Webmentions not available
-  }
-
+  const webmentions = await loadWebmentions(slug);
   return { backlinks, webmentions };
+}
+
+/**
+ * Approved webmentions are cached for a minute rather than read on every
+ * request. A request-time read would stream in after the page, outside the
+ * post's h-entry, where a parser no longer sees the replies as its
+ * comments. A throw inside the cache scope fails the build, so a missing
+ * or unreachable database resolves to nothing instead.
+ */
+async function loadWebmentions(slug: string): Promise<WebmentionGroup | null> {
+  'use cache';
+  cacheLife('minutes');
+  try {
+    return await getWebmentionsForPost(slug);
+  } catch {
+    return null;
+  }
 }
 
 /**

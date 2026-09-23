@@ -7,25 +7,33 @@ interface WebmentionSectionProps {
   webmentions: WebmentionGroup;
 }
 
+/** How many faces a facepile shows before the names line carries the rest. */
+const FACEPILE_SIZE = 8;
+
 /**
  * Replies are a conversation and get the room. Likes, reposts, and
- * bookmarks are reactions and get one quiet line. Mentions from other
- * pages are listed by source.
+ * bookmarks are reactions and get a quiet facepile each. Mentions from
+ * other pages are listed by source.
  */
 export default function WebmentionSection({
   webmentions,
 }: WebmentionSectionProps) {
   const { likes, reposts, replies, mentions, bookmarks } = webmentions;
-  const reactions = [...likes, ...reposts, ...bookmarks];
-  if (replies.length === 0 && reactions.length === 0 && mentions.length === 0) {
+  const hasReactions =
+    likes.length > 0 || reposts.length > 0 || bookmarks.length > 0;
+  if (replies.length === 0 && !hasReactions && mentions.length === 0) {
     return null;
   }
 
   return (
     <div className="space-y-8">
       {replies.length > 0 && <WebmentionReplies replies={replies} />}
-      {reactions.length > 0 && (
-        <Reactions likes={likes} reposts={reposts} bookmarks={bookmarks} />
+      {hasReactions && (
+        <div className="space-y-3">
+          <Facepile items={likes} property="u-like" verb="Liked" />
+          <Facepile items={reposts} property="u-repost" verb="Reposted" />
+          <Facepile items={bookmarks} property="u-bookmark" verb="Bookmarked" />
+        </div>
       )}
       {mentions.length > 0 && <Mentions mentions={mentions} />}
     </div>
@@ -39,35 +47,38 @@ function names(items: Webmention[]): string {
   return `${list[0]}, ${list[1]}, and ${list.length - 2} others`;
 }
 
-function Reactions({
-  likes,
-  reposts,
-  bookmarks,
+/**
+ * One reaction kind as overlapping faces and a line naming who. Each face
+ * is an `h-cite` under the reaction's property on the post's h-entry,
+ * pointing at the like or repost where it lives.
+ */
+function Facepile({
+  items,
+  property,
+  verb,
 }: {
-  likes: Webmention[];
-  reposts: Webmention[];
-  bookmarks: Webmention[];
+  items: Webmention[];
+  property: 'u-like' | 'u-repost' | 'u-bookmark';
+  verb: string;
 }) {
-  const faces = [...likes, ...reposts, ...bookmarks].slice(0, 8);
-  const parts = [
-    likes.length > 0 && `Liked by ${names(likes)}`,
-    reposts.length > 0 && `Reposted by ${names(reposts)}`,
-    bookmarks.length > 0 && `Bookmarked by ${names(bookmarks)}`,
-  ].filter(Boolean);
+  if (items.length === 0) return null;
   return (
-    <p className="flex flex-wrap items-center gap-3 text-body-small text-muted">
-      <span className="flex">
-        {faces.map((item, i) => (
-          <span
+    <div className="flex flex-wrap items-center gap-3 text-body-small text-muted">
+      <ul className="flex">
+        {items.slice(0, FACEPILE_SIZE).map((item, i) => (
+          <li
             key={item.id}
-            className={`rounded-full ring-2 ring-ground ${i > 0 ? '-ml-2' : ''}`}
+            className={`${property} h-cite rounded-full ring-2 ring-ground ${i > 0 ? '-ml-2' : ''}`}
           >
+            <data className="u-url" value={item.sourceUrl} />
             <WebmentionAvatar author={item.author} size="sm" />
-          </span>
+          </li>
         ))}
-      </span>
-      <span>{parts.join(' · ')}</span>
-    </p>
+      </ul>
+      <p>
+        {verb} by {names(items)}
+      </p>
+    </div>
   );
 }
 

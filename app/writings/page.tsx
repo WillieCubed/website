@@ -2,6 +2,7 @@ import type { Metadata } from 'next/types';
 import { Suspense } from 'react';
 
 import Icon from '@/components/icons/Icon';
+import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
 import TopBar from '@/components/site/TopBar';
 import WritingItem from '@/components/writings/WritingItem';
@@ -133,8 +134,10 @@ export default function WritingsPage({ searchParams }: WritingsPageProps) {
         crumbs={[{ label: 'Writings', href: '/writings' }]}
       />
       <main id="main" className="h-feed mx-auto max-w-[840px] px-5 pb-8">
-        {/* h-feed: u-url so parsers know which page this feed is */}
+        {/* h-feed: u-url so parsers know which page this feed is, and
+            p-author so they know whose it is */}
         <a href={absoluteUrl('/writings')} className="u-url hidden" />
+        <FeedAuthor />
         <section className="mt-6">
           <div className="space-y-xl">
             <h1 className="p-name text-display-small">Writings</h1>

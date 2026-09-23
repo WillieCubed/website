@@ -508,31 +508,31 @@
       outline-offset 280ms var(--ease-site),
       outline-color 200ms var(--ease-site);
   }
-  .product .p-media {
+  .product .product-media {
     overflow: hidden;
     background: var(--color-surface-container-high);
   }
-  .product .p-media img {
+  .product .product-media img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: top center;
     transition: scale 600ms var(--ease-site);
   }
-  .product .p-text {
+  .product .product-text {
     display: grid;
     align-content: start;
     padding: 10px 12px 0;
   }
-  .product .p-text b {
+  .product .product-text b {
     font-weight: 600;
   }
-  .product .p-text > span {
+  .product .product-text > span {
     display: grid;
     color: var(--color-muted);
     font-size: 13px;
   }
-  .product .p-text em {
+  .product .product-text em {
     grid-area: 1 / 1;
     overflow: hidden;
     display: -webkit-box;
@@ -544,7 +544,7 @@
       opacity 240ms var(--ease-site),
       translate 320ms var(--ease-site);
   }
-  .product .p-copy {
+  .product .product-copy {
     color: var(--color-ink);
     opacity: 0;
     translate: 0 4px;
@@ -563,13 +563,13 @@
   .product:focus-visible img {
     scale: 1.04;
   }
-  .product:hover .p-platform,
-  .product:focus-visible .p-platform {
+  .product:hover .product-platform,
+  .product:focus-visible .product-platform {
     opacity: 0;
     translate: 0 -4px;
   }
-  .product:hover .p-copy,
-  .product:focus-visible .p-copy {
+  .product:hover .product-copy,
+  .product:focus-visible .product-copy {
     opacity: 1;
     translate: 0 0;
   }
@@ -646,8 +646,8 @@
   .row-name,
   .row-line,
   .index .go,
-  .p-text b,
-  .p-text em {
+  .product-text b,
+  .product-text em {
     transition:
       color 380ms var(--ease-site),
       border-color 380ms var(--ease-site),
@@ -698,10 +698,10 @@
   .product[data-branded]:is(:hover, :focus-visible) {
     background: var(--b-primary-container);
   }
-  .product[data-branded]:is(:hover, :focus-visible) .p-text b {
+  .product[data-branded]:is(:hover, :focus-visible) .product-text b {
     color: var(--b-on-primary-container);
   }
-  .product[data-branded]:is(:hover, :focus-visible) .p-text em {
+  .product[data-branded]:is(:hover, :focus-visible) .product-text em {
     color: var(--b-on-primary-container);
   }
   dialog.detail[data-branded] {
@@ -1176,10 +1176,10 @@
       height: 340px;
       scroll-snap-align: start;
     }
-    .tile.studio .product .p-platform {
+    .tile.studio .product .product-platform {
       opacity: 0;
     }
-    .tile.studio .product .p-copy {
+    .tile.studio .product .product-copy {
       opacity: 1;
       translate: 0 0;
       color: var(--color-muted);

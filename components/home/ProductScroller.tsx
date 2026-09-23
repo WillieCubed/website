@@ -56,7 +56,7 @@ export function ProductScroller({
             >
               {/* Decorative: the card's text names the product, and the
                   detail view it opens describes the screenshot. */}
-              <span className="p-media">
+              <span className="product-media">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={product.image.src}
@@ -67,11 +67,11 @@ export function ProductScroller({
                   decoding="async"
                 />
               </span>
-              <span className="p-text">
+              <span className="product-text">
                 <b>{product.name}</b>
                 <span>
-                  <em className="p-platform">{product.platform}</em>
-                  <em className="p-copy">{product.copy}</em>
+                  <em className="product-platform">{product.platform}</em>
+                  <em className="product-copy">{product.copy}</em>
                 </span>
               </span>
             </button>

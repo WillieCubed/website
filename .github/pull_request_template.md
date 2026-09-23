@@ -12,10 +12,6 @@
 opened and at what widths and colour schemes, and any production check that
 has to wait until after deploy. -->
 
-## Docket task
-
-<!-- Link the Docket task this PR closes. One PR per task. -->
-
 ## Follow-ups and Next Work
 
 <!-- Anything left undone, found along the way, or unblocked by this PR.

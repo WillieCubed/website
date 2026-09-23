@@ -7,6 +7,7 @@ import SiteLink from '@/components/link/SiteLink';
 
 import { isParkedPath } from '@/lib/site';
 
+import { describeArrival } from './arrival';
 import { closestPath } from './closest';
 import './not-found.css';
 
@@ -18,7 +19,7 @@ interface RequestLogProps {
 /**
  * The failed request printed as a server log, one line at a time. The
  * last frame of the trace is the visitor: where they came from if the
- * browser says, or that they typed the address.
+ * browser says, or that they came straight here if it does not.
  */
 export default function RequestLog({ paths }: RequestLogProps) {
   const pathname = usePathname() ?? '/';
@@ -27,26 +28,15 @@ export default function RequestLog({ paths }: RequestLogProps) {
   // document.referrer only exists in the browser, so the visitor's frame
   // is filled in after hydration and prints with the rest of the log.
   useEffect(() => {
-    let from = 'typed it in';
-    try {
-      // document.referrer names whatever loaded the document, which is
-      // stale once the visitor has moved around the site without a reload.
-      const load = performance.getEntriesByType('navigation')[0];
-      const loadedHere =
-        !load || new URL(load.name).pathname === window.location.pathname;
-      if (!loadedHere) {
-        from = 'followed a link on this site';
-      } else if (document.referrer) {
-        const referrer = new URL(document.referrer);
-        from =
-          referrer.host === window.location.host
-            ? `followed a link on ${referrer.pathname}`
-            : `followed a link from ${referrer.host.replace(/^www\./, '')}`;
-      }
-    } catch {
-      // A malformed referrer reads the same as none.
-    }
-    setOrigin(from);
+    const load = performance.getEntriesByType('navigation')[0];
+    setOrigin(
+      describeArrival({
+        referrer: document.referrer,
+        host: window.location.host,
+        loadedHere:
+          !load || new URL(load.name).pathname === window.location.pathname,
+      })
+    );
   }, []);
 
   // The 404 page is prerendered once, so on the server the pathname is the

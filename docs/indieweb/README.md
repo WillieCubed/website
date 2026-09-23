@@ -103,6 +103,18 @@ to change answers 404 from the route and exits 1 from the script.
 Moderation logic and its tests live in `lib/indieweb/webmention-moderation.ts`
 and `tests/unit/webmention-moderation.test.mts`.
 
+## Receiving
+
+`POST /api/webmention` answers 202 once the mention is stored, then verifies
+the source inside `after()` from `next/server`, which keeps a serverless
+invocation alive until verification settles. Each client address may send 10
+requests a minute; the counts live in the `webmention_rate_limits` table so
+the limit holds across instances, and expired rows are pruned after each
+accepted mention. If the table is missing or the count fails, the request goes
+through and the error is logged. The logic and its tests live in
+`lib/indieweb/webmention-rate-limit.ts` and
+`tests/unit/webmention-rate-limit.test.mts`.
+
 ## Micropub
 
 `POST /micropub` accepts form-encoded or JSON `h-entry` bodies with a bearer
@@ -168,6 +180,9 @@ The Postgres schema lives in `initializeWebmentionsTable()` in
 `lib/indieweb/reply-context.ts`, and `lib/db/migrations/001_level4_tables.sql`
 for `outgoing_webmentions`, `reply_context_cache`, and `search_index`. Apply
 the SQL file with `psql "$POSTGRES_URL" -f lib/db/migrations/001_level4_tables.sql`.
+`lib/db/migrations/002_webmention_rate_limits.sql` adds
+`webmention_rate_limits`, which a database created before it needs; apply it
+the same way.
 
 ## IndieMark checklist
 

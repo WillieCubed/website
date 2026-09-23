@@ -1,44 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
 import { sameOrigin } from '@/lib/indieweb/utils';
-import { storeWebmention } from '@/lib/indieweb/webmention-storage';
+import {
+  WEBMENTION_RATE_WINDOW_MS,
+  isWithinWebmentionRateLimit,
+  webmentionRateLimitKey,
+} from '@/lib/indieweb/webmention-rate-limit';
+import {
+  storeWebmention,
+  webmentionRateLimitStore,
+} from '@/lib/indieweb/webmention-storage';
 import { verifyWebmention } from '@/lib/indieweb/webmention-verifier';
-
-// Rate limiting: simple in-memory store (consider using Vercel KV for production)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 10; // requests per window
-const RATE_WINDOW = 60 * 1000; // 1 minute
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW });
-    return true;
-  }
-
-  if (entry.count >= RATE_LIMIT) {
-    return false;
-  }
-
-  entry.count++;
-  return true;
-}
 
 /**
  * POST /api/webmention
  * Receive a webmention notification.
  */
 export async function POST(request: NextRequest) {
-  // Rate limiting
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0] ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  // Rate limiting, counted in Postgres so it holds across instances
+  const allowed = await isWithinWebmentionRateLimit(
+    webmentionRateLimitStore,
+    webmentionRateLimitKey(request.headers)
+  );
 
-  if (!checkRateLimit(ip)) {
+  if (!allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please try again later.' },
       { status: 429 }
@@ -119,10 +105,19 @@ export async function POST(request: NextRequest) {
     // Store the webmention (unverified)
     const id = await storeWebmention(source, target);
 
-    // Verify asynchronously (don't block the response)
-    // In production, you might want to use a queue (Vercel Cron, QStash, etc.)
-    verifyWebmention(id, source, target).catch((error) => {
-      console.error('Webmention verification failed:', error);
+    // Verify after the response is sent. `after` keeps the invocation alive
+    // until the callback settles, where a bare promise could be cut off.
+    after(async () => {
+      try {
+        await verifyWebmention(id, source, target);
+      } catch (error) {
+        console.error('Webmention verification failed:', error);
+      }
+      try {
+        await webmentionRateLimitStore.prune(WEBMENTION_RATE_WINDOW_MS);
+      } catch (error) {
+        console.error('Pruning webmention rate limits failed:', error);
+      }
     });
 
     // Return 202 Accepted (async processing)

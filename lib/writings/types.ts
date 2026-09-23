@@ -32,6 +32,14 @@ export type PostType =
   | 'bookmark'
   | 'rsvp';
 
+/** A person tagged in a post, rendered as a `u-category h-card`. */
+export type PersonTag = {
+  /** Display name, the card's p-name */
+  name: string;
+  /** The person's own site or profile, the card's u-url and a webmention target */
+  url: string;
+};
+
 /** RSVP status values per IndieWeb spec */
 export type RSVPStatus = 'yes' | 'no' | 'maybe' | 'interested';
 
@@ -53,6 +61,8 @@ export type WritingData = {
   published: Date;
   lastUpdated: Date;
   tags: string[];
+  /** People tagged in the post (person tags). Empty when none are set. */
+  people: PersonTag[];
   draft: boolean;
   /** Set in frontmatter to surface the writing in featured lists. */
   featured: boolean;

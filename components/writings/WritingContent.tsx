@@ -24,6 +24,8 @@ export default async function WritingContent({
 }: WritingContentProps) {
   const showToc = headings.length >= 3;
   const references = await extractReferences(content);
+  // Keyed by slug: a soft navigation keeps the previous writing in the DOM.
+  const peopleLabelId = `people-${writing.slug}`;
 
   return (
     <>
@@ -39,6 +41,31 @@ export default async function WritingContent({
         <div className="e-content">
           <WritingDetailsView source={content} />
         </div>
+
+        {/* Person tags: an <a> h-card's name and url are implied from its
+            text and href, so the chip itself is the whole card. */}
+        {writing.people.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span id={peopleLabelId} className="text-label-medium text-muted">
+              With
+            </span>
+            <ul
+              className="flex flex-wrap gap-2"
+              aria-labelledby={peopleLabelId}
+            >
+              {writing.people.map((person) => (
+                <li key={person.url}>
+                  <SiteLink
+                    href={person.url}
+                    className="u-category h-card inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
+                  >
+                    {person.name}
+                  </SiteLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {writing.tags.length > 0 && (
           <ul className="flex flex-wrap gap-2" aria-label="Tags">

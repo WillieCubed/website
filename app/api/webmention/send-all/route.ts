@@ -72,7 +72,8 @@ export async function POST(request: NextRequest) {
       const { source } = readWritingFile(writing.slug);
       const results = await sendWebmentionsForPost(
         writing.slug,
-        source.toString()
+        source.toString(),
+        writing.people.map((person) => person.url)
       );
 
       allResults.push({

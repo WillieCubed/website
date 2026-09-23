@@ -204,7 +204,12 @@ async function main() {
 
   for (const { writing, content } of published) {
     const sourceUrl = absoluteUrl(`/writings/${writing.slug}`);
-    const contentHash = hashContent(content);
+    // Person tags live in frontmatter, outside `content`, so they join the
+    // hash to resend when one is added. Posts without any keep their hash.
+    const peopleUrls = writing.people.map((person) => person.url);
+    const contentHash = hashContent(
+      peopleUrls.length > 0 ? [content, ...peopleUrls].join('\n') : content
+    );
 
     // Check if content has changed
     const existing = await sql`
@@ -227,7 +232,9 @@ async function main() {
     if (writing.inReplyTo) interactionUrls.push(writing.inReplyTo);
     if (writing.rsvp?.eventUrl) interactionUrls.push(writing.rsvp.eventUrl);
 
-    const targets = [...new Set([...contentLinks, ...interactionUrls])];
+    const targets = [
+      ...new Set([...contentLinks, ...interactionUrls, ...peopleUrls]),
+    ];
 
     if (targets.length === 0) {
       totalSkipped++;

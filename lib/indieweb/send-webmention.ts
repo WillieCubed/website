@@ -212,14 +212,18 @@ export function extractExternalLinks(html: string): string[] {
 }
 
 /**
- * Send webmentions to all external links in a post.
+ * Send webmentions to all external links in a post, plus any extra targets
+ * that live outside the body, such as the post's person tags.
  */
 export async function sendWebmentionsForPost(
   slug: string,
-  htmlContent: string
+  htmlContent: string,
+  extraTargets: string[] = []
 ): Promise<SendResult[]> {
   const sourceUrl = `${SITE_URL}/writings/${slug}`;
-  const links = extractExternalLinks(htmlContent);
+  const links = [
+    ...new Set([...extractExternalLinks(htmlContent), ...extraTargets]),
+  ];
 
   const results: SendResult[] = [];
 

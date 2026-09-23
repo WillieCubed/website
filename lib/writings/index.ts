@@ -19,6 +19,7 @@ import {
   getSeriesSlugs as _getSeriesSlugs,
   getSeriesWithWritings as _getSeriesWithWritings,
 } from '../collections';
+import { parsePersonTags } from './person-tags';
 import type {
   PostType,
   RSVPData,
@@ -52,6 +53,8 @@ interface RawFrontmatter {
   published: Date | string;
   lastUpdated?: Date | string;
   tags?: string[];
+  /** People tagged in the post, each `{ name, url }`. */
+  people?: unknown;
   draft?: boolean;
   /** Surfaces the writing wherever featured writings are listed. */
   featured?: boolean;
@@ -210,6 +213,17 @@ export async function loadWriting(slug: string) {
     }
   }
 
+  const people = parsePersonTags(frontmatter.people);
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    Array.isArray(frontmatter.people) &&
+    frontmatter.people.length !== people.length
+  ) {
+    console.warn(
+      `Warning: Post "${slug}" has people entries without a name and an absolute URL, or repeated URLs; they were skipped`
+    );
+  }
+
   const derivedTitle = deriveTitle(frontmatter, content);
   const writing: WritingData = {
     slug,
@@ -219,6 +233,7 @@ export async function loadWriting(slug: string) {
     published: new Date(frontmatter.published),
     lastUpdated: new Date(frontmatter.lastUpdated ?? frontmatter.published),
     tags: frontmatter.tags || [],
+    people,
     draft: frontmatter.draft ?? false,
     featured: frontmatter.featured ?? false,
     featuredImage: frontmatter.featuredImage,

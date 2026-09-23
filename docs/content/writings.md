@@ -19,6 +19,7 @@ reads these fields:
 | `published`                         | yes      | ISO date with offset, for example `2026-09-18T08:00-0700`.                                   |
 | `lastUpdated`                       | yes      | Same format; renders as `dt-updated` when it differs from `published`.                       |
 | `tags`                              | no       | List of lowercase tags. Tag `note` marks short posts in the index filter.                    |
+| `people`                            | no       | List of `{ name, url }` people tagged in the post. See Person tags below.                    |
 | `draft`                             | no       | `true` hides the post in production and from the search index. Defaults to `false`.          |
 | `postType`                          | no       | `article` (default), `note`, `photo`, `like`, `repost`, `bookmark`, or `rsvp`.               |
 | `syndication`                       | no       | List of `{ name, url }` copies on other services. Each renders as a `u-syndication` link.    |
@@ -27,6 +28,27 @@ reads these fields:
 | `rsvp`                              | no       | `{ eventUrl, status }` with status `yes`, `no`, `maybe`, or `interested`.                    |
 | `series`                            | no       | `{ slug, part }` pointing at `content/series/` or an initiative.                             |
 | `featuredImage`, `featuredImageAlt` | no       | Social card image and its alt text.                                                          |
+
+## Person tags
+
+`people` tags a person in a post, the IndieWeb way: the post is about them,
+they are in its photo, or they were there. Each entry needs a `name` and the
+absolute URL of their own site or main profile.
+
+```yaml
+people:
+  - name: Jane Doe
+    url: https://janedoe.example
+```
+
+Each person renders under the post as a chip after the word "With", marked up
+as `<a class="u-category h-card" href="url">name</a>`. The post build's
+`webmentions:send` sends each URL a webmention, as do `/api/webmention/send`
+and `/api/webmention/send-all`, so a site that accepts webmentions can show
+that it was tagged. An entry without a name, with a relative or non-http URL,
+or repeating an earlier URL is skipped, and the dev server logs a warning.
+Adding a person to a post already sent resends its webmentions on the next
+build even when the body is unchanged.
 
 ## How notes render
 

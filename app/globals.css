@@ -243,6 +243,12 @@
   color: var(--color-ink);
 }
 
+/* The skip link focuses the page's <main> so the next Tab starts there. A
+   ring around the whole page would only get in the way. */
+main:focus {
+  outline: none;
+}
+
 /* Typography and syntax themes consume the same roles as the surrounding UI. */
 .prose-theme {
   --tw-prose-body: var(--color-on-surface);

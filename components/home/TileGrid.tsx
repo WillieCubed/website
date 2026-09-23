@@ -117,7 +117,7 @@ export function TileGrid({
   playbills?: Record<string, React.ReactNode>;
 }) {
   return (
-    <main className="evidence" aria-label="Work in progress">
+    <main id="main" className="evidence" aria-label="Work in progress">
       {tiles.map((tile, i) => {
         const loading = i < EAGER_TILES ? 'eager' : 'lazy';
         return tile.kind === 'venture' ? (

@@ -95,7 +95,7 @@ export default async function PartPage(props: {
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
       <JsonLd data={partGraph} />
       <TopBar crumbs={crumbs} />
-      <main className="mx-auto max-w-[1200px] px-5 pb-20">
+      <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
         <header className="relative overflow-hidden rounded-3xl bg-ink text-ground">
           {cover && (
             <Image

@@ -25,13 +25,23 @@ interface TopBarProps {
   crumbs?: Crumb[];
   /** Which content column the bar should line up with. */
   column?: Column;
+  /**
+   * Prefetch the homepage from the name link. The prefetch carries the
+   * homepage's image preloads, so a page that never shows those images, such
+   * as the 404, turns it off rather than leave them unused.
+   */
+  prefetchHome?: boolean;
 }
 
 /**
  * A slim bar with the way home and where the visitor is. It is the only
  * chrome on immersive pages so the content keeps the room.
  */
-export default function TopBar({ crumbs = [], column = 'wide' }: TopBarProps) {
+export default function TopBar({
+  crumbs = [],
+  column = 'wide',
+  prefetchHome = true,
+}: TopBarProps) {
   return (
     <header
       data-column={column}
@@ -40,6 +50,7 @@ export default function TopBar({ crumbs = [], column = 'wide' }: TopBarProps) {
       <SiteLink
         preview={false}
         href="/"
+        prefetch={prefetchHome ? undefined : false}
         rel="author"
         className="font-semibold text-ink transition-colors hover:text-accent"
       >

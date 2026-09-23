@@ -46,7 +46,9 @@ export default async function NotFound() {
   const paths = await routedPaths();
   return (
     <>
-      <TopBar column="content" />
+      {/* Neither way home prefetches: the homepage's payload would preload
+          its tile images here, where none of them show. */}
+      <TopBar column="content" prefetchHome={false} />
       <main
         id="main"
         className="mx-auto flex max-w-[840px] flex-col gap-7 px-5 pb-8 pt-10"
@@ -56,6 +58,7 @@ export default async function NotFound() {
         <div>
           <SiteLink
             preview={false}
+            prefetch={false}
             href="/"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-label-large font-semibold text-on-primary transition-colors hover:bg-primary/90"
           >

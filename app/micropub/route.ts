@@ -50,6 +50,13 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const bearer = getBearerToken(request);
   if (!bearer) return jsonError('unauthorized', 401);
+  if (await hasSecondToken(request)) {
+    return jsonError(
+      'invalid_request',
+      400,
+      'Send the access token only in the Authorization header.'
+    );
+  }
 
   const environment = getMicropubEnvironment();
 
@@ -96,6 +103,29 @@ export async function POST(request: Request) {
     console.error('Micropub create failed:', error);
     return jsonError('server_error', 500);
   }
+}
+
+async function hasSecondToken(request: Request): Promise<boolean> {
+  if (new URL(request.url).searchParams.has('access_token')) return true;
+
+  const contentType = request.headers.get('content-type') ?? '';
+  try {
+    if (
+      contentType.includes('application/x-www-form-urlencoded') ||
+      contentType.includes('multipart/form-data')
+    ) {
+      return (await request.clone().formData()).has('access_token');
+    }
+    if (contentType.includes('application/json')) {
+      const body = await request.clone().json();
+      return Boolean(
+        body && typeof body === 'object' && 'access_token' in body
+      );
+    }
+  } catch {
+    // The normal request parser reports malformed bodies after authentication.
+  }
+  return false;
 }
 
 function getMicropubEnvironment(): MicropubRouteEnvironment {

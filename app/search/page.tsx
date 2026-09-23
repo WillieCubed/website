@@ -2,7 +2,6 @@ import type { Metadata } from 'next/types';
 import { Suspense } from 'react';
 
 import SiteSearch from '@/components/SiteSearch';
-import { PagefindTrigger } from '@/components/search/pagefind';
 import TopBar, { COLUMN } from '@/components/site/TopBar';
 
 import { site } from '@/lib/site';
@@ -30,9 +29,6 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
           Press <kbd className="font-mono">⌘K</kbd> (Ctrl+K on Windows and
           Linux) for instant search.
         </p>
-        <div className="mb-lg">
-          <PagefindTrigger />
-        </div>
         {/* searchParams is request data, so reading it must sit under Suspense
             for the static shell to prerender under Cache Components. */}
         <Suspense fallback={<SiteSearch />}>

@@ -7,16 +7,31 @@
 
    Input height and font size are left at Pagefind's defaults on purpose: the
    trigger button's height follows the input height, and the default 36px
-   matches the placeholder below, so the top bar does not grow on upgrade. */
+   matches the placeholder below, so the top bar does not grow on upgrade.
+
+   Pagefind only turns dark under its own `data-pf-theme` attribute, so every
+   fill, border, and text color it paints with maps to a site role here. An
+   unmapped one keeps its light default in dark mode, which put the selected
+   result on a pale grey fill behind pale text. Shadows and the backdrop stay
+   black, which reads in both schemes. */
 :root:root {
   --pf-text: var(--color-ink);
   --pf-text-secondary: var(--color-muted);
   --pf-text-muted: var(--color-muted);
   --pf-background: var(--color-card);
   --pf-border: var(--color-line);
+  --pf-border-focus: var(--color-outline);
   --pf-border-radius: 12px;
   --pf-outline-focus: var(--color-accent);
   --pf-mark: var(--color-ink);
+  --pf-hover: var(--color-surface-container);
+  --pf-skeleton: var(--color-surface-container-high);
+  --pf-skeleton-shine: var(--color-surface-container);
+  --pf-scroll-shadow: color-mix(in srgb, var(--color-ink) 10%, transparent);
+  --pf-error-bg: var(--color-error-container);
+  --pf-error-border: var(--color-error);
+  --pf-error-text: var(--color-on-error-container);
+  --pf-error-text-secondary: var(--color-on-error-container);
   --pf-font: var(--font-sans);
 }
 

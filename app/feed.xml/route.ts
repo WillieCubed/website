@@ -1,43 +1,19 @@
-import RSS from 'rss';
+import { cacheLife } from 'next/cache';
 
-import { WEBSUB_HUB } from '@/lib/indieweb/constants';
-import { site } from '@/lib/site';
-import { getAllWritings } from '@/lib/writings';
+import { generateRssFeed } from '@/lib/feeds';
+import { getSiteFeedItems } from '@/lib/feeds/items';
 
-const SITE_URL = site.origin;
+async function buildFeed() {
+  'use cache';
+  cacheLife('hours');
+
+  return generateRssFeed(await getSiteFeedItems());
+}
 
 export async function GET() {
-  const writings = await getAllWritings();
+  const feed = await buildFeed();
 
-  const feed = new RSS({
-    title: site.name,
-    description: 'Writings from Willie Chalmers III.',
-    site_url: SITE_URL,
-    feed_url: `${SITE_URL}/feed.xml`,
-    language: 'en',
-    pubDate: new Date(),
-    copyright: `${new Date().getFullYear()} ${site.author.name}`,
-    generator: 'Next.js + RSS',
-    hub: WEBSUB_HUB,
-  });
-
-  // Add writings
-  for (const writing of writings) {
-    const url = `${SITE_URL}/writings/${writing.slug}`;
-
-    feed.item({
-      title: writing.title,
-      description: writing.description,
-      url,
-      guid: url,
-      date: new Date(writing.published),
-      categories: writing.tags,
-      author: site.author.name,
-      custom_elements: [{ 'content:encoded': writing.description }],
-    });
-  }
-
-  return new Response(feed.xml({ indent: true }), {
+  return new Response(feed, {
     headers: {
       'Content-Type': 'application/rss+xml; charset=utf-8',
       'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',

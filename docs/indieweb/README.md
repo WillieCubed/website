@@ -67,6 +67,19 @@ Post kinds map to these properties in `WritingHeader.tsx` and
 | `rsvp`        | `p-rsvp` plus `u-in-reply-to` on the event |
 | `syndication` | `u-syndication`, one per entry             |
 
+Approved webmentions render at the foot of the post, inside its `h-entry`.
+A reply is a `p-comment h-cite` with `u-url` (the reply's own page),
+`dt-published`, `p-content`, and a `p-author h-card`. Likes, reposts, and
+bookmarks are facepiles: each face is a `u-like`, `u-repost`, or
+`u-bookmark` `h-cite` with the same author card, and a line beside it names
+who reacted. The post page reads them through a `'use cache'` loader with
+`cacheLife('minutes')`, so an approval shows within about a minute without
+a deploy. Do not move the read to request time: a streamed section lands
+after the page, outside the `h-entry`, and parsers lose the comments.
+Author photos load straight from the author's site, since the image
+optimizer only accepts the hosts in `next.config.ts`.
+`tests/unit/webmention-display.test.mts` parses the rendered markup.
+
 `@handle` in prose becomes a link through `lib/writings/remark-mentions.ts`.
 `@thewilliediaries` and `@williecubed` map to their Instagram profiles, and any
 other handle links to `https://instagram.com/<handle>`. Add an entry to
@@ -170,7 +183,8 @@ curl in this repo checks it.
 | 3     | Likes, reposts, bookmarks, RSVPs render as h-entry         | Done, no live posts yet | `ReplyTarget.tsx`                                                                |
 | 3     | WebSub hub declared in feeds and pinged on publish         | Done                    | `WEBSUB_HUB`, `websub:ping`                                                      |
 | 3     | Autolinked mentions                                        | Done                    | `remark-mentions.ts`                                                             |
-| 3     | Person tags, photo posts, comment display from other sites | Not done                | see `docs/future/activitypub.md` for what comes after                            |
+| 3     | Comments from other sites display, with reaction facepiles | Done, needs Postgres    | `WebmentionReplies.tsx`, `WebmentionSection.tsx`                                 |
+| 3     | Person tags, photo posts                                   | Not done                | see `docs/future/activitypub.md` for what comes after                            |
 
 ## Not covered here
 

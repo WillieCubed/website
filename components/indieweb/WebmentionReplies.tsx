@@ -9,7 +9,9 @@ interface WebmentionRepliesProps {
 
 /**
  * Each reply is its author, when they wrote it, and what they said. The
- * date links to the reply where it lives.
+ * date links to the reply where it lives. Every reply is a `p-comment
+ * h-cite` on the post's h-entry, so the conversation reads the same to a
+ * parser as it does on the page.
  */
 export default function WebmentionReplies({ replies }: WebmentionRepliesProps) {
   if (replies.length === 0) return null;
@@ -23,7 +25,7 @@ export default function WebmentionReplies({ replies }: WebmentionRepliesProps) {
         {replies.map((reply) => (
           <li
             key={reply.id}
-            className="-mx-4 flex gap-3 rounded-2xl border border-line bg-card px-4 py-3"
+            className="p-comment h-cite -mx-4 flex gap-3 rounded-2xl border border-line bg-card px-4 py-3"
           >
             <WebmentionAvatar author={reply.author} size="md" />
             <div className="min-w-0 flex-1 space-y-1">
@@ -44,15 +46,24 @@ export default function WebmentionReplies({ replies }: WebmentionRepliesProps) {
                 <a
                   href={reply.sourceUrl}
                   rel="noopener"
-                  className="hover:text-ink"
+                  className="u-url hover:text-ink"
                 >
-                  {reply.publishedAt
-                    ? formatDate(reply.publishedAt, 'short')
-                    : new URL(reply.sourceUrl).hostname}
+                  {reply.publishedAt ? (
+                    <time
+                      className="dt-published"
+                      dateTime={reply.publishedAt.toISOString()}
+                    >
+                      {formatDate(reply.publishedAt, 'short')}
+                    </time>
+                  ) : (
+                    new URL(reply.sourceUrl).hostname
+                  )}
                 </a>
               </p>
               {reply.content && (
-                <p className="text-body-medium text-ink">{reply.content}</p>
+                <p className="p-content text-body-medium text-ink">
+                  {reply.content}
+                </p>
               )}
             </div>
           </li>

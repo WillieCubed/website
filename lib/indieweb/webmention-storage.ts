@@ -250,8 +250,16 @@ export async function getWebmentionBySourceTarget(
 export async function getWebmentionsForPost(
   slug: string
 ): Promise<WebmentionGroup> {
-  const targetUrl = `${SITE_URL}/writings/${slug}`;
+  return getWebmentionsForTarget(`${SITE_URL}/writings/${slug}`);
+}
 
+/**
+ * Get all verified and approved webmentions for any page, by its canonical
+ * address, grouped by kind.
+ */
+export async function getWebmentionsForTarget(
+  targetUrl: string
+): Promise<WebmentionGroup> {
   const result = await sql`
     SELECT
       id,

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
 
+import PageWebmentions from '@/components/indieweb/PageWebmentions';
 import InitiativeBody from '@/components/initiatives/InitiativeBody';
 import Playbill from '@/components/initiatives/Playbill';
 import RouteMap from '@/components/initiatives/RouteMap';
@@ -18,7 +19,7 @@ import {
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
 import { breadcrumbLd, graph } from '@/lib/seo/jsonld';
-import { pageMetadata } from '@/lib/site';
+import { absoluteUrl, pageMetadata } from '@/lib/site';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix
@@ -182,6 +183,11 @@ export default async function InitiativePage(props: {
             </ul>
           </nav>
         )}
+
+        <PageWebmentions
+          target={absoluteUrl(initiative.href)}
+          className="mx-auto mt-12 max-w-[720px]"
+        />
       </main>
     </div>
   );

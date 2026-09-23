@@ -189,7 +189,15 @@ function determineWebmentionType(
   return 'mention';
 }
 
-function extractAuthor(hEntry: MicroformatRoot): ExtractedWebmentionAuthor {
+/**
+ * The author of an h-entry. A `u-photo` with non-empty alt text parses as
+ * `{value, alt}` rather than a string, and its `value` is the photo URL. The
+ * alt is not kept: the avatar is labelled with the author's name, and the
+ * whole entry is stored as `rawMf2` anyway.
+ */
+export function extractAuthor(
+  hEntry: MicroformatRoot
+): ExtractedWebmentionAuthor {
   const properties = hEntry.properties;
   const authorProp = properties.author?.[0];
   if (!authorProp) return {};
@@ -204,11 +212,15 @@ function extractAuthor(hEntry: MicroformatRoot): ExtractedWebmentionAuthor {
     const authorProps = authorProp.properties;
     const getName = (val: unknown): string | undefined =>
       typeof val === 'string' ? val : undefined;
+    const getUrl = (val: unknown): string | undefined =>
+      typeof val === 'object' && val !== null && 'value' in val
+        ? getName(val.value)
+        : getName(val);
 
     return {
       name: getName(authorProps.name?.[0]),
-      url: getName(authorProps.url?.[0]),
-      photo: getName(authorProps.photo?.[0]),
+      url: getUrl(authorProps.url?.[0]),
+      photo: getUrl(authorProps.photo?.[0]),
     };
   }
 

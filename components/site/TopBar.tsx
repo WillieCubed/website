@@ -1,7 +1,10 @@
 import SiteLink from '@/components/link/SiteLink';
 import { PagefindTrigger } from '@/components/search/pagefind';
 
+import type { PageColumn } from '@/lib/footer/column';
 import { site } from '@/lib/site';
+
+import TopBarFrame from './TopBarFrame';
 
 interface Crumb {
   label: string;
@@ -17,7 +20,7 @@ export const COLUMN = {
   reading: 'max-w-breakpoint-md px-lg desktop:px-0',
   content: 'max-w-[840px] px-5',
   wide: 'max-w-[1200px] px-5',
-} as const;
+} as const satisfies Record<PageColumn, string>;
 
 export type Column = keyof typeof COLUMN;
 
@@ -35,7 +38,8 @@ interface TopBarProps {
 
 /**
  * A slim bar with the way home and where the visitor is. It is the only
- * chrome on immersive pages so the content keeps the room.
+ * chrome on immersive pages so the content keeps the room. It also tells
+ * the footer which column to line up with (TopBarFrame).
  */
 export default function TopBar({
   crumbs = [],
@@ -43,8 +47,8 @@ export default function TopBar({
   prefetchHome = true,
 }: TopBarProps) {
   return (
-    <header
-      data-column={column}
+    <TopBarFrame
+      column={column}
       className={`mx-auto flex items-center gap-3 py-4 text-label-large text-muted ${COLUMN[column]}`}
     >
       <SiteLink
@@ -80,6 +84,6 @@ export default function TopBar({
           </SiteLink>
         </noscript>
       </div>
-    </header>
+    </TopBarFrame>
   );
 }

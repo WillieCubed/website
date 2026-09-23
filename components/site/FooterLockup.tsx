@@ -1,11 +1,14 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 
 import Mark from '@/components/brand/Mark';
 
-import { visibleElement } from '@/lib/dom/visible';
+import {
+  getTopBar,
+  getTopBarOnServer,
+  subscribeTopBar,
+} from '@/lib/footer/column';
 
 /**
  * The cube, with the name beside it. The name shows once per screen: on
@@ -16,13 +19,17 @@ import { visibleElement } from '@/lib/dom/visible';
  * turns the wipe off there.
  */
 export default function FooterLockup({ name }: { name: string }) {
-  const pathname = usePathname();
+  const header = useSyncExternalStore(
+    subscribeTopBar,
+    getTopBar,
+    getTopBarOnServer
+  );
   const [revealed, setRevealed] = useState(false);
 
-  // The top bar is replaced on every navigation, so the observer is set up
-  // again for each page and dropped for pages without one.
+  // Each page's top bar registers itself while it is on screen, so the
+  // observer follows it from page to page and is dropped for pages without
+  // one.
   useEffect(() => {
-    const header = visibleElement('header[data-column]');
     if (!header) {
       const frame = requestAnimationFrame(() => setRevealed(false));
       return () => cancelAnimationFrame(frame);
@@ -32,7 +39,7 @@ export default function FooterLockup({ name }: { name: string }) {
     );
     observer.observe(header);
     return () => observer.disconnect();
-  }, [pathname]);
+  }, [header]);
 
   return (
     <p

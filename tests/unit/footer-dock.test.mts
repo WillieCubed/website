@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import {
+  getPageColumn,
+  getTopBar,
+  registerTopBar,
+  subscribeTopBar,
+} from '@/lib/footer/column';
 import { footerProgress } from '@/lib/footer/dock';
 import {
   STAGES,
@@ -78,4 +84,48 @@ test('stages run from hidden to plain text', () => {
   assert.equal(stageFor(0.93), STAGES);
   assert.equal(stageFor(0.94), null);
   assert.equal(stageFor(1.02), null);
+});
+
+// The column store is module state, so these run in order from a page load
+// where no top bar has registered yet.
+const bar = (name: string) => ({ name }) as unknown as Element;
+
+test('before any top bar registers, the footer leaves the column to the stylesheet', () => {
+  assert.equal(getPageColumn(), null);
+  assert.equal(getTopBar(), null);
+});
+
+test('the footer follows the top bar on screen, not one left hidden', () => {
+  const writing = bar('writing');
+  const leave = registerTopBar('reading', writing);
+  assert.equal(getPageColumn(), 'reading');
+  assert.equal(getTopBar(), writing);
+
+  // Navigating on: the next page arrives before the writing lets go.
+  const initiatives = bar('initiatives');
+  const leaveInitiatives = registerTopBar('wide', initiatives);
+  leave();
+  assert.equal(getPageColumn(), 'wide');
+  assert.equal(getTopBar(), initiatives);
+
+  // And to the homepage, which has no top bar and the widest column.
+  leaveInitiatives();
+  assert.equal(getPageColumn(), 'wide');
+  assert.equal(getTopBar(), null);
+});
+
+test('a page coming back into view takes the column back', () => {
+  const leave = registerTopBar('content', bar('initiative'));
+  assert.equal(getPageColumn(), 'content');
+  leave();
+});
+
+test('the footer hears every change and can stop listening', () => {
+  let heard = 0;
+  const stop = subscribeTopBar(() => heard++);
+  const leave = registerTopBar('reading', bar('search'));
+  leave();
+  stop();
+  registerTopBar('content', bar('not found'))();
+  assert.equal(heard, 2);
 });

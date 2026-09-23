@@ -79,14 +79,10 @@
   max-width: calc(var(--shell-max) + 2 * var(--shell-gutter));
   padding: var(--pad-top) var(--shell-gutter) var(--footer-inset);
 }
-/* The footer's content keeps the rail's left edge, so the collapsed row
-   sits on the rail's line, but it stops short of a wide window's right
-   edge: spread any further and the pages, the links and the feeds read as
-   unrelated corners rather than one footer. */
-.site-footer[data-dock] .site-footer__top,
-.site-footer[data-dock] .site-footer__row {
-  max-width: calc(var(--rail-w) + var(--rail-gap) + 700px);
-}
+/* The footer's content spans the shell the page above is drawn in: it
+   keeps the rail's left edge, so the collapsed row sits on the rail's
+   line, and it ends where the grid of work ends, so the pages and the
+   feeds close the same right edge the cards do. */
 
 /* The lockup lives above the tagline. While the footer is collapsed it
    sits at the head of the row, row-sized, where the photo used to be; it
@@ -227,20 +223,14 @@
 }
 
 /* On a phone the row is not pinned while scrolling. As the page ends it
-   grows out of nothing, already in the footer's look, and opens until the
-   footer fills the screen. */
+   grows out of nothing, already in the footer's look, and opens to the
+   footer's own height. Stretched to fill the screen, a phone's footer is
+   mostly an empty middle, so the end of the page stays in view above it. */
 @media (max-width: 839px) {
   .site-footer[data-dock] {
     --dock: 1;
     --appear: clamp(0, var(--p) / 0.08, 1);
     --pill-r: var(--shell-gutter);
-  }
-  .site-footer[data-dock] .site-footer__inner {
-    min-height: 100svh;
-    grid-template-rows: 1fr auto;
-  }
-  .site-footer[data-dock] .site-footer__top {
-    align-self: start;
   }
   /* A phone column is too narrow for the full-size lockup. */
   .site-footer[data-dock] .site-footer__lockup {

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next/types';
 
 import { CountdownDays } from '@/components/home/Countdown';
-import { HiatusPage } from '@/components/home/HiatusPage';
 import { HomeShell } from '@/components/home/HomeShell';
 import { Rail } from '@/components/home/Rail';
 import { TileGrid } from '@/components/home/TileGrid';
@@ -16,23 +15,8 @@ import { LVBT_DEADLINE, getHomeTiles } from '@/lib/home/ventures';
 import { getFeaturedInitiatives } from '@/lib/initiatives';
 import { homeGraph } from '@/lib/seo/jsonld';
 import { site } from '@/lib/site';
-import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 
 export function generateMetadata(): Metadata {
-  if (isHiatusMode()) {
-    return {
-      title: { absolute: HIATUS_MESSAGE },
-      description: HIATUS_MESSAGE,
-      openGraph: {
-        title: HIATUS_MESSAGE,
-        description: HIATUS_MESSAGE,
-        url: '/',
-        type: 'website',
-      },
-      twitter: { title: HIATUS_MESSAGE, description: HIATUS_MESSAGE },
-    };
-  }
-
   return {
     title: { absolute: site.name },
     description: site.description,
@@ -71,10 +55,6 @@ export function generateMetadata(): Metadata {
  * Route: /
  */
 export default async function HomePage() {
-  if (isHiatusMode()) {
-    return <HiatusPage />;
-  }
-
   const [featuredTiles, featured] = await Promise.all([
     getFeaturedTiles(),
     getFeaturedInitiatives(),

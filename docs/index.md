@@ -11,9 +11,6 @@ extend it, keep reading.
 
 - [Deploying](./deploy.md): hosts, the redirect table, the DNS cutover script,
   and the Vercel versus Cloudflare analysis.
-- [Hiatus mode](./hiatus-mode.md): temporary Project Superbloom launch behavior,
-  including which routes are hidden and which operational/error pages remain
-  reachable.
 
 ## Content
 

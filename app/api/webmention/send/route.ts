@@ -49,7 +49,11 @@ export async function POST(request: NextRequest) {
     const htmlContent = writing.content;
 
     // Send webmentions
-    const results = await sendWebmentionsForPost(slug, htmlContent);
+    const results = await sendWebmentionsForPost(
+      slug,
+      htmlContent,
+      writing.writing.people.map((person) => person.url)
+    );
 
     const successful = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success).length;

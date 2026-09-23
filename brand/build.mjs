@@ -152,30 +152,64 @@ const mark = {
 
 // ---------- Text ----------
 
-function lockup({ label, color, tile = true }) {
-  const markSize = 120;
-  const size = 64;
-  const gap = 36;
+// The drawn box of a cube: its facet corners plus half the round stroke.
+function cubeBounds(f) {
+  const points = [...f.top, ...f.left, ...f.right];
+  const half = f.stroke / 2;
+  return {
+    x1: Math.min(...points.map((p) => p[0])) - half,
+    x2: Math.max(...points.map((p) => p[0])) + half,
+    y1: Math.min(...points.map((p) => p[1])) - half,
+    y2: Math.max(...points.map((p) => p[1])) + half,
+  };
+}
+
+const CAP_HEIGHT = BOLD.tables.os2.sCapHeight / BOLD.unitsPerEm;
+
+// The bare cube on the lockup's own background, with the label beside it.
+// The tile belongs only to the mark shown alone.
+//
+// Both labels are measured by cap height, even the all-lowercase
+// "williecubed", so both lockups follow one rule. The cube's drawn box is
+// CUBE_SCALE times the cap height, and it sits optically on the baseline
+// rather than centred beside the text: its bottom point hangs DROP of its
+// own height below the baseline, so the two lower side faces rest on the
+// baseline like the letters' stems and the point dips below it the way a
+// round letter overshoots. That puts the cube's centre on the middle of the
+// cap band. The gap from the cube to the first letter is GAP of the cube's
+// height.
+const CAP_PX = 120;
+const CUBE_SCALE = 1.5;
+const DROP = 0.14;
+const GAP = 0.3;
+
+function lockup({ label, color }) {
   const pad = 24;
-  const baseline = pad + markSize / 2 + (size * 0.7) / 2;
-  const textX = pad + markSize + gap;
-  const width = Math.ceil(textX + BOLD.getAdvanceWidth(label, size) + pad);
-  const height = markSize + pad * 2;
-  const glyphs = BOLD.getPath(label, textX, baseline, size).toPathData(2);
-  const markBody = tile
-    ? `<rect x="${pad}" y="${pad}" width="${markSize}" height="${markSize}" rx="${(markSize * 112) / 512}" fill="${C.green}"/>${facetSvg(facets({ cx: pad + markSize / 2, cy: pad + markSize / 2, r: markSize * (204 / 512) }), ON_TILE)}`
-    : facetSvg(
-        facets({
-          cx: pad + markSize / 2,
-          cy: pad + markSize / 2,
-          r: markSize * 0.47,
-        }),
-        color === C.ink ? ON_LIGHT : ON_DARK
-      );
+  const size = CAP_PX / CAP_HEIGHT;
+  const cubeHeight = CUBE_SCALE * CAP_PX;
+  // Every facet measure scales with r, so one measurement sizes the cube.
+  const probe = cubeBounds(facets({ cx: 0, cy: 0, r: 100 }));
+  const scale = cubeHeight / (probe.y2 - probe.y1);
+  const text = BOLD.getPath(label, 0, 0, size).getBoundingBox();
+  // Lay out around the baseline at y = 0, then drop everything by the
+  // tallest ink (the cube's top, i-dots or ascenders) plus the padding.
+  const cubeTop = DROP * cubeHeight - cubeHeight;
+  const baseline = pad - Math.min(cubeTop, text.y1);
+  const cube = facets({
+    cx: pad - probe.x1 * scale,
+    cy: baseline + cubeTop - probe.y1 * scale,
+    r: 100 * scale,
+  });
+  const box = cubeBounds(cube);
+  const textX = box.x2 + GAP * cubeHeight - text.x1;
+  const glyphs = BOLD.getPath(label, textX, baseline, size);
+  const ink = glyphs.getBoundingBox();
+  const width = Math.ceil(ink.x2 + pad);
+  const height = Math.ceil(Math.max(box.y2, ink.y2) + pad);
   return svg(
     width,
     height,
-    `${markBody}<path d="${glyphs}" fill="${color}"/>`,
+    `${facetSvg(cube, color === C.ink ? ON_LIGHT : ON_DARK)}<path d="${glyphs.toPathData(2)}" fill="${color}"/>`,
     label
   );
 }

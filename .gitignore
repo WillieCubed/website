@@ -54,3 +54,4 @@ yarn-error.log*
 # Playwright smoke test output (tests/e2e)
 /test-results/
 /playwright-report/
+.env.local

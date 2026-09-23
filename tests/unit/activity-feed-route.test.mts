@@ -56,6 +56,10 @@ test('createActivityFeedResponse serializes IndieWeb metadata in JSON Feed items
     response.headers.get('Content-Type'),
     'application/feed+json; charset=utf-8'
   );
+  assert.equal(
+    response.headers.get('Link'),
+    `<https://pubsubhubbub.appspot.com/>; rel="hub", <${config.feedUrl}>; rel="self"`
+  );
   assert.equal(json.items[0]._indieweb.type, 'like');
   assert.equal(json.items[0]._indieweb.source, 'https://example.com/like');
   assert.equal(

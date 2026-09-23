@@ -6,7 +6,6 @@ import { PagefindTrigger } from '@/components/search/pagefind';
 import TopBar, { COLUMN } from '@/components/site/TopBar';
 
 import { site } from '@/lib/site';
-import { isHiatusMode } from '@/lib/site-mode';
 
 export const metadata: Metadata = {
   title: 'Search',
@@ -27,17 +26,13 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
       <TopBar column="reading" />
       <main id="main" className={`mx-auto pb-2xl pt-lg ${COLUMN.reading}`}>
         <h1 className="mb-xl text-headline-large">Search</h1>
-        {!isHiatusMode() && (
-          <>
-            <p className="mb-lg text-body-medium text-on-surface-variant">
-              Press <kbd className="font-mono">⌘K</kbd> (Ctrl+K on Windows and
-              Linux) for instant search.
-            </p>
-            <div className="mb-lg">
-              <PagefindTrigger />
-            </div>
-          </>
-        )}
+        <p className="mb-lg text-body-medium text-on-surface-variant">
+          Press <kbd className="font-mono">⌘K</kbd> (Ctrl+K on Windows and
+          Linux) for instant search.
+        </p>
+        <div className="mb-lg">
+          <PagefindTrigger />
+        </div>
         {/* searchParams is request data, so reading it must sit under Suspense
             for the static shell to prerender under Cache Components. */}
         <Suspense fallback={<SiteSearch />}>

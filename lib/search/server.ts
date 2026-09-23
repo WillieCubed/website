@@ -1,8 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { isHiatusMode } from '@/lib/site-mode';
-
 import { generateSearchIndex } from './index';
 import { rankItems, tokenize } from './rank';
 import type {
@@ -75,9 +73,7 @@ export async function searchContent(
   const trimmed = query.trim();
   const backend = usePostgresSearch() ? 'postgres' : 'index';
 
-  // Hiatus hides the content routes, so search would describe pages a visitor
-  // cannot open. It returns nothing, as the MCP tools do.
-  if (isHiatusMode() || !trimmed || tokenize(trimmed).length === 0) {
+  if (!trimmed || tokenize(trimmed).length === 0) {
     return { results: [], total: 0, query: trimmed, backend };
   }
 

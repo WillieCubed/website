@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { rankItems } from '@/lib/search/rank';
-import { searchContent, selectSearchable } from '@/lib/search/server';
+import { selectSearchable } from '@/lib/search/server';
 import { type SearchableItem, UNDATED } from '@/lib/search/types';
 
 const base = { description: '', content: '', tags: [], published: UNDATED };
@@ -54,17 +54,4 @@ test('selectSearchable narrows to one type', () => {
 test('rankItems keeps the path of an initiative result', () => {
   const [result] = rankItems(items, 'diaries');
   assert.equal(result.path, '/initiatives/twd');
-});
-
-test('searchContent returns nothing in hiatus mode', async () => {
-  const before = process.env.SITE_MODE;
-  process.env.SITE_MODE = 'hiatus';
-  try {
-    const response = await searchContent('writings');
-    assert.equal(response.total, 0);
-    assert.deepEqual(response.results, []);
-  } finally {
-    if (before === undefined) delete process.env.SITE_MODE;
-    else process.env.SITE_MODE = before;
-  }
 });

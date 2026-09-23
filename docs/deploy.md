@@ -49,27 +49,25 @@ Willie is considering moving the whole site to Cloudflare Workers. The code
 is kept host-agnostic so that move is a spike, not a rewrite. What it would
 take, as of September 2026:
 
-| Concern            | Vercel (now)               | Cloudflare via OpenNext                                                                          | Cloudflare via vinext                                                                 |
-| ------------------ | -------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| Runtime            | Next 16, `cacheComponents` | Next 16 supported; PPR and `use cache` listed as supported; Node middleware (`proxy.ts`) not yet | A Vite reimplementation of Next; `cacheComponents`, `next/og`, `next/font` unverified |
-| Webmention storage | Vercel Postgres            | Hyperdrive to the same Postgres, or D1; one module to change                                     | same                                                                                  |
-| Remote config      | Edge Config                | delete `lib/config`; nothing live reads it                                                       | same                                                                                  |
-| Analytics          | Vercel Analytics           | Cloudflare Web Analytics beacon                                                                  | same                                                                                  |
-| Redirects          | `next.config.ts`           | same file                                                                                        | same file, if supported                                                               |
-| Social images      | `next/og`                  | documented as working on workerd; verify                                                         | unverified                                                                            |
-| Deploy             | git integration            | `wrangler deploy` with `@opennextjs/cloudflare`                                                  | `create-vinext` / `migrate-to-vinext`                                                 |
+| Concern            | Vercel (now)               | Cloudflare via OpenNext                                                                                                 | Cloudflare via vinext                                                                 |
+| ------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Runtime            | Next 16, `cacheComponents` | Next 16 supported; PPR and `use cache` listed as supported; Node middleware (`proxy.ts`) not yet, and the site has none | A Vite reimplementation of Next; `cacheComponents`, `next/og`, `next/font` unverified |
+| Webmention storage | Vercel Postgres            | Hyperdrive to the same Postgres, or D1; one module to change                                                            | same                                                                                  |
+| Remote config      | Edge Config                | delete `lib/config`; nothing live reads it                                                                              | same                                                                                  |
+| Analytics          | Vercel Analytics           | Cloudflare Web Analytics beacon                                                                                         | same                                                                                  |
+| Redirects          | `next.config.ts`           | same file                                                                                                               | same file, if supported                                                               |
+| Social images      | `next/og`                  | documented as working on workerd; verify                                                                                | unverified                                                                            |
+| Deploy             | git integration            | `wrangler deploy` with `@opennextjs/cloudflare`                                                                         | `create-vinext` / `migrate-to-vinext`                                                 |
 
 The spike, in order:
 
 1. In a fresh worktree, run the OpenNext Cloudflare adapter's build and note
    every warning.
-2. Move the hiatus gate out of `proxy.ts` into the root layout so no
-   middleware remains, then delete `proxy.ts`.
-3. Point `lib/indieweb/webmention-storage.ts` at Hyperdrive with the `postgres`
+2. Point `lib/indieweb/webmention-storage.ts` at Hyperdrive with the `postgres`
    driver and run the webmention tests.
-4. Render one `opengraph-image` route on workerd and compare it with the
+3. Render one `opengraph-image` route on workerd and compare it with the
    Vercel output.
-5. Preview on a `*.workers.dev` hostname before touching DNS.
+4. Preview on a `*.workers.dev` hostname before touching DNS.
 
 Do not start on vinext until its own skills confirm `cacheComponents` and
 `next/og` support.

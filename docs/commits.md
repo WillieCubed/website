@@ -6,8 +6,7 @@ Commits use [Conventional Commits](https://www.conventionalcommits.org/) format 
 
 Use one of these scopes. Omit the scope only for repository-wide changes.
 
-- **`landing`** — the `/` route, including the hiatus landing page
-- **`hiatus`** — the `SITE_MODE` gate in `proxy.ts` and `lib/site-mode.ts`
+- **`landing`** — the `/` route
 - **`pages`** — the routes under `app/_(pages)`
 - **`projects`** — project data, `lib/projects`, and `components/projects`
 - **`writings`** — the writing system: `lib/writings`, `components/writings`, and page routes

@@ -1,24 +1,18 @@
 import { getInitiatives } from '@/lib/initiatives';
 import { searchContent } from '@/lib/search/server';
-import { isHiatusMode } from '@/lib/site-mode';
 import {
   getAllWritings,
   getPublishedWriting,
   getPublishedWritingSlugs,
 } from '@/lib/writings';
 
-import {
-  type SiteContent,
-  contentForMode,
-  summarizeWriting,
-} from './site-server';
+import { type SiteContent, summarizeWriting } from './site-server';
 
 /**
  * The site's own loaders behind the MCP tools. Each one already hides drafts
- * in production, which is the only visibility rule they rely on; hiatus mode
- * is applied on top by `contentForMode`.
+ * in production, which is the only visibility rule they rely on.
  */
-const liveContent: SiteContent = {
+export const siteContent: SiteContent = {
   async listWritings() {
     return (await getAllWritings()).map(summarizeWriting);
   },
@@ -52,5 +46,3 @@ const liveContent: SiteContent = {
     }));
   },
 };
-
-export const siteContent = contentForMode(isHiatusMode(), liveContent);

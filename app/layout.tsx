@@ -16,7 +16,6 @@ import {
   WEBSUB_HUB,
 } from '@/lib/indieweb/constants';
 import { site } from '@/lib/site';
-import { HIATUS_MESSAGE, isHiatusMode } from '@/lib/site-mode';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
 import { monoFont, sansFont } from './fonts';
@@ -32,66 +31,43 @@ const SITE_ICONS: Metadata['icons'] = {
 };
 const SITE_MANIFEST = '/manifest.webmanifest';
 
-const isHiatus = isHiatusMode();
-
-export const metadata: Metadata = isHiatus
-  ? {
-      metadataBase: new URL(site.origin),
-      title: {
-        absolute: HIATUS_MESSAGE,
+export const metadata: Metadata = {
+  metadataBase: new URL(site.origin),
+  title: {
+    default: site.name,
+    template: `%s · ${site.name}`,
+  },
+  description: site.description,
+  openGraph: {
+    siteName: site.name,
+    locale: site.locale,
+    type: 'website',
+    images: [
+      {
+        url: site.ogImage,
+        width: 1200,
+        height: 630,
+        alt: site.shortDescription,
       },
-      description: HIATUS_MESSAGE,
-      openGraph: {
-        title: HIATUS_MESSAGE,
-        description: HIATUS_MESSAGE,
-        url: '/',
-        type: 'website',
-      },
-      robots: {
-        index: false,
-        follow: false,
-        nocache: true,
-      },
-      icons: SITE_ICONS,
-      manifest: SITE_MANIFEST,
-    }
-  : {
-      metadataBase: new URL(site.origin),
-      title: {
-        default: site.name,
-        template: `%s · ${site.name}`,
-      },
-      description: site.description,
-      openGraph: {
-        siteName: site.name,
-        locale: site.locale,
-        type: 'website',
-        images: [
-          {
-            url: site.ogImage,
-            width: 1200,
-            height: 630,
-            alt: site.shortDescription,
-          },
-        ],
-      },
-      twitter: {
-        card: 'summary_large_image',
-      },
-      icons: SITE_ICONS,
-      manifest: SITE_MANIFEST,
-      robots: {
-        index: true,
-        follow: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          'max-image-preview': 'large',
-          'max-snippet': -1,
-          'max-video-preview': -1,
-        },
-      },
-    };
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
+  icons: SITE_ICONS,
+  manifest: SITE_MANIFEST,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+};
 
 export const viewport: Viewport = {
   colorScheme: 'light dark',
@@ -184,7 +160,7 @@ export default async function RootLayout({
             the window instead of riding up under the content. */}
         <div className="grow">{children}</div>
         <SiteFooter />
-        {!isHiatus && <SearchModal />}
+        <SearchModal />
         <Analytics />
         <SpeedInsights />
       </body>

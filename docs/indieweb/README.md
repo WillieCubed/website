@@ -20,7 +20,8 @@ The canonical origin, author name, photo, and social profiles all come from
 | `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation           | Postgres, `WEBMENTION_MODERATION_SECRET` |
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                  | Postgres (optional)                      |
 | `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                  | Postgres (optional)                      |
-| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates a note or article                   | IndieAuth token; see Micropub            |
+| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates a note, photo, or article           | IndieAuth token; see Micropub            |
+| `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one photo and answers 201 with its `Location`      | IndieAuth token, `BLOB_READ_WRITE_TOKEN` |
 | `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                                      | nothing                                  |
 | `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, initiatives, and pages, answered from this domain   | nothing (Postgres optional)              |
 | `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres`          | Postgres, `SEARCH_REINDEX_SECRET`        |
@@ -73,6 +74,7 @@ Post kinds map to these properties in `WritingHeader.tsx` and
 | `bookmarkOf`  | `u-bookmark-of`                            |
 | `rsvp`        | `p-rsvp` plus `u-in-reply-to` on the event |
 | `syndication` | `u-syndication`, one per entry             |
+| `photo`       | `u-photo`, one `<img>` per photo           |
 | `people`      | `u-category h-card`, one per person        |
 
 Approved webmentions render at the foot of the post, inside its `h-entry`.
@@ -181,6 +183,30 @@ Bluesky or Threads, so the recorded link points at the profile rather than a
 copy of the post. Once a copy exists, replace that URL in the frontmatter with
 the copy's permalink.
 
+### Photos
+
+`?q=config` advertises `/micropub/media` as the `media-endpoint`, so a client
+such as Quill uploads each photo there first. The upload is the multipart
+`file` part, and the token needs the `media` or the `create` scope. JPEG, PNG,
+GIF, WebP, AVIF, and HEIC are accepted; SVG and anything else get a 400. The
+file is stored as a public blob in Vercel Blob under
+`media/<year>/<month>/<name>-<random>.<ext>`, and the endpoint answers 201
+with the blob's URL in `Location` (and as `url` in the JSON body). Without
+`BLOB_READ_WRITE_TOKEN` it answers 503 and names the variable.
+
+The client then cites that URL as `photo` on the post: form `photo` or
+`photo[]`, or the JSON property, where each value is a URL or
+`{ "value": url, "alt": text }`. A post with a photo becomes `postType: photo`,
+and the caption may be empty. Each photo is written into the `photo`
+frontmatter as `{ url, alt }` and renders under the date in
+`WritingHeader.tsx` as a `u-photo`. A photo value that is not an http(s) URL,
+or a file sent straight to `/micropub`, gets a 400 `invalid_request`.
+
+Storage sits behind the `MediaStore` interface in `lib/indieweb/media.ts`. To
+move uploads to Cloudflare R2, add an R2 implementation there and return it
+from `getMediaStore()`; the route and the posts do not change, though photos
+already published keep their Vercel Blob URLs.
+
 ## Scripts
 
 | Script                                        | What it does                                                                                                                                                                                                                                             |
@@ -201,6 +227,7 @@ the copy's permalink.
 | `WEBMENTION_MODERATION_SECRET`                                                                     | `/api/webmention/moderate`                                  | unset, route refuses                    |
 | `INDIEAUTH_TOKEN_ENDPOINT`                                                                         | Micropub token verification                                 | `https://indieauth.com/token`           |
 | `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                            | local write, `main`, `content/writings` |
+| `BLOB_READ_WRITE_TOKEN`                                                                            | `/micropub/media` photo storage in Vercel Blob              | unset, route answers 503                |
 | `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                      | JSON index                              |
 | `SEARCH_REINDEX_SECRET`                                                                            | `/api/search/reindex` in production                         | unset                                   |
 | `INDIEWEB_POSTBUILD`                                                                               | `1` enables the postbuild pings                             | unset, postbuild no-ops                 |
@@ -240,7 +267,7 @@ curl in this repo checks it.
 | 3     | Autolinked mentions                                        | Done                    | `remark-mentions.ts`                                                             |
 | 3     | Person tags                                                | Done, no live posts yet | `people` frontmatter, `WritingContent.tsx`, `webmentions:send`                   |
 | 3     | Comments from other sites display, with reaction facepiles | Done, needs Postgres    | `WebmentionReplies.tsx`, `WebmentionSection.tsx`                                 |
-| 3     | Photo posts                                                | Not done                | needs a Micropub media endpoint                                                  |
+| 3     | Photo posts                                                | Done, needs Vercel Blob | `/micropub/media`, `photo` frontmatter, `u-photo` in `WritingHeader.tsx`         |
 
 ## Not covered here
 

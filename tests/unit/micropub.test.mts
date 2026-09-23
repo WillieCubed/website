@@ -18,15 +18,16 @@ const baseEntry: MicropubCreateRequest = {
   postType: 'note',
   syndication: [],
   syndicateTo: [],
+  photos: [],
 };
 
 test('getMicropubConfig advertises supported personal-site post types', () => {
   const config = getMicropubConfig();
 
-  assert.equal(config['media-endpoint'], null);
+  assert.equal(config['media-endpoint'], `${site.origin}/micropub/media`);
   assert.deepEqual(
     config['post-types'].map((postType) => postType.type),
-    ['note', 'article', 'reply', 'like', 'repost', 'bookmark', 'rsvp']
+    ['note', 'photo', 'article', 'reply', 'like', 'repost', 'bookmark', 'rsvp']
   );
 });
 
@@ -145,5 +146,98 @@ test('buildMicropubWritingFile records chosen targets as syndication links', () 
   assert.match(
     file,
     /syndication:\n {2}- name: "bsky\.app"\n {4}url: "https:\/\/bsky\.app\/profile\/willie\.page"\n {2}- name: "Threads"\n {4}url: "https:\/\/www\.threads\.com\/@williecubed"\n---/
+  );
+});
+
+test('parseMicropubCreateRequest accepts a form photo note without a caption', async () => {
+  const body = new URLSearchParams([
+    ['h', 'entry'],
+    ['photo[]', 'https://example.blob.vercel-storage.com/media/a.jpg'],
+    ['photo[]', 'https://example.blob.vercel-storage.com/media/b,c.jpg'],
+  ]);
+
+  const entry = await parseMicropubCreateRequest(micropubRequest(body));
+
+  assert.equal(entry.postType, 'photo');
+  assert.equal(entry.content, '');
+  assert.deepEqual(entry.photos, [
+    { url: 'https://example.blob.vercel-storage.com/media/a.jpg' },
+    { url: 'https://example.blob.vercel-storage.com/media/b,c.jpg' },
+  ]);
+});
+
+test('parseMicropubCreateRequest reads JSON photos with alt text', async () => {
+  const entry = await parseMicropubCreateRequest(
+    micropubRequest({
+      type: ['h-entry'],
+      properties: {
+        content: ['Sunset over the Strip.'],
+        photo: [
+          {
+            value: 'https://example.blob.vercel-storage.com/media/sunset.jpg',
+            alt: 'An orange sky behind the Las Vegas skyline',
+          },
+          'https://example.blob.vercel-storage.com/media/crowd.jpg',
+        ],
+      },
+    })
+  );
+
+  assert.equal(entry.postType, 'photo');
+  assert.deepEqual(entry.photos, [
+    {
+      url: 'https://example.blob.vercel-storage.com/media/sunset.jpg',
+      alt: 'An orange sky behind the Las Vegas skyline',
+    },
+    { url: 'https://example.blob.vercel-storage.com/media/crowd.jpg' },
+  ]);
+});
+
+test('parseMicropubCreateRequest rejects a photo that is not a web URL', async () => {
+  for (const photo of ['not a url', 'javascript:alert(1)']) {
+    await assert.rejects(
+      parseMicropubCreateRequest(
+        micropubRequest(new URLSearchParams({ h: 'entry', photo }))
+      ),
+      /invalid_request/,
+      photo
+    );
+  }
+});
+
+test('parseMicropubCreateRequest refuses a photo file sent to the post endpoint', async () => {
+  const body = new FormData();
+  body.set('h', 'entry');
+  body.set('content', 'Caption.');
+  body.set('photo', new File(['jpeg'], 'a.jpg', { type: 'image/jpeg' }));
+
+  await assert.rejects(
+    parseMicropubCreateRequest(
+      new Request(`${site.origin}/micropub`, { method: 'POST', body })
+    ),
+    /invalid_request/
+  );
+});
+
+test('buildMicropubWritingFile records photos with their alt text', () => {
+  const file = buildMicropubWritingFile(
+    {
+      ...baseEntry,
+      content: '',
+      postType: 'photo',
+      photos: [
+        { url: 'https://example.com/a.jpg', alt: 'A bus at dusk' },
+        { url: 'https://example.com/b.jpg' },
+      ],
+    },
+    'photo-note'
+  );
+
+  assert.match(file, /postType: "photo"/);
+  assert.match(file, /title: "Photo from 2026-05-19"/);
+  assert.match(file, /description: "A photo from /);
+  assert.match(
+    file,
+    /photo:\n {2}- url: "https:\/\/example\.com\/a\.jpg"\n {4}alt: "A bus at dusk"\n {2}- url: "https:\/\/example\.com\/b\.jpg"\n/
   );
 });

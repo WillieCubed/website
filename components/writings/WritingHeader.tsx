@@ -18,7 +18,8 @@ interface WritingHeaderProps {
 /**
  * An article opens with its title, a note opens with its date and goes
  * straight into the text. A post that answers another page carries that
- * page above it as the top of the thread. No byline names the author:
+ * page above it as the top of the thread. A photo post shows its photos
+ * under the date, each a u-photo, before the caption. No byline names the author:
  * the top bar's way home is rel="author", and the homepage h-card is the
  * representative card, which is the authorship algorithm's own path.
  */
@@ -75,6 +76,23 @@ export default function WritingHeader({
           <h1 className="p-name sr-only">{writing.title}</h1>
           <Byline writing={writing} publishedIso={publishedIso} />
         </>
+      )}
+
+      {writing.photos && (
+        <div className="mt-lg space-y-md">
+          {writing.photos.map((photo) => (
+            // A plain img: uploads live on the media store's host, which
+            // the image optimizer does not allow, and their size is unknown.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={photo.url}
+              src={photo.url}
+              alt={photo.alt ?? ''}
+              decoding="async"
+              className="u-photo w-full rounded-2xl bg-card"
+            />
+          ))}
+        </div>
       )}
     </header>
   );

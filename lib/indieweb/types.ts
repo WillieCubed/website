@@ -243,7 +243,8 @@ export interface IndieAuthVerificationOptions {
   bearer: string;
   endpoint: string;
   expectedMe: string;
-  requiredScope?: string;
+  /** A scope the token must carry; given a list, any one of them passes. */
+  requiredScope?: string | string[];
 }
 
 export interface IndieAuthTokenResponse {
@@ -264,7 +265,8 @@ export type MicropubPostType =
   | 'repost'
   | 'bookmark'
   | 'reply'
-  | 'rsvp';
+  | 'rsvp'
+  | 'photo';
 
 export type MicropubRsvpStatus = 'yes' | 'no' | 'maybe' | 'interested';
 
@@ -286,12 +288,20 @@ export interface RawMicropubEntry {
   repostOf?: string;
   bookmarkOf?: string;
   rsvp?: string;
+  photos: MicropubPhoto[];
   syndication: string[];
   syndicateTo: string[];
 }
 
+/** A photo on a Micropub entry: a URL, usually from the media endpoint. */
+export interface MicropubPhoto {
+  url: string;
+  alt?: string;
+}
+
 export interface MicropubPostTypeSource {
   name?: string;
+  photos?: MicropubPhoto[];
   inReplyTo?: string;
   likeOf?: string;
   repostOf?: string;
@@ -313,6 +323,7 @@ export interface MicropubCreateRequest {
   repostOf?: string;
   bookmarkOf?: string;
   rsvp?: MicropubRsvpStatus;
+  photos: MicropubPhoto[];
   syndication: string[];
   /** Targets chosen with `mp-syndicate-to`, recorded as syndication links. */
   syndicateTo: MicropubSyndicationTarget[];
@@ -350,7 +361,7 @@ export interface GitHubContentsCommitResponse {
 }
 
 export interface MicropubConfigResponse {
-  'media-endpoint': null;
+  'media-endpoint': string;
   'syndicate-to': MicropubSyndicationTarget[];
   'post-types': MicropubPostTypeConfig[];
 }

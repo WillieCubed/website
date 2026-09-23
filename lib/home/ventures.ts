@@ -118,7 +118,10 @@ export interface Venture {
   brand: BrandKey;
   /** Position in the rail list. Ventures without one only get a tile. */
   list?: number;
-  /** Grid size classes such as `w3 h3`, plus any tile modifier. */
+  /**
+   * Grid size classes such as `w3 h3`, plus any tile modifier. `full` spans
+   * the whole row at the medium and expanded sizes too.
+   */
   size: string;
   facets: Facet[];
   /** The chip that appears over the tile label on hover. */
@@ -132,6 +135,11 @@ export interface Venture {
   detail: Detail;
   /** Higher weights sort first in the grid. */
   weight: number;
+  /**
+   * Keeps an unfinished venture off the homepage: no tile, no rail row, and
+   * no detail view. Its record stays here so removing the flag restores it.
+   */
+  hidden?: boolean;
 }
 
 export const products: Record<string, Product> = {
@@ -342,7 +350,8 @@ export const ventures: Venture[] = [
     head: 'Reasonable Tech Company · Project Lovelace',
     brand: 'lovelace',
     list: 3,
-    size: 'w4 h3',
+    // Fills the row it shared with Atlas; back to `w4 h3` when Atlas returns.
+    size: 'w6 h3 full',
     facets: ['software', 'systems'],
     hint: 'Meet Ada',
     line: 'Project Lovelace',
@@ -390,6 +399,8 @@ export const ventures: Venture[] = [
     facets: ['systems', 'people'],
     hint: 'Look closer',
     weight: 10,
+    // Hidden until Atlas has something real to show.
+    hidden: true,
     body: { kind: 'atlas', copy: 'Finding the helpers.' },
     detail: {
       media: { kind: 'constellation' },
@@ -406,6 +417,9 @@ export const ventures: Venture[] = [
   },
 ];
 
+/** The ventures the homepage shows, leaving out any marked `hidden`. */
+const shownVentures = ventures.filter((v) => !v.hidden);
+
 /** Anything the rail, the tiles, or the detail view can point at. */
 export interface Entry {
   id: string;
@@ -418,11 +432,11 @@ export interface Entry {
 
 /** Ventures and products by id, for lookups from a `data-id` or `?detail=`. */
 export const entries: Record<string, Entry> = Object.fromEntries(
-  [...ventures, ...productList].map((e) => [e.id, e])
+  [...shownVentures, ...productList].map((e) => [e.id, e])
 );
 
 /** The rail previews only the top-level ventures, in their listed order. */
-export const railVentures: Venture[] = ventures
+export const railVentures: Venture[] = shownVentures
   .filter((v) => v.list !== undefined)
   .sort((a, b) => (a.list ?? 0) - (b.list ?? 0));
 
@@ -461,7 +475,7 @@ export interface InitiativeTile extends TileEntryBase {
 
 export type TileEntry = VentureTile | InitiativeTile;
 
-const ventureTiles: VentureTile[] = ventures.map((venture) => ({
+const ventureTiles: VentureTile[] = shownVentures.map((venture) => ({
   id: venture.id,
   kind: 'venture',
   weight: venture.weight,

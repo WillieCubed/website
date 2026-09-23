@@ -30,7 +30,8 @@
   --color-surface-container-high: #e7eae2;
   --color-surface-container-highest: #dfe3da;
   --color-on-surface: #1c231e;
-  --color-on-surface-variant: #69736b;
+  /* Dark enough for 4.5:1 on every surface container and brand container. */
+  --color-on-surface-variant: #5c665e;
   --color-outline: #7f8981;
   --color-outline-variant: #dfe3da;
   --color-error: #b3261e;

@@ -9,7 +9,7 @@ export const themeSchemes = {
     surface: '#f4f5ef',
     surfaceContainerLowest: '#fbfcf9',
     onSurface: '#1c231e',
-    onSurfaceVariant: '#69736b',
+    onSurfaceVariant: '#5c665e',
     outlineVariant: '#dfe3da',
   },
   dark: {

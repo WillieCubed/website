@@ -5,9 +5,12 @@
  */
 .initiative {
   --accent-live: var(--b-primary, var(--color-accent));
-  --accent-soft: var(--b-primary-container, var(--color-primary-container));
   --accent-ink: var(--b-on-primary-container, var(--color-ink));
   --surface-soft: var(--b-surface-container-low, var(--color-card));
+  --surface-raised: var(
+    --b-surface-container-high,
+    var(--color-surface-container-high)
+  );
 }
 
 /* Acts reveal as they scroll into view. The scroll-driven version needs no
@@ -75,7 +78,9 @@
 }
 .act[aria-current='step'] .act-card {
   border-color: var(--accent-live);
-  background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface-soft));
+  /* A scheme container rather than a tint of the brand color, so the muted
+     text and the kicker keep 4.5:1 on the current act. */
+  background: var(--surface-raised);
 }
 .act-kicker {
   font-family: var(--font-mono);

@@ -10,6 +10,8 @@
    matches the placeholder below, so the top bar does not grow on upgrade. */
 :root:root {
   --pf-text: var(--color-ink);
+  --pf-text-secondary: var(--color-muted);
+  --pf-text-muted: var(--color-muted);
   --pf-background: var(--color-card);
   --pf-border: var(--color-line);
   --pf-border-radius: 12px;

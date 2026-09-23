@@ -70,6 +70,19 @@ Post kinds map to these properties in `WritingHeader.tsx` and
 | `syndication` | `u-syndication`, one per entry             |
 | `people`      | `u-category h-card`, one per person        |
 
+Approved webmentions render at the foot of the post, inside its `h-entry`.
+A reply is a `p-comment h-cite` with `u-url` (the reply's own page),
+`dt-published`, `p-content`, and a `p-author h-card`. Likes, reposts, and
+bookmarks are facepiles: each face is a `u-like`, `u-repost`, or
+`u-bookmark` `h-cite` with the same author card, and a line beside it names
+who reacted. The post page reads them through a `'use cache'` loader with
+`cacheLife('minutes')`, so an approval shows within about a minute without
+a deploy. Do not move the read to request time: a streamed section lands
+after the page, outside the `h-entry`, and parsers lose the comments.
+Author photos load straight from the author's site, since the image
+optimizer only accepts the hosts in `next.config.ts`.
+`tests/unit/webmention-display.test.mts` parses the rendered markup.
+
 `@handle` in prose becomes a link through `lib/writings/remark-mentions.ts`.
 `@thewilliediaries` and `@williecubed` map to their Instagram profiles, and any
 other handle links to `https://instagram.com/<handle>`. Add an entry to
@@ -189,26 +202,27 @@ the same way.
 Status as of 2026-09-22. "Done" means the dev server serves it and a test or a
 curl in this repo checks it.
 
-| Level | Criterion                                          | Status                  | Where                                                                            |
-| ----- | -------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------- |
-| 1     | Own domain with an h-card                          | Done                    | `lib/site.ts`, `components/home/Rail.tsx`                                        |
-| 1     | rel="me" links to profiles that link back          | Done                    | `site.social` in the footer                                                      |
-| 1     | Posts on your own domain with h-entry              | Done                    | `app/writings/[slug]/page.tsx`                                                   |
-| 1     | Posts have permalinks and dates                    | Done                    | `u-url u-uid`, `dt-published`                                                    |
-| 2     | Two or more post types                             | Done                    | article `project-superbloom`, notes `fall-tour-2026-begins`, `indiemark-level-3` |
-| 2     | Syndicate copies with links back (POSSE)           | Done                    | `syndication` frontmatter, `u-syndication`                                       |
-| 2     | Reply posts with `u-in-reply-to`                   | Done                    | `indiemark-level-3`                                                              |
-| 2     | Send webmentions                                   | Done                    | `lib/indieweb/send-webmention.ts`, `webmentions:send`                            |
-| 2     | Receive and display webmentions                    | Done, needs Postgres    | `/webmention`, `WebmentionSection`                                               |
-| 2     | Feed autodiscovery on the posts page               | Done                    | `alternates.types` in `app/writings/page.tsx`                                    |
-| 3     | Search results on your own domain                  | Done                    | `/search?q=`                                                                     |
-| 3     | Micropub endpoint that creates posts               | Done                    | `/micropub`                                                                      |
-| 3     | Authorship on every post                           | Done                    | `rel="author"` in `TopBar.tsx` and the head; representative h-card in `Rail.tsx` |
-| 3     | Likes, reposts, bookmarks, RSVPs render as h-entry | Done, no live posts yet | `ReplyTarget.tsx`                                                                |
-| 3     | WebSub hub declared in feeds and pinged on publish | Done                    | `WEBSUB_HUB`, `websub:ping`                                                      |
-| 3     | Autolinked mentions                                | Done                    | `remark-mentions.ts`                                                             |
-| 3     | Person tags                                        | Done, no live posts yet | `people` frontmatter, `WritingContent.tsx`, `webmentions:send`                   |
-| 3     | Photo posts, comment display from other sites      | Not done                | see `docs/future/activitypub.md` for what comes after                            |
+| Level | Criterion                                                  | Status                  | Where                                                                            |
+| ----- | ---------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------- |
+| 1     | Own domain with an h-card                                  | Done                    | `lib/site.ts`, `components/home/Rail.tsx`                                        |
+| 1     | rel="me" links to profiles that link back                  | Done                    | `site.social` in the footer                                                      |
+| 1     | Posts on your own domain with h-entry                      | Done                    | `app/writings/[slug]/page.tsx`                                                   |
+| 1     | Posts have permalinks and dates                            | Done                    | `u-url u-uid`, `dt-published`                                                    |
+| 2     | Two or more post types                                     | Done                    | article `project-superbloom`, notes `fall-tour-2026-begins`, `indiemark-level-3` |
+| 2     | Syndicate copies with links back (POSSE)                   | Done                    | `syndication` frontmatter, `u-syndication`                                       |
+| 2     | Reply posts with `u-in-reply-to`                           | Done                    | `indiemark-level-3`                                                              |
+| 2     | Send webmentions                                           | Done                    | `lib/indieweb/send-webmention.ts`, `webmentions:send`                            |
+| 2     | Receive and display webmentions                            | Done, needs Postgres    | `/webmention`, `WebmentionSection`                                               |
+| 2     | Feed autodiscovery on the posts page                       | Done                    | `alternates.types` in `app/writings/page.tsx`                                    |
+| 3     | Search results on your own domain                          | Done                    | `/search?q=`                                                                     |
+| 3     | Micropub endpoint that creates posts                       | Done                    | `/micropub`                                                                      |
+| 3     | Authorship on every post                                   | Done                    | `rel="author"` in `TopBar.tsx` and the head; representative h-card in `Rail.tsx` |
+| 3     | Likes, reposts, bookmarks, RSVPs render as h-entry         | Done, no live posts yet | `ReplyTarget.tsx`                                                                |
+| 3     | WebSub hub declared in feeds and pinged on publish         | Done                    | `WEBSUB_HUB`, `websub:ping`                                                      |
+| 3     | Autolinked mentions                                        | Done                    | `remark-mentions.ts`                                                             |
+| 3     | Person tags                                                | Done, no live posts yet | `people` frontmatter, `WritingContent.tsx`, `webmentions:send`                   |
+| 3     | Comments from other sites display, with reaction facepiles | Done, needs Postgres    | `WebmentionReplies.tsx`, `WebmentionSection.tsx`                                 |
+| 3     | Photo posts                                                | Not done                | needs a Micropub media endpoint                                                  |
 
 ## Not covered here
 

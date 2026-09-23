@@ -10,20 +10,61 @@ import {
 } from '@/lib/indieweb/discovery';
 import { site } from '@/lib/site';
 
-test('buildWebFingerResponse exposes profile, webmention, and Micropub links', () => {
-  const response = buildWebFingerResponse(
-    `acct:${site.author.handle}@${new URL(site.origin).hostname}`
-  );
+const acct = `acct:${site.author.handle}@${new URL(site.origin).hostname}`;
 
-  assert.equal(
-    response.subject,
-    `acct:${site.author.handle}@${new URL(site.origin).hostname}`
-  );
+test('buildWebFingerResponse exposes profile, webmention, and Micropub links', () => {
+  const response = buildWebFingerResponse(acct);
+
+  assert.ok(response);
+  assert.equal(response.subject, acct);
   assert.ok(response.aliases.includes(site.origin));
   assert.ok(response.links.some((link) => link.rel === 'micropub'));
   assert.ok(
     response.links.some((link) => link.href === `${site.origin}/webmention`)
   );
+});
+
+const webfinger = async (query: string) => {
+  const { GET } = await import('@/app/.well-known/webfinger/route');
+  return GET(new Request(`${site.origin}/.well-known/webfinger${query}`));
+};
+
+test('WebFinger resolves the author and the home page', async () => {
+  for (const resource of [acct, `${site.origin}/`]) {
+    const response = await webfinger(
+      `?resource=${encodeURIComponent(resource)}`
+    );
+
+    assert.equal(response.status, 200, resource);
+    assert.match(
+      response.headers.get('Content-Type') ?? '',
+      /^application\/jrd\+json/
+    );
+    assert.equal((await response.json()).subject, resource);
+  }
+});
+
+test('WebFinger answers an unknown resource with a 404', async () => {
+  for (const resource of [
+    'acct:nobody@example.com',
+    `acct:nobody@${new URL(site.origin).hostname}`,
+    `${site.origin}/writings`,
+    'https://example.com/',
+  ]) {
+    const response = await webfinger(
+      `?resource=${encodeURIComponent(resource)}`
+    );
+
+    assert.equal(response.status, 404, resource);
+  }
+});
+
+test('WebFinger answers a missing resource with a 400', async () => {
+  for (const query of ['', '?resource=', '?rel=self']) {
+    const response = await webfinger(query);
+
+    assert.equal(response.status, 400, query || '(no query)');
+  }
 });
 
 test('buildHostMetaResponse points LRDD clients to WebFinger', () => {

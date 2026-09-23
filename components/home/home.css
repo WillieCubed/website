@@ -21,6 +21,8 @@
   img {
     display: block;
     max-width: 100%;
+    /* The width and height attributes only reserve the aspect ratio. */
+    height: auto;
   }
   .icon {
     display: block;

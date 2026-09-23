@@ -11,7 +11,23 @@ import { InitiativeTile } from './InitiativeTile';
 import { ProductScroller } from './ProductScroller';
 import { Tile } from './Tile';
 
-function VentureBody({ venture }: { venture: Venture }) {
+/**
+ * The first two tiles share the top row of the widest grid, so their
+ * pictures load right away. Every later tile starts below the fold on at
+ * least one layout, and on a phone all of them do, so theirs wait until the
+ * visitor scrolls near.
+ */
+const EAGER_TILES = 2;
+
+type Loading = 'eager' | 'lazy';
+
+function VentureBody({
+  venture,
+  loading,
+}: {
+  venture: Venture;
+  loading: Loading;
+}) {
   const { body } = venture;
   switch (body.kind) {
     case 'lead':
@@ -34,11 +50,18 @@ function VentureBody({ venture }: { venture: Venture }) {
       return (
         <div className={body.low ? 'shot low' : 'shot'} data-media="">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={body.src} alt={body.alt} />
+          <img
+            src={body.src}
+            width={body.width}
+            height={body.height}
+            alt={body.alt}
+            loading={loading}
+            decoding="async"
+          />
         </div>
       );
     case 'products':
-      return <ProductScroller products={body.products} />;
+      return <ProductScroller products={body.products} loading={loading} />;
     case 'atlas':
       return (
         <>
@@ -58,9 +81,11 @@ function VentureBody({ venture }: { venture: Venture }) {
 function InitiativeBody({
   tile,
   playbill,
+  loading,
 }: {
   tile: InitiativeTileEntry;
   playbill?: React.ReactNode;
+  loading: Loading;
 }) {
   if (tile.body === 'playbill' && playbill) {
     return (
@@ -73,7 +98,12 @@ function InitiativeBody({
   return (
     <div className="shot tile-cover" data-media="">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={tile.image.src} alt={tile.image.alt} />
+      <img
+        src={tile.image.src}
+        alt={tile.image.alt}
+        loading={loading}
+        decoding="async"
+      />
     </div>
   );
 }
@@ -88,8 +118,9 @@ export function TileGrid({
 }) {
   return (
     <main className="evidence" aria-label="Work in progress">
-      {tiles.map((tile) =>
-        tile.kind === 'venture' ? (
+      {tiles.map((tile, i) => {
+        const loading = i < EAGER_TILES ? 'eager' : 'lazy';
+        return tile.kind === 'venture' ? (
           <Tile
             key={tile.id}
             id={tile.id}
@@ -104,14 +135,18 @@ export function TileGrid({
             brand={tile.venture.brand}
             size={tile.size}
           >
-            <VentureBody venture={tile.venture} />
+            <VentureBody venture={tile.venture} loading={loading} />
           </Tile>
         ) : (
           <InitiativeTile key={tile.id} tile={tile}>
-            <InitiativeBody tile={tile} playbill={playbills[tile.id]} />
+            <InitiativeBody
+              tile={tile}
+              playbill={playbills[tile.id]}
+              loading={loading}
+            />
           </InitiativeTile>
-        )
-      )}
+        );
+      })}
     </main>
   );
 }

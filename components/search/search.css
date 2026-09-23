@@ -40,3 +40,15 @@ pagefind-modal-trigger:not(:defined) {
     display: none;
   }
 }
+
+/* A phone or tablet with no pointer that hovers has no keyboard to press ⌘K
+   on, so the hint goes and the button stays. A touch laptop keeps it: its
+   primary pointer is fine. Pagefind already shows Ctrl K off Apple platforms.
+   Its sheet wraps every selector in three `:is(*, #\#)` for ID-level
+   specificity, which `!important` is the plain way past. */
+@media (hover: none) and (pointer: coarse) {
+  pagefind-modal-trigger .pf-trigger-shortcut,
+  .search-shortcut-hint {
+    display: none !important;
+  }
+}

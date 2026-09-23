@@ -104,6 +104,13 @@ export const sitePages: SitePage[] = [
     routed: true,
   },
   {
+    path: '/brand',
+    label: 'Brand',
+    description:
+      'The WillieCubed mark, lockups, app icons, and color and type tokens to download.',
+    routed: true,
+  },
+  {
     path: '/about',
     label: 'About',
     description: 'Who Willie is, what he has done, and where he is going.',

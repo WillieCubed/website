@@ -1,28 +1,13 @@
 import { cacheLife } from 'next/cache';
 
-import {
-  type FeedItem,
-  generateJsonFeed,
-  writingToFeedItem,
-} from '@/lib/feeds';
-import { siteRoute } from '@/lib/url-utils';
-import { getAllWritings } from '@/lib/writings';
+import { generateJsonFeed } from '@/lib/feeds';
+import { getSiteFeedItems } from '@/lib/feeds/items';
 
 async function buildFeed() {
   'use cache';
   cacheLife('hours');
 
-  const writings = await getAllWritings();
-
-  const items: FeedItem[] = [...writings.map(writingToFeedItem)].sort(
-    (a, b) => b.published.getTime() - a.published.getTime()
-  );
-
-  const feed = generateJsonFeed(items, {
-    feedUrl: siteRoute`/feed/json`,
-  });
-
-  return feed;
+  return generateJsonFeed(await getSiteFeedItems());
 }
 
 export async function GET() {

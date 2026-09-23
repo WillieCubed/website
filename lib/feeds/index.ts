@@ -1,5 +1,6 @@
 import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import type { ActivityFeedItem } from '@/lib/indieweb/types';
+import type { Initiative } from '@/lib/initiatives';
 import { site } from '@/lib/site';
 import { siteRoute } from '@/lib/url-utils';
 import type { WritingData } from '@/lib/writings';
@@ -9,10 +10,16 @@ const SITE_DESCRIPTION = site.description;
 const AUTHOR_NAME = site.author.name;
 const AUTHOR_EMAIL = site.author.email;
 
+const WRITINGS_TITLE = "Willie's Writings";
+const WRITINGS_DESCRIPTION =
+  'Thoughts, tutorials, and notes on software, music, and creativity from Willie Chalmers III.';
+
 export interface FeedItem {
   id?: string;
   title: string;
   description: string;
+  /** The item's full body as HTML, from `renderFeedHtml` in ./html. */
+  content?: string;
   url: string;
   published: Date;
   updated?: Date;
@@ -24,6 +31,8 @@ export interface RssFeedOptions {
   title?: string;
   description?: string;
   feedUrl?: string;
+  /** The page the feed mirrors. Defaults to the homepage. */
+  alternateUrl?: string;
 }
 
 export interface AtomFeedOptions {
@@ -38,6 +47,8 @@ export interface JsonFeedOptions {
   title?: string;
   description?: string;
   feedUrl?: string;
+  /** The page the feed mirrors. Defaults to the homepage. */
+  alternateUrl?: string;
 }
 
 export interface ActivityRssFeedOptions {
@@ -62,15 +73,43 @@ export interface ActivityJsonFeedOptions {
 
 /**
  * Convert a writing to a feed item.
+ *
+ * @param content The writing's body rendered as HTML.
  */
-export function writingToFeedItem(writing: WritingData): FeedItem {
+export function writingToFeedItem(
+  writing: WritingData,
+  content?: string
+): FeedItem {
   return {
     title: writing.title,
     description: writing.description,
+    content,
     url: siteRoute`/writings/${writing.slug}`,
     published: new Date(writing.published),
     updated: writing.lastUpdated ? new Date(writing.lastUpdated) : undefined,
     categories: writing.tags,
+  };
+}
+
+/**
+ * Convert an initiative to a feed item, or null when it carries no date to
+ * publish it under. It is dated by when it starts, or else by its last edit.
+ *
+ * @param content The initiative's body rendered as HTML.
+ */
+export function initiativeToFeedItem(
+  initiative: Initiative,
+  content?: string
+): FeedItem | null {
+  const published = initiative.starts ?? initiative.updated;
+  if (!published) return null;
+  return {
+    title: initiative.title,
+    description: initiative.description,
+    content,
+    url: siteRoute`${initiative.href}`,
+    published,
+    updated: initiative.updated,
   };
 }
 
@@ -121,7 +160,7 @@ export function generateRssFeed(
 ): string {
   const title = options.title || SITE_TITLE;
   const description = options.description || SITE_DESCRIPTION;
-  const siteUrl = siteRoute``;
+  const alternateUrl = options.alternateUrl || siteRoute``;
   const feedUrl = options.feedUrl || siteRoute`/feed.xml`;
 
   const itemsXml = items
@@ -131,6 +170,7 @@ export function generateRssFeed(
       <link>${item.url}</link>
       <guid isPermaLink="${item.id ? 'false' : 'true'}">${escapeXml(item.id || item.url)}</guid>
       <description>${escapeXml(item.description)}</description>
+      ${item.content ? `<content:encoded>${escapeXml(item.content)}</content:encoded>` : ''}
       <pubDate>${formatRssDate(item.published)}</pubDate>
       ${item.categories?.map((cat) => `<category>${escapeXml(cat)}</category>`).join('\n      ') || ''}
     </item>`
@@ -138,10 +178,10 @@ export function generateRssFeed(
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>${escapeXml(title)}</title>
-    <link>${siteUrl}</link>
+    <link>${alternateUrl}</link>
     <description>${escapeXml(description)}</description>
     <language>en-us</language>
     <lastBuildDate>${formatRssDate(latestFeedDate(items))}</lastBuildDate>
@@ -176,6 +216,7 @@ export function generateAtomFeed(
     <published>${formatAtomDate(item.published)}</published>
     <updated>${formatAtomDate(item.updated || item.published)}</updated>
     <summary>${escapeXml(item.description)}</summary>
+    ${item.content ? `<content type="html">${escapeXml(item.content)}</content>` : ''}
     <author>
       <name>${AUTHOR_NAME}</name>
       <email>${AUTHOR_EMAIL}</email>
@@ -210,11 +251,30 @@ ${entriesXml}
  */
 export function generateWritingsAtomFeed(items: FeedItem[]): string {
   return generateAtomFeed(items, {
-    title: "Willie's Writings",
-    subtitle:
-      'Thoughts, tutorials, and notes on software, music, and creativity from Willie Chalmers III.',
+    title: WRITINGS_TITLE,
+    subtitle: WRITINGS_DESCRIPTION,
     alternateUrl: siteRoute`/writings`,
     feedUrl: siteRoute`/writings/feed/atom`,
+  });
+}
+
+/** Generate the writings RSS feed, which describes and links to /writings. */
+export function generateWritingsRssFeed(items: FeedItem[]): string {
+  return generateRssFeed(items, {
+    title: WRITINGS_TITLE,
+    description: WRITINGS_DESCRIPTION,
+    alternateUrl: siteRoute`/writings`,
+    feedUrl: siteRoute`/writings/feed.xml`,
+  });
+}
+
+/** Generate the writings JSON Feed, which describes and links to /writings. */
+export function generateWritingsJsonFeed(items: FeedItem[]): string {
+  return generateJsonFeed(items, {
+    title: WRITINGS_TITLE,
+    description: WRITINGS_DESCRIPTION,
+    alternateUrl: siteRoute`/writings`,
+    feedUrl: siteRoute`/writings/feed/json`,
   });
 }
 
@@ -228,12 +288,13 @@ export function generateJsonFeed(
   const title = options.title || SITE_TITLE;
   const description = options.description || SITE_DESCRIPTION;
   const siteUrl = siteRoute``;
+  const alternateUrl = options.alternateUrl || siteUrl;
   const feedUrl = options.feedUrl || siteRoute`/feed/json`;
 
   const feed = {
     version: 'https://jsonfeed.org/version/1.1',
     title,
-    home_page_url: siteUrl,
+    home_page_url: alternateUrl,
     feed_url: feedUrl,
     description,
     language: 'en-US',
@@ -249,6 +310,7 @@ export function generateJsonFeed(
       url: item.url,
       title: item.title,
       summary: item.description,
+      content_html: item.content,
       date_published: item.published.toISOString(),
       date_modified: item.updated?.toISOString(),
       tags: item.categories,

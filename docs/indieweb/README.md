@@ -30,7 +30,7 @@ The canonical origin, author name, photo, and social profiles all come from
 | `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                          | nothing                                  |
 | `/.well-known/host-meta.json`                                      | The same host-meta LRDD link as JSON                                                      | nothing                                  |
 | `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`                               | nothing                                  |
-| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and projects; each declares the WebSub hub                        | nothing                                  |
+| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and initiatives; each declares the WebSub hub                     | nothing                                  |
 | `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                          | nothing                                  |
 
 Every route that says "Postgres" reads `POSTGRES_URL` through

@@ -1,18 +1,13 @@
 import { cacheLife } from 'next/cache';
 
-import { generateWritingsAtomFeed, writingToFeedItem } from '@/lib/feeds';
-import { getAllWritings } from '@/lib/writings';
+import { generateWritingsAtomFeed } from '@/lib/feeds';
+import { getWritingFeedItems } from '@/lib/feeds/items';
 
 async function buildWritingsFeed() {
   'use cache';
   cacheLife('hours');
 
-  const writings = await getAllWritings();
-  const items = writings
-    .map(writingToFeedItem)
-    .sort((a, b) => b.published.getTime() - a.published.getTime());
-
-  return generateWritingsAtomFeed(items);
+  return generateWritingsAtomFeed(await getWritingFeedItems());
 }
 
 export async function GET() {

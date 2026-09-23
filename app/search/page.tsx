@@ -26,7 +26,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
       <TopBar column="reading" />
       <main id="main" className={`mx-auto pb-2xl pt-lg ${COLUMN.reading}`}>
         <h1 className="mb-xl text-headline-large">Search</h1>
-        <p className="mb-lg text-body-medium text-on-surface-variant">
+        <p className="search-shortcut-hint mb-lg text-body-medium text-on-surface-variant">
           Press <kbd className="font-mono">⌘K</kbd> (Ctrl+K on Windows and
           Linux) for instant search.
         </p>

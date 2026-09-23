@@ -1,5 +1,7 @@
 import { STATIC_PAGES } from '@/lib/entities/pages';
 import type { EntityCard } from '@/lib/entities/types';
+import { detailHref } from '@/lib/entities/ventures';
+import { type Entry, entries } from '@/lib/home/ventures';
 import {
   type Initiative,
   type Part,
@@ -133,16 +135,39 @@ export function pageToItem(page: EntityCard): SearchableItem {
   };
 }
 
+/**
+ * A homepage venture or studio product. Its first paragraph is the excerpt,
+ * and the rest of the detail view, list included, is the searchable text.
+ */
+export function entryToItem(entry: Entry): SearchableItem {
+  const [lead = '', ...rest] = entry.detail.body;
+  const list = (entry.detail.list ?? []).map(
+    (item) => `${item.title}: ${item.text}`
+  );
+  return {
+    slug: `ventures/${entry.id}`,
+    path: detailHref(entry.id),
+    title: entry.name,
+    description: lead,
+    content: [...rest, ...list].join('\n\n'),
+    tags: entry.parent ? [entry.parent] : [],
+    published: UNDATED,
+    // A detail view opens over the homepage, so it is searched as a page.
+    type: 'page',
+  };
+}
+
 function byNewest(a: SearchableItem, b: SearchableItem): number {
   return new Date(b.published).getTime() - new Date(a.published).getTime();
 }
 
 /**
  * Everything the site's search covers: published writings, initiatives and
- * their parts, and the static pages. Drafts are excluded here rather than
- * trusted to the loaders, because the prebuild script runs outside Next.js
- * where the loaders show drafts. It reads through the uncached loaders for
- * the same reason: `cacheLife()` throws under plain Node.
+ * their parts, the static pages, and the homepage ventures and products that
+ * are not hidden. Drafts are excluded here rather than trusted to the
+ * loaders, because the prebuild script runs outside Next.js where the
+ * loaders show drafts. It reads through the uncached loaders for the same
+ * reason: `cacheLife()` throws under plain Node.
  */
 export async function collectSearchDocuments(): Promise<SearchableItem[]> {
   const slugs = await getWritingSlugs();
@@ -152,5 +177,6 @@ export async function collectSearchDocuments(): Promise<SearchableItem[]> {
     .map(({ writing, content }) => writingToItem(writing, content));
   const initiatives = loadAllInitiatives().flatMap(initiativeToItems);
   const pages = STATIC_PAGES.map(pageToItem);
-  return [...writings, ...initiatives, ...pages].sort(byNewest);
+  const ventures = Object.values(entries).map(entryToItem);
+  return [...writings, ...initiatives, ...pages, ...ventures].sort(byNewest);
 }

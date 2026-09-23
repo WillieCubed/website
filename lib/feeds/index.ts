@@ -30,6 +30,8 @@ export interface AtomFeedOptions {
   title?: string;
   subtitle?: string;
   feedUrl?: string;
+  /** The page the feed mirrors. Defaults to the homepage. */
+  alternateUrl?: string;
 }
 
 export interface JsonFeedOptions {
@@ -49,6 +51,7 @@ export interface ActivityAtomFeedOptions {
   title: string;
   subtitle: string;
   feedUrl: string;
+  alternateUrl?: string;
 }
 
 export interface ActivityJsonFeedOptions {
@@ -97,11 +100,15 @@ function formatAtomDate(date: Date): string {
   return date.toISOString();
 }
 
+/**
+ * The newest item date, or now for an empty feed, which has nothing older to
+ * report than the moment it was built.
+ */
 function latestFeedDate(items: FeedItem[]): Date {
   return (
     items
       .map((item) => item.updated || item.published)
-      .sort((a, b) => b.getTime() - a.getTime())[0] || new Date(0)
+      .sort((a, b) => b.getTime() - a.getTime())[0] || new Date()
   );
 }
 
@@ -156,7 +163,7 @@ export function generateAtomFeed(
 ): string {
   const title = options.title || SITE_TITLE;
   const subtitle = options.subtitle || SITE_DESCRIPTION;
-  const siteUrl = siteRoute``;
+  const alternateUrl = options.alternateUrl || siteRoute``;
   const feedUrl = options.feedUrl || siteRoute`/feed/atom`;
   const authorUri = siteRoute``;
 
@@ -183,10 +190,10 @@ export function generateAtomFeed(
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>${escapeXml(title)}</title>
   <subtitle>${escapeXml(subtitle)}</subtitle>
-  <link href="${siteUrl}" rel="alternate" type="text/html"/>
+  <link href="${alternateUrl}" rel="alternate" type="text/html"/>
   <link href="${feedUrl}" rel="self" type="application/atom+xml"/>
   <link href="${WEBSUB_HUB}" rel="hub"/>
-  <id>${siteUrl}/</id>
+  <id>${escapeXml(feedUrl)}</id>
   <updated>${formatAtomDate(latestFeedDate(items))}</updated>
   <author>
     <name>${AUTHOR_NAME}</name>
@@ -195,6 +202,20 @@ export function generateAtomFeed(
   </author>
 ${entriesXml}
 </feed>`;
+}
+
+/**
+ * Generate the writings Atom feed, which describes and links to /writings
+ * rather than the whole site.
+ */
+export function generateWritingsAtomFeed(items: FeedItem[]): string {
+  return generateAtomFeed(items, {
+    title: "Willie's Writings",
+    subtitle:
+      'Thoughts, tutorials, and notes on software, music, and creativity from Willie Chalmers III.',
+    alternateUrl: siteRoute`/writings`,
+    feedUrl: siteRoute`/writings/feed/atom`,
+  });
 }
 
 /**
@@ -257,6 +278,7 @@ export function generateActivityAtomFeed(
     title: options.title,
     subtitle: options.subtitle,
     feedUrl: options.feedUrl,
+    alternateUrl: options.alternateUrl,
   });
 }
 

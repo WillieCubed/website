@@ -1,7 +1,6 @@
 import { cacheLife } from 'next/cache';
 
-import { generateAtomFeed, writingToFeedItem } from '@/lib/feeds';
-import { siteRoute } from '@/lib/url-utils';
+import { generateWritingsAtomFeed, writingToFeedItem } from '@/lib/feeds';
 import { getAllWritings } from '@/lib/writings';
 
 async function buildWritingsFeed() {
@@ -13,10 +12,7 @@ async function buildWritingsFeed() {
     .map(writingToFeedItem)
     .sort((a, b) => b.published.getTime() - a.published.getTime());
 
-  return generateAtomFeed(items, {
-    title: "Willie's Writings",
-    feedUrl: siteRoute`/writings/feed/atom`,
-  });
+  return generateWritingsAtomFeed(items);
 }
 
 export async function GET() {

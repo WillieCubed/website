@@ -55,9 +55,18 @@ JSON, page rendering, and deletion after the source link disappears.
 A hosted publishing check also needs a test database and a separate GitHub
 branch configured with `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, and
 `MICROPUB_GITHUB_BRANCH`. Set `NEXT_PUBLIC_SITE_ORIGIN` to the test deployment
-origin at build time. Confirm the returned `Location`, branch commit, deployed
-permalink, and feed entry. Keep GitHub credentials out of the repository and
-do not give a public test deployment a broad personal token.
+origin at build time. Configure a repository-scoped token with only Contents
+write permission; never put a broad personal token in the public deployment.
+Connect the Vercel project to the publishing branch so a content commit
+automatically deploys. The publish workflow waits until the public alias
+serves that commit before it sends Webmentions and pings the WebSub hub.
+Confirm the returned `Location`, branch commit, deployed permalink, feed
+entry, and notification result without manually rebuilding.
+
+Use a separate public Blob store for acceptance photos. New Vercel Blob
+connections use `BLOB_STORE_ID` and short-lived OIDC credentials; a legacy
+`BLOB_READ_WRITE_TOKEN` also works. Upload one photo through `/micropub/media`
+and one in a direct multipart post, then check both returned media URLs.
 
 Micropub Rocks requires an email sign-in before its server cases. Try its
 IndieAuth flow first. If its client does not send a PKCE verifier, register a

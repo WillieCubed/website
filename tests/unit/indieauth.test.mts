@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { getBearerToken, verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
+import {
+  getBearerToken,
+  micropubTokenStatus,
+  verifyIndieAuthToken,
+} from '@/lib/indieweb/indieauth';
 import { hashSecret } from '@/lib/indieweb/indieauth-server';
 import type { IndieAuthTokenRecord } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
@@ -57,6 +61,23 @@ test('a token must carry the required scope', async () => {
       requiredScope: ['media', 'create'],
     }),
     true
+  );
+});
+
+test('Micropub distinguishes an invalid token from a missing create scope', async () => {
+  const store = await storeWith({ scope: ['media'] });
+  assert.equal(
+    await micropubTokenStatus({ ...options, store, requiredScope: 'create' }),
+    'insufficient_scope'
+  );
+  assert.equal(
+    await micropubTokenStatus({
+      ...options,
+      store,
+      bearer: 'wrong',
+      requiredScope: 'create',
+    }),
+    'invalid'
   );
 });
 

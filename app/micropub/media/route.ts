@@ -13,8 +13,8 @@ import { jsonError, jsonResponse } from '@/lib/indieweb/responses';
  *
  * A client uploads a photo here as the multipart `file` part, gets its URL
  * back in `Location`, and cites that URL as `photo` when it creates the post.
- * Uploads go to public Vercel Blob storage, so without BLOB_READ_WRITE_TOKEN
- * the endpoint answers 503 instead of pretending to keep the file.
+ * Uploads go to public Vercel Blob storage, using Vercel OIDC or a read-write
+ * token. Without storage the endpoint answers 503.
  */
 export async function POST(request: Request) {
   const store = getMediaStore();
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return jsonError(
       'temporarily_unavailable',
       503,
-      'Media uploads are not configured: set BLOB_READ_WRITE_TOKEN.'
+      'Media uploads are not configured: connect a Vercel Blob store or set BLOB_READ_WRITE_TOKEN.'
     );
   }
 

@@ -6,6 +6,7 @@ import {
   extractExternalLinks,
   sendWebmention,
   sendWebmentionsForPost,
+  targetsForUpdatedPost,
 } from '@/lib/indieweb/send-webmention';
 import { site } from '@/lib/site';
 
@@ -168,4 +169,14 @@ test('a post sends from its writing URL to each target once', async () => {
   const posts = calls.filter((call) => call.method === 'POST');
   assert.equal(posts.length, 1);
   assert.equal(posts[0].body?.get('source'), source);
+});
+
+test('updated posts notify former targets after a link is removed', () => {
+  assert.deepEqual(
+    targetsForUpdatedPost(
+      ['https://example.com/new'],
+      ['https://example.com/old']
+    ),
+    ['https://example.com/new', 'https://example.com/old']
+  );
 });

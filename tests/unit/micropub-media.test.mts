@@ -28,6 +28,13 @@ test('getMediaStore is off without BLOB_READ_WRITE_TOKEN', () => {
   assert.equal(getMediaStore({}), null);
   assert.equal(getMediaStore({ BLOB_READ_WRITE_TOKEN: '  ' }), null);
   assert.ok(getMediaStore({ BLOB_READ_WRITE_TOKEN: 'vercel_blob_rw_x' }));
+  assert.ok(
+    getMediaStore({
+      BLOB_STORE_ID: 'store_test',
+      VERCEL_OIDC_TOKEN: 'oidc-test',
+    })
+  );
+  assert.equal(getMediaStore({ BLOB_STORE_ID: 'store_test' }), null);
 });
 
 test('parseMediaUpload returns the multipart file part', async () => {

@@ -126,6 +126,12 @@ test('Micropub advertises capabilities and rejects unauthenticated creation', as
   expect(capabilities['post-types']).toEqual(
     expect.arrayContaining([expect.objectContaining({ type: 'note' })])
   );
+  expect(capabilities['syndicate-to']).toBeUndefined();
+  expect(
+    (await (await request.get('/micropub?q=syndicate-to')).json())[
+      'syndicate-to'
+    ]
+  ).toEqual([]);
   const create = await request.post('/micropub', {
     form: { h: 'entry', content: 'This must not be published.' },
   });
@@ -134,7 +140,15 @@ test('Micropub advertises capabilities and rejects unauthenticated creation', as
     headers: { authorization: 'Bearer invalid-test-token' },
     form: { h: 'entry', content: 'This must not be published.' },
   });
-  expect(invalid.status()).toBe(403);
+  const tokenStoreAvailable = Boolean(
+    process.env.POSTGRES_URL ||
+    process.env.DATABASE_URL ||
+    process.env.INDIEWEB_TEST_BASE_URL
+  );
+  expect(invalid.status()).toBe(tokenStoreAvailable ? 401 : 503);
+  expect((await invalid.json()).error).toBe(
+    tokenStoreAvailable ? 'invalid_token' : 'temporarily_unavailable'
+  );
 });
 
 test('the Webmention receiver rejects invalid input before storage', async ({

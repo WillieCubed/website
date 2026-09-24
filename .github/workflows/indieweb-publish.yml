@@ -1,0 +1,54 @@
+name: IndieWeb publish notifications
+
+on:
+  push:
+    branches:
+      - main
+      - codex/indieweb-test-publish-20260923
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indieweb-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PRODUCTION_SECRET: ${{ secrets.INDIEWEB_NOTIFY_SECRET_PRODUCTION }}
+      ACCEPTANCE_SECRET: ${{ secrets.INDIEWEB_NOTIFY_SECRET_ACCEPTANCE }}
+    steps:
+      - name: Wait for the public deployment and notify subscribers
+        env:
+          REVISION: ${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          if [ "$BRANCH" = main ]; then
+            origin=https://willie.page
+            secret=$PRODUCTION_SECRET
+          else
+            origin=https://indieweb-acceptance.vercel.app
+            secret=$ACCEPTANCE_SECRET
+          fi
+          if [ -z "$secret" ]; then
+            echo "Notifications are disabled for $origin until its secret is configured."
+            exit 0
+          fi
+          for attempt in $(seq 1 60); do
+            deployed=$(curl --silent --max-time 10 "$origin/api/indieweb/revision" | jq -r '.sha // empty' 2>/dev/null || true)
+            if [ "$deployed" = "$REVISION" ]; then
+              curl --fail-with-body --silent --show-error --max-time 300 \
+                -X POST "$origin/api/indieweb/notify" \
+                -H "Authorization: Bearer $secret" \
+                -H 'Content-Type: application/json' \
+                -d "{\"sha\":\"$REVISION\"}"
+              exit 0
+            fi
+            echo "Waiting for $origin to serve $REVISION (attempt $attempt/60)."
+            sleep 10
+          done
+          echo "The public alias did not serve $REVISION within 10 minutes."
+          exit 1

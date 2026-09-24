@@ -1,4 +1,7 @@
-import { POST as postMicropub } from '@/app/micropub/route';
+import {
+  POST as postMicropub,
+  readMicropubAccessToken,
+} from '@/app/micropub/route';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -7,6 +10,7 @@ import {
   getMicropubConfig,
   getMicropubSyndicationTargets,
   parseMicropubCreateRequest,
+  prepareMicropubPhotoRequest,
 } from '@/lib/indieweb/micropub';
 import type { MicropubCreateRequest } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
@@ -57,6 +61,53 @@ test('POST /micropub rejects a bearer token sent in both places', async () => {
   assert.equal((await response.json()).error, 'invalid_request');
 });
 
+test('Micropub accepts a form token and refuses ambiguous credentials', async () => {
+  const request = (body: URLSearchParams, authorization?: string) =>
+    new Request(`${site.origin}/micropub`, {
+      method: 'POST',
+      headers: authorization ? { Authorization: authorization } : {},
+      body,
+    });
+
+  assert.deepEqual(
+    await readMicropubAccessToken(
+      request(new URLSearchParams({ access_token: 'form-token' }))
+    ),
+    { token: 'form-token' }
+  );
+  assert.deepEqual(
+    await readMicropubAccessToken(
+      request(
+        new URLSearchParams({ access_token: 'form-token' }),
+        'Bearer header-token'
+      )
+    ),
+    { error: 'invalid_request' }
+  );
+  assert.deepEqual(
+    await readMicropubAccessToken(request(new URLSearchParams())),
+    { error: 'unauthorized' }
+  );
+  assert.deepEqual(
+    await readMicropubAccessToken(
+      new Request(`${site.origin}/micropub`, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer header-token',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ access_token: 'body-token' }),
+      })
+    ),
+    { error: 'invalid_request' }
+  );
+});
+
+test('Micropub does not advertise profile URLs as syndication copies', () => {
+  assert.deepEqual(getMicropubSyndicationTargets(), []);
+  assert.equal(getMicropubConfig(false)['syndicate-to'], undefined);
+});
+
 test('parseMicropubCreateRequest accepts form-encoded replies', async () => {
   const body = new URLSearchParams({
     h: 'entry',
@@ -91,16 +142,6 @@ test('buildMicropubWritingFile emits reusable writing frontmatter', () => {
   assert.match(file, /A small note from the IndieWeb\./);
 });
 
-test('getMicropubConfig advertises Bluesky and Threads by stable uid', () => {
-  const expected = [
-    { uid: 'https://bsky.app/profile/willie.page', name: 'Bluesky' },
-    { uid: 'https://www.threads.com/@williecubed', name: 'Threads' },
-  ];
-
-  assert.deepEqual(getMicropubConfig()['syndicate-to'], expected);
-  assert.deepEqual(getMicropubSyndicationTargets(), expected);
-});
-
 function micropubRequest(body: URLSearchParams | object): Request {
   const json = !(body instanceof URLSearchParams);
   return new Request(`${site.origin}/micropub`, {
@@ -114,7 +155,7 @@ function micropubRequest(body: URLSearchParams | object): Request {
   });
 }
 
-test('parseMicropubCreateRequest resolves form mp-syndicate-to[] targets', async () => {
+test('parseMicropubCreateRequest rejects form targets without a syndication integration', async () => {
   const body = new URLSearchParams([
     ['h', 'entry'],
     ['content', 'Cross-posted note.'],
@@ -122,28 +163,25 @@ test('parseMicropubCreateRequest resolves form mp-syndicate-to[] targets', async
     ['mp-syndicate-to[]', 'https://bsky.app/profile/willie.page'],
   ]);
 
-  const entry = await parseMicropubCreateRequest(micropubRequest(body));
-
-  assert.deepEqual(
-    entry.syndicateTo.map((target) => target.name),
-    ['Bluesky', 'Threads']
+  await assert.rejects(
+    parseMicropubCreateRequest(micropubRequest(body)),
+    /invalid_request/
   );
 });
 
-test('parseMicropubCreateRequest resolves JSON mp-syndicate-to targets', async () => {
-  const entry = await parseMicropubCreateRequest(
-    micropubRequest({
-      type: ['h-entry'],
-      properties: {
-        content: ['Cross-posted note.'],
-        'mp-syndicate-to': ['https://bsky.app/profile/willie.page'],
-      },
-    })
+test('parseMicropubCreateRequest rejects JSON targets without a syndication integration', async () => {
+  await assert.rejects(
+    parseMicropubCreateRequest(
+      micropubRequest({
+        type: ['h-entry'],
+        properties: {
+          content: ['Cross-posted note.'],
+          'mp-syndicate-to': ['https://bsky.app/profile/willie.page'],
+        },
+      })
+    ),
+    /invalid_request/
   );
-
-  assert.deepEqual(entry.syndicateTo, [
-    { uid: 'https://bsky.app/profile/willie.page', name: 'Bluesky' },
-  ]);
 });
 
 test('parseMicropubCreateRequest rejects a target it never advertised', async () => {
@@ -159,19 +197,19 @@ test('parseMicropubCreateRequest rejects a target it never advertised', async ()
   );
 });
 
-test('buildMicropubWritingFile records chosen targets as syndication links', () => {
+test('buildMicropubWritingFile records actual copy permalinks', () => {
   const file = buildMicropubWritingFile(
     {
       ...baseEntry,
-      syndication: ['https://bsky.app/profile/willie.page'],
-      syndicateTo: getMicropubSyndicationTargets(),
+      syndication: ['https://bsky.app/profile/willie.page/post/3abc'],
+      syndicateTo: [],
     },
     'small-note'
   );
 
   assert.match(
     file,
-    /syndication:\n {2}- name: "bsky\.app"\n {4}url: "https:\/\/bsky\.app\/profile\/willie\.page"\n {2}- name: "Threads"\n {4}url: "https:\/\/www\.threads\.com\/@williecubed"\n---/
+    /syndication:\n {2}- name: "bsky\.app"\n {4}url: "https:\/\/bsky\.app\/profile\/willie\.page\/post\/3abc"\n---/
   );
 });
 
@@ -243,6 +281,29 @@ test('parseMicropubCreateRequest refuses a photo file sent to the post endpoint'
     ),
     /invalid_request/
   );
+});
+
+test('multipart photo creation stores the file before parsing the post', async () => {
+  const form = new FormData();
+  form.set('h', 'entry');
+  form.set(
+    'photo',
+    new File([new Uint8Array([0xff, 0xd8])], 'photo.jpg', {
+      type: 'image/jpeg',
+    })
+  );
+  const request = new Request(`${site.origin}/micropub`, {
+    method: 'POST',
+    body: form,
+  });
+  const prepared = await prepareMicropubPhotoRequest(request, {
+    async put() {
+      return 'https://media.example/photo.jpg';
+    },
+  });
+  const entry = await parseMicropubCreateRequest(prepared);
+  assert.deepEqual(entry.photos, [{ url: 'https://media.example/photo.jpg' }]);
+  assert.equal(entry.postType, 'photo');
 });
 
 test('buildMicropubWritingFile records photos with their alt text', () => {

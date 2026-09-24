@@ -4,6 +4,26 @@ import { indieAuthStore } from '@/lib/indieweb/indieauth-storage';
 import type { IndieAuthVerificationOptions } from '@/lib/indieweb/types';
 import { sameOrigin } from '@/lib/indieweb/utils';
 
+export async function micropubTokenStatus({
+  bearer,
+  expectedMe = SITE_URL,
+  requiredScope,
+  store = indieAuthStore,
+  now = new Date(),
+}: IndieAuthVerificationOptions): Promise<
+  'valid' | 'invalid' | 'insufficient_scope'
+> {
+  const record = await findActiveToken(store, bearer, now);
+  if (!record || !sameOrigin(record.me, expectedMe)) return 'invalid';
+  if (!requiredScope) return 'valid';
+  const accepted = Array.isArray(requiredScope)
+    ? requiredScope
+    : [requiredScope];
+  return accepted.some((scope) => record.scope.includes(scope))
+    ? 'valid'
+    : 'insufficient_scope';
+}
+
 /**
  * Check a bearer token that this site's own token endpoint issued. The
  * lookup is local: the token's digest is found in the database, so Micropub

@@ -9,7 +9,6 @@
     "predev:app": "tsx scripts/generate-search-index.ts",
     "prebuild": "tsx scripts/generate-search-index.ts",
     "build": "next build",
-    "postbuild": "tsx scripts/postbuild.mts",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",

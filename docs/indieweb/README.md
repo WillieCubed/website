@@ -4,6 +4,8 @@ The [supported-behavior specification](spec.md) states what clients can rely
 on and how each behavior is checked. The [HTTP test runbook](testing.md)
 shows how to repeat the checks. This page records the routes, setup, and
 operating details.
+The [publication review](publication-review.md) names the content that still
+needs Willie's approval.
 
 This page is for whoever changes an IndieWeb route, a feed, or a post kind on
 this site, Willie or an agent. It lists what the site exposes, which
@@ -26,8 +28,8 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                 | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                        | Postgres (optional)                                          |
 | `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                        | Postgres (optional)                                          |
-| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates a note, photo, or article                                 | IndieAuth token; see Micropub                                |
-| `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one photo and answers 201 with its `Location`                            | IndieAuth token, `BLOB_READ_WRITE_TOKEN`                     |
+| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates supported h-entry kinds                                   | IndieAuth token; see Micropub                                |
+| `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one photo and answers 201 with its `Location`                            | IndieAuth token, Vercel Blob connection                      |
 | `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                    | nothing                                                      |
 | `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL | Postgres                                                     |
 | `/indieauth/consent`                                               | The owner's consent page; approving needs a code from the authenticator app                                     | Postgres, `INDIEAUTH_TOTP_SECRET`                            |
@@ -52,12 +54,8 @@ activity feeds return empty documents; nothing else on the site notices.
 ## Markup
 
 Each writing page is an `h-entry` with `p-name`, `p-summary`, `e-content`,
-`dt-published`, `dt-updated`, `p-category`, and `u-url u-uid`. No entry
-carries a `p-author`: the top bar's link home is `rel="author"`, the head
-repeats it as a `<link>`, and the homepage `h-card` has `u-url u-uid` equal
-to its own URL, so it is the representative card. That is the authorship
-algorithm's documented fallback (indieweb.org/authorship-spec), and it keeps
-the author's name off every page that is already under the author's name.
+`dt-published`, `dt-updated`, `p-category`, `u-url u-uid`, and a nested
+`p-author h-card`. The top bar and head also link home with `rel="author"`.
 The homepage `h-card` is the rail in `components/home/Rail.tsx`: the
 headline's name is its `p-name`, the line under it its `p-note`, and the
 photo and email are `<data class="u-photo">` and `<data class="u-email">`,
@@ -165,8 +163,9 @@ through and the error is logged. The logic and its tests live in
 token. The token must be one this site's own token endpoint issued: it is
 looked up in the `indieauth_tokens` table (see IndieAuth below), with no call
 to another server, and must be unexpired, unrevoked, carry the `create`
-scope, and have a `me` on the canonical origin. Requests without a token get
-401 and requests with a bad one get 403.
+scope, and have a `me` on the canonical origin. A client may send one token in
+the bearer header or form body. Missing and invalid tokens get 401; a valid
+token without `create` gets 403 `insufficient_scope`. Two tokens get 400.
 
 A valid request becomes an MDX file under `content/writings`. When
 `MICROPUB_GITHUB_REPO` and `MICROPUB_GITHUB_TOKEN` are set the file is
@@ -176,28 +175,17 @@ the route writes into the local checkout. On a read-only deploy that write
 fails with a 500 whose `error_description` names the reason, which is the
 correct outcome on Vercel and Workers: set the GitHub variables there.
 
-`?q=config` and `?q=syndicate-to` list two syndication targets, from
-`MICROPUB_SYNDICATION_TARGETS` in `lib/indieweb/micropub.ts`:
-
-| Name    | `uid`                                  |
-| ------- | -------------------------------------- |
-| Bluesky | `https://bsky.app/profile/willie.page` |
-| Threads | `https://www.threads.com/@williecubed` |
-
-Each `uid` is the profile URL and stays the same between releases, so a
-client's saved choice keeps working. When a request carries
-`mp-syndicate-to` (form `mp-syndicate-to` or `mp-syndicate-to[]`, or the JSON
-property), each chosen target is written into the post's `syndication`
-frontmatter under the target's name, and the page renders it as a
-`u-syndication` link. A `uid` the endpoint never listed gets a 400
-`invalid_request`. Nothing cross-posts: the endpoint does not publish to
-Bluesky or Threads, so the recorded link points at the profile rather than a
-copy of the post. Once a copy exists, replace that URL in the frontmatter with
-the copy's permalink.
+`?q=syndicate-to` returns an empty list. The site cannot create a copy on
+Bluesky or Threads, so advertising either profile as a destination would be
+false. Manual syndication requires an actual public copy. Add its permalink
+to `syndication` frontmatter only after publication, and confirm that copy
+links back to the original. Micropub `mp-syndicate-to` is rejected until an
+account integration can return exact copy permalinks.
 
 ### Photos
 
 `?q=config` advertises `/micropub/media` as the `media-endpoint` only when
+the Vercel Blob connection supplies OIDC credentials or a legacy
 `BLOB_READ_WRITE_TOKEN` configures storage. A client such as Quill uploads
 each photo there first. The upload is the multipart
 `file` part, and the token needs the `media` or the `create` scope. JPEG, PNG,
@@ -205,15 +193,17 @@ GIF, WebP, AVIF, and HEIC are accepted; SVG and anything else get a 400. The
 file is stored as a public blob in Vercel Blob under
 `media/<year>/<month>/<name>-<random>.<ext>`, and the endpoint answers 201
 with the blob's URL in `Location` (and as `url` in the JSON body). Without
-`BLOB_READ_WRITE_TOKEN` it answers 503 and names the variable.
+either credential it answers 503.
 
 The client then cites that URL as `photo` on the post: form `photo` or
 `photo[]`, or the JSON property, where each value is a URL or
 `{ "value": url, "alt": text }`. A post with a photo becomes `postType: photo`,
 and the caption may be empty. Each photo is written into the `photo`
 frontmatter as `{ url, alt }` and renders under the date in
-`WritingHeader.tsx` as a `u-photo`. A photo value that is not an http(s) URL,
-or a file sent straight to `/micropub`, gets a 400 `invalid_request`.
+`WritingHeader.tsx` as a `u-photo`. A photo value that is not an http(s) URL
+gets a 400 `invalid_request`. Multipart photo files sent directly to
+`/micropub` use the same media store when it is configured; without one they
+get a 503 rather than a post missing its photo.
 
 Storage sits behind the `MediaStore` interface in `lib/indieweb/media.ts`. To
 move uploads to Cloudflare R2, add an R2 implementation there and return it
@@ -316,16 +306,16 @@ goes for any challenge Cloudflare puts in front of the site.
 
 ## Scripts
 
-| Script                                        | What it does                                                                                                                                                                                                                                                                                                      |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm search:index` (runs as `prebuild`)      | Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives and their parts, and pages. Both are gitignored. The Pagefind step needs its platform binary, which the `pagefind` package installs.                                                          |
-| `pnpm websub:ping`                            | POSTs `hub.mode=publish` with the six feed URLs to `WEBSUB_HUB`.                                                                                                                                                                                                                                                  |
-| `pnpm webmentions:send`                       | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                                                                                                                                                                                       |
-| `pnpm webmentions:moderate`                   | Lists pending webmentions, or approves or rejects them by id; see Moderation. Needs `POSTGRES_URL`.                                                                                                                                                                                                               |
-| `pnpm webmentions:backfill-authors`           | One-off repair for webmentions verified before the verifier read a `u-photo` with alt text: fills each missing author photo from the h-entry stored with the mention, through `extractAuthor`. It writes only rows with no photo, so a second run changes nothing. Without `POSTGRES_URL` it says so and exits 0. |
-| `pnpm indieauth:totp`                         | Prints a new secret for `INDIEAUTH_TOTP_SECRET` and the `otpauth://` URI to add to an authenticator app; see IndieAuth.                                                                                                                                                                                           |
-| `scripts/postbuild.mts` (runs as `postbuild`) | Runs `websub:ping` and `webmentions:send` only when `INDIEWEB_POSTBUILD=1`, and never fails the build.                                                                                                                                                                                                            |
-| `pnpm test`                                   | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                                                                                |
+| Script                                   | What it does                                                                                                                                                                                                                                                                                                      |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm search:index` (runs as `prebuild`) | Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives and their parts, and pages. Both are gitignored. The Pagefind step needs its platform binary, which the `pagefind` package installs.                                                          |
+| `pnpm websub:ping`                       | POSTs `hub.mode=publish` with the six feed URLs to `WEBSUB_HUB`.                                                                                                                                                                                                                                                  |
+| `pnpm webmentions:send`                  | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                                                                                                                                                                                       |
+| `pnpm webmentions:moderate`              | Lists pending webmentions, or approves or rejects them by id; see Moderation. Needs `POSTGRES_URL`.                                                                                                                                                                                                               |
+| `pnpm webmentions:backfill-authors`      | One-off repair for webmentions verified before the verifier read a `u-photo` with alt text: fills each missing author photo from the h-entry stored with the mention, through `extractAuthor`. It writes only rows with no photo, so a second run changes nothing. Without `POSTGRES_URL` it says so and exits 0. |
+| `pnpm indieauth:totp`                    | Prints a new secret for `INDIEAUTH_TOTP_SECRET` and the `otpauth://` URI to add to an authenticator app; see IndieAuth.                                                                                                                                                                                           |
+| `.github/workflows/indieweb-publish.yml` | Waits for the public alias to serve a pushed revision, then calls the authenticated notification endpoint.                                                                                                                                                                                                        |
+| `pnpm test`                              | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                                                                                |
 
 ## Environment variables
 
@@ -337,10 +327,10 @@ goes for any challenge Cloudflare puts in front of the site.
 | `INDIEAUTH_TOTP_SECRET`                                                                            | owner sign-in on `/indieauth/consent`                       | unset, sign-in answers 503              |
 | `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                     | unset, route answers 503                |
 | `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                            | local write, `main`, `content/writings` |
-| `BLOB_READ_WRITE_TOKEN`                                                                            | `/micropub/media` photo storage in Vercel Blob              | unset, route answers 503                |
+| `BLOB_STORE_ID` with Vercel OIDC, or `BLOB_READ_WRITE_TOKEN`                                       | `/micropub/media` photo storage in Vercel Blob              | unset, route answers 503                |
 | `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                      | JSON index                              |
 | `SEARCH_REINDEX_SECRET`                                                                            | `/api/search/reindex` in production                         | unset                                   |
-| `INDIEWEB_POSTBUILD`                                                                               | `1` enables the postbuild pings                             | unset, postbuild no-ops                 |
+| `INDIEWEB_NOTIFY_SECRET`                                                                           | authenticates the post-deployment notification endpoint     | unset, endpoint refuses                 |
 | `SKIP_WEBMENTIONS`                                                                                 | `true` skips `webmentions:send`                             | unset                                   |
 
 The Postgres schema lives in `initializeWebmentionsTable()` in
@@ -356,32 +346,11 @@ rather than the codes and tokens themselves, and `indieauth_totp_steps` and
 `indieauth_sign_in_failures` for the owner check. Apply it before turning on
 sign-in.
 
-## IndieMark checklist
+## IndieMark evidence
 
-Status as of 2026-09-22. "Done" means the dev server serves it and a test or a
-curl in this repo checks it.
-
-| Level | Criterion                                                  | Status                  | Where                                                                            |
-| ----- | ---------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------- |
-| 1     | Own domain with an h-card                                  | Done                    | `lib/site.ts`, `components/home/Rail.tsx`                                        |
-| 1     | rel="me" links to profiles that link back                  | Done                    | `site.social` in the footer                                                      |
-| 1     | Posts on your own domain with h-entry                      | Done                    | `app/writings/[slug]/page.tsx`                                                   |
-| 1     | Posts have permalinks and dates                            | Done                    | `u-url u-uid`, `dt-published`                                                    |
-| 2     | Two or more post types                                     | Done                    | article `project-superbloom`, notes `fall-tour-2026-begins`, `indiemark-level-3` |
-| 2     | Syndicate copies with links back (POSSE)                   | Done                    | `syndication` frontmatter, `u-syndication`                                       |
-| 2     | Reply posts with `u-in-reply-to`                           | Done                    | `indiemark-level-3`                                                              |
-| 2     | Send webmentions                                           | Done                    | `lib/indieweb/send-webmention.ts`, `webmentions:send`                            |
-| 2     | Receive and display webmentions                            | Done, needs Postgres    | `/webmention`, `WebmentionSection`                                               |
-| 2     | Feed autodiscovery on the posts page                       | Done                    | `alternates.types` in `app/writings/page.tsx`                                    |
-| 3     | Search results on your own domain                          | Done                    | `/search?q=`                                                                     |
-| 3     | Micropub endpoint that creates posts                       | Done                    | `/micropub`                                                                      |
-| 3     | Authorship on every post                                   | Done                    | `rel="author"` in `TopBar.tsx` and the head; representative h-card in `Rail.tsx` |
-| 3     | Likes, reposts, bookmarks, RSVPs render as h-entry         | Done, no live posts yet | `ReplyTarget.tsx`                                                                |
-| 3     | WebSub hub declared in feeds and pinged on publish         | Done                    | `WEBSUB_HUB`, `websub:ping`                                                      |
-| 3     | Autolinked mentions                                        | Done                    | `remark-mentions.ts`                                                             |
-| 3     | Person tags                                                | Done, no live posts yet | `people` frontmatter, `WritingContent.tsx`, `webmentions:send`                   |
-| 3     | Comments from other sites display, with reaction facepiles | Done, needs Postgres    | `WebmentionReplies.tsx`, `WebmentionSection.tsx`                                 |
-| 3     | Photo posts                                                | Done, needs Vercel Blob | `/micropub/media`, `photo` frontmatter, `u-photo` in `WritingHeader.tsx`         |
+The [criteria and evidence record](indiemark.md) separates implemented code
+from public proof. No level is claimed while production has no published
+writings or actual syndicated copies.
 
 ## Not covered here
 

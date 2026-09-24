@@ -35,26 +35,30 @@ export const MEDIA_TYPES: Readonly<Record<string, string>> = {
 };
 
 /** Public Vercel Blob storage, authorized by a read-write token. */
-export function vercelBlobMediaStore(token: string): MediaStore {
+export function vercelBlobMediaStore(token?: string): MediaStore {
   return {
     async put(pathname, file, contentType) {
       const blob = await put(pathname, file, {
         access: 'public',
         addRandomSuffix: true,
         contentType,
-        token,
+        ...(token ? { token } : {}),
       });
       return blob.url;
     },
   };
 }
 
-/** The configured store, or null when `BLOB_READ_WRITE_TOKEN` is unset. */
+/** The configured store, using OIDC on Vercel or a legacy read-write token. */
 export function getMediaStore(
   environment: Record<string, string | undefined> = process.env
 ): MediaStore | null {
   const token = environment.BLOB_READ_WRITE_TOKEN?.trim();
-  return token ? vercelBlobMediaStore(token) : null;
+  if (token) return vercelBlobMediaStore(token);
+  return environment.BLOB_STORE_ID?.trim() &&
+    environment.VERCEL_OIDC_TOKEN?.trim()
+    ? vercelBlobMediaStore()
+    : null;
 }
 
 /**
@@ -71,6 +75,11 @@ export async function parseMediaUpload(request: Request): Promise<File> {
   if (!(file instanceof File)) {
     throw new MediaUploadError('The request has no "file" part.');
   }
+  validateMediaFile(file);
+  return file;
+}
+
+export function validateMediaFile(file: File): void {
   if (file.size === 0) {
     throw new MediaUploadError('The uploaded file is empty.');
   }
@@ -79,7 +88,6 @@ export async function parseMediaUpload(request: Request): Promise<File> {
       `Only photos can be uploaded (${Object.keys(MEDIA_TYPES).join(', ')}).`
     );
   }
-  return file;
 }
 
 /**

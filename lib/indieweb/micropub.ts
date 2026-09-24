@@ -2,7 +2,13 @@ import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { MICROPUB_MEDIA_ENDPOINT } from '@/lib/indieweb/constants';
-import { getMediaStore } from '@/lib/indieweb/media';
+import {
+  MediaUploadError,
+  getMediaStore,
+  storeMedia,
+  validateMediaFile,
+} from '@/lib/indieweb/media';
+import type { MediaStore } from '@/lib/indieweb/media';
 import type {
   GitHubContentsCommitResponse,
   MicropubCommitOptions,
@@ -38,21 +44,8 @@ export class MicropubStorageError extends Error {
   }
 }
 
-/**
- * Where posts can be syndicated, as Micropub clients offer them.
- *
- * Each uid is the profile URL, which stays put when a post is added. The
- * endpoint only records a chosen target as a syndication link; nothing
- * cross-posts yet.
- */
-export const MICROPUB_SYNDICATION_TARGETS: readonly MicropubSyndicationTarget[] =
-  [
-    { uid: 'https://bsky.app/profile/willie.page', name: 'Bluesky' },
-    { uid: 'https://www.threads.com/@williecubed', name: 'Threads' },
-  ];
-
 export function getMicropubSyndicationTargets(): MicropubSyndicationTarget[] {
-  return MICROPUB_SYNDICATION_TARGETS.map((target) => ({ ...target }));
+  return [];
 }
 
 export function getMicropubConfig(
@@ -62,7 +55,6 @@ export function getMicropubConfig(
     ...(mediaAvailable
       ? { 'media-endpoint': absoluteRoute`${MICROPUB_MEDIA_ENDPOINT}` }
       : {}),
-    'syndicate-to': getMicropubSyndicationTargets(),
     'post-types': [
       { type: 'note', name: 'Note' },
       { type: 'photo', name: 'Photo' },
@@ -87,6 +79,27 @@ export async function parseMicropubCreateRequest(
 
   const formData = await request.formData();
   return parseFormData(formData);
+}
+
+export async function prepareMicropubPhotoRequest(
+  request: Request,
+  store: MediaStore | null
+): Promise<Request> {
+  if (!request.headers.get('content-type')?.includes('multipart/form-data'))
+    return request;
+  const input = await request.formData();
+  const output = new FormData();
+  for (const [name, value] of input) {
+    if ((name === 'photo' || name === 'photo[]') && value instanceof File) {
+      if (!store)
+        throw new MediaUploadError('Media uploads are not configured.');
+      validateMediaFile(value);
+      output.append(name, await storeMedia(value, store));
+    } else {
+      output.append(name, value);
+    }
+  }
+  return new Request(request.url, { method: request.method, body: output });
 }
 
 export function buildMicropubWritingFile(
@@ -364,26 +377,18 @@ function photoUrl(value: string): string {
 function resolveSyndicationTargets(
   uids: string[]
 ): MicropubSyndicationTarget[] {
-  const chosen = new Set(uids.filter(Boolean));
-  for (const uid of chosen) {
-    if (!MICROPUB_SYNDICATION_TARGETS.some((target) => target.uid === uid)) {
-      throw new Error('invalid_request');
-    }
-  }
-  return MICROPUB_SYNDICATION_TARGETS.filter((target) =>
-    chosen.has(target.uid)
-  ).map((target) => ({ ...target }));
+  if (uids.some(Boolean)) throw new Error('invalid_request');
+  return [];
 }
 
-// Copies the client already made keep their hostname as the label; chosen
-// targets use the target's name. A URL listed both ways appears once.
+// Only an already published copy may appear as a syndication link.
 function syndicationLinks(
   entry: MicropubCreateRequest
 ): { name: string; url: string }[] {
-  const links = [
-    ...entry.syndication.map((url) => ({ name: new URL(url).hostname, url })),
-    ...entry.syndicateTo.map(({ name, uid }) => ({ name, url: uid })),
-  ];
+  const links = entry.syndication.map((url) => ({
+    name: new URL(url).hostname,
+    url,
+  }));
   return links.filter(
     (link, index) => links.findIndex(({ url }) => url === link.url) === index
   );

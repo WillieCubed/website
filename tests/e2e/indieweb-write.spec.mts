@@ -55,7 +55,7 @@ test('Micropub creates a note only with a valid local IndieAuth grant', async ({
           form,
         })
       ).status()
-    ).toBe(403);
+    ).toBe(401);
 
     const created = await request.post('/micropub', {
       headers: { authorization: `Bearer ${token}` },

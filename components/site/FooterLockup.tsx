@@ -30,6 +30,7 @@ export default function FooterLockup({ name }: { name: string }) {
   const markButton = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const firstMenuItem = useRef<HTMLAnchorElement>(null);
+  const cubeActivations = useRef(0);
   const header = useSyncExternalStore(
     subscribeTopBar,
     getTopBar,
@@ -37,6 +38,7 @@ export default function FooterLockup({ name }: { name: string }) {
   );
   const [revealed, setRevealed] = useState(false);
   const [colorPinned, setColorPinned] = useState(false);
+  const [spinSequence, setSpinSequence] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoScheme, setLogoScheme] = useState<'light' | 'dark'>('light');
 
@@ -80,6 +82,14 @@ export default function FooterLockup({ name }: { name: string }) {
   function closeMenu() {
     hideMenu();
     markButton.current?.focus({ preventScroll: true });
+  }
+
+  function handleCubeClick() {
+    setColorPinned((pinned) => !pinned);
+    cubeActivations.current = (cubeActivations.current + 1) % 3;
+    if (cubeActivations.current === 0) {
+      setSpinSequence((sequence) => sequence + 1);
+    }
   }
 
   // Each page's top bar registers itself while it is on screen, so the
@@ -133,7 +143,7 @@ export default function FooterLockup({ name }: { name: string }) {
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-controls={menuId}
-          onClick={() => setColorPinned((pinned) => !pinned)}
+          onClick={handleCubeClick}
           onContextMenu={(event) => {
             event.preventDefault();
             openMenu(event.clientX, event.clientY);
@@ -148,7 +158,12 @@ export default function FooterLockup({ name }: { name: string }) {
             }
           }}
         >
-          <Mark className="site-footer__mark" />
+          <Mark
+            key={spinSequence}
+            className={`site-footer__mark${
+              spinSequence > 0 ? ' site-footer__mark--spinning' : ''
+            }`}
+          />
         </button>
         <span className="site-footer__wordmark" data-footer-name>
           {name}

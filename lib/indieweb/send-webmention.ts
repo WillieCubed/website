@@ -5,6 +5,13 @@ import { site } from '@/lib/site';
 const SITE_URL = site.origin;
 const FETCH_TIMEOUT = 10000;
 
+export function targetsForUpdatedPost(
+  current: string[],
+  previous: string[]
+): string[] {
+  return [...new Set([...current, ...previous])];
+}
+
 interface SendResult {
   targetUrl: string;
   success: boolean;

@@ -1,11 +1,13 @@
 import { SITE_URL } from '@/lib/indieweb/constants';
-import { getBearerToken, verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
+import { getBearerToken, micropubTokenStatus } from '@/lib/indieweb/indieauth';
+import { MediaUploadError, getMediaStore } from '@/lib/indieweb/media';
 import {
   MicropubStorageError,
   commitMicropubWriting,
   getMicropubConfig,
   getMicropubSyndicationTargets,
   parseMicropubCreateRequest,
+  prepareMicropubPhotoRequest,
   writeMicropubWritingLocally,
 } from '@/lib/indieweb/micropub';
 import { jsonError, jsonResponse } from '@/lib/indieweb/responses';
@@ -39,6 +41,45 @@ export async function GET(request: Request) {
   return new Response('OK', { status: 200 });
 }
 
+export async function readMicropubAccessToken(
+  request: Request
+): Promise<{ token: string } | { error: 'unauthorized' | 'invalid_request' }> {
+  const headerToken = getBearerToken(request);
+  const queryToken = new URL(request.url).searchParams.getAll('access_token');
+  const contentType = request.headers.get('content-type') ?? '';
+  let bodyTokens: FormDataEntryValue[] = [];
+  let jsonToken = false;
+  if (
+    contentType.includes('application/x-www-form-urlencoded') ||
+    contentType.includes('multipart/form-data')
+  ) {
+    try {
+      bodyTokens = (await request.clone().formData()).getAll('access_token');
+    } catch {
+      return { error: 'invalid_request' };
+    }
+  } else if (contentType.includes('application/json')) {
+    try {
+      const body = await request.clone().json();
+      jsonToken = Boolean(
+        body && typeof body === 'object' && 'access_token' in body
+      );
+    } catch {
+      return { error: 'invalid_request' };
+    }
+  }
+  if (
+    queryToken.length ||
+    jsonToken ||
+    bodyTokens.length > 1 ||
+    (headerToken && bodyTokens.length)
+  )
+    return { error: 'invalid_request' };
+  const token =
+    headerToken ?? (typeof bodyTokens[0] === 'string' ? bodyTokens[0] : null);
+  return token ? { token } : { error: 'unauthorized' };
+}
+
 /**
  * Create a writing from an IndieAuth-protected Micropub request.
  *
@@ -48,29 +89,31 @@ export async function GET(request: Request) {
  * local content directory, which only works on a writable checkout.
  */
 export async function POST(request: Request) {
-  const bearer = getBearerToken(request);
-  if (!bearer) return jsonError('unauthorized', 401);
-  if (await hasSecondToken(request)) {
-    return jsonError(
-      'invalid_request',
-      400,
-      'Send the access token only in the Authorization header.'
-    );
-  }
+  const access = await readMicropubAccessToken(request);
+  if ('error' in access)
+    return jsonError(access.error, access.error === 'unauthorized' ? 401 : 400);
 
   const environment = getMicropubEnvironment();
 
   // Tokens come from this site's own token endpoint and are checked locally.
-  const tokenIsValid = await verifyIndieAuthToken({
-    bearer,
+  const tokenStatus = await micropubTokenStatus({
+    bearer: access.token,
     expectedMe: SITE_URL,
     requiredScope: 'create',
-  }).catch(() => false);
+  }).catch(() => 'unavailable' as const);
 
-  if (!tokenIsValid) return jsonError('forbidden', 403);
+  if (tokenStatus === 'invalid') return jsonError('invalid_token', 401);
+  if (tokenStatus === 'insufficient_scope')
+    return jsonError('insufficient_scope', 403);
+  if (tokenStatus === 'unavailable')
+    return jsonError('temporarily_unavailable', 503);
 
   try {
-    const entry = await parseMicropubCreateRequest(request);
+    const prepared = await prepareMicropubPhotoRequest(
+      request,
+      getMediaStore()
+    );
+    const entry = await parseMicropubCreateRequest(prepared);
     const result =
       environment.githubRepository && environment.githubToken
         ? await commitMicropubWriting(entry, {
@@ -93,6 +136,15 @@ export async function POST(request: Request) {
       headers: { Location: result.location },
     });
   } catch (error) {
+    if (error instanceof MediaUploadError) {
+      return jsonError(
+        error.message === 'Media uploads are not configured.'
+          ? 'temporarily_unavailable'
+          : 'invalid_request',
+        error.message === 'Media uploads are not configured.' ? 503 : 400,
+        error.message
+      );
+    }
     if (error instanceof Error && error.message === 'invalid_request') {
       return jsonError('invalid_request', 400);
     }
@@ -103,29 +155,6 @@ export async function POST(request: Request) {
     console.error('Micropub create failed:', error);
     return jsonError('server_error', 500);
   }
-}
-
-async function hasSecondToken(request: Request): Promise<boolean> {
-  if (new URL(request.url).searchParams.has('access_token')) return true;
-
-  const contentType = request.headers.get('content-type') ?? '';
-  try {
-    if (
-      contentType.includes('application/x-www-form-urlencoded') ||
-      contentType.includes('multipart/form-data')
-    ) {
-      return (await request.clone().formData()).has('access_token');
-    }
-    if (contentType.includes('application/json')) {
-      const body = await request.clone().json();
-      return Boolean(
-        body && typeof body === 'object' && 'access_token' in body
-      );
-    }
-  } catch {
-    // The normal request parser reports malformed bodies after authentication.
-  }
-  return false;
 }
 
 function getMicropubEnvironment(): MicropubRouteEnvironment {

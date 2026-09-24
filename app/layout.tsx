@@ -4,7 +4,7 @@ import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
-import SearchModal from '@/components/search/SearchModal';
+import PaletteProvider from '@/components/palette/PaletteProvider';
 import SiteFooter from '@/components/site/SiteFooter';
 import SkipLink from '@/components/site/SkipLink';
 
@@ -14,6 +14,7 @@ import {
   WEBSUB_HUB,
 } from '@/lib/indieweb/constants';
 import { INDIEAUTH_DISCOVERY_LINKS } from '@/lib/indieweb/discovery';
+import { getPaletteData } from '@/lib/palette/data';
 import { site } from '@/lib/site';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
@@ -85,13 +86,18 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: React.PropsWithChildren) {
+  // Cached for an hour, so reading it here costs every page nothing.
+  const paletteData = await getPaletteData();
   return (
     // The font variables live on <html>: the theme's --font-sans reads
     // --font-atkinson at :root, and a custom property that references an
     // undefined variable there computes to nothing.
+    // The head script may set data-theme before React hydrates, from a
+    // scheme the visitor picked in the command palette.
     <html
       lang={site.language}
       className={`${sansFont.variable} ${monoFont.variable}`}
+      suppressHydrationWarning
     >
       <head>
         <script
@@ -134,29 +140,30 @@ export default async function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink font-sans antialiased">
-        <SkipLink />
-        {process.env.NODE_ENV === 'production' &&
-          process.env.NEXT_PUBLIC_GTAG_ID && (
-            <>
-              <Script
-                src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GTAG_ID}`}
-                strategy="afterInteractive"
-              />
-              <Script id="google-analytics" strategy="afterInteractive">
-                {`
+        <PaletteProvider data={paletteData}>
+          <SkipLink />
+          {process.env.NODE_ENV === 'production' &&
+            process.env.NEXT_PUBLIC_GTAG_ID && (
+              <>
+                <Script
+                  src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GTAG_ID}`}
+                  strategy="afterInteractive"
+                />
+                <Script id="google-analytics" strategy="afterInteractive">
+                  {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag() { dataLayer.push(arguments); }
                 gtag('js', new Date());
                 gtag('config', '${process.env.NEXT_PUBLIC_GTAG_ID}');
               `}
-              </Script>
-            </>
-          )}
-        {/* Grows to fill a short page so the footer rests on the bottom of
+                </Script>
+              </>
+            )}
+          {/* Grows to fill a short page so the footer rests on the bottom of
             the window instead of riding up under the content. */}
-        <div className="grow">{children}</div>
-        <SiteFooter />
-        <SearchModal />
+          <div className="grow">{children}</div>
+          <SiteFooter />
+        </PaletteProvider>
         <Analytics />
         <SpeedInsights />
       </body>

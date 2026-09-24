@@ -193,8 +193,12 @@
   color-scheme: light dark;
 }
 
+/* The dark roles. They follow the system unless the visitor picked a scheme
+   in the command palette, which sets data-theme on <html>
+   (lib/theme-preference.ts). CSS cannot join a media query and a selector
+   with "or", so the roles are listed twice; change both lists together. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --color-primary: #93d3bf;
     --color-on-primary: #00382c;
     --color-primary-container: #2f6f5e;
@@ -224,6 +228,43 @@
     --color-error-container: #93000a;
     --color-on-error-container: #ffdad6;
   }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-primary: #93d3bf;
+  --color-on-primary: #00382c;
+  --color-primary-container: #2f6f5e;
+  --color-on-primary-container: #aeefda;
+  --color-secondary: #b3ccc2;
+  --color-on-secondary: #1e352e;
+  --color-secondary-container: #374e46;
+  --color-on-secondary-container: #d0e8de;
+  --color-tertiary: #ffb4a8;
+  --color-on-tertiary: #53211a;
+  --color-tertiary-container: #72372f;
+  --color-on-tertiary-container: #ffd9d2;
+  --color-surface: #111413;
+  --color-surface-dim: #111413;
+  --color-surface-bright: #363a38;
+  --color-surface-container-lowest: #0b0f0e;
+  --color-surface-container-low: #191c1b;
+  --color-surface-container: #1d201f;
+  --color-surface-container-high: #272b29;
+  --color-surface-container-highest: #323534;
+  --color-on-surface: #e1e3e0;
+  --color-on-surface-variant: #bfc9c4;
+  --color-outline: #89938e;
+  --color-outline-variant: #3f4945;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+}
+
+/* The venture schemes are light-dark() pairs, which follow color-scheme. */
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -277,14 +318,22 @@ main:focus {
 }
 
 @media (prefers-color-scheme: dark) {
-  .shiki,
-  .shiki span {
+  :root:not([data-theme='light']) .shiki,
+  :root:not([data-theme='light']) .shiki span {
     color: var(--shiki-dark) !important;
     background-color: var(--shiki-dark-bg) !important;
     font-style: var(--shiki-dark-font-style) !important;
     font-weight: var(--shiki-dark-font-weight) !important;
     text-decoration: var(--shiki-dark-text-decoration) !important;
   }
+}
+:root[data-theme='dark'] .shiki,
+:root[data-theme='dark'] .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 @utility interactive-bg-surface-container {

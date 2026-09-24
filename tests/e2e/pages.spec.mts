@@ -89,26 +89,3 @@ test('the footer stays a plain block off the homepage', async ({ page }) => {
   await expect(footer).toBeVisible();
   await expect(footer).not.toHaveAttribute('data-dock');
 });
-
-test('⌘K opens the search dialog', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'The shortcut needs a hardware keyboard.');
-  await page.goto('/');
-  // The Component UI loads once the page is idle and defines the elements.
-  await page.waitForFunction(() =>
-    customElements.get('pagefind-modal-trigger')
-  );
-  // Pagefind picks ⌘ or Ctrl from the platform the page reports, which is
-  // the emulated device's rather than the machine running the test.
-  const mac = await page.evaluate(() => {
-    const platform = (
-      navigator as Navigator & { userAgentData?: { platform?: string } }
-    ).userAgentData?.platform;
-    return /mac/i.test(platform || navigator.userAgent);
-  });
-  await page.keyboard.press(mac ? 'Meta+k' : 'Control+k');
-  const dialog = page.getByRole('dialog', { name: 'search' });
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('searchbox')).toBeFocused();
-  await page.keyboard.press('Escape');
-  await expect(dialog).toBeHidden();
-});

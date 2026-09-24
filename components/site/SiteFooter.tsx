@@ -16,15 +16,14 @@ import FooterLockup from './FooterLockup';
 import './site.css';
 
 /**
- * Every routed page from the site manifest, then search. Search is a tool
- * rather than one of the site's own pages, so it stays out of `sitePages`
- * and out of the sitemap, but the link is here for visitors whose scripts
- * never ran and who cannot open the ⌘K dialog.
+ * Every routed page from the site manifest. Search lives in the command
+ * palette; visitors whose scripts never ran find /search through the top
+ * bar's <noscript> link instead.
  */
-const PAGES = [
-  ...routedPages.map((page) => ({ label: page.label, href: page.path })),
-  { label: 'Search', href: '/search' },
-];
+const PAGES = routedPages.map((page) => ({
+  label: page.label,
+  href: page.path,
+}));
 
 const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
   {

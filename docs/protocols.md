@@ -23,6 +23,17 @@ route file only forwards the request.
 | `/api/mcp`                  | [Model Context Protocol](https://modelcontextprotocol.io), Streamable HTTP                           | Read-only and unauthenticated: `get_profile`, `list_writings`, `get_writing`, `search_writings`, `list_initiatives`, and `brew_coffee`, which answers with a 418 tool error. See the MCP section below. |
 | `/llms.txt`                 | [llmstxt.org](https://llmstxt.org)                                                                   | An H1, a summary, and `- [name](url): notes` lists of the published writings, feeds, and protocol endpoints. Drafts never appear.                                                                       |
 
+## In the command palette
+
+The ⌘K palette (`lib/palette/`) runs these for visitors who never open a
+terminal. Typing a whole command name and pressing Enter makes the real
+request and shows the response; a partial name never matches, and the
+commands are never listed. `brew`, `coffee`, and `teapot` send `POST /coffee`;
+`tea` starts a pot at `/tea`; `whoami`, `clacks`, and `security` read their
+routes; `mcp` copies a client config for `/api/mcp`; `llms` opens `/llms.txt`;
+`fortune` draws a tagline. A request that fails shows what failed. When you add
+a route here, add its command to `eggs()` in `lib/palette/commands.ts` too.
+
 ## Try them
 
 ```sh

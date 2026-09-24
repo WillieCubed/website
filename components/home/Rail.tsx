@@ -1,4 +1,4 @@
-import { PagefindTrigger } from '@/components/search/pagefind';
+import PaletteTrigger from '@/components/palette/PaletteTrigger';
 
 import { railVentures } from '@/lib/home/ventures';
 import { site } from '@/lib/site';
@@ -48,7 +48,7 @@ export function Rail() {
         </div>
 
         <div className="rail-search">
-          <PagefindTrigger />
+          <PaletteTrigger size="rail" />
         </div>
 
         <nav className="index" aria-label="What he’s building">

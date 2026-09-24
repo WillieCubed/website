@@ -7,7 +7,7 @@ import {
 } from '@/lib/indieweb/websub-publisher';
 import { absoluteUrl } from '@/lib/site';
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 function equalSecret(actual: string, expected: string): boolean {
   const a = Buffer.from(actual);

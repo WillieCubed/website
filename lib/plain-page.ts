@@ -1,5 +1,6 @@
 import { site } from '@/lib/site';
 import { themeSchemes } from '@/lib/theme';
+import { THEME_COLORS, THEME_STORAGE_KEY } from '@/lib/theme-transition';
 
 export interface PlainPage {
   status?: number;
@@ -24,6 +25,15 @@ function wantsHtml(request: Request): boolean {
   return (request.headers.get('Accept') ?? '').includes('text/html');
 }
 
+// A scheme picked in the command palette holds here too: the pages share
+// the site's storage, so this applies it before the page paints, toolbar
+// color included (lib/theme-preference.ts).
+const chosenSchemeScript = `try{var t=localStorage.getItem(${JSON.stringify(
+  THEME_STORAGE_KEY
+)});if(t==='light'||t==='dark'){document.documentElement.dataset.theme=t;document.querySelectorAll('meta[name=theme-color]').forEach(function(m){m.content=${JSON.stringify(
+  THEME_COLORS
+)}[t]})}}catch(e){}`;
+
 // These route handlers cannot load app/globals.css, so they reproduce its
 // semantic role boundary with the shared non-CSS theme values.
 function htmlDocument({ title, lines }: PlainPage): string {
@@ -36,9 +46,10 @@ function htmlDocument({ title, lines }: PlainPage): string {
 <meta name="theme-color" media="(prefers-color-scheme:light)" content="${site.themeColors.light}">
 <meta name="theme-color" media="(prefers-color-scheme:dark)" content="${site.themeColors.dark}">
 <title>${escapeHtml(title)} · ${escapeHtml(site.name)}</title>
+<script>${chosenSchemeScript}</script>
 <style>
-:root{color-scheme:light dark;--color-primary:${themeSchemes.light.primary};--color-surface:${themeSchemes.light.surface};--color-on-surface:${themeSchemes.light.onSurface}}
-@media(prefers-color-scheme:dark){:root{--color-primary:${themeSchemes.dark.primary};--color-surface:${themeSchemes.dark.surface};--color-on-surface:${themeSchemes.dark.onSurface}}}
+:root{color-scheme:light dark;--color-primary:light-dark(${themeSchemes.light.primary},${themeSchemes.dark.primary});--color-surface:light-dark(${themeSchemes.light.surface},${themeSchemes.dark.surface});--color-on-surface:light-dark(${themeSchemes.light.onSurface},${themeSchemes.dark.onSurface})}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 body{margin:0;padding:40px 20px;background:var(--color-surface);color:var(--color-on-surface);font:16px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 main{max-width:840px;margin:0 auto}
 h1{margin:0 0 1.5rem;font:600 1.5rem/1.3 system-ui,sans-serif}

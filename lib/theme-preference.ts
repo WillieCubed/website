@@ -1,6 +1,7 @@
 import {
   THEME_STORAGE_KEY,
   THEME_TRANSITION_DURATION_MS,
+  applyThemeColor,
 } from './theme-transition';
 
 export type Scheme = 'light' | 'dark';
@@ -50,6 +51,7 @@ export function setScheme(scheme: Scheme | null): void {
   }
   if (next) element.dataset.theme = next;
   else delete element.dataset.theme;
+  applyThemeColor(next);
   try {
     if (next) window.localStorage.setItem(THEME_STORAGE_KEY, next);
     else window.localStorage.removeItem(THEME_STORAGE_KEY);

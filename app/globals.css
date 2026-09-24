@@ -8,36 +8,38 @@
  * older site names remain aliases while parked pages are rebuilt.
  */
 @theme static {
-  /* Material 3 light roles. The dark values live at the theme boundary below. */
-  --color-primary: #2f6f5e;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #c9e8db;
-  --color-on-primary-container: #0f2b23;
-  --color-secondary: #4c635b;
-  --color-on-secondary: #ffffff;
-  --color-secondary-container: #d5e7df;
-  --color-on-secondary-container: #263d35;
-  --color-tertiary: #a05a3c;
-  --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #f3dfd4;
-  --color-on-tertiary-container: #3b1e12;
-  --color-surface: #f4f5ef;
-  --color-surface-dim: #e1e3dc;
-  --color-surface-bright: #fbfcf9;
-  --color-surface-container-lowest: #fbfcf9;
-  --color-surface-container-low: #f4f5ef;
-  --color-surface-container: #eef0e9;
-  --color-surface-container-high: #e7eae2;
-  --color-surface-container-highest: #dfe3da;
-  --color-on-surface: #1c231e;
+  /* Material 3 roles as light-dark() pairs: each follows color-scheme, which
+     is the system's unless the visitor picked one in the command palette
+     (the theme boundary below). */
+  --color-primary: light-dark(#2f6f5e, #93d3bf);
+  --color-on-primary: light-dark(#ffffff, #00382c);
+  --color-primary-container: light-dark(#c9e8db, #2f6f5e);
+  --color-on-primary-container: light-dark(#0f2b23, #aeefda);
+  --color-secondary: light-dark(#4c635b, #b3ccc2);
+  --color-on-secondary: light-dark(#ffffff, #1e352e);
+  --color-secondary-container: light-dark(#d5e7df, #374e46);
+  --color-on-secondary-container: light-dark(#263d35, #d0e8de);
+  --color-tertiary: light-dark(#a05a3c, #ffb4a8);
+  --color-on-tertiary: light-dark(#ffffff, #53211a);
+  --color-tertiary-container: light-dark(#f3dfd4, #72372f);
+  --color-on-tertiary-container: light-dark(#3b1e12, #ffd9d2);
+  --color-surface: light-dark(#f4f5ef, #111413);
+  --color-surface-dim: light-dark(#e1e3dc, #111413);
+  --color-surface-bright: light-dark(#fbfcf9, #363a38);
+  --color-surface-container-lowest: light-dark(#fbfcf9, #0b0f0e);
+  --color-surface-container-low: light-dark(#f4f5ef, #191c1b);
+  --color-surface-container: light-dark(#eef0e9, #1d201f);
+  --color-surface-container-high: light-dark(#e7eae2, #272b29);
+  --color-surface-container-highest: light-dark(#dfe3da, #323534);
+  --color-on-surface: light-dark(#1c231e, #e1e3e0);
   /* Dark enough for 4.5:1 on every surface container and brand container. */
-  --color-on-surface-variant: #5c665e;
-  --color-outline: #7f8981;
-  --color-outline-variant: #dfe3da;
-  --color-error: #b3261e;
-  --color-on-error: #ffffff;
-  --color-error-container: #f9dedc;
-  --color-on-error-container: #410e0b;
+  --color-on-surface-variant: light-dark(#5c665e, #bfc9c4);
+  --color-outline: light-dark(#7f8981, #89938e);
+  --color-outline-variant: light-dark(#dfe3da, #3f4945);
+  --color-error: light-dark(#b3261e, #ffb4ab);
+  --color-on-error: light-dark(#ffffff, #690005);
+  --color-error-container: light-dark(#f9dedc, #93000a);
+  --color-on-error-container: light-dark(#410e0b, #ffdad6);
   --color-scrim: #000000;
 
   /* Site-language aliases. Every alias resolves through a Material role. */
@@ -193,76 +195,14 @@
   color-scheme: light dark;
 }
 
-/* The dark roles. They follow the system unless the visitor picked a scheme
-   in the command palette, which sets data-theme on <html>
-   (lib/theme-preference.ts). CSS cannot join a media query and a selector
-   with "or", so the roles are listed twice; change both lists together. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --color-primary: #93d3bf;
-    --color-on-primary: #00382c;
-    --color-primary-container: #2f6f5e;
-    --color-on-primary-container: #aeefda;
-    --color-secondary: #b3ccc2;
-    --color-on-secondary: #1e352e;
-    --color-secondary-container: #374e46;
-    --color-on-secondary-container: #d0e8de;
-    --color-tertiary: #ffb4a8;
-    --color-on-tertiary: #53211a;
-    --color-tertiary-container: #72372f;
-    --color-on-tertiary-container: #ffd9d2;
-    --color-surface: #111413;
-    --color-surface-dim: #111413;
-    --color-surface-bright: #363a38;
-    --color-surface-container-lowest: #0b0f0e;
-    --color-surface-container-low: #191c1b;
-    --color-surface-container: #1d201f;
-    --color-surface-container-high: #272b29;
-    --color-surface-container-highest: #323534;
-    --color-on-surface: #e1e3e0;
-    --color-on-surface-variant: #bfc9c4;
-    --color-outline: #89938e;
-    --color-outline-variant: #3f4945;
-    --color-error: #ffb4ab;
-    --color-on-error: #690005;
-    --color-error-container: #93000a;
-    --color-on-error-container: #ffdad6;
-  }
-}
-
+/* The theme boundary. The roles above are light-dark() pairs, so the
+   scheme alone picks between them: the system's, unless the visitor chose
+   one in the command palette, which sets data-theme on <html>
+   (lib/theme-preference.ts). The venture schemes are light-dark() pairs
+   too, so they follow the same switch. */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-primary: #93d3bf;
-  --color-on-primary: #00382c;
-  --color-primary-container: #2f6f5e;
-  --color-on-primary-container: #aeefda;
-  --color-secondary: #b3ccc2;
-  --color-on-secondary: #1e352e;
-  --color-secondary-container: #374e46;
-  --color-on-secondary-container: #d0e8de;
-  --color-tertiary: #ffb4a8;
-  --color-on-tertiary: #53211a;
-  --color-tertiary-container: #72372f;
-  --color-on-tertiary-container: #ffd9d2;
-  --color-surface: #111413;
-  --color-surface-dim: #111413;
-  --color-surface-bright: #363a38;
-  --color-surface-container-lowest: #0b0f0e;
-  --color-surface-container-low: #191c1b;
-  --color-surface-container: #1d201f;
-  --color-surface-container-high: #272b29;
-  --color-surface-container-highest: #323534;
-  --color-on-surface: #e1e3e0;
-  --color-on-surface-variant: #bfc9c4;
-  --color-outline: #89938e;
-  --color-outline-variant: #3f4945;
-  --color-error: #ffb4ab;
-  --color-on-error: #690005;
-  --color-error-container: #93000a;
-  --color-on-error-container: #ffdad6;
 }
-
-/* The venture schemes are light-dark() pairs, which follow color-scheme. */
 :root[data-theme='light'] {
   color-scheme: light;
 }

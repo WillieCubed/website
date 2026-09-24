@@ -1061,8 +1061,9 @@
       scroll-margin-top: 16px;
     }
     /* A tapped focus brings its tiles to the front of the stacked feed, so
-       they are the next thing below the rail instead of a scroll away. */
-    .focusing .tile.hit {
+       they are the next thing below the rail instead of a scroll away. Only
+       a tap pins it: hovering or tapping a tile never moves the feed. */
+    .pinned .tile.hit {
       order: -1;
     }
     .tile.lvbt {

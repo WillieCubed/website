@@ -99,9 +99,13 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       });
       footer.style.setProperty('--p', p.toFixed(4));
       root.style.setProperty('--footer-p', p.toFixed(4));
-      // Scaling the page makes it a containing block for fixed elements,
-      // so it is scaled only while it is actually a sheet.
-      root.toggleAttribute('data-footer-sheet', p > 0);
+      // The page becomes a sheet only as far as the visitor has scrolled:
+      // on a window tall enough to show part of the footer at the top, the
+      // page stays flat until it moves. Scaling it makes it a containing
+      // block for fixed elements, so it is scaled only while it is a sheet.
+      const sheet = Math.min(p, window.scrollY / Math.max(footerHeight, 1));
+      root.style.setProperty('--sheet-p', sheet.toFixed(4));
+      root.toggleAttribute('data-footer-sheet', sheet > 0);
       // The headline's name rides the sticky rail, so where it has got to
       // is the one thing worth measuring every frame.
       const box = compact.matches
@@ -158,6 +162,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       delete footer.dataset.dock;
       root.style.removeProperty('--page-w');
       root.style.removeProperty('--footer-p');
+      root.style.removeProperty('--sheet-p');
       root.removeAttribute('data-footer-sheet');
       delete root.dataset.footerDock;
     };

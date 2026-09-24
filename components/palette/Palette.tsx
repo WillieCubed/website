@@ -92,11 +92,22 @@ function searchRow(result: SearchRow): Row {
  * results by type, leaving out any result a command already offers.
  */
 function sectionsFor(commands: Command[], results: SearchRow[]): Section[] {
-  const sections: Section[] = groupCommands(commands).map((entry) => ({
-    label: entry.group,
-    rows: entry.commands.map(commandRow),
-  }));
-  const offered = new Set(commands.map((command) => command.href));
+  // A page can be offered by more than one command (the newest writing is
+  // both Latest and Go to); the first group to offer it keeps it.
+  const offered = new Set<string>();
+  const sections: Section[] = groupCommands(commands)
+    .map((entry) => ({
+      label: entry.group,
+      rows: entry.commands
+        .filter((command) => {
+          if (!command.href) return true;
+          if (offered.has(command.href)) return false;
+          offered.add(command.href);
+          return true;
+        })
+        .map(commandRow),
+    }))
+    .filter((section) => section.rows.length > 0);
   for (const { kind, label } of SEARCH_GROUPS) {
     const rows = results
       .filter((result) => result.kind === kind && !offered.has(result.href))
@@ -272,10 +283,18 @@ function PaletteBody({ data, open, onClose }: PaletteBodyProps) {
     }
     if (!command.run) return;
     setPending(command.title);
+    // Once the palette closes, its input is gone from the page, and focus
+    // belongs to whatever the provider hands it back to.
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      onClose();
+    };
     try {
-      const result = await command.run({ close: () => onClose() });
+      const result = await command.run({ close });
       if (result) show(result);
-      else onClose();
+      else close();
     } catch (error) {
       show({
         heading: `${command.title} failed`,
@@ -284,7 +303,7 @@ function PaletteBody({ data, open, onClose }: PaletteBodyProps) {
       });
     } finally {
       setPending(null);
-      inputRef.current?.focus();
+      if (!closed) inputRef.current?.focus();
     }
   }
 
@@ -415,7 +434,9 @@ function PaletteBody({ data, open, onClose }: PaletteBodyProps) {
             ))}
           </div>
         )}
-        {!showList && !readout && !pending && typed && !egg && (
+        {/* Search runs from two characters on, so a single one has not
+            been looked for yet and says nothing. */}
+        {!showList && !readout && !pending && typed.length >= 2 && !egg && (
           <p className="palette-empty">
             {searchError ?? `Nothing on the site matches “${query.trim()}”.`}
           </p>

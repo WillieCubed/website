@@ -94,7 +94,17 @@ export function HomeShell({
   return (
     <HomeContext value={value}>
       <div className="home">
-        <div className={preview ? 'shell focusing' : 'shell'}>{children}</div>
+        <div
+          className={
+            !preview
+              ? 'shell'
+              : 'focus' in preview && preview.pinned
+                ? 'shell focusing pinned'
+                : 'shell focusing'
+          }
+        >
+          {children}
+        </div>
         <Suspense fallback={null}>
           <DetailDialog
             registerOpener={(open) => {

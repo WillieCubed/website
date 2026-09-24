@@ -5,8 +5,7 @@
  * tiles without a layout change. The markup lives in components/home and
  * reads these records, so nothing here carries HTML.
  */
-
-export type Facet = 'software' | 'systems' | 'people';
+import type { FocusId } from './focuses';
 
 /** A key into lib/brand/seeds.json. */
 export type BrandKey =
@@ -37,15 +36,10 @@ const picture = (name: string, width: number, height: number): Picture => ({
 });
 
 const TRANSITMAPPER = picture('transit-mapper', 1200, 630);
-const TRANSITMAPPER_THUMB = picture('thumb-transitmapper', 144, 108);
-const LVBT_HOME = picture('lvbt-home', 640, 400);
-const LVBT_PROJECTS = picture('lvbt-projects', 640, 400);
 const LOGDATE = picture('logdate-phone', 948, 1852);
 const DOCKET = picture('docket-app', 1600, 928);
 const CURFEW = picture('curfew-lockout', 1544, 960);
 const LOVELACE_ADA = picture('lovelace-ada', 1350, 580);
-const LOVELACE_HOME = picture('lovelace-home', 640, 400);
-const LOVELACE_MEMORY = picture('lovelace-memory', 640, 400);
 
 /** The LVBT countdown. The 2027 session opens on this date. */
 export const LVBT_DEADLINE = '2027-02-01';
@@ -90,7 +84,8 @@ export interface Product {
   name: string;
   brand: BrandKey;
   parent: string;
-  facets: Facet[];
+  /** The focuses the product serves (lib/home/focuses.ts). */
+  focuses: FocusId[];
   platform: string;
   copy: string;
   image: Picture;
@@ -116,20 +111,15 @@ export interface Venture {
   /** The tile label when it is not simply `parent · name`. */
   head?: string;
   brand: BrandKey;
-  /** Position in the rail list. Ventures without one only get a tile. */
-  list?: number;
   /**
    * Grid size classes such as `w3 h3`, plus any tile modifier. `full` spans
    * the whole row at the medium and expanded sizes too.
    */
   size: string;
-  facets: Facet[];
+  /** The focuses the venture's tile serves (lib/home/focuses.ts). */
+  focuses: FocusId[];
   /** The chip that appears over the tile label on hover. */
   hint: string;
-  /** The rail row's second line. */
-  line?: string;
-  /** Thumbnails for the rail row's fanning stack, back to front. */
-  stack?: Picture[];
   parent?: string;
   body: TileBody;
   detail: Detail;
@@ -148,7 +138,7 @@ export const products: Record<string, Product> = {
     name: 'LogDate',
     brand: 'logdate',
     parent: 'Hypertext Studio',
-    facets: ['software', 'people'],
+    focuses: ['tools'],
     platform: 'iOS · Android',
     copy: 'A lifelog and social journal',
     image: LOGDATE,
@@ -169,7 +159,7 @@ export const products: Record<string, Product> = {
     name: 'Docket',
     brand: 'docket',
     parent: 'Hypertext Studio',
-    facets: ['software', 'systems'],
+    focuses: ['tools'],
     platform: 'Web',
     copy: 'Planning and scheduling, with Athena',
     image: DOCKET,
@@ -191,7 +181,7 @@ export const products: Record<string, Product> = {
     name: 'Curfew',
     brand: 'curfew',
     parent: 'Hypertext Studio',
-    facets: ['software', 'people'],
+    focuses: [],
     platform: 'macOS',
     copy: 'A hard stop for your workday',
     image: CURFEW,
@@ -219,12 +209,9 @@ export const ventures: Venture[] = [
     name: 'Las Vegans for Better Transit',
     brand: 'lvbt',
     head: '',
-    list: 1,
     size: 'w3 h3 lvbt',
-    facets: ['systems', 'people'],
+    focuses: ['cities'],
     hint: 'See what’s active',
-    line: 'TransitMapper and organizing',
-    stack: [TRANSITMAPPER_THUMB, LVBT_PROJECTS, LVBT_HOME],
     weight: 100,
     body: {
       kind: 'lead',
@@ -278,7 +265,7 @@ export const ventures: Venture[] = [
     brand: 'lvbt',
     parent: 'Las Vegans for Better Transit',
     size: 'w3 h3',
-    facets: ['software', 'systems'],
+    focuses: ['cities'],
     hint: 'See how it works',
     weight: 80,
     body: {
@@ -313,12 +300,9 @@ export const ventures: Venture[] = [
     id: 'hypertext',
     name: 'Hypertext Studio',
     brand: 'hypertext',
-    list: 2,
     size: 'w6 h3 studio',
-    facets: ['software', 'people'],
+    focuses: ['tools'],
     hint: 'About the studio',
-    line: 'LogDate, Docket, and Curfew',
-    stack: productList.map((p) => p.image),
     weight: 75,
     body: { kind: 'products', products: productList },
     detail: {
@@ -347,13 +331,10 @@ export const ventures: Venture[] = [
     name: 'Reasonable Tech Company',
     head: 'Reasonable Tech Company · Project Lovelace',
     brand: 'lovelace',
-    list: 3,
     // Fills the row it shared with Atlas; back to `w4 h3` when Atlas returns.
     size: 'w6 h3 full',
-    facets: ['software', 'systems'],
+    focuses: ['lovelace'],
     hint: 'Meet Ada',
-    line: 'Project Lovelace',
-    stack: [LOVELACE_MEMORY, LOVELACE_ADA, LOVELACE_HOME],
     weight: 70,
     body: {
       kind: 'shot',
@@ -394,7 +375,7 @@ export const ventures: Venture[] = [
     name: 'Atlas',
     brand: 'atlas',
     size: 'w2 h3 atlas',
-    facets: ['systems', 'people'],
+    focuses: ['helpers'],
     hint: 'Look closer',
     weight: 10,
     // Hidden until Atlas has something real to show.
@@ -423,7 +404,7 @@ export interface Entry {
   id: string;
   name: string;
   brand: BrandKey;
-  facets: Facet[];
+  focuses: FocusId[];
   parent?: string;
   detail: Detail;
 }
@@ -432,11 +413,6 @@ export interface Entry {
 export const entries: Record<string, Entry> = Object.fromEntries(
   [...shownVentures, ...productList].map((e) => [e.id, e])
 );
-
-/** The rail previews only the top-level ventures, in their listed order. */
-export const railVentures: Venture[] = shownVentures
-  .filter((v) => v.list !== undefined)
-  .sort((a, b) => (a.list ?? 0) - (b.list ?? 0));
 
 interface TileEntryBase {
   id: string;
@@ -463,7 +439,7 @@ export interface InitiativeTile extends TileEntryBase {
   hint: string;
   href: string;
   tagline: string;
-  facets: Facet[];
+  focuses: FocusId[];
   /** Material custom properties computed from the initiative's own seed. */
   brandVars?: Record<string, string>;
   image?: { src: string; alt: string };

@@ -33,14 +33,13 @@ const morph = (update: () => void): Promise<void> => {
 };
 
 // The shared element is whatever the visitor actually touched: a product
-// card, a tile, or a list row's front preview card.
+// card, a tile, or a venture's name in the rail's description.
 function sourceFor(id: string, from: HTMLElement | null): Source | null {
   if (from?.classList.contains('product')) {
     return { card: from, media: from.querySelector('.product-media') };
   }
-  const row = from?.closest<HTMLElement>('.index a');
-  if (row)
-    return { card: row, media: row.querySelector('.stack i:last-child') };
+  const name = from?.closest<HTMLElement>('.venture-link');
+  if (name) return { card: name, media: null };
   const tile =
     document.getElementById(id) ?? document.getElementById('hypertext');
   return tile

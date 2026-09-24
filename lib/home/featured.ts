@@ -15,7 +15,7 @@ function headFor(initiative: Initiative, parents: Map<string, Initiative>) {
 }
 
 /**
- * Featured initiatives as homepage tiles. Weight, size, hint, and facets
+ * Featured initiatives as homepage tiles. Weight, size, hint, and focuses
  * come from each initiative's `feature` block, so moving one on the
  * homepage is an edit to its frontmatter (docs/initiatives.md).
  */
@@ -40,7 +40,7 @@ export async function getFeaturedTiles(): Promise<InitiativeTile[]> {
         tagline: act
           ? `${initiative.partLabel} ${act.number} · ${act.title}`
           : initiative.tagline,
-        facets: feature.facets,
+        focuses: feature.focuses,
         brandVars: Object.keys(vars).length
           ? (vars as Record<string, string>)
           : undefined,
@@ -51,9 +51,9 @@ export async function getFeaturedTiles(): Promise<InitiativeTile[]> {
   });
 }
 
-/** Facet lookups for the shell, keyed like the ventures. */
-export function facetEntries(tiles: InitiativeTile[]) {
+/** Focus lookups for the shell, keyed like the ventures. */
+export function focusEntries(tiles: InitiativeTile[]) {
   return Object.fromEntries(
-    tiles.map((tile) => [tile.id, { facets: tile.facets }])
+    tiles.map((tile) => [tile.id, { focuses: tile.focuses }])
   );
 }

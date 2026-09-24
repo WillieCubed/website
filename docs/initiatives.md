@@ -71,8 +71,7 @@ feature:
   weight: 90 # 0–100; LVBT is 100, Atlas is 10, so 90 lands beside LVBT
   size: w3 h3 # grid spans: w2 h2, w2 h3, w3 h2, w3 h3, w4 h3, w6 h3
   hint: What's blooming # the hover chip
-  facets: [software, systems] # which headline words light the tile
-  list: 4 # optional rail position
+  focuses: [tools] # which rail focuses light the tile (lib/home/focuses.ts)
 ```
 
 Weight decides order, not the file name. The homepage merges ventures and

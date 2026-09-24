@@ -2,8 +2,8 @@
 
 import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
 
+import type { FocusId } from '@/lib/home/focuses';
 import { entries } from '@/lib/home/ventures';
-import type { Facet } from '@/lib/home/ventures';
 
 import { DetailDialog } from './DetailDialog';
 import {
@@ -21,8 +21,8 @@ interface HomeShellProps {
   brands: Record<string, Record<string, string>>;
   /** The server-rendered LVBT countdown for the detail view. */
   detailCountdown: React.ReactNode;
-  /** Facets for tiles that are not ventures, such as featured initiatives. */
-  extraEntries?: Record<string, { facets: Facet[] }>;
+  /** Focuses for tiles that are not ventures, such as featured initiatives. */
+  extraEntries?: Record<string, { focuses: FocusId[] }>;
   children: React.ReactNode;
 }
 
@@ -58,20 +58,20 @@ export function HomeShell({
   const clearPreviewNow = useCallback(() => setPreview(null), [setPreview]);
 
   const value = useMemo<HomeContextValue>(() => {
-    const facetsOf = (id: string) =>
-      entries[id]?.facets ?? extraEntries[id]?.facets;
+    const focusesOf = (id: string) =>
+      entries[id]?.focuses ?? extraEntries[id]?.focuses;
     const matches = (id: string) => {
-      const facets = facetsOf(id);
-      if (!preview || !facets) return false;
-      return 'facet' in preview
-        ? facets.includes(preview.facet)
+      const focuses = focusesOf(id);
+      if (!preview || !focuses) return false;
+      return 'focus' in preview
+        ? focuses.includes(preview.focus)
         : id === preview.id;
     };
     const lit = !preview
       ? []
-      : 'facet' in preview
-        ? [preview.facet]
-        : (facetsOf(preview.id) ?? []);
+      : 'focus' in preview
+        ? [preview.focus]
+        : (focusesOf(preview.id) ?? []);
     return {
       preview,
       setPreview,
@@ -91,24 +91,10 @@ export function HomeShell({
     extraEntries,
   ]);
 
-  const accent =
-    preview && 'id' in preview
-      ? brands[entries[preview.id]?.brand]?.['--b-primary']
-      : undefined;
-
   return (
     <HomeContext value={value}>
       <div className="home">
-        <div
-          className={preview ? 'shell focusing' : 'shell'}
-          style={
-            accent
-              ? ({ '--live-accent': accent } as React.CSSProperties)
-              : undefined
-          }
-        >
-          {children}
-        </div>
+        <div className={preview ? 'shell focusing' : 'shell'}>{children}</div>
         <Suspense fallback={null}>
           <DetailDialog
             registerOpener={(open) => {

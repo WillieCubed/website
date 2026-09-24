@@ -2,17 +2,17 @@
 
 import { createContext, useContext } from 'react';
 
-import type { Facet } from '@/lib/home/ventures';
+import type { FocusId } from '@/lib/home/focuses';
 
-/** What the visitor is pointing at: a facet key or one entry. */
-export type Preview = { facet: Facet } | { id: string } | null;
+/** What the visitor is pointing at: a focus in the rail or one entry. */
+export type Preview = { focus: FocusId } | { id: string } | null;
 
 /**
- * Whether a facet key is switched on. Previewing an entry lights the keys for
- * its facets, but only the key's own preview presses it.
+ * Whether a focus row is switched on. Previewing an entry marks the rows for
+ * its focuses, but only the row's own preview presses it.
  */
-export function isFacetPressed(preview: Preview, facet: Facet): boolean {
-  return preview !== null && 'facet' in preview && preview.facet === facet;
+export function isFocusPressed(preview: Preview, focus: FocusId): boolean {
+  return preview !== null && 'focus' in preview && preview.focus === focus;
 }
 
 export interface HomeContextValue {
@@ -25,8 +25,8 @@ export interface HomeContextValue {
   clearPreviewNow: () => void;
   /** Whether an entry matches the current preview. */
   matches: (id: string) => boolean;
-  /** The facet keys that should be underlined for the current preview. */
-  lit: Facet[];
+  /** The focus rows marked for the current preview. */
+  lit: FocusId[];
   /** Open an entry's detail view, morphing from the element that was used. */
   openDetail: (id: string, from: HTMLElement | null) => void;
   /** Material 3 custom properties per brand key, computed on the server. */
@@ -41,7 +41,7 @@ export function useHome(): HomeContextValue {
   return value;
 }
 
-/** Pointer and focus handlers that preview a facet or an entry. */
+/** Pointer and focus handlers that preview a focus or an entry. */
 export function usePreviewHandlers(value: Exclude<Preview, null>) {
   const { setPreview, clearPreview } = useHome();
   return {

@@ -1,12 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  entries,
-  getHomeTiles,
-  railVentures,
-  ventures,
-} from '@/lib/home/ventures';
+import { entries, getHomeTiles, ventures } from '@/lib/home/ventures';
 
 const hidden = ventures.filter((v) => v.hidden).map((v) => v.id);
 
@@ -16,12 +11,10 @@ test('Atlas keeps its record but is marked hidden', () => {
   assert.equal(atlas.hidden, true);
 });
 
-test('a hidden venture gets no tile, rail row, or detail view', () => {
+test('a hidden venture gets no tile or detail view', () => {
   const tiles = getHomeTiles().map((tile) => tile.id);
-  const rail = railVentures.map((v) => v.id);
   for (const id of hidden) {
     assert.ok(!tiles.includes(id), `${id} has no tile`);
-    assert.ok(!rail.includes(id), `${id} has no rail row`);
     assert.equal(entries[id], undefined, `${id} has no detail view`);
   }
 });

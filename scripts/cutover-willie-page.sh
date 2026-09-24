@@ -4,6 +4,16 @@
 # before it acts. See docs/deploy.md.
 set -eu
 
+# A worktree can be linked to the isolated acceptance project. Refuse to
+# attach production domains or deploy it under that link.
+if [ -f .vercel/project.json ]; then
+  PROJECT=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; console.log(JSON.parse(readFileSync('./.vercel/project.json', 'utf8')).projectName || '')")
+  if [ "$PROJECT" != website ]; then
+    echo "This checkout is not linked to the production Vercel project (website)." >&2
+    exit 1
+  fi
+fi
+
 ORIGIN_HOST="willie.page"
 HOSTS="willie.page www.willie.page tour.willie.page diaries.willie.page williecubed.me www.williecubed.me"
 
@@ -20,6 +30,10 @@ if [ ! -f .vercel/project.json ]; then
   vercel link
 fi
 PROJECT=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; console.log(JSON.parse(readFileSync('./.vercel/project.json', 'utf8')).projectName || '')")
+if [ "$PROJECT" != website ]; then
+  echo "This checkout is not linked to the production Vercel project (website)." >&2
+  exit 1
+fi
 echo "Project: ${PROJECT:-unknown}"
 
 step 3 "Attach every hostname to the project"

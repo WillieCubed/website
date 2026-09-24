@@ -37,8 +37,7 @@ export default function ContactPage() {
               <SiteLink href="https://www.linkedin.com/in/willie-chalmers-iii">
                 LinkedIn
               </SiteLink>{' '}
-              or{' '}
-              <SiteLink href="mailto:hello@williecubed.me">email me</SiteLink>.
+              or <SiteLink href="mailto:hello@willie.page">email me</SiteLink>.
             </p>
           </div>
           <div className="space-y-4">
@@ -55,8 +54,8 @@ export default function ContactPage() {
               Want to say hi for some other reason?
             </h1>
             <p className="text-body-medium">
-              Just send an email to hello@williecubed.me. I&apos;ll get back to
-              you within a day.
+              Just send an email to hello@willie.page. I&apos;ll get back to you
+              within a day.
             </p>
           </div>
         </section>
@@ -80,17 +79,17 @@ export default function ContactPage() {
             <div className="mt-2">
               <SiteLink
                 className="text-headline-small"
-                href="mailto:hello@williecubed.me"
+                href="mailto:hello@willie.page"
               >
-                hello@williecubed.me
+                hello@willie.page
               </SiteLink>
             </div>
             <div className="mt-2">
               <SiteLink
                 className="text-headline-small"
-                href="mailto:projects@williecubed.me"
+                href="mailto:projects@willie.page"
               >
-                projects@williecubed.me
+                projects@willie.page
               </SiteLink>
             </div>
           </div>

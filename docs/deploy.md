@@ -78,6 +78,8 @@ Do not start on vinext until its own skills confirm `cacheComponents` and
 
 ## Open questions
 
-The author email is still `hello@williecubed.me` because no mailbox on
-willie.page has been confirmed. `NEXT_PUBLIC_GTAG_ID` is optional; without
+Every address on the site is on willie.page (`hello@`, `projects@`), and
+williecubed.me is legacy: it only redirects here. Mail to willie.page
+needs Cloudflare Email Routing on the zone before these addresses receive
+anything. `NEXT_PUBLIC_GTAG_ID` is optional; without
 it the layout emits no analytics script.

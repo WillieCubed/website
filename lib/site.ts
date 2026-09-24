@@ -34,7 +34,7 @@ export const site = {
     givenName: 'Willie',
     familyName: 'Chalmers',
     handle: 'willie',
-    email: 'hello@williecubed.me',
+    email: 'hello@willie.page',
     photo: '/brand/social/avatar-400.png',
     atprotoDid: 'did:plc:iyn6nc3ffqm2e3555exyrgvv',
   },

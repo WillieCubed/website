@@ -249,6 +249,16 @@ A sign-in runs like this:
    attempt, right or wrong. A code issued without a scope only redeems at
    `/indieauth/auth`.
 
+The consent page is for the site owner. It presents the client and requested
+access first, followed by owner verification and approval in one reading order.
+The client address stays visible below its name. A native **Request details**
+disclosure exposes the complete client, return, and identity URLs.
+
+The route renders HTML outside the site's React layout. It uses the site's text
+navigation, Material surface roles from `lib/theme.ts`, and variable Atkinson
+faces from `public/fonts`. Update those public copies when the site's fonts
+change.
+
 Access tokens last 90 days. There are no refresh tokens, so a client signs in
 again after that. The `profile` scope adds the name, URL, and photo to the
 response, and `email` beside it adds the email address.

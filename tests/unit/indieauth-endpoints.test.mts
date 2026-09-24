@@ -162,6 +162,11 @@ test('the consent page shows the client and the requested scopes', async () => {
   assert.equal(response.headers.get('cache-control'), 'no-store');
   const html = await response.text();
   assert.match(html, /Sign in to Client/);
+  assert.match(html, /Signing in as/);
+  assert.match(html, /Requested by/);
+  assert.match(html, /Return to/);
+  assert.match(html, /Allow Client to/);
+  assert.match(html, /https:\/\/client\.example\/callback/);
   assert.match(html, /name="grant" value="create" checked/);
   assert.match(html, /name="grant" value="media" checked/);
   assert.match(html, /autocomplete="one-time-code"/);

@@ -3,24 +3,28 @@ import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { ensureVariables } from './configuration.mjs';
+import { parseArguments, selectedPhases } from './options.mjs';
+import { ownerValues } from './owner.mjs';
+import { parseEnvNames } from './readiness.mjs';
 import {
-  checkDeployment,
-  parseEnvNames,
-  parseProjectName,
-} from './readiness.mjs';
+  ensureBlob,
+  ensureDatabase,
+  ensurePublishingBranch,
+  liveDeployment,
+} from './resources.mjs';
+import { linkedProject, parseProjectLink, targetProject } from './targets.mjs';
 
-const phases = ['tools', 'workspace', 'env', 'auth', 'deployment'];
-const args = process.argv.slice(2);
-const doctor = args.includes('--doctor');
-const localOnly = args.includes('--local-only');
-const selected = args.includes('--phase')
-  ? args[args.indexOf('--phase') + 1]
-  : undefined;
-const projectArg = args.includes('--project')
-  ? args[args.indexOf('--project') + 1]
-  : undefined;
+let options;
+try {
+  options = parseArguments(process.argv.slice(2));
+} catch (error) {
+  console.error(`${error.message}. Run pnpm bootstrap --help.`);
+  process.exit(2);
+}
+const { doctor } = options;
 
-if (args.includes('--help')) {
+if (options.help) {
   console.log(
     'pnpm bootstrap [--local-only] [--phase tools|workspace|env|auth|deployment] [--project website|indieweb-acceptance]'
   );
@@ -29,23 +33,25 @@ if (args.includes('--help')) {
   );
   process.exit(0);
 }
-if (
-  (args.includes('--phase') && (!selected || !phases.includes(selected))) ||
-  (args.includes('--project') &&
-    projectArg !== 'website' &&
-    projectArg !== 'indieweb-acceptance')
-) {
-  console.error('Unknown phase or project. Run pnpm bootstrap --help.');
-  process.exit(2);
-}
 
-function command(program, argv, quiet = true, env = process.env) {
+function command(program, argv, quiet = true, env = process.env, input) {
   const result = spawnSync(program, argv, {
     encoding: 'utf8',
     stdio: quiet ? 'pipe' : 'inherit',
     env,
+    input,
   });
   return { ok: result.status === 0, stdout: result.stdout ?? '' };
+}
+
+function provider(program, argv, options = {}) {
+  return command(
+    program,
+    argv,
+    true,
+    options.env ?? process.env,
+    options.input
+  );
 }
 
 function line(ok, label, detail) {
@@ -74,20 +80,23 @@ function tools() {
 }
 
 function workspace() {
-  if (doctor)
-    return line(
-      existsSync('node_modules/.pnpm'),
-      'Dependencies',
-      existsSync('node_modules/.pnpm') ? 'installed' : 'run pnpm bootstrap'
-    );
-  console.log('Installing the pinned dependency tree.');
-  if (!command('pnpm', ['install', '--frozen-lockfile'], false).ok)
-    return false;
+  if (doctor && !existsSync('node_modules/.pnpm')) {
+    return line(false, 'Dependencies', 'missing; run pnpm bootstrap');
+  }
+  if (!doctor) {
+    console.log('Installing the pinned dependency tree.');
+    if (!command('pnpm', ['install', '--frozen-lockfile'], false).ok)
+      return false;
+  }
   console.log('Running the repository checks.');
-  return command('pnpm', ['check'], false, {
-    ...process.env,
-    INDIEWEB_POSTBUILD: '0',
-  }).ok;
+  return line(
+    command('pnpm', ['check'], false, {
+      ...process.env,
+      INDIEWEB_POSTBUILD: '0',
+    }).ok,
+    'Workspace',
+    'pnpm check'
+  );
 }
 
 function env() {
@@ -102,39 +111,122 @@ function env() {
 function auth() {
   const gh = command('gh', ['auth', 'status']);
   const vercel = command('vercel', ['whoami']);
+  const neon = command('neon', ['me', '--output', 'json']);
+  const psql = command('psql', ['--version']);
+  const curl = command('curl', ['--version']);
   const ok = line(
     gh.ok,
     'GitHub CLI',
     gh.ok ? 'signed in' : 'run gh auth login'
   );
-  return (
-    line(
-      vercel.ok,
-      'Vercel CLI',
-      vercel.ok ? 'signed in' : 'run vercel login'
-    ) && ok
+  const vercelReady = line(
+    vercel.ok,
+    'Vercel CLI',
+    vercel.ok ? 'signed in' : 'run vercel login'
   );
+  const neonReady = line(
+    neon.ok,
+    'Neon CLI',
+    neon.ok ? 'signed in' : 'run neon auth'
+  );
+  const psqlReady = line(
+    psql.ok,
+    'psql',
+    psql.ok ? 'installed' : 'install PostgreSQL client tools'
+  );
+  const curlReady = line(
+    curl.ok,
+    'curl',
+    curl.ok ? 'installed' : 'install curl'
+  );
+  return ok && vercelReady && neonReady && psqlReady && curlReady;
 }
 
-function deployment() {
+function redeploy(target) {
+  const listed = provider('vercel', [
+    'ls',
+    target.projectName,
+    '--environment',
+    'production',
+    '--limit',
+    '1',
+    '--json',
+    '--scope',
+    'williecubed-projects',
+  ]);
+  if (!listed.ok) return false;
+  let previous;
+  try {
+    previous = JSON.parse(listed.stdout).deployments?.[0]?.url;
+  } catch {
+    return false;
+  }
+  if (previous) {
+    return command(
+      'vercel',
+      [
+        'redeploy',
+        previous,
+        '--target',
+        'production',
+        '--scope',
+        'williecubed-projects',
+      ],
+      false
+    ).ok;
+  }
+  const branch = provider('git', ['branch', '--show-current']);
+  if (!branch.ok || branch.stdout.trim() !== target.branch) {
+    console.error(`A first deployment must run from ${target.branch}.`);
+    return false;
+  }
+  return command(
+    'vercel',
+    ['deploy', '--prod', '--yes', '--scope', 'williecubed-projects'],
+    false
+  ).ok;
+}
+
+async function deployment() {
   const link = join('.vercel', 'project.json');
-  const linked = existsSync(link)
-    ? parseProjectName(readFileSync(link, 'utf8'))
+  let linked = existsSync(link)
+    ? linkedProject(parseProjectLink(readFileSync(link, 'utf8')))
     : null;
+  if (existsSync(link) && !linked) {
+    return line(
+      false,
+      'Vercel project',
+      'the link has the wrong project or team ID'
+    );
+  }
+  if (!linked && !doctor) {
+    const target = targetProject(options.project ?? 'indieweb-acceptance');
+    const result = command(
+      'vercel',
+      ['link', '--yes', '--team', target.orgId, '--project', target.projectId],
+      false
+    );
+    if (!result.ok)
+      return line(false, 'Vercel project', 'could not link the project');
+    linked = existsSync(link)
+      ? linkedProject(parseProjectLink(readFileSync(link, 'utf8')))
+      : null;
+  }
   if (!linked)
     return line(
       false,
       'Vercel project',
-      'not linked to website or indieweb-acceptance; run vercel link for the intended project'
+      'not linked; run pnpm bootstrap to link acceptance'
     );
-  if (projectArg && linked !== projectArg)
+  if (options.project && linked !== options.project)
     return line(
       false,
       'Vercel project',
-      `linked to ${linked}; expected ${projectArg}. Refusing to inspect the wrong deployment`
+      `linked to ${linked}; expected ${options.project}. Refusing to inspect the wrong deployment`
     );
   console.log(`✓ Vercel project: ${linked}`);
-  const response = command('vercel', [
+  const target = targetProject(linked);
+  const response = provider('vercel', [
     'env',
     'ls',
     'production',
@@ -150,12 +242,7 @@ function deployment() {
   } catch {
     return line(false, 'Vercel environment', 'unexpected response');
   }
-  const { missing, pending } = checkDeployment(names, linked);
-  for (const name of missing)
-    line(false, 'Vercel environment', `${name} is missing`);
-  for (const name of pending)
-    console.log(`○ GitHub ${name}: pending content approval`);
-  const gh = command('gh', [
+  const gh = provider('gh', [
     'secret',
     'list',
     '--repo',
@@ -169,21 +256,108 @@ function deployment() {
       'GitHub secrets',
       'could not inspect repository secrets'
     );
+  let secrets;
   try {
-    const secrets = new Set(JSON.parse(gh.stdout).map((item) => item.name));
-    const required =
-      linked === 'website' ? [] : ['INDIEWEB_NOTIFY_SECRET_ACCEPTANCE'];
-    for (const name of required)
-      if (!secrets.has(name)) missing.push(`GitHub ${name}`);
+    secrets = new Set(JSON.parse(gh.stdout).map((item) => item.name));
   } catch {
     return line(false, 'GitHub secrets', 'unexpected response');
   }
+  let values = process.env;
+  if (!doctor) {
+    try {
+      values = await ownerValues(target, names);
+    } catch (error) {
+      return line(false, 'Owner credentials', error.message);
+    }
+    const credentials = ensureVariables({
+      target,
+      doctor: false,
+      names,
+      githubSecrets: secrets,
+      connectionString: '',
+      values,
+      run: (program, args, options) => {
+        if (program === 'gh') return provider(program, args, options);
+        return { ok: false, stdout: '' };
+      },
+      validateOnly: true,
+    });
+    if (
+      !line(
+        credentials.ok,
+        'Owner credentials',
+        credentials.ok ? 'available' : credentials.reason
+      )
+    )
+      return false;
+  }
+  const database = ensureDatabase(target, doctor, provider);
+  if (
+    !line(
+      database.ok,
+      'Neon database',
+      database.ok ? `${target.neonName} schema ready` : database.reason
+    )
+  )
+    return false;
+  const blob = ensureBlob(target, doctor, provider);
+  if (
+    !line(
+      blob.ok,
+      'Blob storage',
+      blob.ok ? `${target.blobName} connected` : blob.reason
+    )
+  )
+    return false;
+  const publishing = ensurePublishingBranch(target, doctor, provider);
+  if (
+    !line(
+      publishing.ok,
+      'Publishing branch',
+      publishing.ok ? target.branch : publishing.reason
+    )
+  )
+    return false;
+  const configured = ensureVariables({
+    target,
+    doctor,
+    names,
+    githubSecrets: secrets,
+    connectionString: database.connectionString,
+    values,
+    run: provider,
+  });
+  if (
+    !line(
+      configured.ok,
+      'Deployment configuration',
+      configured.ok ? 'required settings present' : configured.reason
+    )
+  )
+    return false;
+  if (linked === 'website')
+    console.log('○ Production notifications: pending content approval');
+  if (
+    !doctor &&
+    (database.changed ||
+      blob.changed ||
+      publishing.changed ||
+      configured.changed)
+  ) {
+    if (
+      !line(
+        redeploy(target),
+        'Vercel deployment',
+        'redeploy after configuration'
+      )
+    )
+      return false;
+  }
+  const live = liveDeployment(target, provider);
   return line(
-    missing.length === 0,
-    'Deployment readiness',
-    missing.length === 0
-      ? 'required names are configured'
-      : `${missing.length} required setting(s) missing`
+    live.ok,
+    'Public deployment',
+    live.ok ? `serves ${live.revision}` : live.reason
   );
 }
 
@@ -195,11 +369,9 @@ const runners = {
   deployment,
 };
 let failed = false;
-for (const phase of phases) {
-  if (selected && phase !== selected) continue;
-  if (localOnly && (phase === 'auth' || phase === 'deployment')) continue;
+for (const phase of selectedPhases(options)) {
   console.log(`\n${phase.toUpperCase()}`);
-  const ok = runners[phase]();
+  const ok = await runners[phase]();
   if (!ok) {
     failed = true;
     if (!doctor) break;

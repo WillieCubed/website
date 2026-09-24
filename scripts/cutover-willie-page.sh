@@ -3,15 +3,12 @@
 # collecting what it needs as it goes. Safe to rerun; every step checks
 # before it acts. See docs/deploy.md.
 set -eu
+SCRIPT_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
 
 # A worktree can be linked to the isolated acceptance project. Refuse to
 # attach production domains or deploy it under that link.
 if [ -f .vercel/project.json ]; then
-  PROJECT=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; console.log(JSON.parse(readFileSync('./.vercel/project.json', 'utf8')).projectName || '')")
-  if [ "$PROJECT" != website ]; then
-    echo "This checkout is not linked to the production Vercel project (website)." >&2
-    exit 1
-  fi
+  node "$SCRIPT_DIR/bootstrap/verify-production-link.mjs" .vercel/project.json
 fi
 
 ORIGIN_HOST="willie.page"
@@ -29,12 +26,8 @@ step 2 "Link this checkout to the Vercel project"
 if [ ! -f .vercel/project.json ]; then
   vercel link
 fi
-PROJECT=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; console.log(JSON.parse(readFileSync('./.vercel/project.json', 'utf8')).projectName || '')")
-if [ "$PROJECT" != website ]; then
-  echo "This checkout is not linked to the production Vercel project (website)." >&2
-  exit 1
-fi
-echo "Project: ${PROJECT:-unknown}"
+node "$SCRIPT_DIR/bootstrap/verify-production-link.mjs" .vercel/project.json
+echo "Project: website"
 
 step 3 "Attach every hostname to the project"
 for host in $HOSTS; do

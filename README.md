@@ -22,9 +22,9 @@ pnpm bootstrap --local-only
 
 `pnpm bootstrap` follows the LVBT project convention: it checks tools, installs
 the locked dependencies, runs the repository checks, creates `.env.local` if
-needed, and verifies GitHub and the linked Vercel deployment. It never replaces
+needed, and sets up the isolated IndieWeb deployment. It never replaces
 an existing `.env.local`. Use `pnpm bootstrap --local-only` when you only need
-the local app. Use `pnpm preflight` for a read-only readiness report. See the
+the local app. Use `pnpm preflight` for a provider read-only readiness report. See the
 [bootstrap reference](docs/bootstrap.md) for phases and deployment setup.
 
 Bootstrap also installs the Husky pre-commit hook, which runs ESLint and

@@ -319,3 +319,18 @@ test('feed HTML links @mentions but not inside a Ref', async () => {
   );
   assert.match(html, /<a href="https:\/\/example\.org">@someone<\/a>/);
 });
+
+test('feed HTML links bare URLs and leaves sentence punctuation outside @mentions', async () => {
+  const html = await renderFeedHtml(
+    'Read https://example.org/post and ask @williecubed.'
+  );
+
+  assert.match(
+    html,
+    /<a href="https:\/\/example\.org\/post">https:\/\/example\.org\/post<\/a>/
+  );
+  assert.match(
+    html,
+    /<a href="https:\/\/instagram\.com\/williecubed">@williecubed<\/a>\.<\/p>/
+  );
+});

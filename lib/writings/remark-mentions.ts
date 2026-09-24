@@ -13,11 +13,10 @@ export const MENTION_TARGETS: Record<string, string> = {
 
 const DEFAULT_MENTION_ORIGIN = 'https://instagram.com/';
 
-// A handle is one to thirty word characters or dots, must follow the start of
-// the text or whitespace or an opening bracket, and must not be part of an
-// email address or a longer token.
+// Handles may contain interior dots, but cannot end with one. Otherwise a
+// sentence-ending period becomes part of the profile URL.
 const MENTION_PATTERN =
-  /(^|[\s([])@([a-zA-Z0-9_](?:[a-zA-Z0-9_.]{0,29}))(?![\w.@])/g;
+  /(^|[\s([])@([a-zA-Z0-9_](?:[a-zA-Z0-9_.]{0,28}[a-zA-Z0-9_])?)(?![\w@])/g;
 
 export function resolveMention(handle: string): string {
   return (

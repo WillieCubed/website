@@ -241,7 +241,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
             seriesData={seriesData}
           />
 
-          <section className="mx-auto max-w-breakpoint-md px-lg pb-2xl desktop:px-0">
+          <section className="mx-auto max-w-breakpoint-md px-lg pb-lg desktop:px-0">
             <PostInteractions
               webmentions={webmentions}
               backlinks={backlinks}

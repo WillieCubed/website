@@ -13,9 +13,11 @@ The database has the base Webmention table and migrations 001–003. The Vercel
 `willie-page-indieweb-production`, production database URL, site origin,
 IndieAuth owner secret, Webmention moderation and send secrets, and a
 repository-scoped Micropub token. The token grants Contents write to
-`WillieCubed/website` only and expires on September 23, 2027. GitHub and Vercel
-share the production notification secret. The production publishing branch
-is `main`. The app has not yet deployed the new protocol revision.
+`WillieCubed/website` only and expires on September 23, 2027. Vercel has the
+production notification secret. GitHub does not yet have its matching secret,
+so the production workflow skips outbound sends until the read-only smoke
+checks pass. The production publishing branch is `main`. The app has not yet
+deployed the new protocol revision.
 
 The isolated site proved that a Micropub note committed to its publishing
 branch, deployed without a manual rebuild, appeared in the feed, and reached

@@ -24,7 +24,7 @@ const jpeg = () =>
     type: 'image/jpeg',
   });
 
-test('getMediaStore is off without BLOB_READ_WRITE_TOKEN', () => {
+test('getMediaStore requires a Blob token or a configured OIDC store', () => {
   assert.equal(getMediaStore({}), null);
   assert.equal(getMediaStore({ BLOB_READ_WRITE_TOKEN: '  ' }), null);
   assert.ok(getMediaStore({ BLOB_READ_WRITE_TOKEN: 'vercel_blob_rw_x' }));
@@ -34,7 +34,7 @@ test('getMediaStore is off without BLOB_READ_WRITE_TOKEN', () => {
       VERCEL_OIDC_TOKEN: 'oidc-test',
     })
   );
-  assert.equal(getMediaStore({ BLOB_STORE_ID: 'store_test' }), null);
+  assert.ok(getMediaStore({ BLOB_STORE_ID: 'store_test' }));
 });
 
 test('parseMediaUpload returns the multipart file part', async () => {

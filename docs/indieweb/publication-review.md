@@ -9,9 +9,9 @@ this editorial approval.
 
 `content/writings/fall-tour-2026-begins.mdx` says the tour “starts today” on
 September 18, 2026. The line needs a date and factual check before a later
-publication. Its `syndication` URL is an Instagram profile, not a copy of this
-post. Remove that field until the actual Instagram post exists and links back
-to the new permalink.
+publication. I removed its `syndication` field because it named an Instagram
+profile, not a copy of this post. Add the copy permalink only after that post
+exists and links back to the original.
 
 ## IndieMark level 3
 

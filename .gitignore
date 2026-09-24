@@ -55,3 +55,6 @@ yarn-error.log*
 /test-results/
 /playwright-report/
 .env.local
+
+# Brainstorming companion mockups
+/.superpowers/

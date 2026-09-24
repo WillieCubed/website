@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'path';
 
 import { ProjectData } from './common';
+import { site } from './site';
 
 const projectsDirectory = join(process.cwd(), 'content/projects');
 
@@ -44,8 +45,15 @@ export async function getProject(codename: string) {
 
   const projectPath = join(projectsDirectory, `${codename}.mdx`);
   const { data, content } = matter(readFileSync(projectPath, 'utf8'));
+  const fields = data as ProjectData;
   const project: ProjectData = {
-    ...(data as ProjectData),
+    ...fields,
+    // A project names its own contact only when it is someone else; the
+    // address otherwise follows the site's (lib/site.ts).
+    contact: {
+      ...fields.contact,
+      email: fields.contact?.email || site.emails.projects,
+    },
     launched: new Date(data.launched as string),
   };
   return { content, project };

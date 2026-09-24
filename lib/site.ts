@@ -9,6 +9,19 @@ import { themeSchemes } from './theme';
  * that switching the canonical origin or the host is one edit. Do not
  * hardcode `willie.page` or `williecubed.me` anywhere else.
  */
+/**
+ * Every address the site shows, set per deployment. The defaults are the
+ * live mailboxes, so a build with neither variable set still has working
+ * links. They are public (the pages print them), so they carry the
+ * NEXT_PUBLIC_ prefix and reach client components too.
+ */
+const emails = {
+  /** The general address: the author, the footer, security.txt, feeds. */
+  hello: process.env.NEXT_PUBLIC_EMAIL_HELLO || 'hello@willie.page',
+  /** For questions about a project in the archive. */
+  projects: process.env.NEXT_PUBLIC_EMAIL_PROJECTS || 'projects@willie.page',
+};
+
 export const site = {
   name: 'Willie Chalmers III',
   shortName: 'WillieCubed',
@@ -29,12 +42,13 @@ export const site = {
     dark: themeSchemes.dark.surface,
   },
   ogImage: '/brand/social/og-image.png',
+  emails,
   author: {
     name: 'Willie Chalmers III',
     givenName: 'Willie',
     familyName: 'Chalmers',
     handle: 'willie',
-    email: 'hello@willie.page',
+    email: emails.hello,
     photo: '/brand/social/avatar-400.png',
     atprotoDid: 'did:plc:iyn6nc3ffqm2e3555exyrgvv',
   },

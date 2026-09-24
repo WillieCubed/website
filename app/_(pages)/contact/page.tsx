@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 import SiteLink from '@/components/link/SiteLink';
 
-import { pageMetadata } from '@/lib/site';
+import { pageMetadata, site } from '@/lib/site';
 
 export const metadata: Metadata = pageMetadata({
   title: 'Contact',
@@ -37,7 +37,9 @@ export default function ContactPage() {
               <SiteLink href="https://www.linkedin.com/in/willie-chalmers-iii">
                 LinkedIn
               </SiteLink>{' '}
-              or <SiteLink href="mailto:hello@willie.page">email me</SiteLink>.
+              or{' '}
+              <SiteLink href={`mailto:${site.emails.hello}`}>email me</SiteLink>
+              .
             </p>
           </div>
           <div className="space-y-4">
@@ -54,8 +56,8 @@ export default function ContactPage() {
               Want to say hi for some other reason?
             </h1>
             <p className="text-body-medium">
-              Just send an email to hello@willie.page. I&apos;ll get back to you
-              within a day.
+              Just send an email to {site.emails.hello}. I&apos;ll get back to
+              you within a day.
             </p>
           </div>
         </section>
@@ -79,17 +81,17 @@ export default function ContactPage() {
             <div className="mt-2">
               <SiteLink
                 className="text-headline-small"
-                href="mailto:hello@willie.page"
+                href={`mailto:${site.emails.hello}`}
               >
-                hello@willie.page
+                {site.emails.hello}
               </SiteLink>
             </div>
             <div className="mt-2">
               <SiteLink
                 className="text-headline-small"
-                href="mailto:projects@willie.page"
+                href={`mailto:${site.emails.projects}`}
               >
-                projects@willie.page
+                {site.emails.projects}
               </SiteLink>
             </div>
           </div>

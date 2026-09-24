@@ -78,8 +78,10 @@ Do not start on vinext until its own skills confirm `cacheComponents` and
 
 ## Open questions
 
-Every address on the site is on willie.page (`hello@`, `projects@`), and
-williecubed.me is legacy: it only redirects here. Mail to willie.page
+Every address on the site is on willie.page (`hello@`, `projects@`), set
+by `NEXT_PUBLIC_EMAIL_HELLO` and `NEXT_PUBLIC_EMAIL_PROJECTS` with those as
+defaults (`site.emails` in lib/site.ts), and williecubed.me is legacy: it
+only redirects here. Mail to willie.page
 needs Cloudflare Email Routing on the zone before these addresses receive
 anything. `NEXT_PUBLIC_GTAG_ID` is optional; without
 it the layout emits no analytics script.

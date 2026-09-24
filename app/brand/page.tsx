@@ -359,7 +359,9 @@ export default function BrandPage() {
                     for small sizes.
                   </li>
                   <li>
-                    Don’t recolor, rotate, stretch, or add effects to the cube.
+                    Don’t recolor, rotate, stretch, or add effects to the cube
+                    elsewhere. The footer alone shifts between monochrome and
+                    the existing full-color mark on hover, focus, or activation.
                   </li>
                   <li>
                     Use the one-color versions only where color reproduction

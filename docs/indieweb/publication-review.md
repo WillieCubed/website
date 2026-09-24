@@ -13,13 +13,18 @@ publication. I removed its `syndication` field because it named an Instagram
 profile, not a copy of this post. Add the copy permalink only after that post
 exists and links back to the original.
 
-## IndieMark level 3
+## Two candidates for the first public posts
 
-`content/writings/indiemark-level-3.mdx` says the site already reports level 3. The public site had no published writings on September 23, 2026, so that
-claim must wait for the [public evidence](indiemark.md). The draft replies to
-the IndieMark page, which makes it suitable for testing `u-in-reply-to` and a
-Webmention only after the claim becomes true. Check that the page accepts and
-shows the Webmention before treating delivery as evidence.
+`content/writings/testing-independent-publishing.mdx` is an unpublished
+article about the isolated protocol checks. Check the first-person account and
+publication date before approval.
+
+`content/writings/indiemark-checklist.mdx` replaces the false level 3 claim
+in the former `indiemark-level-3.mdx` draft. It replies to the IndieMark page
+and says the public claim is still open. Check its first-person wording and
+the reply target. The IndieMark page might not accept or show a Webmention; a
+successful send alone does not prove the reply criterion. An approved reply
+to a site with a working receiver may be needed instead.
 
 ## Project Superbloom
 

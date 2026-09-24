@@ -1,0 +1,26 @@
+---
+title: Testing independent publishing on willie.page
+description: How I checked Micropub, Webmention, feeds, and WebSub before bringing them to my site.
+published: 2026-09-23T18:51-0700
+lastUpdated: 2026-09-23T18:51-0700
+tags: [indieweb, website]
+draft: true
+postType: article
+---
+
+I want my posts to live at URLs I control. I have added note publishing through
+Micropub, an author card and entry markup that other sites can parse, and RSS,
+Atom, and JSON feeds. The site also accepts Webmentions for moderation and sends
+them when a post links to another site.
+
+I tested the writing flow on an isolated deployment with its own database,
+media store, and publishing branch. A Micropub request created a Git commit.
+That commit deployed without a manual rebuild, and the new permalink appeared
+in the feeds. A subscriber at WebSub Rocks received the RSS update after the
+deployment. I also checked that removing a link sends a fresh Webmention to
+the former target and that removing a link from a mention source removes the
+approved interaction from the post.
+
+Those tests show that the pieces can work together. I still need to publish
+original posts on willie.page and link any copies on other services back to
+their originals before I claim an IndieMark level for the public site.

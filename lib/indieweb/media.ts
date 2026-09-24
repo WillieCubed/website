@@ -55,7 +55,11 @@ export function getMediaStore(
 ): MediaStore | null {
   const token = environment.BLOB_READ_WRITE_TOKEN?.trim();
   if (token) return vercelBlobMediaStore(token);
-  return environment.BLOB_STORE_ID?.trim() ? vercelBlobMediaStore() : null;
+  const onVercel = environment.VERCEL === '1';
+  const hasOidcToken = Boolean(environment.VERCEL_OIDC_TOKEN?.trim());
+  return environment.BLOB_STORE_ID?.trim() && (onVercel || hasOidcToken)
+    ? vercelBlobMediaStore()
+    : null;
 }
 
 /**

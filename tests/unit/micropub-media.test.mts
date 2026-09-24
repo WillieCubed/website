@@ -34,7 +34,8 @@ test('getMediaStore requires a Blob token or a configured OIDC store', () => {
       VERCEL_OIDC_TOKEN: 'oidc-test',
     })
   );
-  assert.ok(getMediaStore({ BLOB_STORE_ID: 'store_test' }));
+  assert.equal(getMediaStore({ BLOB_STORE_ID: 'store_test' }), null);
+  assert.ok(getMediaStore({ BLOB_STORE_ID: 'store_test', VERCEL: '1' }));
 });
 
 test('parseMediaUpload returns the multipart file part', async () => {

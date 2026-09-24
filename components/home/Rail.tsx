@@ -1,4 +1,4 @@
-import { PagefindTrigger } from '@/components/search/pagefind';
+import PaletteTrigger from '@/components/palette/PaletteTrigger';
 
 import { site } from '@/lib/site';
 
@@ -45,7 +45,7 @@ export function Rail({ focuses }: { focuses: FocusItem[] }) {
         </div>
 
         <div className="rail-search">
-          <PagefindTrigger />
+          <PaletteTrigger size="rail" />
         </div>
 
         <Focuses items={focuses} />

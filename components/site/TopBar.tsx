@@ -1,5 +1,5 @@
 import SiteLink from '@/components/link/SiteLink';
-import { PagefindTrigger } from '@/components/search/pagefind';
+import PaletteTrigger from '@/components/palette/PaletteTrigger';
 
 import type { PageColumn } from '@/lib/footer/column';
 import { site } from '@/lib/site';
@@ -73,7 +73,7 @@ export default function TopBar({
         </span>
       ))}
       <div className="ml-auto flex items-center">
-        <PagefindTrigger compact hideShortcut />
+        <PaletteTrigger size="compact" />
         <noscript>
           <SiteLink
             preview={false}

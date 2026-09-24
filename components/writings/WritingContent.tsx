@@ -36,60 +36,76 @@ export default async function WritingContent({
         </div>
       )}
 
-      <div className="mx-auto max-w-breakpoint-md space-y-10 px-lg desktop:px-0">
+      <div className="mx-auto max-w-breakpoint-md px-lg desktop:px-0">
         {/* h-entry: e-content */}
-        <div className="e-content rounded-3xl border border-line bg-tray px-6 py-7 medium:px-8 medium:py-9">
-          <WritingDetailsView source={content} />
+        <div className="e-content">
+          <WritingDetailsView
+            source={content}
+            largeText={writing.postType === 'note'}
+          />
         </div>
 
         {/* Person tags: an <a> h-card's name and url are implied from its
             text and href, so the chip itself is the whole card. */}
-        {writing.people.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span id={peopleLabelId} className="text-label-medium text-muted">
-              With
-            </span>
-            <ul
-              className="flex flex-wrap gap-2"
-              aria-labelledby={peopleLabelId}
-            >
-              {writing.people.map((person) => (
-                <li key={person.url}>
-                  <SiteLink
-                    href={person.url}
-                    className="u-category h-card inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
-                  >
-                    {person.name}
-                  </SiteLink>
-                </li>
-              ))}
-            </ul>
+        {(writing.people.length > 0 || writing.tags.length > 0) && (
+          <div className="mt-4 space-y-3">
+            {writing.people.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  id={peopleLabelId}
+                  className="text-label-medium text-muted"
+                >
+                  With
+                </span>
+                <ul
+                  className="flex flex-wrap gap-2"
+                  aria-labelledby={peopleLabelId}
+                >
+                  {writing.people.map((person) => (
+                    <li key={person.url}>
+                      <SiteLink
+                        href={person.url}
+                        className="u-category h-card inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
+                      >
+                        {person.name}
+                      </SiteLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {writing.tags.length > 0 && (
+              <ul className="flex flex-wrap gap-2" aria-label="Tags">
+                {writing.tags.map((tag) => (
+                  <li key={tag}>
+                    <SiteLink
+                      href={`/writings?tag=${encodeURIComponent(tag)}`}
+                      className="p-category inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
+                    >
+                      {tag}
+                    </SiteLink>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
-        {writing.tags.length > 0 && (
-          <ul className="flex flex-wrap gap-2" aria-label="Tags">
-            {writing.tags.map((tag) => (
-              <li key={tag}>
-                <SiteLink
-                  href={`/writings?tag=${encodeURIComponent(tag)}`}
-                  className="p-category inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
-                >
-                  {tag}
-                </SiteLink>
-              </li>
-            ))}
-          </ul>
+        {references.length > 0 && (
+          <div className="mt-10">
+            <References items={references} />
+          </div>
         )}
 
-        <References items={references} />
-
         {writing.series && seriesData && (
-          <SeriesNav
-            series={seriesData}
-            writings={seriesData.writings}
-            currentPart={writing.series.part}
-          />
+          <div className="mt-10">
+            <SeriesNav
+              series={seriesData}
+              writings={seriesData.writings}
+              currentPart={writing.series.part}
+            />
+          </div>
         )}
       </div>
     </>

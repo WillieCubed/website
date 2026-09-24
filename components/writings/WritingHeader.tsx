@@ -34,7 +34,7 @@ export default function WritingHeader({
   const target = replyTargetOf(writing);
 
   return (
-    <header className="mx-auto max-w-breakpoint-md px-lg pb-8 pt-10 desktop:px-0">
+    <header className="mx-auto max-w-breakpoint-md px-lg pb-10 pt-10 desktop:px-0">
       {/* Permalink for parsers. u-uid marks it as the canonical identity. */}
       <a href={canonicalUrl} className="u-url u-uid hidden" />
       <FeedAuthor />
@@ -57,11 +57,9 @@ export default function WritingHeader({
             <h1 className="p-name text-headline-medium desktop:text-headline-large">
               {writing.title}
             </h1>
-            {writing.postType === 'article' && (
-              <p className="p-summary text-body-large text-muted">
-                {writing.description}
-              </p>
-            )}
+            <p className="p-summary text-body-large text-muted">
+              {writing.description}
+            </p>
           </div>
           <div className="mt-5">
             <Byline writing={writing} publishedIso={publishedIso} readingTime />

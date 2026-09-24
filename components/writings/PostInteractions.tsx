@@ -35,7 +35,7 @@ export default function PostInteractions({
       webmentions.bookmarks.length > 0);
 
   return (
-    <section className="space-y-10 pt-10">
+    <section className="pt-5">
       <SiteLink
         href={threadsPostIntent(writing, target)}
         target="_blank"
@@ -44,33 +44,32 @@ export default function PostInteractions({
         <ThreadsIcon className="size-4" />
         Share on Threads
       </SiteLink>
-      {hasWebmentions && webmentions && (
-        <WebmentionSection webmentions={webmentions} />
-      )}
-      {backlinks.length > 0 && <BacklinksSection backlinks={backlinks} />}
-      <details className="group rounded-3xl bg-surface-container">
-        <summary className="flex cursor-pointer list-none items-center gap-4 rounded-3xl px-6 py-5 medium:px-8 [&::-webkit-details-marker]:hidden">
-          <span className="rounded-full bg-card p-2 text-ink">
-            <Icon name="reply" size={20} />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-title-medium font-semibold text-ink">
-              Reply from your site
+      <div className="mt-14 space-y-8">
+        {hasWebmentions && webmentions && (
+          <WebmentionSection webmentions={webmentions} />
+        )}
+        {backlinks.length > 0 && <BacklinksSection backlinks={backlinks} />}
+        <details className="group bleed rounded-3xl bg-surface-container">
+          <summary className="flex cursor-pointer list-none items-center gap-4 rounded-3xl py-5 [&::-webkit-details-marker]:hidden">
+            <span className="min-w-0 flex-1">
+              <span className="block text-title-medium font-semibold text-ink">
+                Reply from your site
+              </span>
+              <span className="block text-body-small text-muted">
+                Submit a published reply URL
+              </span>
             </span>
-            <span className="block text-body-small text-muted">
-              Submit a published reply URL
-            </span>
-          </span>
-          <Icon
-            name="arrow-right"
-            size={18}
-            className="shrink-0 transition-transform group-open:rotate-90"
-          />
-        </summary>
-        <div className="px-6 pb-6 pt-1 medium:px-8">
-          <WebmentionForm target={target} />
-        </div>
-      </details>
+            <Icon
+              name="arrow-right"
+              size={18}
+              className="shrink-0 transition-transform group-open:rotate-90"
+            />
+          </summary>
+          <div className="pb-6 pt-1">
+            <WebmentionForm target={target} />
+          </div>
+        </details>
+      </div>
     </section>
   );
 }

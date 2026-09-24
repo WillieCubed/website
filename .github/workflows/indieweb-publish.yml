@@ -38,14 +38,26 @@ jobs:
             exit 0
           fi
           for attempt in $(seq 1 60); do
-            deployed=$(curl --silent --max-time 10 "$origin/api/indieweb/revision" | jq -r '.sha // empty' 2>/dev/null || true)
+            deployed=$(curl --silent --max-time 10 -H 'Cache-Control: no-cache' "$origin/api/indieweb/revision?poll=$attempt" | jq -r '.sha // empty' 2>/dev/null || true)
             if [ "$deployed" = "$REVISION" ]; then
-              curl --fail-with-body --silent --show-error --max-time 300 \
+              response=$(mktemp)
+              code=$(curl --silent --show-error --max-time 300 -o "$response" -w '%{http_code}' \
                 -X POST "$origin/api/indieweb/notify" \
                 -H "Authorization: Bearer $secret" \
                 -H 'Content-Type: application/json' \
-                -d "{\"sha\":\"$REVISION\"}"
-              exit 0
+                -d "{\"sha\":\"$REVISION\"}" || true)
+              if [ "$code" = 200 ]; then
+                cat "$response"
+                exit 0
+              fi
+              if [ "$code" = 409 ]; then
+                echo "The alias changed between revision discovery and notification. Retrying."
+                sleep 10
+                continue
+              fi
+              cat "$response"
+              echo "Notification failed with HTTP $code."
+              exit 1
             fi
             echo "Waiting for $origin to serve $REVISION (attempt $attempt/60)."
             sleep 10

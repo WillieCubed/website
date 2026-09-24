@@ -1,3 +1,5 @@
+import { revalidateTag } from 'next/cache';
+
 import { jsonError } from '@/lib/indieweb/responses';
 import type { WebmentionModerationRouteOptions } from '@/lib/indieweb/types';
 import {
@@ -26,7 +28,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    return await handleModerateWebmention(request, routeOptions());
+    const response = await handleModerateWebmention(request, routeOptions());
+    if (response.ok) revalidateTag('webmentions', { expire: 0 });
+    return response;
   } catch (error) {
     console.error('Webmention moderation failed:', error);
     return jsonError('server_error', 500);

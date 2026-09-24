@@ -17,6 +17,12 @@
   --wide: calc(1 - var(--ease-t) * var(--ease-t) * var(--ease-t));
   --surface: clamp(0, var(--p) / 0.12, 1);
   --dock: clamp(0, var(--p) / 0.5, 1);
+  /* How far the cube's seat at the head of the row has closed. It follows
+     the scroll at every width, even where the row is already in its open
+     look (a phone), because the cube still starts there. */
+  --seat: clamp(0, var(--p) / 0.5, 1);
+  /* The open lockup is a size up from other pages' footers. */
+  --lockup-h: 64px;
   /* How far the row's surface has grown out of nothing; only a phone
      starts from nothing (see the compact block). */
   --appear: 1;
@@ -26,7 +32,7 @@
   --pill-w: max(var(--rail-w), 360px);
   /* How far the collapsed row's surface reaches past the row. */
   --pill-x: 14px;
-  --pill-y: 6px;
+  --pill-y: var(--footer-pill-y);
   --pad-top: 48px;
   /* The page's side gutter: .home's, or the margin beside the centred
      shell. Percentages resolve against the footer. */
@@ -106,7 +112,7 @@
   height: var(--lockup-h);
   margin: 0;
   gap: 0.45em;
-  font-size: calc(20px + 16px * var(--p));
+  font-size: calc(20px + 28px * var(--p));
   line-height: 1;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -154,24 +160,24 @@
 .site-footer[data-dock] .site-footer__row {
   min-height: var(--footer-row-h);
 }
-/* Nothing in the row moves as the footer opens: the gaps, the icon slots
-   and the cube's seat are all held at their open size from the start, and
-   only ink and the icons themselves come in. */
+/* The row changes form in place: the cube lifts out of its seat, the seat
+   closes so the links slide onto the lockup's line, and each link makes
+   room for its icon as the icon comes in. While collapsed the row is words
+   alone, with no gaps held for what is not there yet. */
 .site-footer[data-dock] .site-footer__profiles {
   --profile-gap: 20px;
   align-items: center;
   column-gap: var(--profile-gap);
 }
-/* The cube's seat at the head of the row. It is held for good, so the
-   links keep their place when the cube lifts away instead of sliding
-   left, and the row reads the same open or closed. */
+/* The cube's seat at the head of the row, at the collapsed lockup's size:
+   1.3em of 20px, at the mark's own proportion. It closes as the cube
+   rises, gap and all. */
 .site-footer[data-dock] .site-footer__profiles::before {
   content: '';
   flex-shrink: 0;
-  /* The cube at the collapsed lockup's size: 1.3em of 20px, at the mark's
-     own proportion. */
-  width: calc(20px * 1.3 * var(--mark-aspect));
+  width: calc(20px * 1.3 * var(--mark-aspect) * (1 - var(--seat)));
   height: calc(20px * 1.3);
+  margin-right: calc(-1 * var(--profile-gap) * var(--seat));
 }
 
 /* Only so much of the row fits the rail's column, so the profiles past
@@ -184,7 +190,7 @@
   margin-right: calc(-1 * var(--profile-gap) * (1 - var(--dock)));
 }
 .site-footer[data-dock] .site-footer__profiles a {
-  gap: 8px;
+  gap: calc(8px * var(--dock));
   /* One weight throughout: interpolating it re-shapes the text and the
      links drift sideways as the footer opens. */
   font-weight: 500;
@@ -200,6 +206,8 @@
   color: var(--color-accent);
 }
 .site-footer[data-dock] .site-footer__profiles a > svg {
+  flex-shrink: 0;
+  width: calc(16px * var(--dock));
   opacity: var(--dock);
   scale: calc(0.6 + 0.4 * var(--dock));
 }
@@ -231,6 +239,13 @@
     --dock: 1;
     --appear: clamp(0, var(--p) / 0.08, 1);
     --pill-r: var(--shell-gutter);
+    --lockup-h: 48px;
+  }
+  /* The lockup rises through the stacked pages and the tagline, so they
+     wait for it to pass. */
+  .site-footer[data-dock] .site-footer__pages,
+  .site-footer[data-dock] .site-footer__brand > :not(.site-footer__lockup) {
+    --from: 0.9;
   }
   /* A phone column is too narrow for the full-size lockup. */
   .site-footer[data-dock] .site-footer__lockup {
@@ -243,6 +258,63 @@
   .site-footer[data-dock] .site-footer__pages a {
     font-size: 22px;
     line-height: 28px;
+  }
+}
+
+/* ---------- The page above becomes a sheet ----------
+   As the footer opens, the page above it draws in from the sides of the
+   window and rounds its lower corners, so it reads as one surface lifting
+   off the footer rather than a page with a strip under it. It is scaled
+   rather than narrowed, so nothing in it reflows while the visitor scrolls;
+   the scale is anchored at its lower edge, which stays level with the top
+   of the opening. Behind it, the page's ground turns to the footer's tray.
+   FooterFrame writes --footer-p (the footer's --p) and --page-w (the page's
+   width, as a plain number) on the root. */
+:root[data-footer-dock] {
+  --sheet: clamp(0, var(--footer-p, 0) / 0.4, 1);
+  /* The ground behind the sheet turns at the rate the footer's own surface
+     comes in (--surface), so the footer's edges, while it is still
+     narrower than the window, vanish into it instead of showing as a
+     second outline beside the sheet's. */
+  --behind: clamp(0, var(--footer-p, 0) / 0.12, 1);
+  /* The gap between the sheet and each side of the window, in pixels. */
+  --sheet-gap: 16;
+  --sheet-r: 28px;
+  /* The collapsed row's surface reaches this far past the row (--pill-y). */
+  --footer-pill-y: 6px;
+}
+:root[data-footer-dock] body {
+  background: color-mix(
+    in srgb,
+    var(--color-tray) calc(var(--behind) * 100%),
+    var(--color-ground)
+  );
+}
+:root[data-footer-dock] body > .grow {
+  background: var(--color-ground);
+  transform-origin: 50% 100%;
+}
+/* The footer's opening starts a row's height above the page's end until it
+   is fully open (see the clip above), so the sheet ends there too: its
+   lower edge is trimmed to the top of the opening and rounded, and the two
+   meet on one line instead of the footer covering the sheet's corners.
+   What is trimmed is the space at the end of the page, under the row. */
+:root[data-footer-sheet] body > .grow {
+  scale: calc(1 - 2 * var(--sheet-gap) * var(--sheet) / var(--page-w));
+  clip-path: inset(
+    0 0
+      calc(
+        (var(--footer-inset) + var(--footer-row-h) + var(--footer-pill-y)) *
+          (1 - var(--footer-p))
+      )
+      0 round 0 0 calc(var(--sheet-r) * var(--sheet))
+      calc(var(--sheet-r) * var(--sheet))
+  );
+}
+@media (max-width: 839px) {
+  :root[data-footer-dock] {
+    --sheet-gap: 10;
+    --sheet-r: 24px;
   }
 }
 

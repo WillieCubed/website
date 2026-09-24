@@ -333,11 +333,12 @@ goes for any challenge Cloudflare puts in front of the site.
 | `INDIEWEB_NOTIFY_SECRET`                                                                           | authenticates the post-deployment notification endpoint     | unset, endpoint refuses                 |
 | `SKIP_WEBMENTIONS`                                                                                 | `true` skips `webmentions:send`                             | unset                                   |
 
-The Postgres schema lives in `initializeWebmentionsTable()` in
-`lib/indieweb/webmention-storage.ts`, `initializeReplyContextTable()` in
-`lib/indieweb/reply-context.ts`, and `lib/db/migrations/001_level4_tables.sql`
-for `outgoing_webmentions`, `reply_context_cache`, and `search_index`. Apply
-the SQL file with `psql "$POSTGRES_URL" -f lib/db/migrations/001_level4_tables.sql`.
+The Postgres schema starts with `lib/db/migrations/000_webmentions.sql`.
+Apply it before `lib/db/migrations/001_level4_tables.sql`, which adds
+`outgoing_webmentions`, `reply_context_cache`, and `search_index` and alters
+the Webmention table. The route can also create its base Webmention table
+through `initializeWebmentionsTable()`, but a fresh database must not rely on
+a first request to prepare migrations.
 `lib/db/migrations/002_webmention_rate_limits.sql` adds
 `webmention_rate_limits`, which a database created before it needs; apply it
 the same way. `lib/db/migrations/003_indieauth.sql` adds the IndieAuth

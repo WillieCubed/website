@@ -177,10 +177,12 @@ correct outcome on Vercel and Workers: set the GitHub variables there.
 
 `?q=syndicate-to` returns an empty list. The site cannot create a copy on
 Bluesky or Threads, so advertising either profile as a destination would be
-false. Manual syndication requires an actual public copy. Add its permalink
-to `syndication` frontmatter only after publication, and confirm that copy
-links back to the original. Micropub `mp-syndicate-to` is rejected until an
-account integration can return exact copy permalinks.
+false. A writing's **Share on Threads** link opens an editable Threads draft
+with the original's canonical URL. The owner must publish the copy from their
+account. Add its exact permalink to `syndication` frontmatter only after
+publication, and confirm that the copy links back to the original. Micropub
+`mp-syndicate-to` is rejected until an account integration can return exact
+copy permalinks.
 
 ### Photos
 

@@ -34,7 +34,7 @@ export const MEDIA_TYPES: Readonly<Record<string, string>> = {
   'image/heif': 'heif',
 };
 
-/** Public Vercel Blob storage, authorized by a read-write token. */
+/** Public Vercel Blob storage, authorized by OIDC or a read-write token. */
 export function vercelBlobMediaStore(token?: string): MediaStore {
   return {
     async put(pathname, file, contentType) {
@@ -49,16 +49,13 @@ export function vercelBlobMediaStore(token?: string): MediaStore {
   };
 }
 
-/** The configured store, using OIDC on Vercel or a legacy read-write token. */
+/** The configured store; the Blob SDK obtains the Vercel OIDC token on demand. */
 export function getMediaStore(
   environment: Record<string, string | undefined> = process.env
 ): MediaStore | null {
   const token = environment.BLOB_READ_WRITE_TOKEN?.trim();
   if (token) return vercelBlobMediaStore(token);
-  return environment.BLOB_STORE_ID?.trim() &&
-    environment.VERCEL_OIDC_TOKEN?.trim()
-    ? vercelBlobMediaStore()
-    : null;
+  return environment.BLOB_STORE_ID?.trim() ? vercelBlobMediaStore() : null;
 }
 
 /**

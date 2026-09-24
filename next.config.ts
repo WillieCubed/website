@@ -47,6 +47,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   allowedDevOrigins: ['williecubed.localhost'],
   images: {
+    qualities: [75, 90],
     remotePatterns: [
       {
         hostname: 'i.ytimg.com',

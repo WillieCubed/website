@@ -72,7 +72,7 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
         ref={popover}
         id={id}
         popover="auto"
-        className="feeds-popover"
+        className="site-popover feeds-popover"
         onToggle={(event) => {
           if (event.newState === 'open') {
             place();

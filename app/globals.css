@@ -40,6 +40,10 @@
   --color-on-error: light-dark(#ffffff, #690005);
   --color-error-container: light-dark(#f9dedc, #93000a);
   --color-on-error-container: light-dark(#410e0b, #ffdad6);
+
+  --color-brand-cube-top: light-dark(#8fd1b8, #f4f5ef);
+  --color-brand-cube-left: light-dark(#2f6f5e, #8fd1b8);
+  --color-brand-cube-right: light-dark(#1c231e, #2f6f5e);
   --color-scrim: #000000;
 
   /* Site-language aliases. Every alias resolves through a Material role. */

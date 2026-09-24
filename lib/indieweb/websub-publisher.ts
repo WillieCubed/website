@@ -37,8 +37,14 @@ export async function pingWebSubHub(
         body,
         signal: controller.signal,
       });
-      status = response.status;
-      if (!response.ok && !failure) failure = { ok: false, status };
+      if (response.ok) status = response.status;
+      if (!response.ok && !failure) {
+        const missingTopic =
+          hub === WEBSUB_HUB &&
+          response.status === 500 &&
+          (await response.text()).includes('Topic not found for topic URL.');
+        if (!missingTopic) failure = { ok: false, status: response.status };
+      }
     } catch (error) {
       if (!failure)
         failure = {

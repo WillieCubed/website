@@ -63,6 +63,29 @@ serves that commit before it sends Webmentions and pings the WebSub hub.
 Confirm the returned `Location`, branch commit, deployed permalink, feed
 entry, and notification result without manually rebuilding.
 
+This sequence diagram shows the hosted write and notification order.
+
+```mermaid
+sequenceDiagram
+    participant Client as Micropub client
+    participant Site as Isolated site
+    participant GitHub as Publishing branch
+    participant Vercel as Deployment
+    participant Workflow as Publish workflow
+    participant Hub as WebSub hub
+    participant Target as Webmention target
+    Client->>Site: POST /micropub
+    Site->>GitHub: Commit published writing
+    Site-->>Client: 202 and Location
+    GitHub->>Vercel: Deploy commit
+    GitHub->>Workflow: Start notification job
+    Workflow->>Site: Poll deployed revision
+    Site-->>Workflow: Matching commit SHA
+    Workflow->>Site: POST /api/indieweb/notify
+    Site->>Hub: Publish feed URLs
+    Site->>Target: Send Webmention from public post
+```
+
 Use a separate public Blob store for acceptance photos. New Vercel Blob
 connections use `BLOB_STORE_ID` and short-lived OIDC credentials; a legacy
 `BLOB_READ_WRITE_TOKEN` also works. Upload one photo through `/micropub/media`
@@ -78,4 +101,5 @@ shows the responses from both paths.
 
 Record the deployment revision, date, test URL, response, and any case that
 could not run. The [2026-09-23 record](verification-2026-09-23.md) shows the
-format.
+format. The [follow-up](verification-2026-09-23-followup.md) records the
+isolated publication and protocol fixes.

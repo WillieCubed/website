@@ -178,13 +178,20 @@ test('a verified reply stays hidden until approval, then disappears when its lin
     expect((await mention()).status()).toBe(202);
     await expect.poll(async () => (await row())?.is_deleted).toBe(true);
     expect((await row()).is_approved).toBe(false);
-    expect(
-      (
-        await (
-          await request.get(`/webmentions?target=${encodeURIComponent(target)}`)
-        ).json()
-      ).count
-    ).toBe(0);
+    const removed = await request.get(
+      `/webmentions?target=${encodeURIComponent(target)}`
+    );
+    expect(removed.headers()['cache-control']).toContain('no-store');
+    expect((await removed.json()).count).toBe(0);
+    await expect
+      .poll(
+        async () =>
+          (await (await request.get(postPath!)).text()).includes(
+            'A verified local reply'
+          ),
+        { timeout: 30_000, intervals: [1_000, 3_000] }
+      )
+      .toBe(false);
   } finally {
     await db.query('DELETE FROM webmentions WHERE source_url = $1', [source]);
     await db.end();

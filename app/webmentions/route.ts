@@ -1,5 +1,9 @@
 import { SITE_URL } from '@/lib/indieweb/constants';
-import { jsonError, jsonResponse } from '@/lib/indieweb/responses';
+import {
+  jsonError,
+  jsonResponse,
+  noStoreJsonHeaders,
+} from '@/lib/indieweb/responses';
 import { sameOrigin } from '@/lib/indieweb/utils';
 import { getPublicWebmentionsForTarget } from '@/lib/indieweb/webmention-storage';
 
@@ -19,9 +23,7 @@ export async function GET(request: Request) {
 
   try {
     return jsonResponse(await getPublicWebmentionsForTarget(target), {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
-      },
+      headers: noStoreJsonHeaders(),
     });
   } catch (error) {
     console.error('Public webmentions failed:', error);

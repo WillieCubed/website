@@ -268,10 +268,11 @@
    rather than narrowed, so nothing in it reflows while the visitor scrolls;
    the scale is anchored at its lower edge, which stays level with the top
    of the opening. Behind it, the page's ground turns to the footer's tray.
-   FooterFrame writes --footer-p (the footer's --p) and --page-w (the page's
+   FooterFrame writes --footer-p (the footer's --p), --sheet-p (the same,
+   but never ahead of how far the page has scrolled), and --page-w (the page's
    width, as a plain number) on the root. */
 :root[data-footer-dock] {
-  --sheet: clamp(0, var(--footer-p, 0) / 0.4, 1);
+  --sheet: clamp(0, var(--sheet-p, 0) / 0.4, 1);
   /* The ground behind the sheet turns at the rate the footer's own surface
      comes in (--surface), so the footer's edges, while it is still
      narrower than the window, vanish into it instead of showing as a

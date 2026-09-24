@@ -102,7 +102,7 @@ test('venture roles carry one Material color for each scheme', () => {
   );
 });
 
-test('standalone browser pages follow the system scheme', async () => {
+test('standalone browser pages follow the system or the chosen scheme', async () => {
   const response = plainPage(
     new Request(`${site.origin}/tea`, { headers: { Accept: 'text/html' } }),
     { title: 'Tea', lines: ['Ready.'] }
@@ -110,7 +110,8 @@ test('standalone browser pages follow the system scheme', async () => {
   const html = await response.text();
 
   assert.match(html, /color-scheme:light dark/);
-  assert.match(html, /@media\(prefers-color-scheme:dark\)/);
+  assert.match(html, /light-dark\(/);
+  assert.match(html, /:root\[data-theme=dark\]\{color-scheme:dark\}/);
   assert.match(html, /var\(--color-surface\)/);
   assert.match(html, /var\(--color-on-surface\)/);
 });

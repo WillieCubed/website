@@ -86,9 +86,27 @@ function isPaletteShortcut(event: KeyboardEvent): boolean {
   );
 }
 
-interface PaletteProviderProps {
-  /** Places from the server's loaders (lib/palette/data.ts). */
-  data: PaletteData;
+/** What the palette offers before its places arrive, or if they never do. */
+const NO_PLACES: PaletteData = { writings: [], initiatives: [], ventures: [] };
+
+let placesRequest: Promise<PaletteData> | null = null;
+
+/**
+ * The palette's places, fetched once per page load on first open
+ * (app/api/palette). A failed request is forgotten so the next opening can
+ * try again, and the palette still searches and runs its commands meanwhile.
+ */
+function loadPlaces(): Promise<PaletteData> {
+  placesRequest ??= fetch('/api/palette')
+    .then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json() as Promise<PaletteData>;
+    })
+    .catch((error: unknown) => {
+      placesRequest = null;
+      throw error;
+    });
+  return placesRequest;
 }
 
 /**
@@ -97,10 +115,7 @@ interface PaletteProviderProps {
  * into the palette's card on the way in and back on the way out, and gets
  * focus back when the palette closes.
  */
-export default function PaletteProvider({
-  data,
-  children,
-}: React.PropsWithChildren<PaletteProviderProps>) {
+export default function PaletteProvider({ children }: React.PropsWithChildren) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggers = useRef(new Set<HTMLElement>());
   // The element whose container became the card, hidden while it is open,
@@ -112,12 +127,14 @@ export default function PaletteProvider({
   const [open, setOpen] = useState(false);
   // Each opening starts a fresh session, so the input and results reset.
   const [session, setSession] = useState(0);
+  const [data, setData] = useState<PaletteData>(NO_PLACES);
 
   const openPalette = useCallback(async (from?: HTMLElement | null) => {
     const dialog = dialogRef.current;
     if (!dialog || openRef.current || busyRef.current) return;
     busyRef.current = true;
     openRef.current = true;
+    loadPlaces().then(setData, () => undefined);
     const focused = document.activeElement;
     returnFocusRef.current =
       from ?? (focused instanceof HTMLElement ? focused : null);

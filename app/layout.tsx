@@ -14,7 +14,6 @@ import {
   WEBSUB_HUB,
 } from '@/lib/indieweb/constants';
 import { INDIEAUTH_DISCOVERY_LINKS } from '@/lib/indieweb/discovery';
-import { getPaletteData } from '@/lib/palette/data';
 import { site } from '@/lib/site';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
@@ -86,8 +85,6 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: React.PropsWithChildren) {
-  // Cached for an hour, so reading it here costs every page nothing.
-  const paletteData = await getPaletteData();
   return (
     // The font variables live on <html>: the theme's --font-sans reads
     // --font-atkinson at :root, and a custom property that references an
@@ -140,7 +137,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink font-sans antialiased">
-        <PaletteProvider data={paletteData}>
+        <PaletteProvider>
           <SkipLink />
           {process.env.NODE_ENV === 'production' &&
             process.env.NEXT_PUBLIC_GTAG_ID && (

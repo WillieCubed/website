@@ -13,6 +13,7 @@
   border: 0;
   background: var(--color-tray);
   font: inherit;
+  text-decoration: none;
   cursor: pointer;
   transition:
     background-color 200ms var(--ease-site),

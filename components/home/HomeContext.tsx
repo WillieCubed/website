@@ -4,8 +4,15 @@ import { createContext, useContext } from 'react';
 
 import type { FocusId } from '@/lib/home/focuses';
 
-/** What the visitor is pointing at: a focus in the rail or one entry. */
-export type Preview = { focus: FocusId } | { id: string } | null;
+/**
+ * What the visitor is pointing at: a focus in the rail or one entry. A focus
+ * switched on by a tap is `pinned`, which is the only preview that reorders
+ * the stacked feed; a hover or keyboard preview never moves anything.
+ */
+export type Preview =
+  | { focus: FocusId; pinned?: boolean }
+  | { id: string }
+  | null;
 
 /**
  * Whether a focus row is switched on. Previewing an entry marks the rows for

@@ -59,7 +59,7 @@ function LiveFocus({ focus }: { focus: FocusItem }) {
         if (pressed) {
           clearPreviewNow();
         } else {
-          setPreview({ focus: focus.id });
+          setPreview({ focus: focus.id, pinned: true });
         }
       }}
     >

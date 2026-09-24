@@ -40,7 +40,7 @@ interface PaletteTriggerProps {
  */
 export default function PaletteTrigger({ size }: PaletteTriggerProps) {
   const { open, register } = usePalette();
-  const ref = useRef<HTMLButtonElement>(null);
+  const ref = useRef<HTMLAnchorElement>(null);
   const shortcut = useShortcutLabel();
 
   useEffect(() => {
@@ -49,13 +49,20 @@ export default function PaletteTrigger({ size }: PaletteTriggerProps) {
   }, [register]);
 
   return (
-    <button
+    // A link to /search until scripts run, so the trigger still leads
+    // somewhere for a visitor without them; once hydrated it opens the
+    // palette instead.
+    <a
       ref={ref}
-      type="button"
+      href="/search"
       className={`palette-trigger palette-trigger--${size}`}
       aria-haspopup="dialog"
       aria-keyshortcuts="Meta+K Control+K"
-      onClick={(event) => open(event.currentTarget)}
+      onClick={(event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey) return;
+        event.preventDefault();
+        open(event.currentTarget);
+      }}
     >
       <Icon name="search" size={size === 'rail' ? 20 : 18} />
       <span className="palette-trigger__label">
@@ -65,6 +72,6 @@ export default function PaletteTrigger({ size }: PaletteTriggerProps) {
       <kbd className="palette-trigger__key" aria-hidden="true">
         {shortcut}
       </kbd>
-    </button>
+    </a>
   );
 }

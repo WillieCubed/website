@@ -24,7 +24,8 @@ test('plainPage answers a browser with escaped HTML and keeps the status', async
   );
 
   const body = await response.text();
-  assert.ok(!body.includes('<script>'));
+  // The page's only script is its own scheme switch; the line stays text.
+  assert.ok(!body.includes('<script>alert'));
   assert.match(body, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
   assert.ok(
     body.includes(`<title>418 I&#39;m a teapot · ${site.name}</title>`)

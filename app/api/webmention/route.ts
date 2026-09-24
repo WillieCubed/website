@@ -1,4 +1,4 @@
-import { cacheLife } from 'next/cache';
+import { cacheLife, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
@@ -134,7 +134,8 @@ export async function POST(request: NextRequest) {
     // until the callback settles, where a bare promise could be cut off.
     after(async () => {
       try {
-        await verifyWebmention(id, source, canonicalTarget);
+        const result = await verifyWebmention(id, source, canonicalTarget);
+        if (result.success) revalidateTag('webmentions', { expire: 0 });
       } catch (error) {
         console.error('Webmention verification failed:', error);
       }

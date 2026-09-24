@@ -1,4 +1,4 @@
-import { cacheLife } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next/types';
 
@@ -123,6 +123,7 @@ async function fetchInteractions(slug: string) {
 async function loadWebmentions(slug: string): Promise<WebmentionGroup | null> {
   'use cache';
   cacheLife('minutes');
+  cacheTag('webmentions');
   try {
     return await getWebmentionsForPost(slug);
   } catch {

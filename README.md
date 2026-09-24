@@ -10,17 +10,24 @@ conventions.
 
 ## Setup
 
-You need Node.js 20.9 or later and [pnpm]. The repository pins its pnpm version
+You need Node.js 24 or later and [pnpm]. The repository pins its pnpm version
 in the `packageManager` field of `package.json`, and pnpm switches to that
 version on its own, so any recent pnpm install works:
 
 ```shell
 git clone git@github.com:WillieCubed/website.git
 cd website
-pnpm install
+pnpm bootstrap --local-only
 ```
 
-`pnpm install` also installs the Husky pre-commit hook, which runs ESLint and
+`pnpm bootstrap` follows the LVBT project convention: it checks tools, installs
+the locked dependencies, runs the repository checks, creates `.env.local` if
+needed, and verifies GitHub and the linked Vercel deployment. It never replaces
+an existing `.env.local`. Use `pnpm bootstrap --local-only` when you only need
+the local app. Use `pnpm preflight` for a read-only readiness report. See the
+[bootstrap reference](docs/bootstrap.md) for phases and deployment setup.
+
+Bootstrap also installs the Husky pre-commit hook, which runs ESLint and
 Prettier on staged files through lint-staged.
 
 ## Development
@@ -42,6 +49,8 @@ Both commands regenerate the search index first.
 
 | Command                 | What it does                                                                         |
 | ----------------------- | ------------------------------------------------------------------------------------ |
+| `pnpm bootstrap`        | Sets up the checkout and checks the linked deployment                                |
+| `pnpm preflight`        | Reports setup gaps without changing the checkout                                     |
 | `pnpm dev`              | Starts the dev server behind portless                                                |
 | `pnpm dev:app`          | Starts `next dev` directly                                                           |
 | `pnpm build`            | Generates the search index, builds for production, and runs the postbuild scripts    |

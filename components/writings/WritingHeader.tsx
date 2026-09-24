@@ -57,7 +57,7 @@ export default function WritingHeader({
             <h1 className="p-name text-headline-medium desktop:text-headline-large">
               {writing.title}
             </h1>
-            <p className="p-summary text-body-large text-muted">
+            <p className="p-summary text-body-large text-accent">
               {writing.description}
             </p>
           </div>

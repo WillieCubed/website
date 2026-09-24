@@ -1,7 +1,7 @@
 # Rail focuses
 
-Status: designed 2026-09-23 from a design critique of the homepage, not yet
-planned. This is part C of three homepage changes; part A (footer and scroll)
+Status: implemented 2026-09-23, from a design critique of the homepage.
+This is part C of three homepage changes; part A (footer and scroll)
 and part B (command palette search) get their own specs.
 
 The homepage rail currently lists Willie's three ventures, which the bio
@@ -11,27 +11,27 @@ leave the organizations to the bio and the tiles.
 
 ## Decisions
 
-| Question                        | Decision                                                                                      |
-| ------------------------------- | --------------------------------------------------------------------------------------------- |
-| What the rail's list is         | Focuses: what Willie is working toward, in his own words                                      |
-| Headline facet keys             | Removed. "software", "systems", and "people" become plain text; focuses are the only filter   |
-| Bio paragraph                   | Kept as the "where": venture names become plain links that open each venture's detail view   |
-| Focus with no visible tiles     | Shown as plain text: no hover, no link, no toggle, until a tile names it                      |
-| Tile with no focus              | Stays in the feed (Curfew, Project Superbloom); the feed is not limited to focuses            |
-| Rail thumbnails                 | Dropped. Focus rows are text; the grid does the showing                                       |
-| Search in the rail              | Stays where it is for now; its look and final place are part B                                |
+| Question                    | Decision                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------ |
+| What the rail's list is     | Focuses: what Willie is working toward, in his own words                                         |
+| Headline facet keys         | Removed. "software", "systems", and "people" become plain text; focuses are the only filter      |
+| Bio paragraph               | Kept as the "where": venture names become plain links that open each venture's detail view       |
+| Focus with no visible tiles | Shown as plain text: no hover, no link, no toggle, until a tile names it                         |
+| Tile with no focus          | Stays in the feed (Curfew, Project Superbloom); the feed is not limited to focuses               |
+| Rail thumbnails             | Replaced by each focus's app icons (`icons` in focuses.ts), which fan out on hover as ja.mt's do |
+| Search in the rail          | Stays where it is for now; its look and final place are part B                                   |
 
 ## The focuses
 
-In this order, under the heading "What he's working toward":
+In this order, under the plain label "Focuses":
 
-| id         | Line                                                       | Tiles                                         |
-| ---------- | ---------------------------------------------------------- | --------------------------------------------- |
-| `cities`   | Fighting for light rail and more walkable neighborhoods    | `lvbt`, `transitmapper`                       |
-| `helpers`  | Finding the helpers throughout the country                 | `atlas` (hidden today, so plain text for now) |
-| `lovelace` | Building an intelligent computer for everyone              | `rtc`                                         |
-| `tools`    | Building tools to help people plan and live their lives    | `logdate`, `docket`, `hypertext`              |
-| `diaries`  | Filming a silly little video diary                         | `initiative-fall-tour-2026`                   |
+| id         | Line                                                    | Tiles                                         |
+| ---------- | ------------------------------------------------------- | --------------------------------------------- |
+| `cities`   | Fighting for light rail and more walkable neighborhoods | `lvbt`, `transitmapper`                       |
+| `helpers`  | Finding the helpers throughout the country              | `atlas` (hidden today, so plain text for now) |
+| `lovelace` | Building an intelligent computer for everyone           | `rtc`                                         |
+| `tools`    | Building tools to help people plan and live their lives | `logdate`, `docket`, `hypertext`              |
+| `diaries`  | Filming a silly little video diary                      | `initiative-fall-tour-2026`                   |
 
 Fall Tour 2026 is a part of The Willie Diaries (`parent: twd`), so the diary
 focus lights it. Curfew and Project Superbloom carry no focus.

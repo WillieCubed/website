@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { FOCUS_IDS } from '@/lib/home/focuses';
+
 /**
  * Frontmatter schemas for initiatives and their parts.
  *
@@ -91,8 +93,8 @@ export const TileSizeSchema = z.enum([
 ]);
 export type TileSize = z.infer<typeof TileSizeSchema>;
 
-export const FacetSchema = z.enum(['software', 'systems', 'people']);
-export type Facet = z.infer<typeof FacetSchema>;
+/** The homepage focuses a featured initiative serves (lib/home/focuses.ts). */
+export const FocusSchema = z.enum(FOCUS_IDS);
 
 /** How an initiative shows up on the homepage tile grid. */
 export const FeatureSchema = z.object({
@@ -101,9 +103,7 @@ export const FeatureSchema = z.object({
   size: TileSizeSchema.default('w3 h3'),
   /** The one-line hint shown on hover, e.g. "Follow the tour". */
   hint: z.string().min(1),
-  facets: z.array(FacetSchema).default([]),
-  /** Include the initiative in the rail index at this position. */
-  list: z.number().int().positive().optional(),
+  focuses: z.array(FocusSchema).default([]),
 });
 export type Feature = z.infer<typeof FeatureSchema>;
 

@@ -11,8 +11,13 @@ import DockFooter from '@/components/site/DockFooter';
 
 import { allBrandVars } from '@/lib/brand/scheme';
 import { detailMetadata } from '@/lib/home/detail-metadata';
-import { facetEntries, getFeaturedTiles } from '@/lib/home/featured';
-import { LVBT_DEADLINE, getHomeTiles } from '@/lib/home/ventures';
+import { focusEntries, getFeaturedTiles } from '@/lib/home/featured';
+import { focuses, iconPicture, tilesByFocus } from '@/lib/home/focuses';
+import {
+  LVBT_DEADLINE,
+  type TileEntry,
+  getHomeTiles,
+} from '@/lib/home/ventures';
 import { getFeaturedInitiatives } from '@/lib/initiatives';
 import { homeGraph } from '@/lib/seo/jsonld';
 import { site } from '@/lib/site';
@@ -62,8 +67,8 @@ export async function generateMetadata({
 }
 
 /**
- * The homepage: a rail with the headline and venture list beside a grid of
- * tiles, each of which opens a detail view.
+ * The homepage: a rail with the headline and Willie's focuses beside a grid
+ * of tiles, each of which opens a detail view.
  *
  * Route: /
  */
@@ -85,19 +90,49 @@ export default async function HomePage() {
       ])
   );
 
+  const tiles = getHomeTiles(featuredTiles);
+  const brands = allBrandVars();
+  const byFocus = tilesByFocus(
+    tiles.map((tile) => ({ id: tile.id, focuses: focusesOfTile(tile) }))
+  );
+  const focusItems = focuses.map((focus) => {
+    const own = tiles.filter((tile) => byFocus[focus.id].includes(tile.id));
+    const vars = own[0] && brandVarsOfTile(own[0], brands);
+    return {
+      ...focus,
+      live: own.length > 0,
+      style: vars as React.CSSProperties | undefined,
+      stack: focus.icons.map(iconPicture),
+    };
+  });
+
   return (
     <>
       <JsonLd data={homeGraph()} />
       {/* The footer is this page's contact row until the page ends. */}
       <DockFooter />
       <HomeShell
-        brands={allBrandVars()}
+        brands={brands}
         detailCountdown={<CountdownDays deadline={LVBT_DEADLINE} />}
-        extraEntries={facetEntries(featuredTiles)}
+        extraEntries={focusEntries(featuredTiles)}
       >
-        <Rail />
-        <TileGrid tiles={getHomeTiles(featuredTiles)} playbills={playbills} />
+        <Rail focuses={focusItems} />
+        <TileGrid tiles={tiles} playbills={playbills} />
       </HomeShell>
     </>
   );
+}
+
+function focusesOfTile(tile: TileEntry) {
+  return tile.kind === 'venture' ? tile.venture.focuses : tile.focuses;
+}
+
+/** A tile's brand scheme, if it has one: a venture's by key, an initiative's own. */
+function brandVarsOfTile(
+  tile: TileEntry,
+  brands: Record<string, Record<string, string>>
+): Record<string, string> | undefined {
+  const vars =
+    tile.kind === 'venture' ? brands[tile.venture.brand] : tile.brandVars;
+  return vars && Object.keys(vars).length > 0 ? vars : undefined;
 }

@@ -20,3 +20,32 @@
   margin-inline: calc(-1 * var(--bleed));
   padding-inline: var(--bleed);
 }
+
+html[data-post-reply-transition]::view-transition-group(post-reply) {
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html[data-post-reply-transition] {
+  view-transition-name: none;
+}
+
+html[data-post-reply-transition]::view-transition-old(post-reply) {
+  animation: 90ms ease-out both post-reply-fade-out;
+}
+
+html[data-post-reply-transition]::view-transition-new(post-reply) {
+  animation: 180ms ease-in 90ms both post-reply-fade-in;
+}
+
+@keyframes post-reply-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes post-reply-fade-in {
+  from {
+    opacity: 0;
+  }
+}

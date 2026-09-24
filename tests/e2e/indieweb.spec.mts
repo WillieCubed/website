@@ -166,6 +166,67 @@ test('the Webmention receiver rejects invalid input before storage', async ({
 });
 
 const postPath = process.env.INDIEWEB_TEST_POST_PATH;
+test('post actions reveal an IndieWeb reply and use native sharing', async ({
+  page,
+}) => {
+  test.skip(!postPath, 'Set INDIEWEB_TEST_POST_PATH to a test writing.');
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async (data: ShareData) => {
+        Object.assign(window, { __sharedPost: data });
+      },
+    });
+  });
+  await page.goto(postPath!);
+  await page.evaluate(() => {
+    const start = document.startViewTransition.bind(document);
+    Object.defineProperty(document, 'startViewTransition', {
+      configurable: true,
+      value: (update: () => void) => {
+        Reflect.set(
+          window,
+          '__replyTransitionCalls',
+          (Reflect.get(window, '__replyTransitionCalls') ?? 0) + 1
+        );
+        return start(update);
+      },
+    });
+  });
+  const actions = page.getByRole('group', { name: 'Post actions' });
+  const reply = actions.getByRole('button', { name: 'Reply via IndieWeb' });
+  const threads = actions.getByRole('link', { name: 'Share on Threads' });
+  const share = actions.getByRole('button', { name: 'Share', exact: true });
+  await expect(reply).toBeVisible();
+  await expect(threads).toBeVisible();
+  await expect(share).toBeVisible();
+  expect(await actions.locator('[data-post-action]').allTextContents()).toEqual(
+    ['Reply via IndieWeb', 'Share on Threads', 'Share']
+  );
+  await expect(reply).toHaveAttribute('aria-expanded', 'false');
+  await reply.click();
+  await expect(reply).toHaveAttribute('aria-expanded', 'true');
+  await expect
+    .poll(() =>
+      page.evaluate(() => Reflect.get(window, '__replyTransitionCalls'))
+    )
+    .toBe(1);
+  await expect(
+    page.getByRole('textbox', { name: 'Published reply URL' })
+  ).toBeVisible();
+  await reply.click();
+  await expect(reply).toHaveAttribute('aria-expanded', 'false');
+  await expect
+    .poll(() =>
+      page.evaluate(() => Reflect.get(window, '__replyTransitionCalls'))
+    )
+    .toBe(2);
+  await share.click();
+  await expect
+    .poll(() => page.evaluate(() => Reflect.get(window, '__sharedPost')))
+    .toMatchObject({ url: `${site.origin}${postPath}` });
+});
+
 test('a published writing has a parseable author, permalink, date, and content', async ({
   request,
 }) => {

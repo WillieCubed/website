@@ -33,23 +33,34 @@ export default function PostInteractions({
       webmentions.replies.length > 0 ||
       webmentions.mentions.length > 0 ||
       webmentions.bookmarks.length > 0);
+  const hasResponses = Boolean(hasWebmentions || backlinks.length > 0);
 
   return (
-    <section className="pt-5">
-      <SiteLink
-        href={threadsPostIntent(writing, target)}
-        target="_blank"
-        className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-label-large font-medium text-ink no-underline transition-colors hover:border-accent hover:bg-tray"
+    <section className="pt-14">
+      {hasResponses && (
+        <div className="space-y-8">
+          {hasWebmentions && webmentions && (
+            <WebmentionSection webmentions={webmentions} />
+          )}
+          {backlinks.length > 0 && <BacklinksSection backlinks={backlinks} />}
+        </div>
+      )}
+      <div
+        role="group"
+        aria-label="Post actions"
+        className={hasResponses ? 'mt-8' : undefined}
       >
-        <ThreadsIcon className="size-4" />
-        Share on Threads
-      </SiteLink>
-      <div className="mt-14 space-y-8">
-        {hasWebmentions && webmentions && (
-          <WebmentionSection webmentions={webmentions} />
-        )}
-        {backlinks.length > 0 && <BacklinksSection backlinks={backlinks} />}
-        <details className="group bleed rounded-3xl bg-surface-container">
+        <div className="flex flex-wrap gap-2">
+          <SiteLink
+            href={threadsPostIntent(writing, target)}
+            target="_blank"
+            className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-label-large font-medium text-ink no-underline transition-colors hover:border-accent hover:bg-tray"
+          >
+            <ThreadsIcon className="size-4" />
+            Share on Threads
+          </SiteLink>
+        </div>
+        <details className="group bleed mt-4 rounded-3xl bg-surface-container">
           <summary className="flex cursor-pointer list-none items-center gap-4 rounded-3xl py-5 [&::-webkit-details-marker]:hidden">
             <span className="min-w-0 flex-1">
               <span className="block text-title-medium font-semibold text-ink">

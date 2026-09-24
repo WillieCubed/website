@@ -42,6 +42,12 @@ export function checkDeployment(env, project) {
     'INDIEWEB_NOTIFY_SECRET',
   ];
   const missing = required.filter((name) => !env.has(name));
+  if (
+    project === 'indieweb-acceptance' &&
+    !env.has('NEXT_PUBLIC_SITE_ORIGIN')
+  ) {
+    missing.push('NEXT_PUBLIC_SITE_ORIGIN');
+  }
   if (!env.has('BLOB_STORE_ID') && !env.has('BLOB_READ_WRITE_TOKEN')) {
     missing.push('BLOB_STORE_ID or BLOB_READ_WRITE_TOKEN');
   }

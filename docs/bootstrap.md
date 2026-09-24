@@ -27,7 +27,9 @@ rerun. The domain cutover script separately refuses any project except
 The deployment phase checks configuration names, not secret values or live
 database state. It requires Postgres, Webmention, IndieAuth, Micropub, and
 photo storage settings. Apply the SQL files under `lib/db/migrations` in
-numeric order when provisioning a new database. `INDIEWEB_NOTIFY_SECRET_PRODUCTION`
+numeric order when provisioning a new database. The acceptance project also
+needs `NEXT_PUBLIC_SITE_ORIGIN` so its generated
+permalinks and feeds stay on the acceptance host. `INDIEWEB_NOTIFY_SECRET_PRODUCTION`
 remains pending until Willie approves public posts. Bootstrap reports that
 state without setting the secret or sending notifications. The
 [production rollout record](indieweb/production-rollout.md) tracks that gate.

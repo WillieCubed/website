@@ -39,6 +39,11 @@ test('production notification secret is pending rather than required', () => {
   assert.ok(result.pending.includes('INDIEWEB_NOTIFY_SECRET_PRODUCTION'));
 });
 
+test('acceptance needs its own origin so permalinks do not point at production', () => {
+  const result = checkDeployment(new Set(), 'indieweb-acceptance');
+  assert.ok(result.missing.includes('NEXT_PUBLIC_SITE_ORIGIN'));
+});
+
 test('project selection rejects unknown or malformed Vercel links', () => {
   assert.equal(parseProjectName('{"projectName":"website"}'), 'website');
   assert.equal(

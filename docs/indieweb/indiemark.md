@@ -6,11 +6,11 @@ public result before claiming an IndieMark level. The
 `TBD` items, so those items are not testable claims. Protocol details follow
 the [supported behavior contract](spec.md).
 
-| Level | Testable criterion                                                      | Repeatable check                                                                                                                                         | Public state on 2026-09-23                                                                    |
+| Level | Testable criterion                                                      | Repeatable check                                                                                                                                         | Public state (2026-09-23 unless noted)                                                        |
 | ----- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | 1     | Own domain and use it as an identity for sign-in                        | Fetch the homepage, `rel=me`, IndieAuth metadata, and complete a PKCE authorization on an isolated deployment                                            | Domain and discovery live; independent client authorization still needs a current PKCE client |
 | 1     | At least two original, indexable HTML posts with permalinks and h-entry | Fetch two approved posts without JavaScript, parse each with an independent microformats parser, check robots and site search                            | Pending; every production writing is a draft                                                  |
-| 2     | Representative homepage h-card with name, URL, photo                    | Parse the public homepage with an independent parser                                                                                                     | Passed on the isolated deployment; recheck production after rollout                           |
+| 2     | Representative homepage h-card with name, URL, photo, and icon          | Parse the public homepage with an independent parser; fetch the photo and manifest icon                                                                  | Passed on production on 2026-09-24; see evidence below                                        |
 | 2     | Two real post types, including a note                                   | Parse approved article and note permalinks and their feeds                                                                                               | Pending approved publication                                                                  |
 | 2     | Navigate and search public posts                                        | Follow previous/next links and query `/search?q=` for a published phrase                                                                                 | UI exists; public post proof pending                                                          |
 | 2     | POSSE copies link back and the originals link to the copies             | Publish a copy from an existing account, follow its link to the original, and parse the original's exact `u-syndication` permalink                       | Pending manual publication; profile URLs do not count                                         |
@@ -22,6 +22,17 @@ the [supported behavior contract](spec.md).
 The site also receives moderated Webmentions and offers Micropub creation. Those
 capabilities exceed several level 1–3 criteria, but their existence does not
 replace a missing public post, actual syndication copy, or hub delivery.
+
+The [Go Microformats parser](https://go.microformats.io/?url=https%3A%2F%2Fwillie.page%2F)
+returned one `h-card` from the production homepage on 2026-09-24. Its `name`
+was `Willie Chalmers III`, its `url` was `https://willie.page/`, and its
+`photo` was `https://willie.page/brand/social/avatar-400.png`. The photo
+returned HTTP 200 as a 400 × 400 PNG. The
+[web manifest](https://willie.page/manifest.webmanifest) returned HTTP 200
+and listed a [192 × 192 PNG icon](https://willie.page/brand/web/icon-192.png),
+which also returned HTTP 200. This proves the Level 2 identity criterion on
+the public domain. It does not establish the post, syndication, or search
+criteria.
 
 We chose manual POSSE for now because neither Bluesky nor Threads publishing
 is integrated with Micropub. We rejected profile URLs as copy links because

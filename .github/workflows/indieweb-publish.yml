@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: indieweb-publish-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   notify:

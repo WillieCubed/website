@@ -247,6 +247,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
               backlinks={backlinks}
               slug={slug}
               target={canonicalUrl}
+              writing={writing}
             />
 
             <PostNavigation

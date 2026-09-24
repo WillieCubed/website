@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import SiteLink from '@/components/link/SiteLink';
 import PaletteTrigger from '@/components/palette/PaletteTrigger';
 
@@ -5,10 +7,12 @@ import type { PageColumn } from '@/lib/footer/column';
 import { site } from '@/lib/site';
 
 import TopBarFrame from './TopBarFrame';
+import './site.css';
 
 interface Crumb {
   label: string;
   href: string;
+  control?: ReactNode;
 }
 
 /**
@@ -49,7 +53,7 @@ export default function TopBar({
   return (
     <TopBarFrame
       column={column}
-      className={`mx-auto flex items-center gap-3 py-4 text-label-large text-muted ${COLUMN[column]}`}
+      className={`mx-auto flex items-center gap-1 py-4 text-label-large text-muted ${COLUMN[column]}`}
     >
       <SiteLink
         preview={false}
@@ -61,25 +65,23 @@ export default function TopBar({
         {site.name}
       </SiteLink>
       {crumbs.map((crumb) => (
-        <span key={crumb.href} className="flex items-center gap-3">
+        <div key={crumb.href} className="flex items-center gap-1">
           <span aria-hidden="true">/</span>
-          <SiteLink
-            preview={false}
-            href={crumb.href}
-            className="transition-colors hover:text-ink"
-          >
-            {crumb.label}
-          </SiteLink>
-        </span>
+          {crumb.control ?? (
+            <SiteLink
+              preview={false}
+              href={crumb.href}
+              className="site-breadcrumb"
+            >
+              {crumb.label}
+            </SiteLink>
+          )}
+        </div>
       ))}
       <div className="ml-auto flex items-center">
         <PaletteTrigger size="compact" />
         <noscript>
-          <SiteLink
-            preview={false}
-            href="/search"
-            className="transition-colors hover:text-ink"
-          >
+          <SiteLink preview={false} href="/search" className="site-breadcrumb">
             Search
           </SiteLink>
         </noscript>

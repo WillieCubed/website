@@ -16,14 +16,17 @@ import FooterLockup from './FooterLockup';
 import './site.css';
 
 /**
- * Every routed page from the site manifest. Search lives in the command
+ * Brand stays available by direct link without promotion in the footer.
+ * Search lives in the command
  * palette; visitors whose scripts never ran find /search through the top
  * bar's <noscript> link instead.
  */
-const PAGES = routedPages.map((page) => ({
-  label: page.label,
-  href: page.path,
-}));
+const PAGES = routedPages
+  .filter((page) => page.path !== '/brand')
+  .map((page) => ({
+    label: page.label,
+    href: page.path,
+  }));
 
 const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
   {

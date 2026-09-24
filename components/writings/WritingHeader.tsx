@@ -34,7 +34,7 @@ export default function WritingHeader({
   const target = replyTargetOf(writing);
 
   return (
-    <header className="mx-auto max-w-breakpoint-md px-lg pb-md pt-8 desktop:px-0">
+    <header className="mx-auto max-w-breakpoint-md px-lg pb-8 pt-10 desktop:px-0">
       {/* Permalink for parsers. u-uid marks it as the canonical identity. */}
       <a href={canonicalUrl} className="u-url u-uid hidden" />
       <FeedAuthor />
@@ -52,16 +52,22 @@ export default function WritingHeader({
       )}
 
       {writing.hasExplicitTitle ? (
-        <div className="space-y-md">
-          <h1 className="p-name text-headline-medium desktop:text-headline-large">
-            {writing.title}
-          </h1>
-          <p className="p-summary text-title-large text-accent">
-            {writing.description}
-          </p>
-          <Byline writing={writing} publishedIso={publishedIso} readingTime />
+        <div>
+          <div className="space-y-2">
+            <h1 className="p-name text-headline-medium desktop:text-headline-large">
+              {writing.title}
+            </h1>
+            {writing.postType === 'article' && (
+              <p className="p-summary text-body-large text-muted">
+                {writing.description}
+              </p>
+            )}
+          </div>
+          <div className="mt-5">
+            <Byline writing={writing} publishedIso={publishedIso} readingTime />
+          </div>
           {writing.series && seriesData && (
-            <p className="text-label-large text-muted">
+            <p className="mt-2 text-label-large text-muted">
               Part {writing.series.part} of {seriesData.totalParts} ·{' '}
               <SiteLink
                 href={seriesData.href}

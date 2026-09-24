@@ -38,7 +38,7 @@ export default async function WritingContent({
 
       <div className="mx-auto max-w-breakpoint-md space-y-10 px-lg desktop:px-0">
         {/* h-entry: e-content */}
-        <div className="e-content">
+        <div className="e-content rounded-3xl border border-line bg-tray px-6 py-7 medium:px-8 medium:py-9">
           <WritingDetailsView source={content} />
         </div>
 

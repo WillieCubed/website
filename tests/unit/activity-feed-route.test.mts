@@ -5,6 +5,7 @@ import {
   buildActivityFeedItems,
   flattenWebmentionActivities,
 } from '@/lib/indieweb/activity-feed';
+import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import type {
   ActivityFeedRouteConfig,
   WebmentionGroup,
@@ -58,7 +59,7 @@ test('createActivityFeedResponse serializes IndieWeb metadata in JSON Feed items
   );
   assert.equal(
     response.headers.get('Link'),
-    `<https://pubsubhubbub.appspot.com/>; rel="hub", <${config.feedUrl}>; rel="self"`
+    `<${WEBSUB_HUB}>; rel="hub", <${config.feedUrl}>; rel="self"`
   );
   assert.equal(json.items[0]._indieweb.type, 'like');
   assert.equal(json.items[0]._indieweb.source, 'https://example.com/like');

@@ -17,4 +17,4 @@ export const MICROPUB_ENDPOINT = '/micropub';
 export const MICROPUB_MEDIA_ENDPOINT = '/micropub/media';
 export const PUBLIC_WEBMENTIONS_ENDPOINT = '/webmentions';
 export const OEMBED_ENDPOINT = '/oembed';
-export const WEBSUB_HUB = 'https://pubsubhubbub.appspot.com/';
+export const WEBSUB_HUB = 'https://websubhub.com/hub';

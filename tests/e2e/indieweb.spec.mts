@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { mf2 } from 'microformats-parser';
 import type { MicroformatRoot } from 'microformats-parser/dist/types';
 
+import { WEBSUB_HUB } from '../../lib/indieweb/constants';
 import { site } from '../../lib/site';
 
 function rootOfType(items: MicroformatRoot[], type: string) {
@@ -80,10 +81,10 @@ test('feed documents advertise their own URL and the WebSub hub', async ({
     expect(response.headers()['content-type'], path).toContain(type);
     const body = await response.text();
     expect(body, path).toContain(`${site.origin}${path}`);
-    expect(body, path).toContain('https://pubsubhubbub.appspot.com/');
+    expect(body, path).toContain(WEBSUB_HUB);
     if (type === 'application/feed+json') {
       expect(response.headers().link, path).toContain(
-        '<https://pubsubhubbub.appspot.com/>; rel="hub"'
+        `<${WEBSUB_HUB}>; rel="hub"`
       );
       expect(response.headers().link, path).toContain(
         `<${site.origin}${path}>; rel="self"`

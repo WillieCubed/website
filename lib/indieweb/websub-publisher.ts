@@ -21,30 +21,33 @@ export async function pingWebSubHub(
   feedUrls: string[] = SITE_FEED_PATHS.map((path) => absoluteUrl(path)),
   hub = WEBSUB_HUB
 ): Promise<{ ok: boolean; status?: number; error?: string }> {
-  const body = new URLSearchParams();
-  body.set('hub.mode', 'publish');
-  // Google's hub accepts several feeds in one publish request.
-  for (const feedUrl of feedUrls) body.append('hub.url', feedUrl);
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  try {
-    const response = await fetch(hub, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-      signal: controller.signal,
+  let status: number | undefined;
+  let failure: { ok: false; status?: number; error?: string } | null = null;
+  for (const feedUrl of feedUrls) {
+    const body = new URLSearchParams({
+      'hub.mode': 'publish',
+      'hub.url': feedUrl,
     });
-    return {
-      ok: response.ok || response.status === 204,
-      status: response.status,
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  } finally {
-    clearTimeout(timeout);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(hub, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+        signal: controller.signal,
+      });
+      status = response.status;
+      if (!response.ok && !failure) failure = { ok: false, status };
+    } catch (error) {
+      if (!failure)
+        failure = {
+          ok: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  return failure ?? { ok: true, status };
 }

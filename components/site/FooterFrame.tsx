@@ -77,7 +77,13 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     let footerHeight = 0;
     let scrollHeight = 0;
     let p = 0;
+    // The page above turns into a sheet as the footer opens
+    // (footer-dock.css), so the root carries the progress too, with the
+    // page's width as a plain number for the sheet's scale.
+    const root = document.documentElement;
+    root.dataset.footerDock = '';
     const measure = () => {
+      root.style.setProperty('--page-w', String(root.clientWidth));
       footerHeight = footer.offsetHeight;
       scrollHeight = document.documentElement.scrollHeight;
     };
@@ -92,6 +98,10 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
         footerHeight,
       });
       footer.style.setProperty('--p', p.toFixed(4));
+      root.style.setProperty('--footer-p', p.toFixed(4));
+      // Scaling the page makes it a containing block for fixed elements,
+      // so it is scaled only while it is actually a sheet.
+      root.toggleAttribute('data-footer-sheet', p > 0);
       // The headline's name rides the sticky rail, so where it has got to
       // is the one thing worth measuring every frame.
       const box = compact.matches
@@ -146,6 +156,10 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       headlineReveal?.destroy();
       footer.removeAttribute('style');
       delete footer.dataset.dock;
+      root.style.removeProperty('--page-w');
+      root.style.removeProperty('--footer-p');
+      root.removeAttribute('data-footer-sheet');
+      delete root.dataset.footerDock;
     };
   }, [docked]);
 

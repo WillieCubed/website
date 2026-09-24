@@ -59,3 +59,26 @@ test('WebSub reports a rejected feed', async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test('WebSub treats an unregistered topic without subscribers as idle', async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    return calls === 1
+      ? new Response('Topic not found for topic URL.', { status: 500 })
+      : new Response(null, { status: 202 });
+  };
+  try {
+    assert.deepEqual(
+      await pingWebSubHub(
+        ['https://example.org/feed.xml', 'https://example.org/feed/atom'],
+        'https://websubhub.com/hub'
+      ),
+      { ok: true, status: 202 }
+    );
+    assert.equal(calls, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

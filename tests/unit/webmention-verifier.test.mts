@@ -95,6 +95,53 @@ test('likes and reposts are told apart from replies', async () => {
   assert.equal((await verifyWebmention('wm-1', source, target)).type, 'repost');
 });
 
+test('replies, likes, reposts, and bookmarks marked up as citations keep their kind', async () => {
+  const kinds = [
+    ['u-in-reply-to', 'reply'],
+    ['u-like-of', 'like'],
+    ['u-repost-of', 'repost'],
+    ['u-bookmark-of', 'bookmark'],
+  ] as const;
+  for (const [property, type] of kinds) {
+    serveSource(`
+      <div class="h-entry">
+        <div class="${property} h-cite">
+          <a class="u-url p-name" href="${target}">Hello</a>
+          by <span class="p-author h-card">Willie</span>
+        </div>
+      </div>
+    `);
+    const result = await verifyWebmention('wm-1', source, target);
+    assert.equal(result.type, type, property);
+  }
+});
+
+test('a citation whose address is an image with alt text is still a reply', async () => {
+  serveSource(`
+    <div class="h-entry">
+      <div class="u-in-reply-to h-cite">
+        <img class="u-url" src="${target}" alt="Hello">
+      </div>
+    </div>
+  `);
+  assert.equal((await verifyWebmention('wm-1', source, target)).type, 'reply');
+});
+
+test('a citation of another page leaves a link to the target a mention', async () => {
+  serveSource(`
+    <div class="h-entry">
+      <div class="u-in-reply-to h-cite">
+        <a class="u-url" href="https://example.org/posts/other">Other</a>
+      </div>
+      <div class="e-content">See also <a href="${target}">this</a>.</div>
+    </div>
+  `);
+  assert.equal(
+    (await verifyWebmention('wm-1', source, target)).type,
+    'mention'
+  );
+});
+
 test('a page that links without an h-entry is a plain mention', async () => {
   serveSource(`<p>Read <a href="${target}">this</a>.</p>`);
   const result = await verifyWebmention('wm-1', source, target);

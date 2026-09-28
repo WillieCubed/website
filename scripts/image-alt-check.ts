@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
-import { imageAltIssue, validatePhotoAlts } from './alt-policy';
+import { imageAltIssue } from '../lib/accessibility/alt-policy';
 
 export interface AltIssue {
   file: string;
@@ -21,14 +21,15 @@ function mediaAlt(
   value: unknown,
   file: string,
   label: string,
-  issues: AltIssue[]
+  issues: AltIssue[],
+  allowDecorative = true
 ) {
   if (typeof value === 'string' && value.trim()) {
     issues.push(
       issue(
         file,
         1,
-        `${label}: Images need an object with src and nonblank alt text.`
+        `${label}: Images need an object with a URL and nonblank alt text.`
       )
     );
     return;
@@ -36,7 +37,10 @@ function mediaAlt(
   if (!value || typeof value !== 'object') return;
   const media = value as Record<string, unknown>;
   if (!media.src && !media.url && !media.imageUrl) return;
-  const message = imageAltIssue(media.alt, media.decorative === true);
+  const message = imageAltIssue(
+    media.alt,
+    allowDecorative && media.decorative === true
+  );
   if (message) issues.push(issue(file, 1, `${label}: ${message}`));
 }
 
@@ -49,8 +53,7 @@ function mdxAlt(
   const alt = attributes.find((attribute) => attribute.name === 'alt');
   const decorative = attributes.some(
     (attribute) =>
-      (attribute.name === 'aria-hidden' && attribute.value === 'true') ||
-      attribute.name === 'decorative'
+      attribute.name === 'aria-hidden' && attribute.value === 'true'
   );
   const message = imageAltIssue(alt?.value, decorative);
   if (message) issues.push(issue(file, line, message));
@@ -102,21 +105,31 @@ function mdxMediaItems(
       );
       return;
     }
-    const fields = new Map(
-      object.properties
-        .filter((property): property is ts.PropertyAssignment =>
-          ts.isPropertyAssignment(property)
-        )
-        .map((property) => [
-          property.name.getText(parsed),
-          property.initializer,
-        ])
-    );
+    const fields = new Map<string, ts.Expression>();
+    for (const property of object.properties) {
+      if (
+        !ts.isPropertyAssignment(property) ||
+        !(ts.isIdentifier(property.name) || ts.isStringLiteral(property.name))
+      ) {
+        issues.push(
+          issue(file, line, `${name}[${index}] needs literal image fields.`)
+        );
+        return;
+      }
+      fields.set(property.name.text, property.initializer);
+    }
     const src = fields.get('src');
     const alt = fields.get('alt');
     const decorative = fields.get('decorative');
-    if (!src) return;
-    const text = alt && ts.isStringLiteral(alt) ? alt.text : undefined;
+    if (!src) {
+      issues.push(issue(file, line, `${name}[${index}] needs src.`));
+      return;
+    }
+    const text =
+      alt &&
+      (ts.isStringLiteral(alt) || ts.isNoSubstitutionTemplateLiteral(alt))
+        ? alt.text
+        : undefined;
     const message = imageAltIssue(
       text,
       decorative?.kind === ts.SyntaxKind.TrueKeyword
@@ -157,8 +170,9 @@ export function validateMdxImageAlts(file: string, source: string): AltIssue[] {
     const photos = Array.isArray(metadata.photo)
       ? metadata.photo
       : [metadata.photo];
-    const message = validatePhotoAlts(photos);
-    if (message) issues.push(issue(file, 1, message));
+    photos.forEach((photo, index) =>
+      mediaAlt(photo, file, `photo[${index}]`, issues, false)
+    );
   }
   const features = metadata.features;
   if (Array.isArray(features)) {
@@ -229,10 +243,21 @@ export function validateTsxImageAlts(file: string, source: string): AltIssue[] {
     true,
     ts.ScriptKind.TSX
   );
+  const imageTags = new Set(['img', 'Image']);
+  for (const statement of tree.statements) {
+    if (
+      ts.isImportDeclaration(statement) &&
+      ts.isStringLiteral(statement.moduleSpecifier) &&
+      statement.moduleSpecifier.text === 'next/image' &&
+      statement.importClause?.name
+    ) {
+      imageTags.add(statement.importClause.name.text);
+    }
+  }
   const check = (node: ts.Node) => {
     if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
       const name = node.tagName.getText(tree);
-      if (name === 'img' || name === 'Image') {
+      if (imageTags.has(name)) {
         const attributes = node.attributes.properties;
         const alt = attributes.find(
           (attribute): attribute is ts.JsxAttribute =>
@@ -243,30 +268,41 @@ export function validateTsxImageAlts(file: string, source: string): AltIssue[] {
           (attribute) =>
             ts.isJsxAttribute(attribute) &&
             attribute.name.getText(tree) === 'aria-hidden' &&
-            (attribute.initializer?.getText(tree) === '"true"' ||
-              attribute.initializer?.getText(tree) === '{true}')
+            ((attribute.initializer &&
+              ts.isStringLiteral(attribute.initializer) &&
+              attribute.initializer.text === 'true') ||
+              (attribute.initializer &&
+                ts.isJsxExpression(attribute.initializer) &&
+                attribute.initializer.expression?.kind ===
+                  ts.SyntaxKind.TrueKeyword))
         );
         const value = alt?.initializer;
         const expression =
           value && ts.isJsxExpression(value) ? value.expression : undefined;
-        const literal =
-          value && ts.isStringLiteral(value)
-            ? value.text
-            : expression && ts.isStringLiteral(expression)
-              ? expression.text
-              : undefined;
-        let emptyBranch = false;
-        const findEmptyBranch = (child: ts.Node) => {
-          if (ts.isStringLiteral(child) && !child.text.trim()) {
-            emptyBranch = true;
+        const text = (node: ts.Node) =>
+          ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)
+            ? node.text
+            : undefined;
+        const literal = value
+          ? (text(value) ?? (expression ? text(expression) : undefined))
+          : undefined;
+        let invalidBranch = false;
+        const findInvalidBranch = (child: ts.Node) => {
+          const branchText = text(child);
+          if (
+            (branchText !== undefined && !branchText.trim()) ||
+            (ts.isIdentifier(child) && child.text === 'undefined') ||
+            child.kind === ts.SyntaxKind.NullKeyword
+          ) {
+            invalidBranch = true;
           }
-          ts.forEachChild(child, findEmptyBranch);
+          ts.forEachChild(child, findInvalidBranch);
         };
-        if (expression) findEmptyBranch(expression);
+        if (expression) findInvalidBranch(expression);
         const message =
           !alt || literal !== undefined
             ? imageAltIssue(literal, hidden)
-            : hidden || emptyBranch
+            : hidden || invalidBranch
               ? 'Dynamic alt must stay nonblank; decorative images need literal alt="".'
               : null;
         if (message) {

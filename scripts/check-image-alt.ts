@@ -1,10 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-import {
-  validateMdxImageAlts,
-  validateTsxImageAlts,
-} from '../lib/accessibility/content-alt';
+import { validateMdxImageAlts, validateTsxImageAlts } from './image-alt-check';
 
 function files(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {

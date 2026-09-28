@@ -1,5 +1,6 @@
 import { cacheLife } from 'next/cache';
 
+import { hasImageDescription } from '@/lib/accessibility/alt-policy';
 import { type Initiative, getInitiatives } from '@/lib/initiatives';
 import { formatDate, isInternalHref, site } from '@/lib/site';
 import { type WritingData, getAllWritings } from '@/lib/writings';
@@ -19,6 +20,16 @@ function range(starts: Date, ends: Date) {
     day: 'numeric',
   });
   return `${short.format(starts)} – ${short.format(ends)}`;
+}
+
+function writingCover(writing: WritingData) {
+  if (!writing.featuredImage) return undefined;
+  if (!hasImageDescription(writing.featuredImageAlt)) {
+    throw new Error(
+      `Writing "${writing.slug}" has a featured image without alt text.`
+    );
+  }
+  return { src: writing.featuredImage, alt: writing.featuredImageAlt.trim() };
 }
 
 /**
@@ -70,9 +81,7 @@ export function entityCards(
       kind: 'writing',
       title: writing.title,
       description: writing.description,
-      cover: writing.featuredImage
-        ? { src: writing.featuredImage, alt: writing.featuredImageAlt ?? '' }
-        : undefined,
+      cover: writingCover(writing),
       meta: `${formatDate(new Date(writing.published))} · ${writing.readingTime} min read`,
     });
   }

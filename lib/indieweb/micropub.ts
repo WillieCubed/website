@@ -1,7 +1,7 @@
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { validatePhotoAlts } from '@/lib/accessibility/alt-policy';
+import { hasImageDescription } from '@/lib/accessibility/alt-policy';
 import { MICROPUB_MEDIA_ENDPOINT } from '@/lib/indieweb/constants';
 import { getMediaStore } from '@/lib/indieweb/media';
 import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
@@ -82,7 +82,7 @@ export function buildMicropubWritingFile(
   entry: MicropubCreateRequest,
   slug: string
 ): string {
-  assertPhotoAlts(entry);
+  assertPhotoAlts(entry.photos);
   const published = entry.published ?? new Date();
   const title = entry.name ?? titleForEntry(entry, published);
   const description =
@@ -325,8 +325,7 @@ function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
   if (entry.h !== 'entry' || (!content && entry.photos.length === 0)) {
     throw new Error('invalid_request');
   }
-  const altError = validatePhotoAlts(entry.photos);
-  if (altError) throw new MicropubValidationError(altError);
+  assertPhotoAlts(entry.photos);
 
   return {
     h: 'entry',
@@ -355,23 +354,22 @@ export class MicropubValidationError extends Error {
   }
 }
 
-function assertPhotoAlts(entry: MicropubCreateRequest): void {
-  const message = validatePhotoAlts(entry.photos);
-  if (message) throw new MicropubValidationError(message);
+function assertPhotoAlts(photos: readonly { alt?: unknown }[]): void {
+  const index = photos.findIndex((photo) => !hasImageDescription(photo.alt));
+  if (index >= 0) {
+    throw new MicropubValidationError(
+      `Photo ${index + 1} needs nonblank alt text. Send each photo as a JSON object with value and alt.`
+    );
+  }
 }
 
-// A form body cannot carry the required photo object with alt text. Files
-// belong at the separate media endpoint; post creation uses JSON afterward.
 function parseFormPhotos(formData: FormData): MicropubPhoto[] {
-  const values = [...formData.getAll('photo'), ...formData.getAll('photo[]')];
-  return values.map((value) => {
-    if (typeof value !== 'string') {
-      throw new MicropubValidationError(
-        'Upload the file to /micropub/media, then create the post with a JSON photo object containing value and alt.'
-      );
-    }
-    return { url: photoUrl(value) };
-  });
+  if (formData.has('photo') || formData.has('photo[]')) {
+    throw new MicropubValidationError(
+      'Upload the file to /micropub/media if needed, then create the post with a JSON photo object containing value and alt.'
+    );
+  }
+  return [];
 }
 
 // JSON bodies give each photo as a URL or as `{ value, alt }`.

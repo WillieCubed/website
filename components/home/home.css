@@ -1490,3 +1490,16 @@ html[data-detail-morph]::view-transition-new(root) {
     transform: none;
   }
 }
+
+@media (forced-colors: active) {
+  :is(.tile, .product, dialog.detail) {
+    border: 1px solid CanvasText;
+  }
+  .pager button::after {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+  .pager button[aria-current='true']::after {
+    background: Highlight;
+  }
+}

@@ -311,7 +311,7 @@ test('parseMicropubCreateRequest rejects form photos without alt text', async ()
 
   await assert.rejects(
     parseMicropubCreateRequest(micropubRequest(body)),
-    /Photo 1 needs nonblank alt text/
+    /JSON photo object containing value and alt/
   );
 });
 
@@ -367,7 +367,10 @@ test('parseMicropubCreateRequest rejects a photo that is not a web URL', async (
   for (const photo of ['not a url', 'javascript:alert(1)']) {
     await assert.rejects(
       parseMicropubCreateRequest(
-        micropubRequest(new URLSearchParams({ h: 'entry', photo }))
+        micropubRequest({
+          type: ['h-entry'],
+          properties: { photo: [{ value: photo, alt: 'A photo' }] },
+        })
       ),
       /invalid_request/,
       photo

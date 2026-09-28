@@ -42,14 +42,7 @@ export default function TableOfContents({
       }
     });
 
-    return () => {
-      headings.forEach((heading) => {
-        const element = document.getElementById(heading.id);
-        if (element) {
-          observer.unobserve(element);
-        }
-      });
-    };
+    return () => observer.disconnect();
   }, [headings]);
 
   if (headings.length === 0) {
@@ -57,9 +50,9 @@ export default function TableOfContents({
   }
 
   return (
-    <nav className={`${className}`} aria-label="Table of contents">
-      {/* Mobile toggle */}
+    <nav className={className} aria-label="Table of contents">
       <button
+        type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex w-full items-center justify-between rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-left desktop:hidden"
         aria-expanded={isExpanded}
@@ -83,7 +76,6 @@ export default function TableOfContents({
         </svg>
       </button>
 
-      {/* Content list */}
       <div
         id="writing-contents"
         className={`${isExpanded ? 'mt-2 block' : 'hidden'} desktop:block`}

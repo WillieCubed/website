@@ -423,3 +423,9 @@ header[data-column] .site-breadcrumb:focus-visible::before {
     transition: none;
   }
 }
+
+@media (forced-colors: active) {
+  .site-popover {
+    border: 1px solid CanvasText;
+  }
+}

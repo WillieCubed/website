@@ -1,9 +1,10 @@
 import { cacheLife } from 'next/cache';
 
 import { type Initiative, getInitiatives } from '@/lib/initiatives';
-import { formatDate, site } from '@/lib/site';
+import { formatDate, isInternalHref, site } from '@/lib/site';
 import { type WritingData, getAllWritings } from '@/lib/writings';
 
+import { entityKey } from './key';
 import { STATIC_PAGES } from './pages';
 import type { EntityCard } from './types';
 import { VENTURE_CARDS } from './ventures';
@@ -32,6 +33,23 @@ export async function getEntityRegistry(): Promise<EntityCard[]> {
     getInitiatives(),
   ]);
   return entityCards(writings, initiatives);
+}
+
+/**
+ * Drops in-site links whose destination is not published, such as a chip
+ * pointing at a writing that is still a draft. The link comes back on its own
+ * once the page ships, so content can name a page before it exists.
+ */
+export async function publishedLinks<T extends { href: string }>(
+  links: T[]
+): Promise<T[]> {
+  if (!links.some((link) => isInternalHref(link.href))) return links;
+  const known = new Set(
+    (await getEntityRegistry()).map((card) => entityKey(card.href))
+  );
+  return links.filter(
+    (link) => !isInternalHref(link.href) || known.has(entityKey(link.href))
+  );
 }
 
 /**
@@ -89,4 +107,4 @@ export function entityCards(
   return cards;
 }
 
-export { entityKey } from './key';
+export { entityKey };

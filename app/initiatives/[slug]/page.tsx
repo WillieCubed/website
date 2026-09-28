@@ -11,6 +11,7 @@ import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 
+import { publishedLinks } from '@/lib/entities/registry';
 import {
   getChildInitiatives,
   getInitiative,
@@ -79,6 +80,7 @@ export default async function InitiativePage(props: {
     ? await getInitiative(initiative.parent).catch(() => null)
     : null;
   const children = await getChildInitiatives(slug);
+  const links = await publishedLinks(initiative.links);
   const places = initiative.parts
     .flatMap((part) => part.places)
     .filter(
@@ -178,13 +180,13 @@ export default async function InitiativePage(props: {
           </section>
         )}
 
-        {initiative.links.length > 0 && (
+        {links.length > 0 && (
           <nav
             className="mx-auto mt-12 max-w-[720px]"
             aria-label="Related links"
           >
             <ul className="flex list-none flex-wrap gap-2 p-0">
-              {initiative.links.map((link) => (
+              {links.map((link) => (
                 <li key={link.href}>
                   <SiteLink
                     href={link.href}

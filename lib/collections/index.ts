@@ -192,9 +192,11 @@ export async function getSeries(slug: string): Promise<SeriesDefinition> {
   // content/series/, so a series of writings about Superbloom lands on
   // /initiatives/superbloom rather than a collections page that does not
   // exist.
+  const initiative = (await initiativeExists(slug))
+    ? await getInitiative(slug)
+    : null;
   const hasFile = (await getCollectionSlugs('series')).includes(slug);
-  if (!hasFile && (await initiativeExists(slug))) {
-    const initiative = await getInitiative(slug);
+  if (!hasFile && initiative) {
     return {
       slug,
       name: initiative.title,
@@ -222,7 +224,10 @@ export async function getSeries(slug: string): Promise<SeriesDefinition> {
     startedAt: definition.metadata.startedAt,
     complete: definition.metadata.complete,
     content: definition.content,
-    href: `/writings?series=${definition.slug}`,
+    // The writings index ignores ?series=, so that href only lands on the
+    // unfiltered list. An initiative with the same slug owns the real page,
+    // even when the series also has a file of its own.
+    href: initiative?.href ?? `/writings?series=${definition.slug}`,
   };
 }
 

@@ -455,7 +455,7 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
             <Media id={openId} media={media} countdown={countdown} />
           )}
         </div>
-        <div className="d-content">
+        <div className="d-content scroller">
           <span className="d-kicker">{entry?.parent ?? ''}</span>
           <h2 className="d-title" id="d-title">
             {entry?.name}

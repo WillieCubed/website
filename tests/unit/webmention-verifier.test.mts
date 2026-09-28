@@ -98,13 +98,31 @@ test('a reply marked up as an h-entry is verified with its author and content', 
     photo: 'https://example.com/me.jpg',
   });
   assert.equal(result.content, 'Great post!');
+  assert.equal(result.contentHtml, 'Great <strong>post</strong>!');
   assert.deepEqual(result.publishedAt, new Date('2026-09-01T12:00:00Z'));
   assert.deepEqual(fetched, [source]);
 
   const [update] = verifications();
   assert.ok(update, 'the row is marked verified');
   assert.equal(update.values[0], 'reply');
+  assert.ok(update.values.includes('Great post!'), 'the text is stored');
+  assert.ok(
+    update.values.includes('Great <strong>post</strong>!'),
+    'the sanitized markup is stored'
+  );
   assert.equal(update.values.at(-1), 'wm-1');
+});
+
+test('a reply given as p-content is stored as text without markup', async () => {
+  serveSource(`
+    <article class="h-entry">
+      <a class="u-in-reply-to" href="${target}">In reply to</a>
+      <p class="p-content">1 &lt; 2 &amp; 3</p>
+    </article>
+  `);
+  const result = await verify('wm-1', source, target);
+  assert.equal(result.content, '1 < 2 & 3');
+  assert.equal(result.contentHtml, undefined);
 });
 
 test('a reply that names its author by address stores the author page’s h-card', async () => {

@@ -24,7 +24,10 @@ export interface Webmention {
   rsvp?: RSVPStatus;
   /** The citing post's own title, when it has one apart from its text. */
   name?: string;
+  /** Plain text, for feeds, search, and moderation. */
   content?: string;
+  /** Sanitized markup from the source's `e-content`, for the post to show. */
+  contentHtml?: string;
   publishedAt?: Date;
   receivedAt: Date;
   verifiedAt?: Date;
@@ -168,6 +171,7 @@ export interface UpdateVerifiedWebmentionData {
   authorUrl?: string;
   authorPhoto?: string;
   content?: string;
+  contentHtml?: string;
   publishedAt?: Date;
   rawMf2?: object;
 }
@@ -262,6 +266,7 @@ export interface WebmentionRow {
   /** `p-name` read from the stored h-entry, not a column of its own. */
   name: string | null;
   content: string | null;
+  content_html: string | null;
   published_at: string | Date | null;
   received_at: string | Date;
   verified_at: string | Date | null;
@@ -281,6 +286,7 @@ export interface WebmentionVerificationResult {
   rsvp?: RSVPStatus;
   author?: ExtractedWebmentionAuthor;
   content?: string;
+  contentHtml?: string;
   publishedAt?: Date;
   error?: string;
   isUpdate?: boolean;

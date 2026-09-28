@@ -94,6 +94,28 @@ test('a reply from another site renders as an h-cite comment on the post', () =>
   ]);
 });
 
+test('a reply with markup renders it as e-content, sanitized again on the way out', () => {
+  const entry = parsePost(
+    group({
+      replies: [
+        mention({
+          sourceUrl: 'https://alice.example/notes/42',
+          content: 'Agreed, see this.',
+          contentHtml:
+            '<p>Agreed, see <a href="/this">this</a>.</p><img src="x" onerror="alert(1)"><script>alert(1)</script>',
+        }),
+      ],
+    })
+  );
+  const comment = cite(entry.properties.comment?.[0]);
+  assert.deepEqual(comment.properties.content, [
+    {
+      html: '<p>Agreed, see <a href="https://alice.example/this" rel="nofollow ugc">this</a>.</p>',
+      value: 'Agreed, see this.',
+    },
+  ]);
+});
+
 test('a reply with no date or author still cites its source', () => {
   const entry = parsePost(
     group({ replies: [mention({ content: 'Nice.', author: {} })] })

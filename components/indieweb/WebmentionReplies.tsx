@@ -1,5 +1,6 @@
 import WebmentionAvatar from '@/components/indieweb/WebmentionAvatar';
 
+import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import type { Webmention } from '@/lib/indieweb/types';
 import { formatDate } from '@/lib/site';
 
@@ -11,7 +12,8 @@ interface WebmentionRepliesProps {
  * Each reply is its author, when they wrote it, and what they said. The
  * date links to the reply where it lives. Every reply is a `p-comment
  * h-cite` on the post's h-entry, so the conversation reads the same to a
- * parser as it does on the page.
+ * parser as it does on the page. A reply the source marked up shows its
+ * sanitized markup as `e-content`; one it gave as text shows as `p-content`.
  */
 export default function WebmentionReplies({ replies }: WebmentionRepliesProps) {
   if (replies.length === 0) return null;
@@ -60,10 +62,24 @@ export default function WebmentionReplies({ replies }: WebmentionRepliesProps) {
                   )}
                 </a>
               </p>
-              {reply.content && (
-                <p className="p-content text-body-medium text-ink">
-                  {reply.content}
-                </p>
+              {reply.contentHtml ? (
+                <div
+                  className="e-content space-y-2 text-body-medium text-ink [&_a]:link-animated [&_blockquote]:border-l-2 [&_blockquote]:border-line [&_blockquote]:pl-3 [&_code]:font-mono [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+                  // Sanitized again here, not only when stored, so a row
+                  // written by older code or by hand cannot carry script.
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeCommentHtml(
+                      reply.contentHtml,
+                      reply.sourceUrl
+                    ),
+                  }}
+                />
+              ) : (
+                reply.content && (
+                  <p className="p-content text-body-medium text-ink">
+                    {reply.content}
+                  </p>
+                )
               )}
             </div>
           </li>

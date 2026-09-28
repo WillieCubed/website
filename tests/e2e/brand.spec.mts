@@ -11,7 +11,11 @@ test('brand downloads, navigation, and disclosures work', async ({ page }) => {
   const expectedDownloads = [
     kit.archive,
     ...kit.tokens,
-    ...kit.marks.flatMap((mark) => mark.downloads),
+    ...kit.marks.flatMap((mark) => [
+      ...mark.downloads,
+      ...(mark.small?.downloads ?? []),
+    ]),
+    ...kit.usage.guidelines,
     ...kit.lockups.flatMap((lockup) => lockup.downloads),
     ...kit.appIcons.flatMap((icon) => icon.downloads),
     ...kit.platforms.flatMap((group) => group.files),
@@ -68,6 +72,29 @@ test('brand downloads, navigation, and disclosures work', async ({ page }) => {
   await expect(
     platform.getByRole('link', { name: /favicon.svg/ })
   ).toBeVisible();
+});
+
+test('logo usage is drawn and listed from the kit', async ({ page }) => {
+  await page.goto('/brand#usage');
+  const usage = page.locator('section[aria-labelledby="usage"]');
+  // One diagram each for the tile, the bare cube, and a lockup, with an x
+  // on three sides, four x squares, and the lockup's gap.
+  await expect(usage.locator('.brand-clear-space')).toHaveCount(3);
+  await expect(usage.locator('.brand-clear-space > span')).toHaveCount(
+    3 * 7 + 1
+  );
+  await expect(usage.locator('.brand-selection > li')).toHaveCount(
+    kit.usage.selection.length
+  );
+  const avoid = usage.locator('.brand-avoid > li');
+  await expect(avoid).toHaveCount(kit.usage.prohibited.length);
+  for (const item of kit.usage.prohibited)
+    await expect(
+      usage.getByRole('img', { name: `Incorrect: ${item.rule}` })
+    ).toBeVisible();
+  await expect(usage.locator('#minimum-size + p')).toContainText(
+    `At ${kit.usage.smallMaxPx}px or smaller`
+  );
 });
 
 for (const succeeds of [true, false]) {
@@ -238,6 +265,9 @@ for (const width of [390, 1440]) {
         ['type', '#type'],
         ['glass', '#app-icon'],
         ['usage', '#usage'],
+        ['clear-space', '#clear-space'],
+        ['minimum-size', '#minimum-size'],
+        ['avoid', '#avoid'],
       ] as const) {
         await page.goto(`/brand${hash}`);
         await expect(page.getByRole('heading', { level: 1 })).toHaveText(

@@ -9,6 +9,11 @@ import {
   validateMediaFile,
 } from '@/lib/indieweb/media';
 import type { MediaStore } from '@/lib/indieweb/media';
+import {
+  getMicropubSyndicationTargets,
+  resolveSyndicationTargets,
+  syndicationName,
+} from '@/lib/indieweb/syndication';
 import type {
   GitHubContentsCommitResponse,
   MicropubCommitOptions,
@@ -20,7 +25,6 @@ import type {
   MicropubPostType,
   MicropubPostTypeSource,
   MicropubRsvpStatus,
-  MicropubSyndicationTarget,
   RawMicropubEntry,
 } from '@/lib/indieweb/types';
 import {
@@ -43,9 +47,7 @@ export class MicropubStorageError extends Error {
   }
 }
 
-export function getMicropubSyndicationTargets(): MicropubSyndicationTarget[] {
-  return [];
-}
+export { getMicropubSyndicationTargets };
 
 export function getMicropubConfig(
   mediaAvailable = Boolean(getMediaStore())
@@ -54,6 +56,8 @@ export function getMicropubConfig(
     ...(mediaAvailable
       ? { 'media-endpoint': absoluteRoute`${MICROPUB_MEDIA_ENDPOINT}` }
       : {}),
+    'syndicate-to': getMicropubSyndicationTargets(),
+    q: ['config', 'syndicate-to'],
     'post-types': [
       { type: 'note', name: 'Note' },
       { type: 'photo', name: 'Photo' },
@@ -150,6 +154,11 @@ export function buildMicropubWritingFile(
       lines.push(`  - name: ${JSON.stringify(name)}`);
       lines.push(`    url: ${JSON.stringify(url)}`);
     });
+  }
+  if (entry.syndicateTo.length > 0) {
+    lines.push(
+      `syndicateTo: ${JSON.stringify(entry.syndicateTo.map(({ uid }) => uid))}`
+    );
   }
 
   return `${lines.join('\n')}\n---\n\n${entry.content.trim()}\n`;
@@ -410,21 +419,13 @@ function photoUrl(value: string): string {
   throw new Error('invalid_request');
 }
 
-// A client only offers the uids q=syndicate-to listed, so an unknown one is a
-// bad request rather than something to drop quietly.
-function resolveSyndicationTargets(
-  uids: string[]
-): MicropubSyndicationTarget[] {
-  if (uids.some(Boolean)) throw new Error('invalid_request');
-  return [];
-}
-
-// Only an already published copy may appear as a syndication link.
+// Only an already published copy may appear as a syndication link. A target
+// from mp-syndicate-to is only intent until someone posts the copy.
 function syndicationLinks(
   entry: MicropubCreateRequest
 ): { name: string; url: string }[] {
   const links = entry.syndication.map((url) => ({
-    name: new URL(url).hostname,
+    name: syndicationName(url),
     url,
   }));
   return links.filter(

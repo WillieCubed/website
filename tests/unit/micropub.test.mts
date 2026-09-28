@@ -103,9 +103,30 @@ test('Micropub accepts a form token and refuses ambiguous credentials', async ()
   );
 });
 
-test('Micropub does not advertise profile URLs as syndication copies', () => {
-  assert.deepEqual(getMicropubSyndicationTargets(), []);
-  assert.equal(getMicropubConfig(false)['syndicate-to'], undefined);
+test('Micropub offers the Bluesky and Threads accounts as syndication targets', () => {
+  const targets = getMicropubSyndicationTargets();
+
+  assert.deepEqual(targets, [
+    {
+      uid: 'https://bsky.app/profile/willie.page',
+      name: 'willie.page on Bluesky',
+      service: { name: 'Bluesky', url: 'https://bsky.app/' },
+      user: {
+        name: 'willie.page',
+        url: 'https://bsky.app/profile/willie.page',
+      },
+    },
+    {
+      uid: 'https://www.threads.com/@williecubed',
+      name: '@williecubed on Threads',
+      service: { name: 'Threads', url: 'https://www.threads.com/' },
+      user: {
+        name: '@williecubed',
+        url: 'https://www.threads.com/@williecubed',
+      },
+    },
+  ]);
+  assert.deepEqual(getMicropubConfig(false)['syndicate-to'], targets);
 });
 
 test('parseMicropubCreateRequest accepts form-encoded replies', async () => {
@@ -155,7 +176,7 @@ function micropubRequest(body: URLSearchParams | object): Request {
   });
 }
 
-test('parseMicropubCreateRequest rejects form targets without a syndication integration', async () => {
+test('parseMicropubCreateRequest records form targets as intent, not copies', async () => {
   const body = new URLSearchParams([
     ['h', 'entry'],
     ['content', 'Cross-posted note.'],
@@ -163,24 +184,36 @@ test('parseMicropubCreateRequest rejects form targets without a syndication inte
     ['mp-syndicate-to[]', 'https://bsky.app/profile/willie.page'],
   ]);
 
-  await assert.rejects(
-    parseMicropubCreateRequest(micropubRequest(body)),
-    /invalid_request/
+  const entry = await parseMicropubCreateRequest(micropubRequest(body));
+  assert.deepEqual(
+    entry.syndicateTo.map(({ uid }) => uid),
+    [
+      'https://www.threads.com/@williecubed',
+      'https://bsky.app/profile/willie.page',
+    ]
   );
+  const file = buildMicropubWritingFile(entry, 'cross-posted-note');
+  assert.match(
+    file,
+    /\nsyndicateTo: \["https:\/\/www\.threads\.com\/@williecubed","https:\/\/bsky\.app\/profile\/willie\.page"\]\n/
+  );
+  assert.doesNotMatch(file, /\nsyndication:/);
 });
 
-test('parseMicropubCreateRequest rejects JSON targets without a syndication integration', async () => {
-  await assert.rejects(
-    parseMicropubCreateRequest(
-      micropubRequest({
-        type: ['h-entry'],
-        properties: {
-          content: ['Cross-posted note.'],
-          'mp-syndicate-to': ['https://bsky.app/profile/willie.page'],
-        },
-      })
-    ),
-    /invalid_request/
+test('parseMicropubCreateRequest reads JSON syndication targets', async () => {
+  const entry = await parseMicropubCreateRequest(
+    micropubRequest({
+      type: ['h-entry'],
+      properties: {
+        content: ['Cross-posted note.'],
+        'mp-syndicate-to': ['https://bsky.app/profile/willie.page'],
+      },
+    })
+  );
+
+  assert.deepEqual(
+    entry.syndicateTo.map(({ name }) => name),
+    ['willie.page on Bluesky']
   );
 });
 
@@ -263,7 +296,7 @@ test('buildMicropubWritingFile records actual copy permalinks', () => {
 
   assert.match(
     file,
-    /syndication:\n {2}- name: "bsky\.app"\n {4}url: "https:\/\/bsky\.app\/profile\/willie\.page\/post\/3abc"\n---/
+    /syndication:\n {2}- name: "Bluesky"\n {4}url: "https:\/\/bsky\.app\/profile\/willie\.page\/post\/3abc"\n---/
   );
 });
 

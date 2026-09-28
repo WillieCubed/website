@@ -48,8 +48,9 @@ the public domain. It does not establish the post, syndication, or search
 criteria.
 
 The Threads action opens an editable composer with the original URL. The owner
-must publish the copy and record its exact permalink afterward. Neither
-Bluesky nor Threads publishing is integrated with Micropub. We rejected
-profile URLs as copy links because they do not identify a syndicated post. A
-working account integration with an exact created-post URL would justify
-advertising that account as a Micropub syndication target.
+must publish the copy and record its exact permalink afterward. Micropub
+advertises the Bluesky and Threads accounts as syndication targets, but
+choosing one only records `syndicateTo` in the post; neither service's
+publishing is integrated. Profile URLs never become copy links because they
+do not identify a syndicated post. Only a copy's exact permalink in
+`syndication` counts as evidence of syndication.

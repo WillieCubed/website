@@ -499,7 +499,11 @@ export interface MicropubCreateRequest {
   rsvp?: MicropubRsvpStatus;
   photos: MicropubPhoto[];
   syndication: string[];
-  /** Targets chosen with `mp-syndicate-to`, recorded as syndication links. */
+  /**
+   * Targets chosen with `mp-syndicate-to`, recorded as intent in the post's
+   * `syndicateTo` frontmatter. They are not copies, so they never become
+   * syndication links.
+   */
   syndicateTo: MicropubSyndicationTarget[];
 }
 
@@ -507,6 +511,8 @@ export interface MicropubCreateRequest {
 export interface MicropubSyndicationTarget {
   uid: string;
   name: string;
+  service: { name: string; url: string };
+  user: { name: string; url: string };
 }
 
 export interface MicropubCommitOptions {
@@ -540,7 +546,10 @@ export interface GitHubContentsCommitResponse {
 
 export interface MicropubConfigResponse {
   'media-endpoint'?: string;
+  'syndicate-to': MicropubSyndicationTarget[];
   'post-types': MicropubPostTypeConfig[];
+  /** The `q` values this endpoint answers. */
+  q: string[];
 }
 
 export interface MicropubRouteEnvironment {

@@ -228,6 +228,18 @@
   color: var(--color-ink);
 }
 
+/* The words a fragmention link points at (components/site/Fragmention.tsx),
+   in the page's own scheme, so a branded initiative page marks them in its
+   brand. A highlight takes no outline, so the underline draws the edge. It
+   never animates: the words are marked when the page scrolls to them, and
+   reduced motion needs no exception. */
+::highlight(fragmention) {
+  background-color: var(--b-primary-container, var(--color-primary-container));
+  color: var(--b-on-primary-container, var(--color-on-primary-container));
+  text-decoration: underline 2px var(--b-primary, var(--color-primary));
+  text-underline-offset: 3px;
+}
+
 /* The skip link focuses the page's <main> so the next Tab starts there. A
    ring around the whole page would only get in the way. */
 main:focus {

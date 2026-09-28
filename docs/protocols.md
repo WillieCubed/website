@@ -25,6 +25,7 @@ route file only forwards the request.
 | `/api/mcp`                  | [Model Context Protocol](https://modelcontextprotocol.io), Streamable HTTP                           | Read-only and unauthenticated: `get_profile`, `list_writings`, `get_writing`, `search_writings`, `list_initiatives`, and `brew_coffee`, which answers with a 418 tool error. See the MCP section below. |
 | `/llms.txt`                 | [llmstxt.org](https://llmstxt.org)                                                                   | An H1, a summary, and `- [name](url): notes` lists of the published writings, feeds, and protocol endpoints. Drafts never appear.                                                                       |
 | `/humans.txt`               | [humanstxt.org](https://humanstxt.org)                                                               | Who made the site and with what, from `lib/humans-txt.ts`. See the humans.txt note below.                                                                                                               |
+| every page                  | [Fragmention](https://indieweb.org/fragmention)                                                      | A URL ending in `##some+words` scrolls to and highlights the first place those words appear. See the fragmentions note below.                                                                           |
 
 ## humans.txt
 
@@ -101,6 +102,35 @@ Next's experimental SRI mode covers script files, not those inline
 scripts, and a policy that allows `'unsafe-inline'` blocks almost nothing.
 The consent page, which renders no scripts, carries a strict policy of its
 own.
+
+## Fragmentions
+
+A link that ends in `##some+words` ([fragmention](https://indieweb.org/fragmention))
+points at the first place those words appear on the page.
+`components/site/Fragmention.tsx`, mounted once in the root layout, reads the
+hash on load, on `hashchange`, and after a client-side navigation, which Next
+makes with `pushState` and so fires no `hashchange`; the Navigation API's
+`navigatesuccess` covers it. The words are percent-decoded with `+` as a
+space. The first visible text node inside `<main>` that holds them, ignoring
+case and line breaks, is scrolled to the middle of the window and
+highlighted. A screen-reader-only heading does not count as visible, so a
+note's hidden title never takes the match from its text. The matching lives
+in `lib/fragmention.ts` with unit tests, and `tests/e2e/fragmention.spec.mts`
+checks real pages.
+
+The highlight is a CSS Custom Highlight, styled by `::highlight(fragmention)`
+in `app/globals.css`, not a `<mark>`. The effect runs before the streamed
+parts of a page hydrate, and a `<mark>` inserted there made React report a
+hydration mismatch (minified error #418) and render the whole `<main>` again
+on the client. A highlight changes no DOM node. It takes the page's brand
+scheme and never animates. A highlight cannot draw an outline, so an
+underline marks its edge.
+
+Words that cross an element boundary, such as a phrase that runs into a
+link, match nothing, because the search reads one text node at a time. A
+browser without the Custom Highlight API still scrolls to the words, and one
+without the Navigation API follows a fragmention only on load and on
+`hashchange`.
 
 ## In the command palette
 

@@ -673,6 +673,8 @@
     color: var(--b-on-primary-container);
   }
   dialog.detail[data-branded] {
+    --scrollbar-thumb: color-mix(in srgb, var(--b-primary) 45%, transparent);
+    --scrollbar-thumb-hover: var(--b-primary);
     background: var(--b-surface-container-low);
   }
   dialog.detail[data-branded] .d-media {

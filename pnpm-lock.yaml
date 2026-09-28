@@ -202,9 +202,6 @@ importers:
       svg-to-pdfkit:
         specifier: 0.1.8
         version: 0.1.8
-      tailwind-scrollbar:
-        specifier: ^4.0.2
-        version: 4.0.2(react@19.2.7)(tailwindcss@4.3.0)
       tailwindcss:
         specifier: ^4.3.0
         version: 4.3.0
@@ -1075,9 +1072,6 @@ packages:
 
   '@types/pg@8.23.1':
     resolution: {integrity: sha512-fKVHpikPdg4GKks3JuLEhvwSyvwzF23hnabPy6DD8ljVbC7+6J5dQzdv4arV6jqq57djnMgs1HKBxX4P8aBI3A==}
-
-  '@types/prismjs@1.26.6':
-    resolution: {integrity: sha512-vqlvI7qlMvcCBbVe0AKAb4f97//Hy0EBTaiW8AalRnG/xAN5zOiWWyrNqNXeq8+KAuvRewjCVY1+IPxk4RdNYw==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
@@ -2404,11 +2398,6 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
-  prism-react-renderer@2.4.1:
-    resolution: {integrity: sha512-ey8Ls/+Di31eqzUxC46h8MksNuGx/n0AAC8uKpwFau4RPDYLuE3EXTp8N8G2vX2N7UC/+IXeNUnlWBGGcAG+Ig==}
-    peerDependencies:
-      react: '>=16.0.0'
-
   property-information@7.2.0:
     resolution: {integrity: sha512-IAtzIB6sUiWaJYrX9smp3V46pBGbBeLFRGdh25kg1334VcBlD8HzhPeNIWQH9zhGmo2itIe25EHt9dQP7G5hmg==}
 
@@ -2630,12 +2619,6 @@ packages:
 
   svg-to-pdfkit@0.1.8:
     resolution: {integrity: sha512-QItiGZBy5TstGy+q8mjQTMGRlDDOARXLxH+sgVm1n/LYeo0zFcQlcCh8m4zi8QxctrxB9Kue/lStc/RD5iLadQ==}
-
-  tailwind-scrollbar@4.0.2:
-    resolution: {integrity: sha512-wAQiIxAPqk0MNTPptVe/xoyWi27y+NRGnTwvn4PQnbvB9kp8QUBiGl/wsfoVBHnQxTmhXJSNt9NHTmcz9EivFA==}
-    engines: {node: '>=12.13.0'}
-    peerDependencies:
-      tailwindcss: 4.x
 
   tailwindcss@4.3.0:
     resolution: {integrity: sha512-y6nxMGB1nMW9R6k96e5gdIFzcfL/gTJRNaqGes1YvkLnPVXzWgbqFF2yLC0T8G774n24cx3Pe8XrKoniCOAH+Q==}
@@ -3489,8 +3472,6 @@ snapshots:
       '@types/node': 25.9.1
       pg-protocol: 1.16.0
       pg-types: 2.2.0
-
-  '@types/prismjs@1.26.6': {}
 
   '@types/react-dom@19.2.3(@types/react@19.2.16)':
     dependencies:
@@ -5107,12 +5088,6 @@ snapshots:
 
   prettier@3.8.3: {}
 
-  prism-react-renderer@2.4.1(react@19.2.7):
-    dependencies:
-      '@types/prismjs': 1.26.6
-      clsx: 2.1.1
-      react: 19.2.7
-
   property-information@7.2.0: {}
 
   punycode@2.3.1: {}
@@ -5406,13 +5381,6 @@ snapshots:
   svg-to-pdfkit@0.1.8:
     dependencies:
       pdfkit: 0.17.2
-
-  tailwind-scrollbar@4.0.2(react@19.2.7)(tailwindcss@4.3.0):
-    dependencies:
-      prism-react-renderer: 2.4.1(react@19.2.7)
-      tailwindcss: 4.3.0
-    transitivePeerDependencies:
-      - react
 
   tailwindcss@4.3.0: {}
 

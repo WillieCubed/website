@@ -136,7 +136,7 @@ export default async function RootLayout({
           href="/opensearch.xml"
         />
       </head>
-      <body className="flex min-h-dvh flex-col scrollbar-w-8 scrollbar-track-surface-container bg-ground text-ink font-sans antialiased">
+      <body className="flex min-h-dvh flex-col bg-ground text-ink font-sans antialiased">
         <PaletteProvider>
           <SkipLink />
           {process.env.NODE_ENV === 'production' &&

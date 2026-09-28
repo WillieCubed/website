@@ -412,7 +412,7 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
   return (
     <dialog
       ref={dialogRef}
-      className="detail"
+      className="detail scroller"
       aria-labelledby="d-title"
       data-brand={entry?.brand}
       data-branded={entry && style ? '' : undefined}

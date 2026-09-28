@@ -392,7 +392,7 @@ export default function BrandPage() {
                   {/* Every lockup shows at one cap height, however wide it
                     runs; a long one scrolls inside its own card. */}
                   <div
-                    className="brand-preview"
+                    className="brand-preview scroller"
                     tabIndex={0}
                     role="region"
                     aria-label={`${lockup.label} preview`}

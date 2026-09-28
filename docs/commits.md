@@ -15,6 +15,8 @@ Use one of these scopes. Omit the scope only for repository-wide changes.
 - **`initiatives`** — the initiative content model, `lib/initiatives`, `components/initiatives`, and the `/initiatives` routes
 - **`links`** — the in-site link component, hover cards, and the entity registry under `lib/entities`
 - **`indieweb`** — webmentions, feeds, discovery endpoints, and microformats; infrastructure for content interaction and syndication
+- **`seo`** — page titles, social metadata, structured data, and the sitemap: the metadata helpers in `lib/site.ts`, `lib/seo`, and `docs/metadata.md`
+- **`search`** — the command palette and site search: `components/palette`, `lib/palette`, `lib/search`, and `/search`
 - **`protocols`** — the small protocol routes and headers (`/coffee`, `/tea`, `/whoami`, `security.txt`, OpenSearch, the MCP server); see `docs/protocols.md`
 - **`docs`** — maintainer documentation under `docs/`
 - **`brand`** — the WillieCubed mark, the asset generator in `brand/`, and `/brand`

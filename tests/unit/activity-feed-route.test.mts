@@ -35,6 +35,7 @@ const group: WebmentionGroup = {
   replies: [],
   mentions: [],
   bookmarks: [],
+  rsvps: [],
 };
 
 test('createActivityFeedResponse serializes IndieWeb metadata in JSON Feed items', async () => {

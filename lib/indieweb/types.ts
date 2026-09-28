@@ -1,11 +1,12 @@
-import type { WritingData } from '@/lib/writings/types';
+import type { RSVPStatus, WritingData } from '@/lib/writings/types';
 
 export type WebmentionType =
   | 'like'
   | 'repost'
   | 'reply'
   | 'mention'
-  | 'bookmark';
+  | 'bookmark'
+  | 'rsvp';
 
 export interface WebmentionAuthor {
   name?: string;
@@ -19,6 +20,8 @@ export interface Webmention {
   targetUrl: string;
   type: WebmentionType;
   author: WebmentionAuthor;
+  /** The answer an `rsvp` gave; every answer is stored, even `no`. */
+  rsvp?: RSVPStatus;
   content?: string;
   publishedAt?: Date;
   receivedAt: Date;
@@ -33,6 +36,7 @@ export interface PublicWebmention {
   target: string;
   type: WebmentionType;
   author: WebmentionAuthor;
+  rsvp?: RSVPStatus;
   content?: string;
   published?: string;
   received: string;
@@ -96,6 +100,7 @@ export interface WebmentionGroup {
   replies: Webmention[];
   mentions: Webmention[];
   bookmarks: Webmention[];
+  rsvps: Webmention[];
 }
 
 export interface OutgoingWebmention {
@@ -155,6 +160,7 @@ export interface SendAllWebmentionsWritingResult {
 
 export interface UpdateVerifiedWebmentionData {
   type: WebmentionType;
+  rsvp?: RSVPStatus;
   authorName?: string;
   authorUrl?: string;
   authorPhoto?: string;
@@ -234,6 +240,7 @@ export interface PendingWebmentionSummary {
   source: string;
   target: string;
   type: WebmentionType;
+  rsvp?: RSVPStatus;
   author?: string;
   content?: string;
   received: string;
@@ -248,6 +255,7 @@ export interface WebmentionRow {
   author_name: string | null;
   author_url: string | null;
   author_photo: string | null;
+  rsvp: string | null;
   content: string | null;
   published_at: string | Date | null;
   received_at: string | Date;
@@ -265,6 +273,7 @@ export interface ExtractedWebmentionAuthor {
 export interface WebmentionVerificationResult {
   success: boolean;
   type?: WebmentionType;
+  rsvp?: RSVPStatus;
   author?: ExtractedWebmentionAuthor;
   content?: string;
   publishedAt?: Date;

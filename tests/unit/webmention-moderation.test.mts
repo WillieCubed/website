@@ -245,4 +245,9 @@ test('formatPendingWebmention prints what a moderator needs to decide', () => {
   );
   assert.match(flagged, /mention \(unverified\)/);
   assert.doesNotMatch(flagged, /author/);
+
+  const rsvp = formatPendingWebmention(
+    summarizePendingWebmention({ ...verified, type: 'rsvp', rsvp: 'maybe' })
+  );
+  assert.match(rsvp, new RegExp(`^${VERIFIED_ID}  rsvp maybe$`, 'm'));
 });

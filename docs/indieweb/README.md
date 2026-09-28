@@ -102,10 +102,18 @@ sentence. Articles leave their body to the permalink and carry
 
 Approved webmentions render at the foot of the post, inside its `h-entry`.
 A reply is a `p-comment h-cite` with `u-url` (the reply's own page),
-`dt-published`, `p-content`, and a `p-author h-card`. Likes, reposts, and
-bookmarks are facepiles: each face is a `u-like`, `u-repost`, or
-`u-bookmark` `h-cite` with the same author card, and a line beside it names
-who reacted. The post page reads them through a `'use cache'` loader with
+`dt-published`, `p-content`, and a `p-author h-card`. Likes, reposts,
+bookmarks, and RSVPs are facepiles: each face is a `u-like`, `u-repost`,
+`u-bookmark`, or `u-rsvp` `h-cite` with the same author card, and a line
+beside it names who reacted. An RSVP is a reply whose h-entry carries a
+`p-rsvp` of `yes`, `maybe`, `interested`, or `no`, compared without regard to
+case. It is stored as type `rsvp` with the answer in the `rsvp` column, and
+each face keeps the answer as `p-rsvp`. RSVPs sit in one facepile per answer,
+in the order going, maybe, and interested. A `no` is stored and appears in
+the activity feeds and `/webmentions`, but the post does not show it. No
+single markup for received RSVPs is standard yet
+([indieweb.org/rsvps](https://indieweb.org/rsvps)). `u-rsvp h-cite` is one
+that other sites use, and it matches the facepiles beside it. The post page reads them through a `'use cache'` loader with
 `cacheLife('minutes')`, so an approval shows within about a minute without
 a deploy. Do not move the read to request time: a streamed section lands
 after the page, outside the `h-entry`, and parsers lose the comments.
@@ -393,6 +401,9 @@ tables: `indieauth_codes` and `indieauth_tokens`, which hold SHA-256 digests
 rather than the codes and tokens themselves, and `indieauth_totp_steps` and
 `indieauth_sign_in_failures` for the owner check. Apply it before turning on
 sign-in.
+`lib/db/migrations/004_webmention_responses.sql` adds the `rsvp` column to
+`webmentions`. Every webmention query names that column, so apply the
+migration before deploying the code that reads it.
 
 ## IndieMark evidence
 

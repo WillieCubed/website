@@ -33,6 +33,7 @@ function group(overrides: Partial<WebmentionGroup>): WebmentionGroup {
     replies: [],
     mentions: [],
     bookmarks: [],
+    rsvps: [],
     ...overrides,
   };
 }
@@ -160,6 +161,64 @@ test('the names line says who reacted, so nothing sits only behind a hover', () 
   );
   assert.match(html, /Liked by Bob, Carol, and 2 others/);
   assert.match(html, /Reposted by Fay/);
+});
+
+test('RSVPs render as u-rsvp h-cites that keep their answer, grouped by it', () => {
+  const rsvp = (name: string, answer: 'yes' | 'no' | 'maybe' | 'interested') =>
+    mention({
+      type: 'rsvp',
+      rsvp: answer,
+      sourceUrl: `https://${name.toLowerCase()}.example/rsvp`,
+      author: { name, url: `https://${name.toLowerCase()}.example/` },
+    });
+  const webmentions = group({
+    rsvps: [
+      rsvp('Ada', 'yes'),
+      rsvp('Bea', 'yes'),
+      rsvp('Cy', 'maybe'),
+      rsvp('Di', 'interested'),
+      rsvp('Ed', 'no'),
+    ],
+  });
+
+  const entry = parsePost(webmentions);
+  const cites = (entry.properties.rsvp ?? []).map(cite);
+  assert.deepEqual(
+    cites.map((item) => [
+      item.properties.url?.[0],
+      item.properties.rsvp?.[0],
+      (item.properties.author?.[0] as MicroformatRoot).properties.name?.[0],
+    ]),
+    [
+      ['https://ada.example/rsvp', 'yes', 'Ada'],
+      ['https://bea.example/rsvp', 'yes', 'Bea'],
+      ['https://cy.example/rsvp', 'maybe', 'Cy'],
+      ['https://di.example/rsvp', 'interested', 'Di'],
+    ]
+  );
+
+  const html = renderToStaticMarkup(
+    createElement(WebmentionSection, { webmentions })
+  );
+  assert.match(html, /Ada and Bea are going/);
+  assert.match(html, /Cy might go/);
+  assert.match(html, /Di is interested/);
+  assert.doesNotMatch(html, /ed\.example/);
+});
+
+test('a post whose only RSVPs declined renders nothing', () => {
+  assert.equal(
+    renderToStaticMarkup(
+      createElement(WebmentionSection, {
+        webmentions: group({
+          rsvps: [
+            mention({ type: 'rsvp', rsvp: 'no', author: { name: 'Ed' } }),
+          ],
+        }),
+      })
+    ),
+    ''
+  );
 });
 
 test('a post with no approved webmentions renders nothing', () => {

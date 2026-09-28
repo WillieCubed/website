@@ -1,6 +1,8 @@
 import { cacheLife } from 'next/cache';
 
-import WebmentionSection from '@/components/indieweb/WebmentionSection';
+import WebmentionSection, {
+  hasVisibleWebmentions,
+} from '@/components/indieweb/WebmentionSection';
 
 import type { WebmentionGroup } from '@/lib/indieweb/types';
 import { getWebmentionsForTarget } from '@/lib/indieweb/webmention-storage';
@@ -20,16 +22,12 @@ export default async function PageWebmentions({
   className,
 }: PageWebmentionsProps) {
   const webmentions = await loadWebmentions(target);
-  if (!webmentions || !hasWebmentions(webmentions)) return null;
+  if (!webmentions || !hasVisibleWebmentions(webmentions)) return null;
   return (
     <section className={className} aria-label="Webmentions">
       <WebmentionSection webmentions={webmentions} />
     </section>
   );
-}
-
-function hasWebmentions(group: WebmentionGroup): boolean {
-  return Object.values(group).some((items) => items.length > 0);
 }
 
 /**

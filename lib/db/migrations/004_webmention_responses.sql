@@ -16,3 +16,10 @@ ALTER TABLE webmentions
 -- `content` keeps the plain text for feeds, search, and moderation.
 -- ============================================================================
 ALTER TABLE webmentions ADD COLUMN IF NOT EXISTS content_html TEXT;
+
+-- ============================================================================
+-- The vouch that approved a webmention without moderation, kept so every
+-- automatic approval can be traced to the page that vouched for it. NULL for
+-- webmentions Willie approved himself.
+-- ============================================================================
+ALTER TABLE webmentions ADD COLUMN IF NOT EXISTS vouch_url TEXT;

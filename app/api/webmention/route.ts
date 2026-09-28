@@ -2,6 +2,7 @@ import { cacheLife, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
+import { applyVouch, readVouchParameter } from '@/lib/indieweb/vouch';
 import {
   WEBMENTION_RATE_WINDOW_MS,
   isWithinWebmentionRateLimit,
@@ -10,6 +11,7 @@ import {
 import {
   storeWebmention,
   webmentionRateLimitStore,
+  webmentionVouchStore,
 } from '@/lib/indieweb/webmention-storage';
 import {
   canonicalWebmentionTarget,
@@ -60,15 +62,18 @@ export async function POST(request: NextRequest) {
 
     let source: string | null = null;
     let target: string | null = null;
+    let vouchParameter: unknown = null;
 
     if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await request.formData();
       source = formData.get('source') as string | null;
       target = formData.get('target') as string | null;
+      vouchParameter = formData.get('vouch');
     } else if (contentType.includes('application/json')) {
       const json = await request.json();
       source = json.source;
       target = json.target;
+      vouchParameter = json.vouch;
     } else {
       return NextResponse.json(
         {
@@ -99,6 +104,11 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid URL format for source or target.' },
         { status: 400 }
       );
+    }
+
+    const vouch = readVouchParameter(vouchParameter);
+    if ('error' in vouch) {
+      return NextResponse.json({ error: vouch.error }, { status: 400 });
     }
 
     // Only accept HTTPS
@@ -137,6 +147,13 @@ export async function POST(request: NextRequest) {
     after(async () => {
       try {
         const result = await verifyWebmention(id, source, canonicalTarget);
+        if (result.success && !result.isDeleted && vouch.vouch) {
+          const outcome = await applyVouch(
+            { id, sourceUrl: source, vouchUrl: vouch.vouch },
+            webmentionVouchStore
+          );
+          console.info(`Vouch for ${source}: ${outcome}`);
+        }
         if (result.success) revalidateTag('webmentions', { expire: 0 });
       } catch (error) {
         console.error('Webmention verification failed:', error);

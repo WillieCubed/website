@@ -103,7 +103,8 @@ a mark and its entry cannot drift apart.
 A Micropub client signed in through IndieAuth can create notes, photo notes,
 and articles through `POST /micropub`, after uploading any photos to
 `POST /micropub/media`. The route writes the same frontmatter this page
-describes, and `q=source` reads it back as mf2 properties. When the client
+describes, and `q=source` reads it back as mf2 properties. `q=category`
+gives the client the tags of published posts to suggest. When the client
 picks Bluesky or Threads, the route writes those account URLs to
 `syndicateTo` and posts nothing; add the copy's permalink to `syndication`
 once it exists. Details are in [the IndieWeb page](../indieweb/README.md#micropub).

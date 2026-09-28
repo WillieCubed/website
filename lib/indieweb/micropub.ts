@@ -50,7 +50,7 @@ export function getMicropubConfig(
       ? { 'media-endpoint': absoluteRoute`${MICROPUB_MEDIA_ENDPOINT}` }
       : {}),
     'syndicate-to': getMicropubSyndicationTargets(),
-    q: ['config', 'source', 'syndicate-to'],
+    q: ['config', 'source', 'syndicate-to', 'category'],
     'post-types': [
       { type: 'note', name: 'Note' },
       { type: 'photo', name: 'Photo' },

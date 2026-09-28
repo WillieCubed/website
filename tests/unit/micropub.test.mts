@@ -32,7 +32,7 @@ test('getMicropubConfig advertises supported personal-site post types', () => {
     config['post-types'].map((postType) => postType.type),
     ['note', 'photo', 'article', 'reply', 'like', 'repost', 'bookmark', 'rsvp']
   );
-  assert.deepEqual(config.q, ['config', 'source', 'syndicate-to']);
+  assert.deepEqual(config.q, ['config', 'source', 'syndicate-to', 'category']);
 });
 
 test('getMicropubConfig omits unavailable media uploads', () => {

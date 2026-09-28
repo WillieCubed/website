@@ -205,6 +205,28 @@ test('q=source reads the writing from GitHub when GitHub is configured', async (
   );
 });
 
+test('q=category lists published tags to anyone and filters them by prefix', async () => {
+  const options = {
+    publishedTags: async () => ['indieweb', 'note', 'transit', 'travel'],
+  };
+  const categories = async (query: string) => {
+    const response = await handleMicropubGet(get(query), options);
+    assert.equal(response.status, 200, query);
+    return (await response.json()).categories;
+  };
+  assert.deepEqual(await categories('q=category'), [
+    'indieweb',
+    'note',
+    'transit',
+    'travel',
+  ]);
+  assert.deepEqual(await categories('q=category&filter=TR'), [
+    'transit',
+    'travel',
+  ]);
+  assert.deepEqual(await categories('q=category&filter=web'), []);
+});
+
 test('a create still needs the create scope and writes the file', async () => {
   await withContent(async (options) => {
     const body = () =>

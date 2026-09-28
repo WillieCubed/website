@@ -28,7 +28,7 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                 | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                        | Postgres (optional)                                          |
 | `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                        | Postgres (optional)                                          |
-| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, and `?q=source`; `POST` creates supported h-entry kinds                     | IndieAuth token; see Micropub                                |
+| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, and `?q=source`; `POST` creates supported h-entry kinds      | IndieAuth token; see Micropub                                |
 | `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one photo and answers 201 with its `Location`                            | IndieAuth token, Vercel Blob connection                      |
 | `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                    | nothing                                                      |
 | `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL | Postgres                                                     |
@@ -334,6 +334,7 @@ valid token without the scope gets 403 `insufficient_scope`. Two tokens get 400.
 | `POST` an `h-entry`                        | `create` | 202 with `Location`; the post is live after the deploy           |
 | `GET ?q=source&url=` (and `properties[]=`) | any      | the writing's mf2 JSON, drafts included                          |
 | `GET ?q=config`, `?q=syndicate-to`         | none     | capabilities, syndication targets, and the `q` values it answers |
+| `GET ?q=category` (and `filter=`)          | none     | `{ categories }`, the tags of published writings                 |
 
 In a JSON body, `in-reply-to`, `like-of`, `repost-of`, and `bookmark-of`
 may each be a URL or an embedded `h-cite`. The post keeps the h-cite's first
@@ -366,6 +367,14 @@ property, such as `series` and `featured`, are left out. With `properties[]=cont
 `type`. A URL that is not a writing permalink on this origin, or names no
 file, gets 400 `invalid_request`. The answer carries
 `Cache-Control: no-store`.
+
+### Category queries
+
+`?q=category` answers `{ "categories": [...] }` with the tags of published
+writings, lowercase and sorted, the same tags that have pages under
+`/writings/tags` in production. `filter=tr` keeps the tags that start with
+`tr`, ignoring case. It needs no token, so it leaves out tags that only
+drafts carry, even on a development server that shows drafts.
 
 ### Syndication
 

@@ -156,7 +156,7 @@ other handle links to `https://instagram.com/<handle>`. Add an entry to
 
 A received webmention is stored unapproved, and every page, feed, and
 `/webmentions` query shows only verified, approved ones, so nothing appears
-until Willie approves it. There is no auto-approve rule. Moderate from a
+until Willie approves it or a vouch does (see Vouch below). Moderate from a
 terminal with the database URL in the environment:
 
 ```sh
@@ -236,6 +236,39 @@ from `webmentionTargetsForWriting` in `lib/indieweb/send-webmention.ts`, so
 a reply whose body never links its parent still notifies the parent. The
 publisher hashes the list with the body, so reordering it resends every post
 once.
+
+## Vouch
+
+A sender may add a `vouch` parameter
+([indieweb.org/Vouch](https://indieweb.org/Vouch)): the address of a page,
+on a domain this site trusts, that links to the sender's domain. A `vouch`
+that is not an http(s) URL gets a 400. Without one, or when the check fails,
+the webmention waits for moderation as before. After the source verifies,
+`applyVouch` in `lib/indieweb/vouch.ts` approves it when every one of these
+holds:
+
+1. No webmention from the source's domain has been approved before. A known
+   sender needs no vouch, so its vouch is ignored and it is moderated as
+   usual.
+2. The vouch page is on this site, or on a domain that accepted a webmention
+   this site sent (a `sent` row in `outgoing_webmentions`), both before and
+   after redirects.
+3. The page, fetched from public addresses only within five seconds and
+   1 MB, has an `<a>` or `<area>` whose `href` leads to the source's domain.
+
+Domains compare in lowercase, without a port or a leading `www.`. The vouch
+that approved a mention is kept in `vouch_url`, and the outcome is logged
+as `Vouch for <source>: <outcome>`. To see every automatic approval, run
+`SELECT source_url, vouch_url FROM webmentions WHERE vouch_url IS NOT NULL`.
+To undo one, reject its id as in Moderation.
+
+The spec lets a receiver trust any domain it has linked to. This site trusts
+only domains that accepted its webmentions, because a silo runs no receiver:
+a post linking to a GitHub repository must not let every GitHub page vouch
+for a stranger. A multi-user host that does accept webmentions, such as
+micro.blog, still lets any of its users vouch. The deploy publisher is the
+only sender that writes `outgoing_webmentions`, so until it has run, only
+this site's own pages can vouch.
 
 ## Micropub
 
@@ -443,8 +476,8 @@ tables: `indieauth_codes` and `indieauth_tokens`, which hold SHA-256 digests
 rather than the codes and tokens themselves, and `indieauth_totp_steps` and
 `indieauth_sign_in_failures` for the owner check. Apply it before turning on
 sign-in.
-`lib/db/migrations/004_webmention_responses.sql` adds the `rsvp` and
-`content_html` columns to `webmentions`. Every webmention query names that column, so apply the
+`lib/db/migrations/004_webmention_responses.sql` adds the `rsvp`,
+`content_html`, and `vouch_url` columns to `webmentions`. Every webmention query names that column, so apply the
 migration before deploying the code that reads it.
 
 ## IndieMark evidence

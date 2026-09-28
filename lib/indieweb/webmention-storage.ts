@@ -20,6 +20,7 @@ import type {
   WebmentionTargetRequest,
   WebmentionType,
 } from '@/lib/indieweb/types';
+import type { VouchStore } from '@/lib/indieweb/vouch';
 import { site } from '@/lib/site';
 import type { RSVPStatus } from '@/lib/writings/types';
 
@@ -450,6 +451,48 @@ export const webmentionRateLimitStore: WebmentionRateLimitStore = {
       WHERE window_start
         <= NOW() - ${windowMs}::integer * INTERVAL '1 millisecond'
     `;
+  },
+};
+
+/**
+ * The Postgres-backed store a vouch is checked against. A source's domain is
+ * compared the way `vouchDomain` compares it: lowercase, without a port or a
+ * leading `www.`.
+ */
+export const webmentionVouchStore: VouchStore = {
+  async hasApprovedSource(domain) {
+    const result = await sql`
+      SELECT 1
+      FROM webmentions
+      WHERE is_approved = TRUE
+        AND (is_deleted IS NULL OR is_deleted = FALSE)
+        AND regexp_replace(
+          lower(substring(source_url from '^https?://(?:[^@/?#]*@)?([^/?#:]+)')),
+          '^www\\.',
+          ''
+        ) = ${domain}
+      LIMIT 1
+    `;
+    return result.rows.length > 0;
+  },
+  async acceptedTargets() {
+    const result = await sql`
+      SELECT DISTINCT target_url
+      FROM outgoing_webmentions
+      WHERE status = 'sent'
+    `;
+    return result.rows.map((row) => String(row.target_url));
+  },
+  async approveByVouch(id, vouchUrl) {
+    const result = await sql`
+      UPDATE webmentions
+      SET is_approved = TRUE, vouch_url = ${vouchUrl}
+      WHERE id = ${id}
+        AND is_verified = TRUE
+        AND is_approved = FALSE
+        AND (is_deleted IS NULL OR is_deleted = FALSE)
+    `;
+    return (result.rowCount ?? 0) > 0;
   },
 };
 

@@ -194,10 +194,20 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
     });
   });
   const actions = page.getByRole('group', { name: 'Post actions' });
+  const replySurface = actions.locator('[data-reply-surface]');
   const reply = actions.getByRole('button', { name: 'Reply via IndieWeb' });
   const threads = actions.getByRole('link', { name: 'Share on Threads' });
   const share = actions.getByRole('button', { name: 'Share', exact: true });
   await expect(reply).toBeVisible();
+  await expect(replySurface).toBeVisible();
+  await page.evaluate(() => {
+    Reflect.set(
+      window,
+      '__replySurface',
+      document.querySelector('[data-reply-surface]')
+    );
+  });
+  const closedBounds = await replySurface.boundingBox();
   await expect(threads).toBeVisible();
   await expect(share).toBeVisible();
   expect(await actions.locator('[data-post-action]').allTextContents()).toEqual(
@@ -214,8 +224,27 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
   await expect(
     page.getByRole('textbox', { name: 'Published reply URL' })
   ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        Reflect.get(window, '__replySurface') ===
+        document.querySelector('[data-reply-surface]')
+    )
+  ).toBe(true);
+  await expect
+    .poll(async () => (await replySurface.boundingBox())?.width ?? 0)
+    .toBeGreaterThan((closedBounds?.width ?? 0) * 2);
+  await expect
+    .poll(async () => (await replySurface.boundingBox())?.height ?? 0)
+    .toBeGreaterThan((closedBounds?.height ?? 0) * 2);
+  await expect(
+    replySurface.getByRole('link', { name: 'Share on Threads' })
+  ).toHaveCount(0);
   await reply.click();
   await expect(reply).toHaveAttribute('aria-expanded', 'false');
+  await expect
+    .poll(async () => (await replySurface.boundingBox())?.height ?? 0)
+    .toBeLessThan((closedBounds?.height ?? 0) * 1.5);
   await expect
     .poll(() =>
       page.evaluate(() => Reflect.get(window, '__replyTransitionCalls'))

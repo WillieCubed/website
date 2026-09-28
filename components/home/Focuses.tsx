@@ -1,5 +1,7 @@
 'use client';
 
+import SiteLink from '@/components/link/SiteLink';
+
 import type { FocusId } from '@/lib/home/focuses';
 
 import { isFocusPressed, useHome, usePreviewHandlers } from './HomeContext';
@@ -121,7 +123,7 @@ export function Focuses({ items }: { items: FocusItem[] }) {
 /**
  * A venture's name in the rail's description. It opens the venture's detail
  * view in place, growing out of the name, and falls back to the same view by
- * URL without scripting.
+ * URL without scripting. It is a prose link, so it keeps the hover card.
  */
 export function VentureLink({
   id,
@@ -132,15 +134,19 @@ export function VentureLink({
 }) {
   const { openDetail } = useHome();
   return (
-    <a
-      href={`?detail=${id}`}
+    <SiteLink
+      href={`/?detail=${id}`}
       className="venture-link"
+      // The click never navigates, so fetching the route ahead is wasted.
+      prefetch={false}
       onClick={(event) => {
+        // Cancelling the click also stops next/link, and DetailDialog pushes
+        // the URL itself once the morph has run.
         event.preventDefault();
         openDetail(id, event.currentTarget);
       }}
     >
       {children}
-    </a>
+    </SiteLink>
   );
 }

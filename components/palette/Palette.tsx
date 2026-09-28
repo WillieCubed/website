@@ -135,6 +135,7 @@ function ReadoutView({ readout }: { readout: Readout }) {
     <section
       className="palette-readout"
       aria-label="Command output"
+      tabIndex={0}
       data-failed={readout.failed ? '' : undefined}
     >
       <p className="palette-readout__heading">{readout.heading}</p>

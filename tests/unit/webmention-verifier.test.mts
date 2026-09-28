@@ -83,6 +83,33 @@ test('a reply marked up as an h-entry is verified with its author and content', 
   assert.equal(update.values.at(-1), 'wm-1');
 });
 
+test('a reply that names its author by address stores the author page’s h-card', async () => {
+  serveSource(`
+    <article class="h-entry">
+      <a class="u-author" href="https://ada.example/"></a>
+      <a class="u-in-reply-to" href="${target}">In reply to</a>
+      <p class="e-content">Hi.</p>
+    </article>
+  `);
+  const requested: string[] = [];
+  const result = await verifyWebmention('wm-1', source, target, {
+    fetchAuthorPage: async (url) => {
+      requested.push(url);
+      return {
+        url,
+        html: '<div class="h-card"><a class="u-url u-uid p-name" href="https://ada.example/">Ada</a></div>',
+      };
+    },
+  });
+  assert.deepEqual(requested, ['https://ada.example/']);
+  assert.deepEqual(result.author, {
+    name: 'Ada',
+    url: 'https://ada.example/',
+  });
+  const [update] = verifications();
+  assert.ok(update.values.includes('Ada'), 'the name is stored');
+});
+
 test('likes and reposts are told apart from replies', async () => {
   serveSource(
     `<div class="h-entry"><a class="u-like-of" href="${target}">Liked</a></div>`

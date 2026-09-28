@@ -180,6 +180,20 @@ source's page it leads to the source's own origin, and
 and its tests live in `lib/indieweb/webmention-targets.ts` and
 `tests/unit/webmention-targets.test.mts`.
 
+The verifier finds who wrote the source with the
+[authorship algorithm](https://indieweb.org/authorship-spec), in
+`lib/indieweb/authorship.ts`. An embedded `p-author h-card` on the entry, or
+else on its parent `h-feed`, is the author, and a plain-text author is only a
+name. An author given as an address, or a permalink page's `rel=author` link
+when the entry names no author, is fetched. That page's h-card whose `url` and
+`uid` are both the page's address is the author. Failing that, the author is
+the h-card whose `url` is one of the page's `rel=me` links, and failing that,
+an h-card on the source page whose `url` is the author page. The author page
+is fetched like an IndieAuth client document (see IndieAuth): public
+addresses only, three redirects, 1 MB, and five seconds. Nothing is cached, so
+each verification fetches it again. When the entry names an author page that
+yields no card, the mention keeps the address without a name.
+
 `POST /api/webmention` answers 202 once the mention is stored, then verifies
 the source inside `after()` from `next/server`, which keeps a serverless
 invocation alive until verification settles. Each client address may send 10

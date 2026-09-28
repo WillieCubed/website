@@ -21,10 +21,8 @@ export default function WebmentionForm({ target }: { target: string }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <p className="text-body-medium text-muted">
-          Publish a reply that links to this post, then submit its URL.
-        </p>
+      <p className="text-body-medium text-muted">
+        Publish a reply that links to this post, then submit its URL.{' '}
         <button
           type="button"
           onClick={async () => {
@@ -35,12 +33,12 @@ export default function WebmentionForm({ target }: { target: string }) {
               setCopyState('failed');
             }
           }}
-          className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-label-large text-ink hover:border-accent"
+          className="inline-flex items-center gap-1 align-baseline text-label-large font-medium text-primary underline underline-offset-3 transition-colors hover:text-ink"
         >
-          <Icon name="copy" size={16} />
+          <Icon name="copy" size={14} />
           {copyState === 'copied' ? 'Copied post URL' : 'Copy post URL'}
         </button>
-      </div>
+      </p>
       {copyState === 'failed' && (
         <p role="status" className="text-label-medium text-signal">
           The post URL could not be copied.

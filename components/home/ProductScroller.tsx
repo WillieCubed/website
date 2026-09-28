@@ -56,7 +56,7 @@ export function ProductScroller({
             >
               {/* Decorative: the card's text names the product, and the
                   detail view it opens describes the screenshot. */}
-              <span className="product-media">
+              <span className="product-media" data-morph={product.id}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={product.image.src}

@@ -11,6 +11,8 @@ import { brandStyle, prefersReducedMotion, useHome } from './HomeContext';
 import { Icon } from './Icon';
 
 interface Source {
+  /** The entry the source stands for, which a swap can leave behind. */
+  id: string;
   card: HTMLElement;
   media: HTMLElement | null;
 }
@@ -24,40 +26,65 @@ const setName = (el: HTMLElement | null, value: string) => {
 // the change just applies. A transition the browser abandons, such as one
 // started in a background tab, still runs the update, so its rejection is
 // swallowed rather than left to strand the dialog mid-open.
-const morph = (update: () => void): Promise<void> => {
+//
+// `kind` sits on the root while the morph runs, so home.css can give the
+// card's clipped box the shadow its snapshot loses.
+const morph = (
+  kind: 'open' | 'swap' | 'close',
+  update: () => void
+): Promise<void> => {
   if (!document.startViewTransition || prefersReducedMotion()) {
     update();
     return Promise.resolve();
   }
+  const root = document.documentElement;
+  root.dataset.detailMorph = kind;
   const started = document.startViewTransition(update);
   // An abandoned transition rejects ready as well as finished, and nothing
   // else awaits ready, so without this every abort is an unhandled rejection.
   started.ready.catch(() => undefined);
-  return started.finished.catch(() => undefined);
+  return started.finished
+    .catch(() => undefined)
+    .finally(() => {
+      delete root.dataset.detailMorph;
+    });
 };
+
+/**
+ * The part of a tile and of its detail view that shows the same thing, such
+ * as the countdown's number or the screenshot, carries `data-morph` set to
+ * the entry's id on both sides. It moves on its own; the words around it
+ * ride inside the card, so no text is stretched or faded into different
+ * text, and an entry without a matching pair moves only its card.
+ */
+const mediaIn = (root: Element | null, id: string) =>
+  root?.querySelector<HTMLElement>(`[data-morph="${CSS.escape(id)}"]`) ?? null;
 
 // The shared element is whatever the visitor actually touched: a product
 // card, a tile, or a venture's name in the rail's description.
 function sourceFor(id: string, from: HTMLElement | null): Source | null {
   if (from?.classList.contains('product')) {
-    return { card: from, media: from.querySelector('.product-media') };
+    return { id, card: from, media: mediaIn(from, id) };
   }
   const name = from?.closest<HTMLElement>('.venture-link');
-  if (name) return { card: name, media: null };
-  const tile =
-    document.getElementById(id) ?? document.getElementById('hypertext');
-  return tile
-    ? { card: tile, media: tile.querySelector('[data-media]') }
-    : null;
+  if (name) return { id, card: name, media: null };
+  const tile = document.getElementById(id);
+  if (tile) return { id, card: tile, media: mediaIn(tile, id) };
+  // A product opened by URL grows out of the studio's tile. Its own card can
+  // be scrolled out of the studio's row, so only the tile moves.
+  const studio = document.getElementById('hypertext');
+  return studio ? { id, card: studio, media: null } : null;
 }
 
 // The detail view's pictures are never lazy: the morph snapshots the dialog
 // as soon as it opens, and the tile or row it grew from has usually loaded
 // the same file already.
 function Media({
+  id,
   media,
   countdown,
 }: {
+  id: string;
   media: DetailMedia;
   countdown: React.ReactNode;
 }) {
@@ -65,7 +92,7 @@ function Media({
     case 'countdown':
       return (
         <div className="d-count">
-          <b>{countdown}</b>
+          <b data-morph={id}>{countdown}</b>
           <span>{media.caption}</span>
         </div>
       );
@@ -78,6 +105,7 @@ function Media({
           height={media.height}
           alt={media.alt}
           className={media.fromLeft ? 'from-left' : undefined}
+          data-morph={id}
         />
       );
     case 'stack':
@@ -96,7 +124,7 @@ function Media({
         </div>
       );
     case 'constellation':
-      return <Constellation />;
+      return <Constellation morph={id} />;
   }
 }
 
@@ -200,18 +228,25 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     setName(source.media, 'media');
     sourceRef.current = source;
     openIdRef.current = id;
-    await morph(() => {
+    const dialog = dialogRef.current;
+    let media: HTMLElement | null = null;
+    await morph('open', () => {
       setName(source.card, '');
       setName(source.media, '');
       source.card.style.visibility = 'hidden';
       flushSync(() => setOpenId(id));
-      const dialog = dialogRef.current;
       if (!dialog) return;
+      media = source.media && mediaIn(mediaRef.current, id);
       setName(dialog, 'card');
-      setName(mediaRef.current, 'media');
+      setName(media, 'media');
       if (!dialog.open) dialog.showModal();
       dialog.scrollTop = 0;
     });
+    // Names only matter while a transition captures them. Left on, the open
+    // view would join the next one on the page, such as the command
+    // palette's.
+    setName(dialog, '');
+    setName(media, '');
     // The URL changes after the morph. Pushing first made the router start
     // its own view transition and the morph aborted with an invalid state.
     if (push) {
@@ -227,27 +262,37 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     if (!entries[id] || busyRef.current) return;
     busyRef.current = true;
     openIdRef.current = id;
-    await morph(() => {
+    const dialog = dialogRef.current;
+    setName(dialog, 'card');
+    await morph('swap', () => {
       flushSync(() => setOpenId(id));
-      if (dialogRef.current) dialogRef.current.scrollTop = 0;
+      if (dialog) dialog.scrollTop = 0;
     });
+    setName(dialog, '');
     if (replace) router.replace(`${pathname}?detail=${id}`, { scroll: false });
     busyRef.current = false;
   };
 
   const close = async () => {
-    const source = sourceRef.current;
+    const opened = sourceRef.current;
     const dialog = dialogRef.current;
-    if (!openIdRef.current || busyRef.current || !dialog) return;
+    const shown = openIdRef.current;
+    if (!shown || busyRef.current || !dialog) return;
     busyRef.current = true;
     openIdRef.current = null;
     pushedRef.current = null;
-    await morph(() => {
+    // After a swap the view shows another entry than the one it opened
+    // from, and it shrinks back into that entry's own tile and picture.
+    const source = opened?.id === shown ? opened : sourceFor(shown, null);
+    const media = source?.media ? mediaIn(mediaRef.current, shown) : null;
+    setName(dialog, 'card');
+    setName(media, 'media');
+    await morph('close', () => {
       setName(dialog, '');
-      setName(mediaRef.current, '');
+      setName(media, '');
       dialog.close();
+      if (opened) opened.card.style.visibility = '';
       if (source) {
-        source.card.style.visibility = '';
         setName(source.card, 'card');
         setName(source.media, 'media');
       }
@@ -328,7 +373,9 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
           }
           ref={mediaRef}
         >
-          {media && <Media media={media} countdown={countdown} />}
+          {media && openId && (
+            <Media id={openId} media={media} countdown={countdown} />
+          )}
         </div>
         <div className="d-content">
           <span className="d-kicker">{entry?.parent ?? ''}</span>

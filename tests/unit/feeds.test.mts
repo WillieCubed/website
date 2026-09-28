@@ -6,6 +6,7 @@ import test from 'node:test';
 import {
   type FeedItem,
   generateActivityAtomFeed,
+  generateActivityRssFeed,
   generateAtomFeed,
   generateJsonFeed,
   generateRssFeed,
@@ -55,6 +56,39 @@ test('the site and writings Atom feeds have different ids', () => {
 
   assert.equal(writingsId, `${site.origin}/writings/feed/atom`);
   assert.notEqual(siteId, writingsId);
+});
+
+test('an activity RSS description carries a reply’s text as text, not markup', () => {
+  const reply = {
+    id: 'webmention:1',
+    title: 'Ada replied to "Original Post"',
+    description: 'Try <img src=x onerror=alert(1)> & see',
+    url: 'https://ada.example/replies/1',
+    published: new Date('2026-05-18T12:00:00Z'),
+    categories: ['indieweb', 'reply'],
+    indieweb: {
+      type: 'reply' as const,
+      source: 'https://ada.example/replies/1',
+      target: `${site.origin}/writings/original-post`,
+    },
+  };
+  const rss = generateActivityRssFeed([reply], {
+    title: 'Activity',
+    description: 'Activity',
+    feedUrl: `${site.origin}/activity/feed.xml`,
+  });
+  assert.match(
+    rss,
+    /<description>Try &amp;lt;img src=x onerror=alert\(1\)&amp;gt; &amp;amp; see<\/description>/
+  );
+  const atom = generateActivityAtomFeed([reply], {
+    title: 'Activity',
+    feedUrl: `${site.origin}/activity/feed/atom`,
+  });
+  assert.match(
+    atom,
+    /<summary>Try &lt;img src=x onerror=alert\(1\)&gt; &amp; see<\/summary>/
+  );
 });
 
 test('an activity Atom feed takes its id from its own URL', () => {

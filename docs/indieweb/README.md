@@ -102,10 +102,23 @@ sentence. Articles leave their body to the permalink and carry
 
 Approved webmentions render at the foot of the post, inside its `h-entry`.
 A reply is a `p-comment h-cite` with `u-url` (the reply's own page),
-`dt-published`, `p-content`, and a `p-author h-card`. Likes, reposts,
-bookmarks, and RSVPs are facepiles: each face is a `u-like`, `u-repost`,
-`u-bookmark`, or `u-rsvp` `h-cite` with the same author card, and a line
-beside it names who reacted. An RSVP is a reply whose h-entry carries a
+`dt-published`, its text, and a `p-author h-card`. A reply whose source
+marked it up as `e-content` shows that markup as `e-content`, sanitized by
+`lib/indieweb/comment-content.ts` when it is stored and again when it
+renders. Only `p`, `br`, `a`, `em`, `strong`, `blockquote`, `code`, `ul`,
+`ol`, and `li` survive, `b` and `i` become `strong` and `em`, and a link
+keeps only an http(s) `href`, resolved against the reply, with
+`rel="nofollow ugc"`. Script, style, and embedded documents go with their
+text, and every other attribute goes. A reply given as `p-content` or a
+summary shows as plain `p-content`. Both forms stop at 2,000 characters of
+text and end in "…". The `content` column keeps the plain text for the
+activity feeds, `/webmentions`, and moderation, and `content_html` holds the
+markup. Readers render an RSS description as HTML, so the activity RSS feed
+escapes that text once more; Atom and JSON Feed carry it as text.
+
+Likes, reposts, bookmarks, and RSVPs are facepiles: each face is a
+`u-like`, `u-repost`, `u-bookmark`, or `u-rsvp` `h-cite` with the same author
+card, and a line beside it names who reacted. An RSVP is a reply whose h-entry carries a
 `p-rsvp` of `yes`, `maybe`, `interested`, or `no`, compared without regard to
 case. It is stored as type `rsvp` with the answer in the `rsvp` column, and
 each face keeps the answer as `p-rsvp`. RSVPs sit in one facepile per answer,
@@ -114,13 +127,16 @@ the activity feeds and `/webmentions`, but the post does not show it. No
 single markup for received RSVPs is standard yet
 ([indieweb.org/rsvps](https://indieweb.org/rsvps)). `u-rsvp h-cite` is one
 that other sites use, and it matches the facepiles beside it.
+
 A mention, a page that links to the post without replying or reacting, is a
 `u-mention h-cite` with `u-url`, `dt-published`, and a `p-author h-card`. It
 shows the citing post's `p-name` when that post has a title apart from its
 text, and otherwise the first 140 characters of its text as `p-content`. The
-title is read from the h-entry stored with the mention, so mentions verified
-before this change show theirs too. A mention whose markup names no author
-shows its host instead. The post page reads them through a `'use cache'` loader with
+title is read from the h-entry stored with each mention, not from a column
+of its own, so every stored mention has one. A mention whose markup names no
+author shows its host instead.
+
+The post page reads webmentions through a `'use cache'` loader with
 `cacheLife('minutes')`, so an approval shows within about a minute without
 a deploy. Do not move the read to request time: a streamed section lands
 after the page, outside the `h-entry`, and parsers lose the comments.
@@ -427,8 +443,8 @@ tables: `indieauth_codes` and `indieauth_tokens`, which hold SHA-256 digests
 rather than the codes and tokens themselves, and `indieauth_totp_steps` and
 `indieauth_sign_in_failures` for the owner check. Apply it before turning on
 sign-in.
-`lib/db/migrations/004_webmention_responses.sql` adds the `rsvp` column to
-`webmentions`. Every webmention query names that column, so apply the
+`lib/db/migrations/004_webmention_responses.sql` adds the `rsvp` and
+`content_html` columns to `webmentions`. Every webmention query names that column, so apply the
 migration before deploying the code that reads it.
 
 ## IndieMark evidence

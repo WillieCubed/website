@@ -10,3 +10,9 @@
 ALTER TABLE webmentions
   ADD COLUMN IF NOT EXISTS rsvp TEXT
   CHECK (rsvp IN ('yes', 'no', 'maybe', 'interested'));
+
+-- ============================================================================
+-- A reply's e-content as sanitized markup, cut to 2,000 characters of text.
+-- `content` keeps the plain text for feeds, search, and moderation.
+-- ============================================================================
+ALTER TABLE webmentions ADD COLUMN IF NOT EXISTS content_html TEXT;

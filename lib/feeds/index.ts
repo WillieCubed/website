@@ -363,7 +363,14 @@ export function generateActivityRssFeed(
   items: ActivityFeedItem[],
   options: ActivityRssFeedOptions
 ): string {
-  return generateRssFeed(items, {
+  // Readers render an RSS description as HTML, and an activity's description
+  // is a stranger's plain text, so it is escaped once as HTML before the
+  // generator escapes it again as XML. Atom and JSON Feed read it as text.
+  const asHtml = items.map((item) => ({
+    ...item,
+    description: escapeXml(item.description),
+  }));
+  return generateRssFeed(asHtml, {
     title: options.title,
     description: options.description,
     feedUrl: options.feedUrl,

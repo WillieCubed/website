@@ -1,11 +1,11 @@
 import { mf2 } from 'microformats-parser';
-import sanitizeHtml from 'sanitize-html';
 
 import {
   type AuthorshipOptions,
   discoverAuthor,
   findEntry,
 } from '@/lib/indieweb/authorship';
+import { commentHtml, commentText } from '@/lib/indieweb/comment-content';
 import { SITE_URL } from '@/lib/indieweb/constants';
 import {
   type AddressResolver,
@@ -142,8 +142,10 @@ export async function verifyWebmention(
 
     const author = await discoverAuthor(parsed, found, document.url, options);
 
-    // Extract content
-    const content = extractContent(hEntry);
+    const { text: content, html: contentHtml } = extractContent(
+      hEntry,
+      document.url
+    );
 
     // Extract published date
     const publishedAt = extractPublishedDate(hEntry);
@@ -156,6 +158,7 @@ export async function verifyWebmention(
       authorUrl: author.url,
       authorPhoto: author.photo,
       content,
+      contentHtml,
       publishedAt,
       rawMf2: hEntry,
     });
@@ -166,6 +169,7 @@ export async function verifyWebmention(
       ...(rsvp ? { rsvp } : {}),
       author,
       content,
+      ...(contentHtml ? { contentHtml } : {}),
       publishedAt,
     };
   } catch (error) {
@@ -240,35 +244,28 @@ function rsvpAnswer(hEntry: MicroformatRoot): RSVPStatus | undefined {
   return RSVP_ANSWERS.find((known) => known === answer);
 }
 
-function extractContent(hEntry: MicroformatRoot): string | undefined {
+/**
+ * What a reply says, as plain text for feeds, search, and moderation, and,
+ * when the source marked it up as `e-content`, as sanitized markup for the
+ * post to show. A `p-content`, `p-summary`, or name is text only.
+ */
+function extractContent(
+  hEntry: MicroformatRoot,
+  baseUrl: string
+): { text?: string; html?: string } {
   const properties = hEntry.properties;
-
-  // Try e-content first (HTML), then p-content (plain text), then p-summary
   const content =
     properties.content?.[0] || properties.summary?.[0] || properties.name?.[0];
 
-  if (!content) return undefined;
-
-  // If it's an object with html/value, prefer value (plain text) for safety
-  if (typeof content === 'object' && content !== null && 'value' in content) {
-    const text = content.value;
-    if (typeof text === 'string') {
-      // Sanitize any HTML
-      return sanitizeHtml(text, {
-        allowedTags: [],
-        allowedAttributes: {},
-      }).slice(0, 500); // Limit length
-    }
+  if (typeof content === 'string') return { text: commentText(content) };
+  if (!content || !('value' in content) || typeof content.value !== 'string') {
+    return {};
   }
-
-  if (typeof content === 'string') {
-    return sanitizeHtml(content, {
-      allowedTags: [],
-      allowedAttributes: {},
-    }).slice(0, 500);
-  }
-
-  return undefined;
+  const html =
+    'html' in content && typeof content.html === 'string'
+      ? commentHtml(content.html, baseUrl)
+      : undefined;
+  return { text: commentText(content.value), html };
 }
 
 function extractPublishedDate(hEntry: MicroformatRoot): Date | undefined {

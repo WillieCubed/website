@@ -25,6 +25,15 @@ test('the page draws a themed thumb', async ({ page }) => {
   expect(await computed(page, 'html', 'scrollbar-color')).not.toBe('auto');
 });
 
+test('the page keeps its scrollbar gutter under the detail view', async ({
+  page,
+}) => {
+  await page.goto('/?detail=lvbt');
+  await expect(page.locator('dialog.detail')).toBeVisible();
+  expect(await computed(page, 'html', 'overflow')).toBe('hidden');
+  expect(await computed(page, 'html', 'scrollbar-gutter')).toBe('stable');
+});
+
 test('the detail view scrolls with a thin bar in its venture colours', async ({
   page,
 }) => {

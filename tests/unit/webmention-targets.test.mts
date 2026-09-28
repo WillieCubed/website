@@ -5,8 +5,9 @@ import {
   canonicalWebmentionTarget,
   linksToTarget,
 } from '@/lib/indieweb/webmention-targets';
-import { site } from '@/lib/site';
+import { absoluteUrl, site } from '@/lib/site';
 
+const canonicalHost = new URL(site.origin).host;
 const home = `${site.origin}/`;
 const initiative = `${site.origin}/initiatives/fall-tour-2026`;
 const writing = `${site.origin}/writings/indiemark-level-3`;
@@ -63,16 +64,91 @@ test('a source links to the homepage only by its full address', () => {
   assert.ok(!linksToTarget(`<a href="${writing}">A post</a>`, home));
 });
 
-test('a source links to a page by its address or its path', () => {
+test('a source links to a page by its full address', () => {
   assert.ok(linksToTarget(`<a href="${initiative}">Tour</a>`, initiative));
   assert.ok(linksToTarget(`<a href="${initiative}/">Tour</a>`, initiative));
   assert.ok(
-    linksToTarget('<a href="/initiatives/fall-tour-2026">Tour</a>', initiative)
+    linksToTarget(`<a href="${initiative}#dates">Tour</a>`, initiative)
   );
   assert.ok(
     !linksToTarget(`<a href="${initiative}/part-1">Part 1</a>`, initiative)
   );
   assert.ok(
     !linksToTarget(`<a href="${initiative}-recap">Recap</a>`, initiative)
+  );
+});
+
+test('the same path on another origin is not a link to the page', () => {
+  assert.ok(
+    !linksToTarget(
+      '<a href="https://other.example/writings/indiemark-level-3">Theirs</a>',
+      writing
+    )
+  );
+  assert.ok(
+    !linksToTarget(
+      `<a href="https://${canonicalHost}.evil.example/writings/indiemark-level-3">x</a>`,
+      writing
+    )
+  );
+  // The source is on another origin, where a relative link stays.
+  assert.ok(
+    !linksToTarget('<a href="/writings/indiemark-level-3">Post</a>', writing)
+  );
+});
+
+test('an address inside another URL is not a link to the page', () => {
+  assert.ok(
+    !linksToTarget(
+      `<a href="https://web.archive.org/web/2026/${writing}">Archived</a>`,
+      writing
+    )
+  );
+  assert.ok(
+    !linksToTarget(
+      `<a href="https://share.example/?url=${writing}">Share</a>`,
+      writing
+    )
+  );
+});
+
+test('hosts that redirect to the site link to the page they land on', () => {
+  const path = '/writings/indiemark-level-3';
+  for (const host of site.legacyHosts) {
+    assert.ok(
+      linksToTarget(`<a href="https://${host}${path}">Post</a>`, writing),
+      host
+    );
+  }
+  assert.ok(
+    linksToTarget(`<a href="//${canonicalHost}${path}/">Post</a>`, writing)
+  );
+  for (const [host, aliasPath] of Object.entries(site.aliasHosts)) {
+    assert.ok(
+      linksToTarget(
+        `<a href="https://${host}/">Alias</a>`,
+        absoluteUrl(aliasPath)
+      ),
+      host
+    );
+  }
+});
+
+test('a target on a legacy or alias host is stored under the canonical address', () => {
+  const [legacy] = site.legacyHosts;
+  assert.equal(
+    canonicalWebmentionTarget(
+      `https://${legacy}/writings/indiemark-level-3/`,
+      pages
+    ),
+    writing
+  );
+  const [aliasHost, aliasPath] = Object.entries(site.aliasHosts)[0];
+  assert.equal(
+    canonicalWebmentionTarget(`https://${aliasHost}/`, [
+      ...pages,
+      absoluteUrl(aliasPath),
+    ]),
+    absoluteUrl(aliasPath)
   );
 });

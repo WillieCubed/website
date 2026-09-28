@@ -151,13 +151,17 @@ and `tests/unit/webmention-moderation.test.mts`.
 
 ## Receiving
 
-A target may be any page on the canonical origin that exists: the homepage,
-a routed page, an initiative or one of its parts, or a published writing,
-which is the sitemap's list. Anything else gets a 400. The target is stored
-under its canonical address, without a trailing slash, query, or fragment,
-so it matches the address the page reads its mentions from. The verifier
-then needs the source to link to that address, or to its path below the
-homepage; a bare `/` never counts, since every page links to it. The logic
+A target may be any page on the site that exists: the homepage, a routed
+page, an initiative or one of its parts, or a published writing, which is
+the sitemap's list. Anything else gets a 400. The target may name a legacy
+host such as `www.willie.page` or an alias host such as `tour.willie.page`,
+because each one redirects to the canonical origin. It is stored under its
+canonical address, without a trailing slash, query, or fragment, so it
+matches the address the page reads its mentions from. The verifier then
+needs the source to contain an absolute or protocol-relative link that leads
+to the same page on one of those hosts. A relative link never counts: on the
+source's page it leads to the source's own origin, and
+`https://other.example/writings/foo` is not `/writings/foo` here. The logic
 and its tests live in `lib/indieweb/webmention-targets.ts` and
 `tests/unit/webmention-targets.test.mts`.
 

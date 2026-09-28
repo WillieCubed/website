@@ -2,7 +2,6 @@ import { cacheLife, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
-import { sameOrigin } from '@/lib/indieweb/utils';
 import {
   WEBMENTION_RATE_WINDOW_MS,
   isWithinWebmentionRateLimit,
@@ -12,7 +11,10 @@ import {
   storeWebmention,
   webmentionRateLimitStore,
 } from '@/lib/indieweb/webmention-storage';
-import { canonicalWebmentionTarget } from '@/lib/indieweb/webmention-targets';
+import {
+  canonicalWebmentionTarget,
+  sitePath,
+} from '@/lib/indieweb/webmention-targets';
 import { verifyWebmention } from '@/lib/indieweb/webmention-verifier';
 import { getInitiatives } from '@/lib/initiatives';
 import { buildSitemap } from '@/lib/seo/sitemap';
@@ -107,8 +109,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Target must be on our site
-    if (!sameOrigin(target, SITE_URL)) {
+    // Target must be on our site, under any host that redirects here
+    if (sitePath(target) === null) {
       return NextResponse.json(
         { error: 'Target URL must be on this site.' },
         { status: 400 }

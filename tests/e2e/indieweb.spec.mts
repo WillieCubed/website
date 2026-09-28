@@ -215,7 +215,15 @@ test('Micropub advertises capabilities and rejects unauthenticated creation', as
   const config = await request.get('/micropub?q=config');
   expect(config.status()).toBe(200);
   const capabilities = await config.json();
-  expect(capabilities.q).toEqual(['config', 'source', 'syndicate-to']);
+  expect(capabilities.q).toEqual([
+    'config',
+    'source',
+    'syndicate-to',
+    'category',
+  ]);
+  const categories = await request.get('/micropub?q=category');
+  expect(categories.status()).toBe(200);
+  expect(Array.isArray((await categories.json()).categories)).toBe(true);
   const source = await request.get(
     `/micropub?q=source&url=${encodeURIComponent(`${site.origin}/writings/any`)}`
   );

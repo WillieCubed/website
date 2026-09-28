@@ -25,6 +25,8 @@ import type {
   MicropubRouteEnvironment,
 } from '@/lib/indieweb/types';
 import { absoluteRoute } from '@/lib/site';
+import { getAllWritings } from '@/lib/writings';
+import { groupByTag, normalizeTag } from '@/lib/writings/tags';
 
 /** What the handlers use, each replaceable in tests. */
 export interface MicropubEndpointOptions {
@@ -33,6 +35,8 @@ export interface MicropubEndpointOptions {
   environment?: MicropubRouteEnvironment;
   /** Used for GitHub's Contents API. */
   fetch?: typeof fetch;
+  /** Tags of the published writings, for q=category. */
+  publishedTags?: () => Promise<string[]>;
 }
 
 export function micropubEnvironment(
@@ -47,9 +51,9 @@ export function micropubEnvironment(
 }
 
 /**
- * Micropub queries. `config` and `syndicate-to` describe the site and are
- * public. `source` returns a post's own properties, drafts included, so it
- * needs a token for this site, with any scope.
+ * Micropub queries. `config`, `syndicate-to`, and `category` describe the
+ * site and are public. `source` returns a post's own properties, drafts
+ * included, so it needs a token for this site, with any scope.
  */
 export async function handleMicropubGet(
   request: Request,
@@ -64,6 +68,14 @@ export async function handleMicropubGet(
 
   if (query === 'syndicate-to') {
     return jsonResponse({ 'syndicate-to': getMicropubSyndicationTargets() });
+  }
+
+  if (query === 'category') {
+    const tags = await (options.publishedTags ?? publishedTags)();
+    const filter = normalizeTag(url.searchParams.get('filter') ?? '');
+    return jsonResponse({
+      categories: tags.filter((tag) => tag.startsWith(filter)),
+    });
   }
 
   if (query === 'source') {
@@ -164,6 +176,12 @@ async function authorize(
   if (status === 'unavailable')
     return jsonError('temporarily_unavailable', 503);
   return null;
+}
+
+// The query needs no token, so it lists only tags a production visitor can
+// already see, even on a server that shows drafts.
+async function publishedTags(): Promise<string[]> {
+  return groupByTag(await getAllWritings(false)).map(({ tag }) => tag);
 }
 
 async function source(

@@ -4,8 +4,8 @@ import {
 } from '@/lib/indieweb/micropub-endpoint';
 
 /**
- * Micropub queries: `q=config`, `q=syndicate-to`, and, with a token,
- * `q=source`. IndieWeb clients find this route through
+ * Micropub queries: `q=config`, `q=syndicate-to`, `q=category`, and, with a
+ * token, `q=source`. IndieWeb clients find this route through
  * `<link rel="micropub" href="/micropub" />` in the document head.
  */
 export async function GET(request: Request) {

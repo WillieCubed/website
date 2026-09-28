@@ -17,7 +17,6 @@ import {
 export * from './schema';
 
 const CONTENT_DIR = join(process.cwd(), 'content', 'initiatives');
-const PUBLIC_DIR = join(process.cwd(), 'public');
 const HIDDEN_PREFIX = '_';
 /** Slugs that conflict with static routes under /initiatives/. */
 const RESERVED_SLUGS = ['opengraph-image'];
@@ -92,14 +91,6 @@ function resolveBrand(
   return seed.hex;
 }
 
-/** A cover under /public that does not exist would ship a broken image. */
-function assertMediaExists(src: string | undefined, filePath: string) {
-  if (!src?.startsWith('/')) return;
-  if (!existsSync(join(PUBLIC_DIR, src))) {
-    throw new Error(`Missing media ${src} referenced in ${filePath}`);
-  }
-}
-
 function initiativeDir(slug: string): string {
   return join(CONTENT_DIR, slug);
 }
@@ -137,7 +128,6 @@ function loadParts(
       if (rest.ends < rest.starts) {
         throw new Error(`Part ends before it starts in ${filePath}`);
       }
-      assertMediaExists(rest.cover?.src, filePath);
       return {
         ...rest,
         milestones: [...rest.milestones].sort(
@@ -182,8 +172,6 @@ function loadInitiative(
   if (rest.parent && !listInitiativeSlugs().includes(rest.parent)) {
     throw new Error(`Unknown parent "${rest.parent}" in ${filePath}`);
   }
-  assertMediaExists(rest.cover?.src, filePath);
-  assertMediaExists(rest.trailer?.poster?.src, filePath);
   const starts = rest.starts ?? parts[0]?.starts;
   const ends = rest.ends ?? parts.at(-1)?.ends;
   return {

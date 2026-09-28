@@ -9,7 +9,7 @@ import { isInternalHref } from '@/lib/site';
 import { getWritingSlugs, loadWriting } from '@/lib/writings';
 
 // Routes that answer with something other than a page, so they have no card.
-const ROUTE_HANDLERS = new Set(['/coffee', '/tea', '/whoami', '/search']);
+const ROUTE_HANDLERS = new Set(['/coffee', '/tea', '/whoami']);
 
 const LINK_PATTERNS = [
   /\]\((\/[^)\s]*)\)/g,
@@ -80,4 +80,18 @@ test('every initiative link chip names a page that exists', async () => {
       .map((link) => `${initiative.href} → ${link.href}`)
   );
   assert.deepEqual(dead, []);
+});
+
+// The loaders run again at request time, where /public belongs to the CDN,
+// so a missing cover is caught here rather than there.
+test('every initiative and part cover exists under /public', () => {
+  const missing = loadAllInitiatives({ includeDrafts: true })
+    .flatMap((initiative) => [
+      initiative.cover?.src,
+      initiative.trailer?.poster?.src,
+      ...initiative.parts.map((part) => part.cover?.src),
+    ])
+    .filter((src): src is string => Boolean(src?.startsWith('/')))
+    .filter((src) => !existsSync(join(process.cwd(), 'public', src)));
+  assert.deepEqual(missing, []);
 });

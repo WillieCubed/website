@@ -80,6 +80,17 @@ function inViewport(element: HTMLElement): boolean {
   );
 }
 
+/**
+ * True when a modal dialog other than the palette covers the element, such
+ * as the homepage's detail view over the rail's trigger. The palette does
+ * not grow out of, or shrink back into, something behind another modal.
+ */
+function underModal(element: HTMLElement, palette: HTMLDialogElement): boolean {
+  return [...document.querySelectorAll('dialog:modal')].some(
+    (modal) => modal !== palette && !modal.contains(element)
+  );
+}
+
 /** True for ⌘K on Apple platforms and Ctrl+K elsewhere, with no other keys. */
 function isPaletteShortcut(event: KeyboardEvent): boolean {
   return (
@@ -170,7 +181,8 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
     // when one is on screen and simply appears when none is.
     const source =
       [from, ...triggers.current].find(
-        (element): element is HTMLElement => !!element && inViewport(element)
+        (element): element is HTMLElement =>
+          !!element && inViewport(element) && !underModal(element, dialog)
       ) ?? null;
     sourceRef.current = source;
     if (source) source.style.viewTransitionName = MORPH_NAME;
@@ -206,7 +218,10 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
       const source = sourceRef.current;
       sourceRef.current = null;
       // The trigger is hidden, not gone, so its box still says where it is.
-      const target = animate && source && inViewport(source) ? source : null;
+      const target =
+        animate && source && inViewport(source) && !underModal(source, dialog)
+          ? source
+          : null;
       const update = () => {
         dialog.style.viewTransitionName = '';
         if (dialog.open) dialog.close();

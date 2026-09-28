@@ -18,6 +18,7 @@ import { linksToTarget } from '@/lib/indieweb/webmention-targets';
 // Extract MicroformatRoot type from the mf2 return type
 type ParsedDocument = ReturnType<typeof mf2>;
 type MicroformatRoot = ParsedDocument['items'][number];
+type MicroformatProperty = MicroformatRoot['properties'][string][number];
 
 const FETCH_TIMEOUT = 10000; // 10 seconds
 
@@ -160,31 +161,43 @@ function findHEntry(items: MicroformatRoot[]): MicroformatRoot | null {
   return null;
 }
 
+/**
+ * The addresses a property value can name. A bare `u-like-of` parses as a
+ * string, but the usual `u-in-reply-to h-cite` parses as an embedded item
+ * whose address sits in its `url` property, and a `u-url` on an image parses
+ * as `{value, alt}`. The item's own `value` is the parser's pick of that
+ * address for a `u-*` property, or its name for a `p-*` one.
+ */
+function propertyUrls(value: MicroformatProperty): string[] {
+  if (typeof value === 'string') return [value];
+  const urls: string[] = [];
+  if ('properties' in value) {
+    for (const url of value.properties.url ?? []) {
+      if (typeof url === 'string') urls.push(url);
+      else if ('value' in url && typeof url.value === 'string') {
+        urls.push(url.value);
+      }
+    }
+  }
+  if (typeof value.value === 'string') urls.push(value.value);
+  return urls;
+}
+
 function determineWebmentionType(
   hEntry: MicroformatRoot,
   targetUrl: string
 ): WebmentionType {
   const properties = hEntry.properties;
+  const cites = (property: string) =>
+    properties[property]?.some((value) =>
+      propertyUrls(value).some((url) => linksToTarget(url, targetUrl))
+    );
 
   // Check for specific interaction types
-  if (properties['like-of']?.some((v) => linksToTarget(String(v), targetUrl))) {
-    return 'like';
-  }
-  if (
-    properties['repost-of']?.some((v) => linksToTarget(String(v), targetUrl))
-  ) {
-    return 'repost';
-  }
-  if (
-    properties['in-reply-to']?.some((v) => linksToTarget(String(v), targetUrl))
-  ) {
-    return 'reply';
-  }
-  if (
-    properties['bookmark-of']?.some((v) => linksToTarget(String(v), targetUrl))
-  ) {
-    return 'bookmark';
-  }
+  if (cites('like-of')) return 'like';
+  if (cites('repost-of')) return 'repost';
+  if (cites('in-reply-to')) return 'reply';
+  if (cites('bookmark-of')) return 'bookmark';
 
   return 'mention';
 }

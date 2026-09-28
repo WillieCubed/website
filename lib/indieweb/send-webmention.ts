@@ -300,14 +300,17 @@ export function extractExternalLinks(content: string): string[] {
     .replace(FENCED_CODE, ' ')
     .replace(CODE_ELEMENT, ' ')
     .replace(CODE_SPAN, ' ');
+  // The site and its subdomains, such as the tour. alias, never get a
+  // webmention from the site itself.
+  const siteHost = new URL(SITE_URL).hostname;
   const links: string[] = [];
   for (const [match] of prose.matchAll(URL_PATTERN)) {
     const url = trimUrl(match);
     try {
       const parsed = new URL(url);
       if (
-        parsed.hostname !== new URL(SITE_URL).hostname &&
-        !parsed.hostname.endsWith('.willie.page')
+        parsed.hostname !== siteHost &&
+        !parsed.hostname.endsWith(`.${siteHost}`)
       ) {
         links.push(url);
       }

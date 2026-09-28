@@ -17,7 +17,9 @@
   outline: 1px solid var(--b-outline-variant, var(--color-line));
   font-family: var(--font-sans);
   text-align: left;
-  pointer-events: none;
+  /* Explicit because pointer-events inherits, and a link inside a clickable
+     card often sits in a pass-through parent with pointer-events: none. */
+  pointer-events: auto;
   opacity: 1;
   transform: translateY(0);
   transition:
@@ -30,8 +32,11 @@
     display 220ms allow-discrete,
     overlay 220ms allow-discrete;
 }
+/* The pointer can rest on an open card (WCAG 1.4.13), but a closing card
+   stays drawn for its exit transition and must not catch clicks meanwhile. */
 .link-preview:not(:popover-open) {
   display: none;
+  pointer-events: none;
 }
 @starting-style {
   .link-preview:popover-open {

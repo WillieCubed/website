@@ -8,6 +8,8 @@ interface LinkPreviewProps {
   card: EntityCard;
   style: CSSProperties;
   popoverRef: React.Ref<HTMLSpanElement>;
+  onPointerEnter: () => void;
+  onPointerLeave: () => void;
 }
 
 /**
@@ -19,6 +21,8 @@ export default function LinkPreview({
   card,
   style,
   popoverRef,
+  onPointerEnter,
+  onPointerLeave,
 }: LinkPreviewProps) {
   return (
     <span
@@ -28,6 +32,8 @@ export default function LinkPreview({
       style={style}
       aria-hidden="true"
       data-kind={card.kind}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
     >
       {card.cover && (
         // eslint-disable-next-line @next/next/no-img-element

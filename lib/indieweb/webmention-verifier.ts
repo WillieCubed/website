@@ -7,6 +7,11 @@ import {
   findEntry,
 } from '@/lib/indieweb/authorship';
 import { SITE_URL } from '@/lib/indieweb/constants';
+import {
+  type AddressResolver,
+  type DocumentFetch,
+  fetchPublicDocument,
+} from '@/lib/indieweb/public-fetch';
 import type {
   WebmentionType,
   WebmentionVerificationResult,
@@ -27,7 +32,16 @@ type ParsedDocument = ReturnType<typeof mf2>;
 type MicroformatRoot = ParsedDocument['items'][number];
 type MicroformatProperty = MicroformatRoot['properties'][string][number];
 
-const FETCH_TIMEOUT = 10000; // 10 seconds
+const SOURCE_TIMEOUT_MS = 10000;
+/** A source page larger than this is refused rather than read. */
+const SOURCE_MAX_BYTES = 2 * 1024 * 1024;
+
+export interface VerifyWebmentionOptions extends AuthorshipOptions {
+  /** Resolves host names for the source fetch; the system resolver by default. */
+  resolve?: AddressResolver;
+  /** Requests the source; a public-only fetch by default. */
+  fetch?: DocumentFetch;
+}
 
 /**
  * Verify a webmention by fetching the source and checking for a link to the target.
@@ -36,7 +50,7 @@ export async function verifyWebmention(
   id: string,
   sourceUrl: string,
   targetUrl: string,
-  options: AuthorshipOptions = {}
+  options: VerifyWebmentionOptions = {}
 ): Promise<WebmentionVerificationResult> {
   try {
     // Validate the source URL; sameOrigin rejects an invalid target below
@@ -52,25 +66,26 @@ export async function verifyWebmention(
       return { success: false, error: 'Target is not on this site' };
     }
 
-    // Fetch the source URL
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
-    let response: Response;
-    try {
-      response = await fetch(sourceUrl, {
-        signal: controller.signal,
-        headers: {
-          Accept: 'text/html',
-          'User-Agent': 'WillieCubed-Webmention-Verifier/1.0',
-        },
-      });
-    } finally {
-      clearTimeout(timeoutId);
+    // Anyone can name any source, so it is fetched only from public addresses.
+    const document = await fetchPublicDocument(sourceUrl, {
+      resolve: options.resolve,
+      fetch: options.fetch,
+      headers: {
+        Accept: 'text/html',
+        'User-Agent': 'WillieCubed-Webmention-Verifier/1.0',
+      },
+      maxBytes: SOURCE_MAX_BYTES,
+      timeoutMs: SOURCE_TIMEOUT_MS,
+    });
+    if (!document) {
+      return {
+        success: false,
+        error: 'Source is not a public page, or is too large to read',
+      };
     }
 
     // Handle 410 Gone - source explicitly deleted
-    if (response.status === 410) {
+    if (document.status === 410) {
       await markWebmentionDeleted(id);
       return {
         success: true,
@@ -80,7 +95,7 @@ export async function verifyWebmention(
     }
 
     // Handle 404 - source no longer exists
-    if (response.status === 404) {
+    if (document.status === 404) {
       await markWebmentionDeleted(id);
       return {
         success: true,
@@ -89,14 +104,14 @@ export async function verifyWebmention(
       };
     }
 
-    if (!response.ok) {
+    if (document.status < 200 || document.status > 299) {
       return {
         success: false,
-        error: `Failed to fetch source: ${response.status}`,
+        error: `Failed to fetch source: ${document.status}`,
       };
     }
 
-    const html = await response.text();
+    const html = document.body;
 
     // Check if the source actually links to the target
     if (!linksToTarget(html, targetUrl)) {
@@ -109,8 +124,8 @@ export async function verifyWebmention(
       };
     }
 
-    // Parse microformats
-    const parsed = mf2(html, { baseUrl: sourceUrl });
+    // Relative links resolve against where the source ended up.
+    const parsed = mf2(html, { baseUrl: document.url });
     const found = findEntry(parsed.items);
 
     if (!found) {
@@ -125,7 +140,7 @@ export async function verifyWebmention(
     const type = determineWebmentionType(hEntry, targetUrl);
     const rsvp = type === 'rsvp' ? rsvpAnswer(hEntry) : undefined;
 
-    const author = await discoverAuthor(parsed, found, sourceUrl, options);
+    const author = await discoverAuthor(parsed, found, document.url, options);
 
     // Extract content
     const content = extractContent(hEntry);

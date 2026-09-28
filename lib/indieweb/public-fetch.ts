@@ -58,6 +58,22 @@ for (const [network, prefix] of BLOCKED_IPV6) {
 }
 const globalUnicast = new BlockList();
 globalUnicast.addSubnet('2000::', 3, 'ipv6');
+const loopback = new BlockList();
+loopback.addSubnet('127.0.0.0', 8, 'ipv4');
+loopback.addAddress('::1', 'ipv6');
+
+/**
+ * The local write test (docs/indieweb/testing.md) serves its webmention
+ * source from 127.0.0.1, which this guard exists to refuse. It sets
+ * `INDIEWEB_TEST_ALLOW_LOOPBACK=true` to let loopback through, and only
+ * loopback: private ranges and cloud metadata stay refused. A Vercel
+ * deployment ignores the variable, so it cannot open the hole there.
+ */
+function loopbackAllowed(): boolean {
+  return (
+    process.env.INDIEWEB_TEST_ALLOW_LOOPBACK === 'true' && !process.env.VERCEL
+  );
+}
 
 /**
  * Whether an IP address is on the public internet. Anything unparseable,
@@ -67,7 +83,15 @@ globalUnicast.addSubnet('2000::', 3, 'ipv6');
 export function isPublicAddress(address: string): boolean {
   const bare = address.replace(/^\[|\]$/g, '').replace(/%.*$/, '');
   try {
-    switch (isIP(bare)) {
+    const family = isIP(bare);
+    if (
+      family !== 0 &&
+      loopbackAllowed() &&
+      loopback.check(bare, family === 4 ? 'ipv4' : 'ipv6')
+    ) {
+      return true;
+    }
+    switch (family) {
       case 4:
         return !blockedAddresses.check(bare, 'ipv4');
       case 6:

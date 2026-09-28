@@ -27,21 +27,26 @@ psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f tests/support/webmentio
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/001_level4_tables.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/002_webmention_rate_limits.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/003_indieauth.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/004_webmention_responses.sql
 cp tests/fixtures/indieweb-acceptance.mdx content/writings/indieweb-acceptance.mdx
 pnpm build
 ```
 
 `@vercel/postgres` requires a Neon-shaped URL. The test-only fetch shim routes
-its SQL requests to the local PostgreSQL URL above. The self-signed HTTPS
-source in the write test requires certificate verification to be disabled for
-this one local command. Do not reuse these environment values for a hosted
-server or a production check.
+its SQL requests to the local PostgreSQL URL above. The write test serves its
+reply from a self-signed HTTPS server on 127.0.0.1. The verifier fetches
+sources from public addresses only, so the command below sets
+`INDIEWEB_TEST_ALLOW_LOOPBACK=true` to let loopback through, and disables
+certificate verification. A Vercel deployment ignores the loopback
+allowance, but keep both variables out of any hosted server's environment
+and out of a production check.
 
 ```sh
 INDIEWEB_TEST_POST_PATH=/writings/indieweb-acceptance \
 POSTGRES_URL='postgresql://test:pass@ep-local-pooler.us-east-1.aws.neon.tech/test?sslmode=require' \
 WEBMENTION_MODERATION_SECRET=local-test-secret \
 NODE_OPTIONS='--import=./tests/support/neon-local-postgres.mjs' \
+INDIEWEB_TEST_ALLOW_LOOPBACK=true \
 NODE_TLS_REJECT_UNAUTHORIZED=0 \
 pnpm exec playwright test tests/e2e/indieweb-write.spec.mts --project=desktop --workers=1
 ```

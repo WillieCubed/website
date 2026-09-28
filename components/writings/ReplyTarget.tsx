@@ -15,7 +15,8 @@ interface ReplyTargetProps {
   rsvpStatus?: RSVPStatus;
 }
 
-const MICROFORMAT: Record<TargetKind, string> = {
+/** The h-entry property that names the page each kind of post answers. */
+export const TARGET_PROPERTY: Record<TargetKind, string> = {
   reply: 'u-in-reply-to',
   like: 'u-like-of',
   repost: 'u-repost-of',
@@ -91,7 +92,7 @@ export default function ReplyTarget({
     <div className="reply-target">
       <a
         href={url}
-        className={`${MICROFORMAT[kind]} h-cite group bleed flex flex-col gap-1 rounded-2xl border border-line bg-card py-4 text-ink no-underline transition-colors hover:border-accent`}
+        className={`${TARGET_PROPERTY[kind]} h-cite group bleed flex flex-col gap-1 rounded-2xl border border-line bg-card py-4 text-ink no-underline transition-colors hover:border-accent`}
         rel={kind === 'reply' || kind === 'rsvp' ? 'in-reply-to' : 'nofollow'}
       >
         <span className="flex items-center gap-2 text-label-medium text-muted">

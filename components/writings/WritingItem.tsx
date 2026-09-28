@@ -4,7 +4,13 @@ import SiteLink from '@/components/link/SiteLink';
 import { formatDate } from '@/lib/site';
 import { WritingData } from '@/lib/writings';
 
-import { TARGET_ICON, TARGET_WORD, hostOf, replyTargetOf } from './ReplyTarget';
+import {
+  TARGET_ICON,
+  TARGET_PROPERTY,
+  TARGET_WORD,
+  hostOf,
+  replyTargetOf,
+} from './ReplyTarget';
 
 interface WritingItemProps {
   writing: WritingData;
@@ -14,17 +20,26 @@ interface WritingItemProps {
   seriesHref?: string;
   /** Whether to show series info (default: true) */
   showSeriesInfo?: boolean;
+  /**
+   * The body as HTML, for an entry without a headline. The index shows only
+   * its first sentence, so the whole text rides along hidden as e-content.
+   */
+  contentHtml?: string;
 }
 
 /**
  * One entry in the index. The title, or the text when there is no title,
- * comes first; everything else is one quiet line under it.
+ * comes first; everything else is one quiet line under it. The rest of the
+ * h-entry that the permalink shows, such as the page a reply answers, the
+ * photos, and a note's whole text, is hidden markup for parsers, so a reader
+ * subscribed to the index gets the same entry without a second fetch.
  */
 export default function WritingItem({
   writing,
   seriesName,
   seriesHref,
   showSeriesInfo = true,
+  contentHtml,
 }: WritingItemProps) {
   const publishedIso = new Date(writing.published).toISOString();
   const target = replyTargetOf(writing);
@@ -38,6 +53,28 @@ export default function WritingItem({
         className="u-url absolute inset-0 z-10 rounded-2xl"
         aria-label={writing.title}
       />
+      {target && (
+        <a
+          href={target.url}
+          className={`${TARGET_PROPERTY[target.kind]} h-cite hidden`}
+        >
+          {hostOf(target.url)}
+        </a>
+      )}
+      {writing.rsvp && (
+        <data className="p-rsvp hidden" value={writing.rsvp.status}>
+          {writing.rsvp.status}
+        </data>
+      )}
+      {writing.photos?.map((photo) => (
+        <data key={photo.url} className="u-photo hidden" value={photo.url} />
+      ))}
+      {contentHtml && (
+        <div
+          className="e-content hidden"
+          dangerouslySetInnerHTML={{ __html: contentHtml }}
+        />
+      )}
 
       <div className="pointer-events-none relative space-y-2">
         {writing.hasExplicitTitle ? (

@@ -93,6 +93,9 @@ test('a tag page exposes a parseable feed of its entries', async ({
     expect(entry.type).toContain('h-entry');
     expect(entry.properties.url?.length).toBeGreaterThan(0);
     expect(entry.properties.published?.length).toBeGreaterThan(0);
+    // Every entry here is a note, and the index shows only its first
+    // sentence, so the whole text has to ride along as e-content.
+    expect(entry.properties.content?.length).toBeGreaterThan(0);
   }
 });
 

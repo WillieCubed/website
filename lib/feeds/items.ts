@@ -1,3 +1,5 @@
+import { cacheLife } from 'next/cache';
+
 import { getInitiatives } from '@/lib/initiatives';
 import {
   type WritingData,
@@ -17,12 +19,23 @@ function newestFirst(items: FeedItem[]): FeedItem[] {
   return items.sort((a, b) => b.published.getTime() - a.published.getTime());
 }
 
+/**
+ * A writing's body as the plain HTML its feed items carry. The writings
+ * index reuses it for a note's hidden e-content, and the cache renders each
+ * body once for the index, the tag pages, and every feed.
+ */
+export async function getWritingContentHtml(slug: string): Promise<string> {
+  'use cache';
+  cacheLife('hours');
+  const { content } = await getWriting(slug);
+  return renderFeedHtml(content);
+}
+
 async function writingFeedItems(writings: WritingData[]) {
   const items = await Promise.all(
-    writings.map(async (writing) => {
-      const { content } = await getWriting(writing.slug);
-      return writingToFeedItem(writing, await renderFeedHtml(content));
-    })
+    writings.map(async (writing) =>
+      writingToFeedItem(writing, await getWritingContentHtml(writing.slug))
+    )
   );
   return newestFirst(items);
 }

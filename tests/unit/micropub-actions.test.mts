@@ -92,6 +92,25 @@ test('a form field named after an Object member stays a property name', async ()
   assert.equal(Object.getPrototypeOf(action.update.replace), Object.prototype);
 });
 
+test('readMicropubAction reads JSON and form deletes', async () => {
+  assert.deepEqual(
+    await readMicropubAction(jsonRequest({ action: 'delete', url })),
+    { action: 'delete', url }
+  );
+  assert.deepEqual(
+    await readMicropubAction(
+      formRequest([
+        ['action', 'delete'],
+        ['url', url],
+      ])
+    ),
+    { action: 'delete', url }
+  );
+  await assert.rejects(readMicropubAction(jsonRequest({ action: 'delete' })), {
+    description: 'The request needs the url of the post.',
+  });
+});
+
 test('readMicropubAction treats a body without action as a create', async () => {
   assert.deepEqual(
     await readMicropubAction(

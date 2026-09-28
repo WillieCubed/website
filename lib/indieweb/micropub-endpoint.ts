@@ -21,6 +21,7 @@ import {
 } from '@/lib/indieweb/micropub-document';
 import {
   MicropubStorageError,
+  deleteStoredWriting,
   findStoredWriting,
   saveStoredWriting,
 } from '@/lib/indieweb/micropub-store';
@@ -104,7 +105,8 @@ export async function handleMicropubGet(
 }
 
 /**
- * Create or update a writing. Each needs the scope of the same name.
+ * Create, update, or delete a writing. Each needs the scope of the same
+ * name.
  *
  * When MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN are set every change
  * is committed through GitHub's Contents API so it flows through the same
@@ -130,9 +132,11 @@ export async function handleMicropubPost(
   if (!action) return errorResponse(actionError);
 
   try {
-    return action.action === 'create'
-      ? await create(request, options)
-      : await update(action.url, action.update, options);
+    if (action.action === 'create') return await create(request, options);
+    if (action.action === 'update') {
+      return await update(action.url, action.update, options);
+    }
+    return await remove(action.url, options);
   } catch (error) {
     return errorResponse(error);
   }
@@ -293,6 +297,31 @@ async function update(
           options.fetch
         );
 
+  return jsonResponse({
+    url: absoluteRoute`/writings/${stored.slug}`,
+    path: stored.path,
+    commit,
+  });
+}
+
+/**
+ * Delete the writing's file outright. Its permalink answers 404 once the
+ * next deploy is live, and nothing keeps a copy to undelete from.
+ */
+async function remove(
+  url: string,
+  options: MicropubEndpointOptions
+): Promise<Response> {
+  const environment = options.environment ?? micropubEnvironment();
+  const stored = await findStoredWriting(url, environment, options.fetch);
+  if (!stored) return postNotFound();
+
+  const commit = await deleteStoredWriting(
+    stored,
+    `chore(content): Delete ${stored.slug} via Micropub`,
+    environment,
+    options.fetch
+  );
   return jsonResponse({
     url: absoluteRoute`/writings/${stored.slug}`,
     path: stored.path,

@@ -28,7 +28,7 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                 | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                        | Postgres (optional)                                          |
 | `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                        | Postgres (optional)                                          |
-| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, `?q=source`; `POST` creates and updates writings             | IndieAuth token; see Micropub                                |
+| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, `?q=source`; `POST` creates, updates, and deletes writings   | IndieAuth token; see Micropub                                |
 | `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one photo and answers 201 with its `Location`                            | IndieAuth token, Vercel Blob connection                      |
 | `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                    | nothing                                                      |
 | `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL | Postgres                                                     |
@@ -329,13 +329,14 @@ request needs, and have a `me` on the canonical origin. A client may send one
 token in the bearer header or form body. Missing and invalid tokens get 401; a
 valid token without the scope gets 403 `insufficient_scope`. Two tokens get 400.
 
-| Request                                    | Scope    | Answer                                                           |
-| ------------------------------------------ | -------- | ---------------------------------------------------------------- |
-| `POST` an `h-entry`                        | `create` | 202 with `Location`; the post is live after the deploy           |
-| `POST` `action=update`                     | `update` | 200 with `{ url, path, commit }`                                 |
-| `GET ?q=source&url=` (and `properties[]=`) | any      | the writing's mf2 JSON, drafts included                          |
-| `GET ?q=config`, `?q=syndicate-to`         | none     | capabilities, syndication targets, and the `q` values it answers |
-| `GET ?q=category` (and `filter=`)          | none     | `{ categories }`, the tags of published writings                 |
+| Request                                    | Scope    | Answer                                                                |
+| ------------------------------------------ | -------- | --------------------------------------------------------------------- |
+| `POST` an `h-entry`                        | `create` | 202 with `Location`; the post is live after the deploy                |
+| `POST` `action=update`                     | `update` | 200 with `{ url, path, commit }`                                      |
+| `POST` `action=delete`                     | `delete` | 200 with `{ url, path, commit }`; the permalink 404s after the deploy |
+| `GET ?q=source&url=` (and `properties[]=`) | any      | the writing's mf2 JSON, drafts included                               |
+| `GET ?q=config`, `?q=syndicate-to`         | none     | capabilities, syndication targets, and the `q` values it answers      |
+| `GET ?q=category` (and `filter=`)          | none     | `{ categories }`, the tags of published writings                      |
 
 In a JSON body, `in-reply-to`, `like-of`, `repost-of`, and `bookmark-of`
 may each be a URL or an embedded `h-cite`. The post keeps the h-cite's first
@@ -403,6 +404,24 @@ or deleted. An update that changes nothing answers 200 with an empty
 the route read, so an update that races another commit to the same file
 fails with a 500 instead of overwriting it. The change is live after the
 deploy.
+
+### Deletes
+
+`action=delete` with the permalink in `url`, form-encoded or JSON, deletes
+the writing's file. On GitHub that is a Contents API `DELETE` carrying the
+blob SHA the route read, committed as
+`chore(content): Delete <slug> via Micropub`, so a delete that races another
+commit to the file fails with a 500 instead of discarding that commit.
+Without GitHub the route unlinks the file in the local checkout. After the
+deploy the permalink answers 404, and the post leaves the lists, feeds,
+sitemap, and search index, which the build makes from the files. With
+`SEARCH_BACKEND=postgres` the search table keeps the post until
+`/api/search/reindex` runs. Photos the post cited stay in Blob storage, and
+webmentions stored for its URL stay in Postgres.
+
+Nothing records the deletion and nothing keeps a copy, so there is no
+undelete: `action=undelete` answers 400 `invalid_request`. To bring a post
+back, revert the delete commit.
 
 ### Syndication
 

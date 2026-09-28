@@ -8,13 +8,14 @@ import {
 /** What a Micropub POST asks for. Anything without `action` is a create. */
 export type MicropubAction =
   | { action: 'create' }
-  | { action: 'update'; url: string; update: MicropubUpdate };
+  | { action: 'update'; url: string; update: MicropubUpdate }
+  | { action: 'delete'; url: string };
 
 /**
  * Read the action from a POST without consuming its body, which a create
- * still needs. The spec defines update in JSON only; a form update in the
- * bracket syntax some clients send (`replace[content][]=…`,
- * `delete[]=category`) is read too.
+ * still needs. JSON and form bodies both carry a delete. The spec defines
+ * update in JSON only; a form update in the bracket syntax some clients send
+ * (`replace[content][]=…`, `delete[]=category`) is read too.
  */
 export async function readMicropubAction(
   request: Request
@@ -45,6 +46,7 @@ export async function readMicropubAction(
 
 function jsonAction(body: Record<string, unknown>): MicropubAction {
   const { action } = body;
+  if (action === 'delete') return { action, url: requiredUrl(body.url) };
   if (action !== 'update') throw unsupportedAction(action);
   return {
     action,
@@ -92,6 +94,7 @@ function propertyMap(value: unknown, field: string): Mf2Properties {
 
 function formAction(form: FormData): MicropubAction {
   const action = form.get('action');
+  if (action === 'delete') return { action, url: requiredUrl(form.get('url')) };
   if (action !== 'update') throw unsupportedAction(action);
   const url = requiredUrl(form.get('url'));
   const deleteProperties: string[] = [];

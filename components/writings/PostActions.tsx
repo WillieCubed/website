@@ -25,20 +25,17 @@ export default function PostActions({
   const [replyOpen, setReplyOpen] = useState(false);
   const [shareStatus, setShareStatus] = useState('');
   const replyId = useId();
-  const replyButton = useRef<HTMLButtonElement>(null);
-  const replyPanel = useRef<HTMLDivElement>(null);
+  const replySurface = useRef<HTMLDivElement>(null);
   const transitioning = useRef(false);
 
   async function toggleReply() {
     if (transitioning.current) return;
     const opening = !replyOpen;
-    const source = opening ? replyButton.current : replyPanel.current;
-    const destination = opening ? replyPanel.current : replyButton.current;
+    const surface = replySurface.current;
     if (
       !document.startViewTransition ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      !source ||
-      !destination
+      !surface
     ) {
       setReplyOpen(opening);
       return;
@@ -46,18 +43,15 @@ export default function PostActions({
 
     transitioning.current = true;
     document.documentElement.dataset.postReplyTransition = '';
-    source.style.viewTransitionName = 'post-reply';
+    surface.style.viewTransitionName = 'post-reply';
     try {
       await document.startViewTransition(() => {
-        source.style.viewTransitionName = '';
         flushSync(() => setReplyOpen(opening));
-        destination.style.viewTransitionName = 'post-reply';
       }).finished;
     } catch {
       // The browser can cancel a transition without cancelling its state update.
     } finally {
-      source.style.viewTransitionName = '';
-      destination.style.viewTransitionName = '';
+      surface.style.viewTransitionName = '';
       delete document.documentElement.dataset.postReplyTransition;
       transitioning.current = false;
     }
@@ -86,19 +80,38 @@ export default function PostActions({
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        <button
-          ref={replyButton}
-          type="button"
-          data-post-action
-          aria-expanded={replyOpen}
-          aria-controls={replyId}
-          onClick={toggleReply}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-label-large font-semibold text-on-primary transition-colors hover:bg-primary/90"
+      <div className="flex flex-wrap items-start gap-2">
+        <div
+          ref={replySurface}
+          data-reply-surface
+          className={
+            replyOpen
+              ? 'bleed w-[calc(100%+2*var(--bleed))] shrink-0 rounded-3xl bg-surface-container py-5'
+              : 'rounded-full bg-primary text-on-primary'
+          }
         >
-          <Icon name="reply" size={16} />
-          Reply via IndieWeb
-        </button>
+          <button
+            type="button"
+            data-post-action
+            aria-expanded={replyOpen}
+            aria-controls={replyId}
+            onClick={toggleReply}
+            className={
+              replyOpen
+                ? 'flex w-full items-center gap-2 text-title-medium font-semibold text-ink'
+                : 'inline-flex items-center gap-2 rounded-full px-4 py-2 text-label-large font-semibold transition-colors hover:bg-primary/90'
+            }
+          >
+            <Icon name="reply" size={16} />
+            <span className="flex-1 text-left">Reply via IndieWeb</span>
+            {replyOpen && (
+              <Icon name="arrow-right" size={18} className="-rotate-90" />
+            )}
+          </button>
+          <div id={replyId} hidden={!replyOpen} className="pt-4">
+            <WebmentionForm target={target} />
+          </div>
+        </div>
         <SiteLink
           href={threadsHref}
           target="_blank"
@@ -117,14 +130,6 @@ export default function PostActions({
           <Icon name="share" size={16} />
           Share
         </button>
-      </div>
-      <div
-        ref={replyPanel}
-        id={replyId}
-        hidden={!replyOpen}
-        className="bleed mt-4 rounded-3xl bg-surface-container py-5"
-      >
-        <WebmentionForm target={target} />
       </div>
       {shareStatus && (
         <p role="status" className="mt-2 text-label-medium text-muted">

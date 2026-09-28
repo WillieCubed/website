@@ -26,16 +26,21 @@ html[data-post-reply-transition]::view-transition-group(post-reply) {
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-html[data-post-reply-transition] {
-  view-transition-name: none;
+html[data-post-reply-transition]::view-transition-old(root) {
+  animation: none;
+  opacity: 0;
+}
+
+html[data-post-reply-transition]::view-transition-new(root) {
+  animation: none;
 }
 
 html[data-post-reply-transition]::view-transition-old(post-reply) {
-  animation: 90ms ease-out both post-reply-fade-out;
+  animation: 55ms ease-out both post-reply-fade-out;
 }
 
 html[data-post-reply-transition]::view-transition-new(post-reply) {
-  animation: 180ms ease-in 90ms both post-reply-fade-in;
+  animation: 90ms ease-in both post-reply-fade-in;
 }
 
 @keyframes post-reply-fade-out {

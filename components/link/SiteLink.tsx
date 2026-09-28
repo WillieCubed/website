@@ -33,7 +33,9 @@ export interface SiteLinkProps
 }
 
 const INTENT_DELAY = 250;
-const LEAVE_GRACE = 120;
+// Long enough for a pointer to cross the 8px gap between the link and the
+// card, diagonally from a long link, without the card closing under it.
+const LEAVE_GRACE = 200;
 const CARD_WIDTH = 320;
 
 let registryPromise: Promise<Map<string, EntityCard>> | null = null;
@@ -235,7 +237,14 @@ export default function SiteLink({
         {children}
       </Link>
       {wantsPreview && card && (
-        <LinkPreview card={card} style={cardStyle} popoverRef={popoverRef} />
+        <LinkPreview
+          card={card}
+          style={cardStyle}
+          popoverRef={popoverRef}
+          // WCAG 1.4.13: the pointer can move onto the card and rest there.
+          onPointerEnter={clearTimers}
+          onPointerLeave={scheduleHide}
+        />
       )}
     </>
   );

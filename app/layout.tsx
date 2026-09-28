@@ -8,12 +8,7 @@ import PaletteProvider from '@/components/palette/PaletteProvider';
 import SiteFooter from '@/components/site/SiteFooter';
 import SkipLink from '@/components/site/SkipLink';
 
-import {
-  MICROPUB_ENDPOINT,
-  WEBMENTION_ENDPOINT,
-  WEBSUB_HUB,
-} from '@/lib/indieweb/constants';
-import { INDIEAUTH_DISCOVERY_LINKS } from '@/lib/indieweb/discovery';
+import { ENDPOINT_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
 import { site } from '@/lib/site';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
@@ -104,12 +99,9 @@ export default async function RootLayout({
         {/* IndieWeb discovery: where to send mentions and posts, who vouches
             for this site, and where the feeds live. */}
         <link rel="author" href={`${site.origin}/`} />
-        <link rel="webmention" href={WEBMENTION_ENDPOINT} />
-        <link rel="micropub" href={MICROPUB_ENDPOINT} />
-        {INDIEAUTH_DISCOVERY_LINKS.map(({ rel, href }) => (
+        {ENDPOINT_DISCOVERY_LINKS.map(({ rel, href }) => (
           <link key={rel} rel={rel} href={href} />
         ))}
-        <link rel="hub" href={WEBSUB_HUB} />
         <link
           rel="alternate"
           type="application/rss+xml"

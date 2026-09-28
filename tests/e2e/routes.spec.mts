@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { skipUnlessPublished } from './published';
+
 // These check the server's answers rather than a rendered page, so
 // playwright.config.mts runs them in the desktop project only.
 
@@ -22,6 +24,33 @@ for (const { from, to, status } of REDIRECTS) {
     expect(new URL(response.headers()['location'], baseURL).pathname).toBe(to);
   });
 }
+
+// lib/indieweb/discovery.ts: the head's endpoint links, as a header.
+const DISCOVERY_LINKS = [
+  '</webmention>; rel="webmention"',
+  '</micropub>; rel="micropub"',
+  '</.well-known/oauth-authorization-server>; rel="indieauth-metadata"',
+  '</indieauth/auth>; rel="authorization_endpoint"',
+  '</indieauth/token>; rel="token_endpoint"',
+  '<https://websubhub.com/hub>; rel="hub"',
+];
+
+for (const path of ['/', '/writings', '/initiatives/fall-tour-2026/part-1']) {
+  test(`${path} advertises the IndieWeb endpoints in a Link header`, async ({
+    request,
+  }) => {
+    await skipUnlessPublished(request, path);
+    const response = await request.get(path);
+    expect(response.status()).toBe(200);
+    const link = response.headers()['link'] ?? '';
+    for (const entry of DISCOVERY_LINKS) expect(link).toContain(entry);
+  });
+}
+
+test('a feed carries no page Link header', async ({ request }) => {
+  const response = await request.get('/feed.xml');
+  expect(response.headers()['link'] ?? '').not.toContain('rel="webmention"');
+});
 
 test('/feed.xml serves the RSS feed', async ({ request }) => {
   const response = await request.get('/feed.xml');

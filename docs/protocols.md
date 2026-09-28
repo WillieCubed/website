@@ -18,10 +18,30 @@ route file only forwards the request.
 | prose links                 | none; links to `/coffee` and `/tea`                                                                  | A standalone "coffee" or "tea" in writing and initiative MDX becomes a quiet plain `<a>` (`lib/writings/remark-brews.ts`). JSX copy uses `withBrewLinks`.                                               |
 | `/whoami`                   | none; echoes the request                                                                             | Plain text for `curl`, HTML for browsers, never cached or stored. See the host note below.                                                                                                              |
 | every path                  | `X-Clacks-Overhead: GNU Terry Pratchett`                                                             | Defined in `lib/response-headers.ts`, served by `headers()` in `next.config.ts`.                                                                                                                        |
+| every page                  | `Link` header, [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288)                                    | The head's Webmention, Micropub, IndieAuth, and WebSub hub links, for clients that read headers. See the Link header note below.                                                                        |
 | `/.well-known/security.txt` | [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116)                                                   | `Expires` is required and must stay under a year out. A unit test fails 30 days before it lapses; renew `SECURITY_TXT_EXPIRES`.                                                                         |
 | `/opensearch.xml`           | [OpenSearch](https://github.com/dewitt/opensearch/blob/master/opensearch-1-1-draft-6.md) description | Lets a browser add the site as a search engine. Queries go to `/search?q=`. Root layout advertises it with `<link rel="search">`.                                                                       |
 | `/api/mcp`                  | [Model Context Protocol](https://modelcontextprotocol.io), Streamable HTTP                           | Read-only and unauthenticated: `get_profile`, `list_writings`, `get_writing`, `search_writings`, `list_initiatives`, and `brew_coffee`, which answers with a 418 tool error. See the MCP section below. |
 | `/llms.txt`                 | [llmstxt.org](https://llmstxt.org)                                                                   | An H1, a summary, and `- [name](url): notes` lists of the published writings, feeds, and protocol endpoints. Drafts never appear.                                                                       |
+
+## The Link header
+
+Webmention, Micropub, IndieAuth, and WebSub clients may discover endpoints
+from an HTTP `Link` header without parsing the page, so every page response
+carries the same links the head does. Both render `ENDPOINT_DISCOVERY_LINKS`
+in `lib/indieweb/discovery-links.ts`, with the same relative paths, so a
+preview deployment advertises its own endpoints. Next adds a second `Link`
+header of its own for font and image preloads; HTTP treats the two as one
+list.
+
+Only pages get it, because a feed or a JSON endpoint that claims a
+Webmention endpoint misleads a sender. `PAGE_SOURCES` in
+`lib/response-headers.ts` names the page routes, and
+`tests/unit/response-headers.test.mts` walks `app/` and fails when a new
+page is missing from it or a route handler matches it. The files on the
+path from `next.config.ts` import each other by relative path: Next's config
+loader resolves `@/` against the wrong folder for a file under `lib/`, and
+the build fails with "Cannot find module".
 
 ## In the command palette
 

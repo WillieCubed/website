@@ -5,6 +5,7 @@ import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
 import PaletteProvider from '@/components/palette/PaletteProvider';
+import Fragmention from '@/components/site/Fragmention';
 import SiteFooter from '@/components/site/SiteFooter';
 import SkipLink from '@/components/site/SkipLink';
 
@@ -156,6 +157,7 @@ export default async function RootLayout({
           <div className="grow">{children}</div>
           <SiteFooter />
         </PaletteProvider>
+        <Fragmention />
         <Analytics />
         <SpeedInsights />
       </body>

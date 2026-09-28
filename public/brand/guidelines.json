@@ -1,0 +1,555 @@
+{
+  "name": "WillieCubed brand guidelines",
+  "owner": "Willie Chalmers III",
+  "source": "https://willie.page/brand",
+  "kit": "https://willie.page/brand/williecubed-brand.zip",
+  "tokens": "https://willie.page/brand/tokens/williecubed.tokens.json",
+  "clearSpace": {
+    "unit": "x",
+    "ratio": 0.25,
+    "rule": "x is 25% of the cube’s drawn height. It is the same space that separates the cube from the name in every lockup. Every file ends where its drawing ends, so leave x clear outside the file’s edge on all four sides."
+  },
+  "minimumSize": {
+    "measure": "height",
+    "rule": "Minimum sizes measure the file’s height: pixels on screen, millimeters in print."
+  },
+  "smallVersions": {
+    "maxPx": 48,
+    "rule": "At 48px tall or smaller, use a mark’s -small version, whose gaps are wider so the faces stay apart. Above 48px, use the regular version."
+  },
+  "selection": [
+    {
+      "when": "A platform asks for an app icon, favicon, avatar, or link preview",
+      "use": [],
+      "note": "Use the platform files in web/, apple/, android/, and social/. They follow each platform’s template, so leave their artwork as it is."
+    },
+    {
+      "when": "Introducing me to people who might not know the cube",
+      "use": [
+        {
+          "name": "willie-chalmers-iii-lockup-ink",
+          "label": "Name lockup, on light",
+          "background": "light"
+        },
+        {
+          "name": "willie-chalmers-iii-lockup-paper",
+          "label": "Name lockup, on dark",
+          "background": "dark"
+        }
+      ]
+    },
+    {
+      "when": "Crediting a project I make as WillieCubed",
+      "use": [
+        {
+          "name": "williecubed-lockup-ink",
+          "label": "williecubed lockup, on light",
+          "background": "light"
+        },
+        {
+          "name": "williecubed-lockup-paper",
+          "label": "williecubed lockup, on dark",
+          "background": "dark"
+        }
+      ]
+    },
+    {
+      "when": "Naming WillieCubed where the cube is already nearby",
+      "use": [
+        {
+          "name": "williecubed-wordmark-ink",
+          "label": "Wordmark, on light",
+          "background": "light"
+        },
+        {
+          "name": "williecubed-wordmark-paper",
+          "label": "Wordmark, on dark",
+          "background": "dark"
+        }
+      ]
+    },
+    {
+      "when": "Showing the cube on its own",
+      "use": [
+        {
+          "name": "williecubed-mark",
+          "label": "The cube",
+          "background": "any"
+        }
+      ]
+    },
+    {
+      "when": "Placing the cube where the tile would clash with the background",
+      "use": [
+        {
+          "name": "williecubed-cube-on-light",
+          "label": "Cube on light",
+          "background": "light"
+        },
+        {
+          "name": "williecubed-cube-on-dark",
+          "label": "Cube on dark",
+          "background": "dark"
+        }
+      ]
+    },
+    {
+      "when": "Printing in one ink, embossing, or placing it on a photo",
+      "use": [
+        {
+          "name": "williecubed-cube-black",
+          "label": "One color, black",
+          "background": "light"
+        },
+        {
+          "name": "williecubed-cube-white",
+          "label": "One color, white",
+          "background": "dark"
+        }
+      ]
+    },
+    {
+      "when": "Showing a mark at 48px tall or smaller",
+      "use": [],
+      "note": "Use that file’s small version, whose name ends in -small. Its wider gaps keep the faces apart. Lockups and the wordmark have no small version, so keep them at or above their minimum size."
+    }
+  ],
+  "prohibited": [
+    {
+      "id": "rotate",
+      "rule": "Don’t rotate or tilt the logo.",
+      "why": "The cube’s angles are what make it read as a cube."
+    },
+    {
+      "id": "stretch",
+      "rule": "Don’t stretch, squash, or skew it.",
+      "why": "Scale it evenly, from a corner."
+    },
+    {
+      "id": "recolor",
+      "rule": "Don’t recolor the faces or change their order.",
+      "why": "Use a one-color version when you need a single color."
+    },
+    {
+      "id": "effects",
+      "rule": "Don’t add shadows, glows, outlines, gradients, or bevels.",
+      "why": "The logo is flat on purpose."
+    },
+    {
+      "id": "crowd",
+      "rule": "Don’t put text or other graphics inside the clear space.",
+      "why": "Leave x clear on every side."
+    },
+    {
+      "id": "too-small",
+      "rule": "Don’t use a regular version at 48px or smaller.",
+      "why": "Its gaps close up. Use its small version instead."
+    },
+    {
+      "id": "rebuild",
+      "rule": "Don’t redraw the cube, rearrange a lockup, or set my name in another typeface.",
+      "why": "Use the files as they are."
+    }
+  ],
+  "exceptions": [
+    "Platform icon files in web/, apple/, android/, and social/ follow each platform’s own template. Clear space and minimum sizes apply to the logo files in mark/ and lockups/."
+  ],
+  "files": [
+    {
+      "name": "williecubed-mark",
+      "label": "The cube",
+      "use": "Default. Use wherever the mark stands alone.",
+      "kind": "tile",
+      "background": "any",
+      "width": 512,
+      "height": 512,
+      "clearSpace": {
+        "x": 88.93,
+        "ofWidth": 0.174,
+        "ofHeight": 0.174
+      },
+      "minSize": {
+        "px": 16,
+        "mm": 5
+      },
+      "files": {
+        "svg": "https://willie.page/brand/mark/williecubed-mark.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-mark.pdf",
+        "png": {
+          "256": "https://willie.page/brand/mark/png/williecubed-mark-256.png",
+          "512": "https://willie.page/brand/mark/png/williecubed-mark-512.png",
+          "1024": "https://willie.page/brand/mark/png/williecubed-mark-1024.png",
+          "2048": "https://willie.page/brand/mark/png/williecubed-mark-2048.png"
+        }
+      },
+      "small": {
+        "svg": "https://willie.page/brand/mark/williecubed-mark-small.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-mark-small.pdf",
+        "png": {
+          "16": "https://willie.page/brand/mark/png/williecubed-mark-small-16.png",
+          "32": "https://willie.page/brand/mark/png/williecubed-mark-small-32.png",
+          "48": "https://willie.page/brand/mark/png/williecubed-mark-small-48.png",
+          "96": "https://willie.page/brand/mark/png/williecubed-mark-small-96.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-mark-square",
+      "label": "Full-bleed square",
+      "use": "For platforms that apply their own mask, like app stores and avatars.",
+      "kind": "square",
+      "background": "any",
+      "width": 512,
+      "height": 512,
+      "platformOnly": true,
+      "files": {
+        "svg": "https://willie.page/brand/mark/williecubed-mark-square.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-mark-square.pdf",
+        "png": {
+          "256": "https://willie.page/brand/mark/png/williecubed-mark-square-256.png",
+          "512": "https://willie.page/brand/mark/png/williecubed-mark-square-512.png",
+          "1024": "https://willie.page/brand/mark/png/williecubed-mark-square-1024.png",
+          "2048": "https://willie.page/brand/mark/png/williecubed-mark-square-2048.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-cube-on-light",
+      "label": "Cube on light",
+      "use": "For light backgrounds without the tile.",
+      "kind": "cube",
+      "background": "light",
+      "width": 403.52,
+      "height": 435.92,
+      "clearSpace": {
+        "x": 108.98,
+        "ofWidth": 0.27,
+        "ofHeight": 0.25
+      },
+      "minSize": {
+        "px": 16,
+        "mm": 5
+      },
+      "files": {
+        "svg": "https://willie.page/brand/mark/williecubed-cube-on-light.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-cube-on-light.pdf",
+        "png": {
+          "256": "https://willie.page/brand/mark/png/williecubed-cube-on-light-256.png",
+          "512": "https://willie.page/brand/mark/png/williecubed-cube-on-light-512.png",
+          "1024": "https://willie.page/brand/mark/png/williecubed-cube-on-light-1024.png",
+          "2048": "https://willie.page/brand/mark/png/williecubed-cube-on-light-2048.png"
+        }
+      },
+      "small": {
+        "svg": "https://willie.page/brand/mark/williecubed-cube-on-light-small.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-cube-on-light-small.pdf",
+        "png": {
+          "16": "https://willie.page/brand/mark/png/williecubed-cube-on-light-small-16.png",
+          "32": "https://willie.page/brand/mark/png/williecubed-cube-on-light-small-32.png",
+          "48": "https://willie.page/brand/mark/png/williecubed-cube-on-light-small-48.png",
+          "96": "https://willie.page/brand/mark/png/williecubed-cube-on-light-small-96.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-cube-on-dark",
+      "label": "Cube on dark",
+      "use": "For dark backgrounds without the tile.",
+      "kind": "cube",
+      "background": "dark",
+      "width": 403.52,
+      "height": 435.92,
+      "clearSpace": {
+        "x": 108.98,
+        "ofWidth": 0.27,
+        "ofHeight": 0.25
+      },
+      "minSize": {
+        "px": 16,
+        "mm": 5
+      },
+      "files": {
+        "svg": "https://willie.page/brand/mark/williecubed-cube-on-dark.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-cube-on-dark.pdf",
+        "png": {
+          "256": "https://willie.page/brand/mark/png/williecubed-cube-on-dark-256.png",
+          "512": "https://willie.page/brand/mark/png/williecubed-cube-on-dark-512.png",
+          "1024": "https://willie.page/brand/mark/png/williecubed-cube-on-dark-1024.png",
+          "2048": "https://willie.page/brand/mark/png/williecubed-cube-on-dark-2048.png"
+        }
+      },
+      "small": {
+        "svg": "https://willie.page/brand/mark/williecubed-cube-on-dark-small.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-cube-on-dark-small.pdf",
+        "png": {
+          "16": "https://willie.page/brand/mark/png/williecubed-cube-on-dark-small-16.png",
+          "32": "https://willie.page/brand/mark/png/williecubed-cube-on-dark-small-32.png",
+          "48": "https://willie.page/brand/mark/png/williecubed-cube-on-dark-small-48.png",
+          "96": "https://willie.page/brand/mark/png/williecubed-cube-on-dark-small-96.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-cube-black",
+      "label": "One color, black",
+      "use": "For single-color printing and embossing.",
+      "kind": "cube",
+      "background": "light",
+      "width": 403.52,
+      "height": 435.92,
+      "clearSpace": {
+        "x": 108.98,
+        "ofWidth": 0.27,
+        "ofHeight": 0.25
+      },
+      "minSize": {
+        "px": 16,
+        "mm": 5
+      },
+      "files": {
+        "svg": "https://willie.page/brand/mark/williecubed-cube-black.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-cube-black.pdf",
+        "png": {
+          "256": "https://willie.page/brand/mark/png/williecubed-cube-black-256.png",
+          "512": "https://willie.page/brand/mark/png/williecubed-cube-black-512.png",
+          "1024": "https://willie.page/brand/mark/png/williecubed-cube-black-1024.png",
+          "2048": "https://willie.page/brand/mark/png/williecubed-cube-black-2048.png"
+        }
+      },
+      "small": {
+        "svg": "https://willie.page/brand/mark/williecubed-cube-black-small.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-cube-black-small.pdf",
+        "png": {
+          "16": "https://willie.page/brand/mark/png/williecubed-cube-black-small-16.png",
+          "32": "https://willie.page/brand/mark/png/williecubed-cube-black-small-32.png",
+          "48": "https://willie.page/brand/mark/png/williecubed-cube-black-small-48.png",
+          "96": "https://willie.page/brand/mark/png/williecubed-cube-black-small-96.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-cube-white",
+      "label": "One color, white",
+      "use": "For single-color use on dark or photographic backgrounds.",
+      "kind": "cube",
+      "background": "dark",
+      "width": 403.52,
+      "height": 435.92,
+      "clearSpace": {
+        "x": 108.98,
+        "ofWidth": 0.27,
+        "ofHeight": 0.25
+      },
+      "minSize": {
+        "px": 16,
+        "mm": 5
+      },
+      "files": {
+        "svg": "https://willie.page/brand/mark/williecubed-cube-white.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-cube-white.pdf",
+        "png": {
+          "256": "https://willie.page/brand/mark/png/williecubed-cube-white-256.png",
+          "512": "https://willie.page/brand/mark/png/williecubed-cube-white-512.png",
+          "1024": "https://willie.page/brand/mark/png/williecubed-cube-white-1024.png",
+          "2048": "https://willie.page/brand/mark/png/williecubed-cube-white-2048.png"
+        }
+      },
+      "small": {
+        "svg": "https://willie.page/brand/mark/williecubed-cube-white-small.svg",
+        "pdf": "https://willie.page/brand/mark/williecubed-cube-white-small.pdf",
+        "png": {
+          "16": "https://willie.page/brand/mark/png/williecubed-cube-white-small-16.png",
+          "32": "https://willie.page/brand/mark/png/williecubed-cube-white-small-32.png",
+          "48": "https://willie.page/brand/mark/png/williecubed-cube-white-small-48.png",
+          "96": "https://willie.page/brand/mark/png/williecubed-cube-white-small-96.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-wordmark-ink",
+      "label": "Wordmark, on light",
+      "use": "The name alone, for when the cube is already nearby.",
+      "kind": "wordmark",
+      "background": "light",
+      "width": 508.8,
+      "height": 73.16,
+      "clearSpace": {
+        "x": 24.05,
+        "ofWidth": 0.047,
+        "ofHeight": 0.329
+      },
+      "minSize": {
+        "px": 16,
+        "mm": 4
+      },
+      "files": {
+        "svg": "https://willie.page/brand/lockups/williecubed-wordmark-ink.svg",
+        "pdf": "https://willie.page/brand/lockups/williecubed-wordmark-ink.pdf",
+        "png": {
+          "2x": "https://willie.page/brand/lockups/png/williecubed-wordmark-ink@2x.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-wordmark-paper",
+      "label": "Wordmark, on dark",
+      "use": "The name alone, for when the cube is already nearby.",
+      "kind": "wordmark",
+      "background": "dark",
+      "width": 508.8,
+      "height": 73.16,
+      "clearSpace": {
+        "x": 24.05,
+        "ofWidth": 0.047,
+        "ofHeight": 0.329
+      },
+      "minSize": {
+        "px": 16,
+        "mm": 4
+      },
+      "files": {
+        "svg": "https://willie.page/brand/lockups/williecubed-wordmark-paper.svg",
+        "pdf": "https://willie.page/brand/lockups/williecubed-wordmark-paper.pdf",
+        "png": {
+          "2x": "https://willie.page/brand/lockups/png/williecubed-wordmark-paper@2x.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-lockup-ink",
+      "label": "williecubed lockup, on light",
+      "use": "For projects I make as WillieCubed.",
+      "kind": "lockup",
+      "background": "light",
+      "width": 1163.72,
+      "height": 180.01,
+      "clearSpace": {
+        "x": 45,
+        "ofWidth": 0.039,
+        "ofHeight": 0.25
+      },
+      "minSize": {
+        "px": 24,
+        "mm": 6
+      },
+      "files": {
+        "svg": "https://willie.page/brand/lockups/williecubed-lockup-ink.svg",
+        "pdf": "https://willie.page/brand/lockups/williecubed-lockup-ink.pdf",
+        "png": {
+          "2x": "https://willie.page/brand/lockups/png/williecubed-lockup-ink@2x.png"
+        }
+      }
+    },
+    {
+      "name": "williecubed-lockup-paper",
+      "label": "williecubed lockup, on dark",
+      "use": "For projects I make as WillieCubed.",
+      "kind": "lockup",
+      "background": "dark",
+      "width": 1163.72,
+      "height": 180.01,
+      "clearSpace": {
+        "x": 45,
+        "ofWidth": 0.039,
+        "ofHeight": 0.25
+      },
+      "minSize": {
+        "px": 24,
+        "mm": 6
+      },
+      "files": {
+        "svg": "https://willie.page/brand/lockups/williecubed-lockup-paper.svg",
+        "pdf": "https://willie.page/brand/lockups/williecubed-lockup-paper.pdf",
+        "png": {
+          "2x": "https://willie.page/brand/lockups/png/williecubed-lockup-paper@2x.png"
+        }
+      }
+    },
+    {
+      "name": "willie-chalmers-iii-lockup-ink",
+      "label": "Name lockup, on light",
+      "use": "For introducing me to people who might not know the cube.",
+      "kind": "lockup",
+      "background": "light",
+      "width": 1813.3,
+      "height": 180.01,
+      "clearSpace": {
+        "x": 45,
+        "ofWidth": 0.025,
+        "ofHeight": 0.25
+      },
+      "minSize": {
+        "px": 24,
+        "mm": 6
+      },
+      "files": {
+        "svg": "https://willie.page/brand/lockups/willie-chalmers-iii-lockup-ink.svg",
+        "pdf": "https://willie.page/brand/lockups/willie-chalmers-iii-lockup-ink.pdf",
+        "png": {
+          "2x": "https://willie.page/brand/lockups/png/willie-chalmers-iii-lockup-ink@2x.png"
+        }
+      }
+    },
+    {
+      "name": "willie-chalmers-iii-lockup-paper",
+      "label": "Name lockup, on dark",
+      "use": "For introducing me to people who might not know the cube.",
+      "kind": "lockup",
+      "background": "dark",
+      "width": 1813.3,
+      "height": 180.01,
+      "clearSpace": {
+        "x": 45,
+        "ofWidth": 0.025,
+        "ofHeight": 0.25
+      },
+      "minSize": {
+        "px": 24,
+        "mm": 6
+      },
+      "files": {
+        "svg": "https://willie.page/brand/lockups/willie-chalmers-iii-lockup-paper.svg",
+        "pdf": "https://willie.page/brand/lockups/willie-chalmers-iii-lockup-paper.pdf",
+        "png": {
+          "2x": "https://willie.page/brand/lockups/png/willie-chalmers-iii-lockup-paper@2x.png"
+        }
+      }
+    }
+  ],
+  "colors": {
+    "green": {
+      "name": "Accent green",
+      "hex": "#2f6f5e",
+      "role": "The mark’s tile and the site’s accent."
+    },
+    "ink": {
+      "name": "Ink",
+      "hex": "#1c231e",
+      "role": "Text and the mark’s shadow facet."
+    },
+    "paper": {
+      "name": "Paper",
+      "hex": "#f4f5ef",
+      "role": "Page background and the mark’s top facet."
+    },
+    "mint": {
+      "name": "Mint",
+      "hex": "#8fd1b8",
+      "role": "The mark’s lit facet."
+    },
+    "tray": {
+      "name": "Tray",
+      "hex": "#e7eae2",
+      "role": "Card and tile surfaces."
+    },
+    "muted": {
+      "name": "Muted",
+      "hex": "#69736b",
+      "role": "Secondary text."
+    }
+  },
+  "fonts": {
+    "display": "Atkinson Hyperlegible Next",
+    "mono": "Atkinson Hyperlegible Mono"
+  }
+}

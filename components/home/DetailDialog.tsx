@@ -4,6 +4,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
+import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
+
 import { type Detail, type DetailMedia, entries } from '@/lib/home/ventures';
 
 import { Constellation } from './Constellation';
@@ -376,6 +378,8 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     void settle();
   };
 
+  const backdrop = useBackdropDismiss(requestClose);
+
   useEffect(() => {
     registerOpener((id, from) => {
       wantRef.current = id;
@@ -426,9 +430,7 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
         }
         if (wantRef.current !== null) requestClose();
       }}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) requestClose();
-      }}
+      {...backdrop}
     >
       <div className="d-bar">
         <button

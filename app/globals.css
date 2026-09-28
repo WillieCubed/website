@@ -362,6 +362,36 @@ main:focus {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html,
+  * {
+    scroll-behavior: auto !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :is(a, button, input, summary, [tabindex]):focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 3px;
+  }
+  :is(.tile, .product, .act-card, .site-popover, dialog.detail) {
+    border: 1px solid CanvasText;
+  }
+  .pager button::after {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+  .pager button[aria-current='true']::after {
+    background: Highlight;
+  }
+}
+
 /* Scrollbars follow the theme; the reasoning is in
    docs/superpowers/specs/2026-09-28-scrollbars-design.md. */
 :root {

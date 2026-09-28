@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import SiteLink from '@/components/link/SiteLink';
 
 import type { Reference } from '@/lib/writings/references';
 
@@ -15,6 +17,16 @@ const CONDENSED_COUNT = 3;
  */
 export function References({ items }: { items: Reference[] }) {
   const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    const revealTarget = () => {
+      if (items.some((item) => location.hash === `#ref-${item.id}`)) {
+        setExpanded(true);
+      }
+    };
+    revealTarget();
+    window.addEventListener('hashchange', revealTarget);
+    return () => window.removeEventListener('hashchange', revealTarget);
+  }, [items]);
   if (items.length === 0) return null;
   const condensable = items.length > CONDENSED_COUNT + 1;
   const shown =
@@ -42,13 +54,13 @@ export function References({ items }: { items: Reference[] }) {
                 <span className="ref-popover__host">{host(item.href)}</span>
               )}
             </span>
-            <a
+            <SiteLink
               href={`#ref-mark-${item.id}`}
               className="references__back"
               aria-label={`Back to reference ${item.index} in the text`}
             >
               ↩
-            </a>
+            </SiteLink>
           </li>
         ))}
       </ol>

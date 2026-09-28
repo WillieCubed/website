@@ -65,6 +65,7 @@ export default function LiteYouTube({
       <Image
         src={posterSrc}
         alt=""
+        aria-hidden="true"
         fill
         sizes="(min-width: 840px) 840px, 100vw"
         className="object-cover transition-transform duration-700 ease-site group-hover:scale-[1.02]"

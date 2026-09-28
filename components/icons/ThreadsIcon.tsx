@@ -6,6 +6,7 @@ export default function ThreadsIcon({ className }: { className?: string }) {
       height="24"
       viewBox="0 -2 24 24"
       fill="none"
+      aria-hidden="true"
       className={className}
     >
       <path

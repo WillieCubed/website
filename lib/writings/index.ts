@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import readingTime from 'reading-time';
 
+import { hasImageDescription } from '@/lib/accessibility/alt-policy';
 import { showDrafts } from '@/lib/drafts';
 import { RESERVED_WRITING_SLUGS } from '@/lib/indieweb/utils';
 
@@ -257,17 +258,19 @@ export async function loadWriting(slug: string) {
 }
 
 /**
- * `photo` frontmatter as a list of photos. An entry may be a bare URL or
- * `{ url, alt }`; anything without a URL is skipped.
+ * `photo` frontmatter as a list of photos with descriptions.
  */
 function parsePhotos(value: unknown): WritingPhoto[] | undefined {
   if (!Array.isArray(value)) return undefined;
   const photos = value.flatMap((item: unknown): WritingPhoto[] => {
-    if (typeof item === 'string') return item ? [{ url: item }] : [];
-    if (!item || typeof item !== 'object') return [];
+    if (!item || typeof item !== 'object') {
+      throw new Error('A writing photo needs a URL and nonblank alt text.');
+    }
     const { url, alt } = item as { url?: unknown; alt?: unknown };
-    if (typeof url !== 'string' || !url) return [];
-    return [typeof alt === 'string' && alt ? { url, alt } : { url }];
+    if (typeof url !== 'string' || !url || !hasImageDescription(alt)) {
+      throw new Error('A writing photo needs a URL and nonblank alt text.');
+    }
+    return [{ url, alt: alt.trim() }];
   });
   return photos.length > 0 ? photos : undefined;
 }

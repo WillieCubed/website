@@ -19,7 +19,12 @@ export type Preview =
  * its focuses, but only the row's own preview presses it.
  */
 export function isFocusPressed(preview: Preview, focus: FocusId): boolean {
-  return preview !== null && 'focus' in preview && preview.focus === focus;
+  return (
+    preview !== null &&
+    'focus' in preview &&
+    preview.focus === focus &&
+    preview.pinned === true
+  );
 }
 
 export interface HomeContextValue {

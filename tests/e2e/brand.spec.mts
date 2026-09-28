@@ -74,6 +74,19 @@ test('brand downloads, navigation, and disclosures work', async ({ page }) => {
   ).toBeVisible();
 });
 
+test('brand format popovers move focus into their links and restore it', async ({
+  page,
+}) => {
+  await page.goto('/brand');
+  const trigger = page.getByRole('button', { name: 'More formats' }).first();
+  await trigger.click();
+  const panel = page.locator('.site-popover:popover-open');
+  await expect(panel.locator('a').first()).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
 test('logo usage is drawn and listed from the kit', async ({ page }) => {
   await page.goto('/brand#usage');
   const usage = page.locator('section[aria-labelledby="usage"]');
@@ -201,10 +214,12 @@ for (const deviceScaleFactor of [1, 2, 3]) {
     for (const image of await images.all()) {
       await image.scrollIntoViewIfNeeded();
       await expect
-        .poll(() =>
-          image.evaluate(
-            (img: HTMLImageElement) => img.complete && img.naturalWidth > 0
-          )
+        .poll(
+          () =>
+            image.evaluate(
+              (img: HTMLImageElement) => img.complete && img.naturalWidth > 0
+            ),
+          { timeout: 15_000 }
         )
         .toBe(true);
       const data = await image.evaluate((img: HTMLImageElement) => ({

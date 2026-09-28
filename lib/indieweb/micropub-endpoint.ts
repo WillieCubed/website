@@ -1,12 +1,11 @@
 import { SITE_URL } from '@/lib/indieweb/constants';
 import { getBearerToken, micropubTokenStatus } from '@/lib/indieweb/indieauth';
-import { MediaUploadError, getMediaStore } from '@/lib/indieweb/media';
 import {
+  MicropubValidationError,
   commitMicropubWriting,
   getMicropubConfig,
   getMicropubSyndicationTargets,
   parseMicropubCreateRequest,
-  prepareMicropubPhotoRequest,
   writeMicropubWritingLocally,
 } from '@/lib/indieweb/micropub';
 import {
@@ -245,8 +244,7 @@ async function create(
   options: MicropubEndpointOptions
 ): Promise<Response> {
   const environment = options.environment ?? micropubEnvironment();
-  const prepared = await prepareMicropubPhotoRequest(request, getMediaStore());
-  const entry = await parseMicropubCreateRequest(prepared);
+  const entry = await parseMicropubCreateRequest(request);
   const result =
     environment.githubRepository && environment.githubToken
       ? await commitMicropubWriting(entry, {
@@ -338,16 +336,11 @@ function postNotFound(): Response {
 }
 
 function errorResponse(error: unknown): Response {
+  if (error instanceof MicropubValidationError) {
+    return jsonError('invalid_request', 400, error.message);
+  }
   if (error instanceof MicropubRequestError) {
     return jsonError('invalid_request', 400, error.description);
-  }
-  if (error instanceof MediaUploadError) {
-    const unconfigured = error.message === 'Media uploads are not configured.';
-    return jsonError(
-      unconfigured ? 'temporarily_unavailable' : 'invalid_request',
-      unconfigured ? 503 : 400,
-      error.message
-    );
   }
   if (error instanceof Error && error.message === 'invalid_request') {
     return jsonError('invalid_request', 400);

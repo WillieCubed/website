@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import SiteLink from '@/components/link/SiteLink';
+
 import type { TOCHeading } from '@/lib/writings/types';
 
 interface TableOfContentsProps {
@@ -50,15 +52,6 @@ export default function TableOfContents({
     };
   }, [headings]);
 
-  const handleClick = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setActiveId(id);
-      setIsExpanded(false);
-    }
-  };
-
   if (headings.length === 0) {
     return null;
   }
@@ -70,11 +63,13 @@ export default function TableOfContents({
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex w-full items-center justify-between rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-left desktop:hidden"
         aria-expanded={isExpanded}
+        aria-controls="writing-contents"
       >
         <span className="text-title-small font-medium">Contents</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -89,7 +84,10 @@ export default function TableOfContents({
       </button>
 
       {/* Content list */}
-      <div className={`${isExpanded ? 'mt-2 block' : 'hidden'} desktop:block`}>
+      <div
+        id="writing-contents"
+        className={`${isExpanded ? 'mt-2 block' : 'hidden'} desktop:block`}
+      >
         <div className="hidden text-title-medium font-medium desktop:mb-4 desktop:block">
           Contents
         </div>
@@ -101,8 +99,13 @@ export default function TableOfContents({
 
             return (
               <li key={heading.id}>
-                <button
-                  onClick={() => handleClick(heading.id)}
+                <SiteLink
+                  href={`#${heading.id}`}
+                  onClick={() => {
+                    setActiveId(heading.id);
+                    setIsExpanded(false);
+                  }}
+                  aria-current={isActive ? 'location' : undefined}
                   className={`block w-full rounded px-3 py-1.5 text-left text-sm transition-colors ${indentClass} ${
                     isActive
                       ? 'bg-primary/10 font-medium text-primary'
@@ -110,7 +113,7 @@ export default function TableOfContents({
                   }`}
                 >
                   {heading.text}
-                </button>
+                </SiteLink>
               </li>
             );
           })}

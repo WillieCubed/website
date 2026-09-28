@@ -95,7 +95,7 @@ export default function WritingHeader({
             <img
               key={photo.url}
               src={photo.url}
-              alt={photo.alt ?? ''}
+              alt={photo.alt}
               decoding="async"
               className="u-photo w-full rounded-2xl bg-card"
             />

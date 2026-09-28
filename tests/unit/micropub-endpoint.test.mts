@@ -318,6 +318,31 @@ test('a create with an mp-slug outside the writings directory answers 400', asyn
   });
 });
 
+test('a create with a photo without alt writes no file', async () => {
+  await withContent(async (options) => {
+    const response = await handleMicropubPost(
+      postJson(
+        {
+          type: ['h-entry'],
+          properties: {
+            photo: ['https://example.com/photo.jpg'],
+            'mp-slug': ['unlabeled-photo'],
+          },
+        },
+        await tokenWith('create')
+      ),
+      options
+    );
+    assert.equal(response.status, 400);
+    assert.match((await response.json()).error_description, /nonblank alt/);
+    await assert.rejects(
+      readFile(
+        join(process.cwd(), options.environment!.contentPath, 'unlabeled-photo.mdx')
+      )
+    );
+  });
+});
+
 test('an update needs the update scope and rewrites the file', async () => {
   await withContent(async (options, file) => {
     const body = {
@@ -355,6 +380,32 @@ test('an update needs the update scope and rewrites the file', async () => {
         .replace(/\n---\n[\s\S]*$/, '\n---\n\nA lane on Charleston first.\n')
     );
   });
+});
+
+test('a photo update without alt writes no file or GitHub commit', async () => {
+  const request = postJson(
+    {
+      action: 'update',
+      url: postUrl,
+      replace: { photo: ['https://example.com/photo.jpg'] },
+    },
+    await tokenWith('update')
+  );
+  await withContent(async (options, file) => {
+    const response = await handleMicropubPost(request.clone(), options);
+    assert.equal(response.status, 400);
+    assert.match((await response.json()).error_description, /nonblank alt/);
+    assert.equal(await readFile(file, 'utf8'), source);
+  });
+
+  const { calls, fetch } = fakeGitHub();
+  const response = await handleMicropubPost(request.clone(), {
+    store,
+    environment: github,
+    fetch,
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(calls.map(({ method }) => method), ['GET']);
 });
 
 test('a form update carries its token and changes in the body', async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useEffect, useId, useRef } from 'react';
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 
 import './site.css';
 
@@ -20,6 +20,7 @@ export default function Popover({
   align?: 'start' | 'end';
 }) {
   const id = useId();
+  const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -38,8 +39,13 @@ export default function Popover({
     const menu = panel.current;
     const toggle = (event: Event) => {
       const open = (event as ToggleEvent).newState === 'open';
-      button.current?.setAttribute('aria-expanded', String(open));
+      setOpen(open);
       place();
+      if (open) {
+        menu?.querySelector<HTMLElement>('a, button, [tabindex="0"]')?.focus();
+      } else if (menu?.contains(document.activeElement)) {
+        button.current?.focus();
+      }
     };
     menu?.addEventListener('toggle', toggle);
     window.addEventListener('resize', place);
@@ -58,7 +64,8 @@ export default function Popover({
         popoverTarget={id}
         className={triggerClassName}
         aria-label={label}
-        aria-expanded={false}
+        aria-expanded={open}
+        aria-controls={id}
       >
         {trigger}
       </button>

@@ -232,7 +232,7 @@ function AvoidExample({ id }: { id: string }) {
     case 'crowd':
       return (
         <span className="brand-avoid-crowd">
-          <Image src={TILE} alt="" width={56} height={56} />
+          <Image src={TILE} alt="" aria-hidden="true" width={56} height={56} />
           <span>Launch day</span>
         </span>
       );
@@ -241,6 +241,7 @@ function AvoidExample({ id }: { id: string }) {
         <Image
           src={kit.usage.guide.regular16}
           alt=""
+          aria-hidden="true"
           width={16}
           height={16}
           unoptimized
@@ -253,6 +254,7 @@ function AvoidExample({ id }: { id: string }) {
           <Image
             src="/brand/mark/williecubed-cube-on-light.svg"
             alt=""
+            aria-hidden="true"
             width={30}
             height={32}
           />
@@ -264,6 +266,7 @@ function AvoidExample({ id }: { id: string }) {
         <Image
           src={TILE}
           alt=""
+          aria-hidden="true"
           width={72}
           height={72}
           className={`brand-avoid-${id}`}
@@ -388,7 +391,14 @@ function LogoUsage() {
             ].map(({ src, label }) => (
               <figure key={src}>
                 <span>
-                  <Image src={src} alt="" width={16} height={16} unoptimized />
+                  <Image
+                    src={src}
+                    alt=""
+                    aria-hidden="true"
+                    width={16}
+                    height={16}
+                    unoptimized
+                  />
                   <Image
                     src={src}
                     alt={`${label}, magnified`}
@@ -415,7 +425,7 @@ function LogoUsage() {
                   <Image
                     key={size}
                     src={mark.small?.preview ?? mark.preview}
-                    alt={size === 48 ? `${mark.label}, small version` : ''}
+                    alt={`${mark.label} at ${size}px`}
                     width={size}
                     height={size}
                     style={{ width: 'auto', height: size }}
@@ -540,6 +550,7 @@ export default function BrandPage() {
           <Image
             src="/brand/mark/williecubed-mark.svg"
             alt=""
+            aria-hidden="true"
             width={96}
             height={96}
             loading="eager"
@@ -745,6 +756,7 @@ export default function BrandPage() {
               <Image
                 src="/brand/web/favicon.svg"
                 alt=""
+                aria-hidden="true"
                 width={16}
                 height={16}
               />

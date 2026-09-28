@@ -219,6 +219,7 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
   const wantRef = useRef<string | null>(null);
   // The element the next opening grows out of, when a click asked for it.
   const fromRef = useRef<HTMLElement | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const sourceRef = useRef<Source | null>(null);
   const busyRef = useRef(false);
   // The param as of the latest render, for code that runs after a morph.
@@ -242,6 +243,7 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     const source = sourceFor(id, from);
     const dialog = dialogRef.current;
     if (!source || !dialog) return false;
+    returnFocusRef.current = from;
     flushSync(() => clearPreviewNow());
     setName(source.card, 'card');
     setName(source.media, 'media');
@@ -308,6 +310,11 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     }
     sourceRef.current = null;
     setOpenId(null);
+    const returnFocus = returnFocusRef.current;
+    returnFocusRef.current = null;
+    if (returnFocus?.isConnected && !document.querySelector('dialog[open]')) {
+      returnFocus.focus({ preventScroll: true });
+    }
   };
 
   // Once the dialog shows what the visitor picked, the URL follows. A view

@@ -83,7 +83,7 @@ export default async function InitiativesPage() {
                     <SiteLink
                       preview={false}
                       href={item.href}
-                      className="u-url after:absolute after:inset-0 focus-visible:outline-none"
+                      className="u-url after:absolute after:inset-0 focus-visible:rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >
                       <SharedTitle id={`initiative-${item.slug}`} size="small">
                         <span className="inline-block">{item.title}</span>

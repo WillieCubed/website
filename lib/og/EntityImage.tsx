@@ -154,6 +154,7 @@ export default function EntityImage({
           <img
             src={cover}
             alt=""
+            aria-hidden="true"
             width={360}
             height={360}
             style={{

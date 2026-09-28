@@ -249,24 +249,68 @@ export async function sendWebmention(
 }
 
 /**
- * Extract external links from rendered HTML or the Markdown source saved by Micropub.
+ * Code a post shows rather than links to: fenced blocks (an unclosed fence
+ * runs to the end), inline code spans that stop at a blank line, and the
+ * <pre> and <code> elements they render to. GFM never autolinks inside code,
+ * so a sample request never becomes a target.
+ */
+const FENCED_CODE =
+  /^ {0,3}(`{3,}|~{3,})[^\n]*$[\s\S]*?(?:^ {0,3}\1[`~]*[ \t]*$|(?![\s\S]))/gm;
+const CODE_ELEMENT = /<(pre|code)\b[^>]*>[\s\S]*?<\/\1>/gi;
+const CODE_SPAN = /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?(?<!`)\1(?!`)/g;
+
+/**
+ * An absolute URL in an href, a Markdown link, or bare text. It stops at
+ * whitespace, quotes, angle and square brackets, and backticks, which end an
+ * attribute, a tag, link text, or a code span, so `[https://a.b](https://a.b)`
+ * reads as two URLs rather than one.
+ */
+const URL_PATTERN = /https?:\/\/[^\s"'<>[\]`]+/gi;
+
+/**
+ * Drop what a sentence wraps around a URL, as GFM's autolinks do: trailing
+ * punctuation and closing quotes, and a closing parenthesis that has no
+ * opening partner inside the URL. `(see https://w.org/Foo_(bar)).` keeps the
+ * parenthesis that belongs to the address and loses the other two marks.
+ */
+function trimUrl(url: string): string {
+  let end = url.length;
+  for (;;) {
+    const last = url[end - 1];
+    if ('.,!?;:*_~’”'.includes(last)) {
+      end--;
+      continue;
+    }
+    const rest = url.slice(0, end);
+    if (last === ')' && rest.split(')').length > rest.split('(').length) {
+      end--;
+      continue;
+    }
+    return rest;
+  }
+}
+
+/**
+ * External http and https links in rendered HTML or a post's Markdown source,
+ * in the order they first appear. Bare URLs count because the post renders
+ * them as links.
  */
 export function extractExternalLinks(content: string): string[] {
-  const linkRegex = /href=["']([^"']+)["']/gi;
-  const markdownLinkRegex = /\]\((https:\/\/[^)\s]+)\)/g;
+  const prose = content
+    .replace(FENCED_CODE, ' ')
+    .replace(CODE_ELEMENT, ' ')
+    .replace(CODE_SPAN, ' ');
+  // The site and its subdomains, such as the tour. alias, never get a
+  // webmention from the site itself.
+  const siteHost = new URL(SITE_URL).hostname;
   const links: string[] = [];
-  for (const match of [
-    ...content.matchAll(linkRegex),
-    ...content.matchAll(markdownLinkRegex),
-  ]) {
-    const url = match[1];
+  for (const [match] of prose.matchAll(URL_PATTERN)) {
+    const url = trimUrl(match);
     try {
       const parsed = new URL(url);
-      // Only include external HTTPS links
       if (
-        parsed.protocol === 'https:' &&
-        parsed.hostname !== new URL(SITE_URL).hostname &&
-        !parsed.hostname.endsWith('.willie.page')
+        parsed.hostname !== siteHost &&
+        !parsed.hostname.endsWith(`.${siteHost}`)
       ) {
         links.push(url);
       }

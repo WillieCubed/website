@@ -39,7 +39,8 @@ how its content is modeled, and the conventions that govern changes to it.
 - [Design principles](./design-principles.md): the five principles and the brand
   rule that govern the relaunch.
 - [Links and hover cards](./links.md): every in-site link goes through
-  `SiteLink`, what the hover card shows, and when to turn it off.
+  `SiteLink`, what lint enforces, when a raw anchor is right, what the hover
+  card shows, and when to turn it off.
 - [Titles and social previews](./metadata.md): `og:site_name` carries the
   name, so no social title repeats it, and every title reads on its own.
 

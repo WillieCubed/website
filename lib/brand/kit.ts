@@ -21,6 +21,34 @@ export interface KitFile {
   purpose: string;
 }
 
+/** A box in a file's own units. */
+export interface KitBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * How a file may be placed. Every logo file ends where its drawing ends, so
+ * clear space is measured out from the file's edge.
+ */
+export interface KitUsage {
+  kind: 'tile' | 'square' | 'cube' | 'lockup' | 'wordmark';
+  background: 'any' | 'light' | 'dark';
+  /** The SVG's own size. */
+  width: number;
+  height: number;
+  /** A platform crops it, so it has no placement rules of its own. */
+  platformOnly?: boolean;
+  /** The cube's drawn box inside the file; the wordmark has none. */
+  cube?: KitBox;
+  /** x in the file's units, and as a share of its width and height. */
+  clearSpace?: { x: number; ofWidth: number; ofHeight: number };
+  /** The smallest height on screen, in CSS pixels, and in print. */
+  minSize?: { px: number; mm: number };
+}
+
 export interface KitMark {
   name: string;
   label: string;
@@ -29,11 +57,15 @@ export interface KitMark {
   dark: boolean;
   preview: string;
   downloads: KitDownload[];
+  /** The cut with wider gaps for small sizes, when the mark has one. */
+  small?: { preview: string; downloads: KitDownload[] };
+  usage: KitUsage;
 }
 
 export interface KitLockup {
   name: string;
   label: string;
+  note: string;
   dark: boolean;
   preview: string;
   /** The SVG's own size. */
@@ -42,6 +74,25 @@ export interface KitLockup {
   /** The label's cap height, in the SVG's own units. */
   cap: number;
   downloads: KitDownload[];
+  usage: KitUsage;
+}
+
+/** The rules that apply across files, shared with guidelines.json. */
+export interface KitRules {
+  /** x as a share of the cube's drawn height. */
+  clearSpace: number;
+  /** At or below this height in CSS pixels, a mark switches to its small cut. */
+  smallMaxPx: number;
+  selection: Array<{
+    when: string;
+    use: Array<{ name: string; label: string; background: string }>;
+    note?: string;
+  }>;
+  prohibited: Array<{ id: string; rule: string; why: string }>;
+  exceptions: string[];
+  /** Page-only images, left out of the kit. */
+  guide: { regular16: string };
+  guidelines: KitDownload[];
 }
 
 export interface KitColor {
@@ -68,9 +119,10 @@ export interface Kit {
   /** Empty when the kit was built without Xcode 26 to render Liquid Glass. */
   appIcons: KitAppIcon[];
   platforms: Array<{ title: string; files: KitFile[] }>;
+  usage: KitRules;
 }
 
-export const kit: Kit = kitJson;
+export const kit: Kit = kitJson as Kit;
 
 /** A kit color's hex by its key, such as `paper` or `ink`. */
 export function kitColor(key: string, source: Kit = kit): string {
@@ -83,7 +135,11 @@ export function kitColor(key: string, source: Kit = kit): string {
 export function kitHrefs(source: Kit = kit): KitDownload[] {
   return [
     source.archive,
-    ...source.marks.flatMap((mark) => mark.downloads),
+    ...source.marks.flatMap((mark) => [
+      ...mark.downloads,
+      ...(mark.small?.downloads ?? []),
+    ]),
+    ...source.usage.guidelines,
     ...source.lockups.flatMap((lockup) => lockup.downloads),
     ...source.tokens,
     ...source.appIcons.flatMap((icon) => icon.downloads),

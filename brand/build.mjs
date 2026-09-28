@@ -143,13 +143,20 @@ const mark = {
       `${bg ? `<rect width="512" height="512" fill="${bg}"/>` : ''}${facetSvg(facets({ cx: 256, cy: 256, r }), colors)}`,
       'WillieCubed'
     ),
-  cube: (colors, small = false) =>
-    svg(
-      512,
-      512,
-      facetSvg(facets(tuned({ cx: 256, cy: 256, r: 250 }, small)), colors),
+  // The bare cube, cropped to its drawn edge like components/brand/Mark.tsx,
+  // so the file's box is the cube's box.
+  cube: (colors, small = false) => {
+    const box = cubeBounds(facets(tuned({ cx: 0, cy: 0, r: 250 }, small)));
+    return svg(
+      ceil2(box.x2 - box.x1),
+      ceil2(box.y2 - box.y1),
+      facetSvg(
+        facets(tuned({ cx: -box.x1, cy: -box.y1, r: 250 }, small)),
+        colors
+      ),
       'WillieCubed'
-    ),
+    );
+  },
 };
 
 // ---------- Text ----------
@@ -183,10 +190,28 @@ const CAP_HEIGHT = BOLD.tables.os2.sCapHeight / BOLD.unitsPerEm;
 const CAP_PX = 120;
 const CUBE_SCALE = 1.5;
 const DROP = 0.14;
-const GAP = 0.3;
+const GAP = 0.25;
+
+// ---------- Usage rules ----------
+
+// Every rule on willie.page/brand and in guidelines.json comes from here.
+// Clear space is one unit, x: the lockup's cube-to-name gap, so x is a
+// quarter of the cube's drawn height in every file. At or below
+// SMALL_MAX_PX, each mark switches to its -small cut with wider gaps.
+// Minimum sizes measure the file's height, which the trimmed artwork makes
+// the drawing's height too.
+const CLEAR_SPACE = GAP;
+const SMALL_MAX_PX = 48;
+const MIN_SIZE = {
+  tile: { px: 16, mm: 5 },
+  cube: { px: 16, mm: 5 },
+  lockup: { px: 24, mm: 6 },
+  wordmark: { px: 16, mm: 4 },
+};
+// Rounds a drawn edge outward, so trimming never clips the artwork.
+const ceil2 = (n) => Math.ceil(n * 100 - 1e-6) / 100;
 
 function lockup({ label, color }) {
-  const pad = 24;
   const size = CAP_PX / CAP_HEIGHT;
   const cubeHeight = CUBE_SCALE * CAP_PX;
   // Every facet measure scales with r, so one measurement sizes the cube.
@@ -194,11 +219,12 @@ function lockup({ label, color }) {
   const scale = cubeHeight / (probe.y2 - probe.y1);
   const text = BOLD.getPath(label, 0, 0, size).getBoundingBox();
   // Lay out around the baseline at y = 0, then drop everything by the
-  // tallest ink (the cube's top, i-dots or ascenders) plus the padding.
+  // tallest ink (the cube's top, i-dots or ascenders). The artboard ends
+  // where the drawing does; clear space is the user's to leave.
   const cubeTop = DROP * cubeHeight - cubeHeight;
-  const baseline = pad - Math.min(cubeTop, text.y1);
+  const baseline = -Math.min(cubeTop, text.y1);
   const cube = facets({
-    cx: pad - probe.x1 * scale,
+    cx: -probe.x1 * scale,
     cy: baseline + cubeTop - probe.y1 * scale,
     r: 100 * scale,
   });
@@ -206,32 +232,33 @@ function lockup({ label, color }) {
   const textX = box.x2 + GAP * cubeHeight - text.x1;
   const glyphs = BOLD.getPath(label, textX, baseline, size);
   const ink = glyphs.getBoundingBox();
-  const width = Math.ceil(ink.x2 + pad);
-  const height = Math.ceil(Math.max(box.y2, ink.y2) + pad);
-  return svg(
-    width,
-    height,
-    `${facetSvg(cube, color === C.ink ? ON_LIGHT : ON_DARK)}<path d="${glyphs.toPathData(2)}" fill="${color}"/>`,
-    label
-  );
+  const width = ceil2(Math.max(ink.x2, box.x2));
+  const height = ceil2(Math.max(box.y2, ink.y2));
+  return {
+    svg: svg(
+      width,
+      height,
+      `${facetSvg(cube, color === C.ink ? ON_LIGHT : ON_DARK)}<path d="${glyphs.toPathData(2)}" fill="${color}"/>`,
+      label
+    ),
+    cube: box,
+    cap: CAP_PX,
+  };
 }
 
 const WORDMARK_PX = 96;
 
 function wordmark(color) {
   const size = WORDMARK_PX;
-  const pad = 16;
   const p = BOLD.getPath('williecubed', 0, 0, size);
   const box = p.getBoundingBox();
-  const width = Math.ceil(box.x2 - box.x1 + pad * 2);
-  const height = Math.ceil(box.y2 - box.y1 + pad * 2);
-  const d = BOLD.getPath(
-    'williecubed',
-    pad - box.x1,
-    pad - box.y1,
-    size
-  ).toPathData(2);
-  return svg(width, height, `<path d="${d}" fill="${color}"/>`, 'williecubed');
+  const width = ceil2(box.x2 - box.x1);
+  const height = ceil2(box.y2 - box.y1);
+  const d = BOLD.getPath('williecubed', -box.x1, -box.y1, size).toPathData(2);
+  return {
+    svg: svg(width, height, `<path d="${d}" fill="${color}"/>`, 'williecubed'),
+    cap: WORDMARK_PX * CAP_HEIGHT,
+  };
 }
 
 function ogImage() {
@@ -265,9 +292,11 @@ function write(rel, data, meta = {}) {
   files.push({ rel, bytes: fs.statSync(abs).size, ...meta });
   return abs;
 }
-const png = (svgText, width) =>
+// Marks are sized by height, the dimension their minimum sizes measure; a
+// trimmed cube is taller than it is wide.
+const png = (svgText, value, mode = 'width') =>
   new Resvg(svgText, {
-    fitTo: { mode: 'width', value: width },
+    fitTo: { mode, value },
     font: { loadSystemFonts: false },
   })
     .render()
@@ -322,45 +351,77 @@ fs.rmSync(OUT, { recursive: true, force: true });
 const pending = [];
 
 // Mark
+const BLACK = ['#000000', '#000000', '#000000'];
+const WHITE = ['#ffffff', '#ffffff', '#ffffff'];
+// kind picks the clear-space and minimum-size rules; background is where
+// the file belongs; small draws the cut with wider gaps for 48px and under.
 const MARKS = {
   'williecubed-mark': {
     svg: mark.tile(),
-    label: 'Mark',
+    small: mark.tile(true),
+    kind: 'tile',
+    background: 'any',
+    label: 'The cube',
     note: 'Default. Use wherever the mark stands alone.',
   },
   'williecubed-mark-square': {
     svg: mark.square(),
+    kind: 'square',
+    background: 'any',
     label: 'Full-bleed square',
     note: 'For platforms that apply their own mask, like app stores and avatars.',
   },
   'williecubed-cube-on-light': {
     svg: mark.cube(ON_LIGHT),
+    small: mark.cube(ON_LIGHT, true),
+    kind: 'cube',
+    background: 'light',
     label: 'Cube on light',
     note: 'For light backgrounds without the tile.',
   },
   'williecubed-cube-on-dark': {
     svg: mark.cube(ON_DARK),
+    small: mark.cube(ON_DARK, true),
+    kind: 'cube',
+    background: 'dark',
     label: 'Cube on dark',
     note: 'For dark backgrounds without the tile.',
     dark: true,
   },
   'williecubed-cube-black': {
-    svg: mark.cube(['#000000', '#000000', '#000000']),
+    svg: mark.cube(BLACK),
+    small: mark.cube(BLACK, true),
+    kind: 'cube',
+    background: 'light',
     label: 'One color, black',
     note: 'For single-color printing and embossing.',
   },
   'williecubed-cube-white': {
-    svg: mark.cube(['#ffffff', '#ffffff', '#ffffff']),
+    svg: mark.cube(WHITE),
+    small: mark.cube(WHITE, true),
+    kind: 'cube',
+    background: 'dark',
     label: 'One color, white',
     note: 'For single-color use on dark or photographic backgrounds.',
     dark: true,
   },
 };
+const MARK_PNG = [256, 512, 1024, 2048];
+const SMALL_PNG = [16, 32, 48, 96];
 for (const [name, m] of Object.entries(MARKS)) {
   write(`mark/${name}.svg`, m.svg, { group: 'mark', variant: name });
   pending.push(pdf(`mark/${name}.pdf`, m.svg));
-  for (const size of [256, 512, 1024, 2048])
-    write(`mark/png/${name}-${size}.png`, png(m.svg, size), {
+  for (const size of MARK_PNG)
+    write(`mark/png/${name}-${size}.png`, png(m.svg, size, 'height'), {
+      group: 'mark-png',
+      variant: name,
+      size,
+    });
+  if (!m.small) continue;
+  write(`mark/${name}-small.svg`, m.small, { group: 'mark', variant: name });
+  pending.push(pdf(`mark/${name}-small.pdf`, m.small));
+  for (const size of SMALL_PNG)
+    write(`mark/png/${name}-small-${size}.png`, png(m.small, size, 'height'), {
       group: 'mark-png',
       variant: name,
       size,
@@ -368,29 +429,65 @@ for (const [name, m] of Object.entries(MARKS)) {
 }
 
 // Lockups and wordmark
+const WORDMARK_NOTE = 'The name alone, for when the cube is already nearby.';
+const HANDLE_NOTE = 'For projects I make as WillieCubed.';
+const NAME_NOTE = 'For introducing me to people who might not know the cube.';
 const LOCKUPS = {
-  'williecubed-wordmark-ink': wordmark(C.ink),
-  'williecubed-wordmark-paper': wordmark(C.paper),
-  'williecubed-lockup-ink': lockup({ label: 'williecubed', color: C.ink }),
-  'williecubed-lockup-paper': lockup({ label: 'williecubed', color: C.paper }),
-  'willie-chalmers-iii-lockup-ink': lockup({
-    label: 'Willie Chalmers III',
-    color: C.ink,
-  }),
-  'willie-chalmers-iii-lockup-paper': lockup({
-    label: 'Willie Chalmers III',
-    color: C.paper,
-  }),
+  'williecubed-wordmark-ink': {
+    ...wordmark(C.ink),
+    kind: 'wordmark',
+    note: WORDMARK_NOTE,
+  },
+  'williecubed-wordmark-paper': {
+    ...wordmark(C.paper),
+    kind: 'wordmark',
+    note: WORDMARK_NOTE,
+  },
+  'williecubed-lockup-ink': {
+    ...lockup({ label: 'williecubed', color: C.ink }),
+    kind: 'lockup',
+    note: HANDLE_NOTE,
+  },
+  'williecubed-lockup-paper': {
+    ...lockup({ label: 'williecubed', color: C.paper }),
+    kind: 'lockup',
+    note: HANDLE_NOTE,
+  },
+  'willie-chalmers-iii-lockup-ink': {
+    ...lockup({ label: 'Willie Chalmers III', color: C.ink }),
+    kind: 'lockup',
+    note: NAME_NOTE,
+  },
+  'willie-chalmers-iii-lockup-paper': {
+    ...lockup({ label: 'Willie Chalmers III', color: C.paper }),
+    kind: 'lockup',
+    note: NAME_NOTE,
+  },
 };
-for (const [name, s] of Object.entries(LOCKUPS)) {
-  write(`lockups/${name}.svg`, s, { group: 'lockup', variant: name });
-  pending.push(pdf(`lockups/${name}.pdf`, s));
-  const w = Number(s.match(/viewBox="0 0 (\d+)/)[1]);
-  write(`lockups/png/${name}@2x.png`, png(s, w * 2), {
+const lockupLabel = (name) =>
+  `${name
+    .replace(/-(ink|paper)$/, '')
+    .replace('williecubed-wordmark', 'Wordmark')
+    .replace('williecubed-lockup', 'williecubed lockup')
+    .replace(
+      'willie-chalmers-iii-lockup',
+      'Name lockup'
+    )}, ${name.endsWith('paper') ? 'on dark' : 'on light'}`;
+for (const [name, l] of Object.entries(LOCKUPS)) {
+  write(`lockups/${name}.svg`, l.svg, { group: 'lockup', variant: name });
+  pending.push(pdf(`lockups/${name}.pdf`, l.svg));
+  const w = Number(l.svg.match(/viewBox="0 0 (\d+(?:\.\d+)?)/)[1]);
+  write(`lockups/png/${name}@2x.png`, png(l.svg, Math.round(w * 2)), {
     group: 'lockup-png',
     variant: name,
   });
 }
+
+// The page magnifies the regular tile at 16px beside its small cut, to show
+// why the switch exists. These stay out of the kit.
+write('guide/williecubed-mark-16.png', png(mark.tile(), 16), {
+  group: 'guide',
+});
 
 // Web and PWA
 const favicon = mark.tile(true);
@@ -400,7 +497,7 @@ write('web/favicon.svg', favicon, {
 });
 write(
   'web/favicon.ico',
-  ico([16, 32, 48], (s) => mark.tile(s <= 48)),
+  ico([16, 32, 48], (s) => mark.tile(s <= SMALL_MAX_PX)),
   { group: 'web', purpose: 'ICO favicon with 16, 32, and 48px images' }
 );
 write('web/apple-touch-icon.png', png(mark.square(), 180), {
@@ -408,7 +505,7 @@ write('web/apple-touch-icon.png', png(mark.square(), 180), {
   purpose: 'Home screen icon for iPhone and iPad (180px, full bleed)',
 });
 for (const s of [48, 72, 96, 144, 192, 512])
-  write(`web/icon-${s}.png`, png(s <= 48 ? mark.tile(true) : mark.tile(), s), {
+  write(`web/icon-${s}.png`, png(mark.tile(s <= SMALL_MAX_PX), s), {
     group: 'web',
     purpose: `Manifest icon, ${s}px`,
   });
@@ -743,7 +840,7 @@ for (const [density, s] of [
 ]) {
   write(
     `android/res/mipmap-${density}/ic_launcher.png`,
-    png(mark.tile(s <= 48), s),
+    png(mark.tile(s <= SMALL_MAX_PX), s),
     { group: 'android', purpose: `Legacy launcher icon, ${density} (${s}px)` }
   );
 }
@@ -805,6 +902,289 @@ fs.copyFileSync(
 // The site serves its own manifest from app/manifest.ts, with colors from
 // lib/theme; web/manifest.webmanifest stays in the kit only.
 
+// ---------- Usage rules for people and agents ----------
+
+// The rules below render on /brand from kit.json and ship as
+// guidelines.json and guidelines.md, so a person reading the page and an
+// agent reading the kit follow the same numbers.
+const SITE = 'https://willie.page';
+const siteUrl = (rel) => `${SITE}/brand/${rel}`;
+const viewBox = (s) =>
+  s
+    .match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/)
+    .slice(1)
+    .map(Number);
+const ratio = (n) => Number(n.toFixed(3));
+const rect = ({ x1, y1, x2, y2 }) => ({
+  x: fmt(x1),
+  y: fmt(y1),
+  width: fmt(x2 - x1),
+  height: fmt(y2 - y1),
+});
+
+// x in the file's own units, and as a share of its width and height.
+function clearSpace(x, width, height) {
+  return { x: fmt(x), ofWidth: ratio(x / width), ofHeight: ratio(x / height) };
+}
+
+function markUsage(m) {
+  const [width, height] = viewBox(m.svg);
+  const base = { kind: m.kind, background: m.background, width, height };
+  // The platform crops this one, so it has no placement rules of its own.
+  if (m.kind === 'square') return { ...base, platformOnly: true };
+  // A trimmed cube file is its cube; the tile holds one at radius 204.
+  const cube =
+    m.kind === 'tile'
+      ? cubeBounds(facets({ cx: 256, cy: 256, r: 204 }))
+      : { x1: 0, y1: 0, x2: width, y2: height };
+  return {
+    ...base,
+    cube: rect(cube),
+    clearSpace: clearSpace(CLEAR_SPACE * (cube.y2 - cube.y1), width, height),
+    minSize: MIN_SIZE[m.kind],
+  };
+}
+
+function lockupUsage(name, l) {
+  const [width, height] = viewBox(l.svg);
+  // The wordmark takes the x of a lockup set at the same cap height.
+  const cubeHeight = l.cube ? l.cube.y2 - l.cube.y1 : CUBE_SCALE * l.cap;
+  return {
+    kind: l.kind,
+    background: name.endsWith('paper') ? 'dark' : 'light',
+    width,
+    height,
+    ...(l.cube && { cube: rect(l.cube) }),
+    clearSpace: clearSpace(CLEAR_SPACE * cubeHeight, width, height),
+    minSize: MIN_SIZE[l.kind],
+  };
+}
+
+const SELECTION = [
+  {
+    when: 'A platform asks for an app icon, favicon, avatar, or link preview',
+    use: [],
+    note: 'Use the platform files in web/, apple/, android/, and social/. They follow each platform’s template, so leave their artwork as it is.',
+  },
+  {
+    when: 'Introducing me to people who might not know the cube',
+    use: ['willie-chalmers-iii-lockup-ink', 'willie-chalmers-iii-lockup-paper'],
+  },
+  {
+    when: 'Crediting a project I make as WillieCubed',
+    use: ['williecubed-lockup-ink', 'williecubed-lockup-paper'],
+  },
+  {
+    when: 'Naming WillieCubed where the cube is already nearby',
+    use: ['williecubed-wordmark-ink', 'williecubed-wordmark-paper'],
+  },
+  {
+    when: 'Showing the cube on its own',
+    use: ['williecubed-mark'],
+  },
+  {
+    when: 'Placing the cube where the tile would clash with the background',
+    use: ['williecubed-cube-on-light', 'williecubed-cube-on-dark'],
+  },
+  {
+    when: 'Printing in one ink, embossing, or placing it on a photo',
+    use: ['williecubed-cube-black', 'williecubed-cube-white'],
+  },
+  {
+    when: `Showing a mark at ${SMALL_MAX_PX}px tall or smaller`,
+    use: [],
+    note: 'Use that file’s small version, whose name ends in -small. Its wider gaps keep the faces apart. Lockups and the wordmark have no small version, so keep them at or above their minimum size.',
+  },
+];
+
+// The ids match the examples on /brand.
+const PROHIBITED = [
+  {
+    id: 'rotate',
+    rule: 'Don’t rotate or tilt the logo.',
+    why: 'The cube’s angles are what make it read as a cube.',
+  },
+  {
+    id: 'stretch',
+    rule: 'Don’t stretch, squash, or skew it.',
+    why: 'Scale it evenly, from a corner.',
+  },
+  {
+    id: 'recolor',
+    rule: 'Don’t recolor the faces or change their order.',
+    why: 'Use a one-color version when you need a single color.',
+  },
+  {
+    id: 'effects',
+    rule: 'Don’t add shadows, glows, outlines, gradients, or bevels.',
+    why: 'The logo is flat on purpose.',
+  },
+  {
+    id: 'crowd',
+    rule: 'Don’t put text or other graphics inside the clear space.',
+    why: 'Leave x clear on every side.',
+  },
+  {
+    id: 'too-small',
+    rule: `Don’t use a regular version at ${SMALL_MAX_PX}px or smaller.`,
+    why: 'Its gaps close up. Use its small version instead.',
+  },
+  {
+    id: 'rebuild',
+    rule: 'Don’t redraw the cube, rearrange a lockup, or set my name in another typeface.',
+    why: 'Use the files as they are.',
+  },
+];
+
+const EXCEPTIONS = [
+  'Platform icon files in web/, apple/, android/, and social/ follow each platform’s own template. Clear space and minimum sizes apply to the logo files in mark/ and lockups/.',
+];
+
+const ENTRIES = {
+  ...Object.fromEntries(
+    Object.entries(MARKS).map(([name, m]) => [
+      name,
+      { label: m.label, note: m.note, usage: markUsage(m) },
+    ])
+  ),
+  ...Object.fromEntries(
+    Object.entries(LOCKUPS).map(([name, l]) => [
+      name,
+      { label: lockupLabel(name), note: l.note, usage: lockupUsage(name, l) },
+    ])
+  ),
+};
+const choices = (names) =>
+  names.map((name) => ({
+    name,
+    label: ENTRIES[name].label,
+    background: ENTRIES[name].usage.background,
+  }));
+const selection = SELECTION.map((s) => ({ ...s, use: choices(s.use) }));
+const markFiles = (base, sizes) => ({
+  svg: siteUrl(`mark/${base}.svg`),
+  pdf: siteUrl(`mark/${base}.pdf`),
+  png: Object.fromEntries(
+    sizes.map((s) => [s, siteUrl(`mark/png/${base}-${s}.png`)])
+  ),
+});
+const CLEAR_SPACE_RULE = `x is ${CLEAR_SPACE * 100}% of the cube’s drawn height. It is the same space that separates the cube from the name in every lockup. Every file ends where its drawing ends, so leave x clear outside the file’s edge on all four sides.`;
+const SMALL_RULE = `At ${SMALL_MAX_PX}px tall or smaller, use a mark’s -small version, whose gaps are wider so the faces stay apart. Above ${SMALL_MAX_PX}px, use the regular version.`;
+
+const guidelines = {
+  name: 'WillieCubed brand guidelines',
+  owner: 'Willie Chalmers III',
+  source: `${SITE}/brand`,
+  kit: siteUrl('williecubed-brand.zip'),
+  tokens: siteUrl('tokens/williecubed.tokens.json'),
+  clearSpace: { unit: 'x', ratio: CLEAR_SPACE, rule: CLEAR_SPACE_RULE },
+  minimumSize: {
+    measure: 'height',
+    rule: 'Minimum sizes measure the file’s height: pixels on screen, millimeters in print.',
+  },
+  smallVersions: { maxPx: SMALL_MAX_PX, rule: SMALL_RULE },
+  selection,
+  prohibited: PROHIBITED,
+  exceptions: EXCEPTIONS,
+  files: Object.entries(ENTRIES).map(([name, e]) => {
+    const { cube, ...usage } = e.usage;
+    const m = MARKS[name];
+    return {
+      name,
+      label: e.label,
+      use: e.note,
+      ...usage,
+      files: m
+        ? markFiles(name, MARK_PNG)
+        : {
+            svg: siteUrl(`lockups/${name}.svg`),
+            pdf: siteUrl(`lockups/${name}.pdf`),
+            png: { '2x': siteUrl(`lockups/png/${name}@2x.png`) },
+          },
+      ...(m?.small && { small: markFiles(`${name}-small`, SMALL_PNG) }),
+    };
+  }),
+  colors: Object.fromEntries(
+    Object.entries(COLOR).map(([k, v]) => [
+      k,
+      { name: v.name, hex: v.hex, role: v.role },
+    ])
+  ),
+  fonts: {
+    display: 'Atkinson Hyperlegible Next',
+    mono: 'Atkinson Hyperlegible Mono',
+  },
+};
+
+const percent = (n) => `${Math.round(n * 1000) / 10}%`;
+const placeable = guidelines.files.filter((f) => !f.platformOnly);
+const guidelinesMd = [
+  `# ${guidelines.name}`,
+  `The rules for using ${guidelines.owner}’s WillieCubed logo. The page is ${guidelines.source}; the same rules as JSON are at ${siteUrl('guidelines.json')}, and every file is in ${guidelines.kit}.`,
+  '## Clear space',
+  CLEAR_SPACE_RULE,
+  '| File | x, as a share of the file’s width | x, as a share of its height |\n| --- | --- | --- |\n' +
+    placeable
+      .map(
+        (f) =>
+          `| ${f.label} (\`${f.name}\`) | ${percent(f.clearSpace.ofWidth)} | ${percent(f.clearSpace.ofHeight)} |`
+      )
+      .join('\n'),
+  '## Minimum size',
+  `${guidelines.minimumSize.rule} ${SMALL_RULE}`,
+  '| File | Smallest on screen | Smallest in print | Small version |\n| --- | --- | --- | --- |\n' +
+    placeable
+      .map(
+        (f) =>
+          `| ${f.label} | ${f.minSize.px}px | ${f.minSize.mm}mm | ${f.small ? `\`${f.name}-small\`, up to ${SMALL_MAX_PX}px` : 'None'} |`
+      )
+      .join('\n'),
+  '## Choosing a version',
+  selection
+    .map(
+      (s, i) =>
+        `${i + 1}. ${s.when}: ${
+          s.use.length
+            ? `${s.use
+                .map(
+                  (u) =>
+                    `${u.label} (\`${u.name}\`, ${u.background} backgrounds)`
+                )
+                .join(' or ')}.`
+            : s.note
+        }`
+    )
+    .join('\n'),
+  '## What to avoid',
+  PROHIBITED.map((p) => `- ${p.rule} ${p.why}`).join('\n'),
+  '## Exceptions',
+  EXCEPTIONS.map((e) => `- ${e}`).join('\n'),
+  '## Files',
+  '| File | Use | Background | SVG | Small SVG |\n| --- | --- | --- | --- | --- |\n' +
+    guidelines.files
+      .map(
+        (f) =>
+          `| ${f.label} | ${f.use} | ${f.background} | ${f.files.svg} | ${f.small?.svg ?? 'None'} |`
+      )
+      .join('\n'),
+  '## Colors',
+  '| Color | Hex | Role |\n| --- | --- | --- |\n' +
+    Object.values(guidelines.colors)
+      .map((c) => `| ${c.name} | \`${c.hex}\` | ${c.role} |`)
+      .join('\n'),
+  '## Type',
+  `${guidelines.fonts.display} for my name and longer text; ${guidelines.fonts.mono} for labels, captions, and code.`,
+].join('\n\n');
+
+write('guidelines.json', JSON.stringify(guidelines, null, 2) + '\n', {
+  group: 'guidelines',
+});
+write(
+  'guidelines.md',
+  await prettier.format(guidelinesMd, { parser: 'markdown' }),
+  { group: 'guidelines' }
+);
+
 // Everything in one archive.
 for (const f of fs.readdirSync(OUT, { recursive: true }))
   fs.utimesSync(path.join(OUT, f), BUILD_EPOCH, BUILD_EPOCH);
@@ -820,6 +1200,8 @@ execFileSync(
     'apple',
     'android',
     'tokens',
+    'guidelines.json',
+    'guidelines.md',
     '-x',
     '*.DS_Store',
   ],
@@ -855,11 +1237,6 @@ const download = (rel, label) => ({
   href: href(rel),
   bytes: fs.statSync(path.join(OUT, rel)).size,
 });
-const viewBox = (s) =>
-  s
-    .match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/)
-    .slice(1)
-    .map(Number);
 const fileList = (group) =>
   files
     .filter((f) => f.group === group)
@@ -889,32 +1266,53 @@ const kit = {
         download(`mark/png/${name}-${s}.png`, `PNG ${s}`)
       ),
     ],
+    ...(m.small && {
+      small: {
+        preview: href(`mark/${name}-small.svg`),
+        downloads: [
+          download(`mark/${name}-small.svg`, 'SVG'),
+          download(`mark/${name}-small.pdf`, 'PDF'),
+          ...SMALL_PNG.map((s) =>
+            download(`mark/png/${name}-small-${s}.png`, `PNG ${s}`)
+          ),
+        ],
+      },
+    }),
+    usage: ENTRIES[name].usage,
   })),
-  lockups: Object.entries(LOCKUPS).map(([name, s]) => {
-    const [width, height] = viewBox(s);
-    const dark = name.endsWith('paper');
-    const label = name
-      .replace(/-(ink|paper)$/, '')
-      .replace('williecubed-wordmark', 'Wordmark')
-      .replace('williecubed-lockup', 'williecubed lockup')
-      .replace('willie-chalmers-iii-lockup', 'Name lockup');
+  lockups: Object.entries(LOCKUPS).map(([name, l]) => {
+    const [width, height] = viewBox(l.svg);
     return {
       name,
-      label: `${label}, ${dark ? 'on dark' : 'on light'}`,
-      dark,
+      label: lockupLabel(name),
+      note: l.note,
+      dark: name.endsWith('paper'),
       preview: href(`lockups/${name}.svg`),
       width,
       height,
       // The label's cap height in the SVG's own units, so the page can show
       // every lockup at one cap height however wide it is.
-      cap: fmt(name.includes('wordmark') ? WORDMARK_PX * CAP_HEIGHT : CAP_PX),
+      cap: fmt(l.cap),
       downloads: [
         download(`lockups/${name}.svg`, 'SVG'),
         download(`lockups/${name}.pdf`, 'PDF'),
         download(`lockups/png/${name}@2x.png`, 'PNG'),
       ],
+      usage: ENTRIES[name].usage,
     };
   }),
+  usage: {
+    clearSpace: CLEAR_SPACE,
+    smallMaxPx: SMALL_MAX_PX,
+    selection,
+    prohibited: PROHIBITED,
+    exceptions: EXCEPTIONS,
+    guide: { regular16: href('guide/williecubed-mark-16.png') },
+    guidelines: [
+      download('guidelines.json', 'guidelines.json'),
+      download('guidelines.md', 'guidelines.md'),
+    ],
+  },
   colors: Object.entries(COLOR).map(([key, v]) => ({
     key,
     name: v.name,

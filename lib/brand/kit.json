@@ -2,12 +2,12 @@
   "archive": {
     "label": "Download brand kit",
     "href": "/brand/williecubed-brand.zip",
-    "bytes": 4670097
+    "bytes": 5972832
   },
   "marks": [
     {
       "name": "williecubed-mark",
-      "label": "Mark",
+      "label": "The cube",
       "note": "Default. Use wherever the mark stands alone.",
       "dark": false,
       "preview": "/brand/mark/williecubed-mark.svg",
@@ -37,7 +37,51 @@
           "href": "/brand/mark/png/williecubed-mark-2048.png",
           "bytes": 77920
         }
-      ]
+      ],
+      "small": {
+        "preview": "/brand/mark/williecubed-mark-small.svg",
+        "downloads": [
+          {
+            "label": "SVG",
+            "href": "/brand/mark/williecubed-mark-small.svg",
+            "bytes": 601
+          },
+          {
+            "label": "PDF",
+            "href": "/brand/mark/williecubed-mark-small.pdf",
+            "bytes": 1857
+          },
+          {
+            "label": "PNG 16",
+            "href": "/brand/mark/png/williecubed-mark-small-16.png",
+            "bytes": 569
+          },
+          {
+            "label": "PNG 32",
+            "href": "/brand/mark/png/williecubed-mark-small-32.png",
+            "bytes": 891
+          },
+          {
+            "label": "PNG 48",
+            "href": "/brand/mark/png/williecubed-mark-small-48.png",
+            "bytes": 1270
+          },
+          {
+            "label": "PNG 96",
+            "href": "/brand/mark/png/williecubed-mark-small-96.png",
+            "bytes": 2377
+          }
+        ]
+      },
+      "usage": {
+        "kind": "tile",
+        "background": "any",
+        "width": 512,
+        "height": 512,
+        "cube": { "x": 91.36, "y": 68.96, "width": 329.28, "height": 355.71 },
+        "clearSpace": { "x": 88.93, "ofWidth": 0.174, "ofHeight": 0.174 },
+        "minSize": { "px": 16, "mm": 5 }
+      }
     },
     {
       "name": "williecubed-mark-square",
@@ -71,7 +115,14 @@
           "href": "/brand/mark/png/williecubed-mark-square-2048.png",
           "bytes": 61984
         }
-      ]
+      ],
+      "usage": {
+        "kind": "square",
+        "background": "any",
+        "width": 512,
+        "height": 512,
+        "platformOnly": true
+      }
     },
     {
       "name": "williecubed-cube-on-light",
@@ -83,29 +134,73 @@
         {
           "label": "SVG",
           "href": "/brand/mark/williecubed-cube-on-light.svg",
-          "bytes": 528
+          "bytes": 561
         },
         {
           "label": "PDF",
           "href": "/brand/mark/williecubed-cube-on-light.pdf",
-          "bytes": 1698
+          "bytes": 1710
         },
         {
           "label": "PNG 512",
           "href": "/brand/mark/png/williecubed-cube-on-light-512.png",
-          "bytes": 10721
+          "bytes": 11438
         },
         {
           "label": "PNG 1024",
           "href": "/brand/mark/png/williecubed-cube-on-light-1024.png",
-          "bytes": 28443
+          "bytes": 29673
         },
         {
           "label": "PNG 2048",
           "href": "/brand/mark/png/williecubed-cube-on-light-2048.png",
-          "bytes": 67763
+          "bytes": 69105
         }
-      ]
+      ],
+      "small": {
+        "preview": "/brand/mark/williecubed-cube-on-light-small.svg",
+        "downloads": [
+          {
+            "label": "SVG",
+            "href": "/brand/mark/williecubed-cube-on-light-small.svg",
+            "bytes": 552
+          },
+          {
+            "label": "PDF",
+            "href": "/brand/mark/williecubed-cube-on-light-small.pdf",
+            "bytes": 1710
+          },
+          {
+            "label": "PNG 16",
+            "href": "/brand/mark/png/williecubed-cube-on-light-small-16.png",
+            "bytes": 501
+          },
+          {
+            "label": "PNG 32",
+            "href": "/brand/mark/png/williecubed-cube-on-light-small-32.png",
+            "bytes": 745
+          },
+          {
+            "label": "PNG 48",
+            "href": "/brand/mark/png/williecubed-cube-on-light-small-48.png",
+            "bytes": 1072
+          },
+          {
+            "label": "PNG 96",
+            "href": "/brand/mark/png/williecubed-cube-on-light-small-96.png",
+            "bytes": 2107
+          }
+        ]
+      },
+      "usage": {
+        "kind": "cube",
+        "background": "light",
+        "width": 403.52,
+        "height": 435.92,
+        "cube": { "x": 0, "y": 0, "width": 403.52, "height": 435.92 },
+        "clearSpace": { "x": 108.98, "ofWidth": 0.27, "ofHeight": 0.25 },
+        "minSize": { "px": 16, "mm": 5 }
+      }
     },
     {
       "name": "williecubed-cube-on-dark",
@@ -117,29 +212,73 @@
         {
           "label": "SVG",
           "href": "/brand/mark/williecubed-cube-on-dark.svg",
-          "bytes": 528
+          "bytes": 561
         },
         {
           "label": "PDF",
           "href": "/brand/mark/williecubed-cube-on-dark.pdf",
-          "bytes": 1690
+          "bytes": 1705
         },
         {
           "label": "PNG 512",
           "href": "/brand/mark/png/williecubed-cube-on-dark-512.png",
-          "bytes": 10716
+          "bytes": 11503
         },
         {
           "label": "PNG 1024",
           "href": "/brand/mark/png/williecubed-cube-on-dark-1024.png",
-          "bytes": 28448
+          "bytes": 30058
         },
         {
           "label": "PNG 2048",
           "href": "/brand/mark/png/williecubed-cube-on-dark-2048.png",
-          "bytes": 68506
+          "bytes": 69167
         }
-      ]
+      ],
+      "small": {
+        "preview": "/brand/mark/williecubed-cube-on-dark-small.svg",
+        "downloads": [
+          {
+            "label": "SVG",
+            "href": "/brand/mark/williecubed-cube-on-dark-small.svg",
+            "bytes": 552
+          },
+          {
+            "label": "PDF",
+            "href": "/brand/mark/williecubed-cube-on-dark-small.pdf",
+            "bytes": 1703
+          },
+          {
+            "label": "PNG 16",
+            "href": "/brand/mark/png/williecubed-cube-on-dark-small-16.png",
+            "bytes": 506
+          },
+          {
+            "label": "PNG 32",
+            "href": "/brand/mark/png/williecubed-cube-on-dark-small-32.png",
+            "bytes": 741
+          },
+          {
+            "label": "PNG 48",
+            "href": "/brand/mark/png/williecubed-cube-on-dark-small-48.png",
+            "bytes": 1057
+          },
+          {
+            "label": "PNG 96",
+            "href": "/brand/mark/png/williecubed-cube-on-dark-small-96.png",
+            "bytes": 2090
+          }
+        ]
+      },
+      "usage": {
+        "kind": "cube",
+        "background": "dark",
+        "width": 403.52,
+        "height": 435.92,
+        "cube": { "x": 0, "y": 0, "width": 403.52, "height": 435.92 },
+        "clearSpace": { "x": 108.98, "ofWidth": 0.27, "ofHeight": 0.25 },
+        "minSize": { "px": 16, "mm": 5 }
+      }
     },
     {
       "name": "williecubed-cube-black",
@@ -151,29 +290,73 @@
         {
           "label": "SVG",
           "href": "/brand/mark/williecubed-cube-black.svg",
-          "bytes": 528
+          "bytes": 561
         },
         {
           "label": "PDF",
           "href": "/brand/mark/williecubed-cube-black.pdf",
-          "bytes": 1613
+          "bytes": 1626
         },
         {
           "label": "PNG 512",
           "href": "/brand/mark/png/williecubed-cube-black-512.png",
-          "bytes": 10733
+          "bytes": 10816
         },
         {
           "label": "PNG 1024",
           "href": "/brand/mark/png/williecubed-cube-black-1024.png",
-          "bytes": 24101
+          "bytes": 24107
         },
         {
           "label": "PNG 2048",
           "href": "/brand/mark/png/williecubed-cube-black-2048.png",
-          "bytes": 53601
+          "bytes": 55931
         }
-      ]
+      ],
+      "small": {
+        "preview": "/brand/mark/williecubed-cube-black-small.svg",
+        "downloads": [
+          {
+            "label": "SVG",
+            "href": "/brand/mark/williecubed-cube-black-small.svg",
+            "bytes": 552
+          },
+          {
+            "label": "PDF",
+            "href": "/brand/mark/williecubed-cube-black-small.pdf",
+            "bytes": 1624
+          },
+          {
+            "label": "PNG 16",
+            "href": "/brand/mark/png/williecubed-cube-black-small-16.png",
+            "bytes": 358
+          },
+          {
+            "label": "PNG 32",
+            "href": "/brand/mark/png/williecubed-cube-black-small-32.png",
+            "bytes": 564
+          },
+          {
+            "label": "PNG 48",
+            "href": "/brand/mark/png/williecubed-cube-black-small-48.png",
+            "bytes": 791
+          },
+          {
+            "label": "PNG 96",
+            "href": "/brand/mark/png/williecubed-cube-black-small-96.png",
+            "bytes": 1693
+          }
+        ]
+      },
+      "usage": {
+        "kind": "cube",
+        "background": "light",
+        "width": 403.52,
+        "height": 435.92,
+        "cube": { "x": 0, "y": 0, "width": 403.52, "height": 435.92 },
+        "clearSpace": { "x": 108.98, "ofWidth": 0.27, "ofHeight": 0.25 },
+        "minSize": { "px": 16, "mm": 5 }
+      }
     },
     {
       "name": "williecubed-cube-white",
@@ -185,189 +368,445 @@
         {
           "label": "SVG",
           "href": "/brand/mark/williecubed-cube-white.svg",
-          "bytes": 528
+          "bytes": 561
         },
         {
           "label": "PDF",
           "href": "/brand/mark/williecubed-cube-white.pdf",
-          "bytes": 1613
+          "bytes": 1625
         },
         {
           "label": "PNG 512",
           "href": "/brand/mark/png/williecubed-cube-white-512.png",
-          "bytes": 11898
+          "bytes": 11536
         },
         {
           "label": "PNG 1024",
           "href": "/brand/mark/png/williecubed-cube-white-1024.png",
-          "bytes": 27261
+          "bytes": 28098
         },
         {
           "label": "PNG 2048",
           "href": "/brand/mark/png/williecubed-cube-white-2048.png",
-          "bytes": 66334
+          "bytes": 64779
         }
-      ]
+      ],
+      "small": {
+        "preview": "/brand/mark/williecubed-cube-white-small.svg",
+        "downloads": [
+          {
+            "label": "SVG",
+            "href": "/brand/mark/williecubed-cube-white-small.svg",
+            "bytes": 552
+          },
+          {
+            "label": "PDF",
+            "href": "/brand/mark/williecubed-cube-white-small.pdf",
+            "bytes": 1624
+          },
+          {
+            "label": "PNG 16",
+            "href": "/brand/mark/png/williecubed-cube-white-small-16.png",
+            "bytes": 385
+          },
+          {
+            "label": "PNG 32",
+            "href": "/brand/mark/png/williecubed-cube-white-small-32.png",
+            "bytes": 610
+          },
+          {
+            "label": "PNG 48",
+            "href": "/brand/mark/png/williecubed-cube-white-small-48.png",
+            "bytes": 869
+          },
+          {
+            "label": "PNG 96",
+            "href": "/brand/mark/png/williecubed-cube-white-small-96.png",
+            "bytes": 1966
+          }
+        ]
+      },
+      "usage": {
+        "kind": "cube",
+        "background": "dark",
+        "width": 403.52,
+        "height": 435.92,
+        "cube": { "x": 0, "y": 0, "width": 403.52, "height": 435.92 },
+        "clearSpace": { "x": 108.98, "ofWidth": 0.27, "ofHeight": 0.25 },
+        "minSize": { "px": 16, "mm": 5 }
+      }
     }
   ],
   "lockups": [
     {
       "name": "williecubed-wordmark-ink",
       "label": "Wordmark, on light",
+      "note": "The name alone, for when the cube is already nearby.",
       "dark": false,
       "preview": "/brand/lockups/williecubed-wordmark-ink.svg",
-      "width": 541,
-      "height": 106,
+      "width": 508.8,
+      "height": 73.16,
       "cap": 64.13,
       "downloads": [
         {
           "label": "SVG",
           "href": "/brand/lockups/williecubed-wordmark-ink.svg",
-          "bytes": 5629
+          "bytes": 5588
         },
         {
           "label": "PDF",
           "href": "/brand/lockups/williecubed-wordmark-ink.pdf",
-          "bytes": 4556
+          "bytes": 4562
         },
         {
           "label": "PNG",
           "href": "/brand/lockups/png/williecubed-wordmark-ink@2x.png",
-          "bytes": 18475
+          "bytes": 17091
         }
-      ]
+      ],
+      "usage": {
+        "kind": "wordmark",
+        "background": "light",
+        "width": 508.8,
+        "height": 73.16,
+        "clearSpace": { "x": 24.05, "ofWidth": 0.047, "ofHeight": 0.329 },
+        "minSize": { "px": 16, "mm": 4 }
+      }
     },
     {
       "name": "williecubed-wordmark-paper",
       "label": "Wordmark, on dark",
+      "note": "The name alone, for when the cube is already nearby.",
       "dark": true,
       "preview": "/brand/lockups/williecubed-wordmark-paper.svg",
-      "width": 541,
-      "height": 106,
+      "width": 508.8,
+      "height": 73.16,
       "cap": 64.13,
       "downloads": [
         {
           "label": "SVG",
           "href": "/brand/lockups/williecubed-wordmark-paper.svg",
-          "bytes": 5629
+          "bytes": 5588
         },
         {
           "label": "PDF",
           "href": "/brand/lockups/williecubed-wordmark-paper.pdf",
-          "bytes": 4550
+          "bytes": 4555
         },
         {
           "label": "PNG",
           "href": "/brand/lockups/png/williecubed-wordmark-paper@2x.png",
-          "bytes": 19357
+          "bytes": 18168
         }
-      ]
+      ],
+      "usage": {
+        "kind": "wordmark",
+        "background": "dark",
+        "width": 508.8,
+        "height": 73.16,
+        "clearSpace": { "x": 24.05, "ofWidth": 0.047, "ofHeight": 0.329 },
+        "minSize": { "px": 16, "mm": 4 }
+      }
     },
     {
       "name": "williecubed-lockup-ink",
       "label": "williecubed lockup, on light",
+      "note": "For projects I make as WillieCubed.",
       "dark": false,
       "preview": "/brand/lockups/williecubed-lockup-ink.svg",
-      "width": 1221,
-      "height": 229,
+      "width": 1163.72,
+      "height": 180.01,
       "cap": 120,
       "downloads": [
         {
           "label": "SVG",
           "href": "/brand/lockups/williecubed-lockup-ink.svg",
-          "bytes": 6663
+          "bytes": 6574
         },
         {
           "label": "PDF",
           "href": "/brand/lockups/williecubed-lockup-ink.pdf",
-          "bytes": 5123
+          "bytes": 5040
         },
         {
           "label": "PNG",
           "href": "/brand/lockups/png/williecubed-lockup-ink@2x.png",
-          "bytes": 50770
+          "bytes": 47931
         }
-      ]
+      ],
+      "usage": {
+        "kind": "lockup",
+        "background": "light",
+        "width": 1163.72,
+        "height": 180.01,
+        "cube": { "x": -0.01, "y": 0, "width": 166.62, "height": 180 },
+        "clearSpace": { "x": 45, "ofWidth": 0.039, "ofHeight": 0.25 },
+        "minSize": { "px": 24, "mm": 6 }
+      }
     },
     {
       "name": "williecubed-lockup-paper",
       "label": "williecubed lockup, on dark",
+      "note": "For projects I make as WillieCubed.",
       "dark": true,
       "preview": "/brand/lockups/williecubed-lockup-paper.svg",
-      "width": 1221,
-      "height": 229,
+      "width": 1163.72,
+      "height": 180.01,
       "cap": 120,
       "downloads": [
         {
           "label": "SVG",
           "href": "/brand/lockups/williecubed-lockup-paper.svg",
-          "bytes": 6663
+          "bytes": 6574
         },
         {
           "label": "PDF",
           "href": "/brand/lockups/williecubed-lockup-paper.pdf",
-          "bytes": 5121
+          "bytes": 5037
         },
         {
           "label": "PNG",
           "href": "/brand/lockups/png/williecubed-lockup-paper@2x.png",
-          "bytes": 51925
+          "bytes": 49267
         }
-      ]
+      ],
+      "usage": {
+        "kind": "lockup",
+        "background": "dark",
+        "width": 1163.72,
+        "height": 180.01,
+        "cube": { "x": -0.01, "y": 0, "width": 166.62, "height": 180 },
+        "clearSpace": { "x": 45, "ofWidth": 0.039, "ofHeight": 0.25 },
+        "minSize": { "px": 24, "mm": 6 }
+      }
     },
     {
       "name": "willie-chalmers-iii-lockup-ink",
       "label": "Name lockup, on light",
+      "note": "For introducing me to people who might not know the cube.",
       "dark": false,
       "preview": "/brand/lockups/willie-chalmers-iii-lockup-ink.svg",
-      "width": 1871,
-      "height": 229,
+      "width": 1813.3,
+      "height": 180.01,
       "cap": 120,
       "downloads": [
         {
           "label": "SVG",
           "href": "/brand/lockups/willie-chalmers-iii-lockup-ink.svg",
-          "bytes": 9244
+          "bytes": 9103
         },
         {
           "label": "PDF",
           "href": "/brand/lockups/willie-chalmers-iii-lockup-ink.pdf",
-          "bytes": 6382
+          "bytes": 6317
         },
         {
           "label": "PNG",
           "href": "/brand/lockups/png/willie-chalmers-iii-lockup-ink@2x.png",
-          "bytes": 74088
+          "bytes": 70044
         }
-      ]
+      ],
+      "usage": {
+        "kind": "lockup",
+        "background": "light",
+        "width": 1813.3,
+        "height": 180.01,
+        "cube": { "x": -0.01, "y": 0, "width": 166.62, "height": 180 },
+        "clearSpace": { "x": 45, "ofWidth": 0.025, "ofHeight": 0.25 },
+        "minSize": { "px": 24, "mm": 6 }
+      }
     },
     {
       "name": "willie-chalmers-iii-lockup-paper",
       "label": "Name lockup, on dark",
+      "note": "For introducing me to people who might not know the cube.",
       "dark": true,
       "preview": "/brand/lockups/willie-chalmers-iii-lockup-paper.svg",
-      "width": 1871,
-      "height": 229,
+      "width": 1813.3,
+      "height": 180.01,
       "cap": 120,
       "downloads": [
         {
           "label": "SVG",
           "href": "/brand/lockups/willie-chalmers-iii-lockup-paper.svg",
-          "bytes": 9244
+          "bytes": 9103
         },
         {
           "label": "PDF",
           "href": "/brand/lockups/willie-chalmers-iii-lockup-paper.pdf",
-          "bytes": 6383
+          "bytes": 6319
         },
         {
           "label": "PNG",
           "href": "/brand/lockups/png/willie-chalmers-iii-lockup-paper@2x.png",
-          "bytes": 75464
+          "bytes": 71580
         }
-      ]
+      ],
+      "usage": {
+        "kind": "lockup",
+        "background": "dark",
+        "width": 1813.3,
+        "height": 180.01,
+        "cube": { "x": -0.01, "y": 0, "width": 166.62, "height": 180 },
+        "clearSpace": { "x": 45, "ofWidth": 0.025, "ofHeight": 0.25 },
+        "minSize": { "px": 24, "mm": 6 }
+      }
     }
   ],
+  "usage": {
+    "clearSpace": 0.25,
+    "smallMaxPx": 48,
+    "selection": [
+      {
+        "when": "A platform asks for an app icon, favicon, avatar, or link preview",
+        "use": [],
+        "note": "Use the platform files in web/, apple/, android/, and social/. They follow each platform’s template, so leave their artwork as it is."
+      },
+      {
+        "when": "Introducing me to people who might not know the cube",
+        "use": [
+          {
+            "name": "willie-chalmers-iii-lockup-ink",
+            "label": "Name lockup, on light",
+            "background": "light"
+          },
+          {
+            "name": "willie-chalmers-iii-lockup-paper",
+            "label": "Name lockup, on dark",
+            "background": "dark"
+          }
+        ]
+      },
+      {
+        "when": "Crediting a project I make as WillieCubed",
+        "use": [
+          {
+            "name": "williecubed-lockup-ink",
+            "label": "williecubed lockup, on light",
+            "background": "light"
+          },
+          {
+            "name": "williecubed-lockup-paper",
+            "label": "williecubed lockup, on dark",
+            "background": "dark"
+          }
+        ]
+      },
+      {
+        "when": "Naming WillieCubed where the cube is already nearby",
+        "use": [
+          {
+            "name": "williecubed-wordmark-ink",
+            "label": "Wordmark, on light",
+            "background": "light"
+          },
+          {
+            "name": "williecubed-wordmark-paper",
+            "label": "Wordmark, on dark",
+            "background": "dark"
+          }
+        ]
+      },
+      {
+        "when": "Showing the cube on its own",
+        "use": [
+          {
+            "name": "williecubed-mark",
+            "label": "The cube",
+            "background": "any"
+          }
+        ]
+      },
+      {
+        "when": "Placing the cube where the tile would clash with the background",
+        "use": [
+          {
+            "name": "williecubed-cube-on-light",
+            "label": "Cube on light",
+            "background": "light"
+          },
+          {
+            "name": "williecubed-cube-on-dark",
+            "label": "Cube on dark",
+            "background": "dark"
+          }
+        ]
+      },
+      {
+        "when": "Printing in one ink, embossing, or placing it on a photo",
+        "use": [
+          {
+            "name": "williecubed-cube-black",
+            "label": "One color, black",
+            "background": "light"
+          },
+          {
+            "name": "williecubed-cube-white",
+            "label": "One color, white",
+            "background": "dark"
+          }
+        ]
+      },
+      {
+        "when": "Showing a mark at 48px tall or smaller",
+        "use": [],
+        "note": "Use that file’s small version, whose name ends in -small. Its wider gaps keep the faces apart. Lockups and the wordmark have no small version, so keep them at or above their minimum size."
+      }
+    ],
+    "prohibited": [
+      {
+        "id": "rotate",
+        "rule": "Don’t rotate or tilt the logo.",
+        "why": "The cube’s angles are what make it read as a cube."
+      },
+      {
+        "id": "stretch",
+        "rule": "Don’t stretch, squash, or skew it.",
+        "why": "Scale it evenly, from a corner."
+      },
+      {
+        "id": "recolor",
+        "rule": "Don’t recolor the faces or change their order.",
+        "why": "Use a one-color version when you need a single color."
+      },
+      {
+        "id": "effects",
+        "rule": "Don’t add shadows, glows, outlines, gradients, or bevels.",
+        "why": "The logo is flat on purpose."
+      },
+      {
+        "id": "crowd",
+        "rule": "Don’t put text or other graphics inside the clear space.",
+        "why": "Leave x clear on every side."
+      },
+      {
+        "id": "too-small",
+        "rule": "Don’t use a regular version at 48px or smaller.",
+        "why": "Its gaps close up. Use its small version instead."
+      },
+      {
+        "id": "rebuild",
+        "rule": "Don’t redraw the cube, rearrange a lockup, or set my name in another typeface.",
+        "why": "Use the files as they are."
+      }
+    ],
+    "exceptions": [
+      "Platform icon files in web/, apple/, android/, and social/ follow each platform’s own template. Clear space and minimum sizes apply to the logo files in mark/ and lockups/."
+    ],
+    "guide": { "regular16": "/brand/guide/williecubed-mark-16.png" },
+    "guidelines": [
+      {
+        "label": "guidelines.json",
+        "href": "/brand/guidelines.json",
+        "bytes": 18693
+      },
+      {
+        "label": "guidelines.md",
+        "href": "/brand/guidelines.md",
+        "bytes": 10790
+      }
+    ]
+  },
   "colors": [
     {
       "key": "green",
@@ -438,7 +877,7 @@
         {
           "label": "PNG 1024",
           "href": "/brand/apple/liquid-glass/williecubed-ios-default.png",
-          "bytes": 688541
+          "bytes": 1061482
         }
       ]
     },
@@ -449,7 +888,7 @@
         {
           "label": "PNG 1024",
           "href": "/brand/apple/liquid-glass/williecubed-ios-dark.png",
-          "bytes": 669717
+          "bytes": 1063203
         }
       ]
     },
@@ -460,7 +899,7 @@
         {
           "label": "PNG 1024",
           "href": "/brand/apple/liquid-glass/williecubed-ios-tinted.png",
-          "bytes": 203828
+          "bytes": 622168
         }
       ]
     }
@@ -579,31 +1018,31 @@
         {
           "name": "liquid-glass/williecubed-ios-default.png",
           "href": "/brand/apple/liquid-glass/williecubed-ios-default.png",
-          "bytes": 688541,
+          "bytes": 1061482,
           "purpose": "iOS and iPadOS default appearance, rendered by actool"
         },
         {
           "name": "liquid-glass/williecubed-ios-dark.png",
           "href": "/brand/apple/liquid-glass/williecubed-ios-dark.png",
-          "bytes": 669717,
+          "bytes": 1063203,
           "purpose": "iOS and iPadOS dark appearance, rendered by actool"
         },
         {
           "name": "liquid-glass/williecubed-ios-tinted.png",
           "href": "/brand/apple/liquid-glass/williecubed-ios-tinted.png",
-          "bytes": 203828,
+          "bytes": 622168,
           "purpose": "iOS and iPadOS tinted appearance, rendered by actool"
         },
         {
           "name": "liquid-glass/williecubed-macos-default.png",
           "href": "/brand/apple/liquid-glass/williecubed-macos-default.png",
-          "bytes": 902554,
+          "bytes": 916098,
           "purpose": "macOS default appearance, rendered by actool"
         },
         {
           "name": "macos/WillieCubed.icns",
           "href": "/brand/apple/macos/WillieCubed.icns",
-          "bytes": 1343055,
+          "bytes": 1373326,
           "purpose": "macOS app icon with Liquid Glass (ICNS, 16 to 1024px)"
         }
       ]

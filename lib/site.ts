@@ -212,8 +212,15 @@ export function formatDate(
  * use it too.
  */
 export function isInternalHref(href: string): boolean {
-  if (href.startsWith('/') && !href.startsWith('//')) return true;
-  return href.startsWith(site.origin);
+  if (!href.startsWith('/') && !/^https?:/i.test(href)) return false;
+  // Resolve the href the way a browser would rather than matching a prefix:
+  // `https://willie.page.evil.com` shares the origin's spelling, and `//host`,
+  // `/\host`, and `/<tab>/host` all leave the site despite the leading slash.
+  try {
+    return new URL(href, site.origin).origin === new URL(site.origin).origin;
+  } catch {
+    return false;
+  }
 }
 
 /** Absolute URL for a path on the canonical origin. */

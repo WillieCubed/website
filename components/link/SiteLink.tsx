@@ -41,8 +41,14 @@ let registryPromise: Promise<Map<string, EntityCard>> | null = null;
 function loadRegistry(): Promise<Map<string, EntityCard>> {
   if (!registryPromise) {
     registryPromise = fetch('/entities.json')
-      .then((response) => (response.ok ? response.json() : []))
-      .then((cards: EntityCard[]) => new Map(cards.map((c) => [c.href, c])))
+      .then((response) => {
+        // A failed response goes through the catch below like a network
+        // error, so one bad deploy or cold start does not leave the whole
+        // visit without cards.
+        if (!response.ok) throw new Error(`/entities.json ${response.status}`);
+        return response.json() as Promise<EntityCard[]>;
+      })
+      .then((cards) => new Map(cards.map((c) => [c.href, c])))
       .catch(() => {
         registryPromise = null;
         return new Map<string, EntityCard>();
@@ -64,6 +70,7 @@ export default function SiteLink({
   onPointerLeave,
   onFocus,
   onBlur,
+  onPointerDown,
   prefetch,
   scroll,
   replace,
@@ -77,6 +84,10 @@ export default function SiteLink({
   const popoverRef = useRef<HTMLSpanElement>(null);
   const intentTimer = useRef<number | null>(null);
   const leaveTimer = useRef<number | null>(null);
+  // Bumped whenever intent ends. The first show waits on the registry fetch,
+  // and a fetch that resolves after the pointer left or focus moved on must
+  // not open the card.
+  const intent = useRef(0);
   const [card, setCard] = useState<EntityCard | null>(null);
   const [style, setStyle] = useState<CSSProperties>({});
   const [open, setOpen] = useState(false);
@@ -107,7 +118,9 @@ export default function SiteLink({
   }, []);
 
   const show = useCallback(async () => {
+    const token = intent.current;
     const registry = await loadRegistry();
+    if (token !== intent.current) return;
     const found = registry.get(entityKey(href));
     if (!found) return;
     setCard(found);
@@ -116,6 +129,7 @@ export default function SiteLink({
   }, [href, place]);
 
   const hide = useCallback(() => {
+    intent.current += 1;
     clearTimers();
     setOpen(false);
   }, []);
@@ -147,13 +161,20 @@ export default function SiteLink({
     };
   }, [open, hide]);
 
-  useEffect(() => () => clearTimers(), []);
+  useEffect(
+    () => () => {
+      intent.current += 1;
+      clearTimers();
+    },
+    []
+  );
 
   const scheduleShow = () => {
     clearTimers();
     intentTimer.current = window.setTimeout(() => void show(), INTENT_DELAY);
   };
   const scheduleHide = () => {
+    intent.current += 1;
     clearTimers();
     leaveTimer.current = window.setTimeout(() => setOpen(false), LEAVE_GRACE);
   };
@@ -161,13 +182,14 @@ export default function SiteLink({
   if (!internal) {
     return (
       <a
+        {...rest}
         href={href}
         rel={rest.rel ?? 'noopener'}
         onPointerEnter={onPointerEnter}
         onPointerLeave={onPointerLeave}
         onFocus={onFocus}
         onBlur={onBlur}
-        {...rest}
+        onPointerDown={onPointerDown}
       >
         {children}
       </a>
@@ -181,6 +203,7 @@ export default function SiteLink({
   return (
     <>
       <Link
+        {...rest}
         ref={anchorRef}
         href={href}
         prefetch={prefetch}
@@ -204,8 +227,10 @@ export default function SiteLink({
           onBlur?.(event);
           if (wantsPreview) hide();
         }}
-        onPointerDown={hide}
-        {...rest}
+        onPointerDown={(event) => {
+          onPointerDown?.(event);
+          hide();
+        }}
       >
         {children}
       </Link>

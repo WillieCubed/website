@@ -24,6 +24,23 @@ route file only forwards the request.
 | `/opensearch.xml`           | [OpenSearch](https://github.com/dewitt/opensearch/blob/master/opensearch-1-1-draft-6.md) description | Lets a browser add the site as a search engine. Queries go to `/search?q=`. Root layout advertises it with `<link rel="search">`.                                                                       |
 | `/api/mcp`                  | [Model Context Protocol](https://modelcontextprotocol.io), Streamable HTTP                           | Read-only and unauthenticated: `get_profile`, `list_writings`, `get_writing`, `search_writings`, `list_initiatives`, and `brew_coffee`, which answers with a 418 tool error. See the MCP section below. |
 | `/llms.txt`                 | [llmstxt.org](https://llmstxt.org)                                                                   | An H1, a summary, and `- [name](url): notes` lists of the published writings, feeds, and protocol endpoints. Drafts never appear.                                                                       |
+| `/humans.txt`               | [humanstxt.org](https://humanstxt.org)                                                               | Who made the site and with what, from `lib/humans-txt.ts`. See the humans.txt note below.                                                                                                               |
+
+## humans.txt
+
+The TEAM block names Willie, the canonical origin, and the hello address
+from `site.emails`. In the SITE block, `Last update` is the day the
+deployment was built, in the site's time zone: `next.config.ts` sets
+`SITE_BUILT_AT` in `env`, and Next inlines it into the bundle while
+building, so the prerendered file keeps the build's date. The Components
+line names packages from `package.json`, and
+`tests/unit/humans-txt.test.mts` fails when one of them leaves it. Edit
+the Standards line when a protocol comes or goes.
+
+The head links the file as a second `rel="author"` with
+`type="text/plain"`, after the link to the homepage. The IndieWeb
+authorship algorithm follows the first `rel="author"` link to find the
+author's h-card, so the homepage has to stay first.
 
 ## The Link header
 
@@ -92,9 +109,10 @@ terminal. Typing a whole command name and pressing Enter makes the real
 request and shows the response; a partial name never matches, and the
 commands are never listed. `brew`, `coffee`, and `teapot` send `POST /coffee`;
 `tea` starts a pot at `/tea`; `whoami`, `clacks`, and `security` read their
-routes; `mcp` copies a client config for `/api/mcp`; `llms` opens `/llms.txt`;
-`fortune` draws a tagline. A request that fails shows what failed. When you add
-a route here, add its command to `eggs()` in `lib/palette/commands.ts` too.
+routes; `mcp` copies a client config for `/api/mcp`; `llms` opens `/llms.txt`
+and `humans` opens `/humans.txt`; `fortune` draws a tagline. A request that
+fails shows what failed. When you add a route here, add its command to
+`eggs()` in `lib/palette/commands.ts` too.
 
 ## Try them
 
@@ -102,6 +120,7 @@ a route here, add its command to `eggs()` in `lib/palette/commands.ts` too.
 curl -i https://willie.page/coffee
 curl -i -X POST -H 'Content-Type: message/teapot' -H 'Accept-Additions: Whole-milk' -d start https://willie.page/tea
 curl https://willie.page/whoami
+curl https://willie.page/humans.txt
 curl -I https://willie.page/ | grep -i clacks
 ```
 

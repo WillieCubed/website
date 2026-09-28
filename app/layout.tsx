@@ -99,6 +99,9 @@ export default async function RootLayout({
         {/* IndieWeb discovery: where to send mentions and posts, who vouches
             for this site, and where the feeds live. */}
         <link rel="author" href={`${site.origin}/`} />
+        {/* After the homepage: the IndieWeb authorship algorithm follows
+            the first rel="author" link to find the author's h-card. */}
+        <link rel="author" type="text/plain" href="/humans.txt" />
         {ENDPOINT_DISCOVERY_LINKS.map(({ rel, href }) => (
           <link key={rel} rel={rel} href={href} />
         ))}

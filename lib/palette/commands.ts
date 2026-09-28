@@ -244,6 +244,10 @@ function eggs(): Command[] {
       opens: 'document',
     }),
     egg('security', ['security', 'security.txt'], securityTxt),
+    egg('humans', ['humans', 'humans.txt'], undefined, {
+      href: '/humans.txt',
+      opens: 'document',
+    }),
     egg('sudo', ['sudo'], sudo),
     egg('quit', [':q', 'exit'], ({ close }) => close()),
   ];

@@ -100,6 +100,7 @@ test('every egg the spec names is registered', () => {
     'mcp',
     'llms',
     'security',
+    'humans',
     'sudo',
     ':q',
     'exit',

@@ -195,6 +195,7 @@ export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
       llmsLink('oEmbed provider', `${OEMBED_ENDPOINT}?url=`),
       llmsLink('WebFinger', '/.well-known/webfinger'),
       llmsLink('security.txt', '/.well-known/security.txt'),
+      llmsLink('humans.txt', '/humans.txt', 'who made the site and with what'),
       llmsLink('OpenSearch description', '/opensearch.xml'),
     ].join('\n'),
     // An agent making something with the logo reads these, not the page;

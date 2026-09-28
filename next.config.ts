@@ -6,6 +6,9 @@ import { site } from './lib/site';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // humans.txt's Last update line. Next inlines this into the bundle while
+  // building, so a request long after still reads the build's own time.
+  env: { SITE_BUILT_AT: new Date().toISOString() },
   async headers() {
     return siteHeaders;
   },

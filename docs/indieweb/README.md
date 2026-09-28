@@ -28,7 +28,7 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                 | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                        | Postgres (optional)                                          |
 | `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                        | Postgres (optional)                                          |
-| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, and `?q=source`; `POST` creates supported h-entry kinds      | IndieAuth token; see Micropub                                |
+| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, `?q=source`; `POST` creates and updates writings             | IndieAuth token; see Micropub                                |
 | `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one photo and answers 201 with its `Location`                            | IndieAuth token, Vercel Blob connection                      |
 | `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                    | nothing                                                      |
 | `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL | Postgres                                                     |
@@ -332,6 +332,7 @@ valid token without the scope gets 403 `insufficient_scope`. Two tokens get 400.
 | Request                                    | Scope    | Answer                                                           |
 | ------------------------------------------ | -------- | ---------------------------------------------------------------- |
 | `POST` an `h-entry`                        | `create` | 202 with `Location`; the post is live after the deploy           |
+| `POST` `action=update`                     | `update` | 200 with `{ url, path, commit }`                                 |
 | `GET ?q=source&url=` (and `properties[]=`) | any      | the writing's mf2 JSON, drafts included                          |
 | `GET ?q=config`, `?q=syndicate-to`         | none     | capabilities, syndication targets, and the `q` values it answers |
 | `GET ?q=category` (and `filter=`)          | none     | `{ categories }`, the tags of published writings                 |
@@ -376,6 +377,33 @@ writings, lowercase and sorted, the same tags that have pages under
 `tr`, ignoring case. It needs no token, so it leaves out tags that only
 drafts carry, even on a development server that shows drafts.
 
+### Updates
+
+`action=update` names the permalink in `url` and changes it with any of
+`replace`, `add`, and `delete`. The body is JSON as the spec defines it, or
+form-encoded as `replace[name][]=…`, `add[category][]=…`,
+`delete[category][]=…`, and `delete[]=photo`. `delete` takes a list of
+property names to remove whole, or a map of values to remove. An update may
+change `name`, `summary`, `content`, `published`, `category`,
+`in-reply-to`, `like-of`, `repost-of`, `bookmark-of`, `rsvp`, `photo`,
+`syndication`, and `post-status`, and any other property gets 400
+`invalid_request`. `content` must be Markdown text, because HTML would go
+into the MDX unescaped. A URL that is not a writing gets the same 400 as
+`q=source`.
+
+The route reads the file from storage and rewrites only the frontmatter keys
+whose values change, plus the body when `content` changes. Every other byte
+stays, including comments, key order, line endings, and keys Micropub does
+not know, such as `series`. `lastUpdated` moves to the time of the request,
+so a client cannot set `updated`. A draft stays a draft unless the update
+replaces `post-status` with `published`, and `post-status` cannot be added
+or deleted. An update that changes nothing answers 200 with an empty
+`commit` and makes no commit. On GitHub the commit is
+`chore(content): Update <slug> via Micropub`, and it carries the blob SHA
+the route read, so an update that races another commit to the same file
+fails with a 500 instead of overwriting it. The change is live after the
+deploy.
+
 ### Syndication
 
 `?q=syndicate-to` and `?q=config` list two targets, Bluesky
@@ -392,7 +420,8 @@ the post's frontmatter, and the response carries no syndication URL.
 Syndication stays manual POSSE: after the post deploys, Willie posts the copy
 from his account (a writing's **Share on Threads** link opens an editable
 Threads draft with the canonical URL), confirms the copy links back, and then
-adds its exact permalink to `syndication`. `syndicateTo` never renders, and
+adds its exact permalink to `syndication`, by hand or with an update that
+adds a `syndication` value. `syndicateTo` never renders, and
 nothing clears it once the copy exists. When an account integration can return
 the permalink of the copy it created, it should read `syndicateTo`, post, and
 write `syndication`.

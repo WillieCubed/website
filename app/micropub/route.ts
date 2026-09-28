@@ -13,8 +13,8 @@ export async function GET(request: Request) {
 }
 
 /**
- * Create a writing with an IndieAuth token carrying the `create` scope. See
- * docs/indieweb/README.md#micropub.
+ * Create or update a writing with an IndieAuth token carrying the `create`
+ * or `update` scope. See docs/indieweb/README.md#micropub.
  */
 export async function POST(request: Request) {
   return handleMicropubPost(request);

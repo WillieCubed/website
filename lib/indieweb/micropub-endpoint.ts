@@ -9,10 +9,20 @@ import {
   prepareMicropubPhotoRequest,
   writeMicropubWritingLocally,
 } from '@/lib/indieweb/micropub';
-import { micropubSource } from '@/lib/indieweb/micropub-document';
+import {
+  type MicropubAction,
+  readMicropubAction,
+} from '@/lib/indieweb/micropub-actions';
+import {
+  MicropubRequestError,
+  type MicropubUpdate,
+  applyMicropubUpdate,
+  micropubSource,
+} from '@/lib/indieweb/micropub-document';
 import {
   MicropubStorageError,
   findStoredWriting,
+  saveStoredWriting,
 } from '@/lib/indieweb/micropub-store';
 import {
   jsonError,
@@ -37,6 +47,8 @@ export interface MicropubEndpointOptions {
   fetch?: typeof fetch;
   /** Tags of the published writings, for q=category. */
   publishedTags?: () => Promise<string[]>;
+  /** The request time an update records as `lastUpdated`. */
+  now?: () => Date;
 }
 
 export function micropubEnvironment(
@@ -92,22 +104,35 @@ export async function handleMicropubGet(
 }
 
 /**
- * Create a writing from an IndieAuth-protected Micropub request.
+ * Create or update a writing. Each needs the scope of the same name.
  *
- * When MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN are set the post is
- * committed through GitHub's Contents API so it flows through the same deploy
- * path as a hand-authored writing. Otherwise the file is written into the
- * local content directory, which only works on a writable checkout.
+ * When MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN are set every change
+ * is committed through GitHub's Contents API so it flows through the same
+ * deploy path as a hand-authored writing. Otherwise the file is written into
+ * the local content directory, which only works on a writable checkout.
  */
 export async function handleMicropubPost(
   request: Request,
   options: MicropubEndpointOptions = {}
 ): Promise<Response> {
-  const denied = await authorize(request, 'create', options);
+  // A malformed body is reported after the token is checked, so a client
+  // with a bad token hears about the token first.
+  let action: MicropubAction | undefined;
+  let actionError: unknown;
+  try {
+    action = await readMicropubAction(request);
+  } catch (error) {
+    actionError = error;
+  }
+
+  const denied = await authorize(request, action?.action, options);
   if (denied) return denied;
+  if (!action) return errorResponse(actionError);
 
   try {
-    return await create(request, options);
+    return action.action === 'create'
+      ? await create(request, options)
+      : await update(action.url, action.update, options);
   } catch (error) {
     return errorResponse(error);
   }
@@ -241,6 +266,40 @@ async function create(
   });
 }
 
+/**
+ * The spec allows 200, 201, or 204. This answers 200 with the commit, which
+ * is empty when the update changed nothing and no commit was made. The URL
+ * never changes, so there is no 201.
+ */
+async function update(
+  url: string,
+  changes: MicropubUpdate,
+  options: MicropubEndpointOptions
+): Promise<Response> {
+  const environment = options.environment ?? micropubEnvironment();
+  const stored = await findStoredWriting(url, environment, options.fetch);
+  if (!stored) return postNotFound();
+
+  const now = (options.now ?? (() => new Date()))();
+  const source = applyMicropubUpdate(stored.source, changes, now);
+  const commit =
+    source === stored.source
+      ? ''
+      : await saveStoredWriting(
+          stored,
+          source,
+          `chore(content): Update ${stored.slug} via Micropub`,
+          environment,
+          options.fetch
+        );
+
+  return jsonResponse({
+    url: absoluteRoute`/writings/${stored.slug}`,
+    path: stored.path,
+    commit,
+  });
+}
+
 function postNotFound(): Response {
   return jsonError(
     'invalid_request',
@@ -250,6 +309,9 @@ function postNotFound(): Response {
 }
 
 function errorResponse(error: unknown): Response {
+  if (error instanceof MicropubRequestError) {
+    return jsonError('invalid_request', 400, error.description);
+  }
   if (error instanceof MediaUploadError) {
     const unconfigured = error.message === 'Media uploads are not configured.';
     return jsonError(

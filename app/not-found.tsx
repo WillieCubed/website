@@ -7,13 +7,14 @@ import RequestLog from '@/components/not-found/RequestLog';
 import TopBar from '@/components/site/TopBar';
 
 import { getInitiatives } from '@/lib/initiatives';
-import { site } from '@/lib/site';
+import { bareSocialMetadata, site } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 
 // Absolute so the title never depends on which segment renders the page;
 // it spells out the same string the root title template would.
 export const metadata: Metadata = {
   title: { absolute: `Not found · ${site.name}` },
+  ...bareSocialMetadata('Not found'),
   robots: { index: false },
 };
 

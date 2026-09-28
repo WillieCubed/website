@@ -42,8 +42,10 @@ export async function generateMetadata({
     openGraph: {
       siteName: site.name,
       locale: site.locale,
-      title: site.name,
-      description: site.shortDescription,
+      // The site name already heads the preview, so the title is the
+      // headline sentence rather than the name a second time.
+      title: site.shortDescription,
+      description: site.lede,
       url: '/',
       type: 'profile',
       firstName: site.author.givenName,
@@ -59,8 +61,8 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: site.name,
-      description: site.shortDescription,
+      title: site.shortDescription,
+      description: site.lede,
       images: [{ url: site.ogImage, alt: site.shortDescription }],
     },
   };

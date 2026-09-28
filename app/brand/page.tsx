@@ -15,17 +15,17 @@ import {
   kitColor,
 } from '@/lib/brand/kit';
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
-import { pageMetadata } from '@/lib/site';
+import { pageMetadata, sitePage } from '@/lib/site';
 
 import CopyHex from './CopyHex';
 import SectionPicker from './SectionPicker';
 import './brand.css';
 
+const BRAND_PAGE = sitePage('/brand');
 const BRAND = {
-  title: 'Brand',
-  description:
-    'Download the WillieCubed mark, lockups, app icons, and color and type tokens.',
-  path: '/brand',
+  title: BRAND_PAGE.label,
+  description: BRAND_PAGE.description,
+  path: BRAND_PAGE.path,
 };
 
 export const metadata = pageMetadata(BRAND);

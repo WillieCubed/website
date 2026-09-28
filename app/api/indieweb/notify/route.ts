@@ -2,8 +2,8 @@ import { timingSafeEqual } from 'node:crypto';
 
 import { sendChangedWebmentions } from '@/lib/indieweb/webmention-publisher';
 import {
-  SITE_FEED_PATHS,
   pingWebSubHub,
+  publishedTopicPaths,
 } from '@/lib/indieweb/websub-publisher';
 import { absoluteUrl } from '@/lib/site';
 
@@ -30,7 +30,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const websub = await pingWebSubHub(SITE_FEED_PATHS.map(absoluteUrl));
+    const topics = await publishedTopicPaths();
+    const websub = await pingWebSubHub(topics.map((path) => absoluteUrl(path)));
     const webmentions = await sendChangedWebmentions();
     return Response.json(
       { websub, webmentions },

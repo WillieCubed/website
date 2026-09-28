@@ -37,6 +37,9 @@ export default async function WritingsIndex({
 
   return (
     <main id="main" className="h-feed mx-auto max-w-[840px] px-5 pb-8">
+      {/* WebSub discovery: the root layout names the hub, and this names
+          the topic a reader subscribes to. React hoists it into <head>. */}
+      <link rel="self" href={absoluteUrl(path)} />
       {/* h-feed: u-url so parsers know which page this feed is, and
           p-author so they know whose it is */}
       <a href={absoluteUrl(path)} className="u-url hidden" />

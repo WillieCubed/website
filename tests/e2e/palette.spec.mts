@@ -11,11 +11,43 @@ import { type Page, expect, test } from '@playwright/test';
 // the sticky rail has no room for it, and Desktop Chrome is 720px.
 test.use({ viewport: { width: 1280, height: 900 } });
 
-/** Waits out the open or close morph; the palette ignores keys during it. */
+/** Waits out the open or close morph, while the page shows snapshots. */
 function settled(page: Page) {
   return page.waitForFunction(
     () => !document.documentElement.matches(':active-view-transition')
   );
+}
+
+/**
+ * Presses Escape once `dialog` is open and its opening morph is still
+ * running, and fails if the key landed after the morph ended, when it
+ * would only test an ordinary close.
+ */
+async function escapeMidMorph(page: Page, dialog: string) {
+  await page.waitForFunction(
+    (selector) =>
+      !!document.querySelector<HTMLDialogElement>(selector)?.open &&
+      document.documentElement.matches(':active-view-transition'),
+    dialog
+  );
+  await page.evaluate(() => {
+    const flags = window as Window & { escapedMidMorph?: boolean };
+    window.addEventListener(
+      'keydown',
+      () => {
+        flags.escapedMidMorph = document.documentElement.matches(
+          ':active-view-transition'
+        );
+      },
+      { capture: true, once: true }
+    );
+  });
+  await page.keyboard.press('Escape');
+  expect(
+    await page.evaluate(
+      () => (window as Window & { escapedMidMorph?: boolean }).escapedMidMorph
+    )
+  ).toBe(true);
 }
 
 function palette(page: Page) {
@@ -97,6 +129,16 @@ test('Escape closes the palette and returns focus to its trigger', async ({
   await page.keyboard.press('Escape');
   await expect(palette(page)).toBeHidden();
   await expect(trigger).toBeFocused();
+});
+
+test('Escape during the opening morph closes once it ends', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.locator('.palette-trigger').first().click();
+  await escapeMidMorph(page, 'dialog.palette');
+  await settled(page);
+  await expect(palette(page)).toBeHidden();
 });
 
 test('the open palette passes axe', async ({ page }) => {

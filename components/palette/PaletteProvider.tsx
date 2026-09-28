@@ -128,14 +128,38 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const openRef = useRef(false);
   const busyRef = useRef(false);
+  // A close or an opening asked for while the palette is still morphing the
+  // other way, such as Escape mid-morph or a command that navigates. It
+  // runs once the morph ends rather than being dropped.
+  const queuedRef = useRef<
+    { close: CloseOptions } | { open: HTMLElement | null | undefined } | null
+  >(null);
   const [open, setOpen] = useState(false);
   // Each opening starts a fresh session, so the input and results reset.
   const [session, setSession] = useState(0);
   const [data, setData] = useState<PaletteData>(NO_PLACES);
 
+  // Declared before either morph so each can hand over what arrived while
+  // it ran; the ref keeps the latest pair without a dependency cycle.
+  const morphsRef = useRef({
+    open: (_from?: HTMLElement | null) => Promise.resolve(),
+    close: (_options?: CloseOptions) => Promise.resolve(),
+  });
+  const runQueued = () => {
+    const queued = queuedRef.current;
+    queuedRef.current = null;
+    if (!queued) return;
+    if ('close' in queued) void morphsRef.current.close(queued.close);
+    else void morphsRef.current.open(queued.open);
+  };
+
   const openPalette = useCallback(async (from?: HTMLElement | null) => {
     const dialog = dialogRef.current;
-    if (!dialog || openRef.current || busyRef.current) return;
+    if (!dialog || openRef.current) return;
+    if (busyRef.current) {
+      queuedRef.current = { open: from };
+      return;
+    }
     busyRef.current = true;
     openRef.current = true;
     loadPlaces().then(setData, () => undefined);
@@ -166,12 +190,17 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
     // would join any other transition on the page, such as a detail view's.
     dialog.style.viewTransitionName = '';
     busyRef.current = false;
+    runQueued();
   }, []);
 
   const closePalette = useCallback(
     async ({ animate = true, restoreFocus = true }: CloseOptions = {}) => {
       const dialog = dialogRef.current;
-      if (!dialog || !openRef.current || busyRef.current) return;
+      if (!dialog || !openRef.current) return;
+      if (busyRef.current) {
+        queuedRef.current = { close: { animate, restoreFocus } };
+        return;
+      }
       busyRef.current = true;
       openRef.current = false;
       const source = sourceRef.current;
@@ -197,9 +226,12 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
       if (restoreFocus) returnFocusRef.current?.focus({ preventScroll: true });
       returnFocusRef.current = null;
       busyRef.current = false;
+      runQueued();
     },
     []
   );
+
+  morphsRef.current = { open: openPalette, close: closePalette };
 
   const register = useCallback((trigger: HTMLElement) => {
     triggers.current.add(trigger);
@@ -243,6 +275,7 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
           if (!openRef.current) return;
           openRef.current = false;
           busyRef.current = false;
+          queuedRef.current = null;
           if (sourceRef.current) sourceRef.current.style.visibility = '';
           sourceRef.current = null;
           setOpen(false);

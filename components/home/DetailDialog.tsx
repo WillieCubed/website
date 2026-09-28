@@ -182,23 +182,26 @@ interface DetailDialogProps {
   countdown: React.ReactNode;
 }
 
-/**
- * Identifies the current history entry. Next keeps a key on the state it
- * writes; a fresh entry gets a fresh key, so comparing it says whether the
- * entry that opening pushed is still the one on top.
- */
-function historyKey(): unknown {
-  if (typeof window === 'undefined') return null;
-  const state = window.history.state as { key?: unknown } | null;
-  return state?.key ?? null;
+/** A router call this view made whose result the URL does not show yet. */
+interface PendingUrl {
+  /** The `detail` param the call leads to. */
+  id: string | null;
+  /** Whether it adds a history entry, so Back undoes it. */
+  push: boolean;
 }
 
 /**
- * The detail view. The `?detail=<id>` search param is the source of truth
- * for which entry is open, so the back gesture, the close button, and a
- * shared link all land in the same state. Opening from a click morphs first
- * and then pushes the URL; every other change to the param is answered by
- * opening or closing to match.
+ * The detail view. What it shows and the `?detail=<id>` search param mirror
+ * each other, so the back gesture, the close button, and a shared link all
+ * land in the same state.
+ *
+ * The visitor's own actions change the dialog first and the URL after: a
+ * click opens it and then pushes an entry, and a close closes it and drops
+ * the param at once. Any other change to the param, such as Back, Forward,
+ * or a command run from the command palette, is answered by opening,
+ * swapping, or closing to match. Either way the request lands in `wantRef`,
+ * and `settle` morphs toward it one step at a time, so a request made
+ * mid-morph waits for the morph instead of being lost.
  */
 export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
   const router = useRouter();
@@ -210,32 +213,40 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
   const [openId, setOpenId] = useState<string | null>(null);
-  const openIdRef = useRef<string | null>(null);
+  const shownRef = useRef<string | null>(null);
+  const wantRef = useRef<string | null>(null);
+  // The element the next opening grows out of, when a click asked for it.
+  const fromRef = useRef<HTMLElement | null>(null);
   const sourceRef = useRef<Source | null>(null);
-  // The history entry opening pushed, so closing can go back instead of
-  // replacing a URL the visitor arrived on — and only when that entry is
-  // still the current one.
-  const pushedRef = useRef<unknown>(null);
   const busyRef = useRef(false);
+  // The param as of the latest render, for code that runs after a morph.
+  const requestedRef = useRef(requested);
+  const pendingRef = useRef<PendingUrl | null>(null);
+  // hide() closed the dialog itself, and its close event is still to come.
+  const selfClosedRef = useRef(false);
 
-  const open = async (id: string, from: HTMLElement | null, push: boolean) => {
-    if (openIdRef.current || busyRef.current || !entries[id]) return;
+  const show = async (id: string): Promise<boolean> => {
+    const from = fromRef.current;
+    fromRef.current = null;
+    // Opening from the URL can run before the page's fonts load, and the
+    // snapshot would catch the tile in its fallback face.
+    if (!from) await document.fonts.ready;
+    // A close or Back during the wait stands; opening now would only flash
+    // the view before settle closes it again.
+    if (wantRef.current !== id) return false;
     const source = sourceFor(id, from);
-    if (!source) return;
-    busyRef.current = true;
+    const dialog = dialogRef.current;
+    if (!source || !dialog) return false;
     flushSync(() => clearPreviewNow());
     setName(source.card, 'card');
     setName(source.media, 'media');
     sourceRef.current = source;
-    openIdRef.current = id;
-    const dialog = dialogRef.current;
     let media: HTMLElement | null = null;
     await morph('open', () => {
       setName(source.card, '');
       setName(source.media, '');
       source.card.style.visibility = 'hidden';
       flushSync(() => setOpenId(id));
-      if (!dialog) return;
       media = source.media && mediaIn(mediaRef.current, id);
       setName(dialog, 'card');
       setName(media, 'media');
@@ -247,21 +258,12 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     // palette's.
     setName(dialog, '');
     setName(media, '');
-    // The URL changes after the morph. Pushing first made the router start
-    // its own view transition and the morph aborted with an invalid state.
-    if (push) {
-      router.push(`${pathname}?detail=${id}`, { scroll: false });
-      pushedRef.current = historyKey();
-    }
-    busyRef.current = false;
+    return true;
   };
 
   // Moving from the studio to one of its products keeps the dialog in place
   // and crossfades its contents, so it reads as going deeper.
-  const swap = async (id: string, replace: boolean) => {
-    if (!entries[id] || busyRef.current) return;
-    busyRef.current = true;
-    openIdRef.current = id;
+  const swap = async (id: string) => {
     const dialog = dialogRef.current;
     setName(dialog, 'card');
     await morph('swap', () => {
@@ -269,18 +271,13 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
       if (dialog) dialog.scrollTop = 0;
     });
     setName(dialog, '');
-    if (replace) router.replace(`${pathname}?detail=${id}`, { scroll: false });
-    busyRef.current = false;
   };
 
-  const close = async () => {
+  const hide = async () => {
     const opened = sourceRef.current;
     const dialog = dialogRef.current;
-    const shown = openIdRef.current;
-    if (!shown || busyRef.current || !dialog) return;
-    busyRef.current = true;
-    openIdRef.current = null;
-    pushedRef.current = null;
+    const shown = shownRef.current;
+    if (!dialog || !shown) return;
     // After a swap the view shows another entry than the one it opened
     // from, and it shrinks back into that entry's own tile and picture.
     const source = opened?.id === shown ? opened : sourceFor(shown, null);
@@ -290,7 +287,10 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     await morph('close', () => {
       setName(dialog, '');
       setName(media, '');
-      dialog.close();
+      if (dialog.open) {
+        selfClosedRef.current = true;
+        dialog.close();
+      }
       if (opened) opened.card.style.visibility = '';
       if (source) {
         setName(source.card, 'card');
@@ -303,34 +303,88 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     }
     sourceRef.current = null;
     setOpenId(null);
-    busyRef.current = false;
   };
 
-  // Closing goes through history so the back gesture and the close button
-  // behave the same way.
+  // Once the dialog shows what the visitor picked, the URL follows. A view
+  // the URL does not name yet gets an entry of its own, so Back closes it;
+  // a move within the view keeps the entry it has.
+  const followUrl = () => {
+    const shown = shownRef.current;
+    if (shown === null || wantRef.current !== shown) return;
+    const pending = pendingRef.current;
+    const named = pending ? pending.id : requestedRef.current;
+    // A param that names no entry was not ours to write, and the view kept
+    // what it showed; rewriting it would overwrite the visitor's entry.
+    if (named === shown || (named !== null && !entries[named])) return;
+    const push = named === null || !!pending?.push;
+    pendingRef.current = { id: shown, push };
+    const href = `${pathname}?detail=${shown}`;
+    if (push) router.push(href, { scroll: false });
+    else router.replace(href, { scroll: false });
+  };
+
+  const settle = async () => {
+    if (busyRef.current) return;
+    const want = wantRef.current;
+    const shown = shownRef.current;
+    if (want === shown) return;
+    busyRef.current = true;
+    try {
+      if (want === null) {
+        await hide();
+        shownRef.current = null;
+      } else if (!entries[want]) {
+        // A stale or mistyped link should not close a view the visitor is
+        // reading, so an id with no entry keeps what is on screen.
+        if (wantRef.current === want) wantRef.current = shown;
+      } else if (shown === null) {
+        if (await show(want)) shownRef.current = want;
+        else if (wantRef.current === want) wantRef.current = null;
+      } else {
+        await swap(want);
+        shownRef.current = want;
+      }
+    } finally {
+      busyRef.current = false;
+    }
+    followUrl();
+    void settle();
+  };
+
   const requestClose = () => {
-    const pushed = pushedRef.current;
-    // Going back is only safe while the entry opening pushed is still on
-    // top. Otherwise closing drops the param where it stands, so it can
-    // never send the visitor past the page they came from.
-    if (pushed !== null && pushed === historyKey()) router.back();
-    else router.replace(pathname, { scroll: false });
+    wantRef.current = null;
+    fromRef.current = null;
+    const pending = pendingRef.current;
+    if (requestedRef.current !== null || pending?.id) {
+      // Replacing also cancels an opening's push the router has not
+      // finished, which would otherwise reopen the view when it lands.
+      pendingRef.current =
+        requestedRef.current === null ? null : { id: null, push: false };
+      router.replace(pathname, { scroll: false });
+    }
+    void settle();
   };
 
   useEffect(() => {
     registerOpener((id, from) => {
-      void open(id, from, true);
+      wantRef.current = id;
+      fromRef.current = from;
+      void settle();
     });
   });
 
   useEffect(() => {
-    const current = openIdRef.current;
-    if (requested && requested !== current) {
-      if (current) void swap(requested, false);
-      else void document.fonts.ready.then(() => open(requested, null, false));
-    } else if (!requested && current) {
-      void close();
+    requestedRef.current = requested;
+    const pending = pendingRef.current;
+    if (pending && pending.id === requested) {
+      pendingRef.current = null;
+      return;
     }
+    // A change this view did not make: Back, Forward, a link, or the command
+    // palette.
+    pendingRef.current = null;
+    wantRef.current = requested;
+    void settle();
     // The handlers read refs, so only the param needs to retrigger this.
   }, [requested]);
 
@@ -349,6 +403,15 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
       onCancel={(event) => {
         event.preventDefault();
         requestClose();
+      }}
+      // The browser can close the dialog without a cancel to intercept, such
+      // as on a second Escape in a row. Close the view with it.
+      onClose={() => {
+        if (selfClosedRef.current) {
+          selfClosedRef.current = false;
+          return;
+        }
+        if (wantRef.current !== null) requestClose();
       }}
       onClick={(event) => {
         if (event.target === event.currentTarget) requestClose();
@@ -383,7 +446,13 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
             {entry?.name}
           </h2>
           {entry && (
-            <Body detail={entry.detail} onOpen={(id) => void swap(id, true)} />
+            <Body
+              detail={entry.detail}
+              onOpen={(id) => {
+                wantRef.current = id;
+                void settle();
+              }}
+            />
           )}
         </div>
       </div>

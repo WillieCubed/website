@@ -1,8 +1,10 @@
 import { type DefaultTreeAdapterMap, parse } from 'parse5';
 
+import type { WebmentionSourceWriting } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
 const SITE_URL = site.origin;
+const SITE_HOSTNAME = new URL(SITE_URL).hostname;
 const FETCH_TIMEOUT = 10000;
 
 export function targetsForUpdatedPost(
@@ -300,17 +302,14 @@ export function extractExternalLinks(content: string): string[] {
     .replace(FENCED_CODE, ' ')
     .replace(CODE_ELEMENT, ' ')
     .replace(CODE_SPAN, ' ');
-  // The site and its subdomains, such as the tour. alias, never get a
-  // webmention from the site itself.
-  const siteHost = new URL(SITE_URL).hostname;
   const links: string[] = [];
   for (const [match] of prose.matchAll(URL_PATTERN)) {
     const url = trimUrl(match);
     try {
       const parsed = new URL(url);
       if (
-        parsed.hostname !== siteHost &&
-        !parsed.hostname.endsWith(`.${siteHost}`)
+        parsed.hostname !== SITE_HOSTNAME &&
+        !parsed.hostname.endsWith(`.${SITE_HOSTNAME}`)
       ) {
         links.push(url);
       }
@@ -324,22 +323,45 @@ export function extractExternalLinks(content: string): string[] {
 }
 
 /**
- * Send webmentions to all external links in a post, plus any extra targets
- * that live outside the body, such as the post's person tags.
+ * Every page a writing sends webmentions to: the external links in its body,
+ * then the posts it replies to, likes, reposts, bookmarks, or RSVPs to, then
+ * the people it tags. Those interaction and person URLs live in frontmatter,
+ * outside the body, so reading links from the body alone misses the one
+ * target a reply exists to notify. Every sending path goes through this, so
+ * none of them can disagree about what a post cites. The order is part of
+ * the publisher's content hash, so changing it resends every post once.
+ */
+export function webmentionTargetsForWriting(
+  writing: WebmentionSourceWriting,
+  content: string
+): string[] {
+  const interactions = [
+    writing.likeOf,
+    writing.repostOf,
+    writing.bookmarkOf,
+    writing.inReplyTo,
+    writing.rsvp?.eventUrl,
+  ].filter((url): url is string => Boolean(url));
+  return [
+    ...new Set([
+      ...extractExternalLinks(content),
+      ...interactions,
+      ...writing.people.map((person) => person.url),
+    ]),
+  ];
+}
+
+/**
+ * Send webmentions from a writing to every target it cites.
  */
 export async function sendWebmentionsForPost(
-  slug: string,
-  htmlContent: string,
-  extraTargets: string[] = []
+  writing: WebmentionSourceWriting,
+  content: string
 ): Promise<SendResult[]> {
-  const sourceUrl = `${SITE_URL}/writings/${slug}`;
-  const links = [
-    ...new Set([...extractExternalLinks(htmlContent), ...extraTargets]),
-  ];
-
+  const sourceUrl = `${SITE_URL}/writings/${writing.slug}`;
   const results: SendResult[] = [];
 
-  for (const targetUrl of links) {
+  for (const targetUrl of webmentionTargetsForWriting(writing, content)) {
     const result = await sendWebmention(sourceUrl, targetUrl);
     results.push(result);
 

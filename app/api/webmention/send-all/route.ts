@@ -71,11 +71,7 @@ export async function POST(request: NextRequest) {
       // The body without its frontmatter, where syndication and image URLs
       // would otherwise read as bare links.
       const { content } = await getPublishedWriting(writing.slug);
-      const results = await sendWebmentionsForPost(
-        writing.slug,
-        content,
-        writing.people.map((person) => person.url)
-      );
+      const results = await sendWebmentionsForPost(writing, content);
 
       allResults.push({
         slug: writing.slug,

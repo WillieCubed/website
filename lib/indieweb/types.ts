@@ -1,3 +1,5 @@
+import type { WritingData } from '@/lib/writings/types';
+
 export type WebmentionType =
   | 'like'
   | 'repost'
@@ -122,6 +124,18 @@ export interface PendingOutgoingWebmention {
   targetUrl: string;
   postSlug: string;
 }
+
+/** The parts of a writing that decide where its webmentions go. */
+export type WebmentionSourceWriting = Pick<
+  WritingData,
+  | 'slug'
+  | 'people'
+  | 'inReplyTo'
+  | 'likeOf'
+  | 'repostOf'
+  | 'bookmarkOf'
+  | 'rsvp'
+>;
 
 export interface SendAllWebmentionsRequest {
   slugs?: string[];

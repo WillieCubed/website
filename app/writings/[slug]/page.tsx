@@ -17,10 +17,11 @@ import {
 import type { WebmentionGroup } from '@/lib/indieweb/types';
 import { getWebmentionsForPost } from '@/lib/indieweb/webmention-storage';
 import {
-  blogPostingLd,
   breadcrumbLd,
   graph,
   personLd,
+  postingLd,
+  postingType,
   websiteLd,
 } from '@/lib/seo/jsonld';
 import { absoluteRoute, formatDate, pageMetadata } from '@/lib/site';
@@ -210,7 +211,8 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
     <>
       <JsonLd
         data={graph(
-          blogPostingLd({
+          postingLd({
+            type: postingType(writing),
             path,
             title: writing.title,
             description: writing.description,

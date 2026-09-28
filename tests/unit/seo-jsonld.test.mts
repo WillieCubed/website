@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  blogPostingLd,
   breadcrumbLd,
   eventLd,
   graph,
   homeGraph,
   personLd,
+  postingLd,
+  postingType,
   profilePageLd,
   serializeJsonLd,
   webPageLd,
@@ -57,8 +58,9 @@ test('homeGraph holds the website, the person, and the profile page', () => {
   assert.deepEqual(types, ['WebSite', 'Person', 'ProfilePage']);
 });
 
-test('blogPostingLd carries dates, author, image, keywords, and series', () => {
-  const post = blogPostingLd({
+test('postingLd carries dates, author, image, keywords, and series', () => {
+  const post = postingLd({
+    type: 'BlogPosting',
     path: '/writings/hello',
     title: 'Hello',
     description: 'A note.',
@@ -83,8 +85,9 @@ test('blogPostingLd carries dates, author, image, keywords, and series', () => {
   assertPlain(post);
 });
 
-test('blogPostingLd omits what it does not have', () => {
-  const post = blogPostingLd({
+test('postingLd omits what it does not have', () => {
+  const post = postingLd({
+    type: 'SocialMediaPosting',
     path: '/writings/hello',
     title: 'Hello',
     description: 'A note.',
@@ -92,10 +95,36 @@ test('blogPostingLd omits what it does not have', () => {
     tags: [],
     image: '/writings/hello/opengraph-image',
   });
+  assert.equal(post['@type'], 'SocialMediaPosting');
   assert.ok(!('dateModified' in post));
   assert.ok(!('keywords' in post));
   assert.ok(!('isPartOf' in post));
   assertPlain(post);
+});
+
+test('only an article that answers nothing is a BlogPosting', () => {
+  const article = { postType: 'article' } as const;
+  assert.equal(postingType(article), 'BlogPosting');
+  assert.equal(postingType({ postType: 'note' }), 'SocialMediaPosting');
+  assert.equal(postingType({ postType: 'photo' }), 'SocialMediaPosting');
+  assert.equal(
+    postingType({ ...article, inReplyTo: 'https://indieweb.org/IndieMark' }),
+    'SocialMediaPosting'
+  );
+  for (const field of ['likeOf', 'repostOf', 'bookmarkOf'] as const) {
+    assert.equal(
+      postingType({ ...article, [field]: 'https://example.com/post' }),
+      'SocialMediaPosting',
+      field
+    );
+  }
+  assert.equal(
+    postingType({
+      ...article,
+      rsvp: { eventUrl: 'https://example.com/event', status: 'yes' },
+    }),
+    'SocialMediaPosting'
+  );
 });
 
 test('breadcrumbLd numbers the trail and makes the links absolute', () => {

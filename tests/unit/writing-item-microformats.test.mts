@@ -19,6 +19,8 @@ registerHooks({
       : nextLoad(url, context);
   },
 });
+const { default: ReplyTarget } =
+  await import('@/components/writings/ReplyTarget');
 const { default: WritingItem } =
   await import('@/components/writings/WritingItem');
 
@@ -136,4 +138,24 @@ test('photo posts carry each photo as a u-photo', () => {
     'https://media.example/a.jpg',
     'https://media.example/b.jpg',
   ]);
+});
+
+test('the permalink puts an RSVP on the post, not on the event it cites', () => {
+  const eventUrl = 'https://example.com/events/1';
+  const html = renderToStaticMarkup(
+    createElement(
+      'article',
+      { className: 'h-entry' },
+      createElement(ReplyTarget, {
+        url: eventUrl,
+        kind: 'rsvp',
+        rsvpStatus: 'maybe',
+      })
+    )
+  );
+  const [entry] = mf2(html, { baseUrl: `${site.origin}/writings/hello` }).items;
+  assert.deepEqual(entry.properties.rsvp, ['maybe']);
+  const event = cite(entry, 'in-reply-to');
+  assert.deepEqual(event.properties.url, [eventUrl]);
+  assert.equal(event.properties.rsvp, undefined);
 });

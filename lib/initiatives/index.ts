@@ -3,6 +3,7 @@ import { cacheLife } from 'next/cache';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { type BrandSeed, brandSeeds } from '@/lib/brand/scheme';
 import { showDrafts } from '@/lib/drafts';
 
 import {
@@ -16,6 +17,7 @@ import {
 export * from './schema';
 
 const CONTENT_DIR = join(process.cwd(), 'content', 'initiatives');
+const PUBLIC_DIR = join(process.cwd(), 'public');
 const HIDDEN_PREFIX = '_';
 /** Slugs that conflict with static routes under /initiatives/. */
 const RESERVED_SLUGS = ['opengraph-image'];
@@ -71,6 +73,33 @@ function readFrontmatter(filePath: string) {
   return { data, content };
 }
 
+/**
+ * Turns a `brand` seed key into its hex so every consumer (the page theme,
+ * the browser chrome, social images, hover cards) only ever sees `#rrggbb`.
+ * An unknown key fails the build rather than rendering unbranded.
+ */
+function resolveBrand(
+  brand: string | undefined,
+  filePath: string
+): string | undefined {
+  if (!brand || brand.startsWith('#')) return brand;
+  const seed = (brandSeeds as Record<string, BrandSeed | undefined>)[brand];
+  if (!seed) {
+    throw new Error(
+      `Unknown brand "${brand}" in ${filePath}; use a #rrggbb hex or a key in lib/brand/seeds.json.`
+    );
+  }
+  return seed.hex;
+}
+
+/** A cover under /public that does not exist would ship a broken image. */
+function assertMediaExists(src: string | undefined, filePath: string) {
+  if (!src?.startsWith('/')) return;
+  if (!existsSync(join(PUBLIC_DIR, src))) {
+    throw new Error(`Missing media ${src} referenced in ${filePath}`);
+  }
+}
+
 function initiativeDir(slug: string): string {
   return join(CONTENT_DIR, slug);
 }
@@ -93,7 +122,7 @@ function loadParts(
 ): Part[] {
   const dir = join(initiativeDir(slug), 'parts');
   if (!existsSync(dir)) return [];
-  return readdirSync(dir)
+  const parts = readdirSync(dir)
     .filter((file) => /\.mdx?$/.test(file) && !file.startsWith(HIDDEN_PREFIX))
     .map((file) => {
       const filePath = join(dir, file);
@@ -105,14 +134,29 @@ function loadParts(
         );
       }
       const { status, ...rest } = parsed.data;
+      if (rest.ends < rest.starts) {
+        throw new Error(`Part ends before it starts in ${filePath}`);
+      }
+      assertMediaExists(rest.cover?.src, filePath);
       return {
         ...rest,
+        milestones: [...rest.milestones].sort(
+          (a, b) => a.date.getTime() - b.date.getTime()
+        ),
         slug: partSlug(rest.number),
         initiative: slug,
         status: statusFromDates(status, rest.starts, rest.ends, now),
         content,
       } satisfies Part;
-    })
+    });
+  const numbers = new Set<number>();
+  for (const part of parts) {
+    if (numbers.has(part.number)) {
+      throw new Error(`Two parts of "${slug}" are numbered ${part.number}`);
+    }
+    numbers.add(part.number);
+  }
+  return parts
     .filter((part) => !part.draft || includeDrafts)
     .sort((a, b) => a.number - b.number);
 }
@@ -135,10 +179,16 @@ function loadInitiative(
   }
   const parts = loadParts(slug, now, includeDraftParts);
   const { status, ...rest } = parsed.data;
+  if (rest.parent && !listInitiativeSlugs().includes(rest.parent)) {
+    throw new Error(`Unknown parent "${rest.parent}" in ${filePath}`);
+  }
+  assertMediaExists(rest.cover?.src, filePath);
+  assertMediaExists(rest.trailer?.poster?.src, filePath);
   const starts = rest.starts ?? parts[0]?.starts;
   const ends = rest.ends ?? parts.at(-1)?.ends;
   return {
     ...rest,
+    brand: resolveBrand(rest.brand, filePath),
     starts,
     ends,
     slug,

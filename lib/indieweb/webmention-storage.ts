@@ -21,6 +21,7 @@ import type {
   WebmentionType,
 } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
+import type { RSVPStatus } from '@/lib/writings/types';
 
 const SITE_URL = site.origin;
 
@@ -110,6 +111,7 @@ export async function updateVerifiedWebmention(
     UPDATE webmentions
     SET
       type = ${data.type},
+      rsvp = ${data.rsvp ?? null},
       author_name = ${data.authorName || null},
       author_url = ${data.authorUrl || null},
       author_photo = ${data.authorPhoto || null},
@@ -210,6 +212,7 @@ export async function getWebmentionBySourceTarget(
       author_name,
       author_url,
       author_photo,
+      rsvp,
       content,
       published_at,
       received_at,
@@ -225,24 +228,7 @@ export async function getWebmentionBySourceTarget(
     return null;
   }
 
-  const row = result.rows[0];
-  return {
-    id: row.id,
-    sourceUrl: row.source_url,
-    targetUrl: row.target_url,
-    type: row.type as WebmentionType,
-    author: {
-      name: row.author_name,
-      url: row.author_url,
-      photo: row.author_photo,
-    },
-    content: row.content,
-    publishedAt: row.published_at ? new Date(row.published_at) : undefined,
-    receivedAt: new Date(row.received_at),
-    verifiedAt: row.verified_at ? new Date(row.verified_at) : undefined,
-    isVerified: row.is_verified,
-    isApproved: row.is_approved,
-  };
+  return rowToWebmention(result.rows[0] as WebmentionRow);
 }
 
 /**
@@ -270,6 +256,7 @@ export async function getWebmentionsForTarget(
       author_name,
       author_url,
       author_photo,
+      rsvp,
       content,
       published_at,
       received_at,
@@ -292,6 +279,7 @@ export async function getWebmentionsForTarget(
     replies: webmentions.filter((w) => w.type === 'reply'),
     mentions: webmentions.filter((w) => w.type === 'mention'),
     bookmarks: webmentions.filter((w) => w.type === 'bookmark'),
+    rsvps: webmentions.filter((w) => w.type === 'rsvp'),
   };
 }
 
@@ -309,6 +297,7 @@ export async function getWebmentionActivitiesForPost(
       ...group.replies,
       ...group.mentions,
       ...group.bookmarks,
+      ...group.rsvps,
     ].map(toWebmentionActivity)
   );
 }
@@ -328,6 +317,7 @@ export async function getAllWebmentionActivities({
       author_name,
       author_url,
       author_photo,
+      rsvp,
       content,
       published_at,
       received_at,
@@ -361,6 +351,7 @@ export async function getPendingWebmentions(): Promise<Webmention[]> {
       author_name,
       author_url,
       author_photo,
+      rsvp,
       content,
       published_at,
       received_at,
@@ -468,6 +459,7 @@ export async function getPublicWebmentionsForTarget(
       author_name,
       author_url,
       author_photo,
+      rsvp,
       content,
       published_at,
       received_at,
@@ -503,6 +495,7 @@ function rowToWebmention(row: WebmentionRow): Webmention {
       url: row.author_url ?? undefined,
       photo: row.author_photo ?? undefined,
     },
+    rsvp: (row.rsvp as RSVPStatus | null) ?? undefined,
     content: row.content ?? undefined,
     publishedAt: row.published_at ? new Date(row.published_at) : undefined,
     receivedAt: new Date(row.received_at),
@@ -536,6 +529,7 @@ function buildPublicWebmentionResponse(
       reply: children.filter((mention) => mention.type === 'reply'),
       mention: children.filter((mention) => mention.type === 'mention'),
       bookmark: children.filter((mention) => mention.type === 'bookmark'),
+      rsvp: children.filter((mention) => mention.type === 'rsvp'),
     },
   };
 }
@@ -547,6 +541,7 @@ function toPublicWebmention(webmention: Webmention): PublicWebmention {
     target: webmention.targetUrl,
     type: webmention.type,
     author: webmention.author,
+    ...(webmention.rsvp ? { rsvp: webmention.rsvp } : {}),
     content: webmention.content,
     published: webmention.publishedAt?.toISOString(),
     received: webmention.receivedAt.toISOString(),

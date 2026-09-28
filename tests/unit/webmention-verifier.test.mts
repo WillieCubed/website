@@ -116,6 +116,34 @@ test('replies, likes, reposts, and bookmarks marked up as citations keep their k
   }
 });
 
+test('a reply that gives an RSVP answer is stored as an RSVP with the answer', async () => {
+  serveSource(`
+    <div class="h-entry">
+      <a class="u-in-reply-to" href="${target}">The event</a>
+      <data class="p-rsvp" value="Yes">I'll be there</data>
+    </div>
+  `);
+  const result = await verifyWebmention('wm-1', source, target);
+  assert.equal(result.type, 'rsvp');
+  assert.equal(result.rsvp, 'yes');
+  const [update] = verifications();
+  assert.deepEqual(update.values.slice(0, 2), ['rsvp', 'yes']);
+});
+
+test('an RSVP answer the spec does not define leaves the reply a reply', async () => {
+  serveSource(`
+    <div class="h-entry">
+      <a class="u-in-reply-to" href="${target}">The event</a>
+      <span class="p-rsvp">perhaps</span>
+    </div>
+  `);
+  const result = await verifyWebmention('wm-1', source, target);
+  assert.equal(result.type, 'reply');
+  assert.equal(result.rsvp, undefined);
+  const [update] = verifications();
+  assert.deepEqual(update.values.slice(0, 2), ['reply', null]);
+});
+
 test('a citation whose address is an image with alt text is still a reply', async () => {
   serveSource(`
     <div class="h-entry">

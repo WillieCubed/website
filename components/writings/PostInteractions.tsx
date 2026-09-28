@@ -1,4 +1,6 @@
-import WebmentionSection from '@/components/indieweb/WebmentionSection';
+import WebmentionSection, {
+  hasVisibleWebmentions,
+} from '@/components/indieweb/WebmentionSection';
 
 import { threadsPostIntent } from '@/lib/indieweb/posse';
 import type { WebmentionGroup } from '@/lib/indieweb/types';
@@ -23,13 +25,7 @@ export default function PostInteractions({
   target,
   writing,
 }: PostInteractionsProps) {
-  const hasWebmentions =
-    webmentions &&
-    (webmentions.likes.length > 0 ||
-      webmentions.reposts.length > 0 ||
-      webmentions.replies.length > 0 ||
-      webmentions.mentions.length > 0 ||
-      webmentions.bookmarks.length > 0);
+  const hasWebmentions = webmentions && hasVisibleWebmentions(webmentions);
   const hasResponses = Boolean(hasWebmentions || backlinks.length > 0);
 
   return (

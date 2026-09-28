@@ -14,6 +14,7 @@ import {
   updateVerifiedWebmention,
 } from '@/lib/indieweb/webmention-storage';
 import { linksToTarget } from '@/lib/indieweb/webmention-targets';
+import type { RSVPStatus } from '@/lib/writings/types';
 
 // Extract MicroformatRoot type from the mf2 return type
 type ParsedDocument = ReturnType<typeof mf2>;
@@ -113,6 +114,7 @@ export async function verifyWebmention(
 
     // Determine webmention type
     const type = determineWebmentionType(hEntry, targetUrl);
+    const rsvp = type === 'rsvp' ? rsvpAnswer(hEntry) : undefined;
 
     // Extract author
     const author = extractAuthor(hEntry);
@@ -126,6 +128,7 @@ export async function verifyWebmention(
     // Update the webmention record
     await updateVerifiedWebmention(id, {
       type,
+      rsvp,
       authorName: author.name,
       authorUrl: author.url,
       authorPhoto: author.photo,
@@ -137,6 +140,7 @@ export async function verifyWebmention(
     return {
       success: true,
       type,
+      ...(rsvp ? { rsvp } : {}),
       author,
       content,
       publishedAt,
@@ -196,10 +200,35 @@ function determineWebmentionType(
   // Check for specific interaction types
   if (cites('like-of')) return 'like';
   if (cites('repost-of')) return 'repost';
-  if (cites('in-reply-to')) return 'reply';
+  // An RSVP is a reply to the event that also says whether they will come.
+  if (cites('in-reply-to')) return rsvpAnswer(hEntry) ? 'rsvp' : 'reply';
   if (cites('bookmark-of')) return 'bookmark';
 
   return 'mention';
+}
+
+const RSVP_ANSWERS: readonly RSVPStatus[] = [
+  'yes',
+  'no',
+  'maybe',
+  'interested',
+];
+
+/**
+ * The entry's `p-rsvp` answer, if it gives one the RSVP spec defines. The
+ * values are case-insensitive, so `Yes` counts as `yes`; anything else, such
+ * as `remote yes`, leaves the entry a plain reply.
+ */
+function rsvpAnswer(hEntry: MicroformatRoot): RSVPStatus | undefined {
+  const [value] = hEntry.properties.rsvp ?? [];
+  const text =
+    typeof value === 'string'
+      ? value
+      : value && 'value' in value && typeof value.value === 'string'
+        ? value.value
+        : undefined;
+  const answer = text?.trim().toLowerCase();
+  return RSVP_ANSWERS.find((known) => known === answer);
 }
 
 /**

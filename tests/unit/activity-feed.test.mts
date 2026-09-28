@@ -54,13 +54,25 @@ test('flattenWebmentionActivities returns every type sorted by activity date', (
         receivedAt: new Date('2026-05-18T12:00:00Z'),
       }),
     ],
+    rsvps: [
+      mention('declined-rsvp', 'rsvp', {
+        rsvp: 'no',
+        publishedAt: new Date('2026-05-14T12:00:00Z'),
+      }),
+    ],
   };
 
   const activities = flattenWebmentionActivities(group);
 
   assert.deepEqual(
     activities.map((activity) => activity.id),
-    ['bookmark-without-published', 'newer-repost', 'reply', 'older-like']
+    [
+      'bookmark-without-published',
+      'newer-repost',
+      'reply',
+      'older-like',
+      'declined-rsvp',
+    ]
   );
   assert.equal(
     activities[0].activityDate.toISOString(),
@@ -89,6 +101,7 @@ test('buildActivityFeedItems gives likes and reposts first-class feed entries', 
     ],
     mentions: [],
     bookmarks: [],
+    rsvps: [],
   });
 
   const items = buildActivityFeedItems(activities, {

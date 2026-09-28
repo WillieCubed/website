@@ -72,6 +72,7 @@ export function summarizePendingWebmention(
     source: webmention.sourceUrl,
     target: webmention.targetUrl,
     type: webmention.type,
+    ...(webmention.rsvp ? { rsvp: webmention.rsvp } : {}),
     author: webmention.author.name ?? webmention.author.url,
     content: webmention.content,
     received: webmention.receivedAt.toISOString(),
@@ -197,7 +198,7 @@ export function formatPendingWebmention(
   summary: PendingWebmentionSummary
 ): string {
   const lines = [
-    `${summary.id}  ${summary.type}${summary.verified ? '' : ' (unverified)'}`,
+    `${summary.id}  ${summary.type}${summary.rsvp ? ` ${summary.rsvp}` : ''}${summary.verified ? '' : ' (unverified)'}`,
     `  from    ${summary.source}`,
     `  to      ${summary.target}`,
   ];

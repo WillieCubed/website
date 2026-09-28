@@ -13,6 +13,7 @@ const ACTIVITY_VERBS: Record<WebmentionType, string> = {
   reply: 'replied to',
   mention: 'mentioned',
   bookmark: 'bookmarked',
+  rsvp: 'RSVPed to',
 };
 
 const ACTIVITY_LABELS: Record<WebmentionType, string> = {
@@ -21,6 +22,7 @@ const ACTIVITY_LABELS: Record<WebmentionType, string> = {
   reply: 'Reply',
   mention: 'Mention',
   bookmark: 'Bookmark',
+  rsvp: 'RSVP',
 };
 
 export function getActivityDate(webmention: Webmention): Date {
@@ -36,6 +38,7 @@ export function flattenWebmentionActivities(
     ...group.replies,
     ...group.mentions,
     ...group.bookmarks,
+    ...group.rsvps,
   ]
     .map(toActivity)
     .sort((a, b) => b.activityDate.getTime() - a.activityDate.getTime());

@@ -4,6 +4,7 @@ import type { Initiative } from '@/lib/initiatives';
 import { site } from '@/lib/site';
 import { siteRoute } from '@/lib/url-utils';
 import type { WritingData } from '@/lib/writings';
+import { normalizeTag, tagFeedPaths, tagPath } from '@/lib/writings/tags';
 
 const SITE_TITLE = site.name;
 const SITE_DESCRIPTION = site.description;
@@ -275,6 +276,43 @@ export function generateWritingsJsonFeed(items: FeedItem[]): string {
     description: WRITINGS_DESCRIPTION,
     alternateUrl: siteRoute`/writings`,
     feedUrl: siteRoute`/writings/feed/json`,
+  });
+}
+
+/** What a tag's three feeds share: their name and the page they mirror. */
+function tagFeedOptions(tag: string) {
+  const name = normalizeTag(tag);
+  return {
+    title: `${WRITINGS_TITLE}: #${name}`,
+    description: `Writings tagged ${name} from ${AUTHOR_NAME}.`,
+    alternateUrl: siteRoute`${tagPath(tag)}`,
+  };
+}
+
+/** Generate a tag's RSS feed, which describes and links to its page. */
+export function generateTagRssFeed(tag: string, items: FeedItem[]): string {
+  return generateRssFeed(items, {
+    ...tagFeedOptions(tag),
+    feedUrl: siteRoute`${tagFeedPaths(tag).rss}`,
+  });
+}
+
+/** Generate a tag's Atom feed, which describes and links to its page. */
+export function generateTagAtomFeed(tag: string, items: FeedItem[]): string {
+  const { title, description, alternateUrl } = tagFeedOptions(tag);
+  return generateAtomFeed(items, {
+    title,
+    subtitle: description,
+    alternateUrl,
+    feedUrl: siteRoute`${tagFeedPaths(tag).atom}`,
+  });
+}
+
+/** Generate a tag's JSON Feed, which describes and links to its page. */
+export function generateTagJsonFeed(tag: string, items: FeedItem[]): string {
+  return generateJsonFeed(items, {
+    ...tagFeedOptions(tag),
+    feedUrl: siteRoute`${tagFeedPaths(tag).json}`,
   });
 }
 

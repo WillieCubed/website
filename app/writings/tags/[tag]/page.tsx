@@ -13,19 +13,20 @@ import {
   websiteLd,
 } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/site';
-import { getAllTags, getTagGroup } from '@/lib/writings';
-import { tagFromParam, tagPath, writingCount } from '@/lib/writings/tags';
+import { getTagGroup, getTagParams } from '@/lib/writings';
+import {
+  tagFeedPaths,
+  tagFromParam,
+  tagPath,
+  writingCount,
+} from '@/lib/writings/tags';
 
 interface TagPageProps {
   params: Promise<{ tag: string }>;
 }
 
-// Cache Components refuses an empty list at build time. When nothing is
-// published, one underscore path stands in: no writing carries it, so it
-// prerenders as a plain 404.
 export async function generateStaticParams() {
-  const tags = await getAllTags();
-  return tags.length > 0 ? tags.map((tag) => ({ tag })) : [{ tag: '_' }];
+  return getTagParams();
 }
 
 async function loadTag(props: TagPageProps) {
@@ -36,7 +37,8 @@ async function loadTag(props: TagPageProps) {
 export async function generateMetadata(props: TagPageProps): Promise<Metadata> {
   const { tag, writings } = await loadTag(props);
   const path = tagPath(tag);
-  return pageMetadata({
+  const feeds = tagFeedPaths(tag);
+  const metadata = pageMetadata({
     // A bare tag in a preview on X or iMessage reads as a word; the hash
     // says it is a tag without the site name around it.
     title: `#${tag}`,
@@ -44,6 +46,17 @@ export async function generateMetadata(props: TagPageProps): Promise<Metadata> {
     path,
     image: `${path}/opengraph-image`,
   });
+  return {
+    ...metadata,
+    alternates: {
+      ...metadata.alternates,
+      types: {
+        'application/rss+xml': feeds.rss,
+        'application/atom+xml': feeds.atom,
+        'application/feed+json': feeds.json,
+      },
+    },
+  };
 }
 
 export default async function TagPage(props: TagPageProps) {

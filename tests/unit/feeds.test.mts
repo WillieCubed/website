@@ -9,6 +9,9 @@ import {
   generateAtomFeed,
   generateJsonFeed,
   generateRssFeed,
+  generateTagAtomFeed,
+  generateTagJsonFeed,
+  generateTagRssFeed,
   generateWritingsAtomFeed,
   generateWritingsJsonFeed,
   generateWritingsRssFeed,
@@ -157,12 +160,12 @@ test('no feed route writes its own XML or names the hub', async () => {
   }
 });
 
-test('the site and writings feeds come from lib/feeds and are cached', async () => {
+test('the site, writings, and tag feeds come from lib/feeds and are cached', async () => {
   // Activity feeds go through lib/indieweb/activity-feed-route.ts instead.
   const routes = (await feedRoutes()).filter(
     (route) => !route.includes(`${path.sep}activity${path.sep}`)
   );
-  assert.equal(routes.length, 6);
+  assert.equal(routes.length, 9);
 
   for (const route of routes) {
     const source = await readFile(route, 'utf8');
@@ -225,6 +228,38 @@ test('the writings RSS and JSON feeds describe and link to the writings page', (
   assert.equal(json.title, "Willie's Writings");
   assert.equal(json.home_page_url, `${site.origin}/writings`);
   assert.equal(json.feed_url, `${site.origin}/writings/feed/json`);
+});
+
+test('the tag feeds name the tag and link to its page and themselves', () => {
+  const page = `${site.origin}/writings/tags/fall-tour-2026`;
+
+  const rss = generateTagRssFeed('Fall-Tour-2026', [item]);
+  assert.match(rss, /<title>Willie&apos;s Writings: #fall-tour-2026<\/title>/);
+  assert.match(rss, new RegExp(`<link>${page}</link>`));
+  assert.ok(
+    rss.includes(`<atom:link href="${page}/feed.xml" rel="self"`),
+    'RSS names itself'
+  );
+  assert.ok(rss.includes(`<atom:link href="${WEBSUB_HUB}" rel="hub"/>`));
+
+  const atom = generateTagAtomFeed('fall-tour-2026', [item]);
+  assert.equal(feedElement(atom, 'id'), `${page}/feed/atom`);
+  assert.equal(alternateLink(atom), page);
+  assert.match(feedElement(atom, 'subtitle') ?? '', /tagged fall-tour-2026/);
+  assert.ok(atom.includes(`<link href="${WEBSUB_HUB}" rel="hub"/>`));
+
+  const json = JSON.parse(generateTagJsonFeed('fall-tour-2026', [item]));
+  assert.equal(json.title, "Willie's Writings: #fall-tour-2026");
+  assert.equal(json.home_page_url, page);
+  assert.equal(json.feed_url, `${page}/feed/json`);
+  assert.deepEqual(json.hubs, [{ type: 'WebSub', url: WEBSUB_HUB }]);
+});
+
+test('a tag feed never shares an id with the writings feed', () => {
+  assert.notEqual(
+    feedElement(generateTagAtomFeed('note', [item]), 'id'),
+    feedElement(generateWritingsAtomFeed([item]), 'id')
+  );
 });
 
 const initiative = {

@@ -26,6 +26,23 @@ export function tagPath(tag: string): string {
   return `/writings/tags/${encodeURIComponent(normalizeTag(tag))}`;
 }
 
+/**
+ * A tag's three feeds, beside its page the way the writings feeds sit
+ * beside /writings.
+ */
+export function tagFeedPaths(tag: string): {
+  rss: string;
+  atom: string;
+  json: string;
+} {
+  const page = tagPath(tag);
+  return {
+    rss: `${page}/feed.xml`,
+    atom: `${page}/feed/atom`,
+    json: `${page}/feed/json`,
+  };
+}
+
 /** "1 writing", "3 writings". */
 export function writingCount(count: number): string {
   return `${count} ${count === 1 ? 'writing' : 'writings'}`;

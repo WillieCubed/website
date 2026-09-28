@@ -4,13 +4,15 @@ import type { AddressInfo, LookupAddress } from 'node:net';
 import test from 'node:test';
 
 import {
-  type AddressResolver,
   CLIENT_DOCUMENT_MAX_BYTES,
-  type ClientDocumentFetch,
-  createPublicOnlyLookup,
   fetchIndieAuthClient,
-  isPublicAddress,
 } from '@/lib/indieweb/indieauth-client';
+import {
+  type AddressResolver,
+  type DocumentFetch,
+  createPublicOnlyLookup,
+  isPublicAddress,
+} from '@/lib/indieweb/public-fetch';
 
 const PUBLIC_V4 = '93.184.216.34';
 const PUBLIC_V6 = '2606:2800:220:1:248:1893:25c8:1946';
@@ -35,7 +37,7 @@ function resolverFor(
 /** A fetch that answers from a list of responses and records each URL. */
 function scriptedFetch(responses: Response[]) {
   const urls: string[] = [];
-  const fetch: ClientDocumentFetch = async (url, init) => {
+  const fetch: DocumentFetch = async (url, init) => {
     assert.equal(init.redirect, 'manual');
     urls.push(url);
     const response = responses.shift();

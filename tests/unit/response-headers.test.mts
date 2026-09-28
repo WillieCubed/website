@@ -1,3 +1,4 @@
+import { modifyRouteRegex } from 'next/dist/lib/redirect-status';
 import { getPathMatch } from 'next/dist/shared/lib/router/utils/path-match';
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
@@ -9,11 +10,18 @@ import { siteHeaders } from '@/lib/response-headers';
 
 const CLACKS = { key: 'X-Clacks-Overhead', value: 'GNU Terry Pratchett' };
 
-/** The headers a path gets, matched the way next.config's headers() is. */
+/**
+ * The headers a path gets, matched with the options Next's router uses for
+ * next.config's headers() (next/dist/server/lib/router-utils/filesystem.js).
+ */
 function headersFor(path: string): Map<string, string> {
   const found = new Map<string, string>();
   for (const rule of siteHeaders) {
-    if (!getPathMatch(rule.source, { strict: true })(path)) continue;
+    const match = getPathMatch(rule.source, {
+      strict: true,
+      regexModifier: (regex) => modifyRouteRegex(regex),
+    });
+    if (!match(path)) continue;
     for (const { key, value } of rule.headers) found.set(key, value);
   }
   return found;
@@ -99,6 +107,53 @@ test('route handlers, images, and files get no Link header', () => {
 
   for (const path of others) {
     assert.ok(!headersFor(path).has('Link'), `${path} has no Link header`);
+  }
+});
+
+test('every path refuses sniffing and denies unused permissions', () => {
+  for (const path of ['/', '/feed.xml', '/indieauth/consent', '/api/mcp']) {
+    const headers = headersFor(path);
+    assert.equal(headers.get('X-Content-Type-Options'), 'nosniff', path);
+    const permissions = headers.get('Permissions-Policy') ?? '';
+    for (const feature of [
+      'camera',
+      'microphone',
+      'geolocation',
+      'interest-cohort',
+      'browsing-topics',
+    ]) {
+      assert.ok(permissions.includes(`${feature}=()`), `${path} ${feature}`);
+    }
+  }
+});
+
+test('the referrer policy is pinned everywhere the consent page does not set its own', () => {
+  for (const path of ['/', '/writings/a-slug', '/feed.xml', '/api/mcp']) {
+    assert.equal(
+      headersFor(path).get('Referrer-Policy'),
+      'strict-origin-when-cross-origin',
+      path
+    );
+  }
+  for (const path of ['/indieauth/consent', '/indieauth/auth']) {
+    assert.ok(!headersFor(path).has('Referrer-Policy'), path);
+  }
+});
+
+test('pages isolate their opener but the IndieAuth routes never do', () => {
+  for (const path of ['/', '/writings/a-slug']) {
+    assert.equal(
+      headersFor(path).get('Cross-Origin-Opener-Policy'),
+      'same-origin-allow-popups',
+      path
+    );
+  }
+  const indieauth = appRoutes()
+    .map((route) => route.path)
+    .filter((path) => path.startsWith('/indieauth/'));
+  assert.ok(indieauth.includes('/indieauth/consent'));
+  for (const path of indieauth) {
+    assert.ok(!headersFor(path).has('Cross-Origin-Opener-Policy'), path);
   }
 });
 

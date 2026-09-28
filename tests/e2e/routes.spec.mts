@@ -47,6 +47,26 @@ for (const path of ['/', '/writings', '/initiatives/fall-tour-2026/part-1']) {
   });
 }
 
+test('a page sends the security headers', async ({ request }) => {
+  const headers = (await request.get('/')).headers();
+  expect(headers['x-content-type-options']).toBe('nosniff');
+  expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+  expect(headers['permissions-policy']).toBe(
+    'camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()'
+  );
+  expect(headers['cross-origin-opener-policy']).toBe(
+    'same-origin-allow-popups'
+  );
+});
+
+test('the IndieAuth consent page keeps its opener and its own referrer policy', async ({
+  request,
+}) => {
+  const headers = (await request.get('/indieauth/consent')).headers();
+  expect(headers['cross-origin-opener-policy']).toBeUndefined();
+  expect(headers['referrer-policy']).toBe('no-referrer');
+});
+
 test('a feed carries no page Link header', async ({ request }) => {
   const response = await request.get('/feed.xml');
   expect(response.headers()['link'] ?? '').not.toContain('rel="webmention"');

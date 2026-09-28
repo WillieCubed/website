@@ -19,6 +19,7 @@ route file only forwards the request.
 | `/whoami`                   | none; echoes the request                                                                             | Plain text for `curl`, HTML for browsers, never cached or stored. See the host note below.                                                                                                              |
 | every path                  | `X-Clacks-Overhead: GNU Terry Pratchett`                                                             | Defined in `lib/response-headers.ts`, served by `headers()` in `next.config.ts`.                                                                                                                        |
 | every page                  | `Link` header, [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288)                                    | The head's Webmention, Micropub, IndieAuth, and WebSub hub links, for clients that read headers. See the Link header note below.                                                                        |
+| every path                  | Security headers                                                                                     | `nosniff`, a pinned referrer policy, a permissions policy, and an opener policy on pages. See the security headers note below.                                                                          |
 | `/.well-known/security.txt` | [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116)                                                   | `Expires` is required and must stay under a year out. A unit test fails 30 days before it lapses; renew `SECURITY_TXT_EXPIRES`.                                                                         |
 | `/opensearch.xml`           | [OpenSearch](https://github.com/dewitt/opensearch/blob/master/opensearch-1-1-draft-6.md) description | Lets a browser add the site as a search engine. Queries go to `/search?q=`. Root layout advertises it with `<link rel="search">`.                                                                       |
 | `/api/mcp`                  | [Model Context Protocol](https://modelcontextprotocol.io), Streamable HTTP                           | Read-only and unauthenticated: `get_profile`, `list_writings`, `get_writing`, `search_writings`, `list_initiatives`, and `brew_coffee`, which answers with a 418 tool error. See the MCP section below. |
@@ -42,6 +43,47 @@ page is missing from it or a route handler matches it. The files on the
 path from `next.config.ts` import each other by relative path: Next's config
 loader resolves `@/` against the wrong folder for a file under `lib/`, and
 the build fails with "Cannot find module".
+
+## Security headers
+
+`lib/response-headers.ts` sends four headers that cost nothing, because the
+site never does what they forbid:
+
+| Header                       | Value                                                                              | Where                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------- |
+| `X-Content-Type-Options`     | `nosniff`                                                                          | every path                                   |
+| `Referrer-Policy`            | `strict-origin-when-cross-origin`                                                  | every path outside `/indieauth/`             |
+| `Permissions-Policy`         | `camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()` | every path                                   |
+| `Cross-Origin-Opener-Policy` | `same-origin-allow-popups`                                                         | pages only (`PAGE_SOURCES`), never IndieAuth |
+
+The referrer policy is already every browser's default. Pinning it keeps a
+host or a future default from loosening it. The IndieAuth consent page sends
+the stricter `no-referrer` itself, and a header from `next.config.ts`
+replaces the one a route handler sets, so the rule skips `/indieauth/`;
+`tests/e2e/routes.spec.mts` checks that the consent page keeps its own.
+
+The permissions policy also binds the YouTube, Spotify, and SoundCloud
+embeds, none of which asks for those features. Chromium still recognises
+`interest-cohort` and logs nothing for it, so the header keeps FLoC's old
+switch beside its successor, `browsing-topics`.
+
+The opener policy stays off the `/indieauth/` routes. A Micropub client
+may open sign-in in a popup and, once the popup lands back on its own
+redirect page, read `window.opener` to hand over the code. The policy on
+any page in that chain would cut the popup loose. The site's own popups
+(the palette's new-tab results and the share links) open with `noopener`
+or through `navigator.share` and need no opener either way.
+
+There is no `Content-Security-Policy`. A `script-src` without
+`'unsafe-inline'` needs a nonce on every inline script: the theme script in
+the head, Next's inline RSC payload, and the Google tag snippet. Next adds
+nonces only while rendering a request, which turns off the static
+prerendering and Partial Prerendering the site runs on
+(`node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md`).
+Next's experimental SRI mode covers script files, not those inline
+scripts, and a policy that allows `'unsafe-inline'` blocks almost nothing.
+The consent page, which renders no scripts, carries a strict policy of its
+own.
 
 ## In the command palette
 

@@ -2,6 +2,7 @@ import {
   type Initiative,
   currentPart,
   getFeaturedInitiatives,
+  getInitiatives,
 } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 
@@ -21,7 +22,9 @@ function headFor(initiative: Initiative, parents: Map<string, Initiative>) {
  */
 export async function getFeaturedTiles(): Promise<InitiativeTile[]> {
   const featured = await getFeaturedInitiatives();
-  const parents = new Map(featured.map((i) => [i.slug, i]));
+  // A parent such as The Willie Diaries has no tile of its own, so the
+  // lookup covers every published initiative, not only featured ones.
+  const parents = new Map((await getInitiatives()).map((i) => [i.slug, i]));
   return featured.flatMap((initiative) => {
     const feature = initiative.feature;
     if (!feature) return [];

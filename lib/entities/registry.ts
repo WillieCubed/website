@@ -81,7 +81,7 @@ export function entityCards(
         description: part.tagline ?? part.description ?? initiative.tagline,
         cover: part.cover ?? initiative.cover,
         brand,
-        meta: `${initiative.partLabel} ${part.number} of ${initiative.parts.length} · ${range(part.starts, part.ends)}`,
+        meta: `${initiative.title} · ${initiative.partLabel} ${part.number} of ${initiative.parts.length} · ${range(part.starts, part.ends)}`,
       });
     }
   }

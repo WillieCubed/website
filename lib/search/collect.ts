@@ -6,6 +6,7 @@ import {
   type Initiative,
   type Part,
   loadAllInitiatives,
+  partTitle,
 } from '@/lib/initiatives';
 import { type WritingData, getWritingSlugs, loadWriting } from '@/lib/writings';
 
@@ -94,7 +95,7 @@ function partToItem(initiative: Initiative, part: Part): SearchableItem {
   return {
     slug: `initiatives/${initiative.slug}/${part.slug}`,
     path: `${initiative.href}/${part.slug}`,
-    title: `${initiative.partLabel} ${part.number}: ${part.title}`,
+    title: partTitle(initiative, part),
     description: part.description || part.tagline || initiative.description,
     content: [
       part.tagline,

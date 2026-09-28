@@ -116,12 +116,12 @@ test('an initiative and each of its parts get cards', () => {
   assert.equal(first.href, '/initiatives/fall-tour-2026/part-1');
   assert.equal(first.kind, 'part');
   assert.equal(first.description, 'Where the tour starts.');
-  assert.equal(first.meta, 'Leg 1 of 2 · Sep 18 – Sep 20');
+  assert.equal(first.meta, 'Fall Tour 2026 · Leg 1 of 2 · Sep 18 – Sep 20');
   // A part without its own words or cover borrows the initiative's.
   assert.equal(second.description, 'A tour.');
   assert.deepEqual(second.cover, { src: '/tour.jpg', alt: 'A road.' });
   assert.equal(second.brand, '#c2410c');
-  assert.equal(second.meta, 'Leg 2 of 2 · Sep 21 – Sep 24');
+  assert.equal(second.meta, 'Fall Tour 2026 · Leg 2 of 2 · Sep 21 – Sep 24');
 });
 
 test('a brand that is not a hex seed and a missing date range are left off', () => {

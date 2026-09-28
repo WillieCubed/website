@@ -127,7 +127,7 @@ test('only an article that answers nothing is a BlogPosting', () => {
   );
 });
 
-test('breadcrumbLd numbers the trail and makes the links absolute', () => {
+test('breadcrumbLd starts at the homepage, numbers the trail, and makes the links absolute', () => {
   const trail = breadcrumbLd([
     { name: 'Initiatives', path: '/initiatives' },
     { name: 'Fall Tour', path: '/initiatives/fall-tour-2026' },
@@ -136,12 +136,18 @@ test('breadcrumbLd numbers the trail and makes the links absolute', () => {
     {
       '@type': 'ListItem',
       position: 1,
+      name: site.name,
+      item: site.origin,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
       name: 'Initiatives',
       item: `${site.origin}/initiatives`,
     },
     {
       '@type': 'ListItem',
-      position: 2,
+      position: 3,
       name: 'Fall Tour',
       item: `${site.origin}/initiatives/fall-tour-2026`,
     },

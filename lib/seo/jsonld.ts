@@ -240,12 +240,17 @@ export function eventLd(input: EventInput): JsonLdNode {
   };
 }
 
+/**
+ * The trail from the homepage to a page. Pass the crumbs after the
+ * homepage: it leads every trail here, named as the top bar names it.
+ */
 export function breadcrumbLd(
   crumbs: Array<{ name: string; path: string }>
 ): JsonLdNode {
+  const trail = [{ name: site.name, path: '/' }, ...crumbs];
   return {
     '@type': 'BreadcrumbList',
-    itemListElement: crumbs.map((crumb, index) => ({
+    itemListElement: trail.map((crumb, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       name: crumb.name,

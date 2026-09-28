@@ -25,6 +25,17 @@ The site also receives moderated Webmentions and offers Micropub creation. Those
 capabilities exceed several level 1–3 criteria, but their existence does not
 replace a missing public post, actual syndication copy, or hub delivery.
 
+Receiving now types RSVPs and mentions, finds authors with the authorship
+algorithm, keeps sanitized reply markup, accepts Vouch, and sends Salmention
+(see the [operations guide](README.md)). On 2026-09-27 the unit suite passed,
+and so did the local write test in the [HTTP test runbook](testing.md), which
+ran a reply through the receiver, moderation, the public JSON, and deletion
+against a local PostgreSQL database. A local production build rendered
+seeded replies, RSVPs, likes, and mentions on a post. That is local evidence
+only. No public post has received a webmention, and nobody has run Webmention
+Rocks receiver cases, Authorship Rocks cases, or a Vouch or Salmention
+exchange with another site. These features add no claimed level.
+
 The [Go Microformats parser](https://go.microformats.io/?url=https%3A%2F%2Fwillie.page%2F)
 returned one `h-card` from the production homepage on 2026-09-24. Its `name`
 was `Willie Chalmers III`, its `url` was `https://willie.page/`, and its

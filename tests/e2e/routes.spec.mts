@@ -29,3 +29,21 @@ test('/feed.xml serves the RSS feed', async ({ request }) => {
   expect(response.headers()['content-type']).toContain('application/rss+xml');
   expect(await response.text()).toMatch(/<rss[\s>][\s\S]*<channel>/);
 });
+
+const ALIAS_HOSTS = [
+  { host: 'tour.willie.page', to: '/initiatives/fall-tour-2026' },
+  { host: 'diaries.willie.page', to: '/initiatives/twd' },
+];
+
+for (const { host, to } of ALIAS_HOSTS) {
+  test(`${host} redirects to ${to}`, async ({ request }) => {
+    const response = await request.get('/', {
+      headers: { host },
+      maxRedirects: 0,
+    });
+    expect(response.status()).toBe(307);
+    expect(
+      new URL(response.headers()['location'], 'https://willie.page').pathname
+    ).toBe(to);
+  });
+}

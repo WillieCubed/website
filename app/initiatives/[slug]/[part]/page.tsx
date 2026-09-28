@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import PageWebmentions from '@/components/indieweb/PageWebmentions';
 import InitiativeBody from '@/components/initiatives/InitiativeBody';
+import PartEvent from '@/components/initiatives/PartEvent';
 import PartNav from '@/components/initiatives/PartNav';
 import RouteMap from '@/components/initiatives/RouteMap';
 import {
@@ -25,12 +26,13 @@ import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
 import {
   breadcrumbLd,
+  eventLd,
   graph,
   personLd,
   webPageLd,
   websiteLd,
 } from '@/lib/seo/jsonld';
-import { absoluteUrl, pageMetadata } from '@/lib/site';
+import { absoluteUrl, canonicalUrl, pageMetadata } from '@/lib/site';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix
@@ -96,11 +98,23 @@ export default async function PartPage(props: {
   const crumbs = [{ label: 'Initiatives', href: '/initiatives' }];
   if (parent) crumbs.push({ label: parent.title, href: parent.href });
   crumbs.push({ label: initiative.title, href: initiative.href });
+  const name = partTitle(initiative, part);
+  const description =
+    part.description || part.tagline || initiative.description;
   const partGraph = graph(
     webPageLd({
-      name: partTitle(initiative, part),
-      description: part.description || part.tagline || initiative.description,
+      name,
+      description,
       path: partPath,
+      image: `${partPath}/opengraph-image`,
+    }),
+    eventLd({
+      name,
+      description,
+      path: partPath,
+      startDate: isoDate(part.starts),
+      endDate: isoDate(part.ends),
+      places: part.places,
       image: `${partPath}/opengraph-image`,
     }),
     breadcrumbLd([
@@ -128,30 +142,11 @@ export default async function PartPage(props: {
               unoptimized={cover.src.endsWith('.svg')}
             />
           )}
-          <div className="relative flex min-h-[52vh] flex-col justify-end bg-gradient-to-t from-ink/80 via-ink/20 to-transparent p-6 medium:p-10">
-            <p className="act-kicker text-label-large text-ground/85">
-              {initiative.partLabel} {part.number}
-            </p>
-            <h1 className="mt-2 max-w-[18ch] text-display-medium text-ground">
-              {part.title}
-            </h1>
-            {part.tagline && (
-              <p className="mt-3 max-w-prose text-headline-small font-normal text-ground/90">
-                {part.tagline}
-              </p>
-            )}
-            <p className="mt-4 text-label-large text-ground/85">
-              <time dateTime={isoDate(part.starts)}>
-                {formatRange(part.starts, part.ends, true)}
-              </time>
-              {part.places.length > 0 && (
-                <>
-                  {' · '}
-                  {part.places.map((p) => p.name).join(', ')}
-                </>
-              )}
-            </p>
-          </div>
+          <PartEvent
+            initiative={initiative}
+            part={part}
+            url={canonicalUrl(partPath)}
+          />
         </header>
 
         <div className="mx-auto mt-10 grid max-w-[1000px] gap-10 expanded:grid-cols-[1fr_320px]">

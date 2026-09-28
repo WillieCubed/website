@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   blogPostingLd,
   breadcrumbLd,
+  eventLd,
   graph,
   homeGraph,
   personLd,
@@ -116,6 +117,76 @@ test('breadcrumbLd numbers the trail and makes the links absolute', () => {
       item: `${site.origin}/initiatives/fall-tour-2026`,
     },
   ]);
+});
+
+test('eventLd is a scheduled in-person event Willie runs and appears in', () => {
+  const event = eventLd({
+    path: '/initiatives/fall-tour-2026/part-1',
+    name: 'Fall Tour 2026 Part 1: A Boy Goes Back to Dallas',
+    description: 'A tour.',
+    startDate: '2026-09-24',
+    endDate: '2026-09-27',
+    places: [
+      { name: 'Dallas', region: 'TX', lat: 32.8471, lng: -96.8518 },
+      { name: 'Denton', lat: 33.2148, lng: -97.1331 },
+    ],
+    image: '/initiatives/fall-tour-2026/part-1/opengraph-image',
+  });
+  const url = `${site.origin}/initiatives/fall-tour-2026/part-1`;
+  assert.equal(event['@type'], 'Event');
+  assert.equal(event['@id'], `${url}#event`);
+  assert.equal(event.url, url);
+  assert.equal(event.startDate, '2026-09-24');
+  assert.equal(event.endDate, '2026-09-27');
+  assert.equal(event.eventStatus, 'https://schema.org/EventScheduled');
+  assert.equal(
+    event.eventAttendanceMode,
+    'https://schema.org/OfflineEventAttendanceMode'
+  );
+  assert.deepEqual(event.organizer, { '@id': personLd()['@id'] });
+  assert.deepEqual(event.performer, { '@id': personLd()['@id'] });
+  assert.equal(event.image, `${url}/opengraph-image`);
+  assert.deepEqual(event.location, [
+    {
+      '@type': 'Place',
+      name: 'Dallas, TX',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Dallas',
+        addressRegion: 'TX',
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: 32.8471,
+        longitude: -96.8518,
+      },
+    },
+    {
+      '@type': 'Place',
+      name: 'Denton',
+      address: { '@type': 'PostalAddress', addressLocality: 'Denton' },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: 33.2148,
+        longitude: -97.1331,
+      },
+    },
+  ]);
+  assertPlain(event);
+});
+
+test('eventLd leaves out a location and image it does not have', () => {
+  const event = eventLd({
+    path: '/initiatives/fall-tour-2026/part-9',
+    name: 'Part 9',
+    description: 'Somewhere.',
+    startDate: '2026-12-01',
+    endDate: '2026-12-02',
+    places: [],
+  });
+  assert.ok(!('location' in event));
+  assert.ok(!('image' in event));
+  assertPlain(event);
 });
 
 test('webPageLd lists an index and links the website and the person', () => {

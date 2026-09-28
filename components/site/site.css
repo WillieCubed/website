@@ -355,7 +355,7 @@ body:has(header[data-column='reading'])
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 8px;
+  padding: 12px;
   border-radius: 8px;
   color: var(--color-ink);
   transition: background-color 160ms var(--ease-site);
@@ -374,8 +374,52 @@ body:has(header[data-column='reading'])
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* Keep the 44px target while drawing a shorter state surface around its text. */
+header[data-column] .site-breadcrumb {
+  position: relative;
+  isolation: isolate;
+  padding: 4px 12px;
+}
+header[data-column] .site-breadcrumb::before {
+  position: absolute;
+  inset: 8px 0;
+  z-index: -1;
+  border-radius: inherit;
+  content: '';
+  pointer-events: none;
+  transition: background-color 160ms var(--ease-site);
+}
+@media (hover: hover) {
+  header[data-column] .site-breadcrumb:hover {
+    background: transparent;
+  }
+  header[data-column] .site-breadcrumb:hover::before {
+    background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  }
+}
+header[data-column] .site-breadcrumb:focus-visible,
+header[data-column] .site-breadcrumb:active,
+header[data-column] .site-breadcrumb[aria-expanded='true'] {
+  background: transparent;
+}
+header[data-column] .site-breadcrumb:focus-visible::before,
+header[data-column] .site-breadcrumb:active::before,
+header[data-column] .site-breadcrumb[aria-expanded='true']::before {
+  background: color-mix(in srgb, var(--color-ink) 10%, transparent);
+}
+header[data-column] .site-breadcrumb:focus-visible {
+  outline: none;
+}
+header[data-column] .site-breadcrumb:focus-visible::before {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
 @media (prefers-reduced-motion: reduce) {
   .site-breadcrumb {
+    transition: none;
+  }
+  header[data-column] .site-breadcrumb::before {
     transition: none;
   }
 }

@@ -138,6 +138,20 @@ test('Escape during the opening morph closes once it ends', async ({
   await expect(page).toHaveURL(/\/$/);
 });
 
+test('Back after closing leaves the page instead of reopening it', async ({
+  page,
+}) => {
+  await page.goto('/writings');
+  await page.goto('/');
+  await hydrated(page);
+  await open(page);
+  await detail(page).getByRole('button', { name: 'Close' }).click();
+  await expect(detail(page)).toBeHidden();
+  await expect(page).toHaveURL(/\/$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/writings$/);
+});
+
 test('Back closes the view, and it closes again after Forward', async ({
   page,
 }) => {

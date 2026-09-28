@@ -6,6 +6,7 @@ import References from '@/components/references/References';
 
 import { SeriesWithWritings, TOCHeading, WritingData } from '@/lib/writings';
 import { extractReferences } from '@/lib/writings/references';
+import { tagPath } from '@/lib/writings/tags';
 
 import SeriesNav from './SeriesNav';
 
@@ -80,7 +81,7 @@ export default async function WritingContent({
                 {writing.tags.map((tag) => (
                   <li key={tag}>
                     <SiteLink
-                      href={`/writings?tag=${encodeURIComponent(tag)}`}
+                      href={tagPath(tag)}
                       className="p-category inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
                     >
                       {tag}

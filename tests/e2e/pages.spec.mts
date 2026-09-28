@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { type Page, expect, test } from '@playwright/test';
 
+import { skipUnlessPublished } from './published';
+
 /**
  * The pages that exist in production. Drafts are hidden there, so nothing
  * here depends on a writing or an initiative that may not be published.
@@ -38,6 +40,15 @@ for (const { path, heading } of PAGES) {
     await expectNoAxeViolations(page);
   });
 }
+
+test('a tag page loads and passes axe', async ({ page, request }) => {
+  await skipUnlessPublished(request, '/writings/tags/note');
+  await page.goto('/writings/tags/note');
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'note' })
+  ).toBeVisible();
+  await expectNoAxeViolations(page);
+});
 
 test('an unknown path shows the 404 page and passes axe', async ({ page }) => {
   const response = await page.goto('/this-page-does-not-exist');

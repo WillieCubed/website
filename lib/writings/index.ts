@@ -20,6 +20,7 @@ import {
   getSeriesWithWritings as _getSeriesWithWritings,
 } from '../collections';
 import { parsePersonTags } from './person-tags';
+import { type TagGroup, groupByTag, normalizeTag } from './tags';
 import type {
   PostType,
   RSVPData,
@@ -42,7 +43,7 @@ export type { WritingData, TOCHeading };
 const HIDDEN_ITEM_PREFIX = '_';
 
 /** Slugs that conflict with routes under /writings/ */
-const RESERVED_WRITING_SLUGS = ['series', 'opengraph-image'];
+const RESERVED_WRITING_SLUGS = ['series', 'opengraph-image', 'tags'];
 
 const writingsDirectory = join(process.cwd(), 'content/writings');
 
@@ -354,23 +355,26 @@ export async function getAllWritings(
  */
 export async function getWritingsByTag(tag: string): Promise<WritingData[]> {
   const writings = await getAllWritings();
+  const wanted = normalizeTag(tag);
   return writings.filter((writing) =>
-    writing.tags.map((t) => t.toLowerCase()).includes(tag.toLowerCase())
+    writing.tags.some((t) => normalizeTag(t) === wanted)
   );
 }
 
 /**
- * Gets all unique tags across all writings.
+ * A tag and the writings a visitor can open that carry it, or null when
+ * there are none, which is how a tag page or feed knows to answer 404.
+ */
+export async function getTagGroup(tag: string): Promise<TagGroup | null> {
+  const writings = await getWritingsByTag(tag);
+  return writings.length > 0 ? { tag: normalizeTag(tag), writings } : null;
+}
+
+/**
+ * Gets all unique tags across all writings, lowercase and sorted.
  */
 export async function getAllTags(): Promise<string[]> {
-  const writings = await getAllWritings();
-  const tagSet = new Set<string>();
-  for (const writing of writings) {
-    for (const tag of writing.tags) {
-      tagSet.add(tag.toLowerCase());
-    }
-  }
-  return Array.from(tagSet).sort();
+  return groupByTag(await getAllWritings()).map((group) => group.tag);
 }
 
 /**

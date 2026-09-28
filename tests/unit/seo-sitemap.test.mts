@@ -135,3 +135,23 @@ test('drafts are left out even if a loader hands them over', () => {
   assert.ok(!urls.some((url) => url.endsWith('/part-2')));
   assert.ok(urls.includes(`${site.origin}/initiatives/fall-tour-2026/part-1`));
 });
+
+test('each published tag is listed once under its lowercase page', () => {
+  const entries = buildSitemap({
+    writings: [
+      writing({ slug: 'a', tags: ['note', 'Fall-Tour-2026'] }),
+      writing({ slug: 'b', tags: ['note'] }),
+      writing({ slug: 'secret', tags: ['personal'], draft: true }),
+    ],
+    initiatives: [],
+  });
+  const tagUrls = entries
+    .map((entry) => entry.url)
+    .filter((url) => url.includes('/writings/tags/'));
+  assert.deepEqual(tagUrls, [
+    `${site.origin}/writings/tags/fall-tour-2026`,
+    `${site.origin}/writings/tags/note`,
+  ]);
+  const tag = entries.find((entry) => entry.url.endsWith('/tags/note'));
+  assert.equal(tag?.lastModified, undefined);
+});

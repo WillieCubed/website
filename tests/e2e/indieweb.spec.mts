@@ -50,10 +50,13 @@ test('the writings page exposes a parseable feed and author', async ({
 }) => {
   const response = await request.get('/writings');
   expect(response.status()).toBe(200);
-  const feed = rootOfType(
-    mf2(await response.text(), { baseUrl: `${site.origin}/writings` }).items,
-    'h-feed'
-  );
+  const { items } = mf2(await response.text(), {
+    baseUrl: `${site.origin}/writings`,
+  });
+  const feed = rootOfType(items, 'h-feed');
+  // An entry streamed in after the shell lands outside the feed as a stray
+  // top-level h-entry, and the feed then parses with none.
+  expect(items.filter((item) => item.type.includes('h-entry'))).toEqual([]);
   expect(feed?.properties.name).toContain('Writings');
   expect(feed?.properties.url).toContain(`${site.origin}/writings`);
   const author = feed?.properties.author?.[0] as MicroformatRoot | undefined;
@@ -63,6 +66,49 @@ test('the writings page exposes a parseable feed and author', async ({
     expect(entry.type).toContain('h-entry');
     expect(entry.properties.url?.length).toBeGreaterThan(0);
   }
+});
+
+// `note` is on every published note, so it stays published while any is.
+const TAG_PATH = '/writings/tags/note';
+
+test('a tag page exposes a parseable feed of its entries', async ({
+  request,
+}) => {
+  const response = await request.get(TAG_PATH);
+  expect(response.status()).toBe(200);
+  const { items } = mf2(await response.text(), {
+    baseUrl: `${site.origin}${TAG_PATH}`,
+  });
+  const feed = rootOfType(items, 'h-feed');
+  expect(items.filter((item) => item.type.includes('h-entry'))).toEqual([]);
+  expect(feed?.properties.name).toContain('note');
+  expect(feed?.properties.url).toContain(`${site.origin}${TAG_PATH}`);
+  const author = feed?.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author?.type).toContain('h-card');
+  expect(author?.properties.name).toContain(site.author.name);
+  expect(feed?.children?.length).toBeGreaterThan(0);
+  for (const entry of feed?.children ?? []) {
+    expect(entry.type).toContain('h-entry');
+    expect(entry.properties.url?.length).toBeGreaterThan(0);
+    expect(entry.properties.published?.length).toBeGreaterThan(0);
+  }
+});
+
+test('the old tag filter redirects permanently to the tag page', async ({
+  request,
+}) => {
+  const response = await request.get('/writings?tag=note', {
+    maxRedirects: 0,
+  });
+  expect(response.status()).toBe(308);
+  expect(new URL(response.headers()['location'], site.origin).pathname).toBe(
+    TAG_PATH
+  );
+});
+
+test('a tag no published writing carries is not found', async ({ request }) => {
+  const response = await request.get('/writings/tags/no-such-tag');
+  expect(response.status()).toBe(404);
 });
 
 test('feed documents advertise their own URL and the WebSub hub', async ({

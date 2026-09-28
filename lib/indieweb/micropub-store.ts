@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import type {
@@ -113,6 +113,39 @@ export async function saveStoredWriting(
   return '';
 }
 
+/**
+ * Remove a writing file. On GitHub the delete carries the SHA that was read,
+ * so a file that changed in between fails instead of losing that change.
+ * Returns the commit SHA, or an empty string for a local delete.
+ */
+export async function deleteStoredWriting(
+  writing: StoredWriting,
+  message: string,
+  environment: MicropubRouteEnvironment,
+  fetchImpl: typeof fetch = fetch
+): Promise<string> {
+  if (usesGitHub(environment)) {
+    const response = await fetchImpl(contentsUrl(writing.path, environment), {
+      method: 'DELETE',
+      headers: githubHeaders(environment),
+      body: JSON.stringify({
+        branch: environment.defaultBranch,
+        message,
+        sha: writing.sha,
+      }),
+    });
+    if (!response.ok) throw await githubError(response);
+    const data = (await response.json()) as GitHubContentsCommitResponse;
+    return data.commit?.sha ?? '';
+  }
+  try {
+    await unlink(localPath(writing.path));
+  } catch (error) {
+    throw localWriteError(error, writing.path, 'delete');
+  }
+  return '';
+}
+
 /** Create or replace one file with a commit, and return the commit SHA. */
 export async function putGitHubFile(
   { path, content, message, sha }: GitHubFileWrite,
@@ -140,7 +173,8 @@ export async function putGitHubFile(
  */
 export function localWriteError(
   error: unknown,
-  path: string
+  path: string,
+  verb = 'write'
 ): MicropubStorageError {
   if (error instanceof MicropubStorageError) return error;
   const code = (error as NodeJS.ErrnoException).code;
@@ -150,7 +184,7 @@ export function localWriteError(
     );
   }
   return new MicropubStorageError(
-    `Could not write ${path}: ${error instanceof Error ? error.message : String(error)}`
+    `Could not ${verb} ${path}: ${error instanceof Error ? error.message : String(error)}`
   );
 }
 

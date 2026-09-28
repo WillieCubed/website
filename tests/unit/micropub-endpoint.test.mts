@@ -470,3 +470,103 @@ test('an update that loses a race with another commit fails instead of overwriti
   assert.equal((await response.json()).error, 'server_error');
   assert.equal(calls.length, 2);
 });
+
+test('a delete needs the delete scope and removes the file', async () => {
+  await withContent(async (options, file) => {
+    const request = (token: string) =>
+      postForm([
+        ['action', 'delete'],
+        ['url', postUrl],
+        ['access_token', token],
+      ]);
+    const refused = await handleMicropubPost(
+      request(await tokenWith('create', 'update')),
+      options
+    );
+    assert.equal(refused.status, 403);
+    assert.equal((await refused.json()).error, 'insufficient_scope');
+    assert.equal(await readFile(file, 'utf8'), source);
+
+    const token = await tokenWith('delete');
+    const deleted = await handleMicropubPost(request(token), options);
+    assert.equal(deleted.status, 200);
+    assert.deepEqual(await deleted.json(), {
+      url: postUrl,
+      path: `${options.environment!.contentPath}/bus-lane.mdx`,
+      commit: '',
+    });
+    await assert.rejects(readFile(file, 'utf8'), { code: 'ENOENT' });
+
+    const again = await handleMicropubPost(request(token), options);
+    assert.equal(again.status, 400);
+    assert.equal(
+      (await again.json()).error_description,
+      'The post with the requested URL was not found.'
+    );
+    const read = await handleMicropubGet(
+      get(sourceQuery(postUrl), token),
+      options
+    );
+    assert.equal(read.status, 400);
+  });
+});
+
+test('undelete is not supported, because a delete keeps nothing to restore', async () => {
+  await withContent(async (options, file) => {
+    const response = await handleMicropubPost(
+      postForm([
+        ['action', 'undelete'],
+        ['url', postUrl],
+        ['access_token', await tokenWith('delete', 'undelete')],
+      ]),
+      options
+    );
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: 'invalid_request',
+      error_description: 'The action "undelete" is not supported.',
+    });
+    assert.equal(await readFile(file, 'utf8'), source);
+  });
+});
+
+test('with GitHub configured, a delete removes the file at the SHA it read', async () => {
+  const { calls, fetch } = fakeGitHub();
+  const response = await handleMicropubPost(
+    postJson({ action: 'delete', url: postUrl }, await tokenWith('delete')),
+    { store, environment: github, fetch }
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    url: postUrl,
+    path: 'content/writings/bus-lane.mdx',
+    commit: 'commit-sha',
+  });
+  assert.equal(calls.length, 2);
+  const remove = calls[1];
+  assert.equal(remove.method, 'DELETE');
+  assert.equal(
+    remove.url,
+    'https://api.github.com/repos/WillieCubed/website/contents/content/writings/bus-lane.mdx'
+  );
+  assert.equal(remove.headers.get('authorization'), 'Bearer github-test-token');
+  assert.deepEqual(await remove.json(), {
+    branch: 'publish',
+    message: 'chore(content): Delete bus-lane via Micropub',
+    sha: 'blob-sha',
+  });
+});
+
+test('a delete that loses a race with another commit fails instead of discarding it', async () => {
+  const { calls, fetch } = fakeGitHub(409);
+  const response = await handleMicropubPost(
+    postJson({ action: 'delete', url: postUrl }, await tokenWith('delete')),
+    { store, environment: github, fetch }
+  );
+
+  assert.equal(response.status, 500);
+  assert.equal((await response.json()).error, 'server_error');
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].method, 'DELETE');
+});

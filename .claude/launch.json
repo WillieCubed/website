@@ -4,8 +4,11 @@
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev:app"],
-      "port": 3000
+      "runtimeArgs": [
+        "dev:app"
+      ],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

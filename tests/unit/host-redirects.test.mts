@@ -50,11 +50,12 @@ test('the canonical host never redirects to itself', async () => {
 
 test('every host rule lands on the canonical origin', async () => {
   for (const rule of await loadRedirects()) {
-    if (!rule.has) continue;
+    const hosts = (rule.has ?? []).filter((when) => when.type === 'host');
+    if (hosts.length === 0) continue;
     assert.equal(
       new URL(rule.destination).origin,
       site.origin,
-      `${rule.has.map((when) => when.value).join(', ')} stays on the site`
+      `${hosts.map((when) => when.value).join(', ')} stays on the site`
     );
   }
 });

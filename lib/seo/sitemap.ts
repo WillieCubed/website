@@ -3,6 +3,7 @@ import type { MetadataRoute } from 'next';
 import type { Initiative } from '@/lib/initiatives';
 import { canonicalUrl, routedPages } from '@/lib/site';
 import type { WritingData } from '@/lib/writings';
+import { groupByTag, tagPath } from '@/lib/writings/tags';
 
 type Entry = MetadataRoute.Sitemap[number];
 
@@ -38,13 +39,17 @@ export function buildSitemap(input: {
         .filter((part) => !part.draft)
         .map((part) => entry(`${item.href}/${part.slug}`, part.updated)),
     ]);
-  const writings = input.writings
-    .filter((item) => !item.draft)
-    .map((item) => entry(`/writings/${item.slug}`, item.lastUpdated));
+  const published = input.writings.filter((item) => !item.draft);
+  const writings = published.map((item) =>
+    entry(`/writings/${item.slug}`, item.lastUpdated)
+  );
+  // Undated like /writings, which lists the same entries.
+  const tags = groupByTag(published).map(({ tag }) => entry(tagPath(tag)));
   return [
     entry('/'),
     ...routedPages.map((page) => entry(page.path)),
     ...initiatives,
     ...writings,
+    ...tags,
   ];
 }

@@ -18,7 +18,7 @@ reads these fields:
 | `description`                       | no       | One-line summary for the index, metadata, and feeds. Defaults to the derived title.          |
 | `published`                         | yes      | ISO date with offset, for example `2026-09-18T08:00-0700`.                                   |
 | `lastUpdated`                       | yes      | Same format; renders as `dt-updated` when it differs from `published`.                       |
-| `tags`                              | no       | List of lowercase tags. Tag `note` marks short posts in the index filter.                    |
+| `tags`                              | no       | List of lowercase tags. Each one gets a page; see Tags below. `note` marks short posts.      |
 | `people`                            | no       | List of `{ name, url }` people tagged in the post. See Person tags below.                    |
 | `draft`                             | no       | `true` hides the post in production and from the search index. Defaults to `false`.          |
 | `postType`                          | no       | `article` (default), `note`, `photo`, `like`, `repost`, `bookmark`, or `rsvp`.               |
@@ -50,6 +50,17 @@ that it was tagged. An entry without a name, with a relative or non-http URL,
 or repeating an earlier URL is skipped, and the dev server logs a warning.
 Adding a person to a post already sent resends its webmentions on the next
 build even when the body is unchanged.
+
+## Tags
+
+Each tag on a published post has a page at `/writings/tags/<tag>` that lists
+the posts carrying it, newest first, in the same layout as `/writings`. Tags
+match without regard to case and the page uses the lowercase spelling, so
+keep them lowercase in frontmatter. The chips under a post and under the
+index link to these pages. A tag carried only by drafts has no page in
+production, and an old `/writings?tag=<tag>` link redirects to the page with
+a 308 from `next.config.ts`. The address helpers live in
+`lib/writings/tags.ts`.
 
 ## How notes render
 

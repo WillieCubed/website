@@ -36,7 +36,7 @@ function VentureBody({
           <h3>{body.title}</h3>
           <p>{body.tagline}</p>
           <div className="count" data-media="">
-            <b>
+            <b data-morph={venture.id}>
               <CountdownDays deadline={body.countdown.deadline} animate />
             </b>
             <span>{body.countdown.caption}</span>
@@ -48,7 +48,11 @@ function VentureBody({
       );
     case 'shot':
       return (
-        <div className={body.low ? 'shot low' : 'shot'} data-media="">
+        <div
+          className={body.low ? 'shot low' : 'shot'}
+          data-media=""
+          data-morph={venture.id}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={body.src}
@@ -66,7 +70,7 @@ function VentureBody({
       return (
         <>
           <div className="atlas-field" data-media="">
-            <Constellation />
+            <Constellation morph={venture.id} />
           </div>
           <span className="atlas-copy">{body.copy}</span>
         </>

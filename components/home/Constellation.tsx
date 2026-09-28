@@ -22,9 +22,10 @@ const LINKS: Array<[number, number]> = [
   [6, 8],
 ];
 
-export function Constellation() {
+/** `morph` names the entry this drawing morphs for (DetailDialog). */
+export function Constellation({ morph }: { morph?: string }) {
   return (
-    <div className="constellation">
+    <div className="constellation" data-morph={morph}>
       <svg viewBox="0 0 200 110" aria-hidden="true">
         {LINKS.map(([a, b]) => (
           <line

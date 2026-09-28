@@ -39,7 +39,7 @@ the author leaves `status` out, and exposes `getInitiatives`, `getInitiative`,
 | `ends`        | no       | ISO date. Falls back to the last part's end.                                                                               |
 | `updated`     | no       | ISO date of the last real edit. Sets the sitemap's last-modified date; leave it out when unsure.                           |
 | `brand`       | no       | A `#rrggbb` seed or a key in `lib/brand/seeds.json`, resolved to its hex when loaded. An unknown key fails the build.      |
-| `cover`       | no       | `{ src, alt, kind?, aspect? }`. Used for the hero, the index card, and social images. A missing file fails the build.      |
+| `cover`       | no       | `{ src, alt, kind?, aspect? }`. Used for the hero, the index card, and social images. A missing file fails `pnpm test`.    |
 | `trailer`     | no       | `{ title, youtubeId?, poster? }`. Without `youtubeId` the page shows the poster or cover in the video's frame.             |
 | `partLabel`   | no       | The word before an act number. Defaults to `Part`; The Willie Diaries uses `Era`.                                          |
 | `website`     | no       | The initiative's own site, as an `https://` URL. The hero links to it; Superbloom points at its own site.                  |

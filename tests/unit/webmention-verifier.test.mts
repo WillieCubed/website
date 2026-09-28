@@ -142,6 +142,19 @@ test('a citation of another page leaves a link to the target a mention', async (
   );
 });
 
+test('a reply to the same path on another site is not a reply to this one', async () => {
+  serveSource(`
+    <div class="h-entry">
+      <a class="u-in-reply-to" href="https://other.example/writings/hello">Re</a>
+      <div class="e-content">Unlike <a href="${target}">this one</a>.</div>
+    </div>
+  `);
+  assert.equal(
+    (await verifyWebmention('wm-1', source, target)).type,
+    'mention'
+  );
+});
+
 test('a page that links without an h-entry is a plain mention', async () => {
   serveSource(`<p>Read <a href="${target}">this</a>.</p>`);
   const result = await verifyWebmention('wm-1', source, target);

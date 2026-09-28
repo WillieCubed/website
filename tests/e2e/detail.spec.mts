@@ -169,3 +169,20 @@ test('Back closes the view, and it closes again after Forward', async ({
   await expect(detail(page)).toBeHidden();
   await expect(page).toHaveURL(/\/$/);
 });
+
+test('selecting text out onto the backdrop keeps the view open', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await hydrated(page);
+  await open(page);
+  const text = await detail(page).locator('.d-body p').first().boundingBox();
+  if (!text) throw new Error('The detail view has no body text.');
+  await page.mouse.move(text.x + 8, text.y + text.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(8, 8, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(600);
+  await expect(detail(page)).toBeVisible();
+  await expect(page).toHaveURL(/\?detail=lvbt$/);
+});

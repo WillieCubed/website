@@ -12,7 +12,8 @@ export interface EntityCard {
     | 'initiative'
     | 'part'
     | 'venture'
-    | 'product';
+    | 'product'
+    | 'tag';
   title: string;
   description: string;
   cover?: { src: string; alt: string };

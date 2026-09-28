@@ -105,6 +105,13 @@ card. That query is the only one the registry key keeps; every other link is
 keyed by its path alone. A venture marked `hidden` gets no card, and site
 search leaves it out too.
 
+Each tag on a published writing gets a `tag` card from `tagCards` in
+`lib/entities/tags.ts`, keyed by its page, `/writings/tags/<tag>`. The title
+is the tag and the description is a count such as "3 writings". Write tag
+links with `tagPath()` from `lib/writings/tags.ts`. An old
+`/writings?tag=<tag>` link redirects to the tag page, so it keys as that page
+and shows its card. Site search lists the same cards as pages.
+
 An initiative, part, venture, or product with a `brand` seed paints its card
 in that Material 3 scheme, the same way its page and tile do.
 

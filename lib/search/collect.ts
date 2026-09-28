@@ -1,4 +1,5 @@
 import { STATIC_PAGES } from '@/lib/entities/pages';
+import { tagCards } from '@/lib/entities/tags';
 import type { EntityCard } from '@/lib/entities/types';
 import { detailHref } from '@/lib/entities/ventures';
 import { type Entry, entries } from '@/lib/home/ventures';
@@ -163,9 +164,10 @@ function byNewest(a: SearchableItem, b: SearchableItem): number {
 }
 
 /**
- * Everything the site's search covers: published writings, initiatives and
- * their parts, the static pages, and the homepage ventures and products that
- * are not hidden. Drafts are excluded here rather than trusted to the
+ * Everything the site's search covers: published writings and their tags,
+ * initiatives and their parts, the static pages, and the homepage ventures
+ * and products that are not hidden. A tag is searched as a page, since it
+ * has one. Drafts are excluded here rather than trusted to the
  * loaders, because the prebuild script runs outside Next.js where the
  * loaders show drafts. It reads through the uncached loaders for the same
  * reason: `cacheLife()` throws under plain Node.
@@ -173,11 +175,17 @@ function byNewest(a: SearchableItem, b: SearchableItem): number {
 export async function collectSearchDocuments(): Promise<SearchableItem[]> {
   const slugs = await getWritingSlugs();
   const loaded = await Promise.all(slugs.map((slug) => loadWriting(slug)));
-  const writings = loaded
-    .filter(({ writing }) => !writing.draft)
-    .map(({ writing, content }) => writingToItem(writing, content));
+  const published = loaded.filter(({ writing }) => !writing.draft);
+  const writings = published.map(({ writing, content }) =>
+    writingToItem(writing, content)
+  );
+  const tags = tagCards(published.map(({ writing }) => writing)).map(
+    pageToItem
+  );
   const initiatives = loadAllInitiatives().flatMap(initiativeToItems);
   const pages = STATIC_PAGES.map(pageToItem);
   const ventures = Object.values(entries).map(entryToItem);
-  return [...writings, ...initiatives, ...pages, ...ventures].sort(byNewest);
+  return [...writings, ...tags, ...initiatives, ...pages, ...ventures].sort(
+    byNewest
+  );
 }

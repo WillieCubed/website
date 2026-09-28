@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { entityKey } from '@/lib/entities/key';
 import { STATIC_PAGES } from '@/lib/entities/pages';
 import { entityCards } from '@/lib/entities/registry';
 import { VENTURE_CARDS } from '@/lib/entities/ventures';
@@ -138,4 +139,65 @@ test('a brand that is not a hex seed and a missing date range are left off', () 
   ).slice(-1);
   assert.equal(card.brand, undefined);
   assert.equal(card.meta, undefined);
+});
+
+test('each tag the writings carry gets one card with a count line', () => {
+  const cards = entityCards(
+    [
+      makeWriting({ slug: 'a', tags: ['note', 'Fall-Tour-2026'] }),
+      makeWriting({ slug: 'b', tags: ['note'] }),
+    ],
+    []
+  );
+  assert.deepEqual(
+    cards.filter((card) => card.kind === 'tag'),
+    [
+      {
+        href: '/writings/tags/fall-tour-2026',
+        kind: 'tag',
+        title: 'fall-tour-2026',
+        description: '1 writing',
+      },
+      {
+        href: '/writings/tags/note',
+        kind: 'tag',
+        title: 'note',
+        description: '2 writings',
+      },
+    ]
+  );
+});
+
+test('a tag page is keyed by its path however the link spells it', () => {
+  for (const href of [
+    '/writings/tags/note',
+    '/writings/tags/note/',
+    '/writings/tags/note#top',
+    '/writings/tags/note?tag=note',
+    'https://willie.page/writings/tags/note',
+  ]) {
+    assert.equal(entityKey(href), '/writings/tags/note', href);
+  }
+});
+
+test('an old tag filter link is keyed as the tag page it redirects to', () => {
+  assert.equal(entityKey('/writings?tag=note'), '/writings/tags/note');
+  assert.equal(entityKey('/writings/?tag=Note#x'), '/writings/tags/note');
+  assert.equal(
+    entityKey('https://willie.page/writings?tag=fall-tour-2026'),
+    '/writings/tags/fall-tour-2026'
+  );
+  assert.equal(
+    entityKey('/writings?tag=caf%C3%A9'),
+    '/writings/tags/caf%C3%A9'
+  );
+  // Only /writings reads the query, and an empty one is the index itself.
+  assert.equal(entityKey('/writings?tag='), '/writings');
+  assert.equal(entityKey('/initiatives?tag=note'), '/initiatives');
+});
+
+test('the card for an old tag link is the tag page card', () => {
+  const cards = entityCards([makeWriting({ tags: ['note'] })], []);
+  const known = new Map(cards.map((card) => [entityKey(card.href), card]));
+  assert.equal(known.get(entityKey('/writings?tag=note'))?.title, 'note');
 });

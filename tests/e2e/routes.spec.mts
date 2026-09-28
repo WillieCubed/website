@@ -72,6 +72,17 @@ test('a feed carries no page Link header', async ({ request }) => {
   expect(response.headers()['link'] ?? '').not.toContain('rel="webmention"');
 });
 
+test('/humans.txt names the team and the day the site was built', async ({
+  request,
+}) => {
+  const response = await request.get('/humans.txt');
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toBe('text/plain; charset=utf-8');
+  const text = await response.text();
+  expect(text).toMatch(/^Developer: Willie Chalmers III$/m);
+  expect(text).toMatch(/^Last update: \d{4}\/\d{2}\/\d{2}$/m);
+});
+
 test('/feed.xml serves the RSS feed', async ({ request }) => {
   const response = await request.get('/feed.xml');
   expect(response.status()).toBe(200);

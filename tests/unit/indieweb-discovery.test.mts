@@ -259,6 +259,7 @@ test('buildLlmsSummary links every feed, index, and discovery file', () => {
     ['Writings feed (JSON Feed)', '/writings/feed/json'],
     ['Public webmentions', '/webmentions?target='],
     ['security.txt', '/.well-known/security.txt'],
+    ['humans.txt', '/humans.txt'],
     ['OpenSearch description', '/opensearch.xml'],
     ['Brand guidelines', '/brand/guidelines.md'],
     ['Brand guidelines (JSON)', '/brand/guidelines.json'],

@@ -49,10 +49,6 @@ export function parseOptionalDate(value: string | undefined): Date | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-export function firstString(values: string[] | undefined): string | undefined {
-  return values?.[0];
-}
-
 export function formStringList(formData: FormData, key: string): string[] {
   const values = [...formData.getAll(key), ...formData.getAll(`${key}[]`)];
   return values.flatMap((value) =>

@@ -24,7 +24,6 @@ import type {
   RawMicropubEntry,
 } from '@/lib/indieweb/types';
 import {
-  firstString,
   formStringList,
   isoDateOnly,
   makeIndieWebSlug,
@@ -269,21 +268,60 @@ function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
   const properties = body.properties ?? {};
   return normalizeEntry({
     h: (body.type ?? ['h-entry'])[0]?.replace(/^h-/, '') ?? 'entry',
-    content: firstString(properties.content),
-    name: firstString(properties.name),
-    summary: firstString(properties.summary),
-    categories: properties.category ?? [],
-    slug: firstString(properties['mp-slug']),
-    published: parseOptionalDate(firstString(properties.published)),
-    inReplyTo: firstString(properties['in-reply-to']),
-    likeOf: firstString(properties['like-of']),
-    repostOf: firstString(properties['repost-of']),
-    bookmarkOf: firstString(properties['bookmark-of']),
-    rsvp: firstString(properties.rsvp),
-    photos: parseJsonPhotos((properties as Record<string, unknown>).photo),
-    syndication: properties.syndication ?? [],
-    syndicateTo: properties['mp-syndicate-to'] ?? [],
+    content: firstJsonString(properties.content),
+    name: firstJsonString(properties.name),
+    summary: firstJsonString(properties.summary),
+    categories: jsonStrings(properties.category),
+    slug: firstJsonString(properties['mp-slug']),
+    published: parseOptionalDate(firstJsonString(properties.published)),
+    inReplyTo: citedUrl(properties['in-reply-to']),
+    likeOf: citedUrl(properties['like-of']),
+    repostOf: citedUrl(properties['repost-of']),
+    bookmarkOf: citedUrl(properties['bookmark-of']),
+    rsvp: firstJsonString(properties.rsvp),
+    photos: parseJsonPhotos(properties.photo),
+    syndication: jsonStrings(properties.syndication),
+    syndicateTo: jsonStrings(properties['mp-syndicate-to']),
   });
+}
+
+// A JSON property is an array whose values may be strings or objects, such
+// as `{ html }` content or an h-card category. These keep the strings only.
+function jsonStrings(values: unknown[] | undefined): string[] {
+  return (values ?? []).filter(
+    (value): value is string => typeof value === 'string'
+  );
+}
+
+function firstJsonString(values: unknown[] | undefined): string | undefined {
+  const [first] = values ?? [];
+  return typeof first === 'string' ? first : undefined;
+}
+
+/**
+ * The address a citation property names. A client may send the URL itself
+ * or embed the cited post as an h-cite, whose address is its `url` property;
+ * mf2 JSON also carries the address as the embedded item's `value`. An object
+ * that names no address is a bad request, not a post that silently loses
+ * what it answers.
+ */
+function citedUrl(values: unknown[] | undefined): string | undefined {
+  const [first] = values ?? [];
+  if (first === undefined) return undefined;
+  if (typeof first === 'string') return first.trim() || undefined;
+  if (first && typeof first === 'object') {
+    const { properties, value } = first as {
+      properties?: { url?: unknown };
+      value?: unknown;
+    };
+    const [url] = Array.isArray(properties?.url) ? properties.url : [];
+    for (const candidate of [url, value]) {
+      if (typeof candidate === 'string' && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+  }
+  throw new Error('invalid_request');
 }
 
 function parseFormData(formData: FormData): MicropubCreateRequest {

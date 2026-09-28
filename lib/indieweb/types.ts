@@ -501,9 +501,13 @@ export interface MicropubCommitResult {
   location: string;
 }
 
+/**
+ * A Micropub JSON create request. Property values are strings, or objects
+ * such as `{ html }` content, `{ value, alt }` photos, and embedded h-cites.
+ */
 export interface MicropubJsonBody {
   type?: string[];
-  properties?: Record<string, string[]>;
+  properties?: Record<string, unknown[]>;
 }
 
 export interface GitHubContentsCommitResponse {

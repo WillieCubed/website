@@ -184,6 +184,60 @@ test('parseMicropubCreateRequest rejects JSON targets without a syndication inte
   );
 });
 
+test('parseMicropubCreateRequest reads JSON citations embedded as h-cites', async () => {
+  const cite = (url: string) => ({
+    type: ['h-cite'],
+    properties: { url: [url], name: ['The cited post'] },
+  });
+  const reply = await parseMicropubCreateRequest(
+    micropubRequest({
+      type: ['h-entry'],
+      properties: {
+        content: ['Agreed.'],
+        'in-reply-to': [cite('https://example.com/posts/1')],
+      },
+    })
+  );
+  assert.equal(reply.inReplyTo, 'https://example.com/posts/1');
+  assert.equal(reply.postType, 'reply');
+
+  for (const property of ['like-of', 'repost-of', 'bookmark-of'] as const) {
+    const entry = await parseMicropubCreateRequest(
+      micropubRequest({
+        type: ['h-entry'],
+        properties: {
+          content: ['Cited.'],
+          [property]: [{ value: 'https://example.com/posts/2' }],
+        },
+      })
+    );
+    const field = {
+      'like-of': entry.likeOf,
+      'repost-of': entry.repostOf,
+      'bookmark-of': entry.bookmarkOf,
+    }[property];
+    assert.equal(field, 'https://example.com/posts/2', property);
+  }
+
+  const file = buildMicropubWritingFile(reply, 'agreed');
+  assert.match(file, /inReplyTo: "https:\/\/example\.com\/posts\/1"/);
+});
+
+test('parseMicropubCreateRequest refuses a JSON citation with no address', async () => {
+  await assert.rejects(
+    parseMicropubCreateRequest(
+      micropubRequest({
+        type: ['h-entry'],
+        properties: {
+          content: ['Replying to nothing.'],
+          'in-reply-to': [{ type: ['h-cite'], properties: { name: ['?'] } }],
+        },
+      })
+    ),
+    /invalid_request/
+  );
+});
+
 test('parseMicropubCreateRequest rejects a target it never advertised', async () => {
   const body = new URLSearchParams({
     h: 'entry',

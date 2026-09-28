@@ -197,6 +197,11 @@ scope, and have a `me` on the canonical origin. A client may send one token in
 the bearer header or form body. Missing and invalid tokens get 401; a valid
 token without `create` gets 403 `insufficient_scope`. Two tokens get 400.
 
+In a JSON body, `in-reply-to`, `like-of`, `repost-of`, and `bookmark-of`
+may each be a URL or an embedded `h-cite`. The post keeps the h-cite's first
+`url`, or its `value` when it has no `url`, and a citation that names neither
+gets a 400 `invalid_request`.
+
 A valid request becomes an MDX file under `content/writings`. When
 `MICROPUB_GITHUB_REPO` and `MICROPUB_GITHUB_TOKEN` are set the file is
 committed through GitHub's Contents API on `MICROPUB_GITHUB_BRANCH` (default

@@ -5,7 +5,7 @@ import type {
   SendAllWebmentionsRequest,
   SendAllWebmentionsWritingResult,
 } from '@/lib/indieweb/types';
-import { getAllWritings, readWritingFile } from '@/lib/writings';
+import { getAllWritings, getPublishedWriting } from '@/lib/writings';
 
 /**
  * POST /api/webmention/send-all
@@ -68,11 +68,12 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Get the raw content which contains the links
-      const { source } = readWritingFile(writing.slug);
+      // The body without its frontmatter, where syndication and image URLs
+      // would otherwise read as bare links.
+      const { content } = await getPublishedWriting(writing.slug);
       const results = await sendWebmentionsForPost(
         writing.slug,
-        source.toString(),
+        content,
         writing.people.map((person) => person.url)
       );
 

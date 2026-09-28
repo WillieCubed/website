@@ -70,6 +70,36 @@ to a JSON file that the page turns into schemes. A venture whose site yields no
 saturated color stays neutral. The script has to be rerun when a site rebrands,
 and the Next.js port should run it at build time.
 
+## Page transitions
+
+Navigations between pages run through React's `<ViewTransition>`, which the
+App Router supports without a flag in this Next version
+(`node_modules/next/dist/docs/01-app/02-guides/view-transitions.md`). React
+names an element only while a navigation's transition runs, and it leaves
+everything it has not named out of the transition, so the rest of the page
+cuts over and nothing crossfades. Two kinds of element move:
+
+- The top bar (`components/site/TopBar.tsx`) keeps its size and slides to
+  the new page's column, already showing the new page's crumbs.
+- A title that names the same thing on both pages morphs from one to the
+  other through `components/site/SharedTitle.tsx`: a homepage tile's or an
+  `/initiatives` card's initiative name into the initiative page's heading,
+  and a writing card's title into the post's heading. Only the larger
+  title's snapshot is drawn, so two copies never fade into each other.
+
+The rules live in `app/globals.css`. Under reduced motion every element
+jumps to its new place at once. React animates only what is in the
+viewport, so a title scrolled out of view cuts. A morph also needs the
+destination prefetched: a page that commits behind a loading state forms
+no pair and cuts. A note has no visible title, so opening one never
+morphs. `tests/e2e/view-transitions.spec.mts` records the names React sets
+on both pages and the groups the browser animates.
+
+The browser's back and forward buttons do not morph yet. Next restores a
+page the visitor left from its `<Activity>` cache, and React does not pair
+elements across that restore, so the page cuts. Following a link back,
+such as the top bar's name, morphs as expected.
+
 ## Reference sites
 
 Willie chose four sites as inspiration. Each one contributes something specific:

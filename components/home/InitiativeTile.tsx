@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
+import SharedTitle from '@/components/site/SharedTitle';
 
 import type { InitiativeTile as InitiativeTileEntry } from '@/lib/home/ventures';
 
@@ -65,7 +66,14 @@ export function InitiativeTile({ tile, children }: InitiativeTileProps) {
         preview={false}
       />
       <div className="head">
-        <span className="label">{tile.head}</span>
+        <span className="label">
+          {tile.parent && `${tile.parent} · `}
+          {/* Inline, not inline-block: the label never wraps, and an
+              atomic box would lose the label's ellipsis. */}
+          <SharedTitle id={tile.id} size="small">
+            <span>{tile.name}</span>
+          </SharedTitle>
+        </span>
         <span className="hint" aria-hidden="true">
           <span>{tile.hint}</span>
           <i>

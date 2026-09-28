@@ -3,6 +3,7 @@ import Image from 'next/image';
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
+import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
 import { currentPart, getInitiatives } from '@/lib/initiatives';
@@ -84,7 +85,9 @@ export default async function InitiativesPage() {
                       href={item.href}
                       className="u-url after:absolute after:inset-0 focus-visible:outline-none"
                     >
-                      {item.title}
+                      <SharedTitle id={`initiative-${item.slug}`} size="small">
+                        <span className="inline-block">{item.title}</span>
+                      </SharedTitle>
                     </SiteLink>
                   </h2>
                   <p className="p-summary mt-2 text-body-medium text-muted">

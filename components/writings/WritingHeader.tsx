@@ -1,5 +1,6 @@
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
+import SharedTitle from '@/components/site/SharedTitle';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
 import { formatDate } from '@/lib/site';
@@ -55,7 +56,9 @@ export default function WritingHeader({
         <div>
           <div className="space-y-2">
             <h1 className="p-name text-headline-medium desktop:text-headline-large">
-              {writing.title}
+              <SharedTitle id={`writing-${writing.slug}`} size="large">
+                <span className="inline-block">{writing.title}</span>
+              </SharedTitle>
             </h1>
             <p className="p-summary text-body-large text-accent">
               {writing.description}

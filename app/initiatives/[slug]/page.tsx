@@ -9,6 +9,7 @@ import TrailerBlock from '@/components/initiatives/TrailerBlock';
 import { formatRange } from '@/components/initiatives/dates';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
+import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
 import { publishedLinks } from '@/lib/entities/registry';
@@ -111,7 +112,9 @@ export default async function InitiativePage(props: {
       <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
         <header className="mx-auto max-w-[840px]">
           <h1 className="mt-2 text-display-medium text-ink">
-            {initiative.title}
+            <SharedTitle id={`initiative-${initiative.slug}`} size="large">
+              <span className="inline-block">{initiative.title}</span>
+            </SharedTitle>
           </h1>
           <p className="mt-3 text-headline-small font-normal text-muted">
             {initiative.tagline}

@@ -8,6 +8,7 @@ import { site } from '@/lib/site';
 
 import TopBarFrame from './TopBarFrame';
 import './site.css';
+import { ViewTransition } from './view-transition';
 
 interface Crumb {
   label: string;
@@ -51,44 +52,52 @@ export default function TopBar({
   prefetchHome = true,
 }: TopBarProps) {
   return (
-    <TopBarFrame
-      column={column}
-      className={`mx-auto flex items-center gap-1 py-4 text-label-large text-muted ${COLUMN[column]}`}
-    >
-      <SiteLink
-        preview={false}
-        href="/"
-        prefetch={prefetchHome ? undefined : false}
-        rel="author"
-        className="font-semibold text-ink transition-colors hover:text-accent"
+    // Every page renders its own bar, so a navigation pairs the old bar with
+    // the new one and the bar slides to its new column (app/globals.css).
+    <ViewTransition name="site-top-bar" share="top-bar" default="none">
+      <TopBarFrame
+        column={column}
+        className={`mx-auto flex items-center gap-1 py-4 text-label-large text-muted ${COLUMN[column]}`}
       >
-        {site.name}
-      </SiteLink>
-      {crumbs.map((crumb, index) => (
-        <div
-          key={crumb.href}
-          className={`flex items-center gap-1 ${index === 0 ? 'ml-2' : ''}`}
+        <SiteLink
+          preview={false}
+          href="/"
+          prefetch={prefetchHome ? undefined : false}
+          rel="author"
+          className="font-semibold text-ink transition-colors hover:text-accent"
         >
-          <span aria-hidden="true">/</span>
-          {crumb.control ?? (
+          {site.name}
+        </SiteLink>
+        {crumbs.map((crumb, index) => (
+          <div
+            key={crumb.href}
+            className={`flex items-center gap-1 ${index === 0 ? 'ml-2' : ''}`}
+          >
+            <span aria-hidden="true">/</span>
+            {crumb.control ?? (
+              <SiteLink
+                preview={false}
+                href={crumb.href}
+                className="site-breadcrumb"
+              >
+                {crumb.label}
+              </SiteLink>
+            )}
+          </div>
+        ))}
+        <div className="ml-auto flex items-center">
+          <PaletteTrigger size="compact" />
+          <noscript>
             <SiteLink
               preview={false}
-              href={crumb.href}
+              href="/search"
               className="site-breadcrumb"
             >
-              {crumb.label}
+              Search
             </SiteLink>
-          )}
+          </noscript>
         </div>
-      ))}
-      <div className="ml-auto flex items-center">
-        <PaletteTrigger size="compact" />
-        <noscript>
-          <SiteLink preview={false} href="/search" className="site-breadcrumb">
-            Search
-          </SiteLink>
-        </noscript>
-      </div>
-    </TopBarFrame>
+      </TopBarFrame>
+    </ViewTransition>
   );
 }

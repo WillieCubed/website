@@ -148,10 +148,10 @@ test('social titles are bare and the site name travels as og:site_name', () => {
   }
 });
 
-test('a description that repeats the title is left out', () => {
+test('a description that repeats the title stays out of the previews', () => {
   const note = 'Fall Tour 2026 starts today.';
   const meta = pageMetadata({ title: note, description: note, path: '/n' });
-  assert.equal(meta.description, undefined);
+  assert.equal(meta.description, note);
   assert.equal(openGraph(meta).description, undefined);
   assert.equal(twitter(meta).description, undefined);
 });

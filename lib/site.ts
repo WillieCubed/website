@@ -365,7 +365,8 @@ export function pageMetadata({
   const url = image ?? site.ogImage;
   const alt = imageAlt ?? (image ? title : site.shortDescription);
   // A note without a description falls back to its own text, which is also
-  // its title. A preview would print the same sentence twice.
+  // its title. A link preview would print the same sentence twice, so the
+  // social tags leave it out; search results still get the page's own text.
   const summary =
     description && description !== title ? description : undefined;
   const shared = {
@@ -390,7 +391,7 @@ export function pageMetadata({
       : { ...shared, type };
   return {
     title,
-    description: summary,
+    description,
     alternates: { canonical: path },
     openGraph,
     twitter: {

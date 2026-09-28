@@ -1,7 +1,4 @@
-import {
-  POST as postMicropub,
-  readMicropubAccessToken,
-} from '@/app/micropub/route';
+import { POST as postMicropub } from '@/app/micropub/route';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -12,6 +9,7 @@ import {
   parseMicropubCreateRequest,
   prepareMicropubPhotoRequest,
 } from '@/lib/indieweb/micropub';
+import { readMicropubAccessToken } from '@/lib/indieweb/micropub-endpoint';
 import type { MicropubCreateRequest } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
@@ -34,6 +32,7 @@ test('getMicropubConfig advertises supported personal-site post types', () => {
     config['post-types'].map((postType) => postType.type),
     ['note', 'photo', 'article', 'reply', 'like', 'repost', 'bookmark', 'rsvp']
   );
+  assert.deepEqual(config.q, ['config', 'source', 'syndicate-to']);
 });
 
 test('getMicropubConfig omits unavailable media uploads', () => {

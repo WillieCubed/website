@@ -134,7 +134,7 @@ function usePlaceholder(active: boolean): string {
 function ReadoutView({ readout }: { readout: Readout }) {
   return (
     <section
-      className="palette-readout"
+      className="palette-readout scroller"
       aria-label="Command output"
       tabIndex={0}
       data-failed={readout.failed ? '' : undefined}
@@ -380,7 +380,7 @@ function PaletteBody({ data, open, onClose }: PaletteBodyProps) {
             id={listboxId}
             role="listbox"
             aria-label="Results"
-            className="palette-list"
+            className="palette-list scroller"
           >
             {sections.map((section) => (
               <div

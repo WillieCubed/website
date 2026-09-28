@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
-@plugin 'tailwind-scrollbar';
 
 /*
  * The site's design tokens. Components consume Material roles rather than
@@ -305,6 +304,25 @@ main:focus {
   &:hover,
   &:focus-visible {
     text-decoration-color: var(--color-accent);
+  }
+}
+
+/* Scrollbars follow the theme; the reasoning is in
+   docs/superpowers/specs/2026-09-28-scrollbars-design.md. */
+:root {
+  --scrollbar-thumb: color-mix(in srgb, var(--color-outline) 50%, transparent);
+  --scrollbar-thumb-hover: var(--color-outline);
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* An inner scroller: a thin bar that draws its thumb fully while the
+   pointer is over it. It resolves the thumb itself, so a surface that sets
+   the two properties, such as a branded detail view, tints its own bar. */
+.scroller {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  &:hover {
+    scrollbar-color: var(--scrollbar-thumb-hover) transparent;
   }
 }
 

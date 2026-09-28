@@ -3,7 +3,9 @@
  * List, approve, or reject incoming webmentions.
  *
  *   pnpm webmentions:moderate                  list pending mentions
- *   pnpm webmentions:moderate approve <id...>  show them on the site
+ *   pnpm webmentions:moderate approve <id...>  show them on the site, and
+ *                                              resend each approved reply's
+ *                                              post upstream (Salmention)
  *   pnpm webmentions:moderate reject <id...>   hide them for good
  *
  * Environment variables:
@@ -52,9 +54,11 @@ try {
     }
   } else {
     const { command: action, ids } = parsed;
+    const approved: string[] = [];
     for (const id of ids) {
       if (await moderateWebmention(store, { action, id })) {
         console.log(`${MODERATION_PAST_TENSE[action]} ${id}`);
+        if (action === 'approve') approved.push(id);
       } else {
         process.exitCode = 1;
         console.error(
@@ -62,6 +66,28 @@ try {
             ? `skipped ${id}: no verified, unrejected webmention has that id`
             : `skipped ${id}: no unrejected webmention has that id`
         );
+      }
+    }
+    // Every approval lands before the first salmention waits for its post,
+    // so replies to the same post reach upstream together in one send.
+    if (approved.length > 0) {
+      const {
+        SCRIPT_SALMENTION_TIMING,
+        defaultSalmentionDeps,
+        sendSalmention,
+      } = await import('../lib/indieweb/salmention');
+      for (const id of approved) {
+        const { outcome, results } = await sendSalmention(
+          id,
+          defaultSalmentionDeps(),
+          SCRIPT_SALMENTION_TIMING
+        );
+        console.log(`salmention for ${id}: ${outcome}`);
+        for (const result of results) {
+          console.log(
+            `  ${result.success ? 'sent to' : 'failed for'} ${result.targetUrl}${result.error ? ` (${result.error})` : ''}`
+          );
+        }
       }
     }
   }

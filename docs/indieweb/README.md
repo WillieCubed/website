@@ -270,6 +270,37 @@ micro.blog, still lets any of its users vouch. The deploy publisher is the
 only sender that writes `outgoing_webmentions`, so until it has run, only
 this site's own pages can vouch.
 
+## Salmention
+
+When a reply to a writing is approved, the writing resends its webmentions
+to the posts it answers: its `inReplyTo`, `likeOf`, `repostOf`,
+`bookmarkOf`, and `rsvp.eventUrl`
+([indieweb.org/Salmention](https://indieweb.org/Salmention)). The upstream
+receiver fetches the writing again and finds the new reply among its
+comments. `sendSalmention` in `lib/indieweb/salmention.ts` runs after an
+approval through `/api/webmention/moderate`, after a vouch approves a reply,
+and after `pnpm webmentions:moderate approve`, which approves every id first
+and then sends. It works like this:
+
+1. Only a reply to a published writing starts one. A like, repost,
+   bookmark, RSVP, or mention does not, and neither does a reply to a page
+   that is not a writing.
+2. The upstream list leaves out this site's own pages and the reply's own
+   source, so a reply from the post the writing answered is never sent back
+   to it.
+3. Nothing is sent until the live writing shows the reply's address. The
+   route looks three times, ten seconds apart, after revalidating the page.
+   The script cannot revalidate it, so it looks thirteen times, fifteen
+   seconds apart, to wait out the minute the page caches its webmentions.
+4. A writing sends at most one salmention every ten minutes, counted in the
+   `salmentions` table. A reply approved inside that window reaches upstream
+   with the next salmention after it, not on its own.
+
+Only an approval starts a salmention; verifying a mention again never does.
+So when an upstream site answers the salmention by pinging the writing,
+nothing is sent back. Each outcome is logged as
+`Salmention after approving <id>: <outcome>`, and the script prints it.
+
 ## Micropub
 
 `POST /micropub` accepts form-encoded or JSON `h-entry` bodies with a bearer
@@ -441,7 +472,7 @@ goes for any challenge Cloudflare puts in front of the site.
 | `pnpm search:index` (runs as `prebuild`) | Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings and their tags, initiatives and their parts, and pages. Both are gitignored. The Pagefind step needs its platform binary, which the `pagefind` package installs.                                           |
 | `pnpm websub:ping`                       | POSTs `hub.mode=publish` to `WEBSUB_HUB` for the six site and writings feeds, `/writings`, and each published tag's page and feeds.                                                                                                                                                                               |
 | `pnpm webmentions:send`                  | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                                                                                                                                                                                       |
-| `pnpm webmentions:moderate`              | Lists pending webmentions, or approves or rejects them by id; see Moderation. Needs `POSTGRES_URL`.                                                                                                                                                                                                               |
+| `pnpm webmentions:moderate`              | Lists pending webmentions, or approves or rejects them by id; see Moderation. Approving a reply also sends its salmention; see Salmention. Needs `POSTGRES_URL`.                                                                                                                                                  |
 | `pnpm webmentions:backfill-authors`      | One-off repair for webmentions verified before the verifier read a `u-photo` with alt text: fills each missing author photo from the h-entry stored with the mention, through `extractAuthor`. It writes only rows with no photo, so a second run changes nothing. Without `POSTGRES_URL` it says so and exits 0. |
 | `pnpm indieauth:totp`                    | Prints a new secret for `INDIEAUTH_TOTP_SECRET` and the `otpauth://` URI to add to an authenticator app; see IndieAuth.                                                                                                                                                                                           |
 | `.github/workflows/indieweb-publish.yml` | Waits for the public alias to serve a pushed revision, then calls the authenticated notification endpoint.                                                                                                                                                                                                        |
@@ -477,7 +508,8 @@ rather than the codes and tokens themselves, and `indieauth_totp_steps` and
 `indieauth_sign_in_failures` for the owner check. Apply it before turning on
 sign-in.
 `lib/db/migrations/004_webmention_responses.sql` adds the `rsvp`,
-`content_html`, and `vouch_url` columns to `webmentions`. Every webmention query names that column, so apply the
+`content_html`, and `vouch_url` columns to `webmentions` and the
+`salmentions` table. Every webmention query names that column, so apply the
 migration before deploying the code that reads it.
 
 ## IndieMark evidence

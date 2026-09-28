@@ -160,12 +160,14 @@ test('GET lists pending webmentions without caching them', async () => {
 
 test('POST approves a verified webmention and it leaves the queue', async () => {
   const { store, state } = memoryStore([verified, unverified]);
+  const approvedIds: string[] = [];
   const response = await handleModerateWebmention(
     request('POST', { body: { action: 'approve', id: VERIFIED_ID } }),
-    { store, secret: SECRET }
+    { store, secret: SECRET, onApproved: (id) => approvedIds.push(id) }
   );
 
   assert.equal(response.status, 200);
+  assert.deepEqual(approvedIds, [VERIFIED_ID]);
   assert.deepEqual(await response.json(), {
     id: VERIFIED_ID,
     status: 'approved',
@@ -179,12 +181,14 @@ test('POST approves a verified webmention and it leaves the queue', async () => 
 
 test('POST will not approve an unverified webmention', async () => {
   const { store, state } = memoryStore([unverified]);
+  const approvedIds: string[] = [];
   const response = await handleModerateWebmention(
     request('POST', { body: { action: 'approve', id: UNVERIFIED_ID } }),
-    { store, secret: SECRET }
+    { store, secret: SECRET, onApproved: (id) => approvedIds.push(id) }
   );
 
   assert.equal(response.status, 404);
+  assert.deepEqual(approvedIds, [], 'a refused approval notifies no one');
   assert.equal(state.get(UNVERIFIED_ID)?.row.isApproved, false);
 });
 

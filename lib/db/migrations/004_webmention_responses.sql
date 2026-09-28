@@ -23,3 +23,12 @@ ALTER TABLE webmentions ADD COLUMN IF NOT EXISTS content_html TEXT;
 -- webmentions Willie approved himself.
 -- ============================================================================
 ALTER TABLE webmentions ADD COLUMN IF NOT EXISTS vouch_url TEXT;
+
+-- ============================================================================
+-- When each post last sent a salmention: its webmentions resent upstream
+-- after it received a reply. A post sends at most one per ten minutes.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS salmentions (
+  post_slug TEXT PRIMARY KEY,
+  sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

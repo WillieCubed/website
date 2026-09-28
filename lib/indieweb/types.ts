@@ -236,6 +236,8 @@ export interface WebmentionModerationRequest {
 export interface WebmentionModerationRouteOptions {
   store: WebmentionModerationStore;
   secret: string | undefined;
+  /** Called with the id of each webmention the request approved. */
+  onApproved?: (id: string) => void;
 }
 
 export type WebmentionModerationCommand =

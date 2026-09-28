@@ -2,6 +2,10 @@ import { cacheLife, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
+import {
+  defaultSalmentionDeps,
+  sendSalmention,
+} from '@/lib/indieweb/salmention';
 import { applyVouch, readVouchParameter } from '@/lib/indieweb/vouch';
 import {
   WEBMENTION_RATE_WINDOW_MS,
@@ -147,14 +151,23 @@ export async function POST(request: NextRequest) {
     after(async () => {
       try {
         const result = await verifyWebmention(id, source, canonicalTarget);
+        let vouched = false;
         if (result.success && !result.isDeleted && vouch.vouch) {
           const outcome = await applyVouch(
             { id, sourceUrl: source, vouchUrl: vouch.vouch },
             webmentionVouchStore
           );
           console.info(`Vouch for ${source}: ${outcome}`);
+          vouched = outcome === 'approved';
         }
         if (result.success) revalidateTag('webmentions', { expire: 0 });
+        // A vouch approves without a moderator, so it notifies upstream here.
+        if (vouched) {
+          const salmention = await sendSalmention(id, defaultSalmentionDeps());
+          console.info(
+            `Salmention after vouch for ${source}: ${salmention.outcome}`
+          );
+        }
       } catch (error) {
         console.error('Webmention verification failed:', error);
       }

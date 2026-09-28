@@ -1,5 +1,10 @@
 import { getInitiatives } from '@/lib/initiatives';
-import { getAllWritings, getWriting } from '@/lib/writings';
+import {
+  type WritingData,
+  getAllWritings,
+  getWriting,
+  getWritingsByTag,
+} from '@/lib/writings';
 
 import { renderFeedHtml } from './html';
 import {
@@ -12,9 +17,7 @@ function newestFirst(items: FeedItem[]): FeedItem[] {
   return items.sort((a, b) => b.published.getTime() - a.published.getTime());
 }
 
-/** Every published writing with its full body, newest first. */
-export async function getWritingFeedItems(): Promise<FeedItem[]> {
-  const writings = await getAllWritings();
+async function writingFeedItems(writings: WritingData[]) {
   const items = await Promise.all(
     writings.map(async (writing) => {
       const { content } = await getWriting(writing.slug);
@@ -22,6 +25,16 @@ export async function getWritingFeedItems(): Promise<FeedItem[]> {
     })
   );
   return newestFirst(items);
+}
+
+/** Every published writing with its full body, newest first. */
+export async function getWritingFeedItems(): Promise<FeedItem[]> {
+  return writingFeedItems(await getAllWritings());
+}
+
+/** Every published writing carrying the tag, with its full body. */
+export async function getTagFeedItems(tag: string): Promise<FeedItem[]> {
+  return writingFeedItems(await getWritingsByTag(tag));
 }
 
 /** Every published, dated initiative with its full body, newest first. */

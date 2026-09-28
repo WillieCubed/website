@@ -14,18 +14,28 @@ routes get theirs through `lib/indieweb/activity-feed-route.ts`.
 | `/writings/feed.xml`                                               | RSS 2.0         | writings                              |
 | `/writings/feed/atom`                                              | Atom 1.0        | writings                              |
 | `/writings/feed/json`                                              | JSON Feed 1.1   | writings                              |
+| `/writings/tags/[tag]/feed.xml`                                    | RSS 2.0         | writings carrying the tag             |
+| `/writings/tags/[tag]/feed/atom`                                   | Atom 1.0        | writings carrying the tag             |
+| `/writings/tags/[tag]/feed/json`                                   | JSON Feed 1.1   | writings carrying the tag             |
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | RSS, Atom, JSON | approved webmentions (needs Postgres) |
 | `/writings/[slug]/activity/feed.*`                                 | same three      | approved webmentions for one post     |
 
 Every feed declares `WEBSUB_HUB` from `lib/indieweb/constants.ts` as its hub:
 RSS and Atom through a `rel="hub"` link and JSON Feed through `hubs`.
-`pnpm websub:ping` tells the hub the six site and writings feeds changed, and
-`scripts/postbuild.mts` runs it after a build when `INDIEWEB_POSTBUILD=1`.
+`/writings` and each tag page are h-feeds too, and they name themselves with
+`<link rel="self">` beside the root layout's `rel="hub"`, so a reader can
+subscribe to the page. After a deploy, `/api/indieweb/notify` (called by
+`.github/workflows/indieweb-publish.yml`) and `pnpm websub:ping` tell the hub
+about every topic `publishedTopicPaths()` in `lib/indieweb/websub-publisher.ts`
+lists: the six site and writings feeds, `/writings`, and each published tag's
+page and three feeds. The publisher does not know which posts changed, so
+every tag goes out each time. The pings run one after another, four per tag,
+so a few dozen tags would approach the notify route's 60-second limit.
 
-The root layout advertises the three site feeds on every page, and
+The root layout advertises the three site feeds on every page.
 `app/writings/page.tsx` advertises the three writings feeds through
-`alternates.types`. Each writing page advertises its own activity feeds and
-the oEmbed endpoint.
+`alternates.types`, and each tag page advertises its own three. Each writing
+page advertises its own activity feeds and the oEmbed endpoint.
 
 Feed readers that guess instead of reading those links land on the site feeds
 too: `next.config.ts` permanently redirects `/rss.xml`, `/rss`, `/feed`, and

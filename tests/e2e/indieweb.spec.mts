@@ -4,6 +4,7 @@ import type { MicroformatRoot } from 'microformats-parser/dist/types';
 
 import { WEBSUB_HUB } from '../../lib/indieweb/constants';
 import { site } from '../../lib/site';
+import { isPublished, skipUnlessPublished } from './published';
 
 function rootOfType(items: MicroformatRoot[], type: string) {
   return items.find((item) => item.type.includes(type));
@@ -74,6 +75,7 @@ const TAG_PATH = '/writings/tags/note';
 test('a tag page exposes a parseable feed of its entries', async ({
   request,
 }) => {
+  await skipUnlessPublished(request, TAG_PATH);
   const response = await request.get(TAG_PATH);
   expect(response.status()).toBe(200);
   const { items } = mf2(await response.text(), {
@@ -111,9 +113,25 @@ test('a tag no published writing carries is not found', async ({ request }) => {
   expect(response.status()).toBe(404);
 });
 
+test('a tag feed for a tag no published writing carries is not found', async ({
+  request,
+}) => {
+  for (const feed of ['feed.xml', 'feed/atom', 'feed/json']) {
+    const response = await request.get(`/writings/tags/no-such-tag/${feed}`);
+    expect(response.status(), feed).toBe(404);
+  }
+});
+
 test('feed documents advertise their own URL and the WebSub hub', async ({
   request,
 }) => {
+  const tagFeeds = (await isPublished(request, TAG_PATH))
+    ? [
+        [`${TAG_PATH}/feed.xml`, 'application/rss+xml'],
+        [`${TAG_PATH}/feed/atom`, 'application/atom+xml'],
+        [`${TAG_PATH}/feed/json`, 'application/feed+json'],
+      ]
+    : [];
   for (const [path, type] of [
     ['/feed.xml', 'application/rss+xml'],
     ['/feed/atom', 'application/atom+xml'],
@@ -121,6 +139,7 @@ test('feed documents advertise their own URL and the WebSub hub', async ({
     ['/writings/feed.xml', 'application/rss+xml'],
     ['/writings/feed/atom', 'application/atom+xml'],
     ['/writings/feed/json', 'application/feed+json'],
+    ...tagFeeds,
   ]) {
     const response = await request.get(path);
     expect(response.status(), path).toBe(200);

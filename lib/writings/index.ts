@@ -371,6 +371,16 @@ export async function getTagGroup(tag: string): Promise<TagGroup | null> {
 }
 
 /**
+ * The `[tag]` params for every tag page and feed. Cache Components refuses
+ * an empty list at build time, so when nothing is published one underscore
+ * stands in: no writing carries it, and it prerenders as a plain 404.
+ */
+export async function getTagParams(): Promise<Array<{ tag: string }>> {
+  const tags = await getAllTags();
+  return tags.length > 0 ? tags.map((tag) => ({ tag })) : [{ tag: '_' }];
+}
+
+/**
  * Gets all unique tags across all writings, lowercase and sorted.
  */
 export async function getAllTags(): Promise<string[]> {

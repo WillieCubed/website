@@ -46,6 +46,8 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`                                                     | nothing                                                      |
 | `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and initiatives; each declares the WebSub hub                                           | nothing                                                      |
 | `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                                                | nothing                                                      |
+| `/writings/tags/[tag]`                                             | One published tag's h-feed; `/writings?tag=` redirects here with a 308                                          | nothing                                                      |
+| `/writings/tags/[tag]/feed.xml`, `/feed/atom`, `/feed/json`        | The same three formats scoped to one tag, advertised from its page                                              | nothing                                                      |
 
 Every route that says "Postgres" reads `POSTGRES_URL` through
 `@vercel/postgres`. Without it the webmention routes return errors and the

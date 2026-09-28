@@ -107,4 +107,11 @@ describes, and `q=source` reads it back as mf2 properties. `q=category`
 gives the client the tags of published posts to suggest. When the client
 picks Bluesky or Threads, the route writes those account URLs to
 `syndicateTo` and posts nothing; add the copy's permalink to `syndication`
-once it exists. Details are in [the IndieWeb page](../indieweb/README.md#micropub).
+once it exists.
+
+The client can then update a post. An update rewrites only the frontmatter
+keys whose values change and leaves the rest of the file as it was, so a
+hand-edited post keeps its comments and formatting. It sets `lastUpdated` to
+the time of the request, and it publishes a draft only when the client
+replaces `post-status` with `published`. Details are in
+[the IndieWeb page](../indieweb/README.md#micropub).

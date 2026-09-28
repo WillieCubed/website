@@ -1,13 +1,16 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import type { MicropubRouteEnvironment } from '@/lib/indieweb/types';
+import type {
+  GitHubContentsCommitResponse,
+  MicropubRouteEnvironment,
+} from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
 /*
- * Where Micropub finds writing files: GitHub's Contents API when
- * MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN are set, so it sees what
- * the next deploy will build, and the local checkout otherwise.
+ * Where Micropub reads and writes writing files: GitHub's Contents API when
+ * MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN are set, so every change is
+ * a commit the normal deploy picks up, and the local checkout otherwise.
  */
 
 /** Thrown when a Micropub post cannot be stored anywhere durable. */
@@ -16,6 +19,15 @@ export class MicropubStorageError extends Error {
     super(message);
     this.name = 'MicropubStorageError';
   }
+}
+
+/** One file written with one commit. */
+export interface GitHubFileWrite {
+  path: string;
+  content: string;
+  message: string;
+  /** The blob being replaced. Omitted for a new file. */
+  sha?: string;
 }
 
 /** A writing file as storage holds it. */
@@ -72,6 +84,74 @@ export async function findStoredWriting(
     if (found) return { slug, path, ...found };
   }
   return null;
+}
+
+/**
+ * Replace a writing file. On GitHub the write carries the SHA that was read,
+ * so a file that changed in between fails instead of being overwritten.
+ * Returns the commit SHA, or an empty string for a local write.
+ */
+export async function saveStoredWriting(
+  writing: StoredWriting,
+  source: string,
+  message: string,
+  environment: MicropubRouteEnvironment,
+  fetchImpl: typeof fetch = fetch
+): Promise<string> {
+  if (usesGitHub(environment)) {
+    return putGitHubFile(
+      { path: writing.path, content: source, message, sha: writing.sha },
+      environment,
+      fetchImpl
+    );
+  }
+  try {
+    await writeFile(localPath(writing.path), source, 'utf8');
+  } catch (error) {
+    throw localWriteError(error, writing.path);
+  }
+  return '';
+}
+
+/** Create or replace one file with a commit, and return the commit SHA. */
+export async function putGitHubFile(
+  { path, content, message, sha }: GitHubFileWrite,
+  environment: MicropubRouteEnvironment,
+  fetchImpl: typeof fetch = fetch
+): Promise<string> {
+  const response = await fetchImpl(contentsUrl(path, environment), {
+    method: 'PUT',
+    headers: githubHeaders(environment),
+    body: JSON.stringify({
+      branch: environment.defaultBranch,
+      content: Buffer.from(content, 'utf8').toString('base64'),
+      message,
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  if (!response.ok) throw await githubError(response);
+  const data = (await response.json()) as GitHubContentsCommitResponse;
+  return data.commit?.sha ?? '';
+}
+
+/**
+ * The storage error for a failed local write. A read-only deploy (Vercel,
+ * Workers) fails here, and the message says how to fix that.
+ */
+export function localWriteError(
+  error: unknown,
+  path: string
+): MicropubStorageError {
+  if (error instanceof MicropubStorageError) return error;
+  const code = (error as NodeJS.ErrnoException).code;
+  if (code === 'EROFS' || code === 'EACCES' || code === 'EPERM') {
+    return new MicropubStorageError(
+      `The content directory is read-only (${code}). Configure MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN so posts commit through GitHub instead.`
+    );
+  }
+  return new MicropubStorageError(
+    `Could not write ${path}: ${error instanceof Error ? error.message : String(error)}`
+  );
 }
 
 function usesGitHub(

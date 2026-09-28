@@ -9,14 +9,17 @@ import {
   validateMediaFile,
 } from '@/lib/indieweb/media';
 import type { MediaStore } from '@/lib/indieweb/media';
-import { MicropubStorageError } from '@/lib/indieweb/micropub-store';
+import {
+  MicropubStorageError,
+  localWriteError,
+  putGitHubFile,
+} from '@/lib/indieweb/micropub-store';
 import {
   getMicropubSyndicationTargets,
   resolveSyndicationTargets,
   syndicationName,
 } from '@/lib/indieweb/syndication';
 import type {
-  GitHubContentsCommitResponse,
   MicropubCommitOptions,
   MicropubCommitResult,
   MicropubConfigResponse,
@@ -183,35 +186,22 @@ export async function commitMicropubWriting(
     entry,
     options.contentPath || DEFAULT_CONTENT_PATH
   );
-  const body = buildMicropubWritingFile(entry, slug);
-  const response = await fetch(
-    `https://api.github.com/repos/${options.repository}/contents/${path}`,
+  const sha = await putGitHubFile(
     {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${options.token}`,
-        'Content-Type': 'application/json',
-        'User-Agent': `${new URL(site.origin).hostname} micropub`,
-      },
-      body: JSON.stringify({
-        branch: options.branch,
-        content: Buffer.from(body, 'utf8').toString('base64'),
-        message: `feat(writings): Publish ${slug} via Micropub`,
-      }),
+      path,
+      content: buildMicropubWritingFile(entry, slug),
+      message: `feat(writings): Publish ${slug} via Micropub`,
+    },
+    {
+      githubRepository: options.repository,
+      githubToken: options.token,
+      defaultBranch: options.branch,
+      contentPath: options.contentPath,
     }
   );
 
-  if (!response.ok) {
-    throw new MicropubStorageError(
-      `GitHub Contents API failed: ${response.status} ${await response.text()}`
-    );
-  }
-
-  const data = (await response.json()) as GitHubContentsCommitResponse;
-
   return {
-    sha: data.commit?.sha ?? '',
+    sha,
     path,
     slug,
     location: absoluteRoute`/writings/${slug}`,
@@ -242,16 +232,7 @@ export async function writeMicropubWritingLocally(
     }
     await writeFile(absolutePath, body, { encoding: 'utf8', flag: 'wx' });
   } catch (error) {
-    if (error instanceof MicropubStorageError) throw error;
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code === 'EROFS' || code === 'EACCES' || code === 'EPERM') {
-      throw new MicropubStorageError(
-        `The content directory is read-only (${code}). Configure MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN so posts commit through GitHub instead.`
-      );
-    }
-    throw new MicropubStorageError(
-      `Could not write ${path}: ${error instanceof Error ? error.message : String(error)}`
-    );
+    throw localWriteError(error, path);
   }
 
   return { sha: '', path, slug, location: absoluteRoute`/writings/${slug}` };

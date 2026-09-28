@@ -313,6 +313,9 @@ main:focus {
   --scrollbar-thumb: color-mix(in srgb, var(--color-outline) 50%, transparent);
   --scrollbar-thumb-hover: var(--color-outline);
   scrollbar-color: var(--scrollbar-thumb) transparent;
+  /* Opening the detail view hides the page scrollbar. Where scrollbars take
+     up space, the reserved gutter keeps the page from jumping sideways. */
+  scrollbar-gutter: stable;
 }
 
 /* An inner scroller: a thin bar that draws its thumb fully while the

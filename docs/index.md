@@ -41,6 +41,9 @@ how its content is modeled, and the conventions that govern changes to it.
 - [Links and hover cards](./links.md): every in-site link goes through
   `SiteLink`, what lint enforces, when a raw anchor is right, what the hover
   card shows, and when to turn it off.
+- [Brand kit and logo rules](./brand.md): where the WillieCubed files and
+  their usage rules come from, what `pnpm brand:build` writes, and the one
+  exception the site itself makes.
 - [Titles and social previews](./metadata.md): `og:site_name` carries the
   name, so no social title repeats it, and every title reads on its own.
 

@@ -57,7 +57,11 @@ function transition(update: () => void): Promise<void> {
     update();
     return Promise.resolve();
   }
-  return document.startViewTransition(update).finished.catch(() => undefined);
+  const started = document.startViewTransition(update);
+  // An abandoned transition rejects ready as well as finished, and nothing
+  // else awaits ready, so without this every abort is an unhandled rejection.
+  started.ready.catch(() => undefined);
+  return started.finished.catch(() => undefined);
 }
 
 /**

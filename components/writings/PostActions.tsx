@@ -45,9 +45,13 @@ export default function PostActions({
     document.documentElement.dataset.postReplyTransition = '';
     surface.style.viewTransitionName = 'post-reply';
     try {
-      await document.startViewTransition(() => {
+      const started = document.startViewTransition(() => {
         flushSync(() => setReplyOpen(opening));
-      }).finished;
+      });
+      // ready rejects alongside finished when the browser cancels, and
+      // only finished is awaited here.
+      started.ready.catch(() => undefined);
+      await started.finished;
     } catch {
       // The browser can cancel a transition without cancelling its state update.
     } finally {

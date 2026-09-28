@@ -16,7 +16,13 @@ import {
 } from '@/lib/indieweb/reply-context';
 import type { WebmentionGroup } from '@/lib/indieweb/types';
 import { getWebmentionsForPost } from '@/lib/indieweb/webmention-storage';
-import { blogPostingLd, breadcrumbLd, graph, personLd } from '@/lib/seo/jsonld';
+import {
+  blogPostingLd,
+  breadcrumbLd,
+  graph,
+  personLd,
+  websiteLd,
+} from '@/lib/seo/jsonld';
 import { absoluteRoute, formatDate, pageMetadata } from '@/lib/site';
 import {
   SeriesWithWritings,
@@ -218,6 +224,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
             { name: 'Writings', path: '/writings' },
             { name: writing.title, path },
           ]),
+          websiteLd(),
           personLd()
         )}
       />

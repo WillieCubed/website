@@ -1,4 +1,5 @@
 import { absoluteUrl, canonicalUrl, site } from '@/lib/site';
+import type { WritingData } from '@/lib/writings/types';
 
 // A page's address here always comes from `canonicalUrl`, so the structured
 // data names a page exactly as its canonical link does. Ids and image URLs
@@ -73,7 +74,32 @@ export function homeGraph(): JsonLdNode {
   return graph(websiteLd(), personLd(), profilePageLd());
 }
 
-export interface BlogPostingInput {
+export type PostingType = 'BlogPosting' | 'SocialMediaPosting';
+
+/**
+ * An article is a BlogPosting. Everything else a writing can be is a post
+ * in a stream: a note, a photo, and any post that answers, likes, reposts,
+ * bookmarks, or RSVPs to another page, whatever its postType says.
+ */
+export function postingType(
+  writing: Pick<
+    WritingData,
+    'postType' | 'inReplyTo' | 'likeOf' | 'repostOf' | 'bookmarkOf' | 'rsvp'
+  >
+): PostingType {
+  const answers =
+    writing.inReplyTo ||
+    writing.likeOf ||
+    writing.repostOf ||
+    writing.bookmarkOf ||
+    writing.rsvp;
+  return writing.postType === 'article' && !answers
+    ? 'BlogPosting'
+    : 'SocialMediaPosting';
+}
+
+export interface PostingInput {
+  type: PostingType;
   path: string;
   title: string;
   description: string;
@@ -85,10 +111,10 @@ export interface BlogPostingInput {
   seriesName?: string;
 }
 
-export function blogPostingLd(input: BlogPostingInput): JsonLdNode {
+export function postingLd(input: PostingInput): JsonLdNode {
   const url = canonicalUrl(input.path);
   return {
-    '@type': 'BlogPosting',
+    '@type': input.type,
     '@id': `${url}#article`,
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     url,

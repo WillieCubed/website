@@ -6,6 +6,7 @@ import { type WritingData, getAllWritings } from '@/lib/writings';
 
 import { entityKey } from './key';
 import { STATIC_PAGES } from './pages';
+import { tagCards } from './tags';
 import type { EntityCard } from './types';
 import { VENTURE_CARDS } from './ventures';
 
@@ -53,8 +54,9 @@ export async function publishedLinks<T extends { href: string }>(
 }
 
 /**
- * The cards for the static pages and ventures plus the given writings and
- * initiatives. Kept apart from the cached loader so it runs under plain Node.
+ * The cards for the static pages and ventures plus the given writings, the
+ * tags they carry, and initiatives. Kept apart from the cached loader so it
+ * runs under plain Node.
  */
 export function entityCards(
   writings: WritingData[],
@@ -74,6 +76,7 @@ export function entityCards(
       meta: `${formatDate(new Date(writing.published))} · ${writing.readingTime} min read`,
     });
   }
+  cards.push(...tagCards(writings));
 
   for (const initiative of initiatives) {
     const brand = initiative.brand?.startsWith('#')

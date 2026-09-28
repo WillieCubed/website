@@ -262,3 +262,35 @@ test('collectSearchDocuments indexes every shown venture and product, and no hid
     );
   }
 });
+
+test('collectSearchDocuments lists each published tag as a page, and no draft-only tag', async () => {
+  const items = await collectSearchDocuments();
+  const tagItems = items.filter((item) =>
+    item.path.startsWith('/writings/tags/')
+  );
+  const published = new Set<string>();
+  const draftOnly = new Set<string>();
+  for (const slug of await getWritingSlugs()) {
+    const { writing } = await loadWriting(slug);
+    for (const tag of writing.tags.map((t) => t.toLowerCase())) {
+      (writing.draft ? draftOnly : published).add(tag);
+    }
+  }
+  for (const tag of published) draftOnly.delete(tag);
+
+  assert.deepEqual(
+    tagItems.map((item) => item.title).sort(),
+    [...published].sort()
+  );
+  for (const item of tagItems) {
+    assert.equal(item.type, 'page');
+    assert.equal(item.slug, `pages${item.path}`);
+    assert.match(item.description, /^\d+ writings?$/);
+  }
+  for (const tag of draftOnly) {
+    assert.ok(
+      !tagItems.some((item) => item.title === tag),
+      `draft tag ${tag} was indexed`
+    );
+  }
+});

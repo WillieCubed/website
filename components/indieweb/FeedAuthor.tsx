@@ -9,7 +9,11 @@ import { site } from '@/lib/site';
  */
 export default function FeedAuthor() {
   return (
-    <a className="p-author h-card hidden" href={`${site.origin}/`}>
+    <a
+      className="p-author h-card hidden"
+      // eslint-disable-next-line site/no-raw-internal-anchor -- a hidden microformat anchor for parsers, which want the absolute canonical URL
+      href={`${site.origin}/`}
+    >
       {site.author.name}
     </a>
   );

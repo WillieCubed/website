@@ -219,6 +219,7 @@ export default function FooterLockup({ name }: { name: string }) {
             <a
               ref={firstMenuItem}
               role="menuitem"
+              // eslint-disable-next-line site/no-raw-internal-anchor -- a file download, not a page
               href={`/brand/mark/png/williecubed-cube-on-${logoScheme}-512.png`}
               download={`williecubed-cube-on-${logoScheme}-512.png`}
               className="cube-context-popover__link"

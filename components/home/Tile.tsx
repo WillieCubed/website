@@ -2,6 +2,8 @@
 
 import { useRef, useState } from 'react';
 
+import SiteLink from '@/components/link/SiteLink';
+
 import type { BrandKey } from '@/lib/home/ventures';
 
 import {
@@ -95,10 +97,13 @@ export function Tile({
         );
       }}
     >
-      <a
+      <SiteLink
         className="cover"
-        href={`?detail=${id}`}
+        href={`/?detail=${id}`}
         aria-label={name}
+        preview={false}
+        // The click never navigates, so fetching the route ahead is wasted.
+        prefetch={false}
         onClick={(event) => {
           event.preventDefault();
           openDetail(id, ref.current);

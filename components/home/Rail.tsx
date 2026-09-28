@@ -25,6 +25,7 @@ export function Rail({ focuses }: { focuses: FocusItem[] }) {
             {/* The footer's name arrives as this one leaves the screen. */}
             <a
               className="p-name u-url u-uid"
+              // eslint-disable-next-line site/no-raw-internal-anchor -- the h-card's u-url and u-uid must be the absolute canonical URL, and it points at the page it sits on
               href={`${site.origin}/`}
               data-footer-anchor
             >

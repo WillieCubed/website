@@ -3,6 +3,13 @@ import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import noRawInternalAnchor from './eslint/no-raw-internal-anchor.mjs';
+
+const sitePlugin = {
+  meta: { name: 'site' },
+  rules: { 'no-raw-internal-anchor': noRawInternalAnchor },
+};
+
 const eslintConfig = [
   {
     ignores: [
@@ -50,6 +57,17 @@ const eslintConfig = [
           ],
         },
       ],
+    },
+  },
+  {
+    // An anchor written by hand skips SiteLink just as a next/link import
+    // does. The parked pages under app/_(pages) are not routed, so they are
+    // left for their rebuild.
+    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}'],
+    ignores: ['components/link/**', 'app/_(pages)/**'],
+    plugins: { site: sitePlugin },
+    rules: {
+      'site/no-raw-internal-anchor': 'error',
     },
   },
   {

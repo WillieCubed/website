@@ -54,6 +54,7 @@ export default function PaletteTrigger({ size }: PaletteTriggerProps) {
     // palette instead.
     <a
       ref={ref}
+      // eslint-disable-next-line site/no-raw-internal-anchor -- the no-script fallback for a control that opens the palette; the palette morphs from this element by ref, which SiteLink does not forward
       href="/search"
       className={`palette-trigger palette-trigger--${size}`}
       aria-haspopup="dialog"

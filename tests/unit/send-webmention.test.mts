@@ -133,7 +133,7 @@ test('a target with no endpoint is not posted to', async () => {
   assert.ok(calls.every((call) => call.method !== 'POST'));
 });
 
-test('only external https links are sent webmentions, once each', () => {
+test('only external links are sent webmentions, once each', () => {
   const html = `
     <a href="https://example.com/a">a</a>
     <a href="https://example.com/a">a again</a>
@@ -150,9 +150,53 @@ test('only external https links are sent webmentions, once each', () => {
   assert.deepEqual(extractExternalLinks(html), [
     'https://example.com/a',
     'https://example.org/b',
+    'http://example.net/insecure',
     'https://webmention.rocks/test/1',
   ]);
   assert.deepEqual(extractExternalLinks('<p>No links.</p>'), []);
+});
+
+test('bare URLs in a note are sent webmentions without the punctuation around them', () => {
+  const note = `
+Read https://example.com/a. Then https://example.org/b, and http://example.net/c!
+Was it https://example.com/q? (See https://example.com/paren) or
+[https://example.com/d](https://example.com/d); “https://example.com/quote”
+and https://en.wikipedia.org/wiki/Bloom_(botany): https://example.com/e]
+Again https://example.com/a and <https://example.com/angle>.
+Not ${site.origin}/writings/other. or http://tour.willie.page/x.
+  `;
+  assert.deepEqual(extractExternalLinks(note), [
+    'https://example.com/a',
+    'https://example.org/b',
+    'http://example.net/c',
+    'https://example.com/q',
+    'https://example.com/paren',
+    'https://example.com/d',
+    'https://example.com/quote',
+    'https://en.wikipedia.org/wiki/Bloom_(botany)',
+    'https://example.com/e',
+    'https://example.com/angle',
+  ]);
+});
+
+test('URLs inside code are not sent webmentions', () => {
+  const post = `
+Send it with \`curl https://example.com/inline\` or read https://example.com/prose.
+
+\`\`\`sh
+curl -X POST https://example.com/fenced
+\`\`\`
+
+~~~~
+https://example.com/tilde
+~~~~
+
+<pre><code>https://example.com/element</code></pre>
+
+\`\`\`
+https://example.com/unclosed
+  `;
+  assert.deepEqual(extractExternalLinks(post), ['https://example.com/prose']);
 });
 
 test('a post sends from its writing URL to each target once', async () => {

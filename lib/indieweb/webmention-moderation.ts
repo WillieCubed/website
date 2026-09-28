@@ -131,7 +131,7 @@ export async function handleListPendingWebmentions(
  */
 export async function handleModerateWebmention(
   request: Request,
-  { store, secret }: WebmentionModerationRouteOptions
+  { store, secret, onApproved }: WebmentionModerationRouteOptions
 ): Promise<Response> {
   const refusal = refuse(request, secret);
   if (refusal) return refusal;
@@ -157,6 +157,7 @@ export async function handleModerateWebmention(
     );
   }
 
+  if (moderation.action === 'approve') onApproved?.(moderation.id);
   return jsonResponse(
     { id: moderation.id, status: MODERATION_PAST_TENSE[moderation.action] },
     { headers: noStoreJsonHeaders() }

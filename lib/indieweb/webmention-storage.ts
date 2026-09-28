@@ -236,6 +236,35 @@ export async function getWebmentionBySourceTarget(
 }
 
 /**
+ * Get one webmention by id, whatever its state.
+ */
+export async function getWebmention(id: string): Promise<Webmention | null> {
+  const result = await sql`
+    SELECT
+      id,
+      source_url,
+      target_url,
+      type,
+      author_name,
+      author_url,
+      author_photo,
+      rsvp,
+      raw_mf2_json #>> '{properties,name,0}' AS name,
+      content,
+      content_html,
+      published_at,
+      received_at,
+      verified_at,
+      is_verified,
+      is_approved
+    FROM webmentions
+    WHERE id = ${id}
+  `;
+  const [row] = result.rows;
+  return row ? rowToWebmention(row as WebmentionRow) : null;
+}
+
+/**
  * Get all verified and approved webmentions for a post.
  */
 export async function getWebmentionsForPost(
@@ -493,6 +522,26 @@ export const webmentionVouchStore: VouchStore = {
         AND (is_deleted IS NULL OR is_deleted = FALSE)
     `;
     return (result.rowCount ?? 0) > 0;
+  },
+};
+
+/**
+ * The Postgres-backed window that keeps a post from sending salmentions more
+ * than once per window. The claim is one upsert that only moves `sent_at`
+ * forward when the window has passed, so two approvals racing on different
+ * instances cannot both win it.
+ */
+export const salmentionStore = {
+  async claim(slug: string, windowMs: number): Promise<boolean> {
+    const result = await sql`
+      INSERT INTO salmentions (post_slug, sent_at)
+      VALUES (${slug}, NOW())
+      ON CONFLICT (post_slug) DO UPDATE SET sent_at = NOW()
+      WHERE salmentions.sent_at
+        <= NOW() - ${windowMs}::integer * INTERVAL '1 millisecond'
+      RETURNING post_slug
+    `;
+    return result.rows.length > 0;
   },
 };
 

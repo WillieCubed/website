@@ -1,5 +1,4 @@
 import {
-  type Initiative,
   currentPart,
   getFeaturedInitiatives,
   getInitiatives,
@@ -7,13 +6,6 @@ import {
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 
 import type { InitiativeTile } from './ventures';
-
-function headFor(initiative: Initiative, parents: Map<string, Initiative>) {
-  const parent = initiative.parent
-    ? parents.get(initiative.parent)?.title
-    : undefined;
-  return parent ? `${parent} · ${initiative.title}` : initiative.title;
-}
 
 /**
  * Featured initiatives as homepage tiles. Weight, size, hint, and focuses
@@ -37,7 +29,9 @@ export async function getFeaturedTiles(): Promise<InitiativeTile[]> {
         weight: feature.weight,
         size: feature.size,
         name: initiative.title,
-        head: headFor(initiative, parents),
+        parent: initiative.parent
+          ? parents.get(initiative.parent)?.title
+          : undefined,
         hint: feature.hint,
         href: initiative.href,
         tagline: act

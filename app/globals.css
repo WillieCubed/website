@@ -240,6 +240,49 @@
   text-underline-offset: 3px;
 }
 
+/* Page transitions (components/site/SharedTitle.tsx and TopBar.tsx). React
+   leaves everything it does not name out of a navigation's transition, so
+   the page itself cuts over and only the named pairs move. Each pair draws
+   one snapshot, never both fading, and the group carries it from the old
+   place to the new one. */
+::view-transition-group(.title-large),
+::view-transition-group(.title-small),
+::view-transition-group(.top-bar) {
+  animation-duration: 420ms;
+  animation-timing-function: var(--ease-site);
+}
+/* Growing into a page's heading: the heading's own snapshot, shrunk to the
+   tile or card at first, so the words never grow out of a small raster. */
+::view-transition-old(.title-large),
+::view-transition-new(.title-small) {
+  animation: none;
+  opacity: 0;
+}
+::view-transition-new(.title-large),
+::view-transition-old(.title-small) {
+  animation: none;
+}
+/* The bar keeps its size and slides to the new page's column, with the new
+   page's crumbs already in it. */
+::view-transition-old(.top-bar) {
+  animation: none;
+  opacity: 0;
+}
+::view-transition-new(.top-bar) {
+  animation: none;
+  width: 100%;
+  height: 100%;
+  object-fit: none;
+  object-position: left top;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* The skip link focuses the page's <main> so the next Tab starts there. A
    ring around the whole page would only get in the way. */
 main:focus {

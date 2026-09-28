@@ -435,7 +435,8 @@ export interface VentureTile extends TileEntryBase {
 export interface InitiativeTile extends TileEntryBase {
   kind: 'initiative';
   name: string;
-  head: string;
+  /** The parent initiative's title, which the tile names before its own. */
+  parent?: string;
   hint: string;
   href: string;
   tagline: string;

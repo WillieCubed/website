@@ -1,5 +1,6 @@
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
+import SharedTitle from '@/components/site/SharedTitle';
 
 import { formatDate } from '@/lib/site';
 import { WritingData } from '@/lib/writings';
@@ -80,7 +81,9 @@ export default function WritingItem({
         {writing.hasExplicitTitle ? (
           <>
             <h2 className="p-name text-title-large font-semibold text-ink transition-colors group-hover:text-accent">
-              {writing.title}
+              <SharedTitle id={`writing-${writing.slug}`} size="small">
+                <span className="inline-block">{writing.title}</span>
+              </SharedTitle>
             </h2>
             <p className="p-summary text-body-medium text-muted">
               {writing.description}

@@ -379,7 +379,7 @@ body:has(header[data-column='reading'])
 header[data-column] .site-breadcrumb {
   position: relative;
   isolation: isolate;
-  padding: 4px 12px;
+  padding: 4px 8px;
 }
 header[data-column] .site-breadcrumb::before {
   position: absolute;

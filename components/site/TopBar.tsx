@@ -64,8 +64,11 @@ export default function TopBar({
       >
         {site.name}
       </SiteLink>
-      {crumbs.map((crumb) => (
-        <div key={crumb.href} className="flex items-center gap-1">
+      {crumbs.map((crumb, index) => (
+        <div
+          key={crumb.href}
+          className={`flex items-center gap-1 ${index === 0 ? 'ml-2' : ''}`}
+        >
           <span aria-hidden="true">/</span>
           {crumb.control ?? (
             <SiteLink

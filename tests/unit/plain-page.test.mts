@@ -30,6 +30,12 @@ test('plainPage answers a browser with escaped HTML and keeps the status', async
   assert.ok(
     body.includes(`<title>418 I&#39;m a teapot · ${site.name}</title>`)
   );
+  assert.ok(
+    body.includes('<meta property="og:title" content="418 I&#39;m a teapot">')
+  );
+  assert.ok(
+    body.includes(`<meta property="og:site_name" content="${site.name}">`)
+  );
   assert.match(body, /href="\/"/);
 });
 

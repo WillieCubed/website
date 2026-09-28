@@ -8,13 +8,13 @@ import TopBar from '@/components/site/TopBar';
 import { currentPart, getInitiatives } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
-import { absoluteUrl, pageMetadata } from '@/lib/site';
+import { absoluteUrl, pageMetadata, sitePage } from '@/lib/site';
 
+const INITIATIVES_PAGE = sitePage('/initiatives');
 const INITIATIVES = {
-  title: 'Initiatives',
-  description:
-    'The campaigns, series, and projects Willie is running right now, each with its own page and story.',
-  path: '/initiatives',
+  title: INITIATIVES_PAGE.label,
+  description: INITIATIVES_PAGE.description,
+  path: INITIATIVES_PAGE.path,
   image: '/initiatives/opengraph-image',
 };
 

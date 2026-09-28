@@ -213,6 +213,7 @@ export async function getWebmentionBySourceTarget(
       author_url,
       author_photo,
       rsvp,
+      raw_mf2_json #>> '{properties,name,0}' AS name,
       content,
       published_at,
       received_at,
@@ -257,6 +258,7 @@ export async function getWebmentionsForTarget(
       author_url,
       author_photo,
       rsvp,
+      raw_mf2_json #>> '{properties,name,0}' AS name,
       content,
       published_at,
       received_at,
@@ -318,6 +320,7 @@ export async function getAllWebmentionActivities({
       author_url,
       author_photo,
       rsvp,
+      raw_mf2_json #>> '{properties,name,0}' AS name,
       content,
       published_at,
       received_at,
@@ -352,6 +355,7 @@ export async function getPendingWebmentions(): Promise<Webmention[]> {
       author_url,
       author_photo,
       rsvp,
+      raw_mf2_json #>> '{properties,name,0}' AS name,
       content,
       published_at,
       received_at,
@@ -460,6 +464,7 @@ export async function getPublicWebmentionsForTarget(
       author_url,
       author_photo,
       rsvp,
+      raw_mf2_json #>> '{properties,name,0}' AS name,
       content,
       published_at,
       received_at,
@@ -496,6 +501,7 @@ function rowToWebmention(row: WebmentionRow): Webmention {
       photo: row.author_photo ?? undefined,
     },
     rsvp: (row.rsvp as RSVPStatus | null) ?? undefined,
+    name: citedName(row.name, row.content),
     content: row.content ?? undefined,
     publishedAt: row.published_at ? new Date(row.published_at) : undefined,
     receivedAt: new Date(row.received_at),
@@ -503,6 +509,26 @@ function rowToWebmention(row: WebmentionRow): Webmention {
     isVerified: row.is_verified,
     isApproved: row.is_approved,
   };
+}
+
+/**
+ * The citing post's title. A note has no title of its own, but a parser
+ * reads one from markup such as `p-name e-content` on the same element, and
+ * that name is only the text again. A name that the text starts with, or
+ * that starts with the text, is dropped so the text is not shown twice.
+ */
+function citedName(
+  name: string | null,
+  content: string | null
+): string | undefined {
+  const squash = (text: string) => text.replace(/\s+/g, ' ').trim();
+  const title = name ? squash(name) : '';
+  if (!title) return undefined;
+  const text = content ? squash(content) : '';
+  if (text && (text.startsWith(title) || title.startsWith(text))) {
+    return undefined;
+  }
+  return title;
 }
 
 function toWebmentionActivity(webmention: Webmention): WebmentionActivity {
@@ -542,6 +568,7 @@ function toPublicWebmention(webmention: Webmention): PublicWebmention {
     type: webmention.type,
     author: webmention.author,
     ...(webmention.rsvp ? { rsvp: webmention.rsvp } : {}),
+    ...(webmention.name ? { name: webmention.name } : {}),
     content: webmention.content,
     published: webmention.publishedAt?.toISOString(),
     received: webmention.receivedAt.toISOString(),

@@ -22,6 +22,8 @@ export interface Webmention {
   author: WebmentionAuthor;
   /** The answer an `rsvp` gave; every answer is stored, even `no`. */
   rsvp?: RSVPStatus;
+  /** The citing post's own title, when it has one apart from its text. */
+  name?: string;
   content?: string;
   publishedAt?: Date;
   receivedAt: Date;
@@ -37,6 +39,7 @@ export interface PublicWebmention {
   type: WebmentionType;
   author: WebmentionAuthor;
   rsvp?: RSVPStatus;
+  name?: string;
   content?: string;
   published?: string;
   received: string;
@@ -256,6 +259,8 @@ export interface WebmentionRow {
   author_url: string | null;
   author_photo: string | null;
   rsvp: string | null;
+  /** `p-name` read from the stored h-entry, not a column of its own. */
+  name: string | null;
   content: string | null;
   published_at: string | Date | null;
   received_at: string | Date;

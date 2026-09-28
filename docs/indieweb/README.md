@@ -113,7 +113,14 @@ in the order going, maybe, and interested. A `no` is stored and appears in
 the activity feeds and `/webmentions`, but the post does not show it. No
 single markup for received RSVPs is standard yet
 ([indieweb.org/rsvps](https://indieweb.org/rsvps)). `u-rsvp h-cite` is one
-that other sites use, and it matches the facepiles beside it. The post page reads them through a `'use cache'` loader with
+that other sites use, and it matches the facepiles beside it.
+A mention, a page that links to the post without replying or reacting, is a
+`u-mention h-cite` with `u-url`, `dt-published`, and a `p-author h-card`. It
+shows the citing post's `p-name` when that post has a title apart from its
+text, and otherwise the first 140 characters of its text as `p-content`. The
+title is read from the h-entry stored with the mention, so mentions verified
+before this change show theirs too. A mention whose markup names no author
+shows its host instead. The post page reads them through a `'use cache'` loader with
 `cacheLife('minutes')`, so an approval shows within about a minute without
 a deploy. Do not move the read to request time: a streamed section lands
 after the page, outside the `h-entry`, and parsers lose the comments.

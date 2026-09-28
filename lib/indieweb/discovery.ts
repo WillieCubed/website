@@ -209,6 +209,23 @@ export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
       llmsLink('WebFinger', '/.well-known/webfinger'),
       llmsLink('security.txt', '/.well-known/security.txt'),
       llmsLink('OpenSearch description', '/opensearch.xml'),
+    ].join('\n'),
+    // An agent making something with the logo reads these, not the page;
+    // brand/build.mjs writes both from the rules /brand renders.
+    [
+      '## Brand',
+      '',
+      llmsLink(
+        'Brand guidelines',
+        '/brand/guidelines.md',
+        'rules for using the WillieCubed logo: clear space, minimum sizes, choosing a version, and what to avoid'
+      ),
+      llmsLink(
+        'Brand guidelines (JSON)',
+        '/brand/guidelines.json',
+        'the same rules with every logo file’s URL and measurements'
+      ),
+      llmsLink('Brand page', '/brand', 'logo files, colors, and type'),
     ].join('\n')
   );
 

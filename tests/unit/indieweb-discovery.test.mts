@@ -260,6 +260,9 @@ test('buildLlmsSummary links every feed, index, and discovery file', () => {
     ['Public webmentions', '/webmentions?target='],
     ['security.txt', '/.well-known/security.txt'],
     ['OpenSearch description', '/opensearch.xml'],
+    ['Brand guidelines', '/brand/guidelines.md'],
+    ['Brand guidelines (JSON)', '/brand/guidelines.json'],
+    ['Brand page', '/brand'],
   ];
 
   for (const [label, path] of links) {
@@ -270,4 +273,5 @@ test('buildLlmsSummary links every feed, index, and discovery file', () => {
   }
   assert.match(summary, /^## Read$/m);
   assert.match(summary, /^## Protocols$/m);
+  assert.match(summary, /^## Brand$/m);
 });

@@ -22,16 +22,21 @@ const emails = {
   projects: process.env.NEXT_PUBLIC_EMAIL_PROJECTS || 'projects@willie.page',
 };
 
+// The homepage headline, and the rest of the site description after it.
+const HEADLINE = 'Willie Chalmers III builds software and systems for people.';
+const LEDE =
+  'He runs Las Vegans for Better Transit, the design lab Hypertext Studio, and the Reasonable Tech Company.';
+
 export const site = {
   name: 'Willie Chalmers III',
   shortName: 'WillieCubed',
   origin:
     process.env.NEXT_PUBLIC_SITE_ORIGIN?.replace(/\/+$/, '') ||
     'https://willie.page',
-  description:
-    'Willie Chalmers III builds software and systems for people. He runs Las Vegans for Better Transit, the design lab Hypertext Studio, and the Reasonable Tech Company.',
-  shortDescription:
-    'Willie Chalmers III builds software and systems for people.',
+  description: `${HEADLINE} ${LEDE}`,
+  shortDescription: HEADLINE,
+  /** The description minus the headline, for a card that already shows it. */
+  lede: LEDE,
   locale: 'en_US',
   language: 'en',
   /** Dates on the site read in this zone whatever zone the server runs in. */
@@ -164,6 +169,13 @@ export const sitePages: SitePage[] = [
   },
 ];
 
+/** A top-level page by path. Throws so a renamed page fails the build. */
+export function sitePage(path: string): SitePage {
+  const page = sitePages.find((item) => item.path === path);
+  if (!page) throw new Error(`No site page at ${path}`);
+  return page;
+}
+
 /** The top-level pages a visitor can open. */
 export const routedPages = sitePages.filter((page) => page.routed);
 
@@ -286,6 +298,37 @@ function slackLabels(labels: Array<[string, string]>): Record<string, string> {
 }
 
 /**
+ * Social titles for a page with no URL of its own to share, such as an error
+ * page. Without them Next.js copies the suffixed document title into
+ * og:title, and the preview would name Willie twice.
+ */
+export function bareSocialMetadata(
+  title: string
+): Pick<Metadata, 'openGraph' | 'twitter'> {
+  return {
+    openGraph: {
+      siteName: site.name,
+      locale: site.locale,
+      type: 'website',
+      title,
+      images: [
+        {
+          url: site.ogImage,
+          width: 1200,
+          height: 630,
+          alt: site.shortDescription,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      images: [{ url: site.ogImage, alt: site.shortDescription }],
+    },
+  };
+}
+
+/**
  * Build page metadata that keeps the site name out of the OpenGraph title.
  *
  * Next.js copies the templated document title into og:title unless the page
@@ -314,11 +357,15 @@ export function pageMetadata({
   // image route explicitly and everything else falls back to the site card.
   const url = image ?? site.ogImage;
   const alt = imageAlt ?? (image ? title : site.shortDescription);
+  // A note without a description falls back to its own text, which is also
+  // its title. A preview would print the same sentence twice.
+  const summary =
+    description && description !== title ? description : undefined;
   const shared = {
     siteName: site.name,
     locale: site.locale,
     title,
-    description,
+    description: summary,
     url: path,
     images: [{ url, width: 1200, height: 630, alt }],
   };
@@ -336,13 +383,13 @@ export function pageMetadata({
       : { ...shared, type };
   return {
     title,
-    description,
+    description: summary,
     alternates: { canonical: path },
     openGraph,
     twitter: {
       card: 'summary_large_image',
       title,
-      description,
+      description: summary,
       images: [{ url, alt }],
     },
     ...(labels && labels.length > 0 ? { other: slackLabels(labels) } : {}),

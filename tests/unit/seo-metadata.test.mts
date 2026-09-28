@@ -3,7 +3,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { homeGraph, webPageLd } from '@/lib/seo/jsonld';
-import { absoluteUrl, canonicalUrl, pageMetadata, site } from '@/lib/site';
+import {
+  absoluteUrl,
+  bareSocialMetadata,
+  canonicalUrl,
+  pageMetadata,
+  site,
+} from '@/lib/site';
 
 type Loose = Record<string, unknown>;
 type Meta = ReturnType<typeof pageMetadata>;
@@ -125,4 +131,35 @@ test('noIndex keeps links followable', () => {
     follow: true,
   });
   assert.equal(pageMetadata(input).robots, undefined);
+});
+
+// docs/metadata.md: og:site_name carries the name, so no social title does.
+test('social titles are bare and the site name travels as og:site_name', () => {
+  const meta = pageMetadata({
+    title: 'Fall Tour 2026 Part 1: A Boy Goes Back to Dallas',
+    description: 'Dallas.',
+    path: '/initiatives/fall-tour-2026/part-1',
+    type: 'article',
+  });
+  assert.equal(openGraph(meta).siteName, site.name);
+  for (const title of [openGraph(meta).title, twitter(meta).title]) {
+    assert.equal(title, 'Fall Tour 2026 Part 1: A Boy Goes Back to Dallas');
+    assert.doesNotMatch(String(title), new RegExp(site.name));
+  }
+});
+
+test('a description that repeats the title is left out', () => {
+  const note = 'Fall Tour 2026 starts today.';
+  const meta = pageMetadata({ title: note, description: note, path: '/n' });
+  assert.equal(meta.description, undefined);
+  assert.equal(openGraph(meta).description, undefined);
+  assert.equal(twitter(meta).description, undefined);
+});
+
+test('an error page names itself without the site name in its social title', () => {
+  const meta = bareSocialMetadata('Not found');
+  const og = meta.openGraph as Loose;
+  assert.equal(og.title, 'Not found');
+  assert.equal(og.siteName, site.name);
+  assert.equal((meta.twitter as Loose).title, 'Not found');
 });

@@ -9,7 +9,7 @@ import TopBar from '@/components/site/TopBar';
 import WritingItem from '@/components/writings/WritingItem';
 
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
-import { absoluteUrl, pageMetadata, site } from '@/lib/site';
+import { absoluteUrl, pageMetadata, site, sitePage } from '@/lib/site';
 import {
   getAllTags,
   getAllWritings,
@@ -17,11 +17,11 @@ import {
   getWritingsByTag,
 } from '@/lib/writings';
 
+const WRITINGS_PAGE = sitePage('/writings');
 const WRITINGS = {
-  title: 'Writings',
-  description:
-    'Thoughts, tutorials, and notes on software, music, and creativity.',
-  path: '/writings',
+  title: WRITINGS_PAGE.label,
+  description: WRITINGS_PAGE.description,
+  path: WRITINGS_PAGE.path,
   image: '/writings/opengraph-image',
 };
 

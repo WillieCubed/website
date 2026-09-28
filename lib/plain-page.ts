@@ -46,6 +46,10 @@ function htmlDocument({ title, lines }: PlainPage): string {
 <meta name="theme-color" media="(prefers-color-scheme:light)" content="${site.themeColors.light}">
 <meta name="theme-color" media="(prefers-color-scheme:dark)" content="${site.themeColors.dark}">
 <title>${escapeHtml(title)} · ${escapeHtml(site.name)}</title>
+<meta property="og:site_name" content="${escapeHtml(site.name)}">
+<meta property="og:title" content="${escapeHtml(title)}">
+<meta property="og:type" content="website">
+<meta name="twitter:title" content="${escapeHtml(title)}">
 <script>${chosenSchemeScript}</script>
 <style>
 :root{color-scheme:light dark;--color-primary:light-dark(${themeSchemes.light.primary},${themeSchemes.dark.primary});--color-surface:light-dark(${themeSchemes.light.surface},${themeSchemes.dark.surface});--color-on-surface:light-dark(${themeSchemes.light.onSurface},${themeSchemes.dark.onSurface})}

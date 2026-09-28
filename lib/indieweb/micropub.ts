@@ -1,14 +1,9 @@
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { validatePhotoAlts } from '@/lib/accessibility/alt-policy';
 import { MICROPUB_MEDIA_ENDPOINT } from '@/lib/indieweb/constants';
-import {
-  MediaUploadError,
-  getMediaStore,
-  storeMedia,
-  validateMediaFile,
-} from '@/lib/indieweb/media';
-import type { MediaStore } from '@/lib/indieweb/media';
+import { getMediaStore } from '@/lib/indieweb/media';
 import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
 import {
   MicropubStorageError,
@@ -83,31 +78,11 @@ export async function parseMicropubCreateRequest(
   return parseFormData(formData);
 }
 
-export async function prepareMicropubPhotoRequest(
-  request: Request,
-  store: MediaStore | null
-): Promise<Request> {
-  if (!request.headers.get('content-type')?.includes('multipart/form-data'))
-    return request;
-  const input = await request.formData();
-  const output = new FormData();
-  for (const [name, value] of input) {
-    if ((name === 'photo' || name === 'photo[]') && value instanceof File) {
-      if (!store)
-        throw new MediaUploadError('Media uploads are not configured.');
-      validateMediaFile(value);
-      output.append(name, await storeMedia(value, store));
-    } else {
-      output.append(name, value);
-    }
-  }
-  return new Request(request.url, { method: request.method, body: output });
-}
-
 export function buildMicropubWritingFile(
   entry: MicropubCreateRequest,
   slug: string
 ): string {
+  assertPhotoAlts(entry);
   const published = entry.published ?? new Date();
   const title = entry.name ?? titleForEntry(entry, published);
   const description =
@@ -138,7 +113,7 @@ export function buildMicropubWritingFile(
     lines.push('photo:');
     entry.photos.forEach(({ url, alt }) => {
       lines.push(`  - url: ${JSON.stringify(url)}`);
-      if (alt) lines.push(`    alt: ${JSON.stringify(alt)}`);
+      lines.push(`    alt: ${JSON.stringify(alt)}`);
     });
   }
   if (entry.rsvp && entry.inReplyTo) {
@@ -350,6 +325,8 @@ function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
   if (entry.h !== 'entry' || (!content && entry.photos.length === 0)) {
     throw new Error('invalid_request');
   }
+  const altError = validatePhotoAlts(entry.photos);
+  if (altError) throw new MicropubValidationError(altError);
 
   return {
     h: 'entry',
@@ -371,13 +348,28 @@ function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
   };
 }
 
-// Form bodies carry photo URLs only, as `photo` or `photo[]`. A file sent
-// here instead of to the media endpoint is refused rather than dropped, so a
-// post never publishes without the photo its author attached.
+export class MicropubValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'MicropubValidationError';
+  }
+}
+
+function assertPhotoAlts(entry: MicropubCreateRequest): void {
+  const message = validatePhotoAlts(entry.photos);
+  if (message) throw new MicropubValidationError(message);
+}
+
+// A form body cannot carry the required photo object with alt text. Files
+// belong at the separate media endpoint; post creation uses JSON afterward.
 function parseFormPhotos(formData: FormData): MicropubPhoto[] {
   const values = [...formData.getAll('photo'), ...formData.getAll('photo[]')];
   return values.map((value) => {
-    if (typeof value !== 'string') throw new Error('invalid_request');
+    if (typeof value !== 'string') {
+      throw new MicropubValidationError(
+        'Upload the file to /micropub/media, then create the post with a JSON photo object containing value and alt.'
+      );
+    }
     return { url: photoUrl(value) };
   });
 }

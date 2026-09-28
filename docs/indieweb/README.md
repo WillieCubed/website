@@ -467,15 +467,16 @@ file is stored as a public blob in Vercel Blob under
 with the blob's URL in `Location` (and as `url` in the JSON body). Without
 either credential it answers 503.
 
-The client then cites that URL as `photo` on the post: form `photo` or
-`photo[]`, or the JSON property, where each value is a URL or
-`{ "value": url, "alt": text }`. A post with a photo becomes `postType: photo`,
+The client then cites that URL in a JSON `photo` property. Each photo must be
+`{ "value": url, "alt": text }` with nonblank alt text. Form `photo` and
+`photo[]` values and bare JSON URLs receive 400 `invalid_request`. A post with
+a photo becomes `postType: photo`,
 and the caption may be empty. Each photo is written into the `photo`
 frontmatter as `{ url, alt }` and renders under the date in
 `WritingHeader.tsx` as a `u-photo`. A photo value that is not an http(s) URL
 gets a 400 `invalid_request`. Multipart photo files sent directly to
-`/micropub` use the same media store when it is configured; without one they
-get a 503 rather than a post missing its photo.
+`/micropub` receive 400 before any upload. Send files to `/micropub/media` first.
+The build and pre-push checks apply the same nonblank alt rule to authored content.
 
 Storage sits behind the `MediaStore` interface in `lib/indieweb/media.ts`. To
 move uploads to Cloudflare R2, add an R2 implementation there and return it

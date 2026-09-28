@@ -54,7 +54,7 @@ export default function Playbill({
                   <SiteLink
                     preview={false}
                     href={href}
-                    className="after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none"
+                    className="after:absolute after:inset-0 after:rounded-2xl focus-visible:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {part.title}
                   </SiteLink>

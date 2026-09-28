@@ -88,6 +88,7 @@ function Stack({ pictures }: { pictures: StackPicture[] }) {
             width={image.width}
             height={image.height}
             alt=""
+            aria-hidden="true"
             decoding="async"
           />
         </i>

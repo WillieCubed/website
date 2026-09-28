@@ -161,7 +161,7 @@ export default async function ProjectDetailPage(props: ProjectDetailPageProps) {
               <Image
                 className="desktop-large:aspect-video object-cover h-48 w-96"
                 src={project.thumbnail}
-                alt={`Screenshot of ${project.title}`}
+                alt={project.thumbnailAlt ?? `Screenshot of ${project.title}`}
                 fill
               />
             ) : (

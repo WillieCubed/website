@@ -1,5 +1,6 @@
 import matter from 'gray-matter';
 
+import { validatePhotoAlts } from '@/lib/accessibility/alt-policy';
 import { syndicationName } from '@/lib/indieweb/syndication';
 import { site } from '@/lib/site';
 
@@ -639,8 +640,11 @@ function setKey(file: WritingFile, key: string, lines: string[] | null) {
 // never leaves this module.
 function checked(source: string): string {
   try {
-    matter(source, {});
-  } catch {
+    const { data } = matter(source, {});
+    const altError = validatePhotoAlts(photosOf(data));
+    if (altError) throw new MicropubRequestError(altError);
+  } catch (error) {
+    if (error instanceof MicropubRequestError) throw error;
     throw new MicropubRequestError(
       'The update would leave frontmatter the writings loader cannot read.'
     );

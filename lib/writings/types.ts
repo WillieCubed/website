@@ -44,8 +44,8 @@ export type PersonTag = {
 export type WritingPhoto = {
   /** Absolute URL of the image, usually from the Micropub media endpoint */
   url: string;
-  /** Alternative text; empty when the photo is decorative */
-  alt?: string;
+  /** Required description of the photo. */
+  alt: string;
 };
 
 /** RSVP status values per IndieWeb spec */

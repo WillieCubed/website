@@ -56,7 +56,11 @@ test('initiative frontmatter rejects an unknown focus', () => {
 
 test('only the previewed focus row is pressed', () => {
   assert.equal(isFocusPressed(null, 'cities'), false);
-  assert.equal(isFocusPressed({ focus: 'cities' }, 'cities'), true);
+  assert.equal(isFocusPressed({ focus: 'cities' }, 'cities'), false);
+  assert.equal(
+    isFocusPressed({ focus: 'cities', pinned: true }, 'cities'),
+    true
+  );
   assert.equal(isFocusPressed({ focus: 'cities' }, 'tools'), false);
   assert.equal(isFocusPressed({ id: 'lvbt' }, 'cities'), false);
 });

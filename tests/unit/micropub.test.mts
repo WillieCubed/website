@@ -4,11 +4,11 @@ import test from 'node:test';
 
 import {
   buildMicropubWritingFile,
+  commitMicropubWriting,
   getMicropubConfig,
   getMicropubSyndicationTargets,
   micropubWritingPath,
   parseMicropubCreateRequest,
-  prepareMicropubPhotoRequest,
 } from '@/lib/indieweb/micropub';
 import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
 import { readMicropubAccessToken } from '@/lib/indieweb/micropub-endpoint';
@@ -302,21 +302,17 @@ test('buildMicropubWritingFile records actual copy permalinks', () => {
   );
 });
 
-test('parseMicropubCreateRequest accepts a form photo note without a caption', async () => {
+test('parseMicropubCreateRequest rejects form photos without alt text', async () => {
   const body = new URLSearchParams([
     ['h', 'entry'],
     ['photo[]', 'https://example.blob.vercel-storage.com/media/a.jpg'],
     ['photo[]', 'https://example.blob.vercel-storage.com/media/b,c.jpg'],
   ]);
 
-  const entry = await parseMicropubCreateRequest(micropubRequest(body));
-
-  assert.equal(entry.postType, 'photo');
-  assert.equal(entry.content, '');
-  assert.deepEqual(entry.photos, [
-    { url: 'https://example.blob.vercel-storage.com/media/a.jpg' },
-    { url: 'https://example.blob.vercel-storage.com/media/b,c.jpg' },
-  ]);
+  await assert.rejects(
+    parseMicropubCreateRequest(micropubRequest(body)),
+    /Photo 1 needs nonblank alt text/
+  );
 });
 
 test('parseMicropubCreateRequest reads JSON photos with alt text', async () => {
@@ -330,7 +326,10 @@ test('parseMicropubCreateRequest reads JSON photos with alt text', async () => {
             value: 'https://example.blob.vercel-storage.com/media/sunset.jpg',
             alt: 'An orange sky behind the Las Vegas skyline',
           },
-          'https://example.blob.vercel-storage.com/media/crowd.jpg',
+          {
+            value: 'https://example.blob.vercel-storage.com/media/crowd.jpg',
+            alt: 'People gathering on the Strip',
+          },
         ],
       },
     })
@@ -342,8 +341,26 @@ test('parseMicropubCreateRequest reads JSON photos with alt text', async () => {
       url: 'https://example.blob.vercel-storage.com/media/sunset.jpg',
       alt: 'An orange sky behind the Las Vegas skyline',
     },
-    { url: 'https://example.blob.vercel-storage.com/media/crowd.jpg' },
+    {
+      url: 'https://example.blob.vercel-storage.com/media/crowd.jpg',
+      alt: 'People gathering on the Strip',
+    },
   ]);
+});
+
+test('Micropub rejects bare, blank, and whitespace-only JSON photo descriptions', async () => {
+  for (const photo of [
+    'https://example.com/photo.jpg',
+    { value: 'https://example.com/photo.jpg', alt: '' },
+    { value: 'https://example.com/photo.jpg', alt: '   ' },
+  ]) {
+    await assert.rejects(
+      parseMicropubCreateRequest(
+        micropubRequest({ type: ['h-entry'], properties: { photo: [photo] } })
+      ),
+      /Photo 1 needs nonblank alt text/
+    );
+  }
 });
 
 test('parseMicropubCreateRequest rejects a photo that is not a web URL', async () => {
@@ -358,7 +375,7 @@ test('parseMicropubCreateRequest rejects a photo that is not a web URL', async (
   }
 });
 
-test('parseMicropubCreateRequest refuses a photo file sent to the post endpoint', async () => {
+test('parseMicropubCreateRequest directs photo files to the media endpoint', async () => {
   const body = new FormData();
   body.set('h', 'entry');
   body.set('content', 'Caption.');
@@ -368,11 +385,11 @@ test('parseMicropubCreateRequest refuses a photo file sent to the post endpoint'
     parseMicropubCreateRequest(
       new Request(`${site.origin}/micropub`, { method: 'POST', body })
     ),
-    /invalid_request/
+    /Upload the file to \/micropub\/media/
   );
 });
 
-test('multipart photo creation stores the file before parsing the post', async () => {
+test('multipart photo creation cannot publish an upload without alt text', async () => {
   const form = new FormData();
   form.set('h', 'entry');
   form.set(
@@ -385,14 +402,10 @@ test('multipart photo creation stores the file before parsing the post', async (
     method: 'POST',
     body: form,
   });
-  const prepared = await prepareMicropubPhotoRequest(request, {
-    async put() {
-      return 'https://media.example/photo.jpg';
-    },
-  });
-  const entry = await parseMicropubCreateRequest(prepared);
-  assert.deepEqual(entry.photos, [{ url: 'https://media.example/photo.jpg' }]);
-  assert.equal(entry.postType, 'photo');
+  await assert.rejects(
+    parseMicropubCreateRequest(request),
+    /Upload the file to \/micropub\/media/
+  );
 });
 
 test('buildMicropubWritingFile records photos with their alt text', () => {
@@ -403,7 +416,7 @@ test('buildMicropubWritingFile records photos with their alt text', () => {
       postType: 'photo',
       photos: [
         { url: 'https://example.com/a.jpg', alt: 'A bus at dusk' },
-        { url: 'https://example.com/b.jpg' },
+        { url: 'https://example.com/b.jpg', alt: 'A second bus at dusk' },
       ],
     },
     'photo-note'
@@ -414,7 +427,17 @@ test('buildMicropubWritingFile records photos with their alt text', () => {
   assert.match(file, /description: "A photo from /);
   assert.match(
     file,
-    /photo:\n {2}- url: "https:\/\/example\.com\/a\.jpg"\n {4}alt: "A bus at dusk"\n {2}- url: "https:\/\/example\.com\/b\.jpg"\n/
+    /photo:\n {2}- url: "https:\/\/example\.com\/a\.jpg"\n {4}alt: "A bus at dusk"\n {2}- url: "https:\/\/example\.com\/b\.jpg"\n {4}alt: "A second bus at dusk"\n/
+  );
+});
+
+test('Micropub refuses invalid photos before a GitHub commit', async () => {
+  await assert.rejects(
+    commitMicropubWriting(
+      { ...baseEntry, photos: [{ url: 'https://example.com/photo.jpg' }] },
+      { repository: 'willie/website', token: 'test', branch: 'main' }
+    ),
+    /Photo 1 needs nonblank alt text/
   );
 });
 

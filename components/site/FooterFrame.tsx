@@ -52,6 +52,9 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     footer.dataset.dock = '';
 
     const contact = footer.querySelector<HTMLElement>('[data-footer-contact]');
+    const pages = footer.querySelector<HTMLElement>('.site-footer__pages');
+    const feedButton = footer.querySelector<HTMLElement>('.feeds-button');
+    const extraProfiles = footer.querySelectorAll<HTMLElement>('[data-extra]');
     const name = footer.querySelector<HTMLElement>('[data-footer-name]');
     const compact = window.matchMedia(COMPACT);
     const reduce = window.matchMedia(REDUCE);
@@ -97,6 +100,17 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
         scrollHeight,
         footerHeight,
       });
+      // A clipped or transparent control cannot receive keyboard focus.
+      if (pages) pages.inert = p < 0.9;
+      if (feedButton) feedButton.inert = p < 0.6;
+      const tagline = footer.querySelector<HTMLElement>(
+        '.site-footer__brand > p'
+      );
+      if (tagline) tagline.inert = p < 0.9;
+      if (contact) contact.inert = compact.matches && p < 0.08;
+      extraProfiles.forEach((profile) => {
+        profile.inert = !compact.matches && p < 0.5;
+      });
       footer.style.setProperty('--p', p.toFixed(4));
       root.style.setProperty('--footer-p', p.toFixed(4));
       // The page becomes a sheet only as far as the visitor has scrolled:
@@ -128,16 +142,6 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       schedule();
     };
 
-    // Tabbing into a part of the footer that is still closed goes to the end
-    // of the page, where it is open, rather than to something clipped away.
-    // The contact links are on screen from the start on a wide window.
-    const onFocus = (event: FocusEvent) => {
-      if (p >= 1) return;
-      const target = event.target as Node;
-      if (!compact.matches && contact?.contains(target)) return;
-      window.scrollTo({ top: document.documentElement.scrollHeight });
-    };
-
     // The page grows as images load and the tagline streams in, which
     // moves where the footer's stretch of scroll starts.
     const resize = new ResizeObserver(remeasure);
@@ -145,7 +149,6 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', remeasure);
     compact.addEventListener('change', remeasure);
-    footer.addEventListener('focusin', onFocus);
     measure();
     update();
 
@@ -155,7 +158,15 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', remeasure);
       compact.removeEventListener('change', remeasure);
-      footer.removeEventListener('focusin', onFocus);
+      [
+        pages,
+        feedButton,
+        footer.querySelector<HTMLElement>('.site-footer__brand > p'),
+        contact,
+        ...extraProfiles,
+      ].forEach((element) => {
+        if (element) element.inert = false;
+      });
       reveal?.destroy();
       headlineReveal?.destroy();
       footer.removeAttribute('style');

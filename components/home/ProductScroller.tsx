@@ -63,6 +63,7 @@ export function ProductScroller({
                   width={product.image.width}
                   height={product.image.height}
                   alt=""
+                  aria-hidden="true"
                   loading={loading}
                   decoding="async"
                 />

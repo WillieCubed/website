@@ -103,7 +103,6 @@ export function RefMark({
         className="ref-mark"
         aria-label={`Reference ${number}`}
         aria-describedby={popoverId}
-        aria-expanded={open}
         onPointerEnter={(event) => {
           if (event.pointerType === 'mouse') show();
         }}
@@ -126,13 +125,7 @@ export function RefMark({
         onPointerLeave={hide}
       >
         <span className="ref-popover__num">{number}</span>
-        {kind === 'link' && href ? (
-          <a href={href} rel="noopener" className="link-animated">
-            {content}
-          </a>
-        ) : (
-          content
-        )}
+        {content}
         {host && <span className="ref-popover__host">{host}</span>}
       </span>
     </>

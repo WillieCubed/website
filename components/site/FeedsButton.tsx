@@ -22,6 +22,8 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
   const button = useRef<HTMLButtonElement>(null);
   const popover = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [copyMessage, setCopyMessage] = useState('');
+  const [open, setOpen] = useState(false);
 
   const feeds = [
     { label: 'RSS', href: `${base}/feed.xml`, quiet: false },
@@ -64,6 +66,8 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
         type="button"
         popoverTarget={id}
         className="feeds-button"
+        aria-expanded={open}
+        aria-controls={id}
       >
         <Icon name="rss" size={16} />
         Feeds
@@ -75,15 +79,22 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
         className="site-popover feeds-popover"
         onToggle={(event) => {
           if (event.newState === 'open') {
+            setOpen(true);
             place();
+            popover.current?.querySelector<HTMLElement>('a')?.focus();
             window.addEventListener('scroll', follow.current, {
               passive: true,
             });
             window.addEventListener('resize', follow.current);
           } else {
+            setOpen(false);
+            if (popover.current?.contains(document.activeElement)) {
+              button.current?.focus();
+            }
             window.removeEventListener('scroll', follow.current);
             window.removeEventListener('resize', follow.current);
             setCopied(null);
+            setCopyMessage('');
           }
         }}
       >
@@ -107,8 +118,10 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
                   try {
                     await navigator.clipboard.writeText(absoluteUrl(feed.href));
                     setCopied(feed.href);
+                    setCopyMessage(`${feed.label} link copied.`);
                   } catch {
                     setCopied(null);
+                    setCopyMessage(`Could not copy the ${feed.label} link.`);
                   }
                 }}
               >
@@ -120,6 +133,9 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
             </li>
           ))}
         </ul>
+        <p className="sr-only" role="status">
+          {copyMessage}
+        </p>
       </div>
     </>
   );

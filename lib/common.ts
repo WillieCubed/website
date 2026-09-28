@@ -11,6 +11,7 @@ export type ProjectData = {
   type: ProjectType;
   projectIconUrl: string;
   thumbnail: string;
+  thumbnailAlt?: string;
   website: string;
   contact: ProjectContactInfo;
   /**

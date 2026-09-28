@@ -41,6 +41,7 @@ export default function LinkPreview({
           className="link-preview__cover"
           src={card.cover.src}
           alt=""
+          aria-hidden="true"
           loading="lazy"
           decoding="async"
         />

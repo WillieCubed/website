@@ -122,6 +122,7 @@ export default function ReplyTarget({
               <Image
                 src={context.authorPhoto}
                 alt=""
+                aria-hidden="true"
                 width={20}
                 height={20}
                 className="u-photo size-5 rounded-full object-cover"

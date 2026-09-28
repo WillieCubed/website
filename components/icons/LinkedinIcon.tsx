@@ -6,6 +6,7 @@ export default function LinkedinIcon({ className }: { className?: string }) {
       height="24"
       viewBox="0 0 20 20"
       fill="none"
+      aria-hidden="true"
       className={className}
     >
       <g clipPath="url(#clip0_1467_7)">

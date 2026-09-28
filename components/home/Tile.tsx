@@ -108,7 +108,7 @@ export function Tile({
         onClick={(event) => {
           if (!isPlainClick(event)) return;
           event.preventDefault();
-          openDetail(id, ref.current);
+          openDetail(id, event.currentTarget);
         }}
       />
       <div className="head">

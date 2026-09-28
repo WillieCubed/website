@@ -93,8 +93,9 @@ sequenceDiagram
 
 Use a separate public Blob store for acceptance photos. New Vercel Blob
 connections use `BLOB_STORE_ID` and short-lived OIDC credentials; a legacy
-`BLOB_READ_WRITE_TOKEN` also works. Upload one photo through `/micropub/media`
-and one in a direct multipart post, then check both returned media URLs.
+`BLOB_READ_WRITE_TOKEN` also works. Upload a photo through `/micropub/media`,
+then create a JSON photo post with its URL and nonblank alt text. Confirm that
+a direct multipart post returns 400 before it stores a file.
 
 Micropub Rocks requires an email sign-in before its server cases. Try its
 IndieAuth flow first. If its client does not send a PKCE verifier, register a

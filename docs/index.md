@@ -36,6 +36,8 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## Design
 
+- [Accessibility](./accessibility.md): image descriptions, publication gates,
+  interaction rules, and audit evidence.
 - [Design principles](./design-principles.md): the five principles and the brand
   rule that govern the relaunch.
 - [Links and hover cards](./links.md): every in-site link goes through

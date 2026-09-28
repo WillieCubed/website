@@ -333,6 +333,39 @@ test('updates the frontmatter cannot hold are refused', () => {
   }
 });
 
+test('a photo update needs alt text before it can produce a new file', () => {
+  for (const photo of [
+    'https://example.com/photo.jpg',
+    { value: 'https://example.com/photo.jpg', alt: '   ' },
+  ]) {
+    assert.throws(
+      () =>
+        applyMicropubUpdate(
+          handWritten,
+          update({ replace: { photo: [photo] } }),
+          now
+        ),
+      (error: unknown) =>
+        error instanceof MicropubRequestError &&
+        /Photo 1 needs nonblank alt text/.test(error.description)
+    );
+  }
+  assert.match(
+    applyMicropubUpdate(
+      handWritten,
+      update({
+        replace: {
+          photo: [
+            { value: 'https://example.com/photo.jpg', alt: 'A bus at dusk' },
+          ],
+        },
+      }),
+      now
+    ),
+    /alt: "A bus at dusk"/
+  );
+});
+
 test('siteTimestamp writes the site-local time with its offset', () => {
   assert.equal(siteTimestamp(now), '2026-09-27T13:05-0700');
   assert.equal(

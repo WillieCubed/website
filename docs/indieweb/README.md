@@ -147,6 +147,15 @@ Initiative and part pages show their approved mentions the same way through
 `components/indieweb/PageWebmentions.tsx`, at the foot of the page. Those
 pages carry no `h-entry`, so the mentions there are standalone `h-cite`s.
 
+A part page's hero is an `h-event` (`components/initiatives/PartEvent.tsx`):
+`p-name` is the standalone part title from `partTitle()`, with `u-url`,
+`dt-start`, `dt-end`, the tagline as `p-summary`, and one `p-location h-adr`
+per place carrying `p-locality`, `p-region`, `p-latitude`, and
+`p-longitude`. The mentions sit outside the hero, so they stay standalone.
+The page's JSON-LD graph carries the same trip as a schema.org `Event`
+(`eventLd()` in `lib/seo/jsonld.ts`). `tests/unit/initiative-event.test.mts`
+parses the rendered markup.
+
 `@handle` in prose becomes a link through `lib/writings/remark-mentions.ts`.
 `@thewilliediaries` and `@williecubed` map to their Instagram profiles, and any
 other handle links to `https://instagram.com/<handle>`. Add an entry to

@@ -161,6 +161,59 @@ export function webPageLd(input: WebPageInput): JsonLdNode {
   };
 }
 
+export interface EventInput {
+  path: string;
+  name: string;
+  description: string;
+  /** Calendar days as `yyyy-mm-dd`; an initiative part has no times. */
+  startDate: string;
+  endDate: string;
+  /** In travel order. An event with none leaves `location` out. */
+  places: Array<{ name: string; region?: string; lat: number; lng: number }>;
+  /** Site-relative or absolute URL of the event's image. */
+  image?: string;
+}
+
+/**
+ * An initiative part as an in-person event that Willie runs and appears in.
+ * It points at the person, so its graph includes `personLd()` as well.
+ */
+export function eventLd(input: EventInput): JsonLdNode {
+  const url = canonicalUrl(input.path);
+  return {
+    '@type': 'Event',
+    '@id': `${url}#event`,
+    url,
+    name: input.name,
+    description: input.description,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    ...(input.places.length > 0
+      ? {
+          location: input.places.map((place) => ({
+            '@type': 'Place',
+            name: place.region ? `${place.name}, ${place.region}` : place.name,
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: place.name,
+              ...(place.region ? { addressRegion: place.region } : {}),
+            },
+            geo: {
+              '@type': 'GeoCoordinates',
+              latitude: place.lat,
+              longitude: place.lng,
+            },
+          })),
+        }
+      : {}),
+    organizer: { '@id': ids.person },
+    performer: { '@id': ids.person },
+    ...(input.image ? { image: absoluteUrl(input.image) } : {}),
+  };
+}
+
 export function breadcrumbLd(
   crumbs: Array<{ name: string; path: string }>
 ): JsonLdNode {

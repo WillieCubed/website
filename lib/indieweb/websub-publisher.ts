@@ -1,9 +1,9 @@
 /**
- * Tell the WebSub hub that the site feeds changed.
+ * Tell the WebSub hub that the site's feeds changed.
  *
- * The hub then fetches each feed and fans it out to subscribers.
+ * The hub then fetches each topic and fans it out to subscribers.
  */
-import { absoluteUrl } from '../site';
+import { groupByTag, tagFeedPaths, tagPath } from '../writings/tags';
 import { WEBSUB_HUB } from './constants';
 
 export const SITE_FEED_PATHS = [
@@ -15,10 +15,56 @@ export const SITE_FEED_PATHS = [
   '/writings/feed/json',
 ];
 
+/**
+ * HTML pages that are h-feeds and name the hub and themselves in their
+ * head, so a reader can subscribe to the page itself.
+ */
+export const HTML_FEED_PATHS = ['/writings'];
+
+/** A tag's page, which is an h-feed, and its three feeds. */
+export function tagTopicPaths(tag: string): string[] {
+  const feeds = tagFeedPaths(tag);
+  return [tagPath(tag), feeds.rss, feeds.atom, feeds.json];
+}
+
+/**
+ * Every topic to publish after a deploy. The hub is not told which posts
+ * changed, so every tag's topics go out each time, as the site feeds do.
+ */
+export function webSubTopicPaths(tags: string[]): string[] {
+  return [
+    ...SITE_FEED_PATHS,
+    ...HTML_FEED_PATHS,
+    ...tags.flatMap(tagTopicPaths),
+  ];
+}
+
+/**
+ * The topics for the tags published now. It reads through the uncached
+ * loader because `pnpm websub:ping` runs under plain Node, where
+ * `cacheLife()` throws. If the posts cannot be read, the site and HTML
+ * feeds still go out rather than nothing.
+ */
+export async function publishedTopicPaths(): Promise<string[]> {
+  try {
+    const { getWritingSlugs, loadWriting } = await import('../writings');
+    const loaded = await Promise.all(
+      (await getWritingSlugs()).map((slug) => loadWriting(slug))
+    );
+    const published = loaded
+      .map(({ writing }) => writing)
+      .filter((writing) => !writing.draft);
+    return webSubTopicPaths(groupByTag(published).map(({ tag }) => tag));
+  } catch (error) {
+    console.error('WebSub could not read the published tags:', error);
+    return webSubTopicPaths([]);
+  }
+}
+
 const FETCH_TIMEOUT_MS = 10_000;
 
 export async function pingWebSubHub(
-  feedUrls: string[] = SITE_FEED_PATHS.map((path) => absoluteUrl(path)),
+  feedUrls: string[],
   hub = WEBSUB_HUB
 ): Promise<{ ok: boolean; status?: number; error?: string }> {
   let status: number | undefined;

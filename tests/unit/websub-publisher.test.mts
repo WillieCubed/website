@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { pingWebSubHub } from '@/lib/indieweb/websub-publisher';
+import {
+  HTML_FEED_PATHS,
+  SITE_FEED_PATHS,
+  pingWebSubHub,
+  publishedTopicPaths,
+  webSubTopicPaths,
+} from '@/lib/indieweb/websub-publisher';
+import { getWritingSlugs, loadWriting } from '@/lib/writings';
 
 test('WebSub notifies the hub once for each public feed', async () => {
   const originalFetch = globalThis.fetch;
@@ -80,5 +87,44 @@ test('WebSub treats an unregistered topic without subscribers as idle', async ()
     assert.equal(calls, 2);
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test('the hub hears about the writings page and every tag page and feed', () => {
+  assert.deepEqual(webSubTopicPaths(['note']), [
+    ...SITE_FEED_PATHS,
+    '/writings',
+    '/writings/tags/note',
+    '/writings/tags/note/feed.xml',
+    '/writings/tags/note/feed/atom',
+    '/writings/tags/note/feed/json',
+  ]);
+  assert.deepEqual(HTML_FEED_PATHS, ['/writings']);
+});
+
+test('the published topics cover the tags of published posts, never drafts', async () => {
+  const topics = new Set(await publishedTopicPaths());
+  const tagPages = [...topics].filter((path) =>
+    /^\/writings\/tags\/[^/]+$/.test(path)
+  );
+  const published = new Set<string>();
+  const draftOnly = new Set<string>();
+  for (const slug of await getWritingSlugs()) {
+    const { writing } = await loadWriting(slug);
+    for (const tag of writing.tags.map((t) => t.toLowerCase())) {
+      (writing.draft ? draftOnly : published).add(tag);
+    }
+  }
+  for (const tag of published) draftOnly.delete(tag);
+
+  assert.deepEqual(
+    tagPages.sort(),
+    [...published].sort().map((tag) => `/writings/tags/${tag}`)
+  );
+  for (const tag of draftOnly) {
+    assert.ok(!topics.has(`/writings/tags/${tag}`), `draft tag ${tag}`);
+  }
+  for (const path of [...SITE_FEED_PATHS, ...HTML_FEED_PATHS]) {
+    assert.ok(topics.has(path), path);
   }
 });

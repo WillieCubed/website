@@ -64,10 +64,15 @@ photo and email are `<data class="u-photo">` and `<data class="u-email">`,
 because on the homepage the contact links belong to the footer, which grows
 out of the rail's foot. The `rel="me"` links are the footer's profile links,
 on every page.
-`/writings` and `/initiatives` are each an `h-feed` with its own `p-name`,
-`u-url`, and a hidden `p-author h-card` (`components/indieweb/FeedAuthor.tsx`)
-that links to the homepage, so the entries listed in them inherit an author
-without a byline. Each initiative on `/initiatives` is an `h-entry` with
+`/writings`, each tag page under `/writings/tags/`, and `/initiatives` are
+each an `h-feed` with its own `p-name`, `u-url`, and a hidden
+`p-author h-card` (`components/indieweb/FeedAuthor.tsx`) that links to the
+homepage, so the entries listed in them inherit an author without a byline.
+`/writings` and the tag pages also carry `<link rel="self">` beside the
+layout's `rel="hub"`, and the publisher pings them, so a WebSub subscriber
+to the page itself hears about new posts. Their entries render in the
+static shell rather than inside a Suspense boundary, which would stream
+them in after `</main>` and leave the feed empty for a parser. Each initiative on `/initiatives` is an `h-entry` with
 `p-name`, `u-url`, and `p-summary`. Notes omit the visible headline; the
 loader derives `title` from the first sentence so feeds and the index still
 have text, and `WritingHeader` renders that derived title inside an
@@ -323,7 +328,7 @@ goes for any challenge Cloudflare puts in front of the site.
 | Script                                   | What it does                                                                                                                                                                                                                                                                                                      |
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm search:index` (runs as `prebuild`) | Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives and their parts, and pages. Both are gitignored. The Pagefind step needs its platform binary, which the `pagefind` package installs.                                                          |
-| `pnpm websub:ping`                       | POSTs `hub.mode=publish` with the six feed URLs to `WEBSUB_HUB`.                                                                                                                                                                                                                                                  |
+| `pnpm websub:ping`                       | POSTs `hub.mode=publish` to `WEBSUB_HUB` for the six site and writings feeds, `/writings`, and each published tag's page and feeds.                                                                                                                                                                               |
 | `pnpm webmentions:send`                  | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                                                                                                                                                                                       |
 | `pnpm webmentions:moderate`              | Lists pending webmentions, or approves or rejects them by id; see Moderation. Needs `POSTGRES_URL`.                                                                                                                                                                                                               |
 | `pnpm webmentions:backfill-authors`      | One-off repair for webmentions verified before the verifier read a `u-photo` with alt text: fills each missing author photo from the h-entry stored with the mention, through `extractAuthor`. It writes only rows with no photo, so a second run changes nothing. Without `POSTGRES_URL` it says so and exits 0. |

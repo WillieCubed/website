@@ -113,6 +113,29 @@ test('a tag no published writing carries is not found', async ({ request }) => {
   expect(response.status()).toBe(404);
 });
 
+test('the writings and tag pages name the hub and themselves for WebSub', async ({
+  request,
+}) => {
+  const tagPublished = await isPublished(request, TAG_PATH);
+  for (const path of tagPublished ? ['/writings', TAG_PATH] : ['/writings']) {
+    const html = await (await request.get(path)).text();
+    const head = html.slice(0, html.indexOf('</head>'));
+    expect(head, path).toContain(`<link rel="hub" href="${WEBSUB_HUB}"/>`);
+    expect(head, path).toContain(
+      `<link rel="self" href="${site.origin}${path}"/>`
+    );
+  }
+  if (!tagPublished) return;
+  const tagHead = await (await request.get(TAG_PATH)).text();
+  for (const feed of ['feed.xml', 'feed/atom', 'feed/json']) {
+    expect(tagHead).toMatch(
+      new RegExp(
+        `<link rel="alternate" type="[^"]+" href="${site.origin}${TAG_PATH}/${feed}"/>`
+      )
+    );
+  }
+});
+
 test('a tag feed for a tag no published writing carries is not found', async ({
   request,
 }) => {

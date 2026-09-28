@@ -1,4 +1,6 @@
-import { site } from '@/lib/site';
+// Relative for next.config.ts, which reaches this file through
+// lib/indieweb/discovery-links.ts; see the note there.
+import { site } from '../site';
 
 export const SITE_URL = site.origin;
 export const SITE_NAME = site.name;

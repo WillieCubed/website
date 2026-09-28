@@ -1,8 +1,6 @@
 import {
   AT_PROTOCOL_DID,
-  INDIEAUTH_AUTHORIZATION_ENDPOINT,
   INDIEAUTH_METADATA_ENDPOINT,
-  INDIEAUTH_TOKEN_ENDPOINT,
   MICROPUB_ENDPOINT,
   OEMBED_ENDPOINT,
   PUBLIC_WEBMENTIONS_ENDPOINT,
@@ -11,21 +9,10 @@ import {
   SITE_URL,
   WEBMENTION_ENDPOINT,
 } from '@/lib/indieweb/constants';
+import { INDIEAUTH_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
 import type { HostMetaResponse, WebFingerResponse } from '@/lib/indieweb/types';
 import { absoluteSiteUrl } from '@/lib/indieweb/utils';
 import { MCP_ENDPOINT } from '@/lib/mcp/constants';
-
-/**
- * How a client finds the IndieAuth server. `indieauth-metadata` is the
- * current mechanism; the two endpoint links serve clients written before it.
- * The head in `app/layout.tsx` and the WebFinger response both render this
- * list, so they cannot drift apart.
- */
-export const INDIEAUTH_DISCOVERY_LINKS = [
-  { rel: 'indieauth-metadata', href: INDIEAUTH_METADATA_ENDPOINT },
-  { rel: 'authorization_endpoint', href: INDIEAUTH_AUTHORIZATION_ENDPOINT },
-  { rel: 'token_endpoint', href: INDIEAUTH_TOKEN_ENDPOINT },
-] as const;
 
 /**
  * The resources WebFinger answers for: the author's acct: URI and the home

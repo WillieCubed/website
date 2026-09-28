@@ -399,9 +399,10 @@ signing in to a Micropub client as `https://willie.page/` never leaves this
 domain. Clients find it through `<link rel="indieauth-metadata">` in the
 head, which points at `/.well-known/oauth-authorization-server`. The head
 also keeps `rel="authorization_endpoint"` and `rel="token_endpoint"` for
-older clients, and WebFinger returns the same three links. Both render
-`INDIEAUTH_DISCOVERY_LINKS` from `lib/indieweb/discovery.ts`, so they cannot
-disagree.
+older clients, every page repeats them in its HTTP `Link` header, and
+WebFinger returns the same three links. All three render
+`INDIEAUTH_DISCOVERY_LINKS` from `lib/indieweb/discovery-links.ts`, so they
+cannot disagree.
 
 A sign-in runs like this:
 

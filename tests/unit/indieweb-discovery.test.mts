@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  INDIEAUTH_DISCOVERY_LINKS,
   buildAtProtocolDid,
   buildHostMetaResponse,
   buildHostMetaXml,
   buildLlmsSummary,
   buildWebFingerResponse,
 } from '@/lib/indieweb/discovery';
+import { INDIEAUTH_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
 import { site } from '@/lib/site';
 
 const acct = `acct:${site.author.handle}@${new URL(site.origin).hostname}`;

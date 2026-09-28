@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
@@ -33,7 +33,7 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
 
   // The popover lives in the top layer, so it is placed by hand next to
   // the button: above it when there is room, below it otherwise.
-  function place() {
+  const place = useCallback(() => {
     const anchor = button.current?.getBoundingClientRect();
     const panel = popover.current;
     if (!anchor || !panel) return;
@@ -46,18 +46,16 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
     const top = above >= 16 ? above : anchor.bottom + gap;
     panel.style.left = `${left}px`;
     panel.style.top = `${top}px`;
-  }
+  }, []);
 
   // The popover is fixed in the top layer, so it follows the button by hand
   // while it is open; scrolling or resizing would otherwise leave it behind.
-  const follow = useRef(() => place());
   useEffect(() => {
-    const listener = follow.current;
     return () => {
-      window.removeEventListener('scroll', listener);
-      window.removeEventListener('resize', listener);
+      window.removeEventListener('scroll', place);
+      window.removeEventListener('resize', place);
     };
-  }, []);
+  }, [place]);
 
   return (
     <>
@@ -82,17 +80,17 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
             setOpen(true);
             place();
             popover.current?.querySelector<HTMLElement>('a')?.focus();
-            window.addEventListener('scroll', follow.current, {
+            window.addEventListener('scroll', place, {
               passive: true,
             });
-            window.addEventListener('resize', follow.current);
+            window.addEventListener('resize', place);
           } else {
             setOpen(false);
             if (popover.current?.contains(document.activeElement)) {
               button.current?.focus();
             }
-            window.removeEventListener('scroll', follow.current);
-            window.removeEventListener('resize', follow.current);
+            window.removeEventListener('scroll', place);
+            window.removeEventListener('resize', place);
             setCopied(null);
             setCopyMessage('');
           }

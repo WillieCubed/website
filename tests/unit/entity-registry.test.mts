@@ -88,6 +88,13 @@ test('a writing without a featured image has no cover', () => {
   assert.equal(card.cover, undefined);
 });
 
+test('a featured writing cannot publish a blank cover description', () => {
+  assert.throws(
+    () => entityCards([makeWriting({ featuredImage: '/hello.jpg' })], []),
+    /featured image without alt text/
+  );
+});
+
 test('an initiative and each of its parts get cards', () => {
   const initiative = makeInitiative({
     parts: [

@@ -76,6 +76,11 @@
     transition: none;
   }
 }
+@media (forced-colors: active) {
+  .act-card {
+    border: 1px solid CanvasText;
+  }
+}
 .act[aria-current='step'] .act-card {
   border-color: var(--accent-live);
   /* A scheme container rather than a tint of the brand color, so the muted

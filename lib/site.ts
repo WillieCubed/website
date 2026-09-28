@@ -22,6 +22,8 @@ const emails = {
   projects: process.env.NEXT_PUBLIC_EMAIL_PROJECTS || 'projects@willie.page',
 };
 
+const THREADS_PROFILE = 'https://www.threads.com/@williecubed';
+
 // The homepage headline, and the rest of the site description after it.
 const HEADLINE = 'Willie Chalmers III builds software and systems for people.';
 const LEDE =
@@ -64,8 +66,26 @@ export const site = {
       href: 'https://www.linkedin.com/in/willie-chalmers-iii',
     },
     { label: 'GitHub', href: 'https://github.com/WillieCubed' },
-    { label: 'Threads', href: 'https://www.threads.com/@williecubed' },
+    { label: 'Threads', href: THREADS_PROFILE },
     { label: 'Instagram', href: 'https://www.instagram.com/williecubed' },
+  ],
+  /**
+   * Accounts a Micropub client may choose with mp-syndicate-to. Bluesky's
+   * handle is the domain itself, which /.well-known/atproto-did vouches for.
+   */
+  syndication: [
+    {
+      service: 'Bluesky',
+      serviceUrl: 'https://bsky.app/',
+      handle: 'willie.page',
+      profile: 'https://bsky.app/profile/willie.page',
+    },
+    {
+      service: 'Threads',
+      serviceUrl: 'https://www.threads.com/',
+      handle: '@williecubed',
+      profile: THREADS_PROFILE,
+    },
   ],
   /** The ventures Willie runs, for structured data. */
   ventures: [

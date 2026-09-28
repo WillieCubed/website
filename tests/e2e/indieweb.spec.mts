@@ -218,12 +218,15 @@ test('Micropub advertises capabilities and rejects unauthenticated creation', as
   expect(capabilities['post-types']).toEqual(
     expect.arrayContaining([expect.objectContaining({ type: 'note' })])
   );
-  expect(capabilities['syndicate-to']).toBeUndefined();
+  const targets = site.syndication.map((account) =>
+    expect.objectContaining({ uid: account.profile })
+  );
+  expect(capabilities['syndicate-to']).toEqual(targets);
   expect(
     (await (await request.get('/micropub?q=syndicate-to')).json())[
       'syndicate-to'
     ]
-  ).toEqual([]);
+  ).toEqual(targets);
   const create = await request.post('/micropub', {
     form: { h: 'entry', content: 'This must not be published.' },
   });

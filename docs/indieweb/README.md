@@ -333,14 +333,26 @@ the route writes into the local checkout. On a read-only deploy that write
 fails with a 500 whose `error_description` names the reason, which is the
 correct outcome on Vercel and Workers: set the GitHub variables there.
 
-`?q=syndicate-to` returns an empty list. The site cannot create a copy on
-Bluesky or Threads, so advertising either profile as a destination would be
-false. A writing's **Share on Threads** link opens an editable Threads draft
-with the original's canonical URL. The owner must publish the copy from their
-account. Add its exact permalink to `syndication` frontmatter only after
-publication, and confirm that the copy links back to the original. Micropub
-`mp-syndicate-to` is rejected until an account integration can return exact
-copy permalinks.
+### Syndication
+
+`?q=syndicate-to` and `?q=config` list two targets, Bluesky
+(`https://bsky.app/profile/willie.page`) and Threads
+(`https://www.threads.com/@williecubed`), each with `uid`, `name`, `service`,
+and `user`. The accounts live in `site.syndication` in `lib/site.ts`; the
+Bluesky handle is the domain itself, which `/.well-known/atproto-did` vouches
+for. A create request may name either `uid` in `mp-syndicate-to`, and any
+other value gets a 400.
+
+The site has no API access to either service, so choosing a target posts
+nothing. The route records the choice as intent, `syndicateTo: [uid, ...]` in
+the post's frontmatter, and the response carries no syndication URL.
+Syndication stays manual POSSE: after the post deploys, Willie posts the copy
+from his account (a writing's **Share on Threads** link opens an editable
+Threads draft with the canonical URL), confirms the copy links back, and then
+adds its exact permalink to `syndication`. `syndicateTo` never renders, and
+nothing clears it once the copy exists. When an account integration can return
+the permalink of the copy it created, it should read `syndicateTo`, post, and
+write `syndication`.
 
 ### Photos
 

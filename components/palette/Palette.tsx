@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import Icon, { type IconName } from '@/components/icons/Icon';
+import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
 
 import {
   EGG_HINTS,
@@ -491,6 +492,7 @@ export default function Palette({
   onClose,
   onForcedClose,
 }: PaletteProps) {
+  const backdrop = useBackdropDismiss(onClose);
   return (
     <dialog
       ref={ref}
@@ -502,16 +504,7 @@ export default function Palette({
         onClose();
       }}
       onClose={onForcedClose}
-      onClick={(event) => {
-        // A click on the backdrop lands on the dialog itself, outside its box.
-        const box = event.currentTarget.getBoundingClientRect();
-        const outside =
-          event.clientX < box.left ||
-          event.clientX > box.right ||
-          event.clientY < box.top ||
-          event.clientY > box.bottom;
-        if (event.target === event.currentTarget && outside) onClose();
-      }}
+      {...backdrop}
     >
       {/* Mounted from the first opening on, so the card keeps its contents
           while it morphs or fades away on close. */}

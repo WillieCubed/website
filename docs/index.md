@@ -77,5 +77,9 @@ how its content is modeled, and the conventions that govern changes to it.
   the design, proposed, for standard.site publishing and AT Protocol interop.
   Its plans cover [standard.site](./superpowers/plans/2026-10-02-standard-site.md)
   and [Bluesky posting and responses](./superpowers/plans/2026-10-02-bluesky-posse.md).
+- [Project model and pages](./superpowers/plans/2026-09-28-project-model-and-pages.md):
+  the plan, not yet executed, for one validated file per project and a page
+  for every project, with the `/projects` list left parked until Willie
+  picks a layout.
 
 [website]: https://willie.page

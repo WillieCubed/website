@@ -15,7 +15,12 @@ import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 
-import { getInitiative, getInitiativeSlugs, getPart } from '@/lib/initiatives';
+import {
+  getInitiative,
+  getInitiativeSlugs,
+  getPart,
+  partTitle,
+} from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
 import {
@@ -56,7 +61,7 @@ export async function generateMetadata(props: {
     labels.push(['Where', part.places.map((place) => place.name).join(', ')]);
   }
   return pageMetadata({
-    title: `${initiative.partLabel} ${part.number}: ${part.title}`,
+    title: partTitle(initiative, part),
     description: part.description || part.tagline || initiative.description,
     path: `${initiative.href}/${part.slug}`,
     image: `${initiative.href}/${part.slug}/opengraph-image`,
@@ -82,7 +87,7 @@ export default async function PartPage(props: {
   const { initiative, part } = found;
   const cover = part.cover ?? initiative.cover;
   const partPath = `${initiative.href}/${part.slug}`;
-  const partTitle = `${initiative.partLabel} ${part.number}: ${part.title}`;
+  const actTitle = `${initiative.partLabel} ${part.number}: ${part.title}`;
   // One trail feeds the top bar and the breadcrumb markup, and it includes a
   // parent initiative the way the initiative page does.
   const parent = initiative.parent
@@ -93,14 +98,14 @@ export default async function PartPage(props: {
   crumbs.push({ label: initiative.title, href: initiative.href });
   const partGraph = graph(
     webPageLd({
-      name: partTitle,
+      name: partTitle(initiative, part),
       description: part.description || part.tagline || initiative.description,
       path: partPath,
       image: `${partPath}/opengraph-image`,
     }),
     breadcrumbLd([
       ...crumbs.map((crumb) => ({ name: crumb.label, path: crumb.href })),
-      { name: partTitle, path: partPath },
+      { name: actTitle, path: partPath },
     ]),
     websiteLd(),
     personLd()

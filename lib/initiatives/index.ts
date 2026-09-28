@@ -25,6 +25,18 @@ export function partSlug(number: number): string {
   return `part-${number}`;
 }
 
+/**
+ * A part's name as it reads away from its initiative: in a social card, a
+ * search result, or a browser tab. "Part 1: A Boy Goes Back to Dallas" means
+ * nothing on its own, so the initiative leads, the way Docket names it.
+ */
+export function partTitle(
+  initiative: Pick<Initiative, 'title' | 'partLabel'>,
+  part: Pick<Part, 'number' | 'title'>
+): string {
+  return `${initiative.title} ${initiative.partLabel} ${part.number}: ${part.title}`;
+}
+
 /** Parses `part-3` back into 3, or null for anything else. */
 export function parsePartSlug(slug: string): number | null {
   const match = /^part-(\d+)$/.exec(slug);

@@ -99,7 +99,7 @@ test('initiativeToItems skips a draft initiative and draft parts', () => {
 
 test('part items are titled like the part page and searchable by place', () => {
   const [, part] = initiativeToItems(makeInitiative());
-  assert.equal(part.title, 'Part 1: Las Vegas');
+  assert.equal(part.title, 'Fall Tour 2026 Part 1: Las Vegas');
   assert.ok(part.content.includes('Las Vegas'));
   assert.ok(part.content.includes('early'));
   assert.ok(!part.content.includes('**'));

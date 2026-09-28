@@ -222,6 +222,9 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
   // The param as of the latest render, for code that runs after a morph.
   const requestedRef = useRef(requested);
   const pendingRef = useRef<PendingUrl | null>(null);
+  // The current history entry is the one opening pushed, so closing can go
+  // back to the page the visitor opened the view from.
+  const ownEntryRef = useRef(false);
   // hide() closed the dialog itself, and its close event is still to come.
   const selfClosedRef = useRef(false);
 
@@ -355,13 +358,21 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     wantRef.current = null;
     fromRef.current = null;
     const pending = pendingRef.current;
-    if (requestedRef.current !== null || pending?.id) {
+    // Back only while the entry opening pushed is the current one; going
+    // back from anywhere else could take the visitor off the page they came
+    // to see. A swap's replace still on its way is discarded by the router
+    // when Back starts, so it cannot land on the entry before.
+    if (ownEntryRef.current) {
+      pendingRef.current = { id: null, push: false };
+      router.back();
+    } else if (requestedRef.current !== null || pending?.id) {
       // Replacing also cancels an opening's push the router has not
       // finished, which would otherwise reopen the view when it lands.
       pendingRef.current =
         requestedRef.current === null ? null : { id: null, push: false };
       router.replace(pathname, { scroll: false });
     }
+    ownEntryRef.current = false;
     void settle();
   };
 
@@ -378,11 +389,13 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     const pending = pendingRef.current;
     if (pending && pending.id === requested) {
       pendingRef.current = null;
+      if (pending.push) ownEntryRef.current = true;
       return;
     }
     // A change this view did not make: Back, Forward, a link, or the command
     // palette.
     pendingRef.current = null;
+    ownEntryRef.current = false;
     wantRef.current = requested;
     void settle();
     // The handlers read refs, so only the param needs to retrigger this.

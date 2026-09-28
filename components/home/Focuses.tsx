@@ -2,6 +2,7 @@
 
 import SiteLink from '@/components/link/SiteLink';
 
+import { isPlainClick } from '@/lib/dom/click';
 import type { FocusId } from '@/lib/home/focuses';
 
 import { isFocusPressed, useHome, usePreviewHandlers } from './HomeContext';
@@ -140,6 +141,7 @@ export function VentureLink({
       // The click never navigates, so fetching the route ahead is wasted.
       prefetch={false}
       onClick={(event) => {
+        if (!isPlainClick(event)) return;
         // Cancelling the click also stops next/link, and DetailDialog pushes
         // the URL itself once the morph has run.
         event.preventDefault();

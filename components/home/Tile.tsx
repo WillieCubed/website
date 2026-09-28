@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 
+import { isPlainClick } from '@/lib/dom/click';
 import type { BrandKey } from '@/lib/home/ventures';
 
 import {
@@ -105,6 +106,7 @@ export function Tile({
         // The click never navigates, so fetching the route ahead is wasted.
         prefetch={false}
         onClick={(event) => {
+          if (!isPlainClick(event)) return;
           event.preventDefault();
           openDetail(id, ref.current);
         }}

@@ -186,3 +186,31 @@ test('selecting text out onto the backdrop keeps the view open', async ({
   await expect(detail(page)).toBeVisible();
   await expect(page).toHaveURL(/\?detail=lvbt$/);
 });
+
+test('a modified click on a tile is left to the browser', async ({ page }) => {
+  await page.goto('/');
+  await hydrated(page);
+  // Whether headless Chromium then opens a background tab is the browser's
+  // business, and it sometimes does not; the page's part is to leave the
+  // click uncancelled, which a listener on the window sees last.
+  await page.evaluate(() => {
+    const flags = window as Window & { clickCancelled?: boolean };
+    window.addEventListener(
+      'click',
+      (event) => {
+        flags.clickCancelled = event.defaultPrevented;
+        event.preventDefault();
+      },
+      { once: true }
+    );
+  });
+  await page.locator('#lvbt a.cover').click({ modifiers: ['ControlOrMeta'] });
+  expect(
+    await page.evaluate(
+      () => (window as Window & { clickCancelled?: boolean }).clickCancelled
+    )
+  ).toBe(false);
+  await page.waitForTimeout(500);
+  await expect(detail(page)).toBeHidden();
+  await expect(page).toHaveURL(/\/$/);
+});

@@ -4,6 +4,8 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
+import { isPlainClick } from '@/lib/dom/click';
+
 import { usePalette } from './PaletteProvider';
 import './palette.css';
 
@@ -60,7 +62,7 @@ export default function PaletteTrigger({ size }: PaletteTriggerProps) {
       aria-haspopup="dialog"
       aria-keyshortcuts="Meta+K Control+K"
       onClick={(event) => {
-        if (event.metaKey || event.ctrlKey || event.shiftKey) return;
+        if (!isPlainClick(event)) return;
         event.preventDefault();
         open(event.currentTarget);
       }}

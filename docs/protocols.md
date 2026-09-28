@@ -26,6 +26,7 @@ route file only forwards the request.
 | `/llms.txt`                 | [llmstxt.org](https://llmstxt.org)                                                                   | An H1, a summary, and `- [name](url): notes` lists of the published writings, feeds, and protocol endpoints. Drafts never appear.                                                                       |
 | `/humans.txt`               | [humanstxt.org](https://humanstxt.org)                                                               | Who made the site and with what, from `lib/humans-txt.ts`. See the humans.txt note below.                                                                                                               |
 | every page                  | [Fragmention](https://indieweb.org/fragmention)                                                      | A URL ending in `##some+words` scrolls to and highlights the first place those words appear. See the fragmentions note below.                                                                           |
+| every page                  | [Speculation rules](https://developer.mozilla.org/docs/Web/API/Speculation_Rules_API)                | Prefetches in-site pages on hover. See the speculation rules note below.                                                                                                                                |
 
 ## humans.txt
 
@@ -131,6 +132,36 @@ link, match nothing, because the search reads one text node at a time. A
 browser without the Custom Highlight API still scrolls to the words, and one
 without the Navigation API follows a fragmention only on load and on
 `hashchange`.
+
+## Speculation rules
+
+The root layout carries a `<script type="speculationrules">` built from
+`lib/speculation-rules.ts`. It prefetches same-origin links at `moderate`
+eagerness, which in Chromium means after about 200ms of hover on a desktop.
+It skips `/api/`, the feeds and activity feeds, `/micropub`,
+`/webmention` and `/webmentions`, `/indieauth/`, `/oembed`, `/coffee`,
+`/tea`, `/whoami`, `/.well-known/`, any path with a file extension, and any
+link with `rel~="nofollow"`, `target="_blank"`, or `download`.
+
+It prefetches rather than prerenders because of Next's router. `SiteLink`
+sends every in-site link through Next's `<Link>`, and once the page has
+hydrated a click becomes a client-side navigation that fetches the
+destination's RSC payload. Next already prefetches that payload as soon as
+the link enters the viewport in production
+(`node_modules/next/dist/docs/01-app/02-guides/prefetching.md`), and it never
+activates a prerendered document. A prerender would run the whole page,
+with its scripts and analytics, for a navigation Next then performs without
+it. A document prefetch is one HTML request, and it serves the navigations
+the router does not take: a click before the page hydrates, a visitor
+without JavaScript, and a navigation Next hands to the browser.
+
+After hydration each hovered link still costs that HTML request, which
+nothing reads. If that ever shows up in bandwidth, limit the rule to the
+page before hydration, for example with a `not` `selector_matches` on an
+attribute a client component sets on `<html>`.
+`tests/unit/speculation-rules.test.mts` checks the exclusions with
+`URLPattern`, and `tests/e2e/speculation.spec.mts` reads the candidate list
+Chromium reports through its DevTools Preload domain.
 
 ## In the command palette
 

@@ -11,6 +11,7 @@ import SkipLink from '@/components/site/SkipLink';
 
 import { ENDPOINT_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
 import { site } from '@/lib/site';
+import { SPECULATION_RULES } from '@/lib/speculation-rules';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
 import { monoFont, sansFont } from './fonts';
@@ -123,6 +124,13 @@ export default async function RootLayout({
           type="application/feed+json"
           title={`${site.name} (JSON Feed)`}
           href="/feed/json"
+        />
+        {/* Prefetches, never prerenders; lib/speculation-rules.ts says why. */}
+        <script
+          type="speculationrules"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(SPECULATION_RULES),
+          }}
         />
         {/* Lets a browser offer this site as a search engine in its address bar. */}
         <link

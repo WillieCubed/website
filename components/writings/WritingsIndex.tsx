@@ -3,6 +3,7 @@ import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
 import WritingItem from '@/components/writings/WritingItem';
 
+import { getWritingContentHtml } from '@/lib/feeds/items';
 import { absoluteUrl } from '@/lib/site';
 import {
   type WritingData,
@@ -97,6 +98,16 @@ async function WritingsList({ writings }: { writings: WritingData[] }) {
       })
     )
   );
+  const contentMap = new Map(
+    await Promise.all(
+      writings
+        .filter((writing) => !writing.hasExplicitTitle)
+        .map(
+          async (writing) =>
+            [writing.slug, await getWritingContentHtml(writing.slug)] as const
+        )
+    )
+  );
 
   if (writings.length === 0) {
     return <p className="text-body-large text-muted">Nothing published yet.</p>;
@@ -118,6 +129,7 @@ async function WritingsList({ writings }: { writings: WritingData[] }) {
               ? seriesMap.get(writing.series.slug)?.href
               : undefined
           }
+          contentHtml={contentMap.get(writing.slug)}
         />
       ))}
     </div>

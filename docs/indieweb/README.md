@@ -79,7 +79,14 @@ have text, and `WritingHeader` renders that derived title inside an
 `sr-only` heading.
 
 Post kinds map to these properties in `WritingHeader.tsx` and
-`ReplyTarget.tsx`, and person tags in `WritingContent.tsx`.
+`ReplyTarget.tsx`, and person tags in `WritingContent.tsx`. Each entry on
+`/writings` and the tag pages (`WritingItem.tsx`) carries the same kind
+properties as hidden markup, so a reader subscribed to an index gets the
+whole entry: the page it answers as the same `u-*-of h-cite`, `p-rsvp`,
+each photo as a `u-photo`, and, for a post without a headline, its whole
+body as `e-content`, since the visible entry shows only the first
+sentence. Articles leave their body to the permalink and carry
+`p-summary`.
 `docs/content/writings.md` explains the frontmatter.
 
 | Frontmatter   | Property                                   |

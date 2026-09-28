@@ -28,7 +28,7 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                 | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                        | Postgres (optional)                                          |
 | `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                        | Postgres (optional)                                          |
-| `/micropub`                                                        | `GET ?q=config` and `?q=syndicate-to`; `POST` creates supported h-entry kinds                                   | IndieAuth token; see Micropub                                |
+| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, and `?q=source`; `POST` creates supported h-entry kinds                     | IndieAuth token; see Micropub                                |
 | `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one photo and answers 201 with its `Location`                            | IndieAuth token, Vercel Blob connection                      |
 | `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                    | nothing                                                      |
 | `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL | Postgres                                                     |
@@ -324,10 +324,16 @@ nothing is sent back. Each outcome is logged as
 `POST /micropub` accepts form-encoded or JSON `h-entry` bodies with a bearer
 token. The token must be one this site's own token endpoint issued: it is
 looked up in the `indieauth_tokens` table (see IndieAuth below), with no call
-to another server, and must be unexpired, unrevoked, carry the `create`
-scope, and have a `me` on the canonical origin. A client may send one token in
-the bearer header or form body. Missing and invalid tokens get 401; a valid
-token without `create` gets 403 `insufficient_scope`. Two tokens get 400.
+to another server, and must be unexpired, unrevoked, carry the scope the
+request needs, and have a `me` on the canonical origin. A client may send one
+token in the bearer header or form body. Missing and invalid tokens get 401; a
+valid token without the scope gets 403 `insufficient_scope`. Two tokens get 400.
+
+| Request                                    | Scope    | Answer                                                           |
+| ------------------------------------------ | -------- | ---------------------------------------------------------------- |
+| `POST` an `h-entry`                        | `create` | 202 with `Location`; the post is live after the deploy           |
+| `GET ?q=source&url=` (and `properties[]=`) | any      | the writing's mf2 JSON, drafts included                          |
+| `GET ?q=config`, `?q=syndicate-to`         | none     | capabilities, syndication targets, and the `q` values it answers |
 
 In a JSON body, `in-reply-to`, `like-of`, `repost-of`, and `bookmark-of`
 may each be a URL or an embedded `h-cite`. The post keeps the h-cite's first
@@ -341,6 +347,25 @@ committed through GitHub's Contents API on `MICROPUB_GITHUB_BRANCH` (default
 the route writes into the local checkout. On a read-only deploy that write
 fails with a 500 whose `error_description` names the reason, which is the
 correct outcome on Vercel and Workers: set the GitHub variables there.
+
+### Source queries
+
+`?q=source&url=<permalink>` answers with the writing as
+`{ "type": ["h-entry"], "properties": { ... } }`. It reads the file from the
+same place a create writes it, the GitHub branch or the local checkout, so it
+returns a post committed a minute ago that has not deployed yet. `title`
+becomes `name`, `description` becomes `summary`, the MDX body becomes
+`content` as Markdown text, and `draft` becomes `post-status`. `published`
+and `lastUpdated` come back as `published` and `updated` in UTC. `tags` come
+back as `category` strings and `people` as `category` h-cards. `inReplyTo`,
+`likeOf`, `repostOf`, `bookmarkOf`, and `rsvp` come back as `in-reply-to`,
+`like-of`, `repost-of`, `bookmark-of`, and `rsvp`. `photo` and
+`syndication` keep their names, and the permalink is `url`. Keys with no mf2
+property, such as `series` and `featured`, are left out. With `properties[]=content` (or a single
+`properties=content`) the answer holds only the named properties and no
+`type`. A URL that is not a writing permalink on this origin, or names no
+file, gets 400 `invalid_request`. The answer carries
+`Cache-Control: no-store`.
 
 ### Syndication
 

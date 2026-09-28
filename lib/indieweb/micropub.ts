@@ -9,6 +9,7 @@ import {
   validateMediaFile,
 } from '@/lib/indieweb/media';
 import type { MediaStore } from '@/lib/indieweb/media';
+import { MicropubStorageError } from '@/lib/indieweb/micropub-store';
 import {
   getMicropubSyndicationTargets,
   resolveSyndicationTargets,
@@ -39,15 +40,7 @@ import { absoluteRoute, site } from '@/lib/site';
 
 const DEFAULT_CONTENT_PATH = 'content/writings';
 
-/** Thrown when a Micropub post cannot be stored anywhere durable. */
-export class MicropubStorageError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'MicropubStorageError';
-  }
-}
-
-export { getMicropubSyndicationTargets };
+export { MicropubStorageError, getMicropubSyndicationTargets };
 
 export function getMicropubConfig(
   mediaAvailable = Boolean(getMediaStore())
@@ -57,7 +50,7 @@ export function getMicropubConfig(
       ? { 'media-endpoint': absoluteRoute`${MICROPUB_MEDIA_ENDPOINT}` }
       : {}),
     'syndicate-to': getMicropubSyndicationTargets(),
-    q: ['config', 'syndicate-to'],
+    q: ['config', 'source', 'syndicate-to'],
     'post-types': [
       { type: 'note', name: 'Note' },
       { type: 'photo', name: 'Photo' },

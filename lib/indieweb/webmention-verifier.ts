@@ -1,9 +1,13 @@
 import { mf2 } from 'microformats-parser';
 import sanitizeHtml from 'sanitize-html';
 
+import {
+  type AuthorshipOptions,
+  discoverAuthor,
+  findEntry,
+} from '@/lib/indieweb/authorship';
 import { SITE_URL } from '@/lib/indieweb/constants';
 import type {
-  ExtractedWebmentionAuthor,
   WebmentionType,
   WebmentionVerificationResult,
 } from '@/lib/indieweb/types';
@@ -15,6 +19,8 @@ import {
 } from '@/lib/indieweb/webmention-storage';
 import { linksToTarget } from '@/lib/indieweb/webmention-targets';
 import type { RSVPStatus } from '@/lib/writings/types';
+
+export { extractAuthor } from '@/lib/indieweb/authorship';
 
 // Extract MicroformatRoot type from the mf2 return type
 type ParsedDocument = ReturnType<typeof mf2>;
@@ -29,7 +35,8 @@ const FETCH_TIMEOUT = 10000; // 10 seconds
 export async function verifyWebmention(
   id: string,
   sourceUrl: string,
-  targetUrl: string
+  targetUrl: string,
+  options: AuthorshipOptions = {}
 ): Promise<WebmentionVerificationResult> {
   try {
     // Validate the source URL; sameOrigin rejects an invalid target below
@@ -104,20 +111,21 @@ export async function verifyWebmention(
 
     // Parse microformats
     const parsed = mf2(html, { baseUrl: sourceUrl });
-    const hEntry = findHEntry(parsed.items);
+    const found = findEntry(parsed.items);
 
-    if (!hEntry) {
+    if (!found) {
       // No h-entry found, but link exists - treat as simple mention
       await updateVerifiedWebmention(id, { type: 'mention' });
       return { success: true, type: 'mention' };
     }
 
+    const hEntry = found.entry;
+
     // Determine webmention type
     const type = determineWebmentionType(hEntry, targetUrl);
     const rsvp = type === 'rsvp' ? rsvpAnswer(hEntry) : undefined;
 
-    // Extract author
-    const author = extractAuthor(hEntry);
+    const author = await discoverAuthor(parsed, found, sourceUrl, options);
 
     // Extract content
     const content = extractContent(hEntry);
@@ -149,20 +157,6 @@ export async function verifyWebmention(
     const message = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: message };
   }
-}
-
-function findHEntry(items: MicroformatRoot[]): MicroformatRoot | null {
-  for (const item of items) {
-    if (item.type?.includes('h-entry')) {
-      return item;
-    }
-    // Check nested children
-    if (item.children) {
-      const nested = findHEntry(item.children);
-      if (nested) return nested;
-    }
-  }
-  return null;
 }
 
 /**
@@ -229,44 +223,6 @@ function rsvpAnswer(hEntry: MicroformatRoot): RSVPStatus | undefined {
         : undefined;
   const answer = text?.trim().toLowerCase();
   return RSVP_ANSWERS.find((known) => known === answer);
-}
-
-/**
- * The author of an h-entry. A `u-photo` with non-empty alt text parses as
- * `{value, alt}` rather than a string, and its `value` is the photo URL. The
- * alt is not kept: the avatar is labelled with the author's name, and the
- * whole entry is stored as `rawMf2` anyway.
- */
-export function extractAuthor(
-  hEntry: MicroformatRoot
-): ExtractedWebmentionAuthor {
-  const properties = hEntry.properties;
-  const authorProp = properties.author?.[0];
-  if (!authorProp) return {};
-
-  // Author might be a string (just a name) or an h-card object
-  if (typeof authorProp === 'string') {
-    return { name: authorProp };
-  }
-
-  // Check if it's a nested MicroformatRoot (h-card)
-  if (typeof authorProp === 'object' && 'properties' in authorProp) {
-    const authorProps = authorProp.properties;
-    const getName = (val: unknown): string | undefined =>
-      typeof val === 'string' ? val : undefined;
-    const getUrl = (val: unknown): string | undefined =>
-      typeof val === 'object' && val !== null && 'value' in val
-        ? getName(val.value)
-        : getName(val);
-
-    return {
-      name: getName(authorProps.name?.[0]),
-      url: getUrl(authorProps.url?.[0]),
-      photo: getUrl(authorProps.photo?.[0]),
-    };
-  }
-
-  return {};
 }
 
 function extractContent(hEntry: MicroformatRoot): string | undefined {

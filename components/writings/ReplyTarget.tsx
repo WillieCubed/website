@@ -139,12 +139,14 @@ export default function ReplyTarget({
             {context.contentPreview}
           </span>
         )}
-        {kind === 'rsvp' && rsvpStatus && (
-          <data className="p-rsvp hidden" value={rsvpStatus}>
-            {rsvpStatus}
-          </data>
-        )}
       </a>
+      {/* Outside the h-cite: inside it, the RSVP would read as a property
+          of the event rather than of this post. */}
+      {kind === 'rsvp' && rsvpStatus && (
+        <data className="p-rsvp hidden" value={rsvpStatus}>
+          {rsvpStatus}
+        </data>
+      )}
       <span aria-hidden="true" className="reply-target__thread" />
     </div>
   );

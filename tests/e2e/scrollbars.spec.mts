@@ -55,3 +55,54 @@ test('the command palette results scroll with a thin bar', async ({ page }) => {
     'auto'
   );
 });
+
+test('the detail card scrolls its text column clear of its corners', async ({
+  page,
+}) => {
+  await page.goto('/?detail=rtc');
+  await expect(page.locator('dialog.detail')).toBeVisible();
+  const layout = await page.evaluate(() => {
+    const dialog = document.querySelector('dialog.detail')!;
+    const column = document.querySelector('.d-content')!;
+    const card = dialog.getBoundingClientRect();
+    const box = column.getBoundingClientRect();
+    return {
+      dialogOverflow: getComputedStyle(dialog).overflowY,
+      columnOverflow: getComputedStyle(column).overflowY,
+      top: box.top - card.top,
+      bottom: card.bottom - box.bottom,
+      radius: parseFloat(getComputedStyle(dialog).borderTopRightRadius),
+    };
+  });
+  expect(layout.dialogOverflow).toBe('hidden');
+  expect(layout.columnOverflow).toBe('auto');
+  // Twelve pixels down, an 18px corner has curved in by about a pixel, so a
+  // bar that starts there stays inside the card.
+  expect(layout.top).toBeGreaterThanOrEqual(12);
+  expect(layout.bottom).toBeGreaterThanOrEqual(12);
+  expect(layout.radius).toBe(18);
+});
+
+test('below 840px the detail view fills the window with square corners', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 760, height: 900 });
+  await page.goto('/?detail=rtc');
+  await expect(page.locator('dialog.detail')).toBeVisible();
+  const view = await page.evaluate(() => {
+    const dialog = document.querySelector('dialog.detail')!;
+    const box = dialog.getBoundingClientRect();
+    return {
+      width: Math.round(box.width),
+      height: Math.round(box.height),
+      radius: getComputedStyle(dialog).borderTopRightRadius,
+      overflow: getComputedStyle(dialog).overflowY,
+    };
+  });
+  expect(view).toEqual({
+    width: 760,
+    height: 900,
+    radius: '0px',
+    overflow: 'auto',
+  });
+});

@@ -712,9 +712,7 @@
     max-height: none;
     margin: auto;
     padding: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    overflow: hidden;
     border: 0;
     border-radius: 18px;
     background: var(--color-ground);
@@ -849,9 +847,16 @@
   .d-media .constellation {
     inset: 14%;
   }
+  /* Only the text column scrolls, inset from the card's edges so its bar
+     clears the rounded corners; the picture beside it stays put. The inset
+     comes out of the padding, so the text sits where it always has. */
   .d-content {
     position: relative;
-    padding: 56px 32px 32px;
+    max-height: calc(var(--dh) - 24px);
+    margin: 12px 4px 12px 0;
+    padding: 44px 28px 20px 32px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .d-bar {
     position: sticky;
@@ -862,7 +867,7 @@
   .d-close {
     position: absolute;
     top: 14px;
-    right: 14px;
+    right: 18px;
     display: grid;
     place-items: center;
     width: 38px;
@@ -1121,9 +1126,15 @@
       opacity: 1;
       filter: none;
     }
+    /* One column: the whole card scrolls, picture and all, so it fills the
+       window with square corners; a rounded sheet would run its scrollbar
+       into its corners. */
     dialog.detail {
       --dh: 100svh;
       width: 100vw;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       border-radius: 0;
     }
     .d-inner {
@@ -1135,7 +1146,10 @@
       aspect-ratio: 16 / 11;
     }
     .d-content {
+      max-height: none;
+      margin: 0;
       padding: 24px 20px 40px;
+      overflow: visible;
     }
     .d-count {
       padding: 24px;
@@ -1254,11 +1268,6 @@
       left: 7%;
       right: 7%;
       top: 18%;
-    }
-    dialog.detail {
-      --dh: calc(100svh - 48px);
-      width: calc(100vw - 48px);
-      border-radius: 18px;
     }
   }
 

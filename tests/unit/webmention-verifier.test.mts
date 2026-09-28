@@ -2,7 +2,10 @@ import { VercelPool } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, mock, test } from 'node:test';
 
-import { verifyWebmention } from '@/lib/indieweb/webmention-verifier';
+import {
+  type VerifyWebmentionOptions,
+  verifyWebmention,
+} from '@/lib/indieweb/webmention-verifier';
 import { site } from '@/lib/site';
 
 // `sql` builds its pool lazily from POSTGRES_URL, so a localhost address is
@@ -19,16 +22,37 @@ interface Query {
 
 let queries: Query[] = [];
 let fetched: string[] = [];
+let respond: (url: string) => Response = () =>
+  new Response('', { status: 500 });
+
+/**
+ * How the verifier reaches the network in these tests: every name resolves
+ * to one public address, and each request gets `respond`'s answer.
+ */
+const network: VerifyWebmentionOptions = {
+  resolve: async () => [{ address: '93.184.216.34', family: 4 }],
+  fetch: async (url) => {
+    fetched.push(url);
+    return respond(url);
+  },
+};
+
+function verify(
+  id: string,
+  sourceUrl: string,
+  targetUrl: string,
+  options: VerifyWebmentionOptions = {}
+) {
+  return verifyWebmention(id, sourceUrl, targetUrl, { ...network, ...options });
+}
 
 /** Serve `body` with `status` for the source, and record every fetch. */
 function serveSource(body: string, status = 200) {
-  mock.method(globalThis, 'fetch', async (input: string | URL) => {
-    fetched.push(String(input));
-    return new Response(body, {
+  respond = () =>
+    new Response(body, {
       status,
       headers: { 'Content-Type': 'text/html' },
     });
-  });
 }
 
 beforeEach(() => {
@@ -64,7 +88,7 @@ test('a reply marked up as an h-entry is verified with its author and content', 
     </article>
   `);
 
-  const result = await verifyWebmention('wm-1', source, target);
+  const result = await verify('wm-1', source, target);
 
   assert.equal(result.success, true);
   assert.equal(result.type, 'reply');
@@ -92,7 +116,7 @@ test('a reply that names its author by address stores the author page’s h-card
     </article>
   `);
   const requested: string[] = [];
-  const result = await verifyWebmention('wm-1', source, target, {
+  const result = await verify('wm-1', source, target, {
     fetchAuthorPage: async (url) => {
       requested.push(url);
       return {
@@ -114,12 +138,12 @@ test('likes and reposts are told apart from replies', async () => {
   serveSource(
     `<div class="h-entry"><a class="u-like-of" href="${target}">Liked</a></div>`
   );
-  assert.equal((await verifyWebmention('wm-1', source, target)).type, 'like');
+  assert.equal((await verify('wm-1', source, target)).type, 'like');
 
   serveSource(
     `<div class="h-entry"><a class="u-repost-of" href="${target}">Reposted</a></div>`
   );
-  assert.equal((await verifyWebmention('wm-1', source, target)).type, 'repost');
+  assert.equal((await verify('wm-1', source, target)).type, 'repost');
 });
 
 test('replies, likes, reposts, and bookmarks marked up as citations keep their kind', async () => {
@@ -138,7 +162,7 @@ test('replies, likes, reposts, and bookmarks marked up as citations keep their k
         </div>
       </div>
     `);
-    const result = await verifyWebmention('wm-1', source, target);
+    const result = await verify('wm-1', source, target);
     assert.equal(result.type, type, property);
   }
 });
@@ -150,7 +174,7 @@ test('a reply that gives an RSVP answer is stored as an RSVP with the answer', a
       <data class="p-rsvp" value="Yes">I'll be there</data>
     </div>
   `);
-  const result = await verifyWebmention('wm-1', source, target);
+  const result = await verify('wm-1', source, target);
   assert.equal(result.type, 'rsvp');
   assert.equal(result.rsvp, 'yes');
   const [update] = verifications();
@@ -164,7 +188,7 @@ test('an RSVP answer the spec does not define leaves the reply a reply', async (
       <span class="p-rsvp">perhaps</span>
     </div>
   `);
-  const result = await verifyWebmention('wm-1', source, target);
+  const result = await verify('wm-1', source, target);
   assert.equal(result.type, 'reply');
   assert.equal(result.rsvp, undefined);
   const [update] = verifications();
@@ -179,7 +203,7 @@ test('a citation whose address is an image with alt text is still a reply', asyn
       </div>
     </div>
   `);
-  assert.equal((await verifyWebmention('wm-1', source, target)).type, 'reply');
+  assert.equal((await verify('wm-1', source, target)).type, 'reply');
 });
 
 test('a citation of another page leaves a link to the target a mention', async () => {
@@ -191,10 +215,7 @@ test('a citation of another page leaves a link to the target a mention', async (
       <div class="e-content">See also <a href="${target}">this</a>.</div>
     </div>
   `);
-  assert.equal(
-    (await verifyWebmention('wm-1', source, target)).type,
-    'mention'
-  );
+  assert.equal((await verify('wm-1', source, target)).type, 'mention');
 });
 
 test('a reply to the same path on another site is not a reply to this one', async () => {
@@ -204,15 +225,12 @@ test('a reply to the same path on another site is not a reply to this one', asyn
       <div class="e-content">Unlike <a href="${target}">this one</a>.</div>
     </div>
   `);
-  assert.equal(
-    (await verifyWebmention('wm-1', source, target)).type,
-    'mention'
-  );
+  assert.equal((await verify('wm-1', source, target)).type, 'mention');
 });
 
 test('a page that links without an h-entry is a plain mention', async () => {
   serveSource(`<p>Read <a href="${target}">this</a>.</p>`);
-  const result = await verifyWebmention('wm-1', source, target);
+  const result = await verify('wm-1', source, target);
   assert.deepEqual(result, { success: true, type: 'mention' });
   assert.equal(verifications().length, 1);
 });
@@ -221,7 +239,7 @@ test('a source that no longer links to the target deletes the mention', async ()
   serveSource(
     `<p>Read <a href="${site.origin}/writings/hello-world">this</a>.</p>`
   );
-  const result = await verifyWebmention('wm-1', source, target);
+  const result = await verify('wm-1', source, target);
   assert.equal(result.isDeleted, true);
   assert.equal(result.error, 'Source no longer links to target');
   assert.deepEqual(softDeletes()[0].values, ['wm-1']);
@@ -231,7 +249,7 @@ test('a source that is gone or missing deletes the mention', async () => {
   for (const status of [410, 404]) {
     queries = [];
     serveSource('', status);
-    const result = await verifyWebmention('wm-1', source, target);
+    const result = await verify('wm-1', source, target);
     assert.equal(result.success, true);
     assert.equal(result.isDeleted, true);
     assert.match(result.error ?? '', new RegExp(String(status)));
@@ -241,7 +259,7 @@ test('a source that is gone or missing deletes the mention', async () => {
 
 test('a source that errors fails without touching the stored mention', async () => {
   serveSource('Server error', 500);
-  const result = await verifyWebmention('wm-1', source, target);
+  const result = await verify('wm-1', source, target);
   assert.deepEqual(result, {
     success: false,
     error: 'Failed to fetch source: 500',
@@ -250,10 +268,10 @@ test('a source that errors fails without touching the stored mention', async () 
 });
 
 test('a source that cannot be reached fails with the network error', async () => {
-  mock.method(globalThis, 'fetch', async () => {
+  respond = () => {
     throw new Error('getaddrinfo ENOTFOUND example.com');
-  });
-  const result = await verifyWebmention('wm-1', source, target);
+  };
+  const result = await verify('wm-1', source, target);
   assert.deepEqual(result, {
     success: false,
     error: 'getaddrinfo ENOTFOUND example.com',
@@ -261,30 +279,48 @@ test('a source that cannot be reached fails with the network error', async () =>
   assert.equal(queries.length, 0);
 });
 
+test('a source on a private address is refused without a request', async () => {
+  serveSource(`<a href="${target}">internal</a>`);
+  for (const address of ['10.0.0.5', '169.254.169.254', '127.0.0.1']) {
+    const result = await verify('wm-1', 'https://intranet.example/', target, {
+      resolve: async () => [{ address, family: 4 }],
+    });
+    assert.equal(result.success, false, address);
+  }
+  assert.deepEqual(fetched, []);
+  assert.equal(queries.length, 0);
+});
+
+test('a source that redirects to a private address is not followed', async () => {
+  respond = (url) =>
+    url === source
+      ? new Response(null, {
+          status: 302,
+          headers: { Location: 'http://169.254.169.254/latest/meta-data/' },
+        })
+      : new Response(`<a href="${target}">metadata</a>`);
+  const result = await verify('wm-1', source, target);
+  assert.equal(result.success, false);
+  assert.deepEqual(fetched, [source]);
+  assert.equal(queries.length, 0);
+});
+
 test('mentions from this site or to another site are refused unfetched', async () => {
   serveSource(`<a href="${target}">self</a>`);
 
-  const self = await verifyWebmention(
-    'wm-1',
-    `${site.origin}/writings/other`,
-    target
-  );
+  const self = await verify('wm-1', `${site.origin}/writings/other`, target);
   assert.deepEqual(self, {
     success: false,
     error: 'Self-mentions not allowed',
   });
 
-  const offsite = await verifyWebmention(
-    'wm-1',
-    source,
-    'https://example.org/post'
-  );
+  const offsite = await verify('wm-1', source, 'https://example.org/post');
   assert.deepEqual(offsite, {
     success: false,
     error: 'Target is not on this site',
   });
 
-  const invalid = await verifyWebmention('wm-1', 'not a url', target);
+  const invalid = await verify('wm-1', 'not a url', target);
   assert.equal(invalid.success, false);
 
   assert.deepEqual(fetched, []);

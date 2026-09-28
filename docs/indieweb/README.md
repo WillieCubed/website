@@ -180,6 +180,12 @@ source's page it leads to the source's own origin, and
 and its tests live in `lib/indieweb/webmention-targets.ts` and
 `tests/unit/webmention-targets.test.mts`.
 
+Anyone can name any source, so the verifier fetches it through
+`fetchPublicDocument` in `lib/indieweb/public-fetch.ts`, the same guard the
+IndieAuth client fetch uses. It reaches public addresses only, follows three
+redirects at most and checks each hop, and gives up after 2 MB or ten
+seconds. A source it refuses fails verification and stays unverified.
+
 The verifier finds who wrote the source with the
 [authorship algorithm](https://indieweb.org/authorship-spec), in
 `lib/indieweb/authorship.ts`. An embedded `p-author h-card` on the entry, or
@@ -189,8 +195,7 @@ when the entry names no author, is fetched. That page's h-card whose `url` and
 `uid` are both the page's address is the author. Failing that, the author is
 the h-card whose `url` is one of the page's `rel=me` links, and failing that,
 an h-card on the source page whose `url` is the author page. The author page
-is fetched like an IndieAuth client document (see IndieAuth): public
-addresses only, three redirects, 1 MB, and five seconds. Nothing is cached, so
+is fetched the same way, with a 1 MB and five-second limit. Nothing is cached, so
 each verification fetches it again. When the entry names an author page that
 yields no card, the mention keeps the address without a name.
 

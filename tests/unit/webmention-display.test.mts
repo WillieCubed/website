@@ -221,6 +221,68 @@ test('a post whose only RSVPs declined renders nothing', () => {
   );
 });
 
+test('a mention renders as a u-mention h-cite with its title, author, and date', () => {
+  const entry = parsePost(
+    group({
+      mentions: [
+        mention({
+          type: 'mention',
+          sourceUrl: 'https://gil.example/2026/transit-roundup',
+          name: 'Transit roundup, week 38',
+          content: 'This week in buses…',
+          author: {
+            name: 'Gil',
+            url: 'https://gil.example/',
+            photo: 'https://gil.example/me.jpg',
+          },
+          publishedAt: new Date('2026-09-22T09:00:00Z'),
+        }),
+      ],
+    })
+  );
+
+  const [item] = (entry.properties.mention ?? []).map(cite);
+  assert.deepEqual(item.properties.url, [
+    'https://gil.example/2026/transit-roundup',
+  ]);
+  assert.deepEqual(item.properties.name, ['Transit roundup, week 38']);
+  assert.deepEqual(item.properties.published, ['2026-09-22T09:00:00.000Z']);
+  const author = item.properties.author?.[0] as MicroformatRoot;
+  assert.deepEqual(author.properties.name, ['Gil']);
+  assert.deepEqual(author.properties.url, ['https://gil.example/']);
+  assert.deepEqual(author.properties.photo, ['https://gil.example/me.jpg']);
+});
+
+test('a mention without a title shows the start of its text, and its host without an author', () => {
+  const long = `${'word '.repeat(60)}end`;
+  const html = renderToStaticMarkup(
+    createElement(WebmentionSection, {
+      webmentions: group({
+        mentions: [
+          mention({
+            type: 'mention',
+            sourceUrl: 'https://hal.example/notes/9',
+            content: long,
+          }),
+          mention({
+            type: 'mention',
+            sourceUrl: 'https://ivy.example/links',
+          }),
+        ],
+      }),
+    })
+  );
+  const { items } = mf2(html, { baseUrl: target });
+  const [note, bare] = items.map(cite);
+  const [text] = note.properties.content as string[];
+  assert.ok(text.endsWith('…'));
+  assert.ok(text.length <= 141, 'the excerpt is cut short');
+  assert.equal(note.properties.name, undefined);
+  assert.equal(bare.properties.author, undefined);
+  assert.match(html, />hal\.example</);
+  assert.match(html, />ivy\.example<\/a>/);
+});
+
 test('a post with no approved webmentions renders nothing', () => {
   assert.equal(
     renderToStaticMarkup(

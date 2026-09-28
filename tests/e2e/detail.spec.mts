@@ -214,3 +214,40 @@ test('a modified click on a tile is left to the browser', async ({ page }) => {
   await expect(detail(page)).toBeHidden();
   await expect(page).toHaveURL(/\/$/);
 });
+
+test('an open detail view stays out of the command palette morph', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await hydrated(page);
+  await open(page);
+  // Record what the command palette's transition captures on each side.
+  const captured = page.evaluate(
+    () =>
+      new Promise<{ before: string[]; after: string[] }>((resolve) => {
+        const names = () =>
+          [...document.querySelectorAll<HTMLElement>('*')]
+            .map((el) => getComputedStyle(el).viewTransitionName)
+            .filter((name) => name !== 'none' && name !== 'root');
+        const start = document.startViewTransition.bind(document);
+        document.startViewTransition = ((update: () => void) => {
+          const before = names();
+          return start(() => {
+            update();
+            resolve({ before, after: names() });
+          });
+        }) as typeof document.startViewTransition;
+      })
+  );
+  await page.keyboard.press('ControlOrMeta+k');
+  await expect(
+    page.getByRole('dialog', { name: 'Command palette' })
+  ).toBeVisible();
+  // The rail's trigger sits under the detail view's backdrop, so the command
+  // palette does not grow out of it, and the detail view's own names are
+  // gone.
+  const { before, after } = await captured;
+  expect(before).toEqual([]);
+  expect(after).not.toContain('card');
+  expect(after).not.toContain('media');
+});

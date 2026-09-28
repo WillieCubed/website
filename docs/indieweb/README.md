@@ -202,6 +202,13 @@ IndieAuth client fetch uses. It reaches public addresses only, follows three
 redirects at most and checks each hop, and gives up after 2 MB or ten
 seconds. A source it refuses fails verification and stays unverified.
 
+The first h-entry on the source decides the mention's type, by which of its
+properties cites the target: `like-of` makes a like, `repost-of` a repost,
+`in-reply-to` a reply, or an RSVP when the entry also gives a `p-rsvp`
+answer, and `bookmark-of` a bookmark. A source that only links to the
+target, or has no h-entry, is a mention. The markup each type renders as is
+under Markup.
+
 The verifier finds who wrote the source with the
 [authorship algorithm](https://indieweb.org/authorship-spec), in
 `lib/indieweb/authorship.ts`. An embedded `p-author h-card` on the entry, or
@@ -211,13 +218,15 @@ when the entry names no author, is fetched. That page's h-card whose `url` and
 `uid` are both the page's address is the author. Failing that, the author is
 the h-card whose `url` is one of the page's `rel=me` links, and failing that,
 an h-card on the source page whose `url` is the author page. The author page
-is fetched the same way, with a 1 MB and five-second limit. Nothing is cached, so
-each verification fetches it again. When the entry names an author page that
+is fetched the same way, with a 1 MB and five-second limit. Nothing is
+cached, so each verification fetches it again. When the entry names an author page that
 yields no card, the mention keeps the address without a name.
 
 `POST /api/webmention` answers 202 once the mention is stored, then verifies
 the source inside `after()` from `next/server`, which keeps a serverless
-invocation alive until verification settles. Each client address may send 10
+invocation alive until verification settles. The same callback checks a
+`vouch`, when one was sent (see Vouch), and sends the salmention a vouched
+reply starts (see Salmention). Each client address may send 10
 requests a minute; the counts live in the `webmention_rate_limits` table so
 the limit holds across instances, and expired rows are pruned after each
 accepted mention. If the table is missing or the count fails, the request goes
@@ -480,19 +489,20 @@ goes for any challenge Cloudflare puts in front of the site.
 
 ## Environment variables
 
-| Variable                                                                                           | Used by                                                     | Default                                 |
-| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------- |
-| `POSTGRES_URL` / `DATABASE_URL`                                                                    | webmentions, reply context, activity feeds, Postgres search | unset, features degrade                 |
-| `WEBMENTION_SECRET`                                                                                | `/api/webmention/send*`                                     | unset, routes refuse                    |
-| `WEBMENTION_MODERATION_SECRET`                                                                     | `/api/webmention/moderate`                                  | unset, route refuses                    |
-| `INDIEAUTH_TOTP_SECRET`                                                                            | owner sign-in on `/indieauth/consent`                       | unset, sign-in answers 503              |
-| `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                     | unset, route answers 503                |
-| `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                            | local write, `main`, `content/writings` |
-| `BLOB_STORE_ID` with Vercel OIDC, or `BLOB_READ_WRITE_TOKEN`                                       | `/micropub/media` photo storage in Vercel Blob              | unset, route answers 503                |
-| `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                      | JSON index                              |
-| `SEARCH_REINDEX_SECRET`                                                                            | `/api/search/reindex` in production                         | unset                                   |
-| `INDIEWEB_NOTIFY_SECRET`                                                                           | authenticates the post-deployment notification endpoint     | unset, endpoint refuses                 |
-| `SKIP_WEBMENTIONS`                                                                                 | `true` skips `webmentions:send`                             | unset                                   |
+| Variable                                                                                           | Used by                                                                                 | Default                                 |
+| -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------- |
+| `POSTGRES_URL` / `DATABASE_URL`                                                                    | webmentions, reply context, activity feeds, Postgres search                             | unset, features degrade                 |
+| `WEBMENTION_SECRET`                                                                                | `/api/webmention/send*`                                                                 | unset, routes refuse                    |
+| `WEBMENTION_MODERATION_SECRET`                                                                     | `/api/webmention/moderate`                                                              | unset, route refuses                    |
+| `INDIEAUTH_TOTP_SECRET`                                                                            | owner sign-in on `/indieauth/consent`                                                   | unset, sign-in answers 503              |
+| `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                                                 | unset, route answers 503                |
+| `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                                                        | local write, `main`, `content/writings` |
+| `BLOB_STORE_ID` with Vercel OIDC, or `BLOB_READ_WRITE_TOKEN`                                       | `/micropub/media` photo storage in Vercel Blob                                          | unset, route answers 503                |
+| `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                                                  | JSON index                              |
+| `SEARCH_REINDEX_SECRET`                                                                            | `/api/search/reindex` in production                                                     | unset                                   |
+| `INDIEWEB_NOTIFY_SECRET`                                                                           | authenticates the post-deployment notification endpoint                                 | unset, endpoint refuses                 |
+| `SKIP_WEBMENTIONS`                                                                                 | `true` skips `webmentions:send`                                                         | unset                                   |
+| `INDIEWEB_TEST_ALLOW_LOOPBACK`                                                                     | the local write test only: lets the public-only fetch reach loopback; ignored on Vercel | unset                                   |
 
 The Postgres schema starts with `lib/db/migrations/000_webmentions.sql`.
 Apply it before `lib/db/migrations/001_level4_tables.sql`, which adds

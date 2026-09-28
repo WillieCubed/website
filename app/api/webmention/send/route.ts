@@ -34,25 +34,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Slug is required.' }, { status: 400 });
     }
 
-    // Get the post content
-    let writing;
+    let published;
     try {
-      const data = await getPublishedWriting(slug);
-      writing = data;
+      published = await getPublishedWriting(slug);
     } catch {
       return NextResponse.json({ error: 'Post not found.' }, { status: 404 });
     }
 
-    // Get the raw MDX content
-    // Note: For full webmention support, you might want to render the full MDX to HTML
-    // For now, we use the raw content which contains the links
-    const htmlContent = writing.content;
-
-    // Send webmentions
     const results = await sendWebmentionsForPost(
-      slug,
-      htmlContent,
-      writing.writing.people.map((person) => person.url)
+      published.writing,
+      published.content
     );
 
     const successful = results.filter((r) => r.success).length;

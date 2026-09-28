@@ -3,9 +3,9 @@ import { createHash } from 'node:crypto';
 
 import { absoluteUrl } from '../site';
 import {
-  extractExternalLinks,
   sendWebmention,
   targetsForUpdatedPost,
+  webmentionTargetsForWriting,
 } from './send-webmention';
 
 export async function sendChangedWebmentions(): Promise<{
@@ -25,20 +25,7 @@ export async function sendChangedWebmentions(): Promise<{
     if (writing.draft) continue;
 
     const sourceUrl = absoluteUrl(`/writings/${slug}`);
-    const interactionUrls = [
-      writing.likeOf,
-      writing.repostOf,
-      writing.bookmarkOf,
-      writing.inReplyTo,
-      writing.rsvp?.eventUrl,
-    ].filter((url): url is string => Boolean(url));
-    const currentTargets = [
-      ...new Set([
-        ...extractExternalLinks(content),
-        ...interactionUrls,
-        ...writing.people.map((person) => person.url),
-      ]),
-    ];
+    const currentTargets = webmentionTargetsForWriting(writing, content);
     const contentHash = createHash('sha256')
       .update(JSON.stringify({ content, currentTargets }))
       .digest('hex');

@@ -7,7 +7,9 @@ import {
   sendWebmention,
   sendWebmentionsForPost,
   targetsForUpdatedPost,
+  webmentionTargetsForWriting,
 } from '@/lib/indieweb/send-webmention';
+import type { WebmentionSourceWriting } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
 const target = 'https://example.com/posts/1';
@@ -199,12 +201,56 @@ https://example.com/unclosed
   assert.deepEqual(extractExternalLinks(post), ['https://example.com/prose']);
 });
 
+/** A writing with no interaction targets or person tags unless given. */
+function writing(
+  overrides: Partial<WebmentionSourceWriting> = {}
+): WebmentionSourceWriting {
+  return { slug: 'hello', people: [], ...overrides };
+}
+
+test('a writing targets its links, then what it answers, then its people', () => {
+  const targets = webmentionTargetsForWriting(
+    writing({
+      inReplyTo: 'https://example.com/posts/parent',
+      likeOf: 'https://example.com/posts/liked',
+      repostOf: 'https://example.com/posts/reposted',
+      bookmarkOf: 'https://example.com/posts/saved',
+      rsvp: { eventUrl: 'https://example.com/events/1', status: 'yes' },
+      people: [{ name: 'Ada', url: 'https://ada.example/' }],
+    }),
+    'See [the parent](https://example.com/posts/parent) and https://example.org/b.'
+  );
+  assert.deepEqual(targets, [
+    'https://example.com/posts/parent',
+    'https://example.org/b',
+    'https://example.com/posts/liked',
+    'https://example.com/posts/reposted',
+    'https://example.com/posts/saved',
+    'https://example.com/events/1',
+    'https://ada.example/',
+  ]);
+});
+
+test('a reply whose body never links its parent still notifies the parent', async () => {
+  const calls = serve({ html: '<link rel="webmention" href="/wm">' });
+  const results = await sendWebmentionsForPost(
+    writing({ inReplyTo: target }),
+    'Agreed, and here is why.'
+  );
+  assert.deepEqual(
+    results.map((result) => result.targetUrl),
+    [target]
+  );
+  const [post] = calls.filter((call) => call.method === 'POST');
+  assert.equal(post.body?.get('source'), source);
+  assert.equal(post.body?.get('target'), target);
+});
+
 test('a post sends from its writing URL to each target once', async () => {
   const calls = serve({ html: '<link rel="webmention" href="/wm">' });
   const results = await sendWebmentionsForPost(
-    'hello',
-    `<a href="${target}">a post</a>`,
-    [target]
+    writing({ people: [{ name: 'Example', url: target }] }),
+    `<a href="${target}">a post</a>`
   );
   assert.deepEqual(
     results.map((result) => result.targetUrl),

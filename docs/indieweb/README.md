@@ -175,6 +175,18 @@ through and the error is logged. The logic and its tests live in
 `lib/indieweb/webmention-rate-limit.ts` and
 `tests/unit/webmention-rate-limit.test.mts`.
 
+## Sending
+
+A writing sends webmentions to the external links in its body, then to the
+posts named by `inReplyTo`, `likeOf`, `repostOf`, `bookmarkOf`, and
+`rsvp.eventUrl`, then to its tagged people. The deploy publisher
+(`pnpm webmentions:send` and the notification endpoint),
+`/api/webmention/send`, and `/api/webmention/send-all` all take that list
+from `webmentionTargetsForWriting` in `lib/indieweb/send-webmention.ts`, so
+a reply whose body never links its parent still notifies the parent. The
+publisher hashes the list with the body, so reordering it resends every post
+once.
+
 ## Micropub
 
 `POST /micropub` accepts form-encoded or JSON `h-entry` bodies with a bearer

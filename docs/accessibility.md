@@ -7,13 +7,14 @@ WCAG 2.2 AA while keeping the color and motion described in
 
 ## Image descriptions
 
-Writing photos, featured images, initiative covers, trailer posters, galleries,
-project thumbnails, Markdown images, MDX image components, and authored JSX
-images need nonblank alt text. The check includes drafts. Use words that explain
-the image in its page context, such as “A bus turning onto Maryland Parkway at
-dusk.” An image that adds no information can use literal `alt=""` with
-`aria-hidden="true"` in JSX or MDX. Markdown’s empty `![](...)` does not mark
-decoration clearly enough and fails the check.
+Classify each image by what it adds in its page context. Writing photos,
+project screenshots, maps, and other images that add information need nonblank
+alt text. Use words that explain the information, such as “A bus turning onto
+Maryland Parkway at dusk.” The initiative cover motifs repeat nearby titles
+and themes, so their frontmatter uses `decorative: true` with `alt: ''`.
+Decorative JSX or MDX images use literal `alt=""` with `aria-hidden="true"`.
+Markdown’s empty `![](...)` does not mark decoration clearly enough and fails
+the check. The check includes drafts.
 
 The validator rejects a missing alt attribute and a dynamic JSX expression
 that can resolve to an empty string. Dynamic descriptions still need browser

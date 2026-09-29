@@ -77,6 +77,7 @@
 }
 
 .brand-asset {
+  container: brand-card / inline-size;
   display: grid;
   grid-template-rows: auto 1fr;
   margin: 0;
@@ -140,6 +141,29 @@
   flex-wrap: wrap;
   gap: 6px;
   margin: 12px 0 0;
+}
+.brand-download-label-short {
+  display: none;
+}
+@container brand-card (max-width: 360px) {
+  .brand-download-label-full {
+    display: none;
+  }
+  .brand-download-label-short {
+    display: inline;
+  }
+}
+.brand-page .brand-asset .brand-downloads {
+  flex-wrap: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.brand-page .brand-asset .brand-downloads a {
+  flex: none;
+  min-height: 36px;
+  padding: 6px 12px;
+  white-space: nowrap;
 }
 .brand-downloads a {
   display: inline-flex;
@@ -708,23 +732,10 @@
   top: 0;
   z-index: 30;
 }
-.brand-header::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 -60px;
-  z-index: -1;
-  background: linear-gradient(
-    to bottom,
-    var(--color-ground) 55%,
-    color-mix(in srgb, var(--color-ground) 90%, transparent) 75%,
-    transparent
-  );
-  pointer-events: none;
-}
 .brand-header .site-breadcrumbs,
 .brand-header .palette-trigger {
   --site-glass-tint: var(--color-tray);
-  box-shadow: 0 2px 12px color-mix(in srgb, var(--color-scrim) 10%, transparent);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--color-scrim) 12%, transparent);
 }
 .brand-header .site-breadcrumbs {
   flex: 0 1 auto;
@@ -769,7 +780,8 @@
 
 .brand-asset-downloads {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
   align-items: flex-start;
   gap: 6px;
 }
@@ -777,8 +789,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   flex: none;
   border-radius: 8px;
   color: var(--color-ink);

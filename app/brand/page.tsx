@@ -49,14 +49,23 @@ function Download({
   file,
   showSize = false,
   label,
+  shortLabel,
 }: {
   file: KitDownload;
   showSize?: boolean;
   label?: string;
+  shortLabel?: string;
 }) {
   return (
-    <a href={file.href} download>
-      {label ?? file.label}
+    <a href={file.href} download aria-label={shortLabel ? label : undefined}>
+      {shortLabel ? (
+        <>
+          <span className="brand-download-label-full">{label}</span>
+          <span className="brand-download-label-short">{shortLabel}</span>
+        </>
+      ) : (
+        (label ?? file.label)
+      )}
       {showSize && (
         <span className="brand-size">{formatBytes(file.bytes)}</span>
       )}
@@ -104,6 +113,7 @@ function AssetDownloads({
             key={file.href}
             file={file}
             label={`Download ${file === svg ? 'SVG' : 'PNG'}`}
+            shortLabel={file === svg ? 'SVG' : 'PNG'}
           />
         ))}
       </p>

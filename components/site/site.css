@@ -249,9 +249,7 @@ body:has(header[data-column='reading'])
   border-radius: 14px;
   background: var(--color-surface-container);
   color: var(--color-ink);
-  box-shadow:
-    0 0 6px color-mix(in srgb, var(--color-scrim) 12%, transparent),
-    0 2px 6px color-mix(in srgb, var(--color-scrim) 16%, transparent);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--color-scrim) 16%, transparent);
   outline: none;
   opacity: 1;
   transform: none;

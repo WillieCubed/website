@@ -125,8 +125,8 @@
   background: var(--color-surface-container);
   color: var(--color-ink);
   font: 400 16px/1.5 var(--font-sans);
-  box-shadow: 0 24px 64px -24px
-    color-mix(in srgb, var(--color-scrim) 40%, transparent);
+  box-shadow: 0 4px 16px -4px
+    color-mix(in srgb, var(--color-scrim) 28%, transparent);
   overflow: hidden;
 }
 .palette[open] {

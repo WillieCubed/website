@@ -456,27 +456,14 @@ main:focus {
   }
 }
 
-/* Apple uses this filter and an 80% tint on its web navigation. The native
-   material only applies in WebKit views that expose system appearance. */
+/* WebKit exposes system glass only when its host enables system appearance. */
 .site-glass.site-glass {
   background-color: var(--site-glass-tint, var(--color-ground));
-}
-
-@supports (backdrop-filter: initial) {
-  .site-glass.site-glass {
-    background-color: color-mix(
-      in srgb,
-      var(--site-glass-tint, var(--color-ground)) 80%,
-      transparent
-    );
-    backdrop-filter: saturate(180%) blur(20px);
-  }
 }
 
 @supports (-apple-visual-effect: -apple-system-glass-material) {
   .site-glass.site-glass {
     background-color: transparent;
-    backdrop-filter: none;
     -apple-visual-effect: -apple-system-glass-material;
   }
 }

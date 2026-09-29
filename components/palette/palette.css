@@ -73,6 +73,9 @@
 /* A phone's top bar keeps the room for the crumbs: the button goes to its
    icon, and the word stays for screen readers. */
 @media (max-width: 599px) {
+  .palette-trigger--rail {
+    max-width: none;
+  }
   .palette-trigger--compact {
     width: 40px;
     padding: 0;

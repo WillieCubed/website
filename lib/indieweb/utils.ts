@@ -34,9 +34,13 @@ export const RESERVED_WRITING_SLUGS: ReadonlySet<string> = new Set([
  * A slug becomes a file name under the writings directory and a URL segment.
  * Letters, digits, hyphens, and underscores keep it inside that directory,
  * and a leading letter or digit keeps out the `_` templates the loader hides.
+ * A route's name is refused because the route would answer instead.
  */
 export function isWritingSlug(slug: string): boolean {
-  return /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(slug);
+  return (
+    /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(slug) &&
+    !RESERVED_WRITING_SLUGS.has(slug)
+  );
 }
 
 export function plainTextExcerpt(text: string, maxLength = 180): string {

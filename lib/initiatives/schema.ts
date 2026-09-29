@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { imageAltIssue } from '@/lib/accessibility/alt-policy';
 import { FOCUS_IDS } from '@/lib/home/focuses';
 
 /**
@@ -45,13 +46,19 @@ export type InitiativeStatus = z.infer<typeof StatusSchema>;
 export const KindSchema = z.enum(['campaign', 'series', 'project']);
 export type InitiativeKind = z.infer<typeof KindSchema>;
 
-export const MediaSchema = z.object({
-  src: z.string().min(1),
-  alt: z.string().min(1),
-  kind: z.enum(['image', 'video']).default('image'),
-  /** Aspect ratio as width/height, used to reserve space before load. */
-  aspect: z.number().positive().optional(),
-});
+export const MediaSchema = z
+  .object({
+    src: z.string().min(1),
+    alt: z.string(),
+    decorative: z.literal(true).optional(),
+    kind: z.enum(['image', 'video']).default('image'),
+    /** Aspect ratio as width/height, used to reserve space before load. */
+    aspect: z.number().positive().optional(),
+  })
+  .superRefine((media, context) => {
+    const message = imageAltIssue(media.alt, media.decorative === true);
+    if (message) context.addIssue({ code: 'custom', path: ['alt'], message });
+  });
 export type Media = z.infer<typeof MediaSchema>;
 
 export const PlaceSchema = z.object({

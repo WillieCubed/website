@@ -99,6 +99,32 @@ test('brand downloads, navigation, and disclosures work', async ({ page }) => {
   ).toBeVisible();
 });
 
+test('brand navigation surfaces appear only after scrolling', async ({
+  page,
+}) => {
+  await page.goto('/brand');
+  const header = page.locator('.brand-header header');
+  const crumbs = header.locator('.site-breadcrumbs');
+  const search = header.locator('.palette-trigger');
+
+  await expect(crumbs).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(search).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(crumbs).toHaveCSS('box-shadow', 'none');
+  await expect(search).toHaveCSS('box-shadow', 'none');
+
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect(header).toHaveAttribute('data-scrolled', '');
+  await expect(crumbs).not.toHaveCSS('box-shadow', 'none');
+  await expect(search).not.toHaveCSS('box-shadow', 'none');
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(header).not.toHaveAttribute('data-scrolled', '');
+  await expect(crumbs).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(search).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(crumbs).toHaveCSS('box-shadow', 'none');
+  await expect(search).toHaveCSS('box-shadow', 'none');
+});
+
 test('brand format popovers move focus into their links and restore it', async ({
   page,
 }) => {

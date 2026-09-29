@@ -735,13 +735,30 @@
 .brand-header .site-breadcrumbs,
 .brand-header .palette-trigger {
   --site-glass-tint: var(--color-tray);
+}
+.brand-header header[data-scrolled] :is(.site-breadcrumbs, .palette-trigger) {
   box-shadow: 0 1px 4px color-mix(in srgb, var(--color-scrim) 12%, transparent);
+}
+.brand-header
+  header:not([data-scrolled])
+  :is(.site-breadcrumbs.site-glass, .palette-trigger.site-glass) {
+  background-color: transparent;
+  box-shadow: none;
+  -apple-visual-effect: none;
+}
+.brand-header
+  header:not([data-scrolled])
+  .palette-trigger.site-glass:is(:hover, :focus-visible) {
+  background-color: transparent;
 }
 .brand-header .site-breadcrumbs {
   flex: 0 1 auto;
   min-height: 40px;
   padding: 0 12px;
   border-radius: 999px;
+  transition:
+    background-color 180ms var(--ease-site),
+    box-shadow 180ms var(--ease-site);
 }
 .brand-picker-panel {
   padding: 4px;

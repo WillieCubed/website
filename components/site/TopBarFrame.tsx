@@ -8,6 +8,7 @@ interface TopBarFrameProps {
   column: PageColumn;
   breadcrumbKey: string;
   className: string;
+  floatOnScroll?: boolean;
 }
 
 /**
@@ -20,6 +21,7 @@ export default function TopBarFrame({
   column,
   breadcrumbKey,
   className,
+  floatOnScroll = false,
   children,
 }: React.PropsWithChildren<TopBarFrameProps>) {
   const ref = useRef<HTMLElement>(null);
@@ -47,6 +49,21 @@ export default function TopBarFrame({
 
     return () => window.removeEventListener('resize', revealCurrentCrumb);
   }, [breadcrumbKey]);
+
+  useLayoutEffect(() => {
+    if (!floatOnScroll || !ref.current) return;
+    const header = ref.current;
+    const update = () =>
+      header.toggleAttribute('data-scrolled', window.scrollY > 8);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('pageshow', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('pageshow', update);
+      header.removeAttribute('data-scrolled');
+    };
+  }, [floatOnScroll]);
 
   return (
     <header ref={ref} data-column={column} className={className}>

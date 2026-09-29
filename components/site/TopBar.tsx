@@ -62,6 +62,7 @@ export default function TopBar({
     <ViewTransition name="site-top-bar" share="top-bar" default="none">
       <TopBarFrame
         column={column}
+        floatOnScroll={floating}
         breadcrumbKey={crumbs
           .map(({ href, label }) => `${href}:${label}`)
           .join('|')}

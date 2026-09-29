@@ -5,6 +5,7 @@ import type {
   GitHubContentsCommitResponse,
   MicropubRouteEnvironment,
 } from '@/lib/indieweb/types';
+import { isWritingSlug } from '@/lib/indieweb/utils';
 import { site } from '@/lib/site';
 
 /*
@@ -61,7 +62,7 @@ export function writingSlugForUrl(url: string): string | null {
   } catch {
     return null;
   }
-  return /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(slug) ? slug : null;
+  return isWritingSlug(slug) ? slug : null;
 }
 
 /**

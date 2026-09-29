@@ -6,9 +6,11 @@ import {
   buildMicropubWritingFile,
   getMicropubConfig,
   getMicropubSyndicationTargets,
+  micropubWritingPath,
   parseMicropubCreateRequest,
   prepareMicropubPhotoRequest,
 } from '@/lib/indieweb/micropub';
+import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
 import { readMicropubAccessToken } from '@/lib/indieweb/micropub-endpoint';
 import type { MicropubCreateRequest } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
@@ -412,5 +414,22 @@ test('buildMicropubWritingFile records photos with their alt text', () => {
   assert.match(
     file,
     /photo:\n {2}- url: "https:\/\/example\.com\/a\.jpg"\n {4}alt: "A bus at dusk"\n {2}- url: "https:\/\/example\.com\/b\.jpg"\n/
+  );
+});
+
+test('micropubWritingPath keeps an mp-slug inside the writings directory', () => {
+  for (const slug of ['../../app/evil', 'notes/../../evil', '_template']) {
+    assert.throws(
+      () => micropubWritingPath({ ...baseEntry, slug }, 'content/writings'),
+      MicropubRequestError,
+      slug
+    );
+  }
+  assert.deepEqual(
+    micropubWritingPath(
+      { ...baseEntry, slug: 'Bus_lane-2' },
+      'content/writings'
+    ),
+    { slug: 'Bus_lane-2', path: 'content/writings/Bus_lane-2.mdx' }
   );
 });

@@ -20,6 +20,17 @@ export function makeIndieWebSlug(
 }
 
 /**
+ * Routes that already answer at /writings/<name>, so a writing given one of
+ * these slugs could never be reached. tests/unit/writing-slugs.test.mts
+ * checks the list against the folders and files in app/writings.
+ */
+export const RESERVED_WRITING_SLUGS: ReadonlySet<string> = new Set([
+  'feed',
+  'opengraph-image',
+  'tags',
+]);
+
+/**
  * A slug becomes a file name under the writings directory and a URL segment.
  * Letters, digits, hyphens, and underscores keep it inside that directory,
  * and a leading letter or digit keeps out the `_` templates the loader hides.

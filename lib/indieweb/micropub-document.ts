@@ -1,6 +1,6 @@
 import matter from 'gray-matter';
 
-import { validatePhotoAlts } from '@/lib/accessibility/alt-policy';
+import { hasImageDescription } from '@/lib/accessibility/alt-policy';
 import { syndicationName } from '@/lib/indieweb/syndication';
 import { site } from '@/lib/site';
 
@@ -641,8 +641,14 @@ function setKey(file: WritingFile, key: string, lines: string[] | null) {
 function checked(source: string): string {
   try {
     const { data } = matter(source, {});
-    const altError = validatePhotoAlts(photosOf(data));
-    if (altError) throw new MicropubRequestError(altError);
+    const index = photosOf(data).findIndex(
+      (photo) => !hasImageDescription(photo.alt)
+    );
+    if (index >= 0) {
+      throw new MicropubRequestError(
+        `Photo ${index + 1} needs nonblank alt text. Send each photo as a JSON object with value and alt.`
+      );
+    }
   } catch (error) {
     if (error instanceof MicropubRequestError) throw error;
     throw new MicropubRequestError(

@@ -337,7 +337,11 @@ test('a create with a photo without alt writes no file', async () => {
     assert.match((await response.json()).error_description, /nonblank alt/);
     await assert.rejects(
       readFile(
-        join(process.cwd(), options.environment!.contentPath, 'unlabeled-photo.mdx')
+        join(
+          process.cwd(),
+          options.environment!.contentPath,
+          'unlabeled-photo.mdx'
+        )
       )
     );
   });
@@ -405,7 +409,10 @@ test('a photo update without alt writes no file or GitHub commit', async () => {
     fetch,
   });
   assert.equal(response.status, 400);
-  assert.deepEqual(calls.map(({ method }) => method), ['GET']);
+  assert.deepEqual(
+    calls.map(({ method }) => method),
+    ['GET']
+  );
 });
 
 test('a form update carries its token and changes in the body', async () => {

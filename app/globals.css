@@ -122,6 +122,7 @@
   --text-headline-small--font-weight: 600;
   --text-title-large: 22px;
   --text-title-large--line-height: 28px;
+  --text-title-large--letter-spacing: 0em;
   --text-title-large--font-weight: 600;
   --text-title-medium: 16px;
   --text-title-medium--line-height: 24px;
@@ -145,13 +146,16 @@
   --text-label-small--font-weight: 600;
   --text-body-large: 18px;
   --text-body-large--line-height: 28px;
+  --text-body-large--letter-spacing: 0em;
   --text-body-large--font-weight: 400;
   --text-body-medium: 16px;
   --text-body-medium--line-height: 24px;
+  --text-body-medium--letter-spacing: 0em;
   --text-body-medium--font-weight: 400;
   --text-body-small: 14px;
   --text-body-small--line-height: 16px;
   --text-body-small--letter-spacing: 0.04em;
+  --text-body-small--font-weight: 400;
 
   /* Named spacing steps used as p-lg, gap-md, and so on */
   --spacing-2xs: 0.25rem;

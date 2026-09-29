@@ -3,6 +3,27 @@ import { expect, test } from '@playwright/test';
 
 import kit from '../../lib/brand/kit.json' with { type: 'json' };
 
+test('typography guide shows composition and the complete role catalog', async ({
+  page,
+}) => {
+  await page.goto('/brand#type');
+  const guide = page.locator('section[aria-labelledby="type"]');
+  await expect(
+    guide.getByRole('heading', { name: 'How I compose a page' })
+  ).toBeVisible();
+  await expect(guide.getByText('Subtitle, when it helps')).toBeVisible();
+  await expect(
+    guide.getByRole('heading', { name: 'Type roles' })
+  ).toBeVisible();
+  await expect(guide.locator('[data-type-role]')).toHaveCount(15);
+  await expect(
+    guide.locator('[data-type-role="display-large"] .brand-role-sample')
+  ).toHaveCSS('font-size', '57px');
+  await expect(
+    guide.locator('[data-type-role="body-medium"] .brand-role-sample')
+  ).toHaveCSS('line-height', '24px');
+});
+
 test('brand downloads, navigation, and disclosures work', async ({ page }) => {
   await page.goto('/brand');
   const downloads = await page

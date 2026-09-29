@@ -49,5 +49,262 @@
         "monospace"
       ]
     }
+  },
+  "typography": {
+    "display-large": {
+      "$type": "typography",
+      "$description": "A short, singular statement on a wide landing page.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 57,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": -2.28,
+          "unit": "px"
+        },
+        "lineHeight": 1.1228070175438596
+      }
+    },
+    "display-medium": {
+      "$type": "typography",
+      "$description": "A prominent introduction when the largest display is too much.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 45,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": -1.8,
+          "unit": "px"
+        },
+        "lineHeight": 1.1555555555555554
+      }
+    },
+    "display-small": {
+      "$type": "typography",
+      "$description": "A compact hero or the main title of a visual page.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 36,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": -1.44,
+          "unit": "px"
+        },
+        "lineHeight": 1.2222222222222223
+      }
+    },
+    "headline-large": {
+      "$type": "typography",
+      "$description": "The title of a substantial story or project page.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 32,
+          "unit": "px"
+        },
+        "fontWeight": 700,
+        "letterSpacing": {
+          "value": -0.8,
+          "unit": "px"
+        },
+        "lineHeight": 1.25
+      }
+    },
+    "headline-medium": {
+      "$type": "typography",
+      "$description": "A page title or a major section with room to breathe.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 28,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": -0.7,
+          "unit": "px"
+        },
+        "lineHeight": 1.2857142857142858
+      }
+    },
+    "headline-small": {
+      "$type": "typography",
+      "$description": "A section heading inside long-form content.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 24,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": -0.6,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333333333333333
+      }
+    },
+    "title-large": {
+      "$type": "typography",
+      "$description": "A card, feature, or local content group title.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 22,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.2727272727272727
+      }
+    },
+    "title-medium": {
+      "$type": "typography",
+      "$description": "A list item or smaller content group title.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 16,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 0.24,
+          "unit": "px"
+        },
+        "lineHeight": 1.5
+      }
+    },
+    "title-small": {
+      "$type": "typography",
+      "$description": "A compact row or supporting title.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 0.14,
+          "unit": "px"
+        },
+        "lineHeight": 1.4285714285714286
+      }
+    },
+    "body-large": {
+      "$type": "typography",
+      "$description": "An introduction or optional subtitle below a title.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 18,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5555555555555556
+      }
+    },
+    "body-medium": {
+      "$type": "typography",
+      "$description": "The default for paragraphs and sustained reading.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 16,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5
+      }
+    },
+    "body-small": {
+      "$type": "typography",
+      "$description": "A short supporting note; use body medium for longer text.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0.56,
+          "unit": "px"
+        },
+        "lineHeight": 1.1428571428571428
+      }
+    },
+    "label-large": {
+      "$type": "typography",
+      "$description": "Buttons, prominent links, and navigation.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": 0.14,
+          "unit": "px"
+        },
+        "lineHeight": 1.4285714285714286
+      }
+    },
+    "label-medium": {
+      "$type": "typography",
+      "$description": "Categories and compact interface labels.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": 0.6,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333333333333333
+      }
+    },
+    "label-small": {
+      "$type": "typography",
+      "$description": "Tiny metadata with enough contrast and space.",
+      "$value": {
+        "fontFamily": "{font.display}",
+        "fontSize": {
+          "value": 11,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": 0.275,
+          "unit": "px"
+        },
+        "lineHeight": 1.4545454545454546
+      }
+    }
   }
 }

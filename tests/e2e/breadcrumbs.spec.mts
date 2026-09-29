@@ -48,6 +48,7 @@ for (const width of [320, 390, 1440]) {
     const brandMenu = page.locator(
       `#${await brand.getAttribute('aria-controls')}`
     );
+    await expect(brandMenu).toHaveCSS('transform', 'none');
     const brandLinks = brandMenu
       .getByRole('navigation', { name: 'Brand destinations' })
       .getByRole('link');
@@ -63,8 +64,73 @@ for (const width of [320, 390, 1440]) {
     const menuRect = await brandMenu.boundingBox();
     expect(menuRect!.x).toBeGreaterThanOrEqual(16);
     expect(menuRect!.x + menuRect!.width).toBeLessThanOrEqual(width - 16);
+    const placement = await brandMenu.evaluate((menu) => {
+      const trigger = document.querySelector<HTMLButtonElement>(
+        '.site-breadcrumbs__crumb .site-breadcrumb-menu-trigger'
+      )!;
+      const label = trigger.querySelector('span')!;
+      const firstLink = menu.querySelector<HTMLElement>(
+        '.site-breadcrumb-menu__link'
+      )!;
+      const triggerRect = trigger.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+      const linkRect = firstLink.getBoundingClientRect();
+      const searchRect = document
+        .querySelector('.palette-trigger--compact')!
+        .getBoundingClientRect();
+      return {
+        visibleGap: menuRect.top - (triggerRect.bottom - 8),
+        textOffset:
+          linkRect.left +
+          parseFloat(getComputedStyle(firstLink).paddingLeft) -
+          label.getBoundingClientRect().left,
+        overlapsSearch:
+          menuRect.left < searchRect.right &&
+          menuRect.right > searchRect.left &&
+          menuRect.top < searchRect.bottom &&
+          menuRect.bottom > searchRect.top,
+      };
+    });
+    expect(placement.visibleGap).toBeGreaterThanOrEqual(4);
+    expect(placement.visibleGap).toBeLessThanOrEqual(6);
+    expect(placement.overlapsSearch).toBe(false);
+    if (width >= 390) expect(Math.abs(placement.textOffset)).toBeLessThan(2);
   });
 }
+
+test('an open breadcrumb popup stays aligned after resizing', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 844 });
+  await page.goto('/brand');
+  const brand = page.getByRole('button', { name: 'Open menu for Brand' });
+  await brand.click();
+  const menu = page.locator(`#${await brand.getAttribute('aria-controls')}`);
+  await expect(menu).toHaveCSS('transform', 'none');
+
+  await page.setViewportSize({ width: 320, height: 844 });
+  await expect
+    .poll(async () => (await menu.boundingBox())?.x)
+    .toBeLessThan(160);
+  const placement = await menu.evaluate((element) => {
+    const label = document.querySelector<HTMLElement>(
+      '.site-breadcrumbs__crumb .site-breadcrumb-menu__label'
+    )!;
+    const link = element.querySelector<HTMLElement>(
+      '.site-breadcrumb-menu__link'
+    )!;
+    const menuRect = element.getBoundingClientRect();
+    return {
+      textOffset:
+        link.getBoundingClientRect().left +
+        parseFloat(getComputedStyle(link).paddingLeft) -
+        label.getBoundingClientRect().left,
+      right: menuRect.right,
+    };
+  });
+  expect(Math.abs(placement.textOffset)).toBeLessThan(2);
+  expect(placement.right).toBeLessThanOrEqual(304);
+});
 
 test('the site and Writings crumbs open independent menus', async ({
   page,

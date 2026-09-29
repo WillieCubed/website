@@ -12,6 +12,7 @@ export default function Popover({
   triggerClassName,
   panelClassName,
   align = 'start',
+  placement = 'default',
 }: {
   label: string;
   current?: boolean;
@@ -20,6 +21,7 @@ export default function Popover({
   triggerClassName: string;
   panelClassName: string;
   align?: 'start' | 'end';
+  placement?: 'default' | 'breadcrumb';
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -32,28 +34,61 @@ export default function Popover({
       if (!anchor || !menu?.matches(':popover-open')) return;
       const horizontalInset = 16;
       const verticalInset = 18;
-      const gap = 8;
-      const width = Math.min(240, innerWidth - 32);
-      const preferredLeft =
+      const breadcrumb = placement === 'breadcrumb';
+      const gap = breadcrumb ? 4 : 8;
+      const anchorTop = anchor.top + (breadcrumb ? 8 : 0);
+      const anchorBottom = anchor.bottom - (breadcrumb ? 8 : 0);
+      if (breadcrumb) menu.style.width = '';
+      const menuRect = menu.getBoundingClientRect();
+      const width = breadcrumb
+        ? menuRect.width
+        : Math.min(240, innerWidth - 32);
+      let preferredLeft =
         align === 'start' ? anchor.left : anchor.right - width;
+      if (breadcrumb) {
+        const anchorLabel = button.current?.querySelector<HTMLElement>(
+          '.site-breadcrumb-menu__label'
+        );
+        const firstLink = menu.querySelector<HTMLElement>(
+          '.site-breadcrumb-menu__link'
+        );
+        const linkTextInset = firstLink
+          ? firstLink.getBoundingClientRect().left -
+            menuRect.left +
+            parseFloat(getComputedStyle(firstLink).paddingLeft)
+          : 0;
+        preferredLeft =
+          (anchorLabel?.getBoundingClientRect().left ?? anchor.left) -
+          linkTextInset;
+      }
       const left = Math.min(
         Math.max(horizontalInset, preferredLeft),
         innerWidth - width - horizontalInset
       );
-      const belowSpace = Math.max(
-        0,
-        innerHeight - verticalInset - anchor.bottom - gap
+      // The menu can cross the Search control at narrow header widths.
+      const search = breadcrumb
+        ? button.current
+            ?.closest('header')
+            ?.querySelector<HTMLElement>('.palette-trigger--compact')
+            ?.getBoundingClientRect()
+        : undefined;
+      const belowTop = Math.max(
+        anchorBottom + gap,
+        search && left < search.right && left + width > search.left
+          ? search.bottom
+          : 0
       );
-      const aboveSpace = Math.max(0, anchor.top - verticalInset - gap);
+      const belowSpace = Math.max(0, innerHeight - verticalInset - belowTop);
+      const aboveSpace = Math.max(0, anchorTop - verticalInset - gap);
       const desiredHeight = menu.scrollHeight;
       const placeAbove = desiredHeight > belowSpace && aboveSpace > belowSpace;
       const availableHeight = placeAbove ? aboveSpace : belowSpace;
-      menu.style.width = `${width}px`;
+      if (!breadcrumb) menu.style.width = `${width}px`;
       menu.style.left = `${left}px`;
       menu.style.maxHeight = `${availableHeight}px`;
       menu.style.top = placeAbove
-        ? `${anchor.top - gap - Math.min(desiredHeight, availableHeight)}px`
-        : `${anchor.bottom + gap}px`;
+        ? `${anchorTop - gap - Math.min(desiredHeight, availableHeight)}px`
+        : `${belowTop}px`;
     }
     const menu = panel.current;
     const toggle = (event: Event) => {
@@ -74,7 +109,7 @@ export default function Popover({
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place);
     };
-  }, [align]);
+  }, [align, placement]);
   return (
     <>
       <button

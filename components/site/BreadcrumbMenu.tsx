@@ -33,9 +33,10 @@ export default function BreadcrumbMenu({
     <Popover
       label={`Open menu for ${label}`}
       current={href === pathname}
+      placement="breadcrumb"
       trigger={
         <>
-          <span>{label}</span>
+          <span className="site-breadcrumb-menu__label">{label}</span>
           {showArrow && (
             <span className="site-breadcrumb-menu__icon" aria-hidden="true">
               <Icon name="chevron-down" size={12} />

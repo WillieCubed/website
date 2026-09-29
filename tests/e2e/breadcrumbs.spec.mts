@@ -31,12 +31,12 @@ for (const width of [320, 390, 1440]) {
         beforeSlash: slashRect.left - siteRect.right,
         afterSlash: brandRect.left - slashRect.right,
         documentWidth: document.documentElement.scrollWidth,
-        viewportWidth: innerWidth,
+        viewportWidth: document.documentElement.clientWidth,
       };
     });
     expect(Math.abs(spacing.beforeSlash - spacing.afterSlash)).toBeLessThan(2);
     expect(spacing.beforeSlash).toBeCloseTo(width <= 360 ? 7 : 15, 0);
-    expect(spacing.documentWidth).toBe(spacing.viewportWidth);
+    expect(spacing.documentWidth).toBeLessThanOrEqual(spacing.viewportWidth);
 
     const before = await brand.boundingBox();
     await site.focus();

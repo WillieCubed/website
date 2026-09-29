@@ -45,17 +45,7 @@ const nextConfig: NextConfig = {
       { source: '/index.xml', destination: '/feed.xml', permanent: true },
       { source: '/atom.xml', destination: '/feed/atom', permanent: true },
     ];
-    // The writings index filtered by `?tag=` before each tag had its own
-    // page, and old links and bookmarks still carry the query.
-    const tagQueries = [
-      {
-        source: '/writings',
-        has: [{ type: 'query' as const, key: 'tag', value: '(?<tag>.+)' }],
-        destination: '/writings/tags/:tag',
-        permanent: true,
-      },
-    ];
-    return [...legacy, ...aliases, ...retired, ...feedGuesses, ...tagQueries];
+    return [...legacy, ...aliases, ...retired, ...feedGuesses];
   },
   cacheComponents: true,
   allowedDevOrigins: ['williecubed.localhost'],

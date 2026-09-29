@@ -106,9 +106,9 @@ test('the old tag filter redirects permanently to the tag page', async ({
     maxRedirects: 0,
   });
   expect(response.status()).toBe(308);
-  expect(new URL(response.headers()['location'], site.origin).pathname).toBe(
-    TAG_PATH
-  );
+  const location = new URL(response.headers()['location'], site.origin);
+  expect(location.pathname).toBe(TAG_PATH);
+  expect(location.search).toBe('');
 });
 
 test('a tag no published writing carries is not found', async ({ request }) => {

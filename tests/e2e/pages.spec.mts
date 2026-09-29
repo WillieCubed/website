@@ -202,23 +202,16 @@ test('the homepage reflows at 320px without horizontal scrolling', async ({
   ).toBeLessThanOrEqual(1);
 });
 
-test('the homepage search fills the phone column and caps wider rails at 360px', async ({
+test('the homepage search fills its column up to the Material 3 maximum', async ({
   page,
 }) => {
-  for (const width of [390, 430]) {
+  for (const width of [390, 430, 800, 900, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
     const column = await page.locator('.rail-search').boundingBox();
     const trigger = await page.locator('.palette-trigger--rail').boundingBox();
     expect(trigger?.x).toBeCloseTo(column!.x, 0);
-    expect(trigger?.width).toBeCloseTo(column!.width, 0);
-  }
-
-  for (const width of [760, 1440]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto('/');
-    const trigger = await page.locator('.palette-trigger--rail').boundingBox();
-    expect(trigger?.width).toBeCloseTo(360, 0);
+    expect(trigger?.width).toBeCloseTo(Math.min(column!.width, 720), 0);
   }
 });
 

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import readingTime from 'reading-time';
 
 import { showDrafts } from '@/lib/drafts';
+import { RESERVED_WRITING_SLUGS } from '@/lib/indieweb/utils';
 
 // =============================================================================
 // Series functions - delegating to collections module
@@ -41,9 +42,6 @@ export type {
 export type { WritingData, TOCHeading };
 
 const HIDDEN_ITEM_PREFIX = '_';
-
-/** Slugs that conflict with routes under /writings/ */
-const RESERVED_WRITING_SLUGS = ['series', 'opengraph-image', 'tags'];
 
 const writingsDirectory = join(process.cwd(), 'content/writings');
 
@@ -92,7 +90,7 @@ export async function getWritingSlugs(): Promise<string[]> {
     .filter((file) => !file.startsWith(HIDDEN_ITEM_PREFIX))
     .map((file) => file.replace(/\.mdx?$/, ''))
     .filter((slug) => {
-      if (RESERVED_WRITING_SLUGS.includes(slug)) {
+      if (RESERVED_WRITING_SLUGS.has(slug)) {
         console.warn(
           `Warning: Writing slug "${slug}" conflicts with a reserved route and will be ignored.`
         );

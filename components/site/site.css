@@ -365,7 +365,10 @@ body:has(header[data-column='reading'])
   flex: 1 1 auto;
   align-items: center;
   min-width: 0;
-  gap: 4px;
+  gap: 7px;
+}
+.site-breadcrumbs__crumb {
+  gap: 7px;
 }
 .site-breadcrumbs__crumb,
 .site-breadcrumb-item--home {
@@ -505,7 +508,10 @@ header[data-column] .site-breadcrumb {
 }
 @media (max-width: 360px) {
   .site-breadcrumbs {
-    gap: 0;
+    gap: 3px;
+  }
+  .site-breadcrumbs__crumb {
+    gap: 3px;
   }
   header[data-column] .site-breadcrumb {
     padding-inline: 4px;

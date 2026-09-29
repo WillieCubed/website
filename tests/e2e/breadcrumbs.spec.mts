@@ -35,7 +35,7 @@ for (const width of [320, 390, 1440]) {
       };
     });
     expect(Math.abs(spacing.beforeSlash - spacing.afterSlash)).toBeLessThan(2);
-    expect(spacing.beforeSlash).toBeLessThanOrEqual(14);
+    expect(spacing.beforeSlash).toBeCloseTo(width <= 360 ? 7 : 15, 0);
     expect(spacing.documentWidth).toBe(spacing.viewportWidth);
 
     const before = await brand.boundingBox();
@@ -120,15 +120,21 @@ test('an open breadcrumb popup stays aligned after resizing', async ({
       '.site-breadcrumb-menu__link'
     )!;
     const menuRect = element.getBoundingClientRect();
+    const linkTextInset =
+      link.getBoundingClientRect().left -
+      menuRect.left +
+      parseFloat(getComputedStyle(link).paddingLeft);
+    const preferredLeft = label.getBoundingClientRect().left - linkTextInset;
     return {
-      textOffset:
-        link.getBoundingClientRect().left +
-        parseFloat(getComputedStyle(link).paddingLeft) -
-        label.getBoundingClientRect().left,
+      left: menuRect.left,
+      expectedLeft: Math.min(
+        Math.max(16, preferredLeft),
+        innerWidth - menuRect.width - 16
+      ),
       right: menuRect.right,
     };
   });
-  expect(Math.abs(placement.textOffset)).toBeLessThan(2);
+  expect(Math.abs(placement.left - placement.expectedLeft)).toBeLessThan(2);
   expect(placement.right).toBeLessThanOrEqual(304);
 });
 

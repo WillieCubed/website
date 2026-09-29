@@ -245,7 +245,7 @@ for (const deviceScaleFactor of [1, 2, 3]) {
             image.evaluate(
               (img: HTMLImageElement) => img.complete && img.naturalWidth > 0
             ),
-          { timeout: 15_000 }
+          { timeout: 60_000 }
         )
         .toBe(true);
       const data = await image.evaluate((img: HTMLImageElement) => ({

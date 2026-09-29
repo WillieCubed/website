@@ -496,7 +496,7 @@ export default function Palette({
   return (
     <dialog
       ref={ref}
-      className="palette"
+      className="palette site-glass"
       aria-label="Command palette"
       onCancel={(event) => {
         // Escape closes through the provider, so the card morphs back.

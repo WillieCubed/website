@@ -35,6 +35,7 @@ export type Column = keyof typeof COLUMN;
 
 interface TopBarProps {
   crumbs?: Crumb[];
+  floating?: boolean;
   /** Which content column the bar should line up with. */
   column?: Column;
   /**
@@ -52,6 +53,7 @@ interface TopBarProps {
  */
 export default function TopBar({
   crumbs = [],
+  floating = false,
   column = 'wide',
   prefetchHome = true,
 }: TopBarProps) {
@@ -65,7 +67,10 @@ export default function TopBar({
           .join('|')}
         className={`mx-auto flex items-center gap-1 max-[360px]:gap-0 py-4 text-label-large text-muted ${COLUMN[column]}`}
       >
-        <nav className="site-breadcrumbs" aria-label="Breadcrumb">
+        <nav
+          className={`site-breadcrumbs${floating ? ' site-glass' : ''}`}
+          aria-label="Breadcrumb"
+        >
           <div className="site-breadcrumb-item site-breadcrumb-item--home">
             <BreadcrumbMenu
               label={site.name}
@@ -105,7 +110,7 @@ export default function TopBar({
           ))}
         </nav>
         <div className="ml-auto flex shrink-0 items-center">
-          <PaletteTrigger size="compact" />
+          <PaletteTrigger size="compact" glass={floating} />
           <noscript>
             <SiteLink
               preview={false}

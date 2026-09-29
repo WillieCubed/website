@@ -544,6 +544,7 @@ export default function BrandPage() {
       />
       <div className="brand-header">
         <TopBar
+          floating
           crumbs={[
             {
               label: 'Brand',

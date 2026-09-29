@@ -79,7 +79,7 @@ export default function TopBar({
           {crumbs.map((crumb, index) => (
             <div
               key={crumb.href}
-              className="site-breadcrumbs__crumb flex items-center gap-1 max-[360px]:gap-0"
+              className="site-breadcrumbs__crumb flex items-center"
             >
               <span aria-hidden="true">/</span>
               <div className="site-breadcrumb-item">

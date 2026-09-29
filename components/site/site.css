@@ -445,7 +445,9 @@ body:has(header[data-column='reading'])
 }
 .site-breadcrumb-menu {
   box-sizing: border-box;
-  max-width: calc(100vw - 32px);
+  width: max-content;
+  min-width: min(160px, calc(100vw - 32px));
+  max-width: min(240px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   overflow: auto;
   overscroll-behavior: contain;

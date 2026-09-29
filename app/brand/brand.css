@@ -510,23 +510,6 @@
   z-index: 30;
   background: var(--color-ground);
 }
-.brand-picker-trigger {
-  position: relative;
-  padding: 6px 12px;
-  line-height: 20px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 0;
-  color: var(--color-ink);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.brand-picker-trigger::before {
-  content: '';
-  position: absolute;
-  inset: -6px 0;
-}
 .brand-picker-panel {
   padding: 4px;
   width: 200px;

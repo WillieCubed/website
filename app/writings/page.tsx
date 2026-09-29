@@ -56,7 +56,16 @@ export default async function WritingsPage() {
       />
       <TopBar
         column="content"
-        crumbs={[{ label: 'Writings', href: '/writings' }]}
+        crumbs={[
+          {
+            label: 'Writings',
+            href: '/writings',
+            menuItems: writings.slice(0, 6).map((writing) => ({
+              label: writing.title,
+              href: `/writings/${writing.slug}`,
+            })),
+          },
+        ]}
       />
       <WritingsIndex
         name={WRITINGS.title}

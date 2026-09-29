@@ -29,6 +29,7 @@ import {
   SeriesWithWritings,
   WritingData,
   getAdjacentWritings,
+  getAllWritings,
   getPublishedWriting,
   getPublishedWritingSlugs,
   getSeriesWithWritings,
@@ -190,6 +191,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
   } catch {
     notFound();
   }
+  const recentWritings = (await getAllWritings()).slice(0, 6);
 
   // Fetch related data in parallel
   const [
@@ -232,7 +234,16 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
       />
       <TopBar
         column="reading"
-        crumbs={[{ label: 'Writings', href: '/writings' }]}
+        crumbs={[
+          {
+            label: 'Writings',
+            href: '/writings',
+            menuItems: recentWritings.map((item) => ({
+              label: item.title,
+              href: `/writings/${item.slug}`,
+            })),
+          },
+        ]}
       />
       <main id="main">
         <article className="h-entry mx-auto max-w-breakpoint-2xl">

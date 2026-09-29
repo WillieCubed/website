@@ -6,6 +6,7 @@ import './site.css';
 
 export default function Popover({
   label,
+  current = false,
   trigger,
   children,
   triggerClassName,
@@ -13,6 +14,7 @@ export default function Popover({
   align = 'start',
 }: {
   label: string;
+  current?: boolean;
   trigger: ReactNode;
   children: ReactNode;
   triggerClassName: string;
@@ -28,13 +30,30 @@ export default function Popover({
       const anchor = button.current?.getBoundingClientRect();
       const menu = panel.current;
       if (!anchor || !menu?.matches(':popover-open')) return;
-      const width = Math.min(
-        200,
-        align === 'start' ? innerWidth - anchor.left - 16 : innerWidth - 32
+      const horizontalInset = 16;
+      const verticalInset = 18;
+      const gap = 8;
+      const width = Math.min(240, innerWidth - 32);
+      const preferredLeft =
+        align === 'start' ? anchor.left : anchor.right - width;
+      const left = Math.min(
+        Math.max(horizontalInset, preferredLeft),
+        innerWidth - width - horizontalInset
       );
+      const belowSpace = Math.max(
+        0,
+        innerHeight - verticalInset - anchor.bottom - gap
+      );
+      const aboveSpace = Math.max(0, anchor.top - verticalInset - gap);
+      const desiredHeight = menu.scrollHeight;
+      const placeAbove = desiredHeight > belowSpace && aboveSpace > belowSpace;
+      const availableHeight = placeAbove ? aboveSpace : belowSpace;
       menu.style.width = `${width}px`;
-      menu.style.left = `${align === 'start' ? anchor.left : Math.max(16, anchor.right - width)}px`;
-      menu.style.top = `${anchor.bottom + 8}px`;
+      menu.style.left = `${left}px`;
+      menu.style.maxHeight = `${availableHeight}px`;
+      menu.style.top = placeAbove
+        ? `${anchor.top - gap - Math.min(desiredHeight, availableHeight)}px`
+        : `${anchor.bottom + gap}px`;
     }
     const menu = panel.current;
     const toggle = (event: Event) => {
@@ -64,8 +83,9 @@ export default function Popover({
         popoverTarget={id}
         className={triggerClassName}
         aria-label={label}
-        aria-expanded={open}
+        aria-current={current ? 'page' : undefined}
         aria-controls={id}
+        aria-expanded={open}
       >
         {trigger}
       </button>

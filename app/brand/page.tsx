@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
+import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import Popover from '@/components/site/Popover';
 import TopBar from '@/components/site/TopBar';
 
@@ -20,7 +21,6 @@ import { pageMetadata, sitePage } from '@/lib/site';
 
 import ClearSpace from './ClearSpace';
 import CopyHex from './CopyHex';
-import SectionPicker from './SectionPicker';
 import './brand.css';
 
 const BRAND_PAGE = sitePage('/brand');
@@ -29,6 +29,13 @@ const BRAND = {
   description: BRAND_PAGE.description,
   path: BRAND_PAGE.path,
 };
+
+const BRAND_SECTIONS: BreadcrumbMenuItem[] = [
+  { label: 'Logo', href: '#mark' },
+  { label: 'Colors', href: '#color' },
+  { label: 'Typography', href: '#type' },
+  { label: 'Applications', href: '#in-use' },
+];
 
 export const metadata = pageMetadata(BRAND);
 
@@ -537,7 +544,11 @@ export default function BrandPage() {
       <div className="brand-header">
         <TopBar
           crumbs={[
-            { label: 'Brand', href: '/brand', control: <SectionPicker /> },
+            {
+              label: 'Brand',
+              href: '/brand',
+              menuItems: BRAND_SECTIONS,
+            },
           ]}
         />
       </div>

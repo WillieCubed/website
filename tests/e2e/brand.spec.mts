@@ -22,11 +22,13 @@ test('brand downloads, navigation, and disclosures work', async ({ page }) => {
   ];
   for (const file of expectedDownloads) expect(downloads).toContain(file.href);
   await page
-    .getByRole('button', { name: 'Brand sections', exact: true })
+    .getByRole('button', { name: 'Open menu for Brand', exact: true })
     .click();
   await expect(
-    page.getByRole('navigation', { name: 'Brand sections' }).getByRole('link')
-  ).toHaveCount(4);
+    page
+      .getByRole('navigation', { name: 'Brand destinations' })
+      .getByRole('link')
+  ).toHaveCount(5);
 
   const mark = page.locator('figure').filter({
     has: page.getByRole('heading', { name: 'The cube', exact: true }),
@@ -45,21 +47,23 @@ test('brand downloads, navigation, and disclosures work', async ({ page }) => {
     mark.getByRole('link', { name: 'PNG 2048', exact: true })
   ).toBeVisible();
   await page
-    .getByRole('button', { name: 'Brand sections', exact: true })
+    .getByRole('button', { name: 'Open menu for Brand', exact: true })
     .click();
   await page
-    .getByRole('navigation', { name: 'Brand sections' })
+    .getByRole('navigation', { name: 'Brand destinations' })
     .getByRole('link', { name: 'Colors', exact: true })
     .click();
   await expect(page).toHaveURL(/#color$/);
   await expect(page.locator('#color')).toBeFocused();
   await page
-    .getByRole('button', { name: 'Brand sections', exact: true })
+    .getByRole('button', { name: 'Open menu for Brand', exact: true })
     .click();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.brand-section-menu')).not.toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Brand sections', exact: true })
+    page.getByRole('navigation', { name: 'Brand destinations' })
+  ).not.toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Open menu for Brand', exact: true })
   ).toBeFocused();
 
   const platform = page.locator('.brand-platform').filter({
@@ -174,21 +178,22 @@ for (const width of [320, 390, 1440]) {
         .analyze();
       expect(violations).toEqual([]);
       await page
-        .getByRole('button', { name: 'Brand sections', exact: true })
+        .getByRole('button', { name: 'Open menu for Brand', exact: true })
         .focus();
       await page.keyboard.press('Enter');
-      await expect(page.locator('.brand-section-menu')).toHaveCSS(
-        'opacity',
-        '1'
-      );
+      await expect(
+        page.locator('.site-breadcrumb-menu:popover-open')
+      ).toHaveCSS('opacity', '1');
+      await expect(
+        page.getByRole('navigation', { name: 'Brand destinations' })
+      ).toHaveCSS('opacity', '1');
       const openPicker = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
         .analyze();
       expect(openPicker.violations).toEqual([]);
       await page
-        .getByRole('navigation', { name: 'Brand sections' })
-        .getByRole('link')
-        .first()
+        .getByRole('navigation', { name: 'Brand destinations' })
+        .getByRole('link', { name: 'Logo' })
         .focus();
       await page.keyboard.press('Enter');
       await expect(page).toHaveURL(/#mark$/);

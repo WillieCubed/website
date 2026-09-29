@@ -1,11 +1,10 @@
-import type { ReactNode } from 'react';
-
 import SiteLink from '@/components/link/SiteLink';
 import PaletteTrigger from '@/components/palette/PaletteTrigger';
 
 import type { PageColumn } from '@/lib/footer/column';
-import { site } from '@/lib/site';
+import { routedPages, site } from '@/lib/site';
 
+import BreadcrumbMenu, { type BreadcrumbMenuItem } from './BreadcrumbMenu';
 import TopBarFrame from './TopBarFrame';
 import './site.css';
 import { ViewTransition } from './view-transition';
@@ -13,8 +12,13 @@ import { ViewTransition } from './view-transition';
 interface Crumb {
   label: string;
   href: string;
-  control?: ReactNode;
+  menuItems?: BreadcrumbMenuItem[];
 }
+
+const SITE_DESTINATIONS: BreadcrumbMenuItem[] = [
+  { label: 'Home', href: '/' },
+  ...routedPages.map(({ label, path }) => ({ label, href: path })),
+];
 
 /**
  * The column widths pages use. The bar takes the same one as the content
@@ -52,40 +56,55 @@ export default function TopBar({
   prefetchHome = true,
 }: TopBarProps) {
   return (
-    // Every page renders its own bar, so a navigation pairs the old bar with
-    // the new one and the bar slides to its new column (app/globals.css).
+    // Each page renders its own bar, so navigation pairs the old and new bars.
     <ViewTransition name="site-top-bar" share="top-bar" default="none">
       <TopBarFrame
         column={column}
-        className={`mx-auto flex items-center gap-1 py-4 text-label-large text-muted ${COLUMN[column]}`}
+        breadcrumbKey={crumbs
+          .map(({ href, label }) => `${href}:${label}`)
+          .join('|')}
+        className={`mx-auto flex items-center gap-1 max-[360px]:gap-0 py-4 text-label-large text-muted ${COLUMN[column]}`}
       >
-        <SiteLink
-          preview={false}
-          href="/"
-          prefetch={prefetchHome ? undefined : false}
-          rel="author"
-          className="font-semibold text-ink transition-colors hover:text-accent"
-        >
-          {site.name}
-        </SiteLink>
-        {crumbs.map((crumb, index) => (
-          <div
-            key={crumb.href}
-            className={`flex items-center gap-1 ${index === 0 ? 'ml-2' : ''}`}
-          >
-            <span aria-hidden="true">/</span>
-            {crumb.control ?? (
-              <SiteLink
-                preview={false}
-                href={crumb.href}
-                className="site-breadcrumb"
-              >
-                {crumb.label}
-              </SiteLink>
-            )}
+        <nav className="site-breadcrumbs" aria-label="Breadcrumb">
+          <div className="site-breadcrumb-item site-breadcrumb-item--home">
+            <BreadcrumbMenu
+              label={site.name}
+              href="/"
+              items={SITE_DESTINATIONS}
+              showArrow={crumbs.length === 0}
+              home
+              prefetchHome={prefetchHome}
+            />
           </div>
-        ))}
-        <div className="ml-auto flex items-center">
+          {crumbs.map((crumb, index) => (
+            <div
+              key={crumb.href}
+              className="site-breadcrumbs__crumb flex items-center gap-1 max-[360px]:gap-0"
+            >
+              <span aria-hidden="true">/</span>
+              <div className="site-breadcrumb-item">
+                <BreadcrumbMenu
+                  label={crumb.label}
+                  href={crumb.href}
+                  items={[
+                    { label: crumb.label, href: crumb.href },
+                    ...(crumb.menuItems?.length
+                      ? crumb.menuItems
+                      : routedPages.some((page) => page.path === crumb.href)
+                        ? routedPages.map(({ label, path }) => ({
+                            label,
+                            href: path,
+                          }))
+                        : []
+                    ).filter((item) => item.href !== crumb.href),
+                  ]}
+                  showArrow={index === crumbs.length - 1}
+                />
+              </div>
+            </div>
+          ))}
+        </nav>
+        <div className="ml-auto flex shrink-0 items-center">
           <PaletteTrigger size="compact" />
           <noscript>
             <SiteLink

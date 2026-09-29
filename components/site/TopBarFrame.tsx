@@ -6,6 +6,7 @@ import { type PageColumn, registerTopBar } from '@/lib/footer/column';
 
 interface TopBarFrameProps {
   column: PageColumn;
+  breadcrumbKey: string;
   className: string;
 }
 
@@ -17,6 +18,7 @@ interface TopBarFrameProps {
  */
 export default function TopBarFrame({
   column,
+  breadcrumbKey,
   className,
   children,
 }: React.PropsWithChildren<TopBarFrameProps>) {
@@ -26,6 +28,25 @@ export default function TopBarFrame({
     if (!ref.current) return;
     return registerTopBar(column, ref.current);
   }, [column]);
+
+  useLayoutEffect(() => {
+    const rail = ref.current?.querySelector<HTMLElement>('.site-breadcrumbs');
+    if (!rail) return;
+
+    const revealCurrentCrumb = () => {
+      if (
+        window.matchMedia('(max-width: 639px)').matches &&
+        rail.scrollWidth > rail.clientWidth
+      ) {
+        rail.scrollLeft = rail.scrollWidth;
+      }
+    };
+    revealCurrentCrumb();
+    window.addEventListener('resize', revealCurrentCrumb);
+    void document.fonts.ready.then(revealCurrentCrumb);
+
+    return () => window.removeEventListener('resize', revealCurrentCrumb);
+  }, [breadcrumbKey]);
 
   return (
     <header ref={ref} data-column={column} className={className}>

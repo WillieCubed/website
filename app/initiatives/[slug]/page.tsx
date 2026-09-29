@@ -9,6 +9,7 @@ import TrailerBlock from '@/components/initiatives/TrailerBlock';
 import { formatRange } from '@/components/initiatives/dates';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
+import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
@@ -17,6 +18,7 @@ import {
   getChildInitiatives,
   getInitiative,
   getInitiativeSlugs,
+  getInitiatives,
 } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
@@ -80,15 +82,45 @@ export default async function InitiativePage(props: {
   const parent = initiative.parent
     ? await getInitiative(initiative.parent).catch(() => null)
     : null;
+  const parentChildren = parent ? await getChildInitiatives(parent.slug) : [];
   const children = await getChildInitiatives(slug);
+  const topLevelInitiatives = (await getInitiatives())
+    .filter((item) => !item.parent)
+    .slice(0, 8);
   const links = await publishedLinks(initiative.links);
   const places = initiative.parts
     .flatMap((part) => part.places)
     .filter(
       (place, i, all) => all.findIndex((p) => p.name === place.name) === i
     );
-  const crumbs = [{ label: 'Initiatives', href: '/initiatives' }];
-  if (parent) crumbs.push({ label: parent.title, href: parent.href });
+  const crumbs: Array<{
+    label: string;
+    href: string;
+    menuItems?: BreadcrumbMenuItem[];
+  }> = [
+    {
+      label: 'Initiatives',
+      href: '/initiatives',
+      menuItems: topLevelInitiatives.map((item) => ({
+        label: item.title,
+        href: item.href,
+      })),
+    },
+  ];
+  if (parent) {
+    const parentCrumb: {
+      label: string;
+      href: string;
+      menuItems?: BreadcrumbMenuItem[];
+    } = { label: parent.title, href: parent.href };
+    if (parentChildren.length > 0) {
+      parentCrumb.menuItems = parentChildren.map((child) => ({
+        label: child.title,
+        href: child.href,
+      }));
+    }
+    crumbs.push(parentCrumb);
+  }
 
   return (
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>

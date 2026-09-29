@@ -14,11 +14,14 @@ import {
 } from '@/components/initiatives/dates';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
+import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import TopBar from '@/components/site/TopBar';
 
 import {
+  getChildInitiatives,
   getInitiative,
   getInitiativeSlugs,
+  getInitiatives,
   getPart,
   partTitle,
 } from '@/lib/initiatives';
@@ -95,12 +98,49 @@ export default async function PartPage(props: {
   const parent = initiative.parent
     ? await getInitiative(initiative.parent).catch(() => null)
     : null;
-  const crumbs = [{ label: 'Initiatives', href: '/initiatives' }];
-  if (parent) crumbs.push({ label: parent.title, href: parent.href });
-  crumbs.push({ label: initiative.title, href: initiative.href });
   const name = partTitle(initiative, part);
   const description =
     part.description || part.tagline || initiative.description;
+  const parentChildren = parent ? await getChildInitiatives(parent.slug) : [];
+  const topLevelInitiatives = (await getInitiatives())
+    .filter((item) => !item.parent)
+    .slice(0, 8);
+  const crumbs: Array<{
+    label: string;
+    href: string;
+    menuItems?: BreadcrumbMenuItem[];
+  }> = [
+    {
+      label: 'Initiatives',
+      href: '/initiatives',
+      menuItems: topLevelInitiatives.map((item) => ({
+        label: item.title,
+        href: item.href,
+      })),
+    },
+  ];
+  if (parent) {
+    const parentCrumb: {
+      label: string;
+      href: string;
+      menuItems?: BreadcrumbMenuItem[];
+    } = { label: parent.title, href: parent.href };
+    if (parentChildren.length > 0) {
+      parentCrumb.menuItems = parentChildren.map((child) => ({
+        label: child.title,
+        href: child.href,
+      }));
+    }
+    crumbs.push(parentCrumb);
+  }
+  crumbs.push({
+    label: initiative.title,
+    href: initiative.href,
+    menuItems: initiative.parts.map((item) => ({
+      label: `${initiative.partLabel} ${item.number}: ${item.title}`,
+      href: `${initiative.href}/${item.slug}`,
+    })),
+  });
   const partGraph = graph(
     webPageLd({
       name,

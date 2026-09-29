@@ -45,7 +45,18 @@ export default async function InitiativesPage() {
           personLd()
         )}
       />
-      <TopBar crumbs={[{ label: 'Initiatives', href: '/initiatives' }]} />
+      <TopBar
+        crumbs={[
+          {
+            label: 'Initiatives',
+            href: '/initiatives',
+            menuItems: initiatives
+              .filter((item) => !item.parent)
+              .slice(0, 8)
+              .map((item) => ({ label: item.title, href: item.href })),
+          },
+        ]}
+      />
       <main id="main" className="h-feed mx-auto max-w-[1200px] px-5 pb-20">
         {/* h-feed: u-url so parsers know which page this feed is, and
             p-author so they know whose it is */}

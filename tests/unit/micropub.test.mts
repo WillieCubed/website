@@ -13,6 +13,7 @@ import {
 import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
 import { readMicropubAccessToken } from '@/lib/indieweb/micropub-endpoint';
 import type { MicropubCreateRequest } from '@/lib/indieweb/types';
+import { RESERVED_WRITING_SLUGS } from '@/lib/indieweb/utils';
 import { site } from '@/lib/site';
 
 const baseEntry: MicropubCreateRequest = {
@@ -432,4 +433,24 @@ test('micropubWritingPath keeps an mp-slug inside the writings directory', () =>
     ),
     { slug: 'Bus_lane-2', path: 'content/writings/Bus_lane-2.mdx' }
   );
+});
+
+test('micropubWritingPath refuses an mp-slug a /writings route already answers', () => {
+  for (const slug of RESERVED_WRITING_SLUGS) {
+    assert.throws(
+      () => micropubWritingPath({ ...baseEntry, slug }, 'content/writings'),
+      (error) =>
+        error instanceof MicropubRequestError &&
+        error.description.includes(`/writings/${slug} route`),
+      slug
+    );
+  }
+});
+
+test('micropubWritingPath moves a made slug off a route name', () => {
+  const { slug } = micropubWritingPath(
+    { ...baseEntry, content: 'Tags' },
+    'content/writings'
+  );
+  assert.match(slug, /^tags-\d+$/);
 });

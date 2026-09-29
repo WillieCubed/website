@@ -33,6 +33,7 @@ import type {
   RawMicropubEntry,
 } from '@/lib/indieweb/types';
 import {
+  RESERVED_WRITING_SLUGS,
   formStringList,
   isWritingSlug,
   isoDateOnly,
@@ -173,15 +174,20 @@ export function micropubWritingPath(
 ): { slug: string; path: string } {
   if (entry.slug !== undefined && !isWritingSlug(entry.slug)) {
     throw new MicropubRequestError(
-      'mp-slug may use only letters, digits, hyphens, and underscores, and must start with a letter or digit.'
+      RESERVED_WRITING_SLUGS.has(entry.slug)
+        ? `mp-slug "${entry.slug}" is taken by the /writings/${entry.slug} route.`
+        : 'mp-slug may use only letters, digits, hyphens, and underscores, and must start with a letter or digit.'
     );
   }
-  const slug =
-    entry.slug ||
-    makeIndieWebSlug(
-      entry.name || entry.content,
-      entry.postType === 'photo' ? 'photo' : undefined
-    );
+  if (entry.slug)
+    return { slug: entry.slug, path: `${contentPath}/${entry.slug}.mdx` };
+  const made = makeIndieWebSlug(
+    entry.name || entry.content,
+    entry.postType === 'photo' ? 'photo' : undefined
+  );
+  // A made slug always has the right characters, so it fails only when a
+  // note's whole text is a route name, such as a note that reads "Tags".
+  const slug = isWritingSlug(made) ? made : `${made}-${Date.now()}`;
   return { slug, path: `${contentPath}/${slug}.mdx` };
 }
 

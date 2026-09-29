@@ -347,8 +347,10 @@ An `mp-slug` becomes the file name and the permalink, so it may use only
 letters, digits, hyphens, and underscores, and must start with a letter or
 digit. Anything else, such as `../` or a leading `_`, gets a 400
 `invalid_request` rather than a rewritten slug, so the client never publishes
-at an address it did not ask for. Without `mp-slug` the site makes a slug from
-the name or text.
+at an address it did not ask for. `feed`, `opengraph-image`, and `tags` are
+refused the same way, since a route already answers at each of them. Without
+`mp-slug` the site makes a slug from the name or text, and a made slug that
+lands on one of those names gets a timestamp suffix.
 
 A valid request becomes an MDX file under `content/writings`. When
 `MICROPUB_GITHUB_REPO` and `MICROPUB_GITHUB_TOKEN` are set the file is

@@ -361,6 +361,7 @@ body:has(header[data-column='reading'])
   transition: background-color 160ms var(--ease-site);
 }
 .site-breadcrumbs {
+  --home-crumb-padding-x: 8px;
   display: flex;
   flex: 1 1 auto;
   align-items: center;
@@ -384,7 +385,7 @@ body:has(header[data-column='reading'])
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 4px 8px 4px 0;
+  padding: 4px var(--home-crumb-padding-x) 4px 0;
   border-radius: 8px;
 }
 .site-breadcrumb-name:focus-visible {
@@ -415,6 +416,9 @@ body:has(header[data-column='reading'])
   content: '';
   pointer-events: none;
   transition: background-color 160ms var(--ease-site);
+}
+.site-breadcrumb-item--home .site-breadcrumb-menu-trigger::before {
+  left: calc(-1 * var(--home-crumb-padding-x));
 }
 .site-breadcrumb-menu__icon {
   display: inline-flex;
@@ -508,6 +512,7 @@ header[data-column] .site-breadcrumb {
 }
 @media (max-width: 360px) {
   .site-breadcrumbs {
+    --home-crumb-padding-x: 4px;
     gap: 3px;
   }
   .site-breadcrumbs__crumb {
@@ -516,12 +521,12 @@ header[data-column] .site-breadcrumb {
   header[data-column] .site-breadcrumb {
     padding-inline: 4px;
   }
-  header[data-column] .site-breadcrumb-name {
-    padding-right: 4px;
-  }
 }
 @media (max-width: 639px) {
   .site-breadcrumbs {
+    /* Keep the expanded visual state inside the scrolling breadcrumb rail. */
+    margin-left: calc(-1 * var(--home-crumb-padding-x));
+    padding-left: var(--home-crumb-padding-x);
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scrollbar-width: none;

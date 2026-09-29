@@ -297,6 +297,27 @@ test('a create still needs the create scope and writes the file', async () => {
   });
 });
 
+test('a create with an mp-slug outside the writings directory answers 400', async () => {
+  await withContent(async (options) => {
+    const response = await handleMicropubPost(
+      new Request(endpoint, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${await tokenWith('create')}` },
+        body: new URLSearchParams({
+          h: 'entry',
+          content: 'Out of bounds.',
+          'mp-slug': '../../app/evil',
+        }),
+      }),
+      options
+    );
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.equal(body.error, 'invalid_request');
+    assert.match(body.error_description, /mp-slug/);
+  });
+});
+
 test('an update needs the update scope and rewrites the file', async () => {
   await withContent(async (options, file) => {
     const body = {

@@ -343,6 +343,13 @@ may each be a URL or an embedded `h-cite`. The post keeps the h-cite's first
 `url`, or its `value` when it has no `url`, and a citation that names neither
 gets a 400 `invalid_request`.
 
+An `mp-slug` becomes the file name and the permalink, so it may use only
+letters, digits, hyphens, and underscores, and must start with a letter or
+digit. Anything else, such as `../` or a leading `_`, gets a 400
+`invalid_request` rather than a rewritten slug, so the client never publishes
+at an address it did not ask for. Without `mp-slug` the site makes a slug from
+the name or text.
+
 A valid request becomes an MDX file under `content/writings`. When
 `MICROPUB_GITHUB_REPO` and `MICROPUB_GITHUB_TOKEN` are set the file is
 committed through GitHub's Contents API on `MICROPUB_GITHUB_BRANCH` (default

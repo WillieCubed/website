@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import test from 'node:test';
@@ -8,6 +8,7 @@ import {
   MicropubStorageError,
   writeMicropubWritingLocally,
 } from '@/lib/indieweb/micropub';
+import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
 import { site } from '@/lib/site';
 
 test('writeMicropubWritingLocally writes a note into the content directory', async () => {
@@ -76,4 +77,33 @@ test('writeMicropubWritingLocally reports an unwritable directory as a storage e
     ),
     MicropubStorageError
   );
+});
+
+test('writeMicropubWritingLocally refuses an mp-slug that leaves the content directory', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'micropub-'));
+  const contentPath = relative(process.cwd(), join(dir, 'writings'));
+  try {
+    for (const slug of ['../escaped', '_template']) {
+      await assert.rejects(
+        writeMicropubWritingLocally(
+          {
+            h: 'entry',
+            content: 'Out of bounds',
+            categories: [],
+            postType: 'note',
+            syndication: [],
+            syndicateTo: [],
+            photos: [],
+            slug,
+          },
+          contentPath
+        ),
+        MicropubRequestError
+      );
+    }
+    await assert.rejects(access(join(dir, 'escaped.mdx')));
+    await assert.rejects(access(join(dir, 'writings', '_template.mdx')));
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });

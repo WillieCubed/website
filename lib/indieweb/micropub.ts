@@ -9,6 +9,7 @@ import {
   validateMediaFile,
 } from '@/lib/indieweb/media';
 import type { MediaStore } from '@/lib/indieweb/media';
+import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
 import {
   MicropubStorageError,
   localWriteError,
@@ -33,6 +34,7 @@ import type {
 } from '@/lib/indieweb/types';
 import {
   formStringList,
+  isWritingSlug,
   isoDateOnly,
   makeIndieWebSlug,
   optionalFormString,
@@ -160,11 +162,20 @@ export function buildMicropubWritingFile(
   return `${lines.join('\n')}\n---\n\n${entry.content.trim()}\n`;
 }
 
-/** Slug and repo-relative path for a new Micropub entry. */
+/**
+ * Slug and repo-relative path for a new Micropub entry. The client's
+ * mp-slug is checked here, where both the local write and the GitHub commit
+ * get their path, so `../` can never leave the writings directory.
+ */
 export function micropubWritingPath(
   entry: MicropubCreateRequest,
   contentPath = DEFAULT_CONTENT_PATH
 ): { slug: string; path: string } {
+  if (entry.slug !== undefined && !isWritingSlug(entry.slug)) {
+    throw new MicropubRequestError(
+      'mp-slug may use only letters, digits, hyphens, and underscores, and must start with a letter or digit.'
+    );
+  }
   const slug =
     entry.slug ||
     makeIndieWebSlug(

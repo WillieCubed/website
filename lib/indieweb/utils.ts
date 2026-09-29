@@ -19,6 +19,15 @@ export function makeIndieWebSlug(
   return slug || `${fallbackPrefix}-${Date.now()}`;
 }
 
+/**
+ * A slug becomes a file name under the writings directory and a URL segment.
+ * Letters, digits, hyphens, and underscores keep it inside that directory,
+ * and a leading letter or digit keeps out the `_` templates the loader hides.
+ */
+export function isWritingSlug(slug: string): boolean {
+  return /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(slug);
+}
+
 export function plainTextExcerpt(text: string, maxLength = 180): string {
   return text.replace(/\s+/g, ' ').trim().slice(0, maxLength);
 }

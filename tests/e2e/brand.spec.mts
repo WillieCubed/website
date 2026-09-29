@@ -226,7 +226,6 @@ for (const deviceScaleFactor of [1, 2, 3]) {
   test(`glass previews retain detail at ${deviceScaleFactor}x`, async ({
     browser,
   }, testInfo) => {
-    test.setTimeout(90_000);
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
       deviceScaleFactor,
@@ -239,14 +238,6 @@ for (const deviceScaleFactor of [1, 2, 3]) {
     await expect(images).toHaveCount(3);
     const measurements = [];
     for (const image of await images.all()) {
-      const selectedSrc = await image.evaluate(
-        (img: HTMLImageElement) => img.currentSrc
-      );
-      expect(selectedSrc).toContain('/_next/image?');
-      const response = await context.request.get(selectedSrc, {
-        headers: { Accept: 'image/webp' },
-      });
-      expect(response.ok()).toBe(true);
       await image.scrollIntoViewIfNeeded();
       await expect
         .poll(
@@ -254,7 +245,7 @@ for (const deviceScaleFactor of [1, 2, 3]) {
             image.evaluate(
               (img: HTMLImageElement) => img.complete && img.naturalWidth > 0
             ),
-          { timeout: 60_000 }
+          { timeout: 15_000 }
         )
         .toBe(true);
       const data = await image.evaluate((img: HTMLImageElement) => ({
@@ -270,6 +261,10 @@ for (const deviceScaleFactor of [1, 2, 3]) {
         160 * deviceScaleFactor
       );
       expect(url.searchParams.get('q')).toBe('90');
+      const response = await context.request.get(data.src, {
+        headers: { Accept: 'image/webp' },
+      });
+      expect(response.ok()).toBe(true);
       expect(response.headers()['content-type']).toBe('image/webp');
       const original = await context.request.get(
         new URL(url.searchParams.get('url')!, data.src).href

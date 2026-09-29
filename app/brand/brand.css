@@ -732,6 +732,23 @@
   top: 0;
   z-index: 30;
 }
+.brand-header header {
+  position: relative;
+  isolation: isolate;
+}
+/* Keep text clear of the two controls without adding a visible header surface. */
+.brand-header header[data-scrolled]::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 -16px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--color-ground) 0 64px,
+    transparent 72px
+  );
+}
 .brand-header .site-breadcrumbs,
 .brand-header .palette-trigger {
   --site-glass-tint: var(--color-tray);
@@ -754,11 +771,17 @@
 .brand-header .site-breadcrumbs {
   flex: 0 1 auto;
   min-height: 40px;
+  margin-left: 0;
   padding: 0 12px;
   border-radius: 999px;
   transition:
     background-color 180ms var(--ease-site),
     box-shadow 180ms var(--ease-site);
+}
+.brand-header
+  .site-breadcrumbs__crumb:last-child
+  .site-breadcrumb-menu-trigger {
+  padding-right: 0;
 }
 .brand-picker-panel {
   padding: 4px;

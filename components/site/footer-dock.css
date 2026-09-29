@@ -118,9 +118,8 @@
   letter-spacing: -0.02em;
 }
 /* The name arrives letter by letter as the headline's name leaves
-   (lib/footer/name-reveal.ts), so the wipe other pages use is off. It
-   shows once its letters are in place, so the first paint never flashes
-   the whole name at the head of the row. */
+   (lib/footer/name-reveal.ts), so the wipe other pages use is off. Its
+   opacity follows the wave while the highlight ranges paint. */
 .site-footer[data-dock] .site-footer__wordmark {
   clip-path: none;
   transition: none;

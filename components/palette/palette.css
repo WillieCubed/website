@@ -91,10 +91,9 @@
   margin-top: 1.25rem;
 }
 
-/* The sticky rail cannot scroll, so on a short desktop window the extra row
-   would push the contact links out of view. The button hides but ⌘K still
-   opens the palette, which then simply appears. */
-@media (min-width: 840px) and (max-height: 720px) {
+/* The sticky rail cannot scroll, so hide this row before it reaches the
+   docked contact links. The keyboard shortcut still opens the palette. */
+@media (min-width: 840px) and (max-height: 900px) {
   .rail-search {
     display: none;
   }

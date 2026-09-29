@@ -162,10 +162,9 @@ export interface NameReveal {
 }
 
 /**
- * Starts the letter wave on the name's text node. The name's element shows
- * once its letters are in place (--footer-name-opacity), so the first paint
- * never flashes the whole name. Without the Highlight API the name fades in
- * whole with the wave instead.
+ * Starts the letter wave on the name's text node. The element follows the
+ * wave's opacity while highlights paint each letter, so a delayed highlight
+ * paint cannot show the full footer name at the top of the page.
  */
 export function createNameReveal(
   text: Text,
@@ -242,10 +241,11 @@ export function createNameReveal(
   };
 
   settle();
-  element.style.setProperty('--footer-name-opacity', '1');
+  element.style.setProperty('--footer-name-opacity', '0');
 
   return {
     set(next) {
+      element.style.setProperty('--footer-name-opacity', next.toFixed(3));
       // The first reading puts the letters where they belong, so a page
       // loaded part-way down does not play the wave on arrival.
       if (!primed) {

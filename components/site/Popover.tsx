@@ -128,7 +128,7 @@ export default function Popover({
         ref={panel}
         id={id}
         popover="auto"
-        className={`site-popover ${panelClassName}`}
+        className={`site-popover site-glass ${panelClassName}`}
         onClick={(event) => {
           if (event.target instanceof Element && event.target.closest('a'))
             panel.current?.hidePopover();

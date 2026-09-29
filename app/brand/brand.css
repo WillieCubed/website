@@ -707,7 +707,30 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  background: var(--color-ground);
+}
+.brand-header::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -60px;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    var(--color-ground) 55%,
+    color-mix(in srgb, var(--color-ground) 90%, transparent) 75%,
+    transparent
+  );
+  pointer-events: none;
+}
+.brand-header .site-breadcrumbs,
+.brand-header .palette-trigger {
+  --site-glass-tint: var(--color-tray);
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--color-scrim) 10%, transparent);
+}
+.brand-header .site-breadcrumbs {
+  flex: 0 1 auto;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
 }
 .brand-picker-panel {
   padding: 4px;
@@ -739,14 +762,7 @@
     gap: 4px;
     padding-block: 8px;
   }
-  .brand-header header > a {
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  .brand-header header > span,
-  .brand-header header > div {
+  .brand-header header > div:last-child {
     flex-shrink: 0;
   }
 }
@@ -779,10 +795,6 @@
 .brand-more-formats[aria-expanded='true'] {
   background: color-mix(in srgb, var(--color-ink) 10%, var(--color-card));
 }
-.brand-header header > a {
-  margin-right: 12px;
-}
-
 /* Using the logo. Each rule is a short note, then the rule drawn or listed
    from the kit's own numbers. */
 .brand-rule {

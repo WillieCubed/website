@@ -34,13 +34,17 @@ interface PaletteTriggerProps {
    * is the top bar's smaller button.
    */
   size: 'rail' | 'compact';
+  glass?: boolean;
 }
 
 /**
  * Opens the command palette. The button is a tonal container that grows
  * into the palette's card and shrinks back into it on close.
  */
-export default function PaletteTrigger({ size }: PaletteTriggerProps) {
+export default function PaletteTrigger({
+  size,
+  glass = false,
+}: PaletteTriggerProps) {
   const { open, register } = usePalette();
   const ref = useRef<HTMLAnchorElement>(null);
   const shortcut = useShortcutLabel();
@@ -58,7 +62,7 @@ export default function PaletteTrigger({ size }: PaletteTriggerProps) {
       ref={ref}
       // eslint-disable-next-line site/no-raw-internal-anchor -- the no-script fallback for a control that opens the palette; the palette morphs from this element by ref, which SiteLink does not forward
       href="/search"
-      className={`palette-trigger palette-trigger--${size}`}
+      className={`palette-trigger palette-trigger--${size}${glass ? ' site-glass' : ''}`}
       aria-haspopup="dialog"
       aria-keyshortcuts="Meta+K Control+K"
       onClick={(event) => {

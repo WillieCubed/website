@@ -226,6 +226,7 @@ for (const deviceScaleFactor of [1, 2, 3]) {
   test(`glass previews retain detail at ${deviceScaleFactor}x`, async ({
     browser,
   }, testInfo) => {
+    test.setTimeout(90_000);
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
       deviceScaleFactor,

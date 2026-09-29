@@ -21,6 +21,7 @@ import { pageMetadata, sitePage } from '@/lib/site';
 
 import ClearSpace from './ClearSpace';
 import CopyHex from './CopyHex';
+import TypographyGuide from './TypographyGuide';
 import './brand.css';
 
 const BRAND_PAGE = sitePage('/brand');
@@ -701,48 +702,8 @@ export default function BrandPage() {
           <h2 id="type" tabIndex={-1}>
             Typography
           </h2>
-          <p className="brand-section-note">
-            I use Atkinson Hyperlegible Next for my name and the longer things I
-            write. For labels, captions, and code, I switch to Atkinson
-            Hyperlegible Mono. That keeps the small details distinct while
-            keeping both fonts in the same family.
-          </p>
-          <div className="brand-type-example">
-            <p className="brand-type-heading">Willie Chalmers III</p>
-            <p>{INTRO}</p>
-            <p className="brand-type-caption font-mono">
-              Willie Chalmers III · willie.page
-            </p>
-          </div>
-          <div className="brand-specimens">
-            <div className="brand-specimen">
-              <p className="brand-specimen-sample font-sans">
-                Atkinson Hyperlegible Next
-              </p>
-
-              <p>
-                Headlines, body text, and the wordmark. Designed by the Braille
-                Institute for legibility.
-              </p>
-              <p className="brand-downloads">
-                <SiteLink href="https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next">
-                  Google Fonts
-                </SiteLink>
-              </p>
-            </div>
-            <div className="brand-specimen">
-              <p className="brand-specimen-sample brand-specimen-mono font-mono">
-                Atkinson Hyperlegible Mono
-              </p>
-
-              <p>Labels, captions, and code.</p>
-              <p className="brand-downloads">
-                <SiteLink href="https://fonts.google.com/specimen/Atkinson+Hyperlegible+Mono">
-                  Google Fonts
-                </SiteLink>
-              </p>
-            </div>
-          </div>
+          <TypographyGuide />
+          <Downloads files={kit.tokens} />
         </section>
 
         <section className="brand-chapter" aria-labelledby="in-use">

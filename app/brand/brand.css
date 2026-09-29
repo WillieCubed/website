@@ -229,31 +229,6 @@
   box-shadow: inset 0 -1px 0 var(--color-line);
 }
 
-.brand-specimens {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: 12px;
-}
-.brand-specimen {
-  padding: 20px 0 0;
-}
-.brand-specimen p {
-  margin: 6px 0 0;
-  color: var(--color-muted);
-}
-.brand-specimen p.brand-specimen-sample {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-.brand-specimen p.brand-specimen-mono {
-  font-weight: 500;
-  letter-spacing: 0;
-}
-
 .brand-files {
   margin: 0;
   padding: 0;
@@ -389,23 +364,247 @@
 .brand-swatch dd:not(:first-of-type) {
   color: var(--color-muted);
 }
-.brand-type-example {
-  padding: 32px;
+.brand-type-faces {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  margin-top: 0;
+}
+.brand-type-face {
+  min-width: 0;
+  padding: 22px;
   border-radius: 14px;
   background: var(--color-tray);
-  margin-block: 24px;
 }
-.brand-type-example .brand-type-heading {
+.brand-type-face p {
+  margin: 8px 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.brand-type-face p.brand-type-face-sample {
+  margin: 0;
   color: var(--color-ink);
-  font-size: clamp(28px, 4vw, 44px);
-  line-height: 1.2;
-  margin: 0 0 16px;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.brand-type-face a {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.brand-type-section {
+  margin-top: 48px;
+}
+.brand-type-guidance {
+  max-width: 76ch;
+  margin: -6px 0 24px;
+  color: var(--color-muted);
+  font-size: 16px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+.brand-type-guidance code {
+  color: var(--color-ink);
+  font-size: 0.9em;
+}
+.brand-type-layouts {
+  display: grid;
+  gap: 12px;
+}
+.brand-type-layout {
+  min-width: 0;
+  margin: 0;
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--color-tray);
+}
+.brand-type-layout figcaption {
+  margin-bottom: 22px;
+  color: var(--color-muted);
+  font: 600 12px/16px var(--font-mono);
+}
+.brand-type-layout article,
+.brand-type-layout > div {
+  min-width: 0;
+}
+.brand-type-layout article {
+  max-width: 660px;
+  margin-inline: auto;
+  padding: clamp(18px, 4vw, 40px);
+  border-radius: 12px;
+  background: var(--color-card);
+}
+.brand-type-layout h4,
+.brand-type-layout h5 {
+  margin: 0;
+  color: var(--color-ink);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.brand-type-layout p {
+  color: var(--color-ink);
+}
+.brand-type-layout .brand-type-eyebrow {
+  margin: 0 0 14px;
+  color: var(--color-muted);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.brand-type-reading h4 {
+  margin-bottom: 12px;
+}
+.brand-type-reading p.text-body-medium {
+  max-width: 62ch;
+  margin: 18px 0 0;
+}
+.brand-type-reading h5 {
+  margin-top: 28px;
+}
+.brand-type-reading .brand-type-subtitle {
+  max-width: 52ch;
+  margin: 0;
+}
+.brand-type-layout p.brand-type-annotation {
+  margin: 0 0 6px;
+  color: var(--color-muted);
+  font: 500 11px/16px var(--font-mono);
+}
+.brand-type-landing > div {
+  display: flex;
+  min-height: 330px;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(18px, 4vw, 40px);
+  border-radius: 12px;
+  background: var(--color-card);
+}
+.brand-type-landing p.text-body-large {
+  max-width: 42ch;
+  margin: 18px 0 24px;
+}
+.brand-type-action {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-on-primary);
+}
+.brand-type-local-card {
+  padding: clamp(18px, 4vw, 40px);
+  border-radius: 12px;
+  background: var(--color-card);
+}
+.brand-type-local-card p.brand-type-category {
+  margin: 0 0 12px;
+  color: var(--color-accent);
+}
+.brand-type-local-card p.text-body-medium {
+  margin: 12px 0 22px;
+}
+.brand-type-layout p.brand-type-local-note {
+  margin: 14px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+@media (min-width: 840px) {
+  .brand-type-layouts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .brand-type-reading {
+    grid-column: 1 / -1;
+  }
+}
+.brand-type-groups {
+  display: grid;
+  gap: 32px;
+}
+.brand-type-group {
+  min-width: 0;
+}
+.brand-type-group-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin-bottom: 12px;
+}
+.brand-type-group-heading h4 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 18px;
   font-weight: 600;
 }
-.brand-type-example .brand-type-caption {
-  margin: 24px 0 0;
-  color: var(--color-ink);
+.brand-type-group-heading p {
+  margin: 0;
+  color: var(--color-muted);
   font-size: 13px;
+}
+.brand-type-role-list {
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+}
+.brand-type-role {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  padding: 22px;
+  background: var(--color-card);
+}
+.brand-type-role + .brand-type-role {
+  border-top: 1px solid var(--color-line);
+}
+.brand-type-role-description h5 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.brand-type-role-description p {
+  max-width: 36ch;
+  margin: 5px 0 8px;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.brand-type-role-description code {
+  color: var(--color-accent);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.brand-type-role-preview {
+  min-width: 0;
+}
+.brand-type-role-preview p.brand-role-sample {
+  max-width: 100%;
+  margin: 0 0 12px;
+  color: var(--color-ink);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.brand-type-role-preview p.brand-type-role-spec {
+  margin: 0;
+  color: var(--color-muted);
+  font: 400 12px/18px var(--font-mono);
+}
+@media (min-width: 720px) {
+  .brand-type-role {
+    grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+    align-items: center;
+    gap: 28px;
+  }
 }
 .brand-page :is(button, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--color-ink);

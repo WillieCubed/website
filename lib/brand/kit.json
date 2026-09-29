@@ -2,7 +2,7 @@
   "archive": {
     "label": "Download brand kit",
     "href": "/brand/williecubed-brand.zip",
-    "bytes": 5972832
+    "bytes": 5974037
   },
   "marks": [
     {
@@ -861,12 +861,12 @@
     {
       "label": "Design tokens (DTCG JSON)",
       "href": "/brand/tokens/williecubed.tokens.json",
-      "bytes": 1164
+      "bytes": 7596
     },
     {
       "label": "CSS custom properties",
       "href": "/brand/tokens/williecubed.css",
-      "bytes": 291
+      "bytes": 3813
     }
   ],
   "appIcons": [

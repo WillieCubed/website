@@ -13,6 +13,8 @@ import PDFDocument from 'pdfkit';
 import * as prettier from 'prettier';
 import SVGtoPDF from 'svg-to-pdfkit';
 
+import { typeScale } from './type-scale.mjs';
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 // Every generated file gets this timestamp so rebuilding unchanged assets
 // produces byte-identical PDFs and archives.
@@ -868,6 +870,27 @@ const tokens = {
       $value: ['Atkinson Hyperlegible Mono', 'ui-monospace', 'monospace'],
     },
   },
+  typography: Object.fromEntries(
+    typeScale.map((role) => [
+      role.name,
+      {
+        $type: 'typography',
+        $description: role.use,
+        $value: {
+          fontFamily: '{font.display}',
+          fontSize: { value: role.size, unit: 'px' },
+          fontWeight: role.weight,
+          letterSpacing: {
+            value: Number(
+              (parseFloat(role.letterSpacing) * role.size).toFixed(3)
+            ),
+            unit: 'px',
+          },
+          lineHeight: role.lineHeight / role.size,
+        },
+      },
+    ])
+  ),
 };
 write(
   'tokens/williecubed.tokens.json',
@@ -880,7 +903,12 @@ write(
     .map(([k, v]) => `  --wc-${k}: ${v.hex};`)
     .join(
       '\n'
-    )}\n  --wc-font-display: 'Atkinson Hyperlegible Next', system-ui, sans-serif;\n  --wc-font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;\n}\n`,
+    )}\n  --wc-font-display: 'Atkinson Hyperlegible Next', system-ui, sans-serif;\n  --wc-font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;\n${typeScale
+    .map(
+      (role) =>
+        `  --wc-text-${role.name}: ${role.size}px;\n  --wc-text-${role.name}--line-height: ${role.lineHeight}px;\n  --wc-text-${role.name}--font-weight: ${role.weight};\n  --wc-text-${role.name}--letter-spacing: ${role.letterSpacing};\n  --wc-text-${role.name}--font-family: var(--wc-font-display);`
+    )
+    .join('\n')}\n}\n`,
   { group: 'tokens', purpose: 'CSS custom properties' }
 );
 

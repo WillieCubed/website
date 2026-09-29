@@ -202,7 +202,7 @@ test('the homepage reflows at 320px without horizontal scrolling', async ({
   ).toBeLessThanOrEqual(1);
 });
 
-test('the homepage search fills the phone column and keeps its tablet cap', async ({
+test('the homepage search fills the phone column and caps wider rails at 360px', async ({
   page,
 }) => {
   for (const width of [390, 430]) {
@@ -214,10 +214,12 @@ test('the homepage search fills the phone column and keeps its tablet cap', asyn
     expect(trigger?.width).toBeCloseTo(column!.width, 0);
   }
 
-  await page.setViewportSize({ width: 760, height: 900 });
-  await page.goto('/');
-  const trigger = await page.locator('.palette-trigger--rail').boundingBox();
-  expect(trigger?.width).toBeLessThanOrEqual(340);
+  for (const width of [760, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    const trigger = await page.locator('.palette-trigger--rail').boundingBox();
+    expect(trigger?.width).toBeCloseTo(360, 0);
+  }
 });
 
 test('focus remains visible in forced colors', async ({ page }) => {

@@ -35,9 +35,12 @@ export function ProductScroller({
           const el = scroller.current;
           const list = cards();
           if (!el || list.length < 2) return;
+          const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
           const step = Math.max(1, list[1].offsetLeft - list[0].offsetLeft);
           setCurrent(
-            Math.min(list.length - 1, Math.round(el.scrollLeft / step))
+            atEnd
+              ? list.length - 1
+              : Math.min(list.length - 1, Math.round(el.scrollLeft / step))
           );
         }}
       >

@@ -1268,12 +1268,25 @@
       grid-column: 1 / -1;
     }
     .tile.studio .products {
+      grid-auto-columns: 48%;
+      grid-auto-flow: column;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      overflow: visible;
+      grid-template-columns: none;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: 14px;
+      scrollbar-width: none;
+    }
+    .tile.studio .products::-webkit-scrollbar {
+      display: none;
     }
     .tile.studio .product {
       height: 260px;
+      scroll-snap-align: start;
+    }
+    .tile.studio .pager {
+      display: flex;
     }
     .tile .shot {
       left: 7%;

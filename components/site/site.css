@@ -233,7 +233,6 @@ body:has(header[data-column='reading'])
   color: var(--color-accent);
 }
 .site-popover {
-  --site-glass-tint: var(--color-surface-container);
   position: fixed;
   inset: auto;
   margin: 0;

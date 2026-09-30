@@ -1,11 +1,11 @@
-.site-glass.site-glass {
+.brand-header .site-glass.site-glass {
   background-color: var(--site-glass-tint, var(--color-ground));
 }
 
 /* Safari pages need Apple's web recipe when system material is unavailable.
    Source: https://www.apple.com/api-www/global-elements/global-header/v1/assets/globalheader.css */
 @supports (-webkit-backdrop-filter: blur(20px)) {
-  .site-glass.site-glass {
+  .brand-header .site-glass.site-glass {
     background-color: color-mix(
       in srgb,
       var(--site-glass-tint, var(--color-ground)) 80%,
@@ -18,7 +18,7 @@
 
 /* System glass takes priority in hosts that enable WebKit's material API. */
 @supports (-apple-visual-effect: -apple-system-glass-material) {
-  .site-glass.site-glass {
+  .brand-header .site-glass.site-glass {
     background-color: transparent;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;

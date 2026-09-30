@@ -175,7 +175,7 @@ export default function FooterLockup({ name }: { name: string }) {
         popover="manual"
         role="menu"
         aria-label="Cube actions"
-        className="site-popover site-glass cube-context-popover"
+        className="site-popover cube-context-popover"
         onToggle={(event) => setMenuOpen(event.newState === 'open')}
         onKeyDown={(event) => {
           const items = Array.from(

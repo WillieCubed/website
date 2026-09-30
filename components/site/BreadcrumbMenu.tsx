@@ -29,6 +29,21 @@ export default function BreadcrumbMenu({
 }) {
   const pathname = usePathname();
 
+  if (home) {
+    return (
+      <SiteLink
+        href={href}
+        preview={false}
+        prefetch={prefetchHome ? undefined : false}
+        rel="author"
+        aria-current={href === pathname ? 'page' : undefined}
+        className="site-breadcrumb-name font-semibold text-ink"
+      >
+        {label}
+      </SiteLink>
+    );
+  }
+
   return (
     <Popover
       label={`Open menu for ${label}`}
@@ -44,7 +59,7 @@ export default function BreadcrumbMenu({
           )}
         </>
       }
-      triggerClassName={`${home ? 'site-breadcrumb-name font-semibold text-ink' : 'site-breadcrumb'} site-breadcrumb-menu-trigger`}
+      triggerClassName="site-breadcrumb site-breadcrumb-menu-trigger"
       panelClassName="site-breadcrumb-menu"
     >
       <nav
@@ -56,10 +71,6 @@ export default function BreadcrumbMenu({
             key={item.href}
             href={item.href}
             preview={false}
-            rel={home && item.href === '/' ? 'author' : undefined}
-            prefetch={
-              home && item.href === '/' && !prefetchHome ? false : undefined
-            }
             className="site-breadcrumb-menu__link"
             aria-current={item.href === pathname ? 'page' : undefined}
             onClick={() => {

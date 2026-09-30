@@ -37,7 +37,11 @@ test('a hidden tile does not make its focus live', () => {
   const byFocus = tilesByFocus(tiles);
   // Atlas is the only work on the helpers focus, and it is hidden.
   assert.deepEqual(byFocus.helpers, []);
-  assert.deepEqual(byFocus.cities, ['lvbt', 'transitmapper']);
+  assert.deepEqual(byFocus.cities, [
+    'lvbt',
+    'week-without-driving',
+    'transitmapper',
+  ]);
 });
 
 test('a tile can serve no focus', () => {

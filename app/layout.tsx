@@ -15,6 +15,7 @@ import { SPECULATION_RULES } from '@/lib/speculation-rules';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
 import { monoFont, sansFont } from './fonts';
+import './glass.css';
 import './globals.css';
 
 /** Google shows the favicon in results only when it is a multiple of 48px. */

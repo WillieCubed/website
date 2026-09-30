@@ -1,5 +1,5 @@
 /**
- * Everything the homepage shows about Willie's ventures.
+ * Everything the homepage shows about Willie's organizations and projects.
  *
  * Adding work to the homepage means adding an entry here; the grid packs new
  * tiles without a layout change. The markup lives in components/home and
@@ -36,6 +36,13 @@ const picture = (name: string, width: number, height: number): Picture => ({
 });
 
 const TRANSITMAPPER = picture('transit-mapper', 1200, 630);
+const WEEK_WITHOUT_DRIVING = picture(
+  'week-without-driving-las-vegas',
+  960,
+  540
+);
+const WEEK_WITHOUT_DRIVING_ALT =
+  'An RTC Route 105 bus at a stop in Las Vegas. Photo by Baconunquiealt, CC0.';
 const LOGDATE = picture('logdate-phone', 948, 1852);
 const DOCKET = picture('docket-app', 1600, 928);
 const CURFEW = picture('curfew-lockout', 1544, 960);
@@ -255,6 +262,40 @@ export const ventures: Venture[] = [
         {
           label: 'All LVBT projects',
           href: 'https://lasvegasfortransit.org/projects/',
+        },
+      ],
+    },
+  },
+  {
+    id: 'week-without-driving',
+    name: 'Week Without Driving - Las Vegas',
+    parent: 'Las Vegans for Better Transit',
+    brand: 'lvbt',
+    head: 'LVBT · Week Without Driving',
+    size: 'w3 h3',
+    focuses: ['cities'],
+    hint: 'See the campaign',
+    weight: 95,
+    body: {
+      kind: 'shot',
+      ...WEEK_WITHOUT_DRIVING,
+      alt: WEEK_WITHOUT_DRIVING_ALT,
+    },
+    detail: {
+      media: {
+        kind: 'image',
+        ...WEEK_WITHOUT_DRIVING,
+        alt: WEEK_WITHOUT_DRIVING_ALT,
+        framed: true,
+      },
+      body: [
+        'I’m organizing the Las Vegas campaign for Week Without Driving with Las Vegans for Better Transit to highlight the effects of a car-dependent city and why increased investment in public transit is needed.',
+      ],
+      links: [
+        { label: 'Visit lvwwd.org', href: 'https://lvwwd.org/' },
+        {
+          label: '@lvweekwithoutdriving on Instagram',
+          href: 'https://www.instagram.com/lvweekwithoutdriving/',
         },
       ],
     },

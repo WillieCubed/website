@@ -44,13 +44,15 @@ function readProject(filePath: string, slug: string, now: Date): Project {
     );
   }
   const { status, ...rest } = parsed.data;
+  const isPublic = rest.visibility === 'public';
   return {
     ...rest,
     slug,
     status: projectStatus(status, rest.starts, rest.ends, now),
-    // A facts-only project never carries its body past the loader, so no
-    // page or feed can render it by accident.
-    content: rest.visibility === 'public' ? content.trim() : '',
+    // A facts-only project never carries its body or its media past the
+    // loader, so no page or feed can render either by accident.
+    content: isPublic ? content.trim() : '',
+    media: isPublic ? rest.media : [],
     href: `/projects/${slug}`,
   };
 }

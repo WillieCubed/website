@@ -37,6 +37,11 @@ test('a facts-only project has no body', () => {
   assert.equal(facts?.content, '');
 });
 
+test('a facts-only project has no media', () => {
+  const facts = loadAllProjects({ dir, now }).find((p) => p.slug === 'facts');
+  assert.deepEqual(facts?.media, []);
+});
+
 test('children are found by parent slug', () => {
   const all = loadAllProjects({ dir, now });
   assert.deepEqual(

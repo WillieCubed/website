@@ -25,10 +25,16 @@ export const OWNERS = {
     href: 'https://reasonabletech.co/',
     brand: 'lovelace',
   },
-  acm: { name: 'ACM UTD', href: 'https://github.com/acmutd' },
+  acm: {
+    name: 'Association for Computing Machinery at UT Dallas',
+    href: 'https://acmutd.co',
+  },
   asa: { name: 'American Society on Aging', href: 'https://www.asaging.org/' },
   nebula: { name: 'Nebula Labs', href: 'https://www.utdnebula.com/' },
-  irvl: { name: 'IRVL', href: 'https://github.com/IRVLUTD' },
+  irvl: {
+    name: 'Intelligent Robotics and Vision Lab at UT Dallas',
+    href: 'https://labs.utdallas.edu/irvl',
+  },
 } as const satisfies Record<string, Owner>;
 
 export type OwnerKey = keyof typeof OWNERS;

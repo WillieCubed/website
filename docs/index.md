@@ -20,8 +20,8 @@ how its content is modeled, and the conventions that govern changes to it.
   images, and the compact `/media` page.
 - [Initiatives](./initiatives.md): the MDX schema for campaigns, series, and
   projects under `/initiatives`, their parts, and the homepage `feature` block.
-- [Projects](./projects.md): project categories and the `data/projects.json`
-  shape.
+- [Projects](./projects.md): the one-file-per-project schema, visibility, and
+  the rule that every word is Willie's.
 
 ## IndieWeb
 
@@ -78,7 +78,7 @@ how its content is modeled, and the conventions that govern changes to it.
   Its plans cover [standard.site](./superpowers/plans/2026-10-02-standard-site.md)
   and [Bluesky posting and responses](./superpowers/plans/2026-10-02-bluesky-posse.md).
 - [Project model and pages](./superpowers/plans/2026-09-28-project-model-and-pages.md):
-  the plan, not yet executed, for one validated file per project and a page
+  the plan, executed, for one validated file per project and a page
   for every project, with the `/projects` list left parked until Willie
   picks a layout.
 

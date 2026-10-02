@@ -11,7 +11,7 @@ Start with the page for the content type you are changing, then run
   how to add a content type to them.
 - [Initiatives](../initiatives.md): campaigns, series, and projects under
   `/initiatives`.
-- [Projects](../projects.md): project categories and the `data/projects.json`
-  shape.
+- [Projects](../projects.md): the one-file-per-project schema, visibility, and
+  the rule that every word is Willie's.
 - [IndieWeb](../indieweb/README.md): the protocol endpoints and microformats
   that content feeds into.

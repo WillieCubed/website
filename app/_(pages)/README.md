@@ -16,8 +16,12 @@ card, because the helper declares every custom social image as
 `/assets/headshot.jpg`, which is 1157×1157, so fix the image or add an
 image-size option to `pageMetadata` when they are routed again.
 
-Projects also left the site feeds and search. When the project pages come
-back, restore the project items in the three site feeds under
+The project detail route is routed already and lives at
+`app/projects/[codename]`, and `lib/response-headers.ts` covers it. Only the
+`/projects` index is still parked.
+
+Projects also left the site feeds and search. When the `/projects` index is
+unparked, restore the project items in the three site feeds under
 `app/feed.xml` and `app/feed/`, remove the project exclusions in
 `selectSearchable` (`lib/search/server.ts`), `SearchContentType`
 (`lib/search/types.ts`), and `app/api/search/route.ts`, and have

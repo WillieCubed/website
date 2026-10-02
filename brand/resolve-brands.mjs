@@ -14,6 +14,7 @@
 // A site that yields no saturated color keeps its previous seed and is
 // reported, so the page stays neutral for it rather than turning grey.
 import { Resvg } from '@resvg/resvg-js';
+import matter from 'gray-matter';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(HERE, '..', 'lib', 'brand', 'seeds.json');
 
-const SITES = {
+const VENTURE_SITES = {
   lvbt: 'https://lasvegasfortransit.org/',
   logdate: 'https://logdate.app/',
   docket: 'https://docket.hypertext.studio/',
@@ -30,6 +31,27 @@ const SITES = {
   atlas: 'https://atlas.rebuildingus.org/',
   hypertext: 'https://hypertext.studio/',
 };
+
+const PROJECTS_DIR = path.join(HERE, '..', 'content', 'projects');
+
+/** Each project's own site, keyed by slug, so its page can wear its colors. */
+function projectSites() {
+  if (!fs.existsSync(PROJECTS_DIR)) return {};
+  return Object.fromEntries(
+    fs
+      .readdirSync(PROJECTS_DIR)
+      .filter((file) => file.endsWith('.mdx') && !file.startsWith('_'))
+      .map((file) => [
+        file.replace(/\.mdx$/, ''),
+        matter(fs.readFileSync(path.join(PROJECTS_DIR, file), 'utf8')).data
+          .website,
+      ])
+      .filter(([, url]) => typeof url === 'string')
+  );
+}
+
+// Ventures win a key collision: a venture's own site is its brand.
+const SITES = { ...projectSites(), ...VENTURE_SITES };
 
 const USER_AGENT = 'willie.page brand resolver (+https://willie.page/)';
 

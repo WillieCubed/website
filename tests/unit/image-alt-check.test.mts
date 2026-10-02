@@ -92,3 +92,21 @@ test('MDX gallery items cannot hide missing alt behind object spreads', () => {
   assert.match(issues[0].message, /literal image fields/);
   assert.match(issues[1].message, /nonblank alt/);
 });
+
+test('project media images need descriptions; video and documents have none', () => {
+  const source = `---
+media:
+  - kind: image
+    src: /assets/projects/x.webp
+    alt: ''
+  - kind: video
+    youtubeId: abc
+    title: A video
+  - kind: document
+    href: /report.pdf
+    title: A report
+---`;
+  const issues = validateMdxImageAlts('project.mdx', source);
+  assert.equal(issues.length, 1);
+  assert.ok(issues[0].message.startsWith('media[0]'));
+});

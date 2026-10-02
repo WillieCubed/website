@@ -12,13 +12,13 @@ const MIME: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
 };
 
 /**
  * Inlines a raster file from public/ as a data URI so the renderer never
- * has to fetch the site's own origin at build time. SVG placeholders are
- * skipped; the brand gradient carries the image instead.
+ * has to fetch the site's own origin at build time. SVG placeholders and
+ * WebP files are skipped because Satori throws on them instead of ignoring
+ * the image. The brand gradient carries the image in that case.
  */
 export async function publicImageDataUri(
   src?: string

@@ -158,7 +158,7 @@ export function validateMdxImageAlts(file: string, source: string): AltIssue[] {
   mediaAlt(metadata.cover, file, 'cover', issues);
   const trailer = metadata.trailer as Record<string, unknown> | undefined;
   mediaAlt(trailer?.poster, file, 'trailer poster', issues);
-  for (const collection of ['gallery', 'images', 'scenes']) {
+  for (const collection of ['gallery', 'images', 'scenes', 'media']) {
     const entries = metadata[collection];
     if (Array.isArray(entries)) {
       entries.forEach((entry, index) =>

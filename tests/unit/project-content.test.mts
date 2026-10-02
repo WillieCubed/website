@@ -30,6 +30,27 @@ const LINES: Record<string, string> = {
   parlipro: 'Presiding over meetings with parlimentary procedure, done simply.',
 };
 
+/** Willie's own titles: `name` in the old data/projects.json, `title` in the old MDX. */
+const TITLES: Record<string, string> = {
+  cole: 'CoLe: The Concept Learning Project',
+  hackportal: 'HackPortal',
+  storygen: 'Storygen',
+  aggie: 'Aggie: A Testbed for Intelligent Agents',
+  yearbook: 'UTD Wrapped',
+  'comet-planning': 'Nebula Planner',
+  'utd-guide': 'UTD Survival Guide',
+  orbit: 'Orbit: A Friend-Finding App',
+  website: 'Personal Website',
+  connie: 'Connie Phase II',
+  parlipro: 'ParliPro',
+};
+
+test('every migrated project keeps its title verbatim', () => {
+  for (const [slug, title] of Object.entries(TITLES)) {
+    assert.equal(bySlug.get(slug)?.title, title, slug);
+  }
+});
+
 test('every migrated project parses and keeps its line verbatim', () => {
   for (const [slug, line] of Object.entries(LINES)) {
     assert.equal(bySlug.get(slug)?.line, line, slug);

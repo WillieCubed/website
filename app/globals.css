@@ -293,6 +293,13 @@ main:focus {
   outline: none;
 }
 
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: pretty;
+}
+
 /* Typography and syntax themes consume the same roles as the surrounding UI. */
 .prose-theme {
   --tw-prose-body: var(--color-on-surface);

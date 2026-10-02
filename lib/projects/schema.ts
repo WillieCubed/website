@@ -104,6 +104,8 @@ export interface Project extends Omit<ProjectFrontmatter, 'status'> {
   status: ProjectStatus;
   /** The MDX body; always empty unless visibility is `public`. */
   content: string;
+  /** Always empty unless visibility is `public`; the loader drops it. */
+  media: ProjectMedia[];
   /** Site-relative path of the project page. */
   href: string;
 }

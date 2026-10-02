@@ -50,3 +50,64 @@ export function linkLabel(href: string): string {
     return href;
   }
 }
+
+export interface ProjectLinkChip {
+  href: string;
+  label: string;
+  /** The first of the project's own links gets the filled style. */
+  primary: boolean;
+}
+
+interface Related {
+  initiative: { title: string; href: string } | null;
+  /** The successor when it is a project on this site. */
+  successor: { title: string; href: string } | null;
+}
+
+/**
+ * Every chip under a project's header, in order: the project's own links,
+ * then its initiative, then its successor. The page renders the wrapper
+ * only when this is nonempty, so a chip cannot exist without its wrapper.
+ *
+ * The project's own site leads. When a labeled link already points at it,
+ * that link keeps Willie's label instead of a bare host.
+ */
+export function projectLinkChips(
+  project: Pick<Project, 'website' | 'links' | 'successor'>,
+  { initiative, successor }: Related
+): ProjectLinkChip[] {
+  const own = project.website
+    ? (project.links.find((link) => link.href === project.website) ?? {
+        href: project.website,
+      })
+    : undefined;
+  const chips: ProjectLinkChip[] = [
+    ...(own ? [own] : []),
+    ...project.links.filter((link) => link !== own),
+  ].map((link, index) => ({
+    href: link.href,
+    label: ('label' in link ? link.label : undefined) ?? linkLabel(link.href),
+    primary: index === 0,
+  }));
+  if (initiative) {
+    chips.push({
+      href: initiative.href,
+      label: initiative.title,
+      primary: false,
+    });
+  }
+  if (successor) {
+    chips.push({
+      href: successor.href,
+      label: successor.title,
+      primary: false,
+    });
+  } else if (project.successor?.startsWith('https://')) {
+    chips.push({
+      href: project.successor,
+      label: linkLabel(project.successor),
+      primary: false,
+    });
+  }
+  return chips;
+}

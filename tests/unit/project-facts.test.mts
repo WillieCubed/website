@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { projectSeed } from '@/lib/projects/brand';
-import { linkLabel, projectFacts, projectYears } from '@/lib/projects/facts';
+import {
+  linkLabel,
+  projectFacts,
+  projectLinkChips,
+  projectYears,
+} from '@/lib/projects/facts';
 import type { Project } from '@/lib/projects/schema';
 
 const base: Project = {
@@ -73,4 +78,86 @@ test('the seed is the project brand, then its slug, then its first owner', () =>
     '#e5471a'
   );
   assert.equal(projectSeed({ slug: 'x', owners: [] }, table), undefined);
+});
+
+const nobody = { initiative: null, successor: null };
+
+test('the own site leads and keeps its labeled link', () => {
+  const chips = projectLinkChips(
+    {
+      ...base,
+      website: 'https://parlipro.vercel.app/',
+      links: [
+        { href: 'https://github.com/WillieCubed/parlipro', label: 'Code' },
+        { href: 'https://parlipro.vercel.app/', label: 'Web App' },
+      ],
+    },
+    nobody
+  );
+  assert.deepEqual(chips, [
+    { href: 'https://parlipro.vercel.app/', label: 'Web App', primary: true },
+    {
+      href: 'https://github.com/WillieCubed/parlipro',
+      label: 'Code',
+      primary: false,
+    },
+  ]);
+});
+
+test('an own site with no matching link shows its host', () => {
+  const chips = projectLinkChips(
+    { ...base, website: 'https://parlipro.vercel.app/' },
+    nobody
+  );
+  assert.deepEqual(chips, [
+    {
+      href: 'https://parlipro.vercel.app/',
+      label: 'parlipro.vercel.app',
+      primary: true,
+    },
+  ]);
+});
+
+test('an external successor is a chip even when nothing else links out', () => {
+  const chips = projectLinkChips(
+    { ...base, successor: 'https://newapp.example/start' },
+    nobody
+  );
+  assert.deepEqual(chips, [
+    {
+      href: 'https://newapp.example/start',
+      label: 'newapp.example/start',
+      primary: false,
+    },
+  ]);
+});
+
+test('an initiative and a project successor follow the links', () => {
+  const chips = projectLinkChips(
+    { ...base, links: [{ href: 'https://example.com/a', label: 'A' }] },
+    {
+      initiative: {
+        title: 'Fall Tour 2026',
+        href: '/initiatives/fall-tour-2026',
+      },
+      successor: { title: 'ParliPro 2', href: '/projects/parlipro-2' },
+    }
+  );
+  assert.deepEqual(
+    chips.map((chip) => [chip.label, chip.primary]),
+    [
+      ['A', true],
+      ['Fall Tour 2026', false],
+      ['ParliPro 2', false],
+    ]
+  );
+});
+
+test('a project with nothing to link to has no chips', () => {
+  assert.deepEqual(projectLinkChips(base, nobody), []);
+  // A slug successor that resolves to no project adds nothing.
+  assert.deepEqual(
+    projectLinkChips({ ...base, successor: 'parlipro-2' }, nobody),
+    []
+  );
 });

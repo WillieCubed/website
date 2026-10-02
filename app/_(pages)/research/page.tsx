@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
-import { ProjectData } from '@/lib/common';
-import { getAllProjects } from '@/lib/projects';
+import type { Project } from '@/lib/projects';
+import { getProjects } from '@/lib/projects';
 
 export const metadata: Metadata = {
   title: 'Research Overview',
@@ -122,22 +122,18 @@ export default async function ResearchOverviewPage() {
   );
 }
 
+/** The projects data/projects.json typed as research before the migration. */
+const RESEARCH_SLUGS = ['cole', 'storygen', 'aggie'];
+
 type ProjectsPageProps = {
-  researchProjects: ProjectData[];
+  researchProjects: Project[];
 };
 
-/**
- * A wrapper function that provides data needed to render the projects overview.
- *
- * @returns All research projects
- */
 async function getResearchPageData(): Promise<ProjectsPageProps> {
-  try {
-    const projects = await getAllProjects();
-    const researchProjects = projects.filter(({ type }) => type === 'research');
-    return { researchProjects };
-  } catch (error) {
-    console.error('Could not fetch projects', error);
-    throw error;
-  }
+  const projects = await getProjects();
+  return {
+    researchProjects: projects.filter(({ slug }) =>
+      RESEARCH_SLUGS.includes(slug)
+    ),
+  };
 }

@@ -27,26 +27,26 @@ The schema below comes from a critique of the four canvas prototypes. It address
 
 The frontmatter fields, all validated by `ProjectFrontmatterSchema`, are:
 
-| Field           | Type                                                                                     | Meaning                                                                                                             |
-| --------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `title`         | string, required                                                                         | The name exactly as Willie wrote it.                                                                                |
-| `line`          | string                                                                                   | His one-line description. Missing means he has not written one, and the page shows nothing in its place.            |
-| `owners`        | owner keys, default `[]`                                                                 | Keys from `lib/projects/owners.ts`. An empty list means the project is his own.                                     |
-| `parent`        | slug                                                                                     | The project this belongs under. The loader fails the build when the slug does not exist.                            |
-| `initiative`    | slug                                                                                     | The initiative page that tells this project's story. The page links to it.                                          |
-| `successor`     | slug or `https://` URL                                                                   | What this project turned into.                                                                                      |
-| `roles`         | strings, default `[]`                                                                    | His roles, in his words ("Creator", "Product Manager").                                                             |
-| `collaborators` | `{ name, href? }[]`                                                                      | Credit for other people.                                                                                            |
-| `starts`/`ends` | `YYYY-MM-DD`                                                                             | Calendar dates, parsed with `DateSchema` from `lib/initiatives/schema.ts`.                                          |
-| `updated`       | `YYYY-MM-DD`                                                                             | The last real edit.                                                                                                 |
-| `status`        | `planned`, `active`, `paused`, `complete`, `unreleased`, `handed-off`, `archived`        | Derived from the dates when missing, as initiatives do.                                                             |
-| `weight`        | integer 0–100, default 0                                                                 | Higher weights sort first; dates order the rest.                                                                    |
-| `visibility`    | `public`, `facts`, `hidden`, default `public`                                            | `facts` renders the header only, with no body and no media. `hidden` removes the project from every list and route. |
-| `brand`         | seed key or `#rrggbb`                                                                    | Overrides the scheme. Otherwise the scheme comes from the seed for the slug, then the first owner's seed.           |
-| `website`       | `https://` URL                                                                           | The project's own site.                                                                                             |
-| `media`         | image `{ src, alt, caption? }`, video `{ youtubeId, title }`, document `{ href, title }` | The first item is the hero.                                                                                         |
-| `links`         | `{ href, label? }[]`                                                                     | A link with no label shows its host and path, such as `github.com/WillieCubed/parlipro`.                            |
-| `draft`         | boolean, default `false`                                                                 | Renders in development and returns 404 in production, as initiatives do.                                            |
+| Field           | Type                                                                                                  | Meaning                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `title`         | string, required                                                                                      | The name exactly as Willie wrote it.                                                                                |
+| `line`          | string                                                                                                | His one-line description. Missing means he has not written one, and the page shows nothing in its place.            |
+| `owners`        | owner keys, default `[]`                                                                              | Keys from `lib/projects/owners.ts`. An empty list means the project is his own.                                     |
+| `parent`        | slug                                                                                                  | The project this belongs under. The loader fails the build when the slug does not exist.                            |
+| `initiative`    | slug                                                                                                  | The initiative page that tells this project's story. The page links to it.                                          |
+| `successor`     | slug or `https://` URL                                                                                | What this project turned into.                                                                                      |
+| `roles`         | strings, default `[]`                                                                                 | His roles, in his words ("Creator", "Product Manager").                                                             |
+| `collaborators` | `{ name, href? }[]`                                                                                   | Credit for other people.                                                                                            |
+| `starts`/`ends` | `YYYY-MM-DD`                                                                                          | Calendar dates, parsed with `DateSchema` from `lib/initiatives/schema.ts`.                                          |
+| `updated`       | `YYYY-MM-DD`                                                                                          | The last real edit.                                                                                                 |
+| `status`        | `planned`, `active`, `paused`, `complete`, `unreleased`, `handed-off`, `archived`                     | Derived from the dates when missing, as initiatives do.                                                             |
+| `weight`        | integer 0–100, default 0                                                                              | Higher weights sort first; dates order the rest.                                                                    |
+| `visibility`    | `public`, `facts`, `hidden`, default `public`                                                         | `facts` renders the header only, with no body and no media. `hidden` removes the project from every list and route. |
+| `brand`         | seed key or `#rrggbb`                                                                                 | Overrides the scheme. Otherwise the scheme comes from the seed for the slug, then the first owner's seed.           |
+| `website`       | `https://` URL                                                                                        | The project's own site.                                                                                             |
+| `media`         | image `{ src, alt, decorative?, caption? }`, video `{ youtubeId, title }`, document `{ href, title }` | The first item is the hero.                                                                                         |
+| `links`         | `{ href, label? }[]`                                                                                  | A link with no label shows its host and path, such as `github.com/WillieCubed/parlipro`.                            |
+| `draft`         | boolean, default `false`                                                                              | Renders in development and returns 404 in production, as initiatives do.                                            |
 
 A few decisions sit outside the schema:
 
@@ -64,12 +64,13 @@ Some things are still open, and Willie has to answer them:
 
 - The status of each older project is a best guess. The plan uses `unreleased` for ParliPro (his write-up says it "was never used in production"), `archived` for the old personal website, and `complete` for the rest.
 - Nobody knows the start years of the eight older projects. `lastUpdated` in `data/projects.json` records when the entry was edited, not when the project ran, so the migration leaves those dates out.
-- The ParliPro hero image has no alt text of his. The migration sets it to an empty string and lists it as a gap.
+- The ParliPro hero keeps the alt text main already carries in `thumbnailAlt`, copied exactly.
 - The migration dropped seven dead or private links, listed in Task 4, Step 3.
 
 ## Global Constraints
 
 - Every sentence of project content is Willie's own words. Migration copies text exactly, typos included ("parlimentary", "United Sates", "embarassed"). Where he has written nothing, the field stays empty. Never write, shorten, or reword a title, line, body, caption, or alt text.
+- Images follow docs/accessibility.md, which `pnpm content:check` and the build enforce. An informative image needs nonblank alt text. A decorative image sets `decorative: true` with `alt: ''`, and its markup carries `aria-hidden`. Run `pnpm content:check` after touching project MDX or image markup.
 - The only interface text the page adds is the status names in `STATUS_LABELS` and the link host labels from `linkLabel`.
 - Nothing reaches willie.page without Willie's explicit go-ahead. Keep `/projects` parked (`routed: false` in `lib/site.ts`), and leave `draft: true` on every migrated file.
 - The repository is ESM. Tests are `tests/unit/*.test.mts` using `node:test` and `node:assert/strict`, and `pnpm test` runs them.
@@ -86,7 +87,8 @@ Some things are still open, and Willie has to answer them:
 
 - Create: `lib/projects/owners.ts`
 - Create: `lib/projects/schema.ts`
-- Test: `tests/unit/project-schema.test.mts`
+- Modify: `scripts/image-alt-check.ts` (the frontmatter collections list)
+- Test: `tests/unit/project-schema.test.mts`, `tests/unit/image-alt-check.test.mts`
 
 **Interfaces:**
 
@@ -135,7 +137,7 @@ test('media is image, video, or document', () => {
   const parsed = ProjectFrontmatterSchema.parse({
     title: 'X',
     media: [
-      { kind: 'image', src: '/a.webp', alt: '' },
+      { kind: 'image', src: '/a.webp', alt: 'A screenshot' },
       { kind: 'video', youtubeId: 'abc', title: 'A video' },
       { kind: 'document', href: '/report.pdf', title: 'A report' },
     ],
@@ -148,6 +150,18 @@ test('media is image, video, or document', () => {
     }).success,
     false
   );
+});
+
+test('an image needs a description unless it is marked decorative', () => {
+  const image = (extra: object) =>
+    ProjectFrontmatterSchema.safeParse({
+      title: 'X',
+      media: [{ kind: 'image', src: '/a.webp', ...extra }],
+    }).success;
+  assert.equal(image({ alt: '' }), false);
+  assert.equal(image({ alt: '   ' }), false);
+  assert.equal(image({ alt: '', decorative: true }), true);
+  assert.equal(image({ alt: 'A screenshot', decorative: true }), false);
 });
 
 test('a website and a URL successor must be https', () => {
@@ -232,6 +246,7 @@ export const OWNER_KEYS = Object.keys(OWNERS) as [OwnerKey, ...OwnerKey[]];
 // lib/projects/schema.ts
 import { z } from 'zod';
 
+import { imageAltIssue } from '@/lib/accessibility/alt-policy';
 import { DateSchema } from '@/lib/initiatives/schema';
 
 import { OWNER_KEYS } from './owners';
@@ -262,25 +277,33 @@ const HttpsSchema = z
   .regex(/^https:\/\//);
 const SlugSchema = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
 
-export const ProjectMediaSchema = z.discriminatedUnion('kind', [
-  z.strictObject({
-    kind: z.literal('image'),
-    src: z.string().min(1),
-    /** Willie's words. Empty only until he writes it; see docs/projects.md. */
-    alt: z.string(),
-    caption: z.string().min(1).optional(),
-  }),
-  z.strictObject({
-    kind: z.literal('video'),
-    youtubeId: z.string().min(1),
-    title: z.string().min(1),
-  }),
-  z.strictObject({
-    kind: z.literal('document'),
-    href: z.string().min(1),
-    title: z.string().min(1),
-  }),
-]);
+export const ProjectMediaSchema = z
+  .discriminatedUnion('kind', [
+    z.strictObject({
+      kind: z.literal('image'),
+      src: z.string().min(1),
+      /** Willie's words, under the policy in docs/accessibility.md. */
+      alt: z.string(),
+      decorative: z.literal(true).optional(),
+      caption: z.string().min(1).optional(),
+    }),
+    z.strictObject({
+      kind: z.literal('video'),
+      youtubeId: z.string().min(1),
+      title: z.string().min(1),
+    }),
+    z.strictObject({
+      kind: z.literal('document'),
+      href: z.string().min(1),
+      title: z.string().min(1),
+    }),
+  ])
+  // The same policy the initiative schema and pnpm content:check apply.
+  .superRefine((media, context) => {
+    if (media.kind !== 'image') return;
+    const message = imageAltIssue(media.alt, media.decorative === true);
+    if (message) context.addIssue({ code: 'custom', path: ['alt'], message });
+  });
 export type ProjectMedia = z.infer<typeof ProjectMediaSchema>;
 
 export const ProjectFrontmatterSchema = z.strictObject({
@@ -332,15 +355,50 @@ export interface Project extends Omit<ProjectFrontmatter, 'status'> {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [ ] **Step 5: Teach the content check about project media**
 
-Run: `pnpm test 2>&1 | grep -E "project-schema|^# (pass|fail)"`
-Expected: every project-schema test passes, and the fail count is 0.
+`pnpm content:check` validates image descriptions in frontmatter before every push and build, but it only knows the initiative and writing fields. Add a failing case to `tests/unit/image-alt-check.test.mts`:
 
-- [ ] **Step 6: Commit**
+```ts
+test('project media images need descriptions; video and documents have none', () => {
+  const source = `---
+media:
+  - kind: image
+    src: /assets/projects/x.webp
+    alt: ''
+  - kind: video
+    youtubeId: abc
+    title: A video
+  - kind: document
+    href: /report.pdf
+    title: A report
+---`;
+  const issues = validateMdxImageAlts('project.mdx', source);
+  assert.equal(issues.length, 1);
+  assert.ok(issues[0].message.startsWith('media[0]'));
+});
+```
+
+Run it and watch it fail with 0 issues found. Then add `'media'` to the frontmatter collections in `validateMdxImageAlts` in `scripts/image-alt-check.ts`:
+
+```ts
+  for (const collection of ['gallery', 'images', 'scenes', 'media']) {
+```
+
+`mediaAlt` already skips entries with no `src`, `url`, or `imageUrl`, so video and document entries pass untouched.
+
+- [ ] **Step 6: Run the tests to verify they pass**
+
+Run: `pnpm test 2>&1 | grep -E "project-schema|image-alt-check|^# (pass|fail)"`
+Expected: every project-schema and image-alt-check test passes, and the fail count is 0.
+
+Run: `pnpm content:check`
+Expected: `Image alt check passed.`
+
+- [ ] **Step 7: Commit**
 
 ```bash
-git add lib/projects/owners.ts lib/projects/schema.ts tests/unit/project-schema.test.mts
+git add lib/projects/owners.ts lib/projects/schema.ts tests/unit/project-schema.test.mts scripts/image-alt-check.ts tests/unit/image-alt-check.test.mts
 git commit -m "feat(projects): Add a project schema with owners, roles, and visibility
 
 Project data lives in three places today and assumes one owner, one
@@ -349,7 +407,9 @@ several organizations or a parent project, carry Willie's roles,
 choose image, video, or document media, pin its order with a weight,
 and show everything, only facts, or nothing.
 
-Unknown keys fail the build so a misspelled field cannot vanish.
+Unknown keys fail the build so a misspelled field cannot vanish, and
+image media follows the same description policy as initiatives, in
+the schema and in pnpm content:check.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
@@ -410,7 +470,7 @@ visibility: facts
 media:
   - kind: image
     src: /secret.webp
-    alt: ''
+    alt: A screenshot that must never render
 ---
 
 This body must never render.
@@ -1076,6 +1136,14 @@ test('the two write-ups keep their bodies', () => {
   );
 });
 
+test('the ParliPro hero keeps the description main already carried', () => {
+  const hero = bySlug.get('parlipro')?.media[0];
+  assert.equal(
+    hero?.kind === 'image' ? hero.alt : undefined,
+    'ParliPro project graphic showing a meeting in progress'
+  );
+});
+
 test('nothing migrated is published without Willie clearing the draft flag', () => {
   for (const slug of Object.keys(LINES))
     assert.equal(bySlug.get(slug)?.draft, true, slug);
@@ -1245,7 +1313,7 @@ website: https://parlipro.vercel.app/
 media:
   - kind: image
     src: /assets/projects/parlipro/project-hero-graphic.webp
-    alt: ''
+    alt: ParliPro project graphic showing a meeting in progress
 links:
   - href: https://github.com/WillieCubed/parlipro
     label: Client-side Code
@@ -1423,7 +1491,11 @@ export default function ProjectMedia({
           {/* Project captures come in any size, so they are laid out by CSS
               rather than given fixed next/image dimensions. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={media.src} alt={media.alt} />
+          <img
+            src={media.src}
+            alt={media.alt}
+            aria-hidden={media.decorative ? true : undefined}
+          />
           {media.caption && <figcaption>{media.caption}</figcaption>}
         </figure>
       );
@@ -1799,7 +1871,7 @@ Expected: PASS.
 
 - [ ] **Step 7: Run the full check**
 
-Run: `pnpm test && pnpm lint && pnpm typecheck`
+Run: `pnpm test && pnpm content:check && pnpm lint && pnpm typecheck`
 Expected: all exit 0.
 
 Stop the dev server before building.
@@ -1951,4 +2023,4 @@ This plan leaves several things for later, each needing Willie's decision or wor
 1. **The `/projects` list.** It gets its own plan once Willie picks a layout on the canvas. Unparking it also means following the steps in `app/_(pages)/README.md`: restoring project items in the feeds and search, and setting `routed: true`.
 2. **Current projects from Docket.** Willie decides which ones are public and writes or approves each line. An agent then copies his text into new files.
 3. **Publishing any project.** It happens when Willie clears its `draft` flag himself.
-4. **Confirmations.** Willie confirms the older projects' statuses and start years, and writes the ParliPro hero's alt text.
+4. **Confirmations.** Willie confirms the older projects' statuses and start years.

@@ -35,7 +35,16 @@ export default function TopBarFrame({
     const rail = ref.current?.querySelector<HTMLElement>('.site-breadcrumbs');
     if (!rail) return;
 
+    const header = rail.closest('header');
+    if (!header) return;
+    // The cube stands in for the name when the trail would not fit, so the
+    // current page stays readable without scrolling. Scrolling is the last
+    // resort for a trail too long even then.
     const revealCurrentCrumb = () => {
+      header.removeAttribute('data-compact');
+      if (rail.scrollWidth > rail.clientWidth) {
+        header.setAttribute('data-compact', '');
+      }
       if (
         window.matchMedia('(max-width: 639px)').matches &&
         rail.scrollWidth > rail.clientWidth

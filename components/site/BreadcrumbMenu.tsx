@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 
+import Mark from '@/components/brand/Mark';
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
@@ -39,7 +40,8 @@ export default function BreadcrumbMenu({
         aria-current={href === pathname ? 'page' : undefined}
         className="site-breadcrumb-name font-semibold text-ink"
       >
-        {label}
+        <Mark className="site-breadcrumb-name__mark" />
+        <span className="site-breadcrumb-name__label">{label}</span>
       </SiteLink>
     );
   }

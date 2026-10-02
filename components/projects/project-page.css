@@ -18,9 +18,9 @@
   padding-bottom: 3rem;
 }
 .project-head {
-  max-width: 760px;
+  max-width: 640px;
   margin: 0 auto;
-  padding-inline: 1.25rem;
+  padding-inline: 1rem;
 }
 .project-head h1 {
   font-size: clamp(2.25rem, 4vw, 3.25rem);
@@ -70,14 +70,14 @@
   padding-bottom: 12rem;
 }
 .project-main {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 0 1.25rem 6rem;
+  padding-bottom: 6rem;
 }
 .project-has-hero .project-main {
   margin-top: -10rem;
 }
 .project-hero {
+  max-width: 1000px;
+  margin-inline: max(1.25rem, (100% - 1000px) / 2);
   overflow: hidden;
   border-radius: 20px;
   background: var(--b-primary-container, var(--color-surface-container-high));
@@ -94,8 +94,9 @@
 .project-figure,
 .project-document,
 .project-children {
-  max-width: 680px;
+  max-width: 640px;
   margin: 3.5rem auto 0;
+  padding-inline: 1rem;
 }
 .project-figure img {
   width: 100%;
@@ -104,6 +105,18 @@
 .project-children li a {
   display: grid;
   padding: 0.75rem 0;
+}
+/* The head and body share TopBar's reading column, so the breadcrumb, title,
+   and write-up start on one edge at every width. Only the hero bleeds past
+   that edge. */
+@media (min-width: 1200px) {
+  .project-head,
+  .project-main > .initiative-prose,
+  .project-figure,
+  .project-document,
+  .project-children {
+    padding-inline: 0;
+  }
 }
 @media (max-width: 599px) {
   .project-has-hero .project-band {

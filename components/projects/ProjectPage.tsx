@@ -44,7 +44,7 @@ export default function ProjectPage({
       style={schemeStyleFromHex(projectSeed(project))}
     >
       <div className="project-topbar">
-        <TopBar crumbs={crumbs} column="content" />
+        <TopBar crumbs={crumbs} column="reading" />
       </div>
       <main id="main">
         <div className="project-band">

@@ -1,0 +1,116 @@
+/* Neutral at rest; the --b-* scheme arrives inline from projectSeed. When a
+   project has a hero, the band and hero overlap on purpose so the capture
+   sits between the facts Willie recorded and the write-up he wrote. Without
+   one there is nothing to overlap, so the band stays tight around the facts. */
+.project-band {
+  padding-bottom: 3rem;
+  background: var(
+    --b-surface-container-low,
+    var(--color-surface-container-low)
+  );
+  color: var(--b-on-surface, var(--color-on-surface));
+}
+.project-head {
+  max-width: 760px;
+  margin: 2.5rem auto 0;
+  padding-inline: 1.25rem;
+}
+.project-head h1 {
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.project-line {
+  margin-top: 0.75rem;
+  font-size: clamp(1.1875rem, 1.6vw, 1.375rem);
+  color: var(--b-on-surface-variant, var(--color-on-surface-variant));
+}
+.project-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-top: 1.125rem;
+  font-size: 0.9375rem;
+  color: var(--b-on-surface-variant, var(--color-on-surface-variant));
+}
+.project-facts > :not(:last-child)::after {
+  content: '·';
+  margin-left: 0.75rem;
+}
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.375rem;
+}
+.project-links a {
+  display: inline-flex;
+  align-items: center;
+  height: 2.5rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  background: var(--b-secondary-container, var(--color-surface-container-high));
+  color: var(--b-on-secondary-container, var(--color-on-surface));
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.project-links a.primary {
+  background: var(--b-primary, var(--color-primary));
+  color: var(--b-on-primary, var(--color-on-primary));
+}
+.project-has-hero .project-band {
+  padding-bottom: 12rem;
+}
+.project-main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1.25rem 6rem;
+}
+.project-has-hero .project-main {
+  margin-top: -10rem;
+}
+.project-hero {
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--b-primary-container, var(--color-surface-container-high));
+  box-shadow: 0 30px 60px -40px rgb(0 0 0 / 0.5);
+}
+.project-hero img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: left top;
+}
+.project-main > .initiative-prose,
+.project-figure,
+.project-document,
+.project-children {
+  max-width: 680px;
+  margin: 3.5rem auto 0;
+}
+.project-figure img {
+  width: 100%;
+  border-radius: 14px;
+}
+.project-children li a {
+  display: grid;
+  padding: 0.75rem 0;
+}
+@media (max-width: 599px) {
+  .project-has-hero .project-band {
+    padding-bottom: 7.5rem;
+  }
+  .project-has-hero .project-main {
+    margin-top: -6rem;
+  }
+  .project-hero {
+    border-radius: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project * {
+    transition: none !important;
+  }
+}

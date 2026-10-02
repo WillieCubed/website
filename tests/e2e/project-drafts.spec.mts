@@ -19,7 +19,7 @@ test('ParliPro shows its facts, links, and full write-up', async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByText('Unreleased')).toBeVisible();
   await expect(
-    page.getByRole('link', { name: 'ParliPro Web App' })
+    page.getByRole('link', { name: 'parlipro.vercel.app' })
   ).toBeVisible();
   await expect(page.getByText('kept having nightmares (/s)')).toBeVisible();
 });
@@ -33,7 +33,7 @@ test('a project without a write-up shows only its facts', async ({ page }) => {
     page.getByText('Association for Computing Machinery at UT Dallas')
   ).toBeVisible();
   await expect(
-    page.getByRole('link', { name: 'Project Repository' })
+    page.getByRole('link', { name: 'github.com/acmutd/hackportal' })
   ).toBeVisible();
 });
 

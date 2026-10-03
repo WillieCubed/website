@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { threadsPostIntent } from '@/lib/indieweb/posse';
+import { blueskyPostIntent, threadsPostIntent } from '@/lib/indieweb/posse';
 
 const original = 'https://willie.page/writings/a-note';
 
@@ -37,4 +37,42 @@ test('an article uses its title in the Threads draft', () => {
 
   assert.equal(intent.searchParams.get('text'), 'A longer article');
   assert.equal(intent.searchParams.get('url'), original);
+});
+
+test('a Bluesky draft carries the share text and the original URL', () => {
+  const intent = new URL(
+    blueskyPostIntent(
+      {
+        title: 'A longer article',
+        description: 'A summary of the article.',
+        hasExplicitTitle: true,
+      },
+      original
+    )
+  );
+
+  assert.equal(intent.origin, 'https://bsky.app');
+  assert.equal(intent.pathname, '/intent/compose');
+  assert.equal(
+    intent.searchParams.get('text'),
+    `A longer article\n\n${original}`
+  );
+});
+
+test('a note shares its own words on Bluesky', () => {
+  const intent = new URL(
+    blueskyPostIntent(
+      {
+        title: 'A note',
+        description: 'A note about the site.',
+        hasExplicitTitle: false,
+      },
+      original
+    )
+  );
+
+  assert.equal(
+    intent.searchParams.get('text'),
+    `A note about the site.\n\n${original}`
+  );
 });

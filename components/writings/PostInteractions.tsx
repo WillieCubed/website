@@ -2,7 +2,7 @@ import WebmentionSection, {
   hasVisibleWebmentions,
 } from '@/components/indieweb/WebmentionSection';
 
-import { threadsPostIntent } from '@/lib/indieweb/posse';
+import { blueskyPostIntent, threadsPostIntent } from '@/lib/indieweb/posse';
 import type { WebmentionGroup } from '@/lib/indieweb/types';
 import type { Backlink } from '@/lib/writings/backlinks';
 import type { WritingData } from '@/lib/writings/types';
@@ -44,6 +44,7 @@ export default function PostInteractions({
         className={hasResponses ? 'mt-8' : undefined}
       >
         <PostActions
+          blueskyHref={blueskyPostIntent(writing, target)}
           target={target}
           threadsHref={threadsPostIntent(writing, target)}
           title={writing.title}

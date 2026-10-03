@@ -60,5 +60,9 @@ how its content is modeled, and the conventions that govern changes to it.
   [plan](./superpowers/plans/2026-09-19-static-search-and-metadata.md).
 - [Adaptive theme](./plans/2026-09-19-adaptive-theme.md): the plan, executed,
   that made every surface follow the visitor's light or dark preference.
+- [willie.page in the Atmosphere](./superpowers/specs/2026-10-02-atmosphere-design.md):
+  the design, proposed, for standard.site publishing and AT Protocol interop.
+  Its plans cover [standard.site](./superpowers/plans/2026-10-02-standard-site.md)
+  and [Bluesky posting and responses](./superpowers/plans/2026-10-02-bluesky-posse.md).
 
 [website]: https://willie.page

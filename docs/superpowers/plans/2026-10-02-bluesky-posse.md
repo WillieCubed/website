@@ -179,7 +179,7 @@ test('a hand-posted copy in syndication is picked up', () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-bluesky.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-bluesky.test.mts`
 Expected: FAIL with `Cannot find module '@/lib/atproto/bluesky'`.
 
 - [ ] **Step 3: Implement.**
@@ -332,7 +332,7 @@ export function documentSource(
 
 - [ ] **Step 4: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-bluesky.test.mts tests/unit/atproto-records.test.mts tests/unit/atproto-sync.test.mts && pnpm typecheck`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-bluesky.test.mts tests/unit/atproto-records.test.mts tests/unit/atproto-sync.test.mts && pnpm typecheck`
 Expected: PASS, with no type errors.
 
 - [ ] **Step 5: Commit.** Paths: `lib/writings/index.ts lib/writings/types.ts lib/indieweb/syndication.ts lib/atproto/config.ts lib/atproto/bluesky.ts lib/atproto/records.ts lib/atproto/sync.ts .env.example docs/indieweb/README.md tests/unit/test.env tests/unit/atproto-bluesky.test.mts`. Message: `feat(atproto): Read Bluesky intent and hand-posted copies from writings`.
@@ -426,7 +426,7 @@ test('a note is announced in its own words, clipped to 300 graphemes', () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm add @atcute/bluesky@^4.0.22 && pnpm exec tsx --test tests/unit/atproto-bluesky.test.mts`
+Run: `pnpm add @atcute/bluesky@^4.0.22 && pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-bluesky.test.mts`
 Expected: FAIL with `announcePost` not exported.
 
 - [ ] **Step 3: Implement.** In `lib/atproto/config.ts`, add:
@@ -491,7 +491,7 @@ The `as never` on `associatedRefs` exists only because atcute brands `uri` as `R
 
 - [ ] **Step 4: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-bluesky.test.mts && pnpm typecheck`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-bluesky.test.mts && pnpm typecheck`
 Expected: PASS, with no type errors.
 
 - [ ] **Step 5: Commit.** Paths: `package.json pnpm-lock.yaml lib/atproto/config.ts lib/atproto/bluesky.ts tests/unit/atproto-bluesky.test.mts`. Message: `feat(atproto): Build the Bluesky post that announces a writing`.
@@ -707,7 +707,7 @@ test('writings that did not opt in are never announced, and dry runs never post'
 
 - [ ] **Step 3: Run them and confirm they fail**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-plan.test.mts tests/unit/atproto-sync.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-plan.test.mts tests/unit/atproto-sync.test.mts`
 Expected: FAIL. `plan.final` is undefined, and `getRecord` is not a function.
 
 - [ ] **Step 4: Implement the types and the planner.**
@@ -1000,7 +1000,7 @@ if (
 
 - [ ] **Step 8: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-plan.test.mts tests/unit/atproto-sync.test.mts tests/unit/indieweb-notify.test.mts && pnpm typecheck`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-plan.test.mts tests/unit/atproto-sync.test.mts tests/unit/indieweb-notify.test.mts && pnpm typecheck`
 Expected: PASS, with no type errors.
 
 - [ ] **Step 9: Update the docs.**
@@ -1159,7 +1159,7 @@ test('the copy joins syndication once', () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-read.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-read.test.mts`
 Expected: FAIL with `Cannot find module '@/lib/atproto/read'`.
 
 - [ ] **Step 3: Implement.** Create `lib/atproto/read.ts`:
@@ -1231,7 +1231,7 @@ export function withBlueskyCopy(
 
 - [ ] **Step 4: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-read.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-read.test.mts`
 Expected: PASS, 3 tests.
 
 - [ ] **Step 5: Wire it into the page.** In `app/writings/[slug]/page.tsx`, add a cached loader next to `loadWebmentions`:
@@ -1451,7 +1451,7 @@ test('merging keeps the first copy of a source and sorts newest first', () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-responses.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-responses.test.mts`
 Expected: FAIL with `Cannot find module '@/lib/atproto/responses'`.
 
 - [ ] **Step 3: Implement.** Create `lib/atproto/responses.ts`:
@@ -1680,7 +1680,7 @@ If `pnpm typecheck` rejects `likes.likes`, `reposts.repostedBy` or `quotes.posts
 
 - [ ] **Step 4: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-responses.test.mts tests/unit/webmention-display.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-responses.test.mts tests/unit/webmention-display.test.mts`
 Expected: PASS. The `webmention-display` tests are unchanged.
 
 - [ ] **Step 5: Wire it into the page.** In `app/writings/[slug]/page.tsx`, add:

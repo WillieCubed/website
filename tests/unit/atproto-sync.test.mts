@@ -6,7 +6,8 @@ import {
   DOCUMENT_COLLECTION,
   PUBLICATION_COLLECTION,
 } from '@/lib/atproto/config';
-import type { DocumentSource } from '@/lib/atproto/records';
+import { documentUri } from '@/lib/atproto/keys';
+import { type DocumentSource, documentPath } from '@/lib/atproto/records';
 import { syncAtproto } from '@/lib/atproto/sync';
 import type {
   ExistingRecord,
@@ -14,6 +15,7 @@ import type {
   RepoClient,
   Write,
 } from '@/lib/atproto/types';
+import { absoluteUrl } from '@/lib/site';
 
 function fakeRepo() {
   const records: ExistingRecord[] = [];
@@ -156,5 +158,98 @@ test('unpublishing a writing deletes its record', async () => {
   assert.deepEqual(
     records.map((record) => record.collection),
     [PUBLICATION_COLLECTION]
+  );
+});
+
+test('a failed image fetch never strips a published image', async () => {
+  const { client, records, log } = fakeRepo();
+  await syncAtproto({ client, writings: [note], fetchImage: png });
+  const published = JSON.stringify(records);
+  assert.match(published, /coverImage/);
+  assert.match(published, /"icon"/);
+
+  const second = await syncAtproto({
+    client,
+    writings: [note],
+    fetchImage: async () => null,
+  });
+  assert.equal(second.status, 'synced');
+  assert.equal(second.status !== 'skipped' && second.unchanged, 2);
+  assert.equal(log.writes.length, 2, 'no writes after the first sync');
+  assert.equal(JSON.stringify(records), published);
+});
+
+test('a writing with an empty featuredImage covers itself with its generated image', async () => {
+  const { client } = fakeRepo();
+  const asked: string[] = [];
+  await syncAtproto({
+    client,
+    dryRun: true,
+    writings: [{ ...note, image: '' }],
+    fetchImage: async (url) => {
+      asked.push(url);
+      return png();
+    },
+  });
+  assert.ok(
+    asked.includes(absoluteUrl(`${documentPath(note.slug)}/opengraph-image`)),
+    `asked for ${asked.join(', ')}`
+  );
+});
+
+test('a writing with a featuredImage covers itself with that image', async () => {
+  const { client } = fakeRepo();
+  const asked: string[] = [];
+  await syncAtproto({
+    client,
+    dryRun: true,
+    writings: [{ ...note, image: '/images/cover.png' }],
+    fetchImage: async (url) => {
+      asked.push(url);
+      return png();
+    },
+  });
+  assert.ok(asked.includes(absoluteUrl('/images/cover.png')));
+});
+
+test('a record its lexicon rejects is never published', async () => {
+  const { client, records, log } = fakeRepo();
+  const notAnImage = await localBlob(
+    new TextEncoder().encode('<html></html>'),
+    'text/html'
+  );
+  await assert.rejects(
+    syncAtproto({
+      client,
+      writings: [note],
+      fetchImage: async () => notAnImage,
+    }),
+    (error: Error) =>
+      error.message.includes(PUBLICATION_COLLECTION) &&
+      /MIME type/.test(error.message)
+  );
+  assert.deepEqual(log.writes, []);
+  assert.deepEqual(log.uploads, []);
+  assert.deepEqual(records, []);
+});
+
+test("a page's document link is the URI the sync creates", async () => {
+  const { client } = fakeRepo();
+  const report = await syncAtproto({
+    client,
+    dryRun: true,
+    writings: [note],
+    fetchImage: png,
+  });
+  assert.equal(report.status, 'planned');
+  const writes = report.status !== 'skipped' ? report.writes : [];
+  const [created] = writes.filter(
+    (write) =>
+      write.action === 'create' &&
+      write.uri.includes(`/${DOCUMENT_COLLECTION}/`)
+  );
+  assert.equal(
+    created.uri,
+    documentUri(documentPath(note.slug), note.published)
   );
 });

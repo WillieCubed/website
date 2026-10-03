@@ -1,5 +1,7 @@
 /**
- * Strips MDX/Markdown syntax from content to get plain text for search indexing.
+ * Strips MDX/Markdown syntax from content to get plain text. The result feeds
+ * both the search index and the `textContent` of published standard.site
+ * documents.
  */
 export function stripMdxSyntax(content: string): string {
   return (
@@ -21,10 +23,11 @@ export function stripMdxSyntax(content: string): string {
       )
       // Remove HTML tags
       .replace(/<[^>]+>/g, '')
+      // Remove markdown images but keep the alt text. Before links, or the
+      // link pattern would match inside the image and leave its `!` behind.
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
       // Remove markdown links but keep text
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      // Remove markdown images
-      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
       // Remove headings markers
       .replace(/^#{1,6}\s+/gm, '')
       // Remove bold/italic markers

@@ -10,6 +10,7 @@ import WritingContent from '@/components/writings/WritingContent';
 import WritingHeader from '@/components/writings/WritingHeader';
 
 import { documentUri } from '@/lib/atproto/keys';
+import { documentPath } from '@/lib/atproto/records';
 import { OEMBED_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
 import {
   type ReplyContext,
@@ -209,7 +210,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
 
   const canonicalUrl = generateCanonicalUrl(writing.slug);
   const path = `/writings/${writing.slug}`;
-  const documentAt = documentUri(path, writing.published);
+  const documentAt = documentUri(documentPath(writing.slug), writing.published);
 
   return (
     <>

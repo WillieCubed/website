@@ -21,7 +21,7 @@ values are unset.
 Generate the publication key once, from the repo after `pnpm install`:
 
 ```sh
-node -e "import('@atcute/tid').then((tid) => console.log(tid.now()))"
+node --input-type=module -e "import { now } from '@atcute/tid'; console.log(now())"
 ```
 
 Set the output as `ATPROTO_PUBLICATION_RKEY` on every environment that builds
@@ -66,24 +66,32 @@ sends webmentions, and then runs `syncAtproto()` (`lib/atproto/sync.ts`):
 
 1. It reads every published writing with the uncached loaders.
 2. It builds the publication record and one document per writing. Icons and
-   covers are fetched from the live site: `featuredImage`, or the generated
-   `opengraph-image`. An image over 1,000,000 bytes is left out.
-3. It lists this site's records on the PDS and plans the difference
+   covers are fetched from the live site: `featuredImage` (an empty one counts
+   as none), or the generated `opengraph-image`. An image over 1,000,000 bytes
+   is left out. When a fetch fails, the record on the PDS keeps the icon or
+   cover it already has.
+3. It checks every record against its lexicon and stops, writing nothing, if
+   one is invalid.
+4. It lists this site's records on the PDS and plans the difference
    (`lib/atproto/plan.ts`). It never touches records whose `site` is another
    publication.
-4. It uploads the blobs that changed records need, then applies the writes in
+5. It uploads the blobs that changed records need, then applies the writes in
    one `applyWrites` call per 200 operations.
 
 The sync is skipped when the DID, the publication key, or
-`ATPROTO_APP_PASSWORD` is empty. The password is set on Production only, so a
+`ATPROTO_APP_PASSWORD` is empty. Without the DID or the publication key the
+`<link>` tags and the well-known route turn off too, so no page names a record
+the sync would never write. The password is set on Production only, so a
 preview deployment never writes. It signs in at the PDS that the DID document
 names (`lib/atproto/identity.ts`).
 
 To see what the next sync would do, run
-`vercel env pull .env.local --environment=production`, then
-`pnpm atproto:sync`. Run `pnpm atproto:sync --write` to apply it by hand. A
-password stored as a Sensitive variable cannot be pulled; put it in
-`.env.local` by hand, and never commit `.env.local`.
+`vercel env pull .env.atproto.local --environment=production`, then
+`pnpm atproto:sync`. Run `pnpm atproto:sync --write` to apply it by hand.
+`.env.atproto.local` is a dedicated file, not `.env.local`, so production
+values never reach `next dev`. It holds production values only, and it is
+gitignored (`.env*.local`). A password stored as a Sensitive variable cannot be
+pulled; add it to `.env.atproto.local` by hand.
 
 ## Checking it
 

@@ -25,3 +25,16 @@ test('llms.txt and humans.txt name the AT Protocol endpoints', () => {
   assert.ok(HUMANS_STANDARDS.includes('standard.site'));
   assert.ok(HUMANS_STANDARDS.includes('AT Protocol'));
 });
+
+test('llms.txt lists an AT Protocol endpoint only while it is configured', () => {
+  const did = '/.well-known/atproto-did';
+  const publication = '/.well-known/site.standard.publication';
+  const configured = buildLlmsSummary();
+  assert.ok(configured.includes(did) && configured.includes(publication));
+
+  const none = buildLlmsSummary([], {});
+  assert.ok(!none.includes(did) && !none.includes(publication));
+
+  const didOnly = buildLlmsSummary([], { did: site.author.atprotoDid });
+  assert.ok(didOnly.includes(did) && !didOnly.includes(publication));
+});

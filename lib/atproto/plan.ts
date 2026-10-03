@@ -39,11 +39,22 @@ function isOurs(record: ExistingRecord): boolean {
 }
 
 /**
+ * Fields a desired record may lack that the PDS copy has, which then
+ * carry over rather than being stripped. `bskyPostRef` is added by a
+ * later step, not by the content. `icon` and `coverImage` come from a
+ * fetched image: every writing has an image source, so a missing one
+ * means the fetch failed, and a failed fetch must not unpublish a blob.
+ */
+const CARRIED_FIELDS = ['bskyPostRef', 'coverImage', 'icon'] as const;
+
+/**
  * What it takes to make the repo match the content: create what is
  * missing, update what differs, and delete this site's records that no
- * writing produces any more. A document whose key changed (a new
- * `published` time or slug) is found by path and moved, and a Bluesky
- * post reference on the PDS always carries over.
+ * writing produces any more. A document whose key changed only because
+ * its publish time did is found by path and moved; a slug change changes
+ * the path too, so the old record is deleted and its Bluesky post
+ * reference goes with it. Fields in `CARRIED_FIELDS` carry over from the
+ * PDS copy when the desired record lacks them.
  */
 export function planSync(
   desired: DesiredRecord[],
@@ -80,8 +91,10 @@ export function planSync(
       current ??
       ('path' in want.value ? byPath.get(want.value.path) : undefined);
     const value: Record<string, unknown> = { ...want.value };
-    if (value.bskyPostRef === undefined && prior?.value.bskyPostRef) {
-      value.bskyPostRef = prior.value.bskyPostRef;
+    for (const field of CARRIED_FIELDS) {
+      if (value[field] === undefined && prior?.value[field]) {
+        value[field] = prior.value[field];
+      }
     }
 
     if (current) {

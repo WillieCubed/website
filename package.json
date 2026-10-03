@@ -30,7 +30,7 @@
     "webmentions:send": "tsx scripts/send-webmentions.mts",
     "webmentions:moderate": "tsx scripts/moderate-webmentions.mts",
     "webmentions:backfill-authors": "tsx scripts/backfill-webmention-authors.mts",
-    "atproto:sync": "tsx --env-file-if-exists=.env.local scripts/atproto-sync.mts",
+    "atproto:sync": "tsx --env-file-if-exists=.env.atproto.local scripts/atproto-sync.mts",
     "indieauth:totp": "tsx scripts/indieauth-totp.mts"
   },
   "dependencies": {

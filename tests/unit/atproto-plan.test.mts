@@ -133,6 +133,69 @@ test('a Bluesky post reference on the PDS survives every sync', () => {
   );
 });
 
+/** The same record as a failed image fetch builds it: no blob, no reference. */
+function withoutImage(record: DesiredRecord): DesiredRecord {
+  const value: Record<string, unknown> = { ...record.value };
+  delete value.coverImage;
+  delete value.icon;
+  return { ...record, value: value as DesiredRecord['value'], blobs: [] };
+}
+
+test('a failed image fetch leaves the published cover alone', () => {
+  const have = stored(doc('3mwa5ei54c22g', '/writings/a'));
+  assert.ok(have.value.coverImage, 'the PDS copy carries the cover');
+  const plan = planSync(
+    [withoutImage(doc('3mwa5ei54c22g', '/writings/a'))],
+    [have]
+  );
+  assert.deepEqual(plan.writes, []);
+  assert.deepEqual(plan.uploads, []);
+  assert.equal(plan.unchanged, 1);
+});
+
+test('a failed image fetch leaves the publication icon alone', () => {
+  const have = stored({
+    ...publication(),
+    value: { ...publication().value, icon: cover.ref },
+  });
+  const plan = planSync([withoutImage(publication())], [have]);
+  assert.deepEqual(plan.writes, []);
+  assert.equal(plan.unchanged, 1);
+});
+
+test('an update keeps the published cover when the fetch failed', () => {
+  const have = stored(doc('3mwa5ei54c22g', '/writings/a', 'Old title'));
+  const [write] = planSync(
+    [withoutImage(doc('3mwa5ei54c22g', '/writings/a', 'New title'))],
+    [have]
+  ).writes;
+  assert.equal(write.$type, 'com.atproto.repo.applyWrites#update');
+  assert.deepEqual(
+    write.$type === 'com.atproto.repo.applyWrites#update' &&
+      write.value.coverImage,
+    cover.ref
+  );
+});
+
+test('a new cover replaces the published one', () => {
+  const other: LocalBlob = {
+    bytes: new Uint8Array([2]),
+    ref: {
+      ...cover.ref,
+      ref: {
+        $link: 'bafkreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+    },
+  };
+  const have = stored(doc('3mwa5ei54c22g', '/writings/a'));
+  const want = doc('3mwa5ei54c22g', '/writings/a');
+  want.value = { ...want.value, coverImage: other.ref } as typeof want.value;
+  want.blobs = [other];
+  const plan = planSync([want], [have]);
+  assert.equal(plan.writes.length, 1);
+  assert.deepEqual(plan.uploads, [other]);
+});
+
 test('a new key for the same path moves the record and keeps its post', () => {
   const have = stored(doc('3mwa5ei54c22g', '/writings/a'));
   have.value.bskyPostRef = ref;

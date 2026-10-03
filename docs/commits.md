@@ -18,6 +18,7 @@ Use one of these scopes. Omit the scope only for repository-wide changes.
 - **`seo`** — page titles, social metadata, structured data, and the sitemap: the metadata helpers in `lib/site.ts`, `lib/seo`, and `docs/metadata.md`
 - **`search`** — the command palette and site search: `components/palette`, `lib/palette`, `lib/search`, and `/search`
 - **`protocols`** — the small protocol routes and headers (`/coffee`, `/tea`, `/whoami`, `security.txt`, OpenSearch, the MCP server); see `docs/protocols.md`
+- **`atproto`** — AT Protocol identity and records: `lib/atproto`, standard.site publishing, and the Bluesky integration; see `docs/atproto.md`
 - **`docs`** — maintainer documentation under `docs/`
 - **`brand`** — the WillieCubed mark, the asset generator in `brand/`, and `/brand`
 - **`deploy`** — hosting, redirects, and domain configuration

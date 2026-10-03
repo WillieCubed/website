@@ -280,3 +280,15 @@ test('graph wraps nodes with the schema.org context', () => {
     '@graph': [{ a: 1 }, { b: 2 }],
   });
 });
+
+test('the Bluesky profile is a rel="me" profile and the syndication target', () => {
+  const bluesky = site.syndication.find(
+    (account) => account.service === 'Bluesky'
+  );
+  assert.ok(bluesky, 'tests/unit/test.env configures the account');
+  assert.ok(
+    site.social.some((profile) => profile.href === bluesky.profile),
+    'site.social lists the Bluesky profile'
+  );
+  assert.ok((personLd().sameAs as string[]).includes(bluesky.profile));
+});

@@ -15,3 +15,6 @@ peerDependencyRules:
 overrides:
   '@types/react': 19.2.16
   '@types/react-dom': 19.2.3
+
+patchedDependencies:
+  next@16.3.5: patches/next@16.3.5.patch

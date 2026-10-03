@@ -9,7 +9,9 @@ import { type Page, expect, test } from '@playwright/test';
 
 // The rail hides its trigger on desktop windows under 721px tall, where
 // the sticky rail has no room for it, and Desktop Chrome is 720px.
-test.use({ viewport: { width: 1280, height: 900 } });
+// Tall enough that the homepage rail shows its search row, which short
+// desktop windows hide (components/palette/palette.css).
+test.use({ viewport: { width: 1280, height: 1000 } });
 
 /** Waits out the open or close morph, while the page shows snapshots. */
 function settled(page: Page) {

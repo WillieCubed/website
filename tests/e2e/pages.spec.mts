@@ -206,13 +206,19 @@ test('the homepage search fills its column up to the Material 3 maximum', async 
   page,
 }) => {
   for (const width of [390, 430, 800, 900, 1440]) {
-    await page.setViewportSize({ width, height: 900 });
+    await page.setViewportSize({ width, height: 1000 });
     await page.goto('/');
     const column = await page.locator('.rail-search').boundingBox();
     const trigger = await page.locator('.palette-trigger--rail').boundingBox();
     expect(trigger?.x).toBeCloseTo(column!.x, 0);
     expect(trigger?.width).toBeCloseTo(Math.min(column!.width, 720), 0);
   }
+
+  // A short desktop window drops the row so the sticky rail clears the
+  // docked contact links; the keyboard shortcut still opens the palette.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await expect(page.locator('.rail-search')).toBeHidden();
 });
 
 test('focus remains visible in forced colors', async ({ page }) => {

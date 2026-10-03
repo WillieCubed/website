@@ -7,7 +7,9 @@ import { type Page, expect, test } from '@playwright/test';
  * than pixels.
  */
 
-test.use({ viewport: { width: 1280, height: 900 } });
+// Tall enough that the homepage rail shows its search row, which short
+// desktop windows hide (components/palette/palette.css).
+test.use({ viewport: { width: 1280, height: 1000 } });
 
 function computed(page: Page, selector: string, property: string) {
   return page.evaluate(

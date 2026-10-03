@@ -88,8 +88,11 @@ export function buildHostMetaXml(): string {
 `;
 }
 
-export function buildAtProtocolDid(): string {
-  return `${AT_PROTOCOL_DID}\n`;
+/** The body of /.well-known/atproto-did, or null when no DID is configured. */
+export function buildAtProtocolDid(
+  did: string | undefined = AT_PROTOCOL_DID
+): string | null {
+  return did ? `${did}\n` : null;
 }
 
 export interface LlmsWriting {

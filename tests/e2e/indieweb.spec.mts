@@ -303,6 +303,7 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
   const actions = page.getByRole('group', { name: 'Post actions' });
   const replySurface = actions.locator('[data-reply-surface]');
   const reply = actions.getByRole('button', { name: 'Reply via IndieWeb' });
+  const bluesky = actions.getByRole('link', { name: 'Share on Bluesky' });
   const threads = actions.getByRole('link', { name: 'Share on Threads' });
   const share = actions.getByRole('button', { name: 'Share', exact: true });
   await expect(reply).toBeVisible();
@@ -315,10 +316,15 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
     );
   });
   const closedBounds = await replySurface.boundingBox();
+  await expect(bluesky).toBeVisible();
+  await expect(bluesky).toHaveAttribute(
+    'href',
+    /^https:\/\/bsky\.app\/intent\/compose/
+  );
   await expect(threads).toBeVisible();
   await expect(share).toBeVisible();
   expect(await actions.locator('[data-post-action]').allTextContents()).toEqual(
-    ['Reply via IndieWeb', 'Share on Threads', 'Share']
+    ['Reply via IndieWeb', 'Share on Bluesky', 'Share on Threads', 'Share']
   );
   await expect(reply).toHaveAttribute('aria-expanded', 'false');
   await reply.click();

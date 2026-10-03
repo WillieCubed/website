@@ -446,8 +446,9 @@ The site has no API access to either service, so choosing a target posts
 nothing. The route records the choice as intent, `syndicateTo: [uid, ...]` in
 the post's frontmatter, and the response carries no syndication URL.
 Syndication stays manual POSSE: after the post deploys, Willie posts the copy
-from his account (a writing's **Share on Threads** link opens an editable
-Threads draft with the canonical URL), confirms the copy links back, and then
+from his account (a writing's **Share on Bluesky** or **Share on Threads** link
+opens an editable draft in the chosen service with the canonical URL), confirms
+the copy links back, and then
 adds its exact permalink to `syndication`, by hand or with an update that
 adds a `syndication` value. `syndicateTo` never renders, and
 nothing clears it once the copy exists. When an account integration can return

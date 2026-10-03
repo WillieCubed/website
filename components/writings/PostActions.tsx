@@ -3,12 +3,14 @@
 import { useId, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
+import BlueskyIcon from '@/components/icons/BlueskyIcon';
 import Icon from '@/components/icons/Icon';
 import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import WebmentionForm from '@/components/indieweb/WebmentionForm';
 import SiteLink from '@/components/link/SiteLink';
 
 interface PostActionsProps {
+  blueskyHref: string;
   target: string;
   threadsHref: string;
   title: string;
@@ -18,6 +20,7 @@ const secondaryAction =
   'inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-label-large font-medium text-ink no-underline transition-colors hover:border-accent hover:bg-tray';
 
 export default function PostActions({
+  blueskyHref,
   target,
   threadsHref,
   title,
@@ -116,6 +119,15 @@ export default function PostActions({
             <WebmentionForm target={target} />
           </div>
         </div>
+        <SiteLink
+          href={blueskyHref}
+          target="_blank"
+          data-post-action
+          className={secondaryAction}
+        >
+          <BlueskyIcon className="size-4" />
+          Share on Bluesky
+        </SiteLink>
         <SiteLink
           href={threadsHref}
           target="_blank"

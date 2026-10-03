@@ -89,6 +89,9 @@ export const site = {
     { label: 'GitHub', href: 'https://github.com/WillieCubed' },
     { label: 'Threads', href: THREADS_PROFILE },
     { label: 'Instagram', href: 'https://www.instagram.com/williecubed' },
+    ...(blueskyAccount
+      ? [{ label: 'Bluesky', href: blueskyAccount.profile }]
+      : []),
   ],
   /** Accounts a Micropub client may choose with mp-syndicate-to. */
   syndication: [

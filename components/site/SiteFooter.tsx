@@ -1,6 +1,7 @@
 import { cacheLife } from 'next/cache';
 import { Suspense } from 'react';
 
+import BlueskyIcon from '@/components/icons/BlueskyIcon';
 import Icon, { type IconName } from '@/components/icons/Icon';
 import InstagramIcon from '@/components/icons/InstagramIcon';
 import LinkedinIcon from '@/components/icons/LinkedinIcon';
@@ -38,6 +39,8 @@ const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
 
 function SocialIcon({ label }: { label: string }) {
   switch (label) {
+    case 'Bluesky':
+      return <BlueskyIcon className="size-4" />;
     case 'Threads':
       return <ThreadsIcon className="size-4" />;
     case 'Instagram':

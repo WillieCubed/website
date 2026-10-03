@@ -1,0 +1,24 @@
+diff --git a/dist/esm/server/image-optimizer.js b/dist/esm/server/image-optimizer.js
+index 50c09924371205bfb335be7947fbce65b0f5fed2..5b0366b125ef0c34f6dd18c034afb90216d53b91 100644
+--- a/dist/esm/server/image-optimizer.js
++++ b/dist/esm/server/image-optimizer.js
+@@ -922,7 +922,6 @@ export async function fetchInternalImage(href, _req, _res, maximumResponseBody,
+         const mocked = createRequestResponseMocks({
+             url: href,
+             method,
+-            socket: _req.socket,
+             maximumResponseBody
+         });
+         await handleRequest(mocked.req, mocked.res, parseReqUrl(href));
+diff --git a/dist/server/image-optimizer.js b/dist/server/image-optimizer.js
+index b25880a32c763d0e0ac84e58c254ba601100e8c7..371a0e2d2fd1980152a2a83325579b23e7b09138 100644
+--- a/dist/server/image-optimizer.js
++++ b/dist/server/image-optimizer.js
+@@ -1038,7 +1038,6 @@ async function fetchInternalImage(href, _req, _res, maximumResponseBody, handleR
+         const mocked = (0, _mockrequest.createRequestResponseMocks)({
+             url: href,
+             method,
+-            socket: _req.socket,
+             maximumResponseBody
+         });
+         await handleRequest(mocked.req, mocked.res, (0, _url.parseReqUrl)(href));

@@ -76,6 +76,33 @@ The spike, in order:
 Do not start on vinext until its own skills confirm `cacheComponents` and
 `next/og` support.
 
+## Patched dependencies
+
+`patches/next@16.3.5.patch` (applied by pnpm through `patchedDependencies` in
+`pnpm-workspace.yaml`) removes one line from Next's `fetchInternalImage`.
+
+- **The bug.** Next optimizes a local image by fetching it through a mock
+  request that reuses the visitor's socket. If the visitor leaves while the
+  image is still optimizing, the static file handler sees that socket closed
+  and never finishes the mock response. That image's in-flight optimization
+  never settles, and every later request for the same size and quality waits
+  on it until the server restarts.
+- **Who it affects.** This is any `next start` server, which includes the
+  Playwright smoke run in CI and any self-hosted or Workers deployment. On
+  Vercel, `/_next/image` is served by Vercel's image service and is not
+  affected.
+- **The fix.** The mock request gets its own placeholder socket instead.
+- **How it was found.** CI's "glass previews retain detail at 1x" check hung
+  with its three icons pending. On a local `next start`, aborting cold image
+  requests wedged 15 of 20 keys before the patch and none after.
+- **Next 16.3.8 still has the bug.** Each time Next is upgraded:
+  1. Check whether `fetchInternalImage` still passes `socket: _req.socket`.
+  2. If it does, regenerate the patch with `pnpm patch next@<version>`.
+  3. If it no longer does, delete the patch.
+
+  `pnpm install` fails when a patch no longer applies, so a forgotten patch
+  surfaces immediately.
+
 ## Open questions
 
 Every address on the site is on willie.page (`hello@`, `projects@`), set

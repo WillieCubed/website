@@ -8,7 +8,8 @@ import {
 } from '@/lib/indieweb/websub-publisher';
 import { absoluteUrl } from '@/lib/site';
 
-export const maxDuration = 300;
+// 60s is the Hobby cap while Fluid compute is off; a larger value fails the deploy.
+export const maxDuration = 60;
 
 function equalSecret(actual: string, expected: string): boolean {
   const a = Buffer.from(actual);

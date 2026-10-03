@@ -1,3 +1,4 @@
+import { PUBLICATION_URI } from '@/lib/atproto/config';
 import {
   AT_PROTOCOL_DID,
   INDIEAUTH_METADATA_ENDPOINT,
@@ -120,12 +121,26 @@ function llmsLink(label: string, path: string, notes?: string): string {
   return `- [${linkText(label)}](${SITE_URL}${path})${text ? `: ${text}` : ''}`;
 }
 
+/** The AT Protocol values that decide which of its endpoints llms.txt lists. */
+export interface LlmsAtProtocol {
+  did?: string;
+  publicationUri?: string;
+}
+
 /**
  * The site's llms.txt, in the llmstxt.org shape: an H1, a blockquote
  * summary, then H2 sections of `- [name](url): notes` lists. Pass only
- * writings a visitor can open; drafts must never reach this file.
+ * writings a visitor can open; drafts must never reach this file. The AT
+ * Protocol entries appear only for what is configured, as their routes
+ * answer 404 otherwise; `atproto` defaults to the site's configuration.
  */
-export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
+export function buildLlmsSummary(
+  writings: LlmsWriting[] = [],
+  atproto: LlmsAtProtocol = {
+    did: AT_PROTOCOL_DID,
+    publicationUri: PUBLICATION_URI,
+  }
+): string {
   const sections = [
     `# ${SITE_NAME}\n\n> ${SITE_URL} is the personal website, writing archive, and IndieWeb home of ${SITE_NAME}.`,
     // app/robots.ts holds the same line: agents reading for a person and AI
@@ -197,16 +212,24 @@ export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
       ),
       llmsLink('oEmbed provider', `${OEMBED_ENDPOINT}?url=`),
       llmsLink('WebFinger', '/.well-known/webfinger'),
-      llmsLink(
-        'AT Protocol DID',
-        '/.well-known/atproto-did',
-        'the AT Protocol DID behind the site’s Bluesky account'
-      ),
-      llmsLink(
-        'standard.site publication',
-        '/.well-known/site.standard.publication',
-        'the AT-URI of the publication record every writing belongs to'
-      ),
+      ...(atproto.did
+        ? [
+            llmsLink(
+              'AT Protocol DID',
+              '/.well-known/atproto-did',
+              'the AT Protocol DID behind the site’s Bluesky account'
+            ),
+          ]
+        : []),
+      ...(atproto.publicationUri
+        ? [
+            llmsLink(
+              'standard.site publication',
+              '/.well-known/site.standard.publication',
+              'the AT-URI of the publication record every writing belongs to'
+            ),
+          ]
+        : []),
       llmsLink('security.txt', '/.well-known/security.txt'),
       llmsLink('humans.txt', '/humans.txt', 'who made the site and with what'),
       llmsLink('OpenSearch description', '/opensearch.xml'),

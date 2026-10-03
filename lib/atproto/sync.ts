@@ -1,3 +1,9 @@
+import { safeParse } from '@atcute/lexicons';
+import {
+  SiteStandardDocument,
+  SiteStandardPublication,
+} from '@atcute/standard-site';
+
 import { absoluteUrl, site } from '@/lib/site';
 
 import { fetchImageBlob } from './blobs';
@@ -83,8 +89,10 @@ async function desiredRecords(
   ];
   for (const writing of writings) {
     const path = documentPath(writing.slug);
+    // `||`, not `??`: a `featuredImage: ''` in frontmatter means none, and
+    // an empty URL would fetch the homepage. The page does the same.
     const cover = await fetchImage(
-      absoluteUrl(writing.image ?? `${path}/opengraph-image`)
+      absoluteUrl(writing.image || `${path}/opengraph-image`)
     );
     records.push({
       collection: DOCUMENT_COLLECTION,
@@ -94,6 +102,29 @@ async function desiredRecords(
     });
   }
   return records;
+}
+
+/**
+ * Never publish a record its lexicon rejects: a bad value fails the sync
+ * here, naming the record and the rule, rather than at the PDS or, worse,
+ * in a reader. Strict mode also checks each blob's size and MIME type.
+ */
+function assertValid(records: DesiredRecord[]): void {
+  for (const { collection, rkey, value } of records) {
+    const result = safeParse(
+      collection === PUBLICATION_COLLECTION
+        ? SiteStandardPublication.mainSchema
+        : SiteStandardDocument.mainSchema,
+      value,
+      { strict: true }
+    );
+    if (!result.ok) {
+      const path = 'path' in value && value.path ? ` (${value.path})` : '';
+      throw new Error(
+        `Refusing to publish ${collection}/${rkey}${path}: ${result.message}`
+      );
+    }
+  }
 }
 
 /**
@@ -128,6 +159,7 @@ export async function syncAtproto(
       writings,
       options.fetchImage ?? fetchImageBlob
     );
+    assertValid(desired);
     const existing = [
       ...(await client.listRecords(PUBLICATION_COLLECTION)),
       ...(await client.listRecords(DOCUMENT_COLLECTION)),

@@ -1,6 +1,10 @@
 import * as TID from '@atcute/tid';
 
-import { ATPROTO_DID, DOCUMENT_COLLECTION } from './config';
+import {
+  DOCUMENT_COLLECTION,
+  PUBLICATION_URI,
+  publishingIdentity,
+} from './config';
 
 /** 32-bit FNV-1a: a stable spread of paths across TID clock IDs. */
 function fnv1a(input: string): number {
@@ -23,9 +27,13 @@ export function documentRkey(path: string, published: Date): string {
   return TID.create(published.getTime() * 1000, fnv1a(path) & 1023);
 }
 
-/** A document's AT-URI, or undefined while no DID is configured. */
+/**
+ * A document's AT-URI, or undefined unless the publication is configured.
+ * Without the publication key the sync is skipped and writes no documents,
+ * so a page must not point at a record that will never exist.
+ */
 export function documentUri(path: string, published: Date): string | undefined {
-  return ATPROTO_DID
-    ? `at://${ATPROTO_DID}/${DOCUMENT_COLLECTION}/${documentRkey(path, published)}`
+  return PUBLICATION_URI
+    ? `at://${publishingIdentity().did}/${DOCUMENT_COLLECTION}/${documentRkey(path, published)}`
     : undefined;
 }

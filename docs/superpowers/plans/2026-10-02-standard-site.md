@@ -79,7 +79,7 @@ their own plans.
 ## Phase 0: Willie's steps (no code; do before PR B merges)
 
 - [ ] Set `NEXT_PUBLIC_ATPROTO_DID` (the DID) and `NEXT_PUBLIC_BLUESKY_HANDLE` (currently `williecubed.me`) on every Vercel environment that builds the site. The identity fix that moved them out of the code needs them; without the DID, `/.well-known/atproto-did` answers 404 and the site offers no Bluesky account.
-- [ ] After PR B's dependencies are installed, generate the publication record key once with `node -e "import('@atcute/tid').then((tid) => console.log(tid.now()))"`. Set the output as `ATPROTO_PUBLICATION_RKEY` on every environment that builds the site, because pages name the publication in their HTML. Never change it afterwards.
+- [ ] After PR B's dependencies are installed, generate the publication record key once with `node --input-type=module -e "import { now } from '@atcute/tid'; console.log(now())"`. Set the output as `ATPROTO_PUBLICATION_RKEY` on every environment that builds the site, because pages name the publication in their HTML. Never change it afterwards.
 - [ ] In Bluesky, go to Settings, then Privacy and security, then App passwords, and create one named `willie.page sync`. Add it to Vercel as `ATPROTO_APP_PASSWORD`, scoped to **Production** only and not Preview.
 - [ ] Sign in at https://pdsls.dev, open `app.bsky.actor.profile/self`, add `"website": "https://willie.page"`, and save.
 - [ ] Make sure the Vercel Firewall does not challenge `/.well-known/*`, `/writings/*/opengraph-image` or `/brand/social/*`.
@@ -1910,7 +1910,8 @@ Expected: PASS, 6 tests, with no type errors.
 ```ts
 #!/usr/bin/env node
 // Dry run by default: prints what the sync would write. Pass --write to
-// write it. Needs ATPROTO_APP_PASSWORD (vercel env pull .env.local).
+// write it. Needs ATPROTO_APP_PASSWORD, read from .env.atproto.local (vercel
+// env pull .env.atproto.local --environment=production).
 import { syncAtproto } from '../lib/atproto/sync';
 
 const report = await syncAtproto({ dryRun: !process.argv.includes('--write') });
@@ -1921,10 +1922,10 @@ if (report.status === 'skipped') process.exitCode = 1;
 In `package.json` `scripts`, after `webmentions:backfill-authors`, add:
 
 ```json
-    "atproto:sync": "tsx --env-file-if-exists=.env.local scripts/atproto-sync.mts",
+    "atproto:sync": "tsx --env-file-if-exists=.env.atproto.local scripts/atproto-sync.mts",
 ```
 
-In `app/api/indieweb/notify/route.ts`, import `syncAtproto` from `@/lib/atproto/sync`, change `export const maxDuration = 60;` to `300`, and replace the `try` block's body with:
+In `app/api/indieweb/notify/route.ts`, import `syncAtproto` from `@/lib/atproto/sync`, keep `export const maxDuration = 60;` (the Hobby cap while Fluid compute is off; a larger value fails the deploy), and replace the `try` block's body with:
 
 ```ts
 const topics = await publishedTopicPaths();
@@ -1996,8 +1997,12 @@ The sync is skipped when the DID, the publication key, or
 preview deployment never writes. It signs in at the PDS that the DID document
 names (`lib/atproto/identity.ts`).
 
-To see what the next sync would do, run `vercel env pull .env.local`, then
-`pnpm atproto:sync`. Run `pnpm atproto:sync --write` to apply it by hand.
+To see what the next sync would do, run
+`vercel env pull .env.atproto.local --environment=production`, then
+`pnpm atproto:sync`. Run `pnpm atproto:sync --write` to apply it by hand. The
+file holds production values only and is gitignored, so `next dev` never
+loads them from `.env.local`. A password stored as a Sensitive variable cannot
+be pulled; add it to `.env.atproto.local` by hand.
 
 ## Checking it
 

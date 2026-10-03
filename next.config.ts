@@ -48,6 +48,10 @@ const nextConfig: NextConfig = {
     return [...legacy, ...aliases, ...retired, ...feedGuesses];
   },
   cacheComponents: true,
+  // @atcute/tid reads the clock through @atcute/time-ms, which loads a native
+  // addon from a computed path. Turbopack cannot bundle that, so Node loads
+  // the package, and with it time-ms, from node_modules instead.
+  serverExternalPackages: ['@atcute/tid'],
   allowedDevOrigins: ['williecubed.localhost'],
   images: {
     qualities: [75, 90],

@@ -9,6 +9,7 @@ import Fragmention from '@/components/site/Fragmention';
 import SiteFooter from '@/components/site/SiteFooter';
 import SkipLink from '@/components/site/SkipLink';
 
+import { PUBLICATION_URI } from '@/lib/atproto/config';
 import { ENDPOINT_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
 import { site } from '@/lib/site';
 import { SPECULATION_RULES } from '@/lib/speculation-rules';
@@ -126,6 +127,11 @@ export default async function RootLayout({
           title={`${site.name} (JSON Feed)`}
           href="/feed/json"
         />
+        {/* standard.site: the AT Protocol publication this site is.
+            /.well-known/site.standard.publication confirms it. */}
+        {PUBLICATION_URI && (
+          <link rel="site.standard.publication" href={PUBLICATION_URI} />
+        )}
         {/* Prefetches, never prerenders; lib/speculation-rules.ts says why. */}
         <script
           type="speculationrules"

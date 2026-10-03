@@ -56,7 +56,7 @@ their own plans.
 - **Tests:**
   - Unit tests are `tests/unit/*.test.mts`, using `node:test` and
     `node:assert/strict`, with `@/` imports.
-  - Run one file with `pnpm exec tsx --test tests/unit/<name>.test.mts`, and
+  - Run one file with `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/<name>.test.mts`, and
     all of them with `pnpm test`.
   - Playwright tests are `tests/e2e/*.spec.mts` and import `lib/` relatively.
 - **Commits.** Use the `type(atproto): subject` scope, which Task 1 adds. Put
@@ -121,7 +121,7 @@ test('the Bluesky profile is a rel="me" profile and the syndication target', () 
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/seo-jsonld.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/seo-jsonld.test.mts`
 Expected: FAIL with `site.social lists the Bluesky profile`.
 
 - [ ] **Step 3: Implement.** In `lib/site.ts`, append this to `social`, after Instagram. Adding it last keeps the footer's collapsed row (`KEPT`) unchanged:
@@ -170,7 +170,7 @@ In `docs/commits.md`, add this after the `protocols` bullet:
 
 - [ ] **Step 4: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/seo-jsonld.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/seo-jsonld.test.mts`
 Expected: PASS. The existing `sameAs` deep-equal test still passes, because it compares `sameAs` against `site.social` itself.
 
 - [ ] **Step 5: Check the footer by eye.** Run `pnpm dev`, open `/`, expand the footer, and confirm Bluesky shows with its icon and `rel="me"`.
@@ -233,7 +233,7 @@ test('a note shares its own words on Bluesky', () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/post-share.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/post-share.test.mts`
 Expected: FAIL with a SyntaxError, because `blueskyPostIntent` is not exported.
 
 - [ ] **Step 3: Implement.** Replace `lib/indieweb/posse.ts` with:
@@ -297,7 +297,7 @@ In `components/writings/PostInteractions.tsx`, import `blueskyPostIntent` alongs
 
 - [ ] **Step 4: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/post-share.test.mts && pnpm typecheck`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/post-share.test.mts && pnpm typecheck`
 Expected: PASS, with no type errors.
 
 - [ ] **Step 5: Commit.** Paths: `lib/indieweb/posse.ts components/writings/PostActions.tsx components/writings/PostInteractions.tsx tests/unit/post-share.test.mts`. Message: `feat(atproto): Offer a Bluesky share draft under each writing`.
@@ -388,7 +388,7 @@ test('a document URI names the document collection in the owner’s repo', () =>
 
 - [ ] **Step 3: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-keys.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-keys.test.mts`
 Expected: FAIL with `Cannot find module '@/lib/atproto/config'`.
 
 - [ ] **Step 4: Implement.** Create `lib/atproto/config.ts`. It uses a relative import, like `lib/indieweb/constants.ts`, so Playwright can load it:
@@ -492,7 +492,7 @@ export function documentUri(path: string, published: Date): string | undefined {
 
 - [ ] **Step 5: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-keys.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-keys.test.mts`
 Expected: PASS, 4 tests.
 
 - [ ] **Step 6: Commit.** Paths: `package.json pnpm-lock.yaml tests/unit/test.env lib/atproto/config.ts lib/atproto/keys.ts tests/unit/atproto-keys.test.mts`. Message: `feat(atproto): Compute standard.site record keys from content`.
@@ -627,12 +627,12 @@ test('a known Bluesky post reference is carried on the record', () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-records.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-records.test.mts`
 Expected: FAIL with `Cannot find module '@/lib/atproto/records'`.
 
 - [ ] **Step 3: Move `stripMdxSyntax`.** Create `lib/text/strip-mdx.ts` holding the function from `lib/search/collect.ts:16-60`, verbatim, with `export` and its doc comment ("Strips MDX/Markdown syntax… plain text"). In `lib/search/collect.ts`, delete the local function and add `import { stripMdxSyntax } from '@/lib/text/strip-mdx';`.
 
-Run: `pnpm exec tsx --test tests/unit/search-collect.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/search-collect.test.mts`
 Expected: PASS, with no change in search behavior.
 
 - [ ] **Step 4: Implement the builders.** Create `lib/atproto/records.ts`:
@@ -755,7 +755,7 @@ export function documentRecord(
 
 - [ ] **Step 5: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-records.test.mts && pnpm typecheck`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-records.test.mts && pnpm typecheck`
 Expected: PASS, 6 tests, with no type errors.
 
 If `textContent` differs only in whitespace, the test is pinning `stripMdxSyntax`'s existing output. Fix the expected string to match that output; do not change the function.
@@ -812,7 +812,7 @@ test('llms.txt and humans.txt name the AT Protocol endpoints', () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-discovery.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-discovery.test.mts`
 Expected: FAIL with `Cannot find module '@/app/.well-known/site.standard.publication/route'`.
 
 - [ ] **Step 3: Implement the route, llms.txt and humans.txt.** Create `app/.well-known/site.standard.publication/route.ts`:
@@ -856,7 +856,7 @@ In `lib/humans-txt.ts`, add `'AT Protocol'` and `'standard.site'` after `'WebFin
 
 - [ ] **Step 4: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-discovery.test.mts tests/unit/indieweb-discovery.test.mts tests/unit/humans-txt.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-discovery.test.mts tests/unit/indieweb-discovery.test.mts tests/unit/humans-txt.test.mts`
 Expected: PASS. The llmstxt.org shape test still passes.
 
 - [ ] **Step 5: Add the link tags.** In `app/layout.tsx`, add this after the `application/feed+json` alternate `<link>`, importing `PUBLICATION_URI` from `@/lib/atproto/config`:
@@ -1210,7 +1210,7 @@ test('two writings that compute the same key stop the sync', () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-plan.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-plan.test.mts`
 Expected: FAIL with `Cannot find module '@/lib/atproto/plan'`.
 
 - [ ] **Step 3: Implement.** Create `lib/atproto/types.ts`:
@@ -1401,7 +1401,7 @@ export function planSync(
 
 - [ ] **Step 4: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-plan.test.mts && pnpm typecheck`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-plan.test.mts && pnpm typecheck`
 Expected: PASS, 7 tests, with no type errors.
 
 - [ ] **Step 5: Commit.** Paths: `lib/atproto/types.ts lib/atproto/plan.ts tests/unit/atproto-plan.test.mts`. Message: `feat(atproto): Plan the writes that make the repo match the content`.
@@ -1567,7 +1567,7 @@ test('unpublishing a writing deletes its record', async () => {
 
 - [ ] **Step 2: Run it and confirm it fails**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-sync.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-sync.test.mts`
 Expected: FAIL with `Cannot find module '@/lib/atproto/blobs'`.
 
 - [ ] **Step 3: Implement the blobs and the client.** Create `lib/atproto/blobs.ts`:
@@ -1902,7 +1902,7 @@ export async function syncAtproto(
 
 - [ ] **Step 5: Run the tests and confirm they pass**
 
-Run: `pnpm exec tsx --test tests/unit/atproto-sync.test.mts && pnpm typecheck`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-sync.test.mts && pnpm typecheck`
 Expected: PASS, 6 tests, with no type errors.
 
 - [ ] **Step 6: Add the script and the hook.** Create `scripts/atproto-sync.mts`:
@@ -1947,7 +1947,7 @@ return Response.json(
 );
 ```
 
-Run: `pnpm exec tsx --test tests/unit/indieweb-notify.test.mts`
+Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/indieweb-notify.test.mts`
 Expected: PASS. Those tests cover authentication only.
 
 - [ ] **Step 7: Write the docs.** In `.env.example`, append these to the `# --- AT Protocol ---` section the identity fix added:

@@ -30,12 +30,15 @@
     "webmentions:send": "tsx scripts/send-webmentions.mts",
     "webmentions:moderate": "tsx scripts/moderate-webmentions.mts",
     "webmentions:backfill-authors": "tsx scripts/backfill-webmention-authors.mts",
+    "atproto:sync": "tsx --env-file-if-exists=.env.local scripts/atproto-sync.mts",
     "indieauth:totp": "tsx scripts/indieauth-totp.mts"
   },
   "dependencies": {
     "@atcute/atproto": "^4.0.4",
     "@atcute/cid": "^2.5.0",
     "@atcute/client": "^5.1.2",
+    "@atcute/identity": "^2.0.2",
+    "@atcute/identity-resolver": "^2.0.2",
     "@atcute/lexicons": "^2.1.1",
     "@atcute/password-session": "^1.0.2",
     "@atcute/standard-site": "^2.0.2",

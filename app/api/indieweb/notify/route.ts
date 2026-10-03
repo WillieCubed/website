@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 
+import { syncAtproto } from '@/lib/atproto/sync';
 import { sendChangedWebmentions } from '@/lib/indieweb/webmention-publisher';
 import {
   pingWebSubHub,
@@ -7,7 +8,7 @@ import {
 } from '@/lib/indieweb/websub-publisher';
 import { absoluteUrl } from '@/lib/site';
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 function equalSecret(actual: string, expected: string): boolean {
   const a = Buffer.from(actual);
@@ -33,10 +34,19 @@ export async function POST(request: Request) {
     const topics = await publishedTopicPaths();
     const websub = await pingWebSubHub(topics.map((path) => absoluteUrl(path)));
     const webmentions = await sendChangedWebmentions();
+    // Last, and on its own, so a PDS outage never holds back WebSub or
+    // webmentions; a failure still fails the workflow run.
+    const atproto = await syncAtproto().catch((error: unknown) => {
+      console.error('AT Protocol sync failed:', error);
+      return { status: 'failed' as const };
+    });
     return Response.json(
-      { websub, webmentions },
+      { websub, webmentions, atproto },
       {
-        status: websub.ok && webmentions.failed === 0 ? 200 : 502,
+        status:
+          websub.ok && webmentions.failed === 0 && atproto.status !== 'failed'
+            ? 200
+            : 502,
       }
     );
   } catch (error) {

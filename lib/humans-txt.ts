@@ -35,6 +35,8 @@ export const HUMANS_STANDARDS = [
   'Open Graph',
   'oEmbed',
   'WebFinger',
+  'AT Protocol',
+  'standard.site',
   'OpenSearch',
   'security.txt (RFC 9116)',
   'HTCPCP (RFC 2324, RFC 7168)',

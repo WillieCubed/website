@@ -396,3 +396,39 @@ test('a published writing has a parseable author, permalink, date, and content',
   expect(feedItem?.date_published).toBeTruthy();
   expect(feedItem?.content_html).toBeTruthy();
 });
+
+test('standard.site discovery names the publication and each document', async ({
+  request,
+}) => {
+  // The expectation comes from the server under test, not this process's env.
+  const wellKnown = await request.get('/.well-known/site.standard.publication');
+  test.skip(
+    wellKnown.status() === 404,
+    'the AT Protocol publication is not configured on this deployment'
+  );
+  expect(wellKnown.status()).toBe(200);
+  const publicationUri = await wellKnown.text();
+  expect(publicationUri).toMatch(
+    /^at:\/\/did:[a-z]+:[^/]+\/site\.standard\.publication\/[2-7a-j][2-7a-z]{12}$/
+  );
+  const did = publicationUri.split('/')[2];
+
+  const home = await (await request.get('/')).text();
+  expect(home.slice(0, home.indexOf('</head>'))).toContain(
+    `<link rel="site.standard.publication" href="${publicationUri}"/>`
+  );
+
+  const index = await (await request.get('/writings')).text();
+  const slug = index.match(/href="\/writings\/(?!tags\/|feed)([^"/?#]+)"/)?.[1];
+  test.skip(!slug, 'no writing is published yet');
+  const page = await (await request.get(`/writings/${slug}`)).text();
+  const head = page.slice(0, page.indexOf('</head>'));
+  expect(head).toContain(
+    `<link rel="site.standard.publication" href="${publicationUri}"/>`
+  );
+  expect(head).toMatch(
+    new RegExp(
+      `<link rel="site\\.standard\\.document" href="at://${did}/site\\.standard\\.document/[2-7a-j][2-7a-z]{12}"/>`
+    )
+  );
+});

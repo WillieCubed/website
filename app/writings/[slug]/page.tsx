@@ -9,6 +9,7 @@ import PostNavigation from '@/components/writings/PostNavigation';
 import WritingContent from '@/components/writings/WritingContent';
 import WritingHeader from '@/components/writings/WritingHeader';
 
+import { documentUri } from '@/lib/atproto/keys';
 import { OEMBED_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
 import {
   type ReplyContext,
@@ -208,6 +209,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
 
   const canonicalUrl = generateCanonicalUrl(writing.slug);
   const path = `/writings/${writing.slug}`;
+  const documentAt = documentUri(path, writing.published);
 
   return (
     <>
@@ -232,6 +234,9 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
           personLd()
         )}
       />
+      {/* standard.site: this writing's record. React hoists it into
+          <head>, where verifiers read it without running scripts. */}
+      {documentAt && <link rel="site.standard.document" href={documentAt} />}
       <TopBar
         column="reading"
         crumbs={[

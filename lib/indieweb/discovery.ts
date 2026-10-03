@@ -197,6 +197,16 @@ export function buildLlmsSummary(writings: LlmsWriting[] = []): string {
       ),
       llmsLink('oEmbed provider', `${OEMBED_ENDPOINT}?url=`),
       llmsLink('WebFinger', '/.well-known/webfinger'),
+      llmsLink(
+        'AT Protocol DID',
+        '/.well-known/atproto-did',
+        'the AT Protocol DID behind the site’s Bluesky account'
+      ),
+      llmsLink(
+        'standard.site publication',
+        '/.well-known/site.standard.publication',
+        'the AT-URI of the publication record every writing belongs to'
+      ),
       llmsLink('security.txt', '/.well-known/security.txt'),
       llmsLink('humans.txt', '/humans.txt', 'who made the site and with what'),
       llmsLink('OpenSearch description', '/opensearch.xml'),

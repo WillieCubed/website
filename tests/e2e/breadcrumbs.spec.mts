@@ -8,23 +8,25 @@ for (const width of [320, 390, 1440]) {
     await page.goto('/brand');
 
     const trail = page.getByRole('navigation', { name: 'Breadcrumb' });
-    const site = trail.getByRole('button', {
-      name: 'Open menu for Willie Chalmers III',
-    });
+    // The site name is a plain link home; section crumbs open menus.
+    const site = trail.getByRole('link', { name: 'Willie Chalmers III' });
     const brand = trail.getByRole('button', { name: 'Open menu for Brand' });
+    await expect(site).toHaveAttribute('href', '/');
     await expect(site.locator('.site-breadcrumb-menu__icon')).toHaveCount(0);
     await expect(brand.locator('.site-breadcrumb-menu__icon')).toHaveCount(1);
     await expect(brand).toHaveAttribute('aria-controls', /.+/);
 
     const spacing = await trail.evaluate((element) => {
-      const siteLabel = element.querySelector(
-        '.site-breadcrumb-item--home button span'
-      )!;
+      // Measure the name's text, not the link box around it.
+      const siteText = document.createRange();
+      siteText.selectNodeContents(
+        element.querySelector('.site-breadcrumb-item--home a')!
+      );
       const slash = element.querySelector('.site-breadcrumbs__crumb > span')!;
       const brandLabel = element.querySelector(
         '.site-breadcrumbs__crumb button span'
       )!;
-      const siteRect = siteLabel.getBoundingClientRect();
+      const siteRect = siteText.getBoundingClientRect();
       const slashRect = slash.getBoundingClientRect();
       const brandRect = brandLabel.getBoundingClientRect();
       return {
@@ -138,31 +140,24 @@ test('an open breadcrumb popup stays aligned after resizing', async ({
   expect(placement.right).toBeLessThanOrEqual(304);
 });
 
-test('the site and Writings crumbs open independent menus', async ({
+test('the site name links home and the Writings crumb opens its menu', async ({
   page,
 }) => {
   await page.goto('/writings');
   const trail = page.getByRole('navigation', { name: 'Breadcrumb' });
-  const site = trail.getByRole('button', {
-    name: 'Open menu for Willie Chalmers III',
-  });
+  const site = trail.getByRole('link', { name: 'Willie Chalmers III' });
   const writings = trail.getByRole('button', {
     name: 'Open menu for Writings',
   });
 
-  await site.click();
-  const siteMenu = page.locator(`#${await site.getAttribute('aria-controls')}`);
-  const siteLinks = siteMenu
-    .getByRole('navigation', { name: 'Willie Chalmers III destinations' })
-    .getByRole('link');
-  await expect(siteLinks).toHaveCount(4);
-  await expect(siteLinks.nth(0)).toHaveAttribute('href', '/');
-  await expect(siteLinks.nth(1)).toHaveAttribute('href', '/writings');
-  await expect(siteLinks.nth(2)).toHaveAttribute('href', '/initiatives');
-  await expect(siteLinks.nth(3)).toHaveAttribute('href', '/brand');
+  await expect(site).toHaveAttribute('href', '/');
+  await expect(site).toHaveAttribute('rel', 'author');
+  await expect(
+    trail.getByRole('button', { name: 'Open menu for Willie Chalmers III' })
+  ).toHaveCount(0);
 
   await writings.click();
-  await expect(site).toHaveAttribute('aria-expanded', 'false');
+  await expect(writings).toHaveAttribute('aria-expanded', 'true');
   const writingsMenu = page.locator(
     `#${await writings.getAttribute('aria-controls')}`
   );

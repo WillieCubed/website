@@ -583,12 +583,18 @@ which matters once the owner check rides on a browser session.
 
 Clients call `/indieauth/auth`, `/indieauth/token`, `/indieauth/introspect`,
 `/indieauth/revoke`, `/.well-known/oauth-authorization-server`, and
-`/micropub` from servers and apps, which cannot pass a browser challenge. If
+`/micropub` from servers and apps, which cannot pass a browser challenge.
+So do the standard.site readers and validators that fetch
+`/.well-known/site.standard.publication` and `/.well-known/atproto-did`,
+and the post-deploy sync, which fetches `/writings/*/opengraph-image` and
+`/brand/social/*` from the live site for the images on its records. If
 Vercel's Bot Protection, Attack Challenge Mode, or a Firewall rule that
 challenges is on, add a Firewall custom rule with the Bypass action, above
-the challenging one, for requests whose path starts with `/indieauth/` or
-`/micropub`, or equals `/.well-known/oauth-authorization-server`. The same
-goes for any challenge Cloudflare puts in front of the site.
+the challenging one, for requests whose path starts with `/indieauth/`,
+`/micropub`, or `/brand/social/`, matches `/writings/*/opengraph-image`, or
+equals `/.well-known/oauth-authorization-server`,
+`/.well-known/site.standard.publication`, or `/.well-known/atproto-did`. The
+same goes for any challenge Cloudflare puts in front of the site.
 
 ## Scripts
 
@@ -599,6 +605,7 @@ goes for any challenge Cloudflare puts in front of the site.
 | `pnpm webmentions:send`                  | Sends webmentions for writings whose content hash changed. Skips itself without a database.                                                                                                                                                                                                                       |
 | `pnpm webmentions:moderate`              | Lists pending webmentions, or approves or rejects them by id; see Moderation. Approving a reply also sends its salmention; see Salmention. Needs `POSTGRES_URL`.                                                                                                                                                  |
 | `pnpm webmentions:backfill-authors`      | One-off repair for webmentions verified before the verifier read a `u-photo` with alt text: fills each missing author photo from the h-entry stored with the mention, through `extractAuthor`. It writes only rows with no photo, so a second run changes nothing. Without `POSTGRES_URL` it says so and exits 0. |
+| `pnpm atproto:sync`                      | Prints the standard.site writes a sync would make; `--write` makes them. Needs `ATPROTO_APP_PASSWORD`; see [atproto.md](../atproto.md).                                                                                                                                                                           |
 | `pnpm indieauth:totp`                    | Prints a new secret for `INDIEAUTH_TOTP_SECRET` and the `otpauth://` URI to add to an authenticator app; see IndieAuth.                                                                                                                                                                                           |
 | `.github/workflows/indieweb-publish.yml` | Waits for the public alias to serve a pushed revision, then calls the authenticated notification endpoint.                                                                                                                                                                                                        |
 | `pnpm test`                              | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                                                                                |
@@ -621,6 +628,8 @@ goes for any challenge Cloudflare puts in front of the site.
 | `INDIEWEB_TEST_ALLOW_LOOPBACK`                                                                     | the local write test only: lets the public-only fetch reach loopback; ignored on Vercel                                                                                                     | unset                                   |
 | `NEXT_PUBLIC_ATPROTO_DID`                                                                          | `/.well-known/atproto-did`, the Bluesky profile link and syndication target, and (with `ATPROTO_PUBLICATION_RKEY`) the `/.well-known/site.standard.publication` route and its `<link>` tags | unset, all off                          |
 | `NEXT_PUBLIC_BLUESKY_HANDLE`                                                                       | the Bluesky account's displayed handle                                                                                                                                                      | unset, the DID is shown                 |
+| `ATPROTO_PUBLICATION_RKEY`                                                                         | the standard.site publication: its record, `<link>` tags, and well-known route                                                                                                              | unset, all off                          |
+| `ATPROTO_APP_PASSWORD`                                                                             | standard.site sync after each production deploy                                                                                                                                             | unset, sync skipped                     |
 
 The Postgres schema starts with `lib/db/migrations/000_webmentions.sql`.
 Apply it before `lib/db/migrations/001_level4_tables.sql`, which adds

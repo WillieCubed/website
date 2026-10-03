@@ -24,6 +24,27 @@ const emails = {
 
 const THREADS_PROFILE = 'https://www.threads.com/@williecubed';
 
+/**
+ * The site owner's AT Protocol identity, from the environment. With no DID,
+ * the AT Protocol features turn off: /.well-known/atproto-did answers 404
+ * and there is no Bluesky account to link or syndicate to.
+ */
+const atproto = {
+  did: process.env.NEXT_PUBLIC_ATPROTO_DID || undefined,
+  /** Shown beside the account; the DID stands in when it is unset. */
+  handle: process.env.NEXT_PUBLIC_BLUESKY_HANDLE || undefined,
+};
+const BLUESKY = 'https://bsky.app/';
+/** Linked by DID, not handle, so the link outlives a handle change. */
+const blueskyAccount = atproto.did
+  ? ({
+      service: 'Bluesky',
+      serviceUrl: BLUESKY,
+      handle: atproto.handle ?? atproto.did,
+      profile: `${BLUESKY}profile/${atproto.did}`,
+    } as const)
+  : undefined;
+
 // The homepage headline, and the rest of the site description after it.
 const HEADLINE = 'Willie Chalmers III builds software and systems for people.';
 const LEDE =
@@ -57,7 +78,7 @@ export const site = {
     handle: 'willie',
     email: emails.hello,
     photo: '/brand/social/avatar-400.png',
-    atprotoDid: 'did:plc:iyn6nc3ffqm2e3555exyrgvv',
+    atprotoDid: atproto.did,
   },
   /** Profiles that link back here. Every one of these carries rel="me". */
   social: [
@@ -69,17 +90,9 @@ export const site = {
     { label: 'Threads', href: THREADS_PROFILE },
     { label: 'Instagram', href: 'https://www.instagram.com/williecubed' },
   ],
-  /**
-   * Accounts a Micropub client may choose with mp-syndicate-to. Bluesky's
-   * handle is the domain itself, which /.well-known/atproto-did vouches for.
-   */
+  /** Accounts a Micropub client may choose with mp-syndicate-to. */
   syndication: [
-    {
-      service: 'Bluesky',
-      serviceUrl: 'https://bsky.app/',
-      handle: 'willie.page',
-      profile: 'https://bsky.app/profile/willie.page',
-    },
+    ...(blueskyAccount ? [blueskyAccount] : []),
     {
       service: 'Threads',
       serviceUrl: 'https://www.threads.com/',

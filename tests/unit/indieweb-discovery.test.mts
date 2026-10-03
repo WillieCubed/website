@@ -135,7 +135,20 @@ test('host-meta.json serves the LRDD link as JSON', async () => {
 });
 
 test('buildAtProtocolDid returns the configured DID document pointer', () => {
+  assert.ok(site.author.atprotoDid, 'tests/unit/test.env configures a DID');
   assert.equal(buildAtProtocolDid(), `${site.author.atprotoDid}\n`);
+});
+
+test('without a configured DID there is no DID to serve', () => {
+  assert.equal(buildAtProtocolDid(''), null);
+});
+
+test('the atproto-did route serves the configured DID as plain text', async () => {
+  const { GET } = await import('@/app/.well-known/atproto-did/route');
+  const response = await GET();
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('Content-Type') ?? '', /^text\/plain/);
+  assert.equal(await response.text(), `${site.author.atprotoDid}\n`);
 });
 
 // llmstxt.org: an H1, an optional blockquote, then lists of `- [name](url)`

@@ -236,7 +236,7 @@ test('added syndication links keep existing names and name known services', () =
     handWritten,
     update({
       add: {
-        syndication: ['https://bsky.app/profile/willie.page/post/3abc'],
+        syndication: ['https://bsky.app/profile/alice.example/post/3abc'],
       },
     }),
     now
@@ -246,7 +246,7 @@ test('added syndication links keep existing names and name known services', () =
     { name: 'Instagram', url: 'https://instagram.com/p/abc' },
     {
       name: 'Bluesky',
-      url: 'https://bsky.app/profile/willie.page/post/3abc',
+      url: 'https://bsky.app/profile/alice.example/post/3abc',
     },
   ]);
 });

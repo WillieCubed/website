@@ -23,7 +23,7 @@
     "brand:build": "node brand/build.mjs",
     "prepare": "husky",
     "brand:seeds": "node brand/resolve-brands.mjs",
-    "test": "tsx --test tests/unit/*.test.mts",
+    "test": "tsx --env-file=tests/unit/test.env --test tests/unit/*.test.mts",
     "test:e2e": "playwright test",
     "search:index": "tsx scripts/generate-search-index.ts",
     "websub:ping": "tsx scripts/websub-ping.mts",

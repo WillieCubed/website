@@ -112,3 +112,9 @@ only redirects here. Mail to willie.page
 needs Cloudflare Email Routing on the zone before these addresses receive
 anything. `NEXT_PUBLIC_GTAG_ID` is optional; without
 it the layout emits no analytics script.
+
+The AT Protocol identity is configuration too: `NEXT_PUBLIC_ATPROTO_DID` (the
+DID `/.well-known/atproto-did` serves) and `NEXT_PUBLIC_BLUESKY_HANDLE`. Both
+are inlined at build time, so set them on every environment that builds the
+site before deploying; without the DID, the route answers 404 and the site
+offers no Bluesky account.

@@ -43,7 +43,7 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                                                       | nothing                                                      |
 | `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                                                | nothing                                                      |
 | `/.well-known/host-meta.json`                                      | The same host-meta LRDD link as JSON                                                                            | nothing                                                      |
-| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`                                                     | nothing                                                      |
+| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`; 404 without one                                    | `NEXT_PUBLIC_ATPROTO_DID`                                    |
 | `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and initiatives; each declares the WebSub hub                                           | nothing                                                      |
 | `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                                                | nothing                                                      |
 | `/writings/tags/[tag]`                                             | One published tag's h-feed; `/writings?tag=` redirects here with a 308                                          | nothing                                                      |
@@ -434,13 +434,13 @@ back, revert the delete commit.
 
 ### Syndication
 
-`?q=syndicate-to` and `?q=config` list two targets, Bluesky
-(`https://bsky.app/profile/willie.page`) and Threads
-(`https://www.threads.com/@williecubed`), each with `uid`, `name`, `service`,
-and `user`. The accounts live in `site.syndication` in `lib/site.ts`; the
-Bluesky handle is the domain itself, which `/.well-known/atproto-did` vouches
-for. A create request may name either `uid` in `mp-syndicate-to`, and any
-other value gets a 400.
+`?q=syndicate-to` and `?q=config` list two targets, Bluesky and Threads, each
+with `uid`, `name`, `service`, and `user`. The accounts live in
+`site.syndication` in `lib/site.ts`. The Bluesky account comes from
+`NEXT_PUBLIC_ATPROTO_DID` and `NEXT_PUBLIC_BLUESKY_HANDLE`, and is linked by
+DID (`https://bsky.app/profile/<did>`) so the link and the `uid` survive a
+handle change; without a DID it is not offered. A create request may name
+either `uid` in `mp-syndicate-to`, and any other value gets a 400.
 
 The site has no API access to either service, so choosing a target posts
 nothing. The route records the choice as intent, `syndicateTo: [uid, ...]` in
@@ -617,6 +617,8 @@ goes for any challenge Cloudflare puts in front of the site.
 | `INDIEWEB_NOTIFY_SECRET`                                                                           | authenticates the post-deployment notification endpoint                                 | unset, endpoint refuses                 |
 | `SKIP_WEBMENTIONS`                                                                                 | `true` skips `webmentions:send`                                                         | unset                                   |
 | `INDIEWEB_TEST_ALLOW_LOOPBACK`                                                                     | the local write test only: lets the public-only fetch reach loopback; ignored on Vercel | unset                                   |
+| `NEXT_PUBLIC_ATPROTO_DID`                                                                          | `/.well-known/atproto-did`, the Bluesky profile link and syndication target             | unset, all three off                    |
+| `NEXT_PUBLIC_BLUESKY_HANDLE`                                                                       | the Bluesky account's displayed handle                                                  | unset, the DID is shown                 |
 
 The Postgres schema starts with `lib/db/migrations/000_webmentions.sql`.
 Apply it before `lib/db/migrations/001_level4_tables.sql`, which adds

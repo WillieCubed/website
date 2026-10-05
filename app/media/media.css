@@ -107,6 +107,10 @@ body:has(.media-page) .site-footer[data-column='content'] .site-footer__inner {
   min-height: 26px;
 }
 
+.media-mention:not(.media-mention--image) .media-mention__related {
+  margin-top: 8px;
+}
+
 .media-mention__excerpt {
   margin-top: 8px;
   interpolate-size: allow-keywords;

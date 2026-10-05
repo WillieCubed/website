@@ -2,7 +2,7 @@ import SiteLink from '@/components/link/SiteLink';
 import MediaMention from '@/components/media/MediaMention';
 import TopBar from '@/components/site/TopBar';
 
-import { mediaMentions } from '@/lib/media';
+import { getMediaMentions } from '@/lib/media';
 import { pageMetadata, site, sitePage } from '@/lib/site';
 
 import './media.css';
@@ -16,9 +16,7 @@ export const metadata = pageMetadata({
 });
 
 export default function MediaPage() {
-  const sorted = [...mediaMentions].sort((a, b) =>
-    b.published.localeCompare(a.published)
-  );
+  const sorted = getMediaMentions();
   const years = [
     ...new Set(sorted.map((mention) => mention.published.slice(0, 4))),
   ];

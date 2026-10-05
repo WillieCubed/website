@@ -161,6 +161,12 @@ export const sitePages: SitePage[] = [
     routed: true,
   },
   {
+    path: '/media',
+    label: 'Media',
+    description: 'Media mentions and appearances by Willie Chalmers III.',
+    routed: true,
+  },
+  {
     path: '/brand',
     label: 'Brand',
     description:

@@ -11,10 +11,7 @@ async function loadConfig() {
 test('retired pages redirect temporarily to their replacements', async () => {
   const redirects = (await (await loadConfig()).redirects?.()) ?? [];
 
-  for (const [source, destination] of [
-    ['/media', '/initiatives/twd'],
-    ['/apps', '/projects'],
-  ]) {
+  for (const [source, destination] of [['/apps', '/projects']]) {
     const rule = redirects.find(
       (entry) => entry.source === source && !entry.has
     );
@@ -27,6 +24,14 @@ test('retired pages redirect temporarily to their replacements', async () => {
 test('retired pages are no longer listed as parked', () => {
   assert.equal(isParkedPath('/media'), false);
   assert.equal(isParkedPath('/apps'), false);
+});
+
+test('the rebuilt media page no longer redirects', async () => {
+  const redirects = (await (await loadConfig()).redirects?.()) ?? [];
+  assert.equal(
+    redirects.some((entry) => entry.source === '/media' && !entry.has),
+    false
+  );
 });
 
 test('images load only from hosts a live page uses', async () => {

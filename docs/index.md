@@ -13,6 +13,8 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## Content
 
+- [Media mentions](./media.md): verified coverage, optional excerpts and
+  images, and the compact `/media` page.
 - [Initiatives](./initiatives.md): the MDX schema for campaigns, series, and
   projects under `/initiatives`, their parts, and the homepage `feature` block.
 - [Projects](./projects.md): project categories and the `data/projects.json`

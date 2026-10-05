@@ -7,7 +7,6 @@ import { skipUnlessPublished } from './published';
 
 const REDIRECTS = [
   // Retired pages, temporary while their replacements settle.
-  { from: '/media', to: '/initiatives/twd', status: 307 },
   { from: '/apps', to: '/projects', status: 307 },
   // Paths feed readers guess.
   { from: '/rss.xml', to: '/feed.xml', status: 308 },

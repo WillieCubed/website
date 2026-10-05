@@ -9,7 +9,7 @@ import {
   loadAllInitiatives,
   partTitle,
 } from '@/lib/initiatives';
-import { mediaMentions } from '@/lib/media';
+import { getMediaMentions } from '@/lib/media';
 import { stripMdxSyntax } from '@/lib/text/strip-mdx';
 import { type WritingData, getWritingSlugs, loadWriting } from '@/lib/writings';
 
@@ -87,7 +87,7 @@ export function pageToItem(page: EntityCard): SearchableItem {
     // worth finding by publisher or headline without duplicating the excerpt.
     content:
       page.href === '/media'
-        ? mediaMentions
+        ? getMediaMentions({ includeDrafts: false })
             .map((mention) => `${mention.publication}: ${mention.title}`)
             .join('\n')
         : '',

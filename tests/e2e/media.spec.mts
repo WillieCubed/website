@@ -37,8 +37,13 @@ test('media sources and excerpts remain separate keyboard actions', async ({
     'Nevada Current',
     'RTC of Southern Nevada',
     'UT Dallas News Center',
+    'UT Dallas Jonsson School',
+    'The UTD Mercury',
+    'The College Tour',
   ]) {
-    await expect(main.getByRole('link', { name, exact: true })).toBeVisible();
+    await expect(
+      main.getByRole('link', { name, exact: true }).first()
+    ).toBeVisible();
   }
   const fox5 = main.getByRole('article', { name: /RTC challenges/ });
   const excerpt = fox5.locator('summary');

@@ -133,6 +133,16 @@ test('pageToItem keys pages by href and leaves them undated', () => {
   assert.equal(pageToItem(home).content, '');
 });
 
+test('media can be found by publication and coverage headline', async () => {
+  const media = (await collectSearchDocuments()).find(
+    (item) => item.path === '/media'
+  );
+  assert.ok(media);
+  assert.match(media.content, /FOX5 Vegas/);
+  assert.match(media.content, /Week Without Driving/);
+  assert.match(media.content, /UT Dallas News Center/);
+});
+
 test('writingToItem maps a writing to a rooted, dated item', () => {
   const writing: WritingData = {
     slug: 'hello',

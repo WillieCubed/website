@@ -9,6 +9,7 @@ import {
   loadAllInitiatives,
   partTitle,
 } from '@/lib/initiatives';
+import { mediaMentions } from '@/lib/media';
 import { stripMdxSyntax } from '@/lib/text/strip-mdx';
 import { type WritingData, getWritingSlugs, loadWriting } from '@/lib/writings';
 
@@ -82,8 +83,14 @@ export function pageToItem(page: EntityCard): SearchableItem {
     path: page.href,
     title: page.title,
     description: page.description,
-    // Description is the page's whole text; as content it doubled the excerpt.
-    content: '',
+    // Most static pages have only their description. Media has source text
+    // worth finding by publisher or headline without duplicating the excerpt.
+    content:
+      page.href === '/media'
+        ? mediaMentions
+            .map((mention) => `${mention.publication}: ${mention.title}`)
+            .join('\n')
+        : '',
     tags: [],
     published: UNDATED,
     type: 'page',

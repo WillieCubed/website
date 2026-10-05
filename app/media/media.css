@@ -1,0 +1,225 @@
+.media-page {
+  max-width: 896px;
+  margin-inline: auto;
+  padding: 0 24px 32px;
+}
+
+.media-top-bar header {
+  max-width: 848px;
+  padding-inline: 44px;
+}
+
+body:has(.media-page) .site-footer[data-column='content'] .site-footer__inner {
+  max-width: 896px;
+  padding-inline: 44px;
+}
+
+.media-page__heading,
+.media-page__year > h2,
+.media-page__contact {
+  padding-inline: 20px;
+}
+
+.media-page__heading {
+  padding-block: 24px 26px;
+}
+
+.media-page__heading p {
+  margin-top: 8px;
+}
+
+.media-page__year {
+  margin-bottom: 24px;
+}
+
+.media-page__year > h2 {
+  margin-bottom: 12px;
+}
+
+.media-page__mentions {
+  display: grid;
+  gap: 12px;
+}
+
+.media-mention {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-card);
+  transition: border-color 180ms var(--ease-site);
+}
+
+.media-mention__content {
+  min-width: 0;
+  padding: 17px 19px;
+}
+
+.media-mention__title {
+  color: var(--color-ink);
+  transition: color 180ms var(--ease-site);
+}
+
+.media-mention__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 7px;
+  margin-top: 4px;
+}
+
+.media-mention__publication {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.media-mention__image {
+  display: block;
+  position: relative;
+  height: 172px;
+}
+
+.media-mention__image img {
+  object-fit: cover;
+  object-position: 46% 50%;
+}
+
+.media-mention--image .media-mention__meta {
+  margin-top: 8px;
+}
+
+.media-mention--image .media-mention__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  padding-block: 18px;
+}
+
+.media-mention__related a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+}
+
+.media-mention__excerpt {
+  margin-top: 8px;
+  interpolate-size: allow-keywords;
+}
+
+.media-mention__excerpt::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size 180ms var(--ease-site),
+    content-visibility 180ms allow-discrete;
+}
+
+.media-mention__excerpt[open]::details-content {
+  block-size: auto;
+}
+
+.media-mention__excerpt summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  min-height: 28px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--color-accent);
+  border-radius: 4px;
+}
+
+.media-mention__excerpt summary::-webkit-details-marker {
+  display: none;
+}
+
+.media-mention__excerpt summary svg {
+  transition: transform 180ms var(--ease-site);
+}
+
+.media-mention__excerpt[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.media-mention__excerpt blockquote {
+  padding-top: 8px;
+}
+
+.media-mention :is(a, summary):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.media-mention__image:focus-visible {
+  outline-offset: -3px;
+}
+
+.media-page__contact {
+  padding-top: 8px;
+}
+
+@media (min-width: 600px) {
+  .media-page {
+    max-width: 896px;
+    padding-inline: 48px;
+  }
+
+  .media-top-bar header {
+    max-width: 896px;
+    padding-inline: 72px;
+  }
+
+  body:has(.media-page)
+    .site-footer[data-column='content']
+    .site-footer__inner {
+    padding-inline: 72px;
+  }
+
+  .media-page__heading,
+  .media-page__year > h2,
+  .media-page__contact {
+    padding-inline: 24px;
+  }
+
+  .media-mention__content {
+    padding-inline: 23px;
+  }
+
+  .media-mention--image {
+    display: grid;
+    grid-template-columns: 40% minmax(0, 1fr);
+  }
+
+  .media-mention--image .media-mention__content {
+    padding-block: 22px 20px;
+  }
+
+  .media-mention__image {
+    height: 100%;
+    min-height: 230px;
+  }
+}
+
+@media (hover: hover) {
+  .media-mention:hover {
+    border-color: var(--color-accent);
+  }
+
+  .media-mention:hover .media-mention__title,
+  .media-mention__publication:hover {
+    color: var(--color-accent);
+  }
+}
+
+@media (pointer: coarse) {
+  .media-mention__excerpt summary {
+    min-height: 44px;
+  }
+}

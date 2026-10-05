@@ -11,6 +11,7 @@ const PAGES = [
   { path: '/', heading: /Willie Chalmers/ },
   { path: '/writings', heading: 'Writings' },
   { path: '/initiatives', heading: 'Initiatives' },
+  { path: '/media', heading: 'Media' },
   { path: '/search', heading: 'Search' },
 ];
 

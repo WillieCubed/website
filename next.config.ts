@@ -34,7 +34,6 @@ const nextConfig: NextConfig = {
     // Retired pages point at their nearest replacement. Temporary while
     // /projects is rebuilt, so the targets can still change.
     const retired = [
-      { source: '/media', destination: '/initiatives/twd', permanent: false },
       { source: '/apps', destination: '/projects', permanent: false },
     ];
     // Paths feed readers guess when they cannot find an autodiscovery link.

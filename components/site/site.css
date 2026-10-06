@@ -81,6 +81,44 @@
     gap: 16px;
   }
 }
+@media (max-width: 599px) {
+  .site-footer__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 24px;
+  }
+  .site-footer__profiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 44px);
+    width: min(100%, 148px);
+    margin-inline-start: -14px;
+    gap: 0 8px;
+  }
+  .site-footer[data-dock] .site-footer__row .site-footer__profiles {
+    column-gap: 8px;
+  }
+  .site-footer__profiles a {
+    width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .site-footer__utilities {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin-inline-start: 0;
+  }
+  .site-footer__utilities > a,
+  .site-footer__utilities .feeds-button {
+    min-height: 44px;
+  }
+  /* The phone footer opens from its own surface, so the contact list
+     does not need the cube's seat used by the desktop strip. */
+  .site-footer[data-dock] .site-footer__profiles::before {
+    display: none;
+  }
+}
 /* The footer carries the column its page's top bar registered
    (lib/footer/column.ts). The :has() rules are only the first paint's
    fallback, before any script has run: the document then holds one page,

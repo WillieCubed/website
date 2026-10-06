@@ -8,8 +8,9 @@ The registry's optional `footer` placement can move a page to the utility
 row or hide it from the footer. Sitemap uses the utility row. Brand stays
 out of the footer. Both remain in site search and the command palette.
 With four or more main destinations, the footer uses a vertical list on
-phones and two columns on wider screens. Contact links and utilities can
-move onto separate rows so added links increase the footer's height.
+phones and two columns on wider screens. On phones, contact icons use a compact grid of 44px targets beside the
+vertically stacked utilities. At wider sizes,
+the groups can wrap when they need more room.
 
 The HTML directory at `/sitemap` puts top-level destinations under Browse.
 It groups published initiatives and their parts, writings in publication

@@ -19,13 +19,16 @@ crawler rules, or protocol discovery files. The Tools section lists features
 a visitor can use: browser search, MCP, Webmentions, and embeds. Each has a
 short description. A tool requiring a client or request parameters shows its
 address, a usage note, and a documentation link instead of a broken browser
-link. Publishing and sign-in infrastructure stays out of the directory. AT Protocol discovery
-remains conditional in `llms.txt`.
+link. Publishing and sign-in infrastructure stays out of the directory.
+AT Protocol discovery remains conditional in `llms.txt`.
 
-Each page and content link has a short description. Each feed collection
-shows one description and its available formats. Tools describe their purpose
-instead of listing supported standards. Sections have responsive grids: one column
-below 600px, two from 600px, and up to three from 840px. Resource sections
+Each page and content link shows its name, route, and a short description.
+Navigation rows use the site's neutral text and rounded hover and focus
+states. Prose-style underlines appear only on active secondary links.
+Rows size to their contents so wrapped descriptions stay inside the hit area.
+Each feed collection shows one description and its available formats. Tools describe their purpose
+instead of listing supported standards. Sections have responsive grids: one
+column below 600px, two from 600px, and up to three from 840px. Resource sections
 with two or four entries use two columns at desktop widths. Feed and
 file links use full browser navigation because the app router cannot render
 their responses.

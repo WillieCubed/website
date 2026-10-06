@@ -1,3 +1,6 @@
+import type { PropsWithChildren } from 'react';
+
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import TopBar, { COLUMN } from '@/components/site/TopBar';
 
@@ -17,6 +20,42 @@ export const metadata = pageMetadata({
   description: page.description,
   path: page.path,
 });
+
+function SitemapLink({
+  href,
+  title,
+  description,
+  fullNavigation = false,
+  children,
+}: PropsWithChildren<{
+  href: string;
+  title: string;
+  description: string;
+  fullNavigation?: boolean;
+}>) {
+  const content = (
+    <>
+      <span className="sitemap-link__heading">
+        <span className="sitemap-link__title text-title-small">{title}</span>
+        <code className="sitemap-route text-body-small">{href}</code>
+      </span>
+      <span className="sitemap-description text-body-small text-muted">
+        {description}
+      </span>
+      {children}
+    </>
+  );
+  // Files and route-handler responses cannot use app-router navigation.
+  return fullNavigation ? (
+    <a href={href} className="sitemap-page-link">
+      {content}
+    </a>
+  ) : (
+    <SiteLink href={href} className="sitemap-page-link" preview={false}>
+      {content}
+    </SiteLink>
+  );
+}
 
 export default async function SitemapPage() {
   const [writings, initiatives] = await Promise.all([
@@ -46,18 +85,11 @@ export default async function SitemapPage() {
                 {STATIC_PAGES.filter(({ href }) => href !== page.path).map(
                   (item) => (
                     <li key={item.href}>
-                      <SiteLink
+                      <SitemapLink
                         href={item.href}
-                        className="sitemap-page-link"
-                        preview={false}
-                      >
-                        <span className="link-animated text-body-large">
-                          {item.href === '/' ? 'Home' : item.title}
-                        </span>
-                        <span className="sitemap-description text-body-small text-muted">
-                          {item.description}
-                        </span>
-                      </SiteLink>
+                        title={item.href === '/' ? 'Home' : item.title}
+                        description={item.description}
+                      />
                     </li>
                   )
                 )}
@@ -71,37 +103,24 @@ export default async function SitemapPage() {
                 <ul className="sitemap-links sitemap-grid">
                   {published.initiatives.map((initiative) => (
                     <li key={initiative.href}>
-                      <SiteLink
+                      <SitemapLink
                         href={initiative.href}
-                        className="sitemap-page-link"
-                        preview={false}
-                      >
-                        <span className="link-animated text-body-large">
-                          {initiative.title}
-                        </span>
-                        <span className="sitemap-description text-body-small text-muted">
-                          {initiative.tagline}
-                        </span>
-                      </SiteLink>
+                        title={initiative.title}
+                        description={initiative.tagline}
+                      />
                       {initiative.parts.length > 0 && (
                         <ul className="sitemap-parts">
                           {initiative.parts.map((part) => (
                             <li key={part.slug}>
-                              <SiteLink
+                              <SitemapLink
                                 href={`${initiative.href}/${part.slug}`}
-                                className="sitemap-page-link"
-                                preview={false}
-                              >
-                                <span className="link-animated text-body-medium">
-                                  {initiative.partLabel} {part.number}:{' '}
-                                  {part.title}
-                                </span>
-                                <span className="sitemap-description text-body-small text-muted">
-                                  {part.description ??
-                                    part.tagline ??
-                                    `${formatDate(part.starts, 'short')}–${formatDate(part.ends, 'short')}`}
-                                </span>
-                              </SiteLink>
+                                title={`${initiative.partLabel} ${part.number}: ${part.title}`}
+                                description={
+                                  part.description ??
+                                  part.tagline ??
+                                  `${formatDate(part.starts, 'short')}–${formatDate(part.ends, 'short')}`
+                                }
+                              />
                             </li>
                           ))}
                         </ul>
@@ -119,24 +138,18 @@ export default async function SitemapPage() {
                 <ul className="sitemap-links sitemap-grid">
                   {published.writings.map((writing) => (
                     <li key={writing.slug}>
-                      <SiteLink
+                      <SitemapLink
                         href={`/writings/${writing.slug}`}
-                        className="sitemap-page-link"
-                        preview={false}
+                        title={writing.title}
+                        description={writing.description}
                       >
-                        <span className="link-animated text-body-large">
-                          {writing.title}
-                        </span>
-                        <span className="sitemap-description text-body-small text-muted">
-                          {writing.description}
-                        </span>
                         <time
                           className="text-body-small text-muted"
                           dateTime={new Date(writing.published).toISOString()}
                         >
                           {formatDate(writing.published)}
                         </time>
-                      </SiteLink>
+                      </SitemapLink>
                     </li>
                   ))}
                 </ul>
@@ -150,18 +163,11 @@ export default async function SitemapPage() {
                 <ul className="sitemap-links sitemap-grid">
                   {published.topics.map(({ tag, writings }) => (
                     <li key={tag}>
-                      <SiteLink
+                      <SitemapLink
                         href={tagPath(tag)}
-                        className="sitemap-page-link"
-                        preview={false}
-                      >
-                        <span className="link-animated text-body-large">
-                          {tag}
-                        </span>
-                        <span className="text-body-small text-muted">
-                          {writingCount(writings.length)} on this topic.
-                        </span>
-                      </SiteLink>
+                        title={tag}
+                        description={`${writingCount(writings.length)} on this topic.`}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -171,12 +177,11 @@ export default async function SitemapPage() {
           {resourceGroups.map((group) => {
             const collections = new Map<string, typeof group.resources>();
             for (const resource of group.resources) {
-              if (resource.directory) {
+              if (resource.directory)
                 collections.set(resource.directory, [
                   ...(collections.get(resource.directory) ?? []),
                   resource,
                 ]);
-              }
             }
             return (
               <section key={group.label} aria-label={group.directoryLabel}>
@@ -184,63 +189,81 @@ export default async function SitemapPage() {
                 <ul
                   className={`sitemap-resources sitemap-grid${collections.size === 2 || collections.size === 4 ? ' sitemap-grid--paired' : ''}`}
                 >
-                  {[...collections].map(([label, resources]) => (
-                    <li key={label}>
-                      <h3 className="text-title-small">
-                        {resources.length === 1 && !resources[0].usage ? (
-                          // File links require a full browser navigation.
-                          <a href={resources[0].path} className="link-animated">
-                            {label}
-                          </a>
-                        ) : (
-                          label
-                        )}
-                      </h3>
-                      <p className="sitemap-description text-body-small text-muted">
-                        {resources[0].description}
-                      </p>
-                      <div className="sitemap-formats">
-                        {resources.map((resource) =>
-                          resource.usage ? (
-                            <div key={resource.path} className="sitemap-tool">
-                              <code className="sitemap-tool__address text-body-small">
-                                {resource.path}
-                              </code>
-                              <p className="text-body-small text-muted">
-                                {resource.usage}
-                              </p>
-                              {resource.documentation && (
-                                <SiteLink
-                                  href={resource.documentation}
-                                  className="link-animated text-body-medium"
-                                  aria-label={`${label} documentation`}
-                                >
-                                  Documentation
-                                </SiteLink>
-                              )}
-                            </div>
-                          ) : resources.length === 1 ? (
-                            <span
-                              key={resource.path}
-                              className="text-body-small text-muted"
-                            >
+                  {[...collections].map(([label, resources]) => {
+                    const resource = resources[0];
+                    const descriptionId = `sitemap-${group.label}-${encodeURIComponent(label)}`;
+                    return (
+                      <li key={label}>
+                        {resources.length === 1 && !resource.usage ? (
+                          <SitemapLink
+                            href={resource.path}
+                            title={label}
+                            description={resource.description}
+                            fullNavigation
+                          >
+                            <span className="text-body-small text-muted">
                               {resource.format}
                             </span>
-                          ) : (
-                            // Feed and file links require a full browser navigation.
-                            <a
-                              key={resource.path}
-                              href={resource.path}
-                              className="link-animated text-body-medium"
-                              aria-label={`${label} (${resource.format}): ${resource.description}`}
+                          </SitemapLink>
+                        ) : (
+                          <div className="sitemap-resource">
+                            <div className="sitemap-link__heading">
+                              <h3 className="text-title-small">{label}</h3>
+                              {resource.usage && (
+                                <code className="sitemap-route text-body-small">
+                                  {resource.path}
+                                </code>
+                              )}
+                            </div>
+                            <p
+                              id={descriptionId}
+                              className="sitemap-description text-body-small text-muted"
                             >
-                              {resource.format}
-                            </a>
-                          )
+                              {resource.description}
+                            </p>
+                            {resource.usage ? (
+                              <>
+                                <p className="sitemap-tool__usage text-body-small text-muted">
+                                  {resource.usage}
+                                </p>
+                                {resource.documentation && (
+                                  <SiteLink
+                                    href={resource.documentation}
+                                    className="sitemap-secondary-link text-body-small"
+                                    aria-label={`${label} documentation`}
+                                  >
+                                    Documentation{' '}
+                                    <Icon name="external" size={14} />
+                                  </SiteLink>
+                                )}
+                              </>
+                            ) : (
+                              <ul className="sitemap-formats">
+                                {resources.map((format) => (
+                                  <li key={format.path}>
+                                    {/* Feed responses require a full browser navigation. */}
+                                    <a
+                                      href={format.path}
+                                      className="sitemap-format-link"
+                                      aria-label={`${label} (${format.format})`}
+                                      aria-describedby={descriptionId}
+                                    >
+                                      <span className="text-label-medium">
+                                        {format.format}
+                                      </span>
+                                      <code className="sitemap-route text-body-small">
+                                        {format.path}
+                                      </code>
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
                         )}
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             );

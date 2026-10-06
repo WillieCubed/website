@@ -81,7 +81,7 @@ export function pageToItem(page: EntityCard): SearchableItem {
   return {
     slug: `pages/${key}`,
     path: page.href,
-    title: page.title,
+    title: page.href === '/' ? 'Home' : page.title,
     description: page.description,
     // Most static pages have only their description. Media has source text
     // worth finding by publisher or headline without duplicating the excerpt.

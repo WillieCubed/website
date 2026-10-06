@@ -18,7 +18,9 @@ export function toPagefindRecord(item: SearchableItem): PagefindRecord {
   return {
     url: item.path,
     language: site.language,
-    content: [item.description, item.content].filter(Boolean).join('\n\n'),
+    content: [item.title, item.description, item.content]
+      .filter(Boolean)
+      .join('\n\n'),
     meta: {
       title: item.title,
       description: item.description,

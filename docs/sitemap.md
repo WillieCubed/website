@@ -4,13 +4,10 @@ This page is for the maintainer adding public pages or resources to the site.
 Add a routed page to the registry in `lib/site.ts`; add a programmatic resource
 to `lib/indieweb/resources.ts`. Do not maintain a separate sitemap URL list.
 
-The registry's optional `footer` placement can move a page to the utility
-row or hide it from the footer. Sitemap uses the utility row. Brand stays
-out of the footer. Both remain in site search and the command palette.
-With four or more main destinations, the footer uses a vertical list on
-phones and two columns on wider screens. On phones, contact icons use a compact grid of 44px targets beside the
-vertically stacked utilities. At wider sizes,
-the groups can wrap when they need more room.
+The footer includes Sitemap with its page links. Below 600px, those links
+stack vertically. The social icons and Feeds button keep their original row.
+Footer placement does not affect search: every routed page remains in site
+search and the command palette, including Brand.
 
 The HTML directory at `/sitemap` puts top-level destinations under Browse.
 It groups published initiatives and their parts, writings in publication

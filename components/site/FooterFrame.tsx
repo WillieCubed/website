@@ -53,9 +53,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
 
     const contact = footer.querySelector<HTMLElement>('[data-footer-contact]');
     const pages = footer.querySelector<HTMLElement>('.site-footer__pages');
-    const utilities = footer.querySelector<HTMLElement>(
-      '.site-footer__utilities'
-    );
+    const feedButton = footer.querySelector<HTMLElement>('.feeds-button');
     const tagline = footer.querySelector<HTMLElement>(
       '.site-footer__brand > p'
     );
@@ -107,7 +105,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       });
       // A clipped or transparent control cannot receive keyboard focus.
       if (pages) pages.inert = p < 0.9;
-      if (utilities) utilities.inert = p < 0.6;
+      if (feedButton) feedButton.inert = p < 0.6;
       if (tagline) tagline.inert = p < 0.9;
       if (contact) contact.inert = compact.matches && p < 0.08;
       extraProfiles.forEach((profile) => {
@@ -160,7 +158,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', remeasure);
       compact.removeEventListener('change', remeasure);
-      [pages, utilities, tagline, contact, ...extraProfiles].forEach(
+      [pages, feedButton, tagline, contact, ...extraProfiles].forEach(
         (element) => {
           if (element) element.inert = false;
         }

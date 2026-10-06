@@ -19,7 +19,7 @@ test('toPagefindRecord maps an item to a custom record', () => {
   assert.deepEqual(toPagefindRecord(item), {
     url: '/writings/hello',
     language: 'en',
-    content: 'A note.\n\nBody text.',
+    content: 'Hello\n\nA note.\n\nBody text.',
     meta: { title: 'Hello', description: 'A note.', type: 'writing' },
     filters: { type: ['writing'], tag: ['personal'] },
     sort: { date: '2026-01-04T00:00:00.000Z' },

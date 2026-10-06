@@ -23,6 +23,7 @@ export interface PublicResource {
   description: string;
   /** Groups reader-facing downloads without exposing discovery endpoints. */
   directory?: string;
+  documentation?: string;
   /** A resource with required parameters or a protocol handshake is an address, not a browser link. */
   usage?: string;
 }
@@ -53,7 +54,7 @@ export function getPublicResources(
         },
         {
           label: 'Agent guide',
-          directory: 'Reading guide',
+          directory: 'llms.txt',
           path: '/llms.txt',
           format: 'Markdown',
           description: 'A text guide to the site for reading tools.',
@@ -123,21 +124,25 @@ export function getPublicResources(
     },
     {
       label: 'Protocols',
+      directoryLabel: 'Tools',
       resources: [
         {
           label: 'MCP server',
+          directory: 'MCP server',
+          documentation:
+            'https://modelcontextprotocol.io/docs/getting-started/intro',
           path: MCP_ENDPOINT,
           format: 'JSON-RPC',
-          description:
-            'Read-only tools to search and read writings and list initiatives, over Streamable HTTP.',
-          usage:
-            'Send JSON-RPC requests with an MCP client over Streamable HTTP.',
+          description: 'Read and search published content.',
+          usage: 'Connect with an MCP client over Streamable HTTP.',
         },
         {
           label: 'Webmention endpoint',
+          directory: 'Webmentions',
+          documentation: 'https://www.w3.org/TR/webmention/',
           path: WEBMENTION_ENDPOINT,
           format: 'HTTP',
-          description: 'Submit a response linked from another site.',
+          description: 'Send a response from your own website.',
           usage: 'POST with source and target URLs.',
         },
         {
@@ -162,9 +167,11 @@ export function getPublicResources(
         },
         {
           label: 'oEmbed provider',
+          directory: 'Embeds',
+          documentation: 'https://oembed.com/',
           path: `${OEMBED_ENDPOINT}?url=`,
           format: 'JSON',
-          description: 'Embed information for a published page.',
+          description: 'Get an embeddable preview of a published page.',
           usage: 'GET with url set to the full page URL.',
         },
         {
@@ -222,6 +229,7 @@ export function getPublicResources(
         },
         {
           label: 'OpenSearch description',
+          directory: 'Browser search',
           path: '/opensearch.xml',
           format: 'XML',
           description: 'Add this site to a browser’s search engines.',

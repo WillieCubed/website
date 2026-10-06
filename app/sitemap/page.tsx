@@ -5,7 +5,7 @@ import { STATIC_PAGES } from '@/lib/entities/pages';
 import { getPublicResources } from '@/lib/indieweb/resources';
 import { getInitiatives } from '@/lib/initiatives';
 import { publishedSitemapContent } from '@/lib/seo/sitemap';
-import { formatDate, pageMetadata, site, sitePage } from '@/lib/site';
+import { formatDate, pageMetadata, sitePage } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
 import { tagPath, writingCount } from '@/lib/writings/tags';
 
@@ -38,9 +38,9 @@ export default async function SitemapPage() {
         <h1 className="text-display-small">Sitemap</h1>
         <div className="sitemap-sections">
           <div className="sitemap-directory">
-            <section aria-labelledby="sitemap-pages">
-              <h2 id="sitemap-pages" className="text-title-large">
-                Pages
+            <section aria-labelledby="sitemap-browse">
+              <h2 id="sitemap-browse" className="text-title-large">
+                Browse
               </h2>
               <ul className="sitemap-links sitemap-grid">
                 {STATIC_PAGES.filter(({ href }) => href !== page.path).map(
@@ -51,7 +51,7 @@ export default async function SitemapPage() {
                         className="sitemap-page-link"
                         preview={false}
                       >
-                        <span className="text-body-large">
+                        <span className="link-animated text-body-large">
                           {item.href === '/' ? 'Home' : item.title}
                         </span>
                         <span className="sitemap-description text-body-small text-muted">
@@ -76,7 +76,7 @@ export default async function SitemapPage() {
                         className="sitemap-page-link"
                         preview={false}
                       >
-                        <span className="text-body-large">
+                        <span className="link-animated text-body-large">
                           {initiative.title}
                         </span>
                         <span className="sitemap-description text-body-small text-muted">
@@ -92,7 +92,7 @@ export default async function SitemapPage() {
                                 className="sitemap-page-link"
                                 preview={false}
                               >
-                                <span className="text-body-medium">
+                                <span className="link-animated text-body-medium">
                                   {initiative.partLabel} {part.number}:{' '}
                                   {part.title}
                                 </span>
@@ -124,7 +124,9 @@ export default async function SitemapPage() {
                         className="sitemap-page-link"
                         preview={false}
                       >
-                        <span className="text-body-large">{writing.title}</span>
+                        <span className="link-animated text-body-large">
+                          {writing.title}
+                        </span>
                         <span className="sitemap-description text-body-small text-muted">
                           {writing.description}
                         </span>
@@ -153,7 +155,9 @@ export default async function SitemapPage() {
                         className="sitemap-page-link"
                         preview={false}
                       >
-                        <span className="text-body-large">{tag}</span>
+                        <span className="link-animated text-body-large">
+                          {tag}
+                        </span>
                         <span className="text-body-small text-muted">
                           {writingCount(writings.length)} on this topic.
                         </span>
@@ -177,25 +181,63 @@ export default async function SitemapPage() {
             return (
               <section key={group.label} aria-label={group.directoryLabel}>
                 <h2 className="text-title-large">{group.directoryLabel}</h2>
-                <ul className="sitemap-resources sitemap-grid">
+                <ul
+                  className={`sitemap-resources sitemap-grid${collections.size === 2 || collections.size === 4 ? ' sitemap-grid--paired' : ''}`}
+                >
                   {[...collections].map(([label, resources]) => (
                     <li key={label}>
-                      <h3 className="text-title-small">{label}</h3>
+                      <h3 className="text-title-small">
+                        {resources.length === 1 && !resources[0].usage ? (
+                          // File links require a full browser navigation.
+                          <a href={resources[0].path} className="link-animated">
+                            {label}
+                          </a>
+                        ) : (
+                          label
+                        )}
+                      </h3>
                       <p className="sitemap-description text-body-small text-muted">
                         {resources[0].description}
                       </p>
                       <div className="sitemap-formats">
-                        {resources.map((resource) => (
-                          // Feed and file links require a full browser navigation.
-                          <a
-                            key={resource.path}
-                            href={resource.path}
-                            className="link-animated text-body-medium"
-                            aria-label={`${label} (${resource.format}): ${resource.description}`}
-                          >
-                            {resource.format}
-                          </a>
-                        ))}
+                        {resources.map((resource) =>
+                          resource.usage ? (
+                            <div key={resource.path} className="sitemap-tool">
+                              <code className="sitemap-tool__address text-body-small">
+                                {resource.path}
+                              </code>
+                              <p className="text-body-small text-muted">
+                                {resource.usage}
+                              </p>
+                              {resource.documentation && (
+                                <SiteLink
+                                  href={resource.documentation}
+                                  className="link-animated text-body-medium"
+                                  aria-label={`${label} documentation`}
+                                >
+                                  Documentation
+                                </SiteLink>
+                              )}
+                            </div>
+                          ) : resources.length === 1 ? (
+                            <span
+                              key={resource.path}
+                              className="text-body-small text-muted"
+                            >
+                              {resource.format}
+                            </span>
+                          ) : (
+                            // Feed and file links require a full browser navigation.
+                            <a
+                              key={resource.path}
+                              href={resource.path}
+                              className="link-animated text-body-medium"
+                              aria-label={`${label} (${resource.format}): ${resource.description}`}
+                            >
+                              {resource.format}
+                            </a>
+                          )
+                        )}
                       </div>
                     </li>
                   ))}
@@ -203,20 +245,6 @@ export default async function SitemapPage() {
               </section>
             );
           })}
-          <section aria-labelledby="sitemap-standards">
-            <h2 id="sitemap-standards" className="text-title-large">
-              Standards
-            </h2>
-            <p className="sitemap-standards text-body-medium text-muted">
-              This site supports RSS, Atom, JSON Feed, Webmention, microformats,
-              IndieAuth, Micropub, oEmbed, WebFinger, and OpenSearch. It
-              provides read-only access through MCP
-              {site.author.atprotoDid
-                ? ' and supports AT Protocol identity'
-                : ''}
-              .
-            </p>
-          </section>
         </div>
       </main>
     </>

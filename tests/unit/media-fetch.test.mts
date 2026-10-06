@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
+import { getMediaMention } from '../../lib/media';
 import {
   discoverImages,
   fetchBytes,
@@ -52,11 +53,14 @@ image:
 ---
 `
   );
-  return root;
+  return {
+    root,
+    mention: getMediaMention('story', join(root, 'content/media')),
+  };
 }
 
 test('fetch saves a selected original without rewriting editorial content', async (t) => {
-  const root = await fixture(t);
+  const { root, mention } = await fixture(t);
   const file = join(root, 'content/media/story.md');
   const before = await readFile(file, 'utf8');
   const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -65,7 +69,7 @@ test('fetch saves a selected original without rewriting editorial content', asyn
     // FOX5's CDN returns PNG bytes with a JPEG content type.
     return new Response(png, { headers: { 'content-type': 'image/jpeg' } });
   });
-  await fetchMentionImage('story', root);
+  await fetchMentionImage(mention, root);
   assert.deepEqual(
     await readFile(join(root, 'public/assets/media/story.png')),
     png
@@ -73,8 +77,30 @@ test('fetch saves a selected original without rewriting editorial content', asyn
   assert.equal(await readFile(file, 'utf8'), before);
 });
 
+test('an entry without a selected image discovers candidates at its article URL', async (t) => {
+  const { root } = await fixture(t);
+  const file = join(root, 'content/media/story.md');
+  const content = (await readFile(file, 'utf8')).replace(
+    /image:[\s\S]*?---/,
+    '---'
+  );
+  await writeFile(file, content);
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    assert.equal(url, 'https://news.example.com/story');
+    return new Response('<meta property="og:image" content="/photo.jpg">');
+  });
+  assert.deepEqual(
+    await fetchMentionImage(
+      getMediaMention('story', join(root, 'content/media')),
+      root
+    ),
+    [{ source: 'https://news.example.com/photo.jpg', alt: '', caption: '' }]
+  );
+  assert.equal(await readFile(file, 'utf8'), content);
+});
+
 test('failed or non-image responses never replace an existing asset', async (t) => {
-  const root = await fixture(t);
+  const { root, mention } = await fixture(t);
   const asset = join(root, 'public/assets/media/story.png');
   await mkdir(join(root, 'public/assets/media'), { recursive: true });
   await writeFile(asset, 'existing image');
@@ -83,7 +109,7 @@ test('failed or non-image responses never replace an existing asset', async (t) 
     'fetch',
     async () => new Response('blocked', { status: 403 })
   );
-  await assert.rejects(fetchMentionImage('story', root), /HTTP 403/);
+  await assert.rejects(fetchMentionImage(mention, root), /HTTP 403/);
   mock.mock.mockImplementation(
     async () =>
       new Response('<html>not an image</html>', {
@@ -91,14 +117,14 @@ test('failed or non-image responses never replace an existing asset', async (t) 
       })
   );
   await assert.rejects(
-    fetchMentionImage('story', root),
+    fetchMentionImage(mention, root),
     /not the expected image/
   );
   assert.equal(await readFile(asset, 'utf8'), 'existing image');
 });
 
-test('fetch rejects path traversal before reading content', async () => {
-  await assert.rejects(fetchMentionImage('../story'), /content filename/);
+test('media rejects path traversal before reading content', () => {
+  assert.throws(() => getMediaMention('../story'), /content filename/);
 });
 
 test('fetch stops oversized downloads and rejects non-HTTP sources', async (t) => {

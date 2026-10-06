@@ -4,6 +4,7 @@ This page is for the maintainer adding coverage to `/media`. Create a Markdown
 file in `content/media/` and check the page at desktop and phone widths.
 The filename supplies the entry's stable ID. Keep editorial content in these
 files; `lib/media.ts` only loads and validates them.
+Use lowercase letters, numbers, and hyphens in filenames.
 
 For example, `content/media/las-vegas-sun-da-vinci.md` contains:
 

@@ -88,15 +88,6 @@ body:has(.media-page) .site-footer[data-column='content'] .site-footer__inner {
   background: var(--color-surface-container-low);
 }
 
-.media-mention__image img {
-  object-fit: cover;
-  object-position: center;
-}
-
-.media-mention__image--contain img {
-  object-fit: contain;
-}
-
 .media-mention--image {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);

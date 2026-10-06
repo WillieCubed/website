@@ -130,7 +130,7 @@
 /* Everything but the row and the lockup comes in with the opening, each
    over its own stretch of it: the feeds first, then the pages, and the
    tagline last, once the lockup has risen past it. */
-.site-footer[data-dock] .site-footer__utilities {
+.site-footer[data-dock] .feeds-button {
   --from: 0.2;
   --to: 0.6;
 }
@@ -144,7 +144,7 @@
 }
 .site-footer[data-dock]
   :is(
-    .site-footer__utilities,
+    .feeds-button,
     .site-footer__pages,
     .site-footer__brand > :not(.site-footer__lockup)
   ) {

@@ -16,8 +16,18 @@ import FooterFrame from './FooterFrame';
 import FooterLockup from './FooterLockup';
 import './site.css';
 
-const PAGES = routedPages.filter((page) => !page.footer);
-const UTILITIES = routedPages.filter((page) => page.footer === 'utility');
+/**
+ * Brand stays available by direct link without promotion in the footer.
+ * Search lives in the command
+ * palette; visitors whose scripts never ran find /search through the top
+ * bar's <noscript> link instead.
+ */
+const PAGES = routedPages
+  .filter((page) => page.path !== '/brand')
+  .map((page) => ({
+    label: page.label,
+    href: page.path,
+  }));
 
 const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
   {
@@ -99,11 +109,11 @@ export default function SiteFooter() {
               <Tagline />
             </Suspense>
           </div>
-          <nav aria-label="Explore" className="site-footer__pages">
+          <nav aria-label="Pages" className="site-footer__pages">
             <ul className="flex flex-wrap gap-x-5 gap-y-1">
               {PAGES.map((page) => (
-                <li key={page.path}>
-                  <SiteLink preview={false} href={page.path} className={LINK}>
+                <li key={page.href}>
+                  <SiteLink preview={false} href={page.href} className={LINK}>
                     {page.label}
                   </SiteLink>
                 </li>
@@ -111,8 +121,10 @@ export default function SiteFooter() {
             </ul>
           </nav>
         </div>
-        {/* Contact links stay first because the homepage opens the footer
-            from this same group. */}
+        {/* This row never wraps. When the column gets narrow the labels
+            drop and the icons stay, so the row degrades instead of folding.
+            The contact links come first, on screen and in tab order alike:
+            on the homepage they are the row the footer grows out of. */}
         <div className="site-footer__row">
           <ul className="site-footer__profiles" data-footer-contact>
             {ELSEWHERE.map((place) => (
@@ -138,19 +150,7 @@ export default function SiteFooter() {
               </li>
             ))}
           </ul>
-          <nav aria-label="Site tools" className="site-footer__utilities">
-            {UTILITIES.map((page) => (
-              <SiteLink
-                key={page.path}
-                preview={false}
-                href={page.path}
-                className={LINK}
-              >
-                {page.label}
-              </SiteLink>
-            ))}
-            <FeedsButton />
-          </nav>
+          <FeedsButton />
         </div>
       </div>
     </FooterFrame>

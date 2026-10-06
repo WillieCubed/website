@@ -137,6 +137,8 @@ export interface SitePage {
   description: string;
   /** False while the page is parked in app/_(pages) for a rebuild. */
   routed: boolean;
+  /** Footer placement does not affect routing, search, or the sitemap. */
+  footer?: 'utility' | 'hidden';
 }
 
 /**
@@ -172,12 +174,14 @@ export const sitePages: SitePage[] = [
     description:
       'The WillieCubed mark, lockups, app icons, and color and type tokens to download.',
     routed: true,
+    footer: 'hidden',
   },
   {
     path: '/sitemap',
     label: 'Sitemap',
     description: 'Browse pages, writings, initiatives, and feeds.',
     routed: true,
+    footer: 'utility',
   },
   {
     path: '/about',

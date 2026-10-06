@@ -12,7 +12,7 @@
  * can register before the page leaving has let go.
  */
 
-export type PageColumn = 'reading' | 'content' | 'wide';
+export type PageColumn = 'reading' | 'content' | 'media' | 'wide';
 
 interface Bar {
   column: PageColumn;

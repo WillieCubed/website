@@ -1,5 +1,6 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import { dirname, extname, join, resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { type DefaultTreeAdapterMap, parse } from 'parse5';
 
@@ -7,7 +8,9 @@ import {
   type MediaMention,
   getMediaMention,
   getMediaMentions,
+  mediaImageSchema,
 } from '../lib/media';
+import { validateMediaImage } from './media-assets';
 
 type Node = DefaultTreeAdapterMap['node'];
 type Element = DefaultTreeAdapterMap['element'];
@@ -27,48 +30,114 @@ function nodeText(node: Node): string {
   return 'childNodes' in node ? node.childNodes.map(nodeText).join(' ') : '';
 }
 
-export function discoverImages(html: string, articleUrl: string): Candidate[] {
-  const candidates = new Map<string, Candidate>();
-  for (const node of elements(parse(html))) {
-    const attrs = Object.fromEntries(
-      node.attrs.map(({ name, value }) => [name, value])
-    );
-    let raw: string | undefined;
-    if (node.tagName === 'img') raw = attrs.src;
-    if (
-      node.tagName === 'meta' &&
-      ['og:image', 'twitter:image'].includes(attrs.property ?? attrs.name)
-    ) {
-      raw = attrs.content;
+function* structuredImages(value: unknown): Generator<string> {
+  if (typeof value === 'string') {
+    yield value;
+  } else if (Array.isArray(value)) {
+    for (const item of value) yield* structuredImages(item);
+  } else if (value && typeof value === 'object') {
+    const object = value as Record<string, unknown>;
+    for (const key of ['url', 'contentUrl']) {
+      if (typeof object[key] === 'string') yield object[key];
     }
-    if (!raw) continue;
+  }
+}
+
+function* articleImages(value: unknown): Generator<string> {
+  if (!value || typeof value !== 'object') return;
+  for (const [key, child] of Object.entries(value)) {
+    if (['image', 'thumbnailUrl', 'promo_image'].includes(key)) {
+      yield* structuredImages(child);
+    } else {
+      yield* articleImages(child);
+    }
+  }
+}
+
+export function discoverImages(html: string, articleUrl: string): Candidate[] {
+  const nodes = [...elements(parse(html))];
+  let base = articleUrl;
+  const baseElement = nodes.find((node) => node.tagName === 'base');
+  const href = baseElement?.attrs.find((attr) => attr.name === 'href')?.value;
+  if (href) {
+    try {
+      base = new URL(href, articleUrl).href;
+    } catch {
+      // Invalid publisher markup must not hide the other candidates.
+    }
+  }
+  const candidates = new Map<string, Candidate>();
+  const add = (raw: string, alt = '', caption = '') => {
     let source: URL;
     try {
-      source = new URL(raw, articleUrl);
+      source = new URL(raw, base);
     } catch {
-      // A publisher's malformed image URL must not hide the other candidates.
-      continue;
+      return;
     }
-    if (!['https:', 'http:'].includes(source.protocol)) continue;
-    let parent = node.parentNode;
-    while (parent && !('tagName' in parent && parent.tagName === 'figure')) {
-      parent = 'parentNode' in parent ? parent.parentNode : null;
-    }
+    if (!['https:', 'http:'].includes(source.protocol)) return;
     const previous = candidates.get(source.href);
     candidates.set(source.href, {
       source: source.href,
-      alt: attrs.alt || previous?.alt || '',
-      caption: parent
-        ? nodeText(parent).replace(/\s+/g, ' ').trim()
-        : previous?.caption || '',
+      alt: alt || previous?.alt || '',
+      caption: caption || previous?.caption || '',
     });
+  };
+  for (const node of nodes) {
+    const attrs = Object.fromEntries(
+      node.attrs.map(({ name, value }) => [name, value])
+    );
+    if (node.tagName === 'img' || node.tagName === 'source') {
+      let parent = node.parentNode;
+      while (parent && !('tagName' in parent && parent.tagName === 'figure')) {
+        parent = 'parentNode' in parent ? parent.parentNode : null;
+      }
+      const caption = parent
+        ? nodeText(parent).replace(/\s+/g, ' ').trim()
+        : '';
+      for (const raw of [
+        attrs.src,
+        attrs['data-src'],
+        attrs['data-original'],
+      ]) {
+        if (raw) add(raw, attrs.alt, caption);
+      }
+      for (const srcset of [attrs.srcset, attrs['data-srcset']]) {
+        for (const entry of srcset?.split(',') ?? []) {
+          const raw = entry.trim().split(/\s+/)[0];
+          if (raw) add(raw, attrs.alt, caption);
+        }
+      }
+    }
+    if (node.tagName === 'video' && attrs.poster) add(attrs.poster);
+    if (
+      node.tagName === 'meta' &&
+      ['og:image', 'twitter:image'].includes(attrs.property ?? attrs.name) &&
+      attrs.content
+    ) {
+      add(attrs.content);
+    }
+    if (node.tagName === 'script') {
+      const text = nodeText(node);
+      // Arc publishes its article as JSON inside an assignment; never execute it.
+      const json =
+        attrs.type === 'application/ld+json'
+          ? text
+          : text.match(
+              /Fusion\.globalContent\s*=\s*([\s\S]*?);\s*Fusion\.globalContentConfig\s*=/
+            )?.[1];
+      if (!json) continue;
+      try {
+        for (const raw of articleImages(JSON.parse(json))) add(raw);
+      } catch {
+        // One malformed metadata block must not discard HTML image candidates.
+      }
+    }
   }
   return [...candidates.values()];
 }
 
-export async function fetchBytes(url: string, limit: number) {
-  if (!/^https?:\/\//.test(url))
-    throw new Error('Expected an HTTP image source.');
+export async function fetchResource(url: string, limit: number) {
+  if (!/^https?:\/\//.test(url)) throw new Error('Expected an HTTP source.');
   const response = await fetch(url, { signal: AbortSignal.timeout(20_000) });
   if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
   if (!response.body) throw new Error(`${url}: empty response`);
@@ -79,61 +148,62 @@ export async function fetchBytes(url: string, limit: number) {
     if (size > limit) throw new Error(`${url}: exceeds ${limit} bytes`);
     chunks.push(chunk);
   }
-  return Buffer.concat(chunks);
+  return { bytes: Buffer.concat(chunks), url: response.url || url };
+}
+
+export async function discoverMentionImages({ url }: MediaMention) {
+  const response = await fetchResource(url, 5_000_000);
+  return discoverImages(response.bytes.toString(), response.url);
 }
 
 export async function fetchMentionImage(
-  { id, url, image }: MediaMention,
+  { id, image }: MediaMention,
   root = process.cwd()
 ) {
-  if (!image?.source) {
-    const bytes = await fetchBytes(url, 5_000_000);
-    return discoverImages(bytes.toString(), url);
-  }
-  if (!image.credit) {
-    throw new Error(`${id}: add image.credit before downloading.`);
-  }
-  if (
-    !/^\/assets\/media\/[a-z0-9-]+\.(jpg|jpeg|png|webp|avif)$/.test(image.src)
-  ) {
-    throw new Error(`${id}: image.src must be a file under /assets/media/.`);
-  }
-  const bytes = await fetchBytes(image.source, 10_000_000);
-  const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  const png = bytes
-    .subarray(0, 8)
-    .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
-  const webp =
-    bytes.toString('ascii', 0, 4) === 'RIFF' &&
-    bytes.toString('ascii', 8, 12) === 'WEBP';
-  const avif = bytes.toString('ascii', 4, 12) === 'ftypavif';
-  const extension = extname(image.src).slice(1);
-  // Publisher MIME headers can be wrong, so the bytes determine the image format.
-  const valid =
-    (jpeg && ['jpg', 'jpeg'].includes(extension)) ||
-    (png && extension === 'png') ||
-    (webp && extension === 'webp') ||
-    (avif && extension === 'avif');
-  if (!valid)
-    throw new Error(`${id}: response is not the expected image format.`);
-  const destination = join(root, 'public', image.src);
+  if (!image) throw new Error(`${id}: select an image before downloading.`);
+  const selected = mediaImageSchema.parse(image);
+  const { bytes } = await fetchResource(selected.source, 10_000_000);
+  await validateMediaImage(bytes, selected.src);
+  const destination = join(root, 'public', selected.src);
+  const temporary = `${destination}.${randomUUID()}.tmp`;
   await mkdir(dirname(destination), { recursive: true });
-  await writeFile(destination, bytes);
-  return `${id}: saved ${image.src} (${bytes.length} bytes)`;
+  try {
+    await writeFile(temporary, bytes, { flag: 'wx' });
+    await rename(temporary, destination);
+  } finally {
+    await rm(temporary, { force: true });
+  }
+  return { id, src: selected.src, bytes: bytes.length };
 }
 
 async function main() {
-  const argument = process.argv[2];
-  if (!argument) throw new Error('Usage: pnpm media:fetch <id|--all>');
+  const [command, argument, ...extra] = process.argv.slice(2);
+  if (
+    !['discover', 'fetch'].includes(command) ||
+    !argument ||
+    extra.length ||
+    (command === 'discover' && argument === '--all')
+  ) {
+    throw new Error(
+      'Usage: pnpm media:discover <id> | pnpm media:fetch <id|--all>'
+    );
+  }
   const mentions =
     argument === '--all'
       ? getMediaMentions({ includeDrafts: true }).filter(
-          (mention) => mention.image?.source
+          (mention) => mention.image
         )
       : [getMediaMention(argument)];
   for (const mention of mentions) {
     try {
-      console.log(await fetchMentionImage(mention));
+      if (command === 'discover') {
+        console.log(
+          JSON.stringify(await discoverMentionImages(mention), null, 2)
+        );
+      } else {
+        const saved = await fetchMentionImage(mention);
+        console.log(`${saved.id}: saved ${saved.src} (${saved.bytes} bytes)`);
+      }
     } catch (error) {
       console.error(error instanceof Error ? error.message : error);
       process.exitCode = 1;

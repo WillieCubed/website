@@ -72,6 +72,21 @@ body:has(header[data-column='content'])
   .site-footer__inner {
   max-width: 840px;
 }
+.site-footer[data-column='media'] .site-footer__inner,
+body:has(header[data-column='media'])
+  .site-footer:not([data-column])
+  .site-footer__inner {
+  max-width: 896px;
+  padding-inline: 44px;
+}
+@media (min-width: 600px) {
+  .site-footer[data-column='media'] .site-footer__inner,
+  body:has(header[data-column='media'])
+    .site-footer:not([data-column])
+    .site-footer__inner {
+    padding-inline: 72px;
+  }
+}
 .site-footer[data-column='reading'] .site-footer__inner,
 body:has(header[data-column='reading'])
   .site-footer:not([data-column])

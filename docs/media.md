@@ -41,17 +41,20 @@ An optional `image` supplies a local copy of a photograph, video thumbnail,
 or illustration from the article. Record the original asset URL in `source`,
 describe what the image shows in `alt`, and preserve its attribution in `credit`.
 Use the named photographer when the article gives one; otherwise credit the
-provider without inventing a photographer. The image link exposes the credit
-in its title. Use `fit: contain` for graphics that should not be cropped.
+provider without inventing a photographer. A selected image requires all four
+fields, and `src` must name a JPG, PNG, WebP, or AVIF file under `/assets/media/`.
+The image link exposes the credit in its title. Use `fit: contain` for graphics that should not be cropped.
 
-Run `pnpm media:fetch <id>` after adding an article's URL. If the entry has no
-`image.source`, the command lists its preview images and embedded images with
-their available alt text and figure captions. Review the candidates: a preview
-can show a logo or an unrelated person, while a gallery may include a photograph
+Run `pnpm media:discover <id>` after adding an article's URL. The command lists
+preview images, responsive and lazy-loaded photos, video posters, and images
+from structured article metadata with available alt text and figure captions.
+It also reads Arc Publishing article metadata, including FOX5 video posters.
+Discovery works even when the entry already has a selected image.
+Review the candidates: a preview can show a logo or an unrelated person, while a gallery may include a photograph
 whose caption names Willie. The Clark Scholars entry uses the research poster
 photograph rather than the gallery's first slide.
 
-Add the selected image to the content file, then run the same command again:
+Add the selected image to the content file, then run `pnpm media:fetch <id>`:
 
 ```yaml
 image:
@@ -63,9 +66,13 @@ image:
 
 The command downloads to `public/assets/media/` and leaves the editorial fields
 alone. `pnpm media:fetch --all` refreshes entries that already have a selected
-source. Failed requests and non-image responses leave existing assets intact.
+source. The downloader decodes each image and checks its format before atomically
+replacing the cached file. Failed requests, corrupt images, and failed writes
+leave existing assets intact.
 Downloads happen during authoring; builds and visitors do not depend on the
-publisher being online. Next.js resizes these local originals for each layout.
+publisher being online. `pnpm content:check` checks every selected image for
+existence and decodability, including drafts, without contacting publishers.
+The build runs that check. Next.js resizes these local originals for each layout.
 
 This container diagram shows where the images are fetched:
 
@@ -88,6 +95,11 @@ As of October 5, 2026, RTC and Nevada Current return HTTP 403 to direct article
 and WordPress API requests. Those two entries keep their source links and have
 no image. Their text remains published; the fetch command does not fabricate
 replacement art when a source cannot be fetched.
+
+The shared top bar and footer use the `media` column to align with the page.
+The top bar registers it only while visible, so cached pages cannot change
+another route's footer. Before hydration, the shared footer stylesheet reads
+the initial header only until the footer has its own `data-column`.
 
 The archive includes coverage from 2012 through 2026. Add older or newly
 discovered coverage when its source is verified. A publication's search can

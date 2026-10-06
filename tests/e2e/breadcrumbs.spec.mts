@@ -168,7 +168,7 @@ test('the site name links home and the Writings crumb opens its menu', async ({
   expect(await writingLinks.count()).toBeGreaterThan(1);
   await expect(writingsMenu.getByRole('heading')).toHaveCount(0);
   if (await writingsMenu.getByRole('link', { name: 'Brand' }).count()) {
-    await expect(writingLinks).toHaveCount(3);
+    await expect(writingLinks).toHaveCount(5);
     await expect(
       writingsMenu.getByRole('link', { name: 'Initiatives' })
     ).toHaveCount(1);

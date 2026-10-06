@@ -36,10 +36,10 @@ function SitemapLink({
   const content = (
     <>
       <span className="sitemap-link__heading">
-        <span className="sitemap-link__title text-title-small">{title}</span>
+        <span className="sitemap-link__title text-title-medium">{title}</span>
         <code className="sitemap-route text-body-small">{href}</code>
       </span>
-      <span className="sitemap-description text-body-small text-muted">
+      <span className="sitemap-description text-body-medium text-muted">
         {description}
       </span>
       {children}
@@ -186,9 +186,7 @@ export default async function SitemapPage() {
             return (
               <section key={group.label} aria-label={group.directoryLabel}>
                 <h2 className="text-title-large">{group.directoryLabel}</h2>
-                <ul
-                  className={`sitemap-resources sitemap-grid${collections.size === 2 || collections.size === 4 ? ' sitemap-grid--paired' : ''}`}
-                >
+                <ul className="sitemap-resources sitemap-grid">
                   {[...collections].map(([label, resources]) => {
                     const resource = resources[0];
                     const descriptionId = `sitemap-${group.label}-${encodeURIComponent(label)}`;
@@ -208,7 +206,7 @@ export default async function SitemapPage() {
                         ) : (
                           <div className="sitemap-resource">
                             <div className="sitemap-link__heading">
-                              <h3 className="text-title-small">{label}</h3>
+                              <h3 className="text-title-medium">{label}</h3>
                               {resource.usage && (
                                 <code className="sitemap-route text-body-small">
                                   {resource.path}
@@ -217,13 +215,13 @@ export default async function SitemapPage() {
                             </div>
                             <p
                               id={descriptionId}
-                              className="sitemap-description text-body-small text-muted"
+                              className="sitemap-description text-body-medium text-muted"
                             >
                               {resource.description}
                             </p>
                             {resource.usage ? (
                               <>
-                                <p className="sitemap-tool__usage text-body-small text-muted">
+                                <p className="sitemap-tool__usage text-body-medium text-muted">
                                   {resource.usage}
                                 </p>
                                 {resource.documentation && (
@@ -248,7 +246,7 @@ export default async function SitemapPage() {
                                       aria-label={`${label} (${format.format})`}
                                       aria-describedby={descriptionId}
                                     >
-                                      <span className="text-label-medium">
+                                      <span className="text-label-large">
                                         {format.format}
                                       </span>
                                       <code className="sitemap-route text-body-small">

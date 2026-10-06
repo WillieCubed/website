@@ -26,10 +26,13 @@ Each page and content link shows its name, route, and a short description.
 Navigation rows use the site's neutral text and rounded hover and focus
 states. Prose-style underlines appear only on active secondary links.
 Rows size to their contents so wrapped descriptions stay inside the hit area.
+The text aligns with section headings; padded interaction surfaces extend
+12px beyond that text, as on the writings index. Routes align right even
+when they wrap onto a second line.
 Each feed collection shows one description and its available formats. Tools describe their purpose
 instead of listing supported standards. Sections have responsive grids: one
-column below 600px, two from 600px, and up to three from 840px. Resource sections
-with two or four entries use two columns at desktop widths. Feed and
+column below 600px and two from 600px, with the same column alignment in
+every section. Feed and
 file links use full browser navigation because the app router cannot render
 their responses.
 

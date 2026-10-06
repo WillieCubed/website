@@ -13,23 +13,31 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
 });
 
 export default function MediaMention({ mention }: { mention: Mention }) {
+  const featured = mention.featured && mention.image;
   return (
     <article
-      className={`media-mention${mention.image ? ' media-mention--image' : ''}`}
+      className={`media-mention${mention.image ? ' media-mention--image' : ''}${featured ? ' media-mention--featured' : ''}`}
       aria-labelledby={`media-${mention.id}`}
     >
       {mention.image && (
         <SiteLink
           href={mention.url}
           target="_blank"
-          className="media-mention__image"
+          className={`media-mention__image${mention.image.fit === 'contain' ? ' media-mention__image--contain' : ''}`}
           aria-label={`Read ${mention.title} at ${mention.publication}`}
+          title={
+            mention.image.credit ? `Image: ${mention.image.credit}` : undefined
+          }
         >
           <Image
             src={mention.image.src}
             alt={mention.image.alt}
             fill
-            sizes="(max-width: 599px) calc(100vw - 48px), (max-width: 839px) 40vw, 320px"
+            sizes={
+              featured
+                ? '(max-width: 599px) calc(100vw - 48px), (max-width: 839px) 40vw, 320px'
+                : '(max-width: 599px) 80px, 128px'
+            }
           />
         </SiteLink>
       )}
@@ -37,7 +45,7 @@ export default function MediaMention({ mention }: { mention: Mention }) {
         <div>
           <h3
             id={`media-${mention.id}`}
-            className={`media-mention__title ${mention.image ? 'text-title-large' : 'text-title-medium'}`}
+            className={`media-mention__title ${featured ? 'text-title-large' : 'text-title-medium'}`}
           >
             <SiteLink href={mention.url} target="_blank">
               {mention.title}

@@ -36,11 +36,57 @@ An optional `excerpt` contains an exact short quotation. An optional
 `related` link points to the work discussed when there is a useful destination.
 Both can be omitted. Excerpts start collapsed and work without JavaScript.
 
-An optional `image` supplies a real local photograph and its alt text. The
-approved FOX5 card uses the site's existing bus photograph as its illustration;
-it is not the publisher's thumbnail. Entries with images appear first within
-their year. The other entries follow in date order. Entries without images
-use compact rows with no reserved thumbnail area or fabricated masthead.
+An optional `image` supplies a local copy of a photograph, video thumbnail,
+or illustration from the article. Record the original asset URL in `source`,
+describe what the image shows in `alt`, and preserve its attribution in `credit`.
+Use the named photographer when the article gives one; otherwise credit the
+provider without inventing a photographer. The image link exposes the credit
+in its title. Use `fit: contain` for graphics that should not be cropped.
+
+Run `pnpm media:fetch <id>` after adding an article's URL. If the entry has no
+`image.source`, the command lists its preview images and embedded images with
+their available alt text and figure captions. Review the candidates: a preview
+can show a logo or an unrelated person, while a gallery may include a photograph
+whose caption names Willie. The Clark Scholars entry uses the research poster
+photograph rather than the gallery's first slide.
+
+Add the selected image to the content file, then run the same command again:
+
+```yaml
+image:
+  src: /assets/media/las-vegas-sun-da-vinci.jpg
+  source: https://media.lasvegassun.com/media/img/photos/2012/10/01/1001DaVinci10_t650.JPG
+  alt: Jeff Luo, Tenichi Mata, and Willie Chalmers III exploring the Da Vinci exhibit at the Venetian.
+  credit: Steve Marcus / Las Vegas Sun
+```
+
+The command downloads to `public/assets/media/` and leaves the editorial fields
+alone. `pnpm media:fetch --all` refreshes entries that already have a selected
+source. Failed requests and non-image responses leave existing assets intact.
+Downloads happen during authoring; builds and visitors do not depend on the
+publisher being online. Next.js resizes these local originals for each layout.
+
+This container diagram shows where the images are fetched:
+
+```mermaid
+flowchart LR
+  content[(Media content files)] -->|Selected source URLs| fetcher[Authoring command]
+  publishers[Publication websites] -->|Original images| fetcher
+  fetcher --> originals[(Local image files)]
+  content -->|Editorial fields| website[Website]
+  originals -->|Images to resize| website
+  website --> browser[Visitor browser]
+```
+
+Images use compact thumbnails by default. An explicit `featured: true` gives
+an entry the larger layout and moves it first within its year. FOX5 uses the
+actual video still showing RTC Bike Share bicycles. All other entries remain
+in date order. Entries without images reserve no thumbnail space.
+
+As of October 5, 2026, RTC and Nevada Current return HTTP 403 to direct article
+and WordPress API requests. Those two entries keep their source links and have
+no image. Their text remains published; the fetch command does not fabricate
+replacement art when a source cannot be fetched.
 
 The archive includes coverage from 2012 through 2026. Add older or newly
 discovered coverage when its source is verified. A publication's search can

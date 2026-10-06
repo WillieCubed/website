@@ -40,9 +40,12 @@ export default function MediaPage() {
           const mentions = sorted.filter((mention) =>
             mention.published.startsWith(year)
           );
-          // A real image gets the feature layout; entries without one reserve no space for it.
-          const featured = mentions.filter((mention) => mention.image);
-          const rows = mentions.filter((mention) => !mention.image);
+          const featured = mentions.filter(
+            (mention) => mention.featured && mention.image
+          );
+          const rows = mentions.filter(
+            (mention) => !(mention.featured && mention.image)
+          );
           return (
             <section
               key={year}

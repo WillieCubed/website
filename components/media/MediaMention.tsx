@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import Image from 'next/image';
 
 import Icon from '@/components/icons/Icon';
@@ -13,26 +14,28 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
 });
 
 export default function MediaMention({ mention }: { mention: Mention }) {
-  const featured = mention.featured && mention.image;
+  const { featured, image } = mention;
   return (
     <article
-      className={`media-mention${mention.image ? ' media-mention--image' : ''}${featured ? ' media-mention--featured' : ''}`}
+      className={clsx('media-mention', {
+        'media-mention--image': image,
+        'media-mention--featured': featured,
+      })}
       aria-labelledby={`media-${mention.id}`}
     >
-      {mention.image && (
+      {image && (
         <SiteLink
           href={mention.url}
           target="_blank"
-          className={`media-mention__image${mention.image.fit === 'contain' ? ' media-mention__image--contain' : ''}`}
+          className="media-mention__image"
           aria-label={`Read ${mention.title} at ${mention.publication}`}
-          title={
-            mention.image.credit ? `Image: ${mention.image.credit}` : undefined
-          }
+          title={image.credit ? `Image: ${image.credit}` : undefined}
         >
           <Image
-            src={mention.image.src}
-            alt={mention.image.alt}
+            src={image.src}
+            alt={image.alt}
             fill
+            style={{ objectFit: image.fit }}
             sizes={
               featured
                 ? '(max-width: 599px) calc(100vw - 48px), (max-width: 839px) 40vw, 320px'
@@ -45,7 +48,10 @@ export default function MediaMention({ mention }: { mention: Mention }) {
         <div>
           <h3
             id={`media-${mention.id}`}
-            className={`media-mention__title ${featured ? 'text-title-large' : 'text-title-medium'}`}
+            className={clsx(
+              'media-mention__title',
+              featured ? 'text-title-large' : 'text-title-medium'
+            )}
           >
             <SiteLink href={mention.url} target="_blank">
               {mention.title}

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
-import * as media from '../../lib/media';
+import { getMediaMentions } from '../../lib/media';
 
 function fixture(t: { after: (fn: () => void) => void }) {
   const directory = mkdtempSync(join(tmpdir(), 'website-media-'));
@@ -21,10 +21,9 @@ published: "2023-07-12"
 `;
 
 test('media reads new and edited content files without changing source code', (t) => {
-  assert.equal(typeof media.getMediaMentions, 'function');
   const directory = fixture(t);
   writeFileSync(join(directory, 'research.md'), source);
-  let mentions = media.getMediaMentions({ directory });
+  let mentions = getMediaMentions({ directory });
   assert.equal(mentions[0].id, 'research');
   assert.equal(mentions[0].published, '2023-07-12');
   assert.equal(mentions[0].title, 'Campus research');
@@ -36,7 +35,7 @@ test('media reads new and edited content files without changing source code', (t
     join(directory, 'another.md'),
     source.replace('Campus research', 'Another story')
   );
-  mentions = media.getMediaMentions({ directory });
+  mentions = getMediaMentions({ directory });
   assert.deepEqual(mentions.map((mention) => mention.title).sort(), [
     'Another story',
     'Updated headline',
@@ -44,7 +43,6 @@ test('media reads new and edited content files without changing source code', (t
 });
 
 test('media excludes templates and keeps drafts out of published content', (t) => {
-  assert.equal(typeof media.getMediaMentions, 'function');
   const directory = fixture(t);
   writeFileSync(
     join(directory, '_template.md'),
@@ -54,18 +52,11 @@ test('media excludes templates and keeps drafts out of published content', (t) =
     join(directory, 'draft.md'),
     source.replace('---\n', '---\ndraft: true\n')
   );
-  assert.deepEqual(
-    media.getMediaMentions({ directory, includeDrafts: false }),
-    []
-  );
-  assert.equal(
-    media.getMediaMentions({ directory, includeDrafts: true }).length,
-    1
-  );
+  assert.deepEqual(getMediaMentions({ directory, includeDrafts: false }), []);
+  assert.equal(getMediaMentions({ directory, includeDrafts: true }).length, 1);
 });
 
 test('media preserves optional presentation fields from content', (t) => {
-  assert.equal(typeof media.getMediaMentions, 'function');
   const directory = fixture(t);
   writeFileSync(
     join(directory, 'research.md'),
@@ -86,7 +77,7 @@ related:
 `
     )
   );
-  const [mention] = media.getMediaMentions({ directory });
+  const [mention] = getMediaMentions({ directory });
   assert.equal(mention.excerpt, 'A short quotation.');
   assert.equal(mention.image?.alt, 'Students presenting their research.');
   assert.equal(mention.image?.source, 'https://example.com/original.webp');
@@ -97,7 +88,6 @@ related:
 });
 
 test('invalid media fails with the content filename rather than rendering broken data', (t) => {
-  assert.equal(typeof media.getMediaMentions, 'function');
   const directory = fixture(t);
   const file = join(directory, 'broken.md');
   for (const invalid of [
@@ -106,6 +96,6 @@ test('invalid media fails with the content filename rather than rendering broken
     source.replace('https://example.com/research', 'javascript:alert(1)'),
   ]) {
     writeFileSync(file, invalid);
-    assert.throws(() => media.getMediaMentions({ directory }), /broken\.md/);
+    assert.throws(() => getMediaMentions({ directory }), /broken\.md/);
   }
 });

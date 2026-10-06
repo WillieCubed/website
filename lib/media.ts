@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
 
-import { showDrafts } from '@/lib/drafts';
+import { showDrafts } from './drafts';
 
 const sourceUrl = z
   .string()
@@ -38,23 +38,35 @@ const frontmatterSchema = z.strictObject({
 
 export type MediaMention = z.infer<typeof frontmatterSchema> & { id: string };
 
+export function getMediaMention(
+  id: string,
+  directory = join(process.cwd(), 'content', 'media')
+): MediaMention {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) {
+    throw new Error('Expected a media content filename without .md.');
+  }
+  const filePath = join(directory, `${id}.md`);
+  const { data } = matter(readFileSync(filePath, 'utf8'));
+  const parsed = frontmatterSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(
+      `Invalid media frontmatter in ${filePath}:\n${parsed.error.message}`
+    );
+  }
+  return {
+    ...parsed.data,
+    id,
+    featured: parsed.data.featured && Boolean(parsed.data.image),
+  };
+}
+
 export function getMediaMentions({
   directory = join(process.cwd(), 'content', 'media'),
   includeDrafts = showDrafts,
 }: { directory?: string; includeDrafts?: boolean } = {}): MediaMention[] {
   return readdirSync(directory)
     .filter((file) => file.endsWith('.md') && !file.startsWith('_'))
-    .map((file) => {
-      const filePath = join(directory, file);
-      const { data } = matter(readFileSync(filePath, 'utf8'));
-      const parsed = frontmatterSchema.safeParse(data);
-      if (!parsed.success) {
-        throw new Error(
-          `Invalid media frontmatter in ${filePath}:\n${parsed.error.message}`
-        );
-      }
-      return { ...parsed.data, id: file.slice(0, -3) };
-    })
+    .map((file) => getMediaMention(file.slice(0, -3), directory))
     .filter((mention) => !mention.draft || includeDrafts)
     .sort(
       (a, b) =>

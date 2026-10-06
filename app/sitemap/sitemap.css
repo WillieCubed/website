@@ -67,10 +67,15 @@
 .sitemap-resources .sitemap-description {
   margin-top: 4px;
 }
-.sitemap-standards {
-  margin-top: 12px;
-  max-width: 68ch;
-  line-height: 1.6;
+.sitemap-tool {
+  margin-top: 8px;
+}
+.sitemap-tool__address {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
 }
 .sitemap-page :is(a, summary):focus-visible {
   outline: 2px solid var(--color-accent);
@@ -90,6 +95,9 @@
 @media (min-width: 840px) {
   .sitemap-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .sitemap-grid--paired {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .sitemap-sections,
   .sitemap-directory {

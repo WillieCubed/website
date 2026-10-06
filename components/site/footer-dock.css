@@ -250,6 +250,9 @@
   .site-footer[data-dock] .site-footer__lockup {
     font-size: calc(20px + 10px * var(--p));
   }
+}
+
+@media (max-width: 599px) {
   .site-footer[data-dock] .site-footer__pages ul {
     flex-direction: column;
     gap: 8px;

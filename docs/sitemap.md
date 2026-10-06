@@ -5,7 +5,8 @@ Add a routed page to the registry in `lib/site.ts`; add a programmatic resource
 to `lib/indieweb/resources.ts`. Do not maintain a separate sitemap URL list.
 
 The footer includes Sitemap with its page links. Below 600px, those links
-stack vertically. The social icons and Feeds button keep their original row.
+stack vertically. At tablet widths, they form a horizontal row below the
+name and tagline. The social icons and Feeds button keep their original row.
 Footer placement does not affect search: every routed page remains in site
 search and the command palette, including Brand.
 

@@ -69,7 +69,7 @@ async function Tagline() {
   const tagline = await hourlyTagline();
   const href = taglineHref(tagline);
   return (
-    <p className="text-body-medium text-muted">
+    <p className="text-body-medium text-muted text-balance">
       {href ? (
         // A plain anchor: the target is a route handler, not a page the
         // router can render, so it takes a full navigation.

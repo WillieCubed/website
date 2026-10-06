@@ -10,21 +10,21 @@ const sourceUrl = z
   .url()
   .regex(/^https?:\/\//);
 const text = z.string().trim().min(1);
+export const mediaImageSchema = z.strictObject({
+  src: text.regex(/^\/assets\/media\/[a-z0-9-]+\.(jpg|jpeg|png|webp|avif)$/),
+  alt: text,
+  source: sourceUrl,
+  credit: text,
+  fit: z.enum(['cover', 'contain']).default('cover'),
+});
+
 const frontmatterSchema = z.strictObject({
   title: text,
   publication: text,
   url: sourceUrl,
   // Quoted dates prevent YAML from silently rolling invalid days into another month.
   published: z.iso.date(),
-  image: z
-    .strictObject({
-      src: text,
-      alt: text,
-      source: sourceUrl.optional(),
-      credit: text.optional(),
-      fit: z.enum(['cover', 'contain']).default('cover'),
-    })
-    .optional(),
+  image: mediaImageSchema.optional(),
   featured: z.boolean().default(false),
   excerpt: text.optional(),
   related: z

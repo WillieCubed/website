@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 import { validateMdxImageAlts, validateTsxImageAlts } from './image-alt-check';
+import { checkMediaAssets } from './media-assets';
 
 function files(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -28,3 +29,6 @@ if (issues.length) {
 } else {
   console.log('Image alt check passed.');
 }
+
+await checkMediaAssets();
+console.log('Media asset check passed.');

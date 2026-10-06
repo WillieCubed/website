@@ -97,3 +97,50 @@ test('media stays readable at 320px and needs no scripts for excerpts', async ({
   await expect(main.locator('.media-mention--featured')).toHaveCount(1);
   await context.close();
 });
+
+test('the footer keeps each page layout across client navigation and history', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const footer = page.locator('.site-footer__inner');
+  const geometry = () =>
+    footer.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        width: element.getBoundingClientRect().width,
+        padding: style.paddingInlineStart,
+      };
+    });
+  await page.goto('/writings');
+  await expect(page.locator('.site-footer')).toHaveAttribute(
+    'data-column',
+    'content'
+  );
+  const writings = await geometry();
+  await page
+    .getByRole('navigation', { name: 'Pages', exact: true })
+    .getByRole('link', { name: 'Media', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Media', exact: true, level: 1 })
+  ).toBeVisible();
+  const media = await geometry();
+  await page
+    .getByRole('navigation', { name: 'Pages', exact: true })
+    .getByRole('link', { name: 'Writings', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Writings', exact: true, level: 1 })
+  ).toBeVisible();
+  await expect.poll(geometry).toEqual(writings);
+  await page.goBack();
+  await expect(
+    page.getByRole('heading', { name: 'Media', exact: true, level: 1 })
+  ).toBeVisible();
+  await expect.poll(geometry).toEqual(media);
+  await page.goForward();
+  await expect(
+    page.getByRole('heading', { name: 'Writings', exact: true, level: 1 })
+  ).toBeVisible();
+  await expect.poll(geometry).toEqual(writings);
+});

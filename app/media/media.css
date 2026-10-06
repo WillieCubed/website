@@ -4,16 +4,6 @@
   padding: 0 24px 32px;
 }
 
-.media-top-bar header {
-  max-width: 848px;
-  padding-inline: 44px;
-}
-
-body:has(.media-page) .site-footer[data-column='content'] .site-footer__inner {
-  max-width: 896px;
-  padding-inline: 44px;
-}
-
 .media-page__heading,
 .media-page__year > h2,
 .media-page__contact {
@@ -190,17 +180,6 @@ body:has(.media-page) .site-footer[data-column='content'] .site-footer__inner {
   .media-page {
     max-width: 896px;
     padding-inline: 48px;
-  }
-
-  .media-top-bar header {
-    max-width: 896px;
-    padding-inline: 72px;
-  }
-
-  body:has(.media-page)
-    .site-footer[data-column='content']
-    .site-footer__inner {
-    padding-inline: 72px;
   }
 
   .media-page__heading,

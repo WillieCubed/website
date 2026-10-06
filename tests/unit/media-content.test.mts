@@ -65,7 +65,7 @@ test('media preserves optional presentation fields from content', (t) => {
       `---
 excerpt: A short quotation.
 image:
-  src: /assets/example.webp
+  src: /assets/media/example.webp
   alt: Students presenting their research.
   source: https://example.com/original.webp
   credit: Campus photographer
@@ -96,6 +96,26 @@ test('invalid media fails with the content filename rather than rendering broken
     source.replace('https://example.com/research', 'javascript:alert(1)'),
   ]) {
     writeFileSync(file, invalid);
+    assert.throws(() => getMediaMentions({ directory }), /broken\.md/);
+  }
+});
+
+test('selected media images reject invalid paths and missing provenance at authoring time', (t) => {
+  const directory = fixture(t);
+  const file = join(directory, 'broken.md');
+  const image = `image:
+  src: /assets/media/story.png
+  alt: Students presenting.
+  source: https://example.com/photo.png
+  credit: Jane Smith
+`;
+  for (const invalid of [
+    image.replace('/assets/media/story.png', 'not-a-valid-image-path'),
+    image.replace('/assets/media/story.png', '/assets/media/../story.png'),
+    image.replace('  source: https://example.com/photo.png\n', ''),
+    image.replace('  credit: Jane Smith\n', ''),
+  ]) {
+    writeFileSync(file, source.replace('---\n', `---\n${invalid}`));
     assert.throws(() => getMediaMentions({ directory }), /broken\.md/);
   }
 });

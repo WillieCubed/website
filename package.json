@@ -19,7 +19,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "check": "pnpm test && pnpm lint && pnpm typecheck && pnpm build",
     "content:check": "tsx scripts/check-image-alt.ts",
-    "media:fetch": "tsx scripts/fetch-media.mts",
+    "media:fetch": "tsx scripts/fetch-media.mts fetch",
     "format": "prettier --write .",
     "brand:build": "node brand/build.mjs",
     "prepare": "husky",
@@ -32,7 +32,8 @@
     "webmentions:moderate": "tsx scripts/moderate-webmentions.mts",
     "webmentions:backfill-authors": "tsx scripts/backfill-webmention-authors.mts",
     "atproto:sync": "tsx --env-file-if-exists=.env.atproto.local scripts/atproto-sync.mts",
-    "indieauth:totp": "tsx scripts/indieauth-totp.mts"
+    "indieauth:totp": "tsx scripts/indieauth-totp.mts",
+    "media:discover": "tsx scripts/fetch-media.mts discover"
   },
   "dependencies": {
     "@atcute/atproto": "^4.0.4",
@@ -108,6 +109,7 @@
     "portless": "^0.13.1",
     "postcss": "^8.5.28",
     "prettier": "^3.8.3",
+    "sharp": "^0.35.4",
     "svg-to-pdfkit": "0.1.8",
     "tailwindcss": "^4.3.0",
     "tsx": "^4.23.13",

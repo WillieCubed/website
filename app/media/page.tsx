@@ -26,12 +26,10 @@ export default function MediaPage() {
 
   return (
     <>
-      <div className="media-top-bar">
-        <TopBar
-          column="content"
-          crumbs={[{ label: mediaPage.label, href: mediaPage.path }]}
-        />
-      </div>
+      <TopBar
+        column="media"
+        crumbs={[{ label: mediaPage.label, href: mediaPage.path }]}
+      />
       <main id="main" className="media-page">
         <div className="media-page__heading">
           <h1 className="text-display-small">{mediaPage.label}</h1>

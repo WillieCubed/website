@@ -174,6 +174,12 @@ export const sitePages: SitePage[] = [
     routed: true,
   },
   {
+    path: '/sitemap',
+    label: 'Sitemap',
+    description: 'Browse pages, writings, initiatives, and feeds.',
+    routed: true,
+  },
+  {
     path: '/about',
     label: 'About',
     description: 'Who Willie is, what he has done, and where he is going.',

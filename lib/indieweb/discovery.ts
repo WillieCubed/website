@@ -1,19 +1,18 @@
-import { PUBLICATION_URI } from '@/lib/atproto/config';
 import {
   AT_PROTOCOL_DID,
-  INDIEAUTH_METADATA_ENDPOINT,
   MICROPUB_ENDPOINT,
-  OEMBED_ENDPOINT,
-  PUBLIC_WEBMENTIONS_ENDPOINT,
   SITE_AUTHOR_HANDLE,
   SITE_NAME,
   SITE_URL,
   WEBMENTION_ENDPOINT,
 } from '@/lib/indieweb/constants';
 import { INDIEAUTH_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
+import {
+  type AtProtocolResources,
+  getPublicResources,
+} from '@/lib/indieweb/resources';
 import type { HostMetaResponse, WebFingerResponse } from '@/lib/indieweb/types';
 import { absoluteSiteUrl } from '@/lib/indieweb/utils';
-import { MCP_ENDPOINT } from '@/lib/mcp/constants';
 
 /**
  * The resources WebFinger answers for: the author's acct: URI and the home
@@ -122,10 +121,7 @@ function llmsLink(label: string, path: string, notes?: string): string {
 }
 
 /** The AT Protocol values that decide which of its endpoints llms.txt lists. */
-export interface LlmsAtProtocol {
-  did?: string;
-  publicationUri?: string;
-}
+export type LlmsAtProtocol = AtProtocolResources;
 
 /**
  * The site's llms.txt, in the llmstxt.org shape: an H1, a blockquote
@@ -136,10 +132,7 @@ export interface LlmsAtProtocol {
  */
 export function buildLlmsSummary(
   writings: LlmsWriting[] = [],
-  atproto: LlmsAtProtocol = {
-    did: AT_PROTOCOL_DID,
-    publicationUri: PUBLICATION_URI,
-  }
+  atproto?: LlmsAtProtocol
 ): string {
   const sections = [
     `# ${SITE_NAME}\n\n> ${SITE_URL} is the personal website, writing archive, and IndieWeb home of ${SITE_NAME}.`,
@@ -172,6 +165,11 @@ export function buildLlmsSummary(
       '## Read',
       '',
       llmsLink(
+        'Sitemap',
+        '/sitemap',
+        'browse published pages, feeds, and other formats'
+      ),
+      llmsLink(
         'Writings index',
         '/writings',
         'articles and notes; the index is an h-feed and every writing carries h-entry markup'
@@ -182,76 +180,22 @@ export function buildLlmsSummary(
         'search across writings, initiatives, and pages'
       ),
       llmsLink('Initiatives', '/initiatives'),
-      llmsLink('Site feed (RSS)', '/feed.xml'),
-      llmsLink('Site feed (Atom)', '/feed/atom'),
-      llmsLink('Site feed (JSON Feed)', '/feed/json'),
-      llmsLink('Writings feed (RSS)', '/writings/feed.xml'),
-      llmsLink('Writings feed (Atom)', '/writings/feed/atom'),
-      llmsLink('Writings feed (JSON Feed)', '/writings/feed/json'),
-    ].join('\n'),
-    [
-      '## Protocols',
-      '',
-      llmsLink(
-        'MCP server',
-        MCP_ENDPOINT,
-        'read-only tools to search and read writings and list initiatives, over Streamable HTTP'
-      ),
-      llmsLink('Webmention endpoint', WEBMENTION_ENDPOINT),
-      llmsLink(
-        'Public webmentions',
-        `${PUBLIC_WEBMENTIONS_ENDPOINT}?target=`,
-        'approved webmentions for one page, as JSON'
-      ),
-      llmsLink('Webmention activity feed', '/activity/feed.xml'),
-      llmsLink('Micropub endpoint', MICROPUB_ENDPOINT),
-      llmsLink(
-        'IndieAuth server metadata',
-        INDIEAUTH_METADATA_ENDPOINT,
-        'sign in as this site with IndieAuth'
-      ),
-      llmsLink('oEmbed provider', `${OEMBED_ENDPOINT}?url=`),
-      llmsLink('WebFinger', '/.well-known/webfinger'),
-      ...(atproto.did
-        ? [
-            llmsLink(
-              'AT Protocol DID',
-              '/.well-known/atproto-did',
-              'the AT Protocol DID behind the site’s Bluesky account'
-            ),
-          ]
-        : []),
-      ...(atproto.publicationUri
-        ? [
-            llmsLink(
-              'standard.site publication',
-              '/.well-known/site.standard.publication',
-              'the AT-URI of the publication record every writing belongs to'
-            ),
-          ]
-        : []),
-      llmsLink('security.txt', '/.well-known/security.txt'),
-      llmsLink('humans.txt', '/humans.txt', 'who made the site and with what'),
-      llmsLink('OpenSearch description', '/opensearch.xml'),
-    ].join('\n'),
-    // An agent making something with the logo reads these, not the page;
-    // brand/build.mjs writes both from the rules /brand renders.
-    [
-      '## Brand',
-      '',
-      llmsLink(
-        'Brand guidelines',
-        '/brand/guidelines.md',
-        'rules for using the WillieCubed logo: clear space, minimum sizes, choosing a version, and what to avoid'
-      ),
-      llmsLink(
-        'Brand guidelines (JSON)',
-        '/brand/guidelines.json',
-        'the same rules with every logo file’s URL and measurements'
-      ),
-      llmsLink('Brand page', '/brand', 'logo files, colors, and type'),
     ].join('\n')
   );
+  for (const group of getPublicResources(atproto)) {
+    sections.push(
+      [
+        `## ${group.label}`,
+        '',
+        ...group.resources.map(({ label, path, description, usage }) =>
+          llmsLink(label, path, usage ? `${description} ${usage}` : description)
+        ),
+        ...(group.label === 'Brand'
+          ? [llmsLink('Brand page', '/brand', 'logo files, colors, and type')]
+          : []),
+      ].join('\n')
+    );
+  }
 
   return `${sections.join('\n\n')}\n`;
 }

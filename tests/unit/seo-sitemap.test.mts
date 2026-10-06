@@ -70,6 +70,7 @@ test('every entry is absolute, unique, and free of ignored hints', () => {
     `${site.origin}/initiatives`,
     `${site.origin}/media`,
     `${site.origin}/brand`,
+    `${site.origin}/sitemap`,
     `${site.origin}/initiatives/fall-tour-2026`,
     `${site.origin}/initiatives/fall-tour-2026/part-1`,
     `${site.origin}/writings/hello`,

@@ -27,25 +27,46 @@
     justify-content: flex-end;
   }
 }
-/* The bottom row is its own container and never wraps. Below a width
-   that fits every label, the labels go visually hidden and the icons
-   carry the row; the link text stays for screen readers. */
+/* Keep contact links together, then move utilities to another line when
+   both groups no longer fit. Labels remain available to screen readers. */
 .site-footer__row {
   container-type: inline-size;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  flex-wrap: nowrap;
+  gap: 16px 24px;
+  flex-wrap: wrap;
 }
 .site-footer__profiles {
   display: flex;
-  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  max-width: 100%;
+  flex-wrap: wrap;
   gap: 20px;
   list-style: none;
   margin: 0;
   padding: 0;
   min-width: 0;
+}
+.site-footer__utilities {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-inline-start: auto;
+}
+.site-footer__pages:has(li:nth-child(4)) ul {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px 24px;
+}
+.site-footer__pages:has(li:nth-child(4)) a {
+  min-height: 44px;
+}
+@media (min-width: 840px) {
+  .site-footer__pages:has(li:nth-child(4)) ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @container (max-width: 680px) {
   .site-footer__label {

@@ -17,6 +17,27 @@ function entry(path: string, lastModified?: Date | string): Entry {
     : { url: canonicalUrl(path) };
 }
 
+export function publishedSitemapContent(input: {
+  writings: WritingData[];
+  initiatives: Initiative[];
+}) {
+  const writings = input.writings
+    .filter((item) => !item.draft)
+    .sort(
+      (a, b) =>
+        new Date(b.published).getTime() - new Date(a.published).getTime()
+    );
+  const initiatives = input.initiatives
+    .filter((item) => !item.draft)
+    .map((item) => ({
+      ...item,
+      parts: item.parts
+        .filter((part) => !part.draft)
+        .sort((a, b) => a.number - b.number),
+    }));
+  return { writings, initiatives, topics: groupByTag(writings) };
+}
+
 /**
  * The sitemap for the routed pages. Google ignores `changeFrequency` and
  * `priority`, and it stops trusting `lastModified` once a site gets it wrong,
@@ -31,20 +52,18 @@ export function buildSitemap(input: {
   writings: WritingData[];
   initiatives: Initiative[];
 }): MetadataRoute.Sitemap {
-  const initiatives = input.initiatives
-    .filter((item) => !item.draft)
-    .flatMap((item) => [
-      entry(item.href, item.updated),
-      ...item.parts
-        .filter((part) => !part.draft)
-        .map((part) => entry(`${item.href}/${part.slug}`, part.updated)),
-    ]);
-  const published = input.writings.filter((item) => !item.draft);
-  const writings = published.map((item) =>
+  const published = publishedSitemapContent(input);
+  const initiatives = published.initiatives.flatMap((item) => [
+    entry(item.href, item.updated),
+    ...item.parts.map((part) =>
+      entry(`${item.href}/${part.slug}`, part.updated)
+    ),
+  ]);
+  const writings = published.writings.map((item) =>
     entry(`/writings/${item.slug}`, item.lastUpdated)
   );
   // Undated like /writings, which lists the same entries.
-  const tags = groupByTag(published).map(({ tag }) => entry(tagPath(tag)));
+  const tags = published.topics.map(({ tag }) => entry(tagPath(tag)));
   return [
     entry('/'),
     ...routedPages.map((page) => entry(page.path)),

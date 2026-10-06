@@ -13,6 +13,9 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## Content
 
+- [Sitemap](./sitemap.md): the human directory, XML sitemap, and shared
+  programmatic resource catalog.
+
 - [Media mentions](./media.md): verified coverage, optional excerpts and
   images, and the compact `/media` page.
 - [Initiatives](./initiatives.md): the MDX schema for campaigns, series, and

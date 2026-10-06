@@ -16,7 +16,16 @@ const frontmatterSchema = z.strictObject({
   url: sourceUrl,
   // Quoted dates prevent YAML from silently rolling invalid days into another month.
   published: z.iso.date(),
-  image: z.strictObject({ src: text, alt: text }).optional(),
+  image: z
+    .strictObject({
+      src: text,
+      alt: text,
+      source: sourceUrl.optional(),
+      credit: text.optional(),
+      fit: z.enum(['cover', 'contain']).default('cover'),
+    })
+    .optional(),
+  featured: z.boolean().default(false),
   excerpt: text.optional(),
   related: z
     .strictObject({

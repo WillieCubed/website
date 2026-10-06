@@ -76,6 +76,10 @@ excerpt: A short quotation.
 image:
   src: /assets/example.webp
   alt: Students presenting their research.
+  source: https://example.com/original.webp
+  credit: Campus photographer
+  fit: contain
+featured: true
 related:
   label: Research project
   href: /projects
@@ -85,6 +89,10 @@ related:
   const [mention] = media.getMediaMentions({ directory });
   assert.equal(mention.excerpt, 'A short quotation.');
   assert.equal(mention.image?.alt, 'Students presenting their research.');
+  assert.equal(mention.image?.source, 'https://example.com/original.webp');
+  assert.equal(mention.image?.credit, 'Campus photographer');
+  assert.equal(mention.image?.fit, 'contain');
+  assert.equal(mention.featured, true);
   assert.equal(mention.related?.href, '/projects');
 });
 

@@ -85,6 +85,15 @@ test('media stays readable at 320px and needs no scripts for excerpts', async ({
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)
   ).toBeLessThanOrEqual(1);
-  await expect(main.locator('img')).toHaveCount(1);
+  const images = main.locator('img');
+  expect(await images.count()).toBeGreaterThan(1);
+  for (const image of await images.all()) {
+    await image.scrollIntoViewIfNeeded();
+    await expect(image).toBeVisible();
+    await expect
+      .poll(() => image.evaluate((node: HTMLImageElement) => node.naturalWidth))
+      .toBeGreaterThan(0);
+  }
+  await expect(main.locator('.media-mention--featured')).toHaveCount(1);
   await context.close();
 });

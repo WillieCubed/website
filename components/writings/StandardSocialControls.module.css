@@ -6,6 +6,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
 }
 
 .action,
@@ -14,8 +15,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  border-radius: 22px;
+  min-height: 40px;
+  border-radius: 20px;
   cursor: pointer;
   transition:
     color 160ms var(--ease-site),
@@ -25,6 +26,7 @@
 }
 
 .action {
+  position: relative;
   gap: 6px;
   padding: 8px 12px;
   background: var(--color-secondary-container);
@@ -35,20 +37,22 @@
 }
 
 .action:hover,
-.arrow:hover,
+.arrow:hover {
+  background: color-mix(
+    in srgb,
+    var(--color-on-secondary-container) 8%,
+    var(--color-secondary-container)
+  );
+  color: var(--color-on-secondary-container);
+}
+
 .close:hover {
   background: var(--color-tray);
-  color: var(--color-ink);
 }
 
 .action:active,
 .continue:active {
   transform: scale(0.97);
-}
-
-.action[aria-pressed='true'] {
-  background: var(--color-primary-container);
-  color: var(--color-on-primary-container);
 }
 
 .action:disabled,
@@ -65,25 +69,28 @@
 
 .actions[data-split] .action {
   /* Oversized outer radii would also shrink the inner corners during CSS normalization. */
-  border-radius: 22px 6px 6px 22px;
+  border-radius: 20px 6px 6px 20px;
   padding-inline: 16px 12px;
 }
 
 .arrow {
-  width: 44px;
+  position: relative;
+  width: 40px;
   flex-shrink: 0;
-  border-radius: 6px 22px 22px 6px;
+  border-radius: 6px 20px 20px 6px;
   background: var(--color-secondary-container);
   color: var(--color-on-secondary-container);
 }
 
-.actions[data-active='true'] .arrow {
-  background: var(--color-primary-container);
-  color: var(--color-on-primary-container);
+.action::before,
+.arrow::before {
+  content: '';
+  position: absolute;
+  inset: -2px 0;
 }
 
 .arrow[aria-expanded='true'] {
-  border-radius: 22px;
+  border-radius: 20px;
 }
 
 .arrow svg {
@@ -192,6 +199,8 @@
 
 .close {
   width: 44px;
+  min-height: 44px;
+  border-radius: 22px;
   margin-right: -10px;
   background: var(--color-surface-container-high);
   color: var(--color-ink);
@@ -261,26 +270,33 @@
   filter: brightness(1.08);
 }
 
-.error {
-  max-width: 360px;
+.fieldError {
+  display: block;
   margin-top: 8px;
   color: var(--color-error);
   font-size: 14px;
-  line-height: 1.5;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
-.retry {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  margin: 8px 0 0 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
-  font-weight: 600;
-  cursor: pointer;
+.input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.spinner {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 480px) {
@@ -298,5 +314,8 @@
   .dialog,
   .dialog::backdrop {
     transition: none;
+  }
+  .spinner {
+    animation: none;
   }
 }

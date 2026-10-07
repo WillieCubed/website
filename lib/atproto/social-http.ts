@@ -269,10 +269,25 @@ export function createSocialHandlers(services: SocialServices) {
         const slugParam = new URL(request.url).searchParams.get('slug');
         const slug = slugParam === null ? undefined : checkedSlug(slugParam);
         const session = await services.session(request);
-        const publication = await services.target('subscription');
-        const document = slug
-          ? await services.target('recommendation', slug)
-          : undefined;
+        let publication: string;
+        let document: string | undefined;
+        try {
+          publication = await services.target('subscription');
+          document = slug
+            ? await services.target('recommendation', slug)
+            : undefined;
+        } catch (error) {
+          if (
+            error instanceof SocialHttpError &&
+            (error.status === 404 || error.status === 409)
+          )
+            return json({
+              enabled: true,
+              ready: false,
+              signedIn: Boolean(session),
+            });
+          throw error;
+        }
         if (!session)
           return json({
             enabled: true,

@@ -16,6 +16,7 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     recommended = false,
     failing = false;
   let holdLogin = false;
+  let failLogout = false;
   let releaseLogin: (() => void) | undefined;
   await page.route('**/api/atproto/social*', (route) =>
     route.fulfill({
@@ -54,10 +55,22 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     });
   });
   await page.route('**/api/atproto/logout', (route) => {
+    if (failLogout)
+      return route.fulfill({
+        status: 502,
+        json: { error: 'Sign-out failed.' },
+      });
     signedIn = false;
     return route.fulfill({ json: { signedIn: false } });
   });
   await page.goto('/writings');
+  await expect(
+    page.getByRole('link', { name: 'Search', exact: true })
+  ).toHaveCount(1);
+  await expect(page.locator('main input[type="search"]')).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Subscription options', exact: true })
+  ).toHaveCount(0);
   const subscribeAction = page.getByRole('button', {
     name: 'Subscribe',
     exact: true,
@@ -143,23 +156,77 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await expect(
     page.getByRole('button', { name: 'Subscribed', exact: true })
   ).toBeVisible();
+  const options = page.getByRole('button', {
+    name: 'Subscription options',
+    exact: true,
+  });
+  const signOut = page.getByRole('button', { name: 'Sign out', exact: true });
+  await expect(options).toHaveAttribute('aria-expanded', 'false');
+  await expect(signOut).toHaveCount(0);
+  const leading = await page
+    .getByRole('button', { name: 'Subscribed', exact: true })
+    .boundingBox();
+  const trailing = await options.boundingBox();
+  expect(trailing!.x - leading!.x - leading!.width).toBeCloseTo(2);
+  expect(trailing!.height).toBe(leading!.height);
+  expect(trailing!.width).toBe(44);
   await expect(
-    page.getByRole('button', { name: 'Sign out', exact: true })
-  ).toBeVisible();
-  expect(
-    await page
-      .getByRole('button', { name: 'Sign out', exact: true })
-      .evaluate((button) => getComputedStyle(button).backgroundColor)
-  ).not.toBe('rgba(0, 0, 0, 0)');
+    page.getByRole('button', { name: 'Subscribed', exact: true })
+  ).toHaveCSS('border-top-right-radius', '6px');
+  const outerRadius = await page
+    .getByRole('button', { name: 'Subscribed', exact: true })
+    .evaluate((button) =>
+      parseFloat(getComputedStyle(button).borderTopLeftRadius)
+    );
+  expect(outerRadius).toBeLessThanOrEqual(leading!.height / 2);
   await page.screenshot({
     path: directory + '/standard-mobile-subscribed.png',
     fullPage: true,
   });
+  await options.click();
+  await expect(options).toHaveAttribute('aria-expanded', 'true');
+  await expect(signOut).toBeFocused();
+  const popup = page.locator('[popover]:popover-open');
+  expect((await popup.boundingBox())!.width).toBe(156);
+  expect(
+    (await new AxeBuilder({ page }).include('[popover]:popover-open').analyze())
+      .violations
+  ).toEqual([]);
+  await expect(options).toHaveCSS('border-top-left-radius', '22px');
+  await page.screenshot({
+    path: directory + '/standard-mobile-subscription-menu.png',
+    fullPage: false,
+  });
+  await page.keyboard.press('Escape');
+  await expect(options).toHaveAttribute('aria-expanded', 'false');
+  await expect(options).toBeFocused();
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({
     path: directory + '/standard-desktop-subscribed.png',
     fullPage: true,
   });
+  await options.click();
+  await expect(signOut).toBeVisible();
+  await expect(options).toHaveCSS('border-top-left-radius', '22px');
+  await page.screenshot({
+    path: directory + '/standard-desktop-subscription-menu.png',
+    fullPage: false,
+  });
+  await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  expect(
+    (await new AxeBuilder({ page }).include('[popover]:popover-open').analyze())
+      .violations
+  ).toEqual([]);
+  await page.screenshot({
+    path: directory + '/standard-desktop-subscription-menu-dark.png',
+    fullPage: false,
+  });
+  await page.emulateMedia({
+    colorScheme: 'light',
+    reducedMotion: 'no-preference',
+  });
+  await page.mouse.click(8, 8);
+  await expect(options).toHaveAttribute('aria-expanded', 'false');
   await page.getByRole('button', { name: 'Subscribed', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Subscribe', exact: true })
@@ -199,7 +266,7 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     )
   ).not.toBe('rgba(0, 0, 0, 0)');
   await expect(
-    page.getByRole('button', { name: 'Account options', exact: true })
+    page.getByRole('button', { name: 'Subscription options', exact: true })
   ).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Sign out', exact: true })
@@ -222,10 +289,23 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     page.getByRole('button', { name: 'Recommend', exact: true })
   ).toHaveAttribute('aria-pressed', 'false');
   await page.goto('/writings');
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  failLogout = true;
+  await options.click();
+  await signOut.click();
+  await expect(
+    page.locator('[data-standard-social] [role=alert]')
+  ).toContainText('Sign-out failed.');
+  await expect(options).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Subscribe', exact: true })
+  ).toBeFocused();
+  failLogout = false;
+  await options.click();
+  await signOut.click();
   await expect(
     page.getByRole('button', { name: 'Sign out', exact: true })
   ).toHaveCount(0);
+  await expect(options).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Subscribe', exact: true })
   ).toBeFocused();

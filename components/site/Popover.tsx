@@ -13,6 +13,8 @@ export default function Popover({
   panelClassName,
   align = 'start',
   placement = 'default',
+  width: preferredWidth = 240,
+  disabled = false,
 }: {
   label: string;
   current?: boolean;
@@ -22,6 +24,8 @@ export default function Popover({
   panelClassName: string;
   align?: 'start' | 'end';
   placement?: 'default' | 'breadcrumb';
+  width?: number;
+  disabled?: boolean;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -42,7 +46,7 @@ export default function Popover({
       const menuRect = menu.getBoundingClientRect();
       const width = breadcrumb
         ? menuRect.width
-        : Math.min(240, innerWidth - 32);
+        : Math.min(preferredWidth, innerWidth - 32);
       let preferredLeft =
         align === 'start' ? anchor.left : anchor.right - width;
       if (breadcrumb) {
@@ -109,12 +113,13 @@ export default function Popover({
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place);
     };
-  }, [align, placement]);
+  }, [align, placement, preferredWidth]);
   return (
     <>
       <button
         ref={button}
         type="button"
+        disabled={disabled}
         popoverTarget={id}
         className={triggerClassName}
         aria-label={label}

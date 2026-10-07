@@ -6,7 +6,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 48px;
 }
 
 .action,
@@ -36,31 +36,62 @@
   white-space: nowrap;
 }
 
-.action:hover,
-.arrow:hover {
+.action,
+.arrow {
+  --state-layer: 0%;
   background: color-mix(
     in srgb,
-    var(--color-on-secondary-container) 8%,
+    var(--color-on-secondary-container) var(--state-layer),
     var(--color-secondary-container)
   );
-  color: var(--color-on-secondary-container);
+}
+
+@media (hover: hover) {
+  .action:enabled:hover,
+  .arrow:enabled:hover {
+    --state-layer: 8%;
+  }
+
+  .actions[data-split] .action:enabled:hover {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+  }
+
+  .arrow:enabled:hover {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+  }
+}
+
+.action:enabled:is(:focus-visible, :active),
+.arrow:enabled:is(:focus-visible, :active, [aria-expanded='true']) {
+  --state-layer: 10%;
 }
 
 .close:hover {
   background: var(--color-tray);
 }
 
-.action:active,
 .continue:active {
   transform: scale(0.97);
 }
 
-.action:disabled,
 .continue:disabled,
-.arrow:disabled,
 .signOut:disabled {
   cursor: wait;
   opacity: 0.55;
+}
+
+.action:disabled,
+.arrow:disabled {
+  background: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  color: color-mix(in srgb, var(--color-ink) 38%, transparent);
+  cursor: not-allowed;
+}
+
+.action:disabled[aria-busy='true'],
+.arrow:disabled {
+  cursor: wait;
 }
 
 .actions[data-split] {
@@ -69,16 +100,15 @@
 
 .actions[data-split] .action {
   /* Oversized outer radii would also shrink the inner corners during CSS normalization. */
-  border-radius: 20px 6px 6px 20px;
+  border-radius: 20px 4px 4px 20px;
   padding-inline: 16px 12px;
 }
 
 .arrow {
   position: relative;
-  width: 40px;
+  width: 48px;
   flex-shrink: 0;
-  border-radius: 6px 20px 20px 6px;
-  background: var(--color-secondary-container);
+  border-radius: 4px 20px 20px 4px;
   color: var(--color-on-secondary-container);
 }
 
@@ -86,19 +116,30 @@
 .arrow::before {
   content: '';
   position: absolute;
-  inset: -2px 0;
+  inset: -4px 0;
 }
 
-.arrow[aria-expanded='true'] {
+.actions[data-split] .action:enabled:is(:focus-visible, :active) {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.arrow:enabled:is(:focus-visible, :active) {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.arrow:enabled[aria-expanded='true'] {
   border-radius: 20px;
 }
 
 .arrow svg {
+  transform: translateX(-1px);
   transition: transform 220ms var(--ease-site);
 }
 
 .arrow[aria-expanded='true'] svg {
-  transform: rotate(180deg);
+  transform: translateX(0) rotate(180deg);
 }
 
 .menu {

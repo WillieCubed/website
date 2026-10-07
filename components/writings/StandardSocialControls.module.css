@@ -9,17 +9,18 @@
 }
 
 .action,
-.account,
+.arrow,
 .close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  border-radius: 999px;
+  border-radius: 22px;
   cursor: pointer;
   transition:
     color 160ms var(--ease-site),
     background 160ms var(--ease-site),
+    border-radius 220ms var(--ease-site),
     transform 160ms var(--ease-site);
 }
 
@@ -34,7 +35,7 @@
 }
 
 .action:hover,
-.account:hover,
+.arrow:hover,
 .close:hover {
   background: var(--color-tray);
   color: var(--color-ink);
@@ -52,18 +53,69 @@
 
 .action:disabled,
 .continue:disabled,
-.account:disabled {
+.arrow:disabled,
+.signOut:disabled {
   cursor: wait;
   opacity: 0.55;
 }
 
-.account {
-  padding: 8px 12px;
+.actions[data-split] {
+  gap: 2px;
+}
+
+.actions[data-split] .action {
+  /* Oversized outer radii would also shrink the inner corners during CSS normalization. */
+  border-radius: 22px 6px 6px 22px;
+  padding-inline: 16px 12px;
+}
+
+.arrow {
+  width: 44px;
+  flex-shrink: 0;
+  border-radius: 6px 22px 22px 6px;
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+
+.actions[data-active='true'] .arrow {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+}
+
+.arrow[aria-expanded='true'] {
+  border-radius: 22px;
+}
+
+.arrow svg {
+  transition: transform 220ms var(--ease-site);
+}
+
+.arrow[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.menu {
+  padding: 6px;
+}
+
+.signOut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 10px;
   background: var(--color-surface-container-high);
   color: var(--color-ink);
   font-size: 14px;
   font-weight: 600;
-  white-space: nowrap;
+  cursor: pointer;
+}
+
+.signOut:hover {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
 }
 
 .root :is(button, input):focus-visible {
@@ -239,7 +291,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .action,
-  .account,
+  .arrow,
+  .arrow svg,
   .close,
   .continue,
   .dialog,

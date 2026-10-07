@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
+import Popover from '@/components/site/Popover';
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
 
 import styles from './StandardSocialControls.module.css';
@@ -33,6 +34,7 @@ export default function StandardSocialControls({ action, slug }: Props) {
   const active =
     action === 'subscription' ? state?.subscribed : state?.recommended;
   const label = action === 'subscription' ? 'Subscribe' : 'Recommend';
+  const split = state?.signedIn && action === 'subscription';
 
   function dismissSignIn() {
     loginRequest.current?.abort();
@@ -42,11 +44,11 @@ export default function StandardSocialControls({ action, slug }: Props) {
   }
 
   useEffect(() => {
-    if (!state?.signedIn && restoreActionFocus.current) {
+    if (!busy && restoreActionFocus.current) {
       restoreActionFocus.current = false;
       actionButton.current?.focus();
     }
-  }, [state?.signedIn]);
+  }, [busy, state?.signedIn]);
 
   useEffect(() => {
     const modal = dialog.current;
@@ -171,6 +173,7 @@ export default function StandardSocialControls({ action, slug }: Props) {
   }
 
   async function signOut() {
+    restoreActionFocus.current = true;
     setBusy(true);
     setError('');
     try {
@@ -180,7 +183,6 @@ export default function StandardSocialControls({ action, slug }: Props) {
         body: '{}',
       });
       if (!response.ok) throw new Error('Sign-out failed. Try again.');
-      restoreActionFocus.current = true;
       setState({ enabled: true, signedIn: false });
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : 'Sign-out failed.');
@@ -192,7 +194,11 @@ export default function StandardSocialControls({ action, slug }: Props) {
   if (state?.enabled === false) return null;
   return (
     <div className={styles.root} data-standard-social={action}>
-      <div className={styles.actions}>
+      <div
+        className={styles.actions}
+        data-split={split || undefined}
+        data-active={Boolean(active)}
+      >
         <button
           ref={actionButton}
           type="button"
@@ -224,15 +230,31 @@ export default function StandardSocialControls({ action, slug }: Props) {
               : label}
           </span>
         </button>
-        {state?.signedIn && action === 'subscription' && (
-          <button
-            type="button"
+        {split && (
+          <Popover
+            label="Subscription options"
             disabled={busy}
-            className={styles.account}
-            onClick={signOut}
+            trigger={<Icon name="chevron-down" size={20} />}
+            triggerClassName={styles.arrow}
+            panelClassName={styles.menu}
+            align="end"
+            width={156}
           >
-            Sign out
-          </button>
+            <button
+              type="button"
+              disabled={busy}
+              className={styles.signOut}
+              onClick={(event) => {
+                event.currentTarget
+                  .closest<HTMLElement>('[popover]')
+                  ?.hidePopover();
+                void signOut();
+              }}
+            >
+              <Icon name="log-out" size={18} />
+              Sign out
+            </button>
+          </Popover>
         )}
       </div>
       <dialog

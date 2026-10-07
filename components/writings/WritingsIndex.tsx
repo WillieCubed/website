@@ -28,7 +28,7 @@ interface WritingsIndexProps {
 
 /**
  * The body of /writings and of each tag page: one h-feed with its name,
- * address, and author, the entries, then the tag chips and search.
+ * address, and author, the entries, then the tag chips.
  */
 export default async function WritingsIndex({
   name,
@@ -36,7 +36,7 @@ export default async function WritingsIndex({
   writings,
   currentTag,
 }: WritingsIndexProps) {
-  // With nothing published there is nothing to filter or search.
+  // With nothing published there is nothing to filter.
   const published = await getAllWritings();
 
   return (
@@ -65,25 +65,6 @@ export default async function WritingsIndex({
       {published.length > 0 && (
         <section className="flex flex-col gap-4 medium:flex-row medium:flex-wrap medium:items-center medium:justify-between">
           <TagFilter currentTag={currentTag} />
-          <form action="/search" className="flex items-center gap-2">
-            <label htmlFor="writings-search" className="sr-only">
-              Search
-            </label>
-            <input
-              id="writings-search"
-              name="q"
-              type="search"
-              placeholder="Search"
-              className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2 text-body-medium text-ink medium:w-44 medium:flex-none medium:py-1.5"
-            />
-            <button
-              type="submit"
-              aria-label="Search"
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary medium:size-9"
-            >
-              <Icon name="search" size={16} />
-            </button>
-          </form>
         </section>
       )}
     </main>

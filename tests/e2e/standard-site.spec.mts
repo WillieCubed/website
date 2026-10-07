@@ -95,6 +95,12 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     page.getByRole('button', { name: 'Subscribe', exact: true })
   ).toHaveAttribute('aria-pressed', 'false');
   await page.goto('/writings/indieweb-acceptance');
+  await expect(
+    page.locator('head link[rel="site.standard.document"]')
+  ).toHaveAttribute(
+    'href',
+    /^at:\/\/did:plc:aaaaaaaaaaaaaaaaaaaaaaaa\/site\.standard\.document\//
+  );
   await page.getByRole('button', { name: 'Recommend', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Recommended', exact: true })

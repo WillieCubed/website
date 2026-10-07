@@ -24,7 +24,7 @@ OAuth signing and storage keys differ between production and acceptance. Never c
 
 Generate a signing JWK with `generateClientAssertionKey(kid, 'ES256')` from `@atcute/oauth-node-client`. Generate the storage key with `randomBytes(32).toString('base64')` from `node:crypto`. Keep their values off command lines and out of Git.
 
-Run `pnpm preflight -- --project website` to inspect database schema, publishing credentials, OAuth keys, and the production notification secret. If the app password needs setup, run this from the checkout:
+Run `pnpm preflight --project website` to inspect database schema, publishing credentials, OAuth keys, and the production notification secret. If the app password needs setup, run this from the checkout:
 
 ```sh
 pnpm exec tsx scripts/standard-site-setup.mts

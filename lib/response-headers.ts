@@ -52,7 +52,7 @@ export const siteHeaders: HeaderRule[] = [
   // A header here replaces a route handler's own, and the IndieAuth consent
   // page sends the stricter no-referrer, so its routes are left out.
   {
-    source: '/:path((?!indieauth/).*)',
+    source: '/:path((?!indieauth/|atproto/|api/atproto/).*)',
     headers: [
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
     ],

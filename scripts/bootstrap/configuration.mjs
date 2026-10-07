@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { generateKeyPairSync, randomBytes } from 'node:crypto';
 
 import { checkDeployment } from './readiness.mjs';
 
@@ -23,7 +23,15 @@ function addVercelVariable(run, target, name, value, secret, replace = false) {
 }
 
 function configuredValues(target, connectionString, values) {
+  const { privateKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  const signingKey = {
+    ...privateKey.export({ format: 'jwk' }),
+    kid: randomBytes(8).toString('hex'),
+    alg: 'ES256',
+  };
   return {
+    ATPROTO_OAUTH_JWK: JSON.stringify(signingKey),
+    ATPROTO_OAUTH_STORAGE_KEY: randomBytes(32).toString('base64'),
     POSTGRES_URL: connectionString,
     WEBMENTION_SECRET: randomBytes(32).toString('hex'),
     WEBMENTION_MODERATION_SECRET: randomBytes(32).toString('hex'),
@@ -48,10 +56,11 @@ export function ensureVariables({
   validateOnly = false,
 }) {
   const current = new Set(names);
-  const githubName = 'INDIEWEB_NOTIFY_SECRET_ACCEPTANCE';
-  const needsGithub =
-    target.projectName === 'indieweb-acceptance' &&
-    !githubSecrets.has(githubName);
+  const githubName =
+    target.projectName === 'website'
+      ? 'INDIEWEB_NOTIFY_SECRET_PRODUCTION'
+      : 'INDIEWEB_NOTIFY_SECRET_ACCEPTANCE';
+  const needsGithub = !githubSecrets.has(githubName);
   const missing = checkDeployment(current, target.projectName).missing;
   if (doctor) {
     if (needsGithub) missing.push(`GitHub ${githubName}`);
@@ -60,7 +69,16 @@ export function ensureVariables({
       : { ok: true, changed: false };
   }
 
+  const publishingValues =
+    target.projectName === 'website'
+      ? [
+          'NEXT_PUBLIC_ATPROTO_DID',
+          'ATPROTO_PUBLICATION_RKEY',
+          'ATPROTO_APP_PASSWORD',
+        ]
+      : [];
   const neededOwnerValues = [
+    ...publishingValues,
     'INDIEAUTH_TOTP_SECRET',
     'MICROPUB_GITHUB_TOKEN',
   ].filter((name) => !current.has(name) && !values[name]);
@@ -100,6 +118,9 @@ export function ensureVariables({
   }
   if (validateOnly) return { ok: true, changed: false };
   const desired = configuredValues(target, connectionString, values);
+  for (const name of publishingValues) {
+    if (values[name]) desired[name] = values[name];
+  }
   let changed = false;
   if (needsGithub) {
     const secret = desired.INDIEWEB_NOTIFY_SECRET;
@@ -115,7 +136,7 @@ export function ensureVariables({
     ) {
       return {
         ok: false,
-        reason: 'could not set the acceptance notification secret in Vercel',
+        reason: 'could not set the notification secret in Vercel',
         changed,
       };
     }
@@ -132,6 +153,9 @@ export function ensureVariables({
     changed = true;
   }
   const secretNames = new Set([
+    'ATPROTO_APP_PASSWORD',
+    'ATPROTO_OAUTH_JWK',
+    'ATPROTO_OAUTH_STORAGE_KEY',
     'POSTGRES_URL',
     'WEBMENTION_SECRET',
     'WEBMENTION_MODERATION_SECRET',

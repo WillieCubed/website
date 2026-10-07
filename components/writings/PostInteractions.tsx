@@ -2,6 +2,7 @@ import WebmentionSection, {
   hasVisibleWebmentions,
 } from '@/components/indieweb/WebmentionSection';
 
+import { socialSettings } from '@/lib/atproto/config';
 import { blueskyPostIntent, threadsPostIntent } from '@/lib/indieweb/posse';
 import type { WebmentionGroup } from '@/lib/indieweb/types';
 import type { Backlink } from '@/lib/writings/backlinks';
@@ -9,6 +10,7 @@ import type { WritingData } from '@/lib/writings/types';
 
 import BacklinksSection from './BacklinksSection';
 import PostActions from './PostActions';
+import StandardSocialControls from './StandardSocialControls';
 
 interface PostInteractionsProps {
   webmentions: WebmentionGroup | null;
@@ -22,6 +24,7 @@ interface PostInteractionsProps {
 export default function PostInteractions({
   webmentions,
   backlinks,
+  slug,
   target,
   writing,
 }: PostInteractionsProps) {
@@ -49,6 +52,15 @@ export default function PostInteractions({
           threadsHref={threadsPostIntent(writing, target)}
           title={writing.title}
         />
+        {!writing.draft && socialSettings() && (
+          <div className="mt-3">
+            <StandardSocialControls
+              key={slug}
+              action="recommendation"
+              slug={slug}
+            />
+          </div>
+        )}
       </div>
     </section>
   );

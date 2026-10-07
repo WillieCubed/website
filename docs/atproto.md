@@ -1,102 +1,98 @@
 # AT Protocol
 
-The site is an AT Protocol identity and a [standard.site][standard]
-publication: every published writing has a signed record in the owner's repo
-that Atmosphere readers can find. Design and roadmap: [the Atmosphere
-spec](./superpowers/specs/2026-10-02-atmosphere-design.md).
+This document is for the maintainer of willie.page. Use it to configure publishing and visitor sign-in, then check a deployment before calling it ready.
+
+The site publishes Standard.site publication and document records to the owner's resolved PDS. Visitors can subscribe to the publication and recommend a published writing through their own account provider. The site requests `atproto include:site.standard.authSocial`, which grants access to subscription and recommendation records. [Standard.site permissions](https://standard.site/docs/permissions/) define that scope.
 
 ## Configuration
 
-Nothing here is hardcoded: every value comes from the environment, read only
-in `lib/site.ts` and `lib/atproto/config.ts`. Each feature turns off when its
-values are unset.
+Production uses the existing owner DID `did:plc:iyn6nc3ffqm2e3555exyrgvv` and publication key `3mwxne5td6lid`. Keep both stable. The publication URI and document-key algorithm remain unchanged.
 
-| Variable                     | What it is                                                           | Where it must be set          |
-| ---------------------------- | -------------------------------------------------------------------- | ----------------------------- |
-| `NEXT_PUBLIC_ATPROTO_DID`    | The owner's DID; `/.well-known/atproto-did` serves it                | every environment that builds |
-| `NEXT_PUBLIC_BLUESKY_HANDLE` | The handle shown beside the Bluesky account                          | every environment that builds |
-| `ATPROTO_PUBLICATION_RKEY`   | The publication's record key, a TID generated once and never changed | every environment that builds |
-| `ATPROTO_APP_PASSWORD`       | The app password the post-deploy sync writes with                    | Production only               |
+| Variable                     | Purpose                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_ORIGIN`    | Public origin; production defaults to `https://willie.page`. Isolated deployments must set their own origin. |
+| `NEXT_PUBLIC_ATPROTO_DID`    | Publication owner and public DID discovery.                                                                  |
+| `NEXT_PUBLIC_BLUESKY_HANDLE` | Display handle; profile links use the DID.                                                                   |
+| `ATPROTO_PUBLICATION_RKEY`   | Publication TID generated once.                                                                              |
+| `ATPROTO_APP_PASSWORD`       | Owner app password for publishing; sensitive and production-only.                                            |
+| `ATPROTO_OAUTH_JWK`          | Private ES256 signing JWK with a unique `kid`; sensitive server variable.                                    |
+| `ATPROTO_OAUTH_STORAGE_KEY`  | Base64 encoding of 32 random bytes for credential encryption; sensitive server variable.                     |
+| `POSTGRES_URL`               | Durable OAuth and browser sessions; migration `005_atproto_oauth.sql` is required.                           |
+| `INDIEWEB_NOTIFY_SECRET`     | Sensitive bearer secret shared with GitHub `INDIEWEB_NOTIFY_SECRET_PRODUCTION`.                              |
 
-Generate the publication key once, from the repo after `pnpm install`:
+OAuth signing and storage keys differ between production and acceptance. Never copy production credentials into a preview. Rotating the storage key invalidates encrypted sessions and authorization state. Rotate the signing key only with a planned overlap in public JWKS; the current single-key configuration does not retain old signing keys.
+
+Generate a signing JWK with `generateClientAssertionKey(kid, 'ES256')` from `@atcute/oauth-node-client`. Generate the storage key with `randomBytes(32).toString('base64')` from `node:crypto`. Keep their values off command lines and out of Git.
+
+Run `pnpm preflight -- --project website` to inspect database schema, publishing credentials, OAuth keys, and the production notification secret. If the app password needs setup, run this from the checkout:
 
 ```sh
-node --input-type=module -e "import { now } from '@atcute/tid'; console.log(now())"
+pnpm exec tsx scripts/standard-site-setup.mts
 ```
 
-Set the output as `ATPROTO_PUBLICATION_RKEY` on every environment that builds
-the site, and never change it afterwards.
+The script prints numbered steps, opens the app-password settings, collects the password without echoing it, validates the owner, stores the sensitive Vercel variable, rebuilds production, runs the notification workflow, and verifies public discovery. `--credential-only` stops after storing the validated password so an implementing agent can finish deployment.
 
-## Identity
+## Publishing
 
-- The site links to the Bluesky profile by DID, so its links survive a
-  handle change.
-- The handle is whatever domain the DID document names. To move it to this
-  site's domain, add `TXT _atproto.<domain> "did=…"` for the DID, change the
-  handle in Bluesky, and update `NEXT_PUBLIC_BLUESKY_HANDLE`. Followers and
-  posts stay, because they belong to the DID.
-- Keep `did:plc`. A `did:web` identity cannot move to another domain or
-  recover from losing this one.
+After a push to `main`, the notification workflow waits for the exact deployed Git revision. It sends `atprotoRequired: true` to `/api/indieweb/notify`. A required sync returns HTTP 200 only when publishing reports `synced`. Missing credentials and skipped syncs fail the workflow. Acceptance sends `atprotoRequired: false` and does not publish to the production account.
 
-## standard.site
+The sync reads uncached published writings, builds and validates the publication and document records, preserves records from other publications, and applies changed records in batches of 200. Drafts never produce documents. Repeated syncs leave unchanged records alone. The record builders publish metadata and full plain text in `textContent`; they omit rendered `content`.
 
-| What                                           | Where                                                                                |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Publication record                             | `site.standard.publication/<ATPROTO_PUBLICATION_RKEY>`, built by `publicationRecord` |
-| One document per published writing (notes too) | `site.standard.document/<computed TID>`, built by `documentRecord`                   |
-| Verification                                   | `/.well-known/site.standard.publication` returns the publication URI                 |
-| Publication tag on every page                  | `<link rel="site.standard.publication">` in `app/layout.tsx`                         |
-| Document tag on every writing                  | `<link rel="site.standard.document">` in `app/writings/[slug]/page.tsx`              |
+A document key combines its original publication time with a path-derived clock ID. Changing its slug or publication time moves the record and breaks existing references. Covers and icons come from the live site and must stay under 1,000,000 bytes. A failed image fetch preserves the existing blob.
 
-Record keys are computed (`lib/atproto/keys.ts`): the publish time in
-microseconds plus a clock ID from the path. **Do not change a writing's
-`published` time or slug after it is announced on Bluesky.** The sync would
-move the record, but the Bluesky post's card would still point at the old one.
+Publication verification requires the record's URL and `/.well-known/site.standard.publication` to agree. Document verification requires the record's publication and path to match a `<link rel="site.standard.document">` in the writing's HTML head. The social handlers verify the PDS record and live website before every write. [Standard.site verification](https://standard.site/docs/verification/) defines these checks.
 
-Records leave out `content`, because the site renders its own HTML.
-`textContent` holds the full plain text.
+## Visitor actions
 
-[standard]: https://standard.site
+Subscribe appears beside Writings. Recommend appears beneath a published writing. Signed-out visitors enter their handle, authorize with their provider, and return to the original action. The server completes that action before showing Subscribed or Recommended. Clicking again undoes it. Undo removes every matching record, including records created through other clients, and preserves unrelated records.
 
-## Sync
+| Endpoint                                   | Behavior                                                                                                                                        |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /oauth-client-metadata.json`          | Confidential client metadata derived from the site origin.                                                                                      |
+| `GET /.well-known/atproto-jwks.json`       | Public signing keys; private key material is never returned.                                                                                    |
+| `POST /api/atproto/login`                  | Accepts handle, action and optional writing slug; JSON returns an authorization URL, native forms redirect. The server derives the return path. |
+| `GET /atproto/callback`                    | Consumes browser-bound authorization state and completes the pending action.                                                                    |
+| `POST /api/atproto/logout`                 | Deletes the current browser session. Other browser sessions remain signed in.                                                                   |
+| `GET /api/atproto/social`                  | Returns sign-in and subscription state plus recommendation state when given `slug`.                                                             |
+| `PUT / DELETE /api/atproto/subscription`   | Creates or removes the visitor's subscription.                                                                                                  |
+| `PUT / DELETE /api/atproto/recommendation` | Creates or removes a recommendation for the published `slug` in the JSON body.                                                                  |
 
-After every push to `main`, `.github/workflows/indieweb-publish.yml` waits for
-the deployment and calls `/api/indieweb/notify`. The handler pings WebSub,
-sends webmentions, and then runs `syncAtproto()` (`lib/atproto/sync.ts`):
+Tokens stay on the server. The browser receives an opaque session cookie with HttpOnly, Secure, and SameSite=Lax attributes. Local HTTP omits Secure. Authorization state expires after ten minutes and is consumed even when the visitor cancels authorization. Browser sessions expire after 30 days. Encrypted OAuth sessions have a 180-day storage limit; provider revocation or refresh failure can end them sooner.
 
-1. It reads every published writing with the uncached loaders.
-2. It builds the publication record and one document per writing. Icons and
-   covers are fetched from the live site: `featuredImage` (an empty one counts
-   as none), or the generated `opengraph-image`. An image over 1,000,000 bytes
-   is left out. When a fetch fails, the record on the PDS keeps the icon or
-   cover it already has.
-3. It checks every record against its lexicon and stops, writing nothing, if
-   one is invalid.
-4. It lists this site's records on the PDS and plans the difference
-   (`lib/atproto/plan.ts`). It never touches records whose `site` is another
-   publication.
-5. It uploads the blobs that changed records need, then applies the writes in
-   one `applyWrites` call per 200 operations.
+Mutations check Origin, require a browser session, validate targets, and apply durable rate limits. Reads allow 60 requests per IP per minute. Login and writes allow ten per minute per IP or account. PostgreSQL transaction locks serialize refresh and writes across instances. Nested locks and credential stores reuse the pinned connection to avoid exhausting the database pool. Credential updates commit even when a later social write fails because a provider may already have consumed the previous refresh token. Account-supplied HTTP endpoints use public-only HTTPS sockets, reject redirects, and cap responses at 2 MiB.
 
-The sync is skipped when the DID, the publication key, or
-`ATPROTO_APP_PASSWORD` is empty. Without the DID or the publication key the
-`<link>` tags and the well-known route turn off too, so no page names a record
-the sync would never write. The password is set on Production only, so a
-preview deployment never writes. It signs in at the PDS that the DID document
-names (`lib/atproto/identity.ts`).
+The following container diagram shows the processes and data stores involved:
 
-To see what the next sync would do, run
-`vercel env pull .env.atproto.local --environment=production`, then
-`pnpm atproto:sync`. Run `pnpm atproto:sync --write` to apply it by hand.
-`.env.atproto.local` is a dedicated file, not `.env.local`, so production
-values never reach `next dev`. It holds production values only, and it is
-gitignored (`.env*.local`). A password stored as a Sensitive variable cannot be
-pulled; add it to `.env.atproto.local` by hand.
+```mermaid
+flowchart LR
+  Browser[Visitor browser] --> Website[Website server]
+  Browser --> Provider[Account authorization server]
+  Website --> Provider
+  Website --> VisitorPDS[Visitor PDS]
+  Website --> OwnerPDS[Publication owner PDS]
+  Website --> Postgres[(PostgreSQL)]
+```
 
-## Checking it
+The following component diagram opens the Website server and shows its modules:
 
-- `https://pdsls.dev/at://<NEXT_PUBLIC_ATPROTO_DID>` shows the records.
-- `https://site-validator.fly.dev/` checks a writing's URL end to end: the
-  `<link>` tag, the record, the publication, and the well-known route.
-- Paste a writing's URL into the Bluesky composer. The card should show the
-  publication's icon and name.
+```mermaid
+flowchart LR
+  NotificationHandler[Notification handler] --> Publisher[Publication sync]
+  Publisher --> OwnerRepo[Owner repo adapter]
+  SocialHandlers[Social handlers] --> TargetVerifier[Target verifier]
+  SocialHandlers --> GraphActions[Graph actions]
+  GraphActions --> VisitorRepo[Visitor repo adapter]
+  VisitorRepo --> OAuthClient[OAuth client]
+  SocialHandlers --> OAuthClient
+  OAuthClient --> OAuthStorage[Encrypted OAuth store]
+```
+
+## Verification
+
+Run unit tests with `pnpm exec tsx --env-file=tests/unit/test.env --test --test-concurrency=2 tests/unit/*.test.mts`, then lint, type checking, and a production build. Next.js limits build workers to two.
+
+`tests/integration/standard-oauth.mts` exercises encrypted state expiry, cancellation, callback replay, browser isolation, sign-out, and nested distributed locks against an isolated acceptance database. Load acceptance configuration into the process environment before running it with `tsx --test --test-concurrency=1`. Never run fixture tests against the production database.
+
+For browser fixtures, copy `tests/fixtures/indieweb-acceptance.mdx` into `content/writings/indieweb-acceptance.mdx`, build with isolated OAuth configuration, and run `STANDARD_SOCIAL_FIXTURE=1 pnpm exec playwright test tests/e2e/standard-site.spec.mts --project=desktop --workers=1`. The test uses simulated provider responses and saves desktop and 390px screenshots under `.playwright-mcp`. Remove the copied writing before a production build or commit. These checks do not prove a live account-provider grant or real PDS social write.
+
+On 2026-10-06, all four authored writings remain drafts. Production document verification and recommendation checks therefore wait for the first approved publication. A controlled acceptance account must complete a real OAuth grant and social write before those external checks can be called verified. Bluesky announcements, imported comments, public counts, and a reader feed are separate features.

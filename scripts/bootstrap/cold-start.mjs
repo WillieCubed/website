@@ -336,7 +336,9 @@ async function deployment() {
   )
     return false;
   if (linked === 'website')
-    console.log('○ Production notifications: pending content approval');
+    console.log(
+      '○ Production notifications: verify the matching GitHub production secret'
+    );
   if (
     !doctor &&
     (database.changed ||

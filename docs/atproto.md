@@ -46,6 +46,8 @@ Publication verification requires the record's URL and `/.well-known/site.standa
 
 Subscribe appears beside Writings. Recommend appears beneath a published writing. Signed-out visitors enter their handle, authorize with their provider, and return to the original action. The server completes that action before showing Subscribed or Recommended. Clicking again undoes it. Undo removes every matching record, including records created through other clients, and preserves unrelated records.
 
+The writing action row shows Recommend, Reply, and Share at 390px. Share opens the Bluesky, Threads, and native sharing or copy-link choices. Reply opens its form below the row. The actions use quiet icon buttons and a green confirmed state. Sign-in opens a native dialog so the form does not push the writing out of view. The dialog restores focus on dismissal and supports Escape and backdrop clicks. Signed-in visitors find Sign out in the adjacent account menu.
+
 | Endpoint                                   | Behavior                                                                                                                                        |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /oauth-client-metadata.json`          | Confidential client metadata derived from the site origin.                                                                                      |

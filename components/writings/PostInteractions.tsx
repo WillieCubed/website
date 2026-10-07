@@ -51,16 +51,15 @@ export default function PostInteractions({
           target={target}
           threadsHref={threadsPostIntent(writing, target)}
           title={writing.title}
-        />
-        {!writing.draft && socialSettings() && (
-          <div className="mt-3">
+        >
+          {!writing.draft && socialSettings() && (
             <StandardSocialControls
               key={slug}
               action="recommendation"
               slug={slug}
             />
-          </div>
-        )}
+          )}
+        </PostActions>
       </div>
     </section>
   );

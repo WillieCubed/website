@@ -307,7 +307,7 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
   const threads = actions.getByRole('link', { name: 'Share on Threads' });
   const share = actions.getByRole('button', { name: 'Share', exact: true });
   await expect(reply).toBeVisible();
-  await expect(replySurface).toBeVisible();
+  await expect(replySurface).not.toBeVisible();
   await page.evaluate(() => {
     Reflect.set(
       window,
@@ -315,7 +315,7 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
       document.querySelector('[data-reply-surface]')
     );
   });
-  const closedBounds = await replySurface.boundingBox();
+  await share.click();
   await expect(bluesky).toBeVisible();
   await expect(bluesky).toHaveAttribute(
     'href',
@@ -323,9 +323,8 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
   );
   await expect(threads).toBeVisible();
   await expect(share).toBeVisible();
-  expect(await actions.locator('[data-post-action]').allTextContents()).toEqual(
-    ['Reply via IndieWeb', 'Share on Bluesky', 'Share on Threads', 'Share']
-  );
+  await page.keyboard.press('Escape');
+  await expect(bluesky).not.toBeVisible();
   await expect(reply).toHaveAttribute('aria-expanded', 'false');
   await reply.click();
   await expect(reply).toHaveAttribute('aria-expanded', 'true');
@@ -346,24 +345,23 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
   ).toBe(true);
   await expect
     .poll(async () => (await replySurface.boundingBox())?.width ?? 0)
-    .toBeGreaterThan((closedBounds?.width ?? 0) * 2);
+    .toBeGreaterThan(300);
   await expect
     .poll(async () => (await replySurface.boundingBox())?.height ?? 0)
-    .toBeGreaterThan((closedBounds?.height ?? 0) * 2);
+    .toBeGreaterThan(100);
   await expect(
     replySurface.getByRole('link', { name: 'Share on Threads' })
   ).toHaveCount(0);
   await reply.click();
   await expect(reply).toHaveAttribute('aria-expanded', 'false');
-  await expect
-    .poll(async () => (await replySurface.boundingBox())?.height ?? 0)
-    .toBeLessThan((closedBounds?.height ?? 0) * 1.5);
+  await expect(replySurface).not.toBeVisible();
   await expect
     .poll(() =>
       page.evaluate(() => Reflect.get(window, '__replyTransitionCalls'))
     )
     .toBe(2);
   await share.click();
+  await actions.getByRole('button', { name: 'More options' }).click();
   await expect
     .poll(() => page.evaluate(() => Reflect.get(window, '__sharedPost')))
     .toMatchObject({ url: `${site.origin}${postPath}` });

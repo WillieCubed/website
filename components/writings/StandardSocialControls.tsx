@@ -1,6 +1,12 @@
 'use client';
 
-import { type FormEvent, useEffect, useId, useState } from 'react';
+import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
+
+import Icon from '@/components/icons/Icon';
+import Popover from '@/components/site/Popover';
+import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
+
+import styles from './WritingActions.module.css';
 
 interface SocialState {
   enabled: boolean;
@@ -13,9 +19,6 @@ interface Props {
   slug?: string;
 }
 
-const buttonStyle =
-  'inline-flex items-center justify-center rounded-full border border-line bg-card px-4 py-2 text-label-large font-medium text-ink transition-colors hover:border-accent hover:bg-tray disabled:opacity-50';
-
 export default function StandardSocialControls({ action, slug }: Props) {
   const [state, setState] = useState<SocialState | null>(null);
   const [signIn, setSignIn] = useState(false);
@@ -23,9 +26,47 @@ export default function StandardSocialControls({ action, slug }: Props) {
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const id = useId();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const actionButton = useRef<HTMLButtonElement>(null);
+  const loginRequest = useRef<AbortController | null>(null);
+  const restoreActionFocus = useRef(false);
+  const backdrop = useBackdropDismiss(dismissSignIn);
   const active =
     action === 'subscription' ? state?.subscribed : state?.recommended;
   const label = action === 'subscription' ? 'Subscribe' : 'Recommend';
+
+  function dismissSignIn() {
+    loginRequest.current?.abort();
+    loginRequest.current = null;
+    setBusy(false);
+    setSignIn(false);
+  }
+
+  useEffect(() => {
+    if (!state?.signedIn && restoreActionFocus.current) {
+      restoreActionFocus.current = false;
+      actionButton.current?.focus();
+    }
+  }, [state?.signedIn]);
+
+  useEffect(() => {
+    const modal = dialog.current;
+    if (!modal) return;
+    if (!signIn) {
+      modal.close();
+      return;
+    }
+    modal.showModal();
+    modal.querySelector<HTMLInputElement>('input[name="handle"]')?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      loginRequest.current?.abort();
+      loginRequest.current = null;
+      modal.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [signIn]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -65,28 +106,37 @@ export default function StandardSocialControls({ action, slug }: Props) {
   async function beginSignIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const input = Object.fromEntries(new FormData(event.currentTarget));
+    const controller = new AbortController();
+    loginRequest.current?.abort();
+    loginRequest.current = controller;
     setBusy(true);
     setError('');
     try {
       const response = await fetch('/api/atproto/login', {
+        signal: controller.signal,
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(input),
       });
       const result = await response.json();
+      if (controller.signal.aborted) return;
       if (!response.ok)
         throw new Error(result.error ?? 'Sign-in did not start. Try again.');
       window.location.assign(result.url);
     } catch (problem) {
+      if (controller.signal.aborted) return;
       setError(
         problem instanceof Error ? problem.message : 'Sign-in did not start.'
       );
       setBusy(false);
+    } finally {
+      if (loginRequest.current === controller) loginRequest.current = null;
     }
   }
 
   async function toggle() {
     if (!state?.signedIn) {
+      setError('');
       setSignIn(true);
       return;
     }
@@ -123,6 +173,7 @@ export default function StandardSocialControls({ action, slug }: Props) {
 
   async function signOut() {
     setBusy(true);
+    setError('');
     try {
       const response = await fetch('/api/atproto/logout', {
         method: 'POST',
@@ -130,6 +181,7 @@ export default function StandardSocialControls({ action, slug }: Props) {
         body: '{}',
       });
       if (!response.ok) throw new Error('Sign-out failed. Try again.');
+      restoreActionFocus.current = true;
       setState({ enabled: true, signedIn: false });
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : 'Sign-out failed.');
@@ -140,59 +192,109 @@ export default function StandardSocialControls({ action, slug }: Props) {
 
   if (state?.enabled === false) return null;
   return (
-    <div className="max-w-full" data-standard-social={action}>
-      <div className="flex flex-wrap items-center gap-2">
+    <div className={styles.root} data-standard-social={action}>
+      <div className={styles.actions}>
         <button
+          ref={actionButton}
           type="button"
-          className={buttonStyle}
+          className={styles.action}
           disabled={busy || !state}
           aria-pressed={Boolean(active)}
-          aria-expanded={signIn}
+          aria-haspopup={state?.signedIn ? undefined : 'dialog'}
           aria-controls={id}
+          title={
+            active
+              ? action === 'subscription'
+                ? 'Unsubscribe'
+                : 'Withdraw recommendation'
+              : undefined
+          }
           onClick={toggle}
         >
-          {active
-            ? action === 'subscription'
-              ? 'Subscribed'
-              : 'Recommended'
-            : label}
+          <Icon
+            name={
+              action === 'subscription' ? (active ? 'check' : 'rss') : 'heart'
+            }
+            size={17}
+          />
+          <span>
+            {active
+              ? action === 'subscription'
+                ? 'Subscribed'
+                : 'Recommended'
+              : label}
+          </span>
         </button>
         {state?.signedIn && (
-          <button
-            type="button"
-            disabled={busy}
-            className="text-label-medium text-muted underline underline-offset-4"
-            onClick={signOut}
+          <Popover
+            label="Account options"
+            trigger={<Icon name="more-horizontal" size={18} />}
+            triggerClassName={styles.account}
+            panelClassName={styles.menu}
+            align="end"
           >
-            Sign out
-          </button>
+            <p className={styles.menuLabel}>Your account</p>
+            <button
+              type="button"
+              disabled={busy}
+              className={styles.menuAction}
+              onClick={(event) => {
+                event.currentTarget
+                  .closest<HTMLElement>('[popover]')
+                  ?.hidePopover();
+                void signOut();
+              }}
+            >
+              Sign out <Icon name="arrow-right" />
+            </button>
+          </Popover>
         )}
       </div>
-      {active && (
-        <p className="mt-1 text-label-small text-muted">
-          Click again to{' '}
+      <dialog
+        ref={dialog}
+        id={id}
+        className={styles.dialog}
+        aria-labelledby={id + '-title'}
+        aria-describedby={id + '-description'}
+        onCancel={dismissSignIn}
+        onClose={dismissSignIn}
+        {...backdrop}
+      >
+        <div className={styles.dialogHeading}>
+          <span className={styles.dialogIcon}>
+            <Icon
+              name={action === 'subscription' ? 'rss' : 'heart'}
+              size={23}
+            />
+          </span>
+          <button
+            type="button"
+            className={styles.close}
+            aria-label="Cancel"
+            onClick={dismissSignIn}
+          >
+            <Icon name="x" size={20} />
+          </button>
+        </div>
+        <h2 id={id + '-title'} className={styles.title}>
           {action === 'subscription'
-            ? 'unsubscribe'
-            : 'remove your recommendation'}
-          .
+            ? 'Follow my writing.'
+            : 'Recommend this writing.'}
+        </h2>
+        <p id={id + '-description'} className={styles.description}>
+          {action === 'subscription'
+            ? 'Subscribe with your Bluesky or other AT Protocol account.'
+            : 'Share it with readers through your Bluesky or other AT Protocol account.'}
         </p>
-      )}
-      <div id={id} hidden={!signIn}>
         <form
           method="post"
           action="/api/atproto/login"
           onSubmit={beginSignIn}
-          className="mt-3 flex max-w-sm flex-wrap items-end gap-2 rounded-2xl border border-line bg-card p-4"
+          className={styles.form}
         >
           <input type="hidden" name="action" value={action} />
           {slug && <input type="hidden" name="slug" value={slug} />}
-          <label htmlFor={id + '-handle'} className="w-full text-body-medium">
-            Sign in to {label.toLowerCase()} with your account.
-          </label>
-          <label
-            className="min-w-0 flex-1 text-label-medium"
-            htmlFor={id + '-handle'}
-          >
+          <label className={styles.label} htmlFor={id + '-handle'}>
             Your handle
             <input
               id={id + '-handle'}
@@ -205,27 +307,25 @@ export default function StandardSocialControls({ action, slug }: Props) {
               spellCheck={false}
               autoComplete="username"
               placeholder="you.bsky.social"
-              className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-body-medium text-ink"
+              className={styles.input}
             />
           </label>
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-full bg-primary px-4 py-2 text-label-large font-medium text-on-primary"
-          >
-            Continue
-          </button>
-          <button
-            type="button"
-            className="text-label-medium text-muted"
-            onClick={() => setSignIn(false)}
-          >
-            Cancel
+          {error && signIn && (
+            <p role="alert" className={styles.error}>
+              {error}
+            </p>
+          )}
+          <button type="submit" disabled={busy} className={styles.continue}>
+            {busy ? 'Connecting…' : 'Continue'}{' '}
+            <Icon name="arrow-right" size={18} />
           </button>
         </form>
-      </div>
-      {error && (
-        <p role="alert" className="mt-2 max-w-sm text-label-medium text-muted">
+        <p className={styles.footnote}>
+          You will authorize access with your account provider.
+        </p>
+      </dialog>
+      {error && !signIn && (
+        <p role="alert" className={styles.error}>
           {error}
           {!state && (
             <button

@@ -4,6 +4,8 @@ export const MIGRATIONS = [
   'lib/db/migrations/001_level4_tables.sql',
   'lib/db/migrations/002_webmention_rate_limits.sql',
   'lib/db/migrations/003_indieauth.sql',
+  'lib/db/migrations/004_webmention_responses.sql',
+  'lib/db/migrations/005_atproto_oauth.sql',
 ];
 
 export const SCHEMA_QUERY = `SELECT (
@@ -12,6 +14,10 @@ export const SCHEMA_QUERY = `SELECT (
   to_regclass('public.reply_context_cache') IS NOT NULL AND
   to_regclass('public.search_index') IS NOT NULL AND
   to_regclass('public.webmention_rate_limits') IS NOT NULL AND
+  to_regclass('public.atproto_oauth_states') IS NOT NULL AND
+  to_regclass('public.atproto_oauth_sessions') IS NOT NULL AND
+  to_regclass('public.atproto_browser_sessions') IS NOT NULL AND
+  to_regclass('public.atproto_rate_limits') IS NOT NULL AND
   to_regclass('public.indieauth_codes') IS NOT NULL AND
   to_regclass('public.indieauth_tokens') IS NOT NULL AND
   to_regclass('public.indieauth_totp_steps') IS NOT NULL AND

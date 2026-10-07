@@ -3,6 +3,7 @@ import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
 import WritingItem from '@/components/writings/WritingItem';
 
+import { socialSettings } from '@/lib/atproto/config';
 import { getWritingContentHtml } from '@/lib/feeds/items';
 import { absoluteUrl } from '@/lib/site';
 import {
@@ -12,6 +13,8 @@ import {
   getSeries,
 } from '@/lib/writings';
 import { tagPath } from '@/lib/writings/tags';
+
+import StandardSocialControls from './StandardSocialControls';
 
 interface WritingsIndexProps {
   /** The feed's name, shown as the page's heading. */
@@ -46,8 +49,9 @@ export default async function WritingsIndex({
       <a href={absoluteUrl(path)} className="u-url hidden" />
       <FeedAuthor />
       <section className="mt-6">
-        <div className="space-y-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="p-name text-display-small">{name}</h1>
+          {socialSettings() && <StandardSocialControls action="subscription" />}
         </div>
       </section>
       {/* No Suspense around the entries: a boundary streams its content

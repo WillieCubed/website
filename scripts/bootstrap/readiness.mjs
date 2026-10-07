@@ -51,9 +51,16 @@ export function checkDeployment(env, project) {
   if (!env.has('BLOB_STORE_ID') && !env.has('BLOB_READ_WRITE_TOKEN')) {
     missing.push('BLOB_STORE_ID or BLOB_READ_WRITE_TOKEN');
   }
-  // Production publication still needs Willie's editorial approval. The
-  // workflow secret intentionally stays absent until that review finishes.
-  const pending =
-    project === 'website' ? ['INDIEWEB_NOTIFY_SECRET_PRODUCTION'] : [];
-  return { missing, pending };
+  if (project === 'website') {
+    missing.push(
+      ...[
+        'NEXT_PUBLIC_ATPROTO_DID',
+        'ATPROTO_PUBLICATION_RKEY',
+        'ATPROTO_APP_PASSWORD',
+        'ATPROTO_OAUTH_JWK',
+        'ATPROTO_OAUTH_STORAGE_KEY',
+      ].filter((name) => !env.has(name))
+    );
+  }
+  return { missing, pending: [] };
 }

@@ -29,7 +29,7 @@ how its content is modeled, and the conventions that govern changes to it.
   variables that switch each on, the scripts that run after a build, and the
   IndieMark level 1 to 3 checklist with status.
 - [AT Protocol](./atproto.md): the Bluesky handle, the standard.site
-  publication and documents, and how the sync writes them.
+  publication, document sync, and visitor subscriptions and recommendations.
 - [Content](./content/README.md): writing and feed documentation, including
   the frontmatter for notes, replies, likes, reposts, bookmarks, and RSVPs.
 - [ActivityPub plan](./future/activitypub.md): what federation would take,

@@ -1,6 +1,7 @@
 name: IndieWeb publish notifications
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -29,13 +30,15 @@ jobs:
           if [ "$BRANCH" = main ]; then
             origin=https://willie.page
             secret=$PRODUCTION_SECRET
+            atproto_required=true
           else
             origin=https://indieweb-acceptance.vercel.app
             secret=$ACCEPTANCE_SECRET
+            atproto_required=false
           fi
           if [ -z "$secret" ]; then
             echo "Notifications are disabled for $origin until its secret is configured."
-            exit 0
+            exit 1
           fi
           for attempt in $(seq 1 60); do
             deployed=$(curl --silent --max-time 10 -H 'Cache-Control: no-cache' "$origin/api/indieweb/revision?poll=$attempt" | jq -r '.sha // empty' 2>/dev/null || true)
@@ -45,7 +48,7 @@ jobs:
                 -X POST "$origin/api/indieweb/notify" \
                 -H "Authorization: Bearer $secret" \
                 -H 'Content-Type: application/json' \
-                -d "{\"sha\":\"$REVISION\"}" || true)
+                -d "{\"sha\":\"$REVISION\",\"atprotoRequired\":$atproto_required}" || true)
               if [ "$code" = 200 ]; then
                 cat "$response"
                 exit 0

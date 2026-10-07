@@ -53,10 +53,14 @@ test('preflight reads only environment names and accepts either Blob credential'
   assert.ok(!JSON.stringify(result).includes('must-never-be-printed'));
 });
 
-test('production notification secret is pending rather than required', () => {
+test('production requires AT Protocol publishing credentials', () => {
   const result = checkDeployment(new Set(), 'website');
   assert.ok(!result.missing.includes('INDIEWEB_NOTIFY_SECRET_PRODUCTION'));
-  assert.ok(result.pending.includes('INDIEWEB_NOTIFY_SECRET_PRODUCTION'));
+  assert.ok(result.missing.includes('ATPROTO_APP_PASSWORD'));
+  assert.ok(result.missing.includes('ATPROTO_OAUTH_JWK'));
+  assert.ok(result.missing.includes('ATPROTO_OAUTH_STORAGE_KEY'));
+  assert.ok(result.missing.includes('NEXT_PUBLIC_ATPROTO_DID'));
+  assert.deepEqual(result.pending, []);
 });
 
 test('acceptance needs its own origin so permalinks do not point at production', () => {

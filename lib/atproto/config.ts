@@ -56,3 +56,18 @@ export function publishingIdentity(): {
 export function appPassword(): string | undefined {
   return process.env.ATPROTO_APP_PASSWORD || undefined;
 }
+
+export function socialSettings() {
+  const signingKey = process.env.ATPROTO_OAUTH_JWK;
+  const storageKey = process.env.ATPROTO_OAUTH_STORAGE_KEY;
+  if (
+    !PUBLICATION_URI ||
+    !signingKey ||
+    !storageKey ||
+    !process.env.POSTGRES_URL
+  )
+    return undefined;
+  if (Buffer.from(storageKey, 'base64').length !== 32)
+    throw new Error('ATPROTO_OAUTH_STORAGE_KEY must encode 32 bytes.');
+  return { signingKey, storageKey };
+}

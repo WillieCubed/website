@@ -8,13 +8,6 @@
   gap: 2px;
 }
 
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-}
-
 .action,
 .account,
 .close {
@@ -51,8 +44,7 @@
   transform: scale(0.97);
 }
 
-.action[aria-pressed='true'],
-.action[aria-expanded='true'] {
+.action[aria-pressed='true'] {
   background: var(--color-primary-container);
   color: var(--color-on-primary-container);
 }
@@ -73,8 +65,7 @@
   overflow-y: auto;
 }
 
-.root :is(button, input):focus-visible,
-.toolbar button:focus-visible {
+.root :is(button, input):focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 3px;
 }
@@ -97,12 +88,6 @@
   text-align: left;
   cursor: pointer;
   text-decoration: none;
-}
-
-.menuItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .menuAction:hover {

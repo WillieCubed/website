@@ -6,7 +6,7 @@ import Icon from '@/components/icons/Icon';
 import Popover from '@/components/site/Popover';
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
 
-import styles from './WritingActions.module.css';
+import styles from './StandardSocialControls.module.css';
 
 interface SocialState {
   enabled: boolean;

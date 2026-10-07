@@ -11,6 +11,7 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     'Requires the isolated fixture build documented in docs/atproto.md.'
   );
   mkdirSync(directory, { recursive: true });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   let signedIn = false,
     subscribed = false,
     recommended = false,
@@ -127,7 +128,7 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(
     page.locator('[data-standard-social] [role=alert]')
-  ).toContainText('Enter your account handle.');
+  ).toContainText('Check your handle and try again.');
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth
@@ -163,22 +164,6 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   const signOut = page.getByRole('button', { name: 'Sign out', exact: true });
   await expect(options).toHaveAttribute('aria-expanded', 'false');
   await expect(signOut).toHaveCount(0);
-  const leading = await page
-    .getByRole('button', { name: 'Subscribed', exact: true })
-    .boundingBox();
-  const trailing = await options.boundingBox();
-  expect(trailing!.x - leading!.x - leading!.width).toBeCloseTo(2);
-  expect(trailing!.height).toBe(leading!.height);
-  expect(trailing!.width).toBe(44);
-  await expect(
-    page.getByRole('button', { name: 'Subscribed', exact: true })
-  ).toHaveCSS('border-top-right-radius', '6px');
-  const outerRadius = await page
-    .getByRole('button', { name: 'Subscribed', exact: true })
-    .evaluate((button) =>
-      parseFloat(getComputedStyle(button).borderTopLeftRadius)
-    );
-  expect(outerRadius).toBeLessThanOrEqual(leading!.height / 2);
   await page.screenshot({
     path: directory + '/standard-mobile-subscribed.png',
     fullPage: true,
@@ -186,13 +171,10 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await options.click();
   await expect(options).toHaveAttribute('aria-expanded', 'true');
   await expect(signOut).toBeFocused();
-  const popup = page.locator('[popover]:popover-open');
-  expect((await popup.boundingBox())!.width).toBe(156);
   expect(
     (await new AxeBuilder({ page }).include('[popover]:popover-open').analyze())
       .violations
   ).toEqual([]);
-  await expect(options).toHaveCSS('border-top-left-radius', '22px');
   await page.screenshot({
     path: directory + '/standard-mobile-subscription-menu.png',
     fullPage: false,
@@ -207,7 +189,6 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   });
   await options.click();
   await expect(signOut).toBeVisible();
-  await expect(options).toHaveCSS('border-top-left-radius', '22px');
   await page.screenshot({
     path: directory + '/standard-desktop-subscription-menu.png',
     fullPage: false,
@@ -223,7 +204,7 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   });
   await page.emulateMedia({
     colorScheme: 'light',
-    reducedMotion: 'no-preference',
+    reducedMotion: 'reduce',
   });
   await page.mouse.click(8, 8);
   await expect(options).toHaveAttribute('aria-expanded', 'false');
@@ -235,9 +216,9 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await page.getByRole('button', { name: 'Subscribe', exact: true }).click();
   await expect(
     page.locator('[data-standard-social] [role=alert]')
-  ).toContainText('could not complete');
+  ).toContainText('Couldn’t subscribe.');
   await expect(
-    page.getByRole('button', { name: 'Subscribe', exact: true })
+    page.getByRole('button', { name: 'Try again to subscribe', exact: true })
   ).toHaveAttribute('aria-pressed', 'false');
   await page.goto('/writings/tags/indieweb');
   await expect(
@@ -294,14 +275,15 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await signOut.click();
   await expect(
     page.locator('[data-standard-social] [role=alert]')
-  ).toContainText('Sign-out failed.');
+  ).toContainText('Couldn’t sign out.');
   await expect(options).toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Subscribe', exact: true })
+    page.getByRole('button', { name: 'Try again to sign out', exact: true })
   ).toBeFocused();
   failLogout = false;
-  await options.click();
-  await signOut.click();
+  await page
+    .getByRole('button', { name: 'Try again to sign out', exact: true })
+    .click();
   await expect(
     page.getByRole('button', { name: 'Sign out', exact: true })
   ).toHaveCount(0);

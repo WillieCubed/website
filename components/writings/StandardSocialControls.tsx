@@ -354,7 +354,7 @@ export default function StandardSocialControls({ action, slug }: Props) {
             <Popover
               label="Subscription options"
               disabled={pending === 'action'}
-              trigger={<Icon name="chevron-down" size={20} />}
+              trigger={<Icon name="chevron-down" size={22} />}
               triggerClassName={styles.arrow}
               panelClassName={styles.menu}
               align="end"

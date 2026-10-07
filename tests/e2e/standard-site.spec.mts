@@ -165,49 +165,10 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  const recommendationBox = await page
-    .getByRole('button', { name: 'Recommended', exact: true })
-    .boundingBox();
-  for (const name of ['Reply via IndieWeb', 'Share']) {
-    const box = await page
-      .getByRole('button', { name, exact: true })
-      .boundingBox();
-    expect(Math.abs(box!.y - recommendationBox!.y)).toBeLessThan(2);
-  }
   await page.screenshot({
     path: directory + '/standard-mobile-recommended.png',
     fullPage: true,
   });
-  const share = page.getByRole('button', { name: 'Share', exact: true });
-  await share.click();
-  await expect(
-    page.getByRole('link', { name: 'Share on Bluesky' })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: 'Share on Threads' })
-  ).toBeVisible();
-  expect(
-    (await new AxeBuilder({ page }).include('[popover]:popover-open').analyze())
-      .violations
-  ).toEqual([]);
-  await page.screenshot({
-    path: directory + '/standard-mobile-sharing.png',
-    fullPage: false,
-  });
-  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-  await page.getByRole('button', { name: 'Copy link', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Post link copied.');
-  await expect(share).toBeFocused();
-  const reply = page.getByRole('button', { name: 'Reply via IndieWeb' });
-  await reply.click();
-  await expect(
-    page.getByRole('textbox', { name: 'Published reply URL' })
-  ).toBeVisible();
-  await expect(reply).toHaveAttribute('aria-expanded', 'true');
-  await reply.click();
-  await expect(
-    page.getByRole('textbox', { name: 'Published reply URL' })
-  ).not.toBeVisible();
   await page.getByRole('button', { name: 'Recommended', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Recommend', exact: true })

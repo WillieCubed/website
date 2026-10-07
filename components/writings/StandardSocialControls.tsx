@@ -3,7 +3,6 @@
 import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
-import Popover from '@/components/site/Popover';
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
 
 import styles from './StandardSocialControls.module.css';
@@ -225,29 +224,15 @@ export default function StandardSocialControls({ action, slug }: Props) {
               : label}
           </span>
         </button>
-        {state?.signedIn && (
-          <Popover
-            label="Account options"
-            trigger={<Icon name="more-horizontal" size={18} />}
-            triggerClassName={styles.account}
-            panelClassName={styles.menu}
-            align="end"
+        {state?.signedIn && action === 'subscription' && (
+          <button
+            type="button"
+            disabled={busy}
+            className={styles.account}
+            onClick={signOut}
           >
-            <p className={styles.menuLabel}>Your account</p>
-            <button
-              type="button"
-              disabled={busy}
-              className={styles.menuAction}
-              onClick={(event) => {
-                event.currentTarget
-                  .closest<HTMLElement>('[popover]')
-                  ?.hidePopover();
-                void signOut();
-              }}
-            >
-              Sign out <Icon name="arrow-right" />
-            </button>
-          </Popover>
+            Sign out
+          </button>
         )}
       </div>
       <dialog
@@ -283,8 +268,8 @@ export default function StandardSocialControls({ action, slug }: Props) {
         </h2>
         <p id={id + '-description'} className={styles.description}>
           {action === 'subscription'
-            ? 'Subscribe with your Bluesky or other AT Protocol account.'
-            : 'Share it with readers through your Bluesky or other AT Protocol account.'}
+            ? 'Subscribe with an account you already use.'
+            : 'Recommend it with an account you already use.'}
         </p>
         <form
           method="post"
@@ -320,9 +305,6 @@ export default function StandardSocialControls({ action, slug }: Props) {
             <Icon name="arrow-right" size={18} />
           </button>
         </form>
-        <p className={styles.footnote}>
-          You will authorize access with your account provider.
-        </p>
       </dialog>
       {error && !signIn && (
         <p role="alert" className={styles.error}>
@@ -330,7 +312,7 @@ export default function StandardSocialControls({ action, slug }: Props) {
           {!state && (
             <button
               type="button"
-              className="ml-2 underline"
+              className={styles.retry}
               onClick={() => {
                 setError('');
                 setAttempt((value) => value + 1);

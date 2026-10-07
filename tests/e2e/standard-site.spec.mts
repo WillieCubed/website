@@ -58,9 +58,24 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     return route.fulfill({ json: { signedIn: false } });
   });
   await page.goto('/writings');
-  await page.getByRole('button', { name: 'Subscribe', exact: true }).click();
+  const subscribeAction = page.getByRole('button', {
+    name: 'Subscribe',
+    exact: true,
+  });
+  expect(
+    await subscribeAction.evaluate(
+      (button) => getComputedStyle(button).backgroundColor
+    )
+  ).not.toBe('rgba(0, 0, 0, 0)');
+  await subscribeAction.click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
+  await expect(dialog.getByText(/AT Protocol|Bluesky/)).toHaveCount(0);
+  expect(
+    await page
+      .getByRole('button', { name: 'Cancel', exact: true })
+      .evaluate((button) => getComputedStyle(button).backgroundColor)
+  ).not.toBe('rgba(0, 0, 0, 0)');
   await expect(page.getByLabel('Your handle')).toBeFocused();
   await expect(
     page.getByRole('button', { name: 'Subscribe', exact: true })
@@ -128,6 +143,14 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await expect(
     page.getByRole('button', { name: 'Subscribed', exact: true })
   ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Sign out', exact: true })
+  ).toBeVisible();
+  expect(
+    await page
+      .getByRole('button', { name: 'Sign out', exact: true })
+      .evaluate((button) => getComputedStyle(button).backgroundColor)
+  ).not.toBe('rgba(0, 0, 0, 0)');
   await page.screenshot({
     path: directory + '/standard-mobile-subscribed.png',
     fullPage: true,
@@ -149,6 +172,16 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await expect(
     page.getByRole('button', { name: 'Subscribe', exact: true })
   ).toHaveAttribute('aria-pressed', 'false');
+  await page.goto('/writings/tags/indieweb');
+  await expect(
+    page.getByRole('button', { name: 'Subscribe', exact: true })
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Sign out', exact: true })
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Subscribed', exact: true })
+  ).toHaveCount(0);
   await page.goto('/writings/indieweb-acceptance');
   await expect(
     page.locator('head link[rel="site.standard.document"]')
@@ -156,7 +189,22 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     'href',
     /^at:\/\/did:plc:aaaaaaaaaaaaaaaaaaaaaaaa\/site\.standard\.document\//
   );
-  await page.getByRole('button', { name: 'Recommend', exact: true }).click();
+  const recommendAction = page.getByRole('button', {
+    name: 'Recommend',
+    exact: true,
+  });
+  expect(
+    await recommendAction.evaluate(
+      (button) => getComputedStyle(button).backgroundColor
+    )
+  ).not.toBe('rgba(0, 0, 0, 0)');
+  await expect(
+    page.getByRole('button', { name: 'Account options', exact: true })
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Sign out', exact: true })
+  ).toHaveCount(0);
+  await recommendAction.click();
   await expect(
     page.getByRole('button', { name: 'Recommended', exact: true })
   ).toBeVisible();
@@ -173,16 +221,15 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await expect(
     page.getByRole('button', { name: 'Recommend', exact: true })
   ).toHaveAttribute('aria-pressed', 'false');
-  await page
-    .getByRole('button', { name: 'Account options', exact: true })
-    .click();
+  await page.goto('/writings');
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Sign out', exact: true })
   ).toHaveCount(0);
   await expect(
-    page.getByRole('button', { name: 'Recommend', exact: true })
+    page.getByRole('button', { name: 'Subscribe', exact: true })
   ).toBeFocused();
+  await page.goto('/writings/indieweb-acceptance');
   await page.getByRole('button', { name: 'Recommend', exact: true }).click();
   await expect(page.getByLabel('Your handle')).toBeVisible();
   await page.screenshot({

@@ -49,7 +49,7 @@ export default async function WritingsIndex({
       <a href={absoluteUrl(path)} className="u-url hidden" />
       <FeedAuthor />
       <section className="mt-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4">
           <h1 className="p-name text-display-small">{name}</h1>
           {socialSettings() && <StandardSocialControls action="subscription" />}
         </div>

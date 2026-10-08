@@ -13,6 +13,7 @@ import {
   bearerMatches,
   buildProfile,
   findActiveToken,
+  hasRepeatedOAuthParameters,
   introspectionResponse,
   issueAccessToken,
   issueAuthorizationCode,
@@ -250,8 +251,9 @@ export async function handleConsentDecision(
     'code_challenge_method',
     'scope',
   ]) {
-    const value = body.get(key);
-    if (typeof value === 'string') params.set(key, value);
+    for (const value of body.getAll(key)) {
+      if (typeof value === 'string') params.append(key, value);
+    }
   }
 
   const checked = await checkAuthorizationRequest(params, options);
@@ -324,6 +326,13 @@ export async function handleProfileRedemption(
   if (!form) {
     return oauthError('invalid_request', 400, 'Send a form-encoded body.');
   }
+  if (hasRepeatedOAuthParameters(form)) {
+    return oauthError(
+      'invalid_request',
+      400,
+      'OAuth parameters must not appear more than once.'
+    );
+  }
   const redemption = await redeemAuthorizationCode(
     options.store,
     form,
@@ -348,6 +357,13 @@ export async function handleTokenRequest(
   const form = await readForm(request);
   if (!form) {
     return oauthError('invalid_request', 400, 'Send a form-encoded body.');
+  }
+  if (hasRepeatedOAuthParameters(form)) {
+    return oauthError(
+      'invalid_request',
+      400,
+      'OAuth parameters must not appear more than once.'
+    );
   }
   const now = clock(options);
 

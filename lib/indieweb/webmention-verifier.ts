@@ -321,7 +321,7 @@ function extractContent(
         property === 'photo'
           ? `<img src="${escape(url)}" alt="${escape(alt)}">`
           : property === 'attachment'
-            ? `<figure><a href="${escape(url)}">${escape(alt || 'Attachment')}</a></figure>`
+            ? `<figure><a class="u-attachment" href="${escape(url)}">${escape(alt || 'Attachment')}</a></figure>`
             : `<${property} src="${escape(url)}" controls preload="none"></${property}>`;
     }
   }

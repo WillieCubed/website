@@ -88,7 +88,7 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
     ],
     allowedAttributes: {
       '*': ['dir'],
-      a: ['href', 'rel'],
+      a: ['href', 'rel', 'class'],
       img: ['src', 'alt', 'loading'],
       audio: ['src', 'controls', 'preload'],
       video: ['src', 'poster', 'controls', 'preload', 'playsinline'],
@@ -96,6 +96,7 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
       track: ['src', 'kind', 'srclang', 'label'],
     },
     allowedSchemes: ['http', 'https'],
+    allowedClasses: { a: ['u-attachment'] },
     allowProtocolRelative: false,
     disallowedTagsMode: 'discard',
     nonTextTags: [
@@ -141,6 +142,9 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
               attribs: {
                 href,
                 rel: 'nofollow ugc',
+                ...(attribs.class?.split(/\s+/).includes('u-attachment')
+                  ? { class: 'u-attachment' }
+                  : {}),
                 ...(attribs.dir ? { dir: attribs.dir } : {}),
               },
             }

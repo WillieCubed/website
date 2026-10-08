@@ -85,7 +85,7 @@ test('a property-only linked file survives verification as a contained attachmen
   assert.equal(result.content, 'A report.');
   assert.equal(
     result.contentHtml,
-    `<p>A report.</p><figure><a href="${file}" rel="nofollow ugc">Attachment</a></figure>`
+    `<p>A report.</p><figure><a href="${file}" rel="nofollow ugc" class="u-attachment">Attachment</a></figure>`
   );
   assert.ok(verifications()[0].values.includes(result.contentHtml));
 });

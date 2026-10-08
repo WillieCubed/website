@@ -104,7 +104,7 @@ async function source(request: Request, context: Context) {
   const target = row.target_url
     ? `<a class="u-in-reply-to" href="${escape(row.target_url)}">Original writing</a>`
     : '';
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escape(row.title)}</title></head><body><article class="h-entry"><h1 class="p-name">${escape(row.title)}</h1><a class="u-url" href="${escape(sourceUrl.href)}">Permalink</a><a class="p-author h-card" href="${escape(sourceUrl.href)}#author"><span class="p-name">Controlled acceptance reader</span></a><time class="dt-published" datetime="2026-10-07T12:00:00Z">October 7, 2026</time>${target}<div class="e-content" dir="auto">${row.body_html}</div></article></body></html>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escape(row.title)}</title></head><body><article class="h-entry"><h1 class="p-name">${escape(row.title)}</h1><a class="u-url" href="${escape(sourceUrl.href)}">Permalink</a><a class="p-author h-card" href="${escape(sourceUrl.href)}#author"><span class="p-name">Controlled acceptance reader</span></a><time class="dt-published" datetime="2026-10-07T12:00:00Z">October 7, 2026</time>${target}<div class="e-content" dir="auto">${row.body_html}</div>${row.extra_html || ''}</article></body></html>`;
   return response(
     html,
     200,

@@ -21,7 +21,7 @@ const SCOPE_DESCRIPTIONS: Record<string, string> = {
   update: 'Edit posts',
   delete: 'Delete posts',
   undelete: 'Restore deleted posts',
-  media: 'Upload photos',
+  media: 'Upload media',
 };
 
 const ESCAPES: Record<string, string> = {

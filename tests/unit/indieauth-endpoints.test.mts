@@ -641,3 +641,83 @@ test('userinfo returns only profile fields granted to a valid bearer token', asy
   assert.equal(invalid.status, 401);
   assert.equal((await invalid.json()).error, 'invalid_token');
 });
+
+test('ambiguous authorization and consent parameters cannot redirect or issue a code', async () => {
+  for (const key of [
+    'client_id',
+    'redirect_uri',
+    'response_type',
+    'state',
+    'code_challenge',
+    'code_challenge_method',
+    'scope',
+  ]) {
+    const { options, code } = setup();
+    const params = authorizationQuery();
+    params.append(
+      key,
+      key === 'redirect_uri'
+        ? 'https://attacker.example/callback'
+        : params.get(key)!
+    );
+    const response = await handleConsentPage(
+      new Request(`${site.origin}/indieauth/consent?${params}`),
+      options
+    );
+    assert.equal(response.status, 400, key);
+    assert.equal(response.headers.get('Location'), null, key);
+    params.set('decision', 'approve');
+    params.set('code', code());
+    const consent = await handleConsentDecision(
+      new Request(`${site.origin}/indieauth/consent`, {
+        method: 'POST',
+        headers: { Origin: site.origin },
+        body: params,
+      }),
+      options
+    );
+    assert.equal(consent.status, 400, key);
+    assert.equal(consent.headers.get('Location'), null, key);
+  }
+});
+
+test('ambiguous token requests leave authorization codes and refresh tokens usable', async () => {
+  const context = setup();
+  const code = await approve(context);
+  const fields = new URLSearchParams({
+    grant_type: 'authorization_code',
+    code,
+    client_id: CLIENT,
+    redirect_uri: REDIRECT,
+    code_verifier: VERIFIER,
+  });
+  const send = (body: URLSearchParams) =>
+    handleTokenRequest(
+      new Request(`${site.origin}/indieauth/token`, { method: 'POST', body }),
+      context.options
+    );
+  for (const key of fields.keys()) {
+    const repeated = new URLSearchParams(fields);
+    repeated.append(key, fields.get(key)!);
+    const refused = await send(repeated);
+    assert.equal(refused.status, 400, key);
+    assert.equal((await refused.json()).error, 'invalid_request', key);
+  }
+  const tokenResponse = await send(fields);
+  assert.equal(tokenResponse.status, 200);
+  const token = await tokenResponse.json();
+  const refresh = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: token.refresh_token,
+    client_id: CLIENT,
+    scope: 'create',
+  });
+  for (const key of refresh.keys()) {
+    const repeated = new URLSearchParams(refresh);
+    repeated.append(key, refresh.get(key)!);
+    const refused = await send(repeated);
+    assert.equal(refused.status, 400, key);
+    assert.equal((await refused.json()).error, 'invalid_request', key);
+  }
+  assert.equal((await send(refresh)).status, 200);
+});

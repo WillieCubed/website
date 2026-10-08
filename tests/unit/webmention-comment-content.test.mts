@@ -148,3 +148,13 @@ test('native response media keeps controls and drops autoplay and executable sou
   assert.match(clean, /https:\/\/alice.example\/notes\/clip.mp3/);
   assert.doesNotMatch(clean, /autoplay|onplay|onerror|javascript:/);
 });
+
+test('attachment actions retain only their recognized media class through repeated sanitizing', () => {
+  const html =
+    '<p><a class="arbitrary u-attachment" href="files/reply.pdf">A PDF attachment</a> and <a class="arbitrary" href="https://example.com/">a citation</a>.</p>';
+  const once = sanitizeCommentHtml(html, 'https://reply.example/post');
+  assert.match(once, /class="u-attachment"/);
+  assert.doesNotMatch(once, /arbitrary/);
+  assert.equal(sanitizeCommentHtml(once, 'https://reply.example/post'), once);
+  assert.equal((once.match(/class=/g) ?? []).length, 1);
+});

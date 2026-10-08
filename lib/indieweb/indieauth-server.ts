@@ -166,9 +166,22 @@ export type AuthorizationRequestParse =
  * Check the parameters of an authorization request. PKCE with S256 is
  * required, as the spec requires of clients, and `state` is required.
  */
+export function hasRepeatedOAuthParameters(params: URLSearchParams): boolean {
+  return [...new Set(params.keys())].some(
+    (key) => params.getAll(key).length > 1
+  );
+}
+
 export function parseAuthorizationRequest(
   params: URLSearchParams
 ): AuthorizationRequestParse {
+  if (hasRepeatedOAuthParameters(params)) {
+    return {
+      ok: false,
+      fatal: true,
+      description: 'Authorization parameters must not appear more than once.',
+    };
+  }
   const clientId = parseClientId(params.get('client_id'));
   if (!clientId) {
     return {

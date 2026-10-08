@@ -101,3 +101,40 @@ test('a known Bluesky post reference is carried on the record', () => {
     bskyPostRef
   );
 });
+
+test('complete text retains code, reference image descriptions, quotations and table cells', () => {
+  const record = documentRecord({
+    ...article,
+    body: 'Use `value()` now.\n\n```ts\nconst value = 1;\n```\n\n> A quote\n\n![A described image][photo]\n\n[photo]: https://example.com/photo.png\n\n| Name | Value |\n| --- | --- |\n| First | 1 |',
+  });
+  for (const text of [
+    'value()',
+    'const value = 1;',
+    'A quote',
+    'A described image',
+    'Name\tValue',
+    'First\t1',
+  ])
+    assert.ok(record.textContent?.includes(text), text);
+});
+
+test('UTF-8 byte and grapheme budgets both constrain derived titles', () => {
+  const record = documentRecord({ ...article, title: '👩‍👩‍👧‍👦'.repeat(600) });
+  assert.ok(Buffer.byteLength(record.title) <= 5000);
+  assert.ok(safeParse(SiteStandardDocument.mainSchema, record).ok);
+});
+
+test('literal Micropub content does not evaluate or strip braces and HTML-looking text', () => {
+  const record = documentRecord({
+    ...article,
+    contentFormat: 'text',
+    body: 'Use {value}. <Widget> is text.',
+    photos: [
+      { url: 'https://example.com/image.jpg', alt: 'The image description' },
+    ],
+  });
+  assert.equal(
+    record.textContent,
+    'Use {value}. <Widget> is text.\n\nThe image description'
+  );
+});

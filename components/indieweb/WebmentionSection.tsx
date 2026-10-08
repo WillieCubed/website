@@ -1,7 +1,10 @@
 import WebmentionAvatar from '@/components/indieweb/WebmentionAvatar';
 import WebmentionReplies from '@/components/indieweb/WebmentionReplies';
 
-import type { Webmention, WebmentionGroup } from '@/lib/indieweb/types';
+import type {
+  PublishingResponse,
+  ResponseGroup as WebmentionGroup,
+} from '@/lib/indieweb/types';
 import { formatDate } from '@/lib/site';
 
 interface WebmentionSectionProps {
@@ -29,7 +32,7 @@ const RSVP_GROUPS = [
   },
 ] as const;
 
-function shownRsvps(rsvps: Webmention[]): Webmention[] {
+function shownRsvps(rsvps: PublishingResponse[]): PublishingResponse[] {
   return rsvps.filter((rsvp) => rsvp.rsvp && rsvp.rsvp !== 'no');
 }
 
@@ -92,12 +95,30 @@ export default function WebmentionSection({
           ))}
         </div>
       )}
-      {mentions.length > 0 && <Mentions mentions={mentions} />}
+      {mentions.some(
+        (item) => item.origin === 'atproto' || item.media?.length
+      ) && (
+        <WebmentionReplies
+          replies={mentions.filter(
+            (item) => item.origin === 'atproto' || item.media?.length
+          )}
+          label="Quotes and mentions"
+        />
+      )}
+      {mentions.some(
+        (item) => item.origin !== 'atproto' && !item.media?.length
+      ) && (
+        <Mentions
+          mentions={mentions.filter(
+            (item) => item.origin !== 'atproto' && !item.media?.length
+          )}
+        />
+      )}
     </div>
   );
 }
 
-function names(items: Webmention[]): string {
+function names(items: PublishingResponse[]): string {
   const list = items.map((item) => item.author.name || 'someone');
   if (list.length <= 2) return list.join(' and ');
   if (list.length === 3) return `${list[0]}, ${list[1]}, and ${list[2]}`;
@@ -115,7 +136,7 @@ function Facepile({
   property,
   line,
 }: {
-  items: Webmention[];
+  items: PublishingResponse[];
   property: 'u-like' | 'u-repost' | 'u-bookmark' | 'u-rsvp';
   line: (who: string, one: boolean) => string;
 }) {
@@ -157,7 +178,7 @@ function excerpt(text: string): string {
  * its markup said. The host stands in for a missing author, so every line
  * says where the mention lives.
  */
-function Mentions({ mentions }: { mentions: Webmention[] }) {
+function Mentions({ mentions }: { mentions: PublishingResponse[] }) {
   return (
     <ul className="space-y-3 text-body-small text-muted">
       {mentions.map((mention) => {

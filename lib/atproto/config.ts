@@ -57,6 +57,10 @@ export function appPassword(): string | undefined {
   return process.env.ATPROTO_APP_PASSWORD || undefined;
 }
 
+export function blueskyAppview(): string {
+  return process.env.BLUESKY_APPVIEW_URL || 'https://public.api.bsky.app';
+}
+
 export function socialSettings() {
   const signingKey = process.env.ATPROTO_OAUTH_JWK;
   const storageKey = process.env.ATPROTO_OAUTH_STORAGE_KEY;

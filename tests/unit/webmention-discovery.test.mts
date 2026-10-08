@@ -2,10 +2,16 @@ import assert from 'node:assert/strict';
 import test, { mock } from 'node:test';
 
 import {
-  discoverWebmentionEndpoint,
+  discoverWebmentionEndpoint as discoverEndpoint,
   parseHtmlForWebmentionEndpoint,
   parseLinkHeader,
 } from '@/lib/indieweb/send-webmention';
+
+const discoverWebmentionEndpoint = (url: string) =>
+  discoverEndpoint(url, {
+    resolve: async () => [{ address: '93.184.216.34', family: 4 }],
+    fetch: (address, init) => globalThis.fetch(address, init),
+  });
 
 const rocks = 'https://webmention.rocks';
 
@@ -274,14 +280,23 @@ test('webmention.rocks tests 21 and 22: a query string, and a path relative to t
  */
 async function discoverAfterRedirect(headers: Record<string, string>) {
   const final = `${rocks}/test/23/page/ksGubrIxAHlJfuhVnjk6`;
-  const fetchMock = mock.method(globalThis, 'fetch', async () => {
-    const response = new Response(
-      '<div class="h-entry"><p><a rel="webmention" href="webmention-endpoint/ksGubrIxAHlJfuhVnjk6">webmention endpoint</a></p></div>',
-      { headers }
-    );
-    Object.defineProperty(response, 'url', { value: final });
-    return response;
-  });
+  const fetchMock = mock.method(
+    globalThis,
+    'fetch',
+    async (address: string | URL) => {
+      if (String(address) !== final)
+        return new Response(null, {
+          status: 302,
+          headers: { Location: final },
+        });
+      const response = new Response(
+        '<div class="h-entry"><p><a rel="webmention" href="webmention-endpoint/ksGubrIxAHlJfuhVnjk6">webmention endpoint</a></p></div>',
+        { headers }
+      );
+      Object.defineProperty(response, 'url', { value: final });
+      return response;
+    }
+  );
   try {
     return await discoverWebmentionEndpoint(`${rocks}/test/23/page`);
   } finally {

@@ -51,7 +51,7 @@ export function checkDeployment(env, project) {
   if (!env.has('BLOB_STORE_ID') && !env.has('BLOB_READ_WRITE_TOKEN')) {
     missing.push('BLOB_STORE_ID or BLOB_READ_WRITE_TOKEN');
   }
-  if (project === 'website') {
+  if (project === 'website' || project === 'indieweb-acceptance') {
     missing.push(
       ...[
         'NEXT_PUBLIC_ATPROTO_DID',

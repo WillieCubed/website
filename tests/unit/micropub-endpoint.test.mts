@@ -1,3 +1,4 @@
+import matter from 'gray-matter';
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -6,15 +7,52 @@ import test from 'node:test';
 
 import { hashSecret } from '@/lib/indieweb/indieauth-server';
 import {
+  type ArchivedWriting,
+  type MicropubArchiveStore,
+} from '@/lib/indieweb/micropub-archive';
+import {
   type MicropubEndpointOptions,
   handleMicropubGet,
   handleMicropubPost,
 } from '@/lib/indieweb/micropub-endpoint';
+import { MicropubConflictError } from '@/lib/indieweb/micropub-store';
 import type { MicropubRouteEnvironment } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
 import { memoryIndieAuthStore } from './indieauth-memory-store.mts';
 
+function memoryArchives(): MicropubArchiveStore & {
+  records: Map<string, ArchivedWriting>;
+} {
+  const records = new Map<string, ArchivedWriting>();
+  const locked = new Set<string>();
+  return {
+    records,
+    async runExclusive(key, operation) {
+      if (locked.has(key))
+        throw new MicropubConflictError(
+          'Another request is changing this post.'
+        );
+      locked.add(key);
+      try {
+        return await operation();
+      } finally {
+        locked.delete(key);
+      }
+    },
+    async save(key, url, writing) {
+      records.set(key, { ...writing, url, state: 'archived' });
+    },
+    async find(key) {
+      return records.get(key) ?? null;
+    },
+    async mark(key, state) {
+      const row = records.get(key);
+      if (row) row.state = state;
+    },
+  };
+}
+const archives = memoryArchives();
 const endpoint = `${site.origin}/micropub`;
 const postUrl = `${site.origin}/writings/bus-lane`;
 const source = `---
@@ -60,6 +98,7 @@ async function withContent(
       {
         store,
         environment: { defaultBranch: 'main', contentPath },
+        archives: memoryArchives(),
         now: () => now,
       },
       file
@@ -219,7 +258,7 @@ test('q=source reads the writing from GitHub when GitHub is configured', async (
   const { calls, fetch } = fakeGitHub();
   const response = await handleMicropubGet(
     get(sourceQuery(postUrl), await tokenWith('create')),
-    { store, environment: github, fetch }
+    { store, archives, environment: github, fetch }
   );
 
   assert.equal(response.status, 200);
@@ -318,6 +357,29 @@ test('a create with an mp-slug outside the writings directory answers 400', asyn
   });
 });
 
+test('a create cannot replace an existing permalink with either source extension', async () => {
+  await withContent(async (options, file) => {
+    const directory = join(process.cwd(), options.environment!.contentPath);
+    await writeFile(join(directory, 'markdown-post.md'), source);
+    for (const slug of ['bus-lane', 'markdown-post']) {
+      const response = await handleMicropubPost(
+        postJson(
+          { properties: { content: ['Replacement.'], 'mp-slug': [slug] } },
+          await tokenWith('create')
+        ),
+        options
+      );
+      assert.equal(response.status, 409);
+    }
+    assert.equal(await readFile(file, 'utf8'), source);
+    assert.equal(
+      await readFile(join(directory, 'markdown-post.md'), 'utf8'),
+      source
+    );
+    await assert.rejects(readFile(join(directory, 'markdown-post.mdx')));
+  });
+});
+
 test('a create with a photo without alt writes no file', async () => {
   await withContent(async (options) => {
     const response = await handleMicropubPost(
@@ -373,16 +435,12 @@ test('an update needs the update scope and rewrites the file', async () => {
       path: `${options.environment!.contentPath}/bus-lane.mdx`,
       commit: '',
     });
-    assert.equal(
-      await readFile(file, 'utf8'),
-      source
-        .replace('tags: ["transit"]', 'tags: ["transit","charleston"]')
-        .replace(
-          'lastUpdated: 2026-09-20T08:00-0700',
-          'lastUpdated: 2026-09-27T13:05-0700'
-        )
-        .replace(/\n---\n[\s\S]*$/, '\n---\n\nA lane on Charleston first.\n')
-    );
+    const updated = matter(await readFile(file, 'utf8'), {});
+    assert.equal(updated.content.trim(), 'A lane on Charleston first.');
+    assert.deepEqual(updated.data.tags, ['transit', 'charleston']);
+    assert.equal(updated.data.contentFormat, 'text');
+    assert.equal(updated.data.draft, false);
+    assert.equal(updated.data.lastUpdated, '2026-09-27T13:05-0700');
   });
 });
 
@@ -405,6 +463,7 @@ test('a photo update without alt writes no file or GitHub commit', async () => {
   const { calls, fetch } = fakeGitHub();
   const response = await handleMicropubPost(request.clone(), {
     store,
+    archives,
     environment: github,
     fetch,
   });
@@ -469,7 +528,11 @@ test('an update of something that is not a writing, or cannot be stored, answers
     }
     const unsupported = await handleMicropubPost(
       postJson(
-        { action: 'update', url: postUrl, replace: { location: ['geo:1,2'] } },
+        {
+          action: 'update',
+          url: postUrl,
+          replace: { url: ['https://example.com/override'] },
+        },
         token
       ),
       options
@@ -480,22 +543,20 @@ test('an update of something that is not a writing, or cannot be stored, answers
   });
 });
 
-test('an action this site does not support answers 400', async () => {
+test('undelete requires its own scope', async () => {
   const response = await handleMicropubPost(
     postJson({ action: 'undelete', url: postUrl }, await tokenWith('update')),
-    { store }
+    { store, archives }
   );
-  assert.equal(response.status, 400);
-  assert.deepEqual(await response.json(), {
-    error: 'invalid_request',
-    error_description: 'The action "undelete" is not supported.',
-  });
+  assert.equal(response.status, 403);
+  assert.equal((await response.json()).error, 'insufficient_scope');
+  assert.match(response.headers.get('www-authenticate')!, /scope="undelete"/);
 });
 
 test('a bad token is reported before a malformed body', async () => {
   const response = await handleMicropubPost(
     postJson({ action: 'launch' }, 'not-a-token'),
-    { store }
+    { store, archives }
   );
   assert.equal(response.status, 401);
 });
@@ -507,7 +568,7 @@ test('with GitHub configured, an update commits over the SHA it read', async () 
       { action: 'update', url: postUrl, replace: { summary: ['Now.'] } },
       await tokenWith('update')
     ),
-    { store, environment: github, fetch, now: () => now }
+    { store, archives, environment: github, fetch, now: () => now }
   );
 
   assert.equal(response.status, 200);
@@ -524,15 +585,13 @@ test('with GitHub configured, an update commits over the SHA it read', async () 
   assert.equal(body.sha, 'blob-sha');
   assert.equal(body.branch, 'publish');
   assert.equal(body.message, 'chore(content): Update bus-lane via Micropub');
-  assert.equal(
+  const updated = matter(
     Buffer.from(body.content, 'base64').toString('utf8'),
-    source
-      .replace('description: "The 109 needs one."', 'description: "Now."')
-      .replace(
-        'lastUpdated: 2026-09-20T08:00-0700',
-        'lastUpdated: 2026-09-27T13:05-0700'
-      )
+    {}
   );
+  assert.equal(updated.data.description, 'Now.');
+  assert.equal(updated.data.lastUpdated, '2026-09-27T13:05-0700');
+  assert.equal(updated.content, matter(source, {}).content);
 });
 
 test('an update that loses a race with another commit fails instead of overwriting it', async () => {
@@ -542,11 +601,11 @@ test('an update that loses a race with another commit fails instead of overwriti
       { action: 'update', url: postUrl, replace: { summary: ['Now.'] } },
       await tokenWith('update')
     ),
-    { store, environment: github, fetch, now: () => now }
+    { store, archives, environment: github, fetch, now: () => now }
   );
 
-  assert.equal(response.status, 500);
-  assert.equal((await response.json()).error, 'server_error');
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).error, 'conflict');
   assert.equal(calls.length, 2);
 });
 
@@ -590,21 +649,50 @@ test('a delete needs the delete scope and removes the file', async () => {
   });
 });
 
-test('undelete is not supported, because a delete keeps nothing to restore', async () => {
+test('delete archives privately and undelete restores the same source and permalink', async () => {
   await withContent(async (options, file) => {
-    const response = await handleMicropubPost(
+    const token = await tokenWith('delete', 'undelete');
+    const deleted = await handleMicropubPost(
+      postJson({ action: 'delete', url: postUrl }, token),
+      options
+    );
+    assert.equal(deleted.status, 200);
+    await assert.rejects(readFile(file, 'utf8'), { code: 'ENOENT' });
+    const hidden = await handleMicropubGet(
+      get(sourceQuery(postUrl), token),
+      options
+    );
+    assert.equal(hidden.status, 400);
+    const restored = await handleMicropubPost(
       postForm([
         ['action', 'undelete'],
         ['url', postUrl],
-        ['access_token', await tokenWith('delete', 'undelete')],
+        ['access_token', token],
       ]),
       options
     );
-    assert.equal(response.status, 400);
-    assert.deepEqual(await response.json(), {
-      error: 'invalid_request',
-      error_description: 'The action "undelete" is not supported.',
-    });
+    assert.equal(restored.status, 200);
+    assert.equal((await restored.json()).url, postUrl);
+    assert.equal(await readFile(file, 'utf8'), source);
+    const conflict = await handleMicropubPost(
+      postJson({ action: 'undelete', url: postUrl }, token),
+      options
+    );
+    assert.equal(conflict.status, 409);
+    assert.equal(await readFile(file, 'utf8'), source);
+  });
+});
+
+test('an archive failure leaves the public source untouched', async () => {
+  await withContent(async (options, file) => {
+    options.archives!.save = async () => {
+      throw new Error('archive unavailable');
+    };
+    const response = await handleMicropubPost(
+      postJson({ action: 'delete', url: postUrl }, await tokenWith('delete')),
+      options
+    );
+    assert.equal(response.status, 500);
     assert.equal(await readFile(file, 'utf8'), source);
   });
 });
@@ -613,7 +701,7 @@ test('with GitHub configured, a delete removes the file at the SHA it read', asy
   const { calls, fetch } = fakeGitHub();
   const response = await handleMicropubPost(
     postJson({ action: 'delete', url: postUrl }, await tokenWith('delete')),
-    { store, environment: github, fetch }
+    { store, archives, environment: github, fetch }
   );
 
   assert.equal(response.status, 200);
@@ -641,11 +729,118 @@ test('a delete that loses a race with another commit fails instead of discarding
   const { calls, fetch } = fakeGitHub(409);
   const response = await handleMicropubPost(
     postJson({ action: 'delete', url: postUrl }, await tokenWith('delete')),
-    { store, environment: github, fetch }
+    { store, archives, environment: github, fetch }
   );
 
-  assert.equal(response.status, 500);
-  assert.equal((await response.json()).error, 'server_error');
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).error, 'conflict');
   assert.equal(calls.length, 2);
   assert.equal(calls[1].method, 'DELETE');
+});
+
+test('a draft-scoped token creates drafts but cannot publish', async () => {
+  await withContent(async (options) => {
+    const token = await tokenWith('draft');
+    const draft = await handleMicropubPost(
+      postJson(
+        {
+          properties: {
+            content: ['A draft.'],
+            'post-status': ['draft'],
+            'mp-slug': ['draft-only'],
+          },
+        },
+        token
+      ),
+      options
+    );
+    assert.equal(draft.status, 202);
+    const file = await readFile(
+      join(process.cwd(), options.environment!.contentPath, 'draft-only.mdx'),
+      'utf8'
+    );
+    assert.equal(matter(file, {}).data.draft, true);
+    const published = await handleMicropubPost(
+      postJson(
+        {
+          properties: {
+            content: ['Must remain unpublished.'],
+            'mp-slug': ['not-published'],
+          },
+        },
+        token
+      ),
+      options
+    );
+    assert.equal(published.status, 403);
+    await assert.rejects(
+      readFile(
+        join(
+          process.cwd(),
+          options.environment!.contentPath,
+          'not-published.mdx'
+        ),
+        'utf8'
+      ),
+      { code: 'ENOENT' }
+    );
+  });
+});
+
+test('Micropub preflights and credential errors expose CORS and bearer challenges', async () => {
+  const { OPTIONS } = await import('@/app/micropub/route');
+  const preflight = OPTIONS();
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), '*');
+  const denied = await handleMicropubGet(get(sourceQuery(postUrl)), { store });
+  assert.equal(denied.headers.get('www-authenticate'), 'Bearer');
+  assert.equal(denied.headers.get('access-control-allow-origin'), '*');
+  const bad = await handleMicropubGet(get(sourceQuery(postUrl), 'invalid'), {
+    store,
+  });
+  assert.match(bad.headers.get('www-authenticate')!, /invalid_token/);
+});
+
+test('concurrent mutations for one permalink reject the second request', async () => {
+  await withContent(async (options, file) => {
+    let entered!: () => void;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const started = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const original = options.archives!.runExclusive.bind(options.archives!);
+    options.archives!.runExclusive = (key, operation) =>
+      original(key, async () => {
+        entered();
+        await gate;
+        return operation();
+      });
+    const token = await tokenWith('update', 'delete');
+    const first = handleMicropubPost(
+      postJson(
+        {
+          action: 'update',
+          url: postUrl,
+          replace: { summary: ['Changed first.'] },
+        },
+        token
+      ),
+      options
+    );
+    await started;
+    const second = await handleMicropubPost(
+      postJson({ action: 'delete', url: postUrl }, token),
+      options
+    );
+    assert.equal(second.status, 409);
+    release();
+    assert.equal((await first).status, 200);
+    assert.equal(
+      matter(await readFile(file, 'utf8'), {}).data.description,
+      'Changed first.'
+    );
+  });
 });

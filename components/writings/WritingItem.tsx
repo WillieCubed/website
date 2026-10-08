@@ -4,13 +4,15 @@ import SharedTitle from '@/components/site/SharedTitle';
 
 import { formatDate } from '@/lib/site';
 import { WritingData } from '@/lib/writings';
+import { writingAttachments } from '@/lib/writings/media';
+import { locationText } from '@/lib/writings/properties';
 
 import {
   TARGET_ICON,
   TARGET_PROPERTY,
   TARGET_WORD,
   hostOf,
-  replyTargetOf,
+  replyTargetsOf,
 } from './ReplyTarget';
 
 interface WritingItemProps {
@@ -43,10 +45,13 @@ export default function WritingItem({
   contentHtml,
 }: WritingItemProps) {
   const publishedIso = new Date(writing.published).toISOString();
-  const target = replyTargetOf(writing);
+  const targets = replyTargetsOf(writing);
+  const target = targets[0];
 
   return (
-    <article className="h-entry group relative -mx-3 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent">
+    <article
+      className={`${writing.postType === 'event' ? 'h-entry h-event' : 'h-entry'} group relative -mx-3 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent`}
+    >
       {/* Main link covers the entire card */}
       <SiteLink
         href={`/writings/${writing.slug}`}
@@ -54,14 +59,15 @@ export default function WritingItem({
         className="u-url absolute inset-0 z-10 rounded-2xl"
         aria-label={writing.title}
       />
-      {target && (
+      {targets.map((target) => (
         <a
+          key={`${target.kind}:${target.url}`}
           href={target.url}
           className={`${TARGET_PROPERTY[target.kind]} h-cite hidden`}
         >
           {hostOf(target.url)}
         </a>
-      )}
+      ))}
       {writing.rsvp && (
         <data className="p-rsvp hidden" value={writing.rsvp.status}>
           {writing.rsvp.status}
@@ -70,6 +76,24 @@ export default function WritingItem({
       {writing.photos?.map((photo) => (
         <data key={photo.url} className="u-photo hidden" value={photo.url} />
       ))}
+      {writingAttachments(writing).map((media) => (
+        <data
+          key={media.url}
+          className={`${media.kind === 'file' ? 'u-attachment' : `u-${media.kind}`} hidden`}
+          value={media.url}
+        />
+      ))}
+      {writing.event?.start && (
+        <time className="dt-start hidden" dateTime={writing.event.start} />
+      )}
+      {writing.event?.end && (
+        <time className="dt-end hidden" dateTime={writing.event.end} />
+      )}
+      {locationText(writing.event?.location ?? writing.location) && (
+        <span className="p-location hidden">
+          {locationText(writing.event?.location ?? writing.location)}
+        </span>
+      )}
       {contentHtml && (
         <div
           className="e-content hidden"

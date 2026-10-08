@@ -11,6 +11,7 @@ import {
   INDIEAUTH_ME,
   authorizationRedirect,
   bearerMatches,
+  buildProfile,
   findActiveToken,
   introspectionResponse,
   issueAccessToken,
@@ -19,6 +20,7 @@ import {
   parseScope,
   profileResponse,
   redeemAuthorizationCode,
+  refreshAccessToken,
   revokeAccessToken,
 } from '@/lib/indieweb/indieauth-server';
 import { jsonError, jsonResponse } from '@/lib/indieweb/responses';
@@ -336,8 +338,8 @@ export async function handleProfileRedemption(
 }
 
 /**
- * POST on the token endpoint: redeem a code for an access token, or, for
- * older clients, `action=revoke` with a `token`.
+ * POST on the token endpoint: redeem a code, rotate a refresh token, or
+ * revoke a token for older clients using `action=revoke`.
  */
 export async function handleTokenRequest(
   request: Request,
@@ -353,11 +355,18 @@ export async function handleTokenRequest(
     await revokeAccessToken(options.store, form.get('token') ?? '', now);
     return new Response(null, { status: 200, headers: TOKEN_HEADERS });
   }
+  if (form.get('grant_type') === 'refresh_token') {
+    const refreshed = await refreshAccessToken(options.store, form, now);
+    if (!refreshed.ok) {
+      return oauthError(refreshed.error, 400, refreshed.description);
+    }
+    return jsonResponse(refreshed.token, { headers: TOKEN_HEADERS });
+  }
   if (form.get('grant_type') !== 'authorization_code') {
     return oauthError(
       'unsupported_grant_type',
       400,
-      'Only the authorization_code grant is supported.'
+      'Use the authorization_code or refresh_token grant.'
     );
   }
 
@@ -398,6 +407,36 @@ export async function handleTokenVerification(
     },
     { headers: TOKEN_HEADERS }
   );
+}
+
+/** GET the current profile fields authorized by an active access token. */
+export async function handleUserInfo(
+  request: Request,
+  options: IndieAuthEndpointOptions
+): Promise<Response> {
+  const bearer = getBearerToken(request);
+  if (!bearer) {
+    return new Response(null, {
+      status: 401,
+      headers: { ...TOKEN_HEADERS, 'WWW-Authenticate': 'Bearer' },
+    });
+  }
+  const record = await findActiveToken(options.store, bearer, clock(options));
+  if (!record) {
+    const response = oauthError('invalid_token', 401);
+    response.headers.set('WWW-Authenticate', 'Bearer error="invalid_token"');
+    return response;
+  }
+  const profile = buildProfile(record.scope);
+  if (!profile) {
+    const response = oauthError('insufficient_scope', 403);
+    response.headers.set(
+      'WWW-Authenticate',
+      'Bearer error="insufficient_scope", scope="profile"'
+    );
+    return response;
+  }
+  return jsonResponse(profile, { headers: TOKEN_HEADERS });
 }
 
 /**

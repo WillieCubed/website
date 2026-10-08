@@ -62,6 +62,12 @@ test('metadata names the issuer and every endpoint on this origin', () => {
     `${site.origin}/indieauth/auth`
   );
   assert.equal(metadata.token_endpoint, `${site.origin}/indieauth/token`);
+  assert.equal(metadata.userinfo_endpoint, `${site.origin}/indieauth/userinfo`);
+  assert.deepEqual(metadata.grant_types_supported, [
+    'authorization_code',
+    'refresh_token',
+  ]);
+  assert.deepEqual(metadata.token_endpoint_auth_methods_supported, ['none']);
   assert.equal(
     metadata.introspection_endpoint,
     `${site.origin}/indieauth/introspect`
@@ -295,7 +301,7 @@ test('the profile response carries the profile only when granted', () => {
 });
 
 test('an issued token verifies until it expires or is revoked', async () => {
-  const { store, tokens } = memoryIndieAuthStore();
+  const { store, tokens, refreshTokens, families } = memoryIndieAuthStore();
   const code = await issueAuthorizationCode(store, request, ['create'], NOW);
   const redeemed = await redeemAuthorizationCode(store, redemption(code), NOW);
   assert.ok(redeemed.ok);
@@ -306,6 +312,15 @@ test('an issued token verifies until it expires or is revoked', async () => {
   assert.equal(response.me, INDIEAUTH_ISSUER);
   assert.equal(response.expires_in, ACCESS_TOKEN_LIFETIME_MS / 1000);
   assert.ok(!tokens.has(response.access_token), 'stored by digest only');
+  assert.deepEqual(
+    [...refreshTokens.keys()],
+    [hashSecret(response.refresh_token)]
+  );
+  assert.ok(
+    !JSON.stringify([...refreshTokens, ...families]).includes(
+      response.refresh_token
+    )
+  );
 
   const record = await findActiveToken(store, response.access_token, NOW);
   assert.equal(record?.clientId, request.clientId);
@@ -323,6 +338,25 @@ test('an issued token verifies until it expires or is revoked', async () => {
   // Revoking again, or revoking nonsense, is not an error.
   await revokeAccessToken(store, response.access_token, NOW);
   await revokeAccessToken(store, 'nonsense', NOW);
+});
+
+test('legacy access tokens retain their recorded expiry after new token lifetimes change', async () => {
+  const { store } = memoryIndieAuthStore();
+  const legacyExpiry = new Date(NOW.getTime() + 90 * 24 * 60 * 60 * 1000);
+  await store.saveToken(hashSecret('legacy-token'), {
+    clientId: request.clientId,
+    me: INDIEAUTH_ISSUER,
+    scope: ['create'],
+    issuedAt: NOW,
+    expiresAt: legacyExpiry,
+  });
+  const later = new Date(NOW.getTime() + ACCESS_TOKEN_LIFETIME_MS);
+  const legacy = await findActiveToken(store, 'legacy-token', later);
+  assert.equal(legacy?.expiresAt.getTime(), legacyExpiry.getTime());
+  assert.equal(
+    await findActiveToken(store, 'legacy-token', legacyExpiry),
+    null
+  );
 });
 
 test('introspection reports active grants and nothing about inactive ones', () => {

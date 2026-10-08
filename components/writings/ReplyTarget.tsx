@@ -4,6 +4,7 @@ import Icon, { type IconName } from '@/components/icons/Icon';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
 import { formatDate } from '@/lib/site';
+import { propertyLinks } from '@/lib/writings/properties';
 import type { RSVPStatus, WritingData } from '@/lib/writings/types';
 
 export type TargetKind = 'reply' | 'like' | 'repost' | 'bookmark' | 'rsvp';
@@ -13,6 +14,7 @@ interface ReplyTargetProps {
   kind: TargetKind;
   context?: ReplyContext;
   rsvpStatus?: RSVPStatus;
+  emitRsvpProperty?: boolean;
 }
 
 /** The h-entry property that names the page each kind of post answers. */
@@ -41,19 +43,34 @@ export const TARGET_WORD: Record<TargetKind, string> = {
   rsvp: 'RSVP',
 };
 
-/**
- * The page a post answers and how. A post carries one of these; the order
- * decides which wins if frontmatter sets more than one.
- */
+export function replyTargetsOf(
+  writing: WritingData
+): { url: string; kind: TargetKind }[] {
+  const targets: { url: string; kind: TargetKind }[] = [];
+  for (const [property, kind, projected] of [
+    ['like-of', 'like', writing.likeOf],
+    ['repost-of', 'repost', writing.repostOf],
+    ['bookmark-of', 'bookmark', writing.bookmarkOf],
+    [
+      'in-reply-to',
+      writing.rsvp ? 'rsvp' : 'reply',
+      writing.rsvp?.eventUrl ?? writing.inReplyTo,
+    ],
+  ] as const) {
+    const urls = propertyLinks(writing, property).map(({ url }) => url);
+    if (projected) urls.push(projected);
+    for (const url of urls) {
+      if (!targets.some((target) => target.kind === kind && target.url === url))
+        targets.push({ url, kind });
+    }
+  }
+  return targets;
+}
+
 export function replyTargetOf(
   writing: WritingData
 ): { url: string; kind: TargetKind } | null {
-  if (writing.likeOf) return { url: writing.likeOf, kind: 'like' };
-  if (writing.repostOf) return { url: writing.repostOf, kind: 'repost' };
-  if (writing.bookmarkOf) return { url: writing.bookmarkOf, kind: 'bookmark' };
-  if (writing.rsvp) return { url: writing.rsvp.eventUrl, kind: 'rsvp' };
-  if (writing.inReplyTo) return { url: writing.inReplyTo, kind: 'reply' };
-  return null;
+  return replyTargetsOf(writing)[0] ?? null;
 }
 
 const RSVP_WORD: Record<RSVPStatus, string> = {
@@ -74,6 +91,7 @@ export default function ReplyTarget({
   kind,
   context,
   rsvpStatus,
+  emitRsvpProperty = true,
 }: ReplyTargetProps) {
   const host = hostOf(url);
   const siteName = context?.siteName || host;
@@ -143,7 +161,7 @@ export default function ReplyTarget({
       </a>
       {/* Outside the h-cite: inside it, the RSVP would read as a property
           of the event rather than of this post. */}
-      {kind === 'rsvp' && rsvpStatus && (
+      {emitRsvpProperty && kind === 'rsvp' && rsvpStatus && (
         <data className="p-rsvp hidden" value={rsvpStatus}>
           {rsvpStatus}
         </data>

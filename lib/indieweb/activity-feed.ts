@@ -1,11 +1,15 @@
+import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import type {
   ActivityFeedItem,
   BuildActivityFeedOptions,
+  ResponseActivity,
   Webmention,
   WebmentionActivity,
   WebmentionGroup,
   WebmentionType,
 } from '@/lib/indieweb/types';
+import { plainTextHtml } from '@/lib/writings/content';
+import { responseMediaHtml } from '@/lib/writings/media';
 
 const ACTIVITY_VERBS: Record<WebmentionType, string> = {
   like: 'liked',
@@ -52,7 +56,7 @@ export function sortWebmentionActivities(
   );
 }
 
-export function activityAuthorName(activity: WebmentionActivity): string {
+export function activityAuthorName(activity: ResponseActivity): string {
   return (
     activity.author.name?.trim() ||
     activity.author.url?.trim() ||
@@ -68,7 +72,7 @@ export function activityVerb(type: WebmentionType): string {
   return ACTIVITY_VERBS[type];
 }
 
-export function activitySummary(activity: WebmentionActivity): string {
+export function activitySummary(activity: ResponseActivity): string {
   const author = activityAuthorName(activity);
   const fallback = `${author} ${activityVerb(activity.type)} this post.`;
   const content = activity.content?.trim();
@@ -76,29 +80,51 @@ export function activitySummary(activity: WebmentionActivity): string {
 }
 
 export function buildActivityFeedItems(
-  activities: WebmentionActivity[],
+  activities: ResponseActivity[],
   options: BuildActivityFeedOptions
 ): ActivityFeedItem[] {
-  return sortWebmentionActivities(activities).map((activity) => {
-    const author = activityAuthorName(activity);
-    const targetTitle = options.titleForTarget(activity.targetUrl, activity);
+  return [...activities]
+    .sort((a, b) => b.activityDate.getTime() - a.activityDate.getTime())
+    .map((activity) => {
+      const author = activityAuthorName(activity);
+      const targetTitle = options.titleForTarget(activity.targetUrl, activity);
 
-    return {
-      id: `webmention:${activity.id}:${activity.sourceUrl}:${activity.targetUrl}`,
-      title: `${author} ${activityVerb(activity.type)} "${targetTitle}"`,
-      description: activitySummary(activity),
-      url: activity.sourceUrl,
-      published: activity.activityDate,
-      updated: activity.verifiedAt,
-      categories: ['indieweb', activity.type],
-      indieweb: {
-        type: activity.type,
-        source: activity.sourceUrl,
-        target: activity.targetUrl,
-        authorName: activity.author.name,
-      },
-    };
-  });
+      return {
+        id: `${activity.origin === 'atproto' ? 'atproto' : 'webmention'}:${activity.id}:${activity.sourceUrl}:${activity.targetUrl}`,
+        title: `${author} ${activityVerb(activity.type)} "${targetTitle}"`,
+        description: activitySummary(activity),
+        author: activity.author,
+        content:
+          (activity.contentHtml
+            ? sanitizeCommentHtml(activity.contentHtml, activity.sourceUrl)
+            : activity.media?.length
+              ? plainTextHtml(activity.content || '')
+              : '') +
+            (activity.media?.length
+              ? responseMediaHtml(activity.media, activity.sourceUrl)
+              : '') || undefined,
+        attachments: activity.media
+          ?.filter((media) => media.mimeType)
+          .map((media) => ({
+            url: media.url,
+            mime_type: media.mimeType!,
+            title: media.description,
+          })),
+        url: activity.sourceUrl,
+        published: activity.activityDate,
+        updated: activity.verifiedAt,
+        categories: [
+          activity.origin === 'atproto' ? 'atproto' : 'indieweb',
+          activity.type,
+        ],
+        indieweb: {
+          type: activity.type,
+          source: activity.sourceUrl,
+          target: activity.targetUrl,
+          authorName: activity.author.name,
+        },
+      };
+    });
 }
 
 export function extractWritingSlugFromTarget(targetUrl: string): string | null {

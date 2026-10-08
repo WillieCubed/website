@@ -44,7 +44,7 @@ test('event handlers, styles, and every other attribute are dropped', () => {
         '<a href="https://ok.example/" onmouseover="alert(1)" target="_blank" style="position:fixed">ok</a>',
       base
     ),
-    '<p>Hi</p><a href="https://ok.example/" rel="nofollow ugc">ok</a>'
+    '<p>Hi</p><img src="https://alice.example/notes/x" loading="lazy" alt="" /><a href="https://ok.example/" rel="nofollow ugc">ok</a>'
   );
 });
 
@@ -107,4 +107,15 @@ test('plain text stays text and is cut at the limit', () => {
   const cut = commentText('word '.repeat(COMMENT_TEXT_LIMIT));
   assert.ok(cut?.endsWith('…'));
   assert.ok((cut?.length ?? 0) <= COMMENT_TEXT_LIMIT + 1);
+});
+
+test('native response media keeps controls and drops autoplay and executable sources', () => {
+  const clean = sanitizeCommentHtml(
+    '<audio src="clip.mp3" autoplay onplay="bad()"></audio><video src="clip.mp4" poster="cover.jpg" autoplay></video><img src="javascript:bad()" onerror="bad()">',
+    base
+  );
+  assert.match(clean, /controls/);
+  assert.match(clean, /preload="none"/);
+  assert.match(clean, /https:\/\/alice.example\/notes\/clip.mp3/);
+  assert.doesNotMatch(clean, /autoplay|onplay|onerror|javascript:/);
 });

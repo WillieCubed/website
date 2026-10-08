@@ -89,7 +89,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    if (!source || !target) {
+    if (
+      typeof source !== 'string' ||
+      typeof target !== 'string' ||
+      !source ||
+      !target
+    ) {
       return NextResponse.json(
         { error: 'Both source and target URLs are required.' },
         { status: 400 }
@@ -115,10 +120,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: vouch.error }, { status: 400 });
     }
 
-    // Only accept HTTPS
-    if (sourceUrl.protocol !== 'https:') {
+    if (
+      !['http:', 'https:'].includes(sourceUrl.protocol) ||
+      sourceUrl.username ||
+      sourceUrl.password ||
+      sourceUrl.href === targetUrl.href
+    ) {
       return NextResponse.json(
-        { error: 'Source URL must use HTTPS.' },
+        { error: 'Source must be a distinct public HTTP or HTTPS page.' },
         { status: 400 }
       );
     }
@@ -150,7 +159,9 @@ export async function POST(request: NextRequest) {
     // until the callback settles, where a bare promise could be cut off.
     after(async () => {
       try {
-        const result = await verifyWebmention(id, source, canonicalTarget);
+        const result = await verifyWebmention(id, source, canonicalTarget, {
+          verificationTarget: target,
+        });
         let vouched = false;
         if (result.success && !result.isDeleted && vouch.vouch) {
           const outcome = await applyVouch(

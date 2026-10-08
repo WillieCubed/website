@@ -1,12 +1,15 @@
-import { mkdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
+import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import { MICROPUB_MEDIA_ENDPOINT } from '@/lib/indieweb/constants';
 import { getMediaStore } from '@/lib/indieweb/media';
 import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
 import {
+  MicropubConflictError,
   MicropubStorageError,
+  createLocalWriting,
   localWriteError,
   putGitHubFile,
 } from '@/lib/indieweb/micropub-store';
@@ -61,6 +64,9 @@ export function getMicropubConfig(
       { type: 'repost', name: 'Repost' },
       { type: 'bookmark', name: 'Bookmark' },
       { type: 'rsvp', name: 'RSVP' },
+      { type: 'audio', name: 'Audio' },
+      { type: 'video', name: 'Video' },
+      { type: 'event', name: 'Event' },
     ],
   };
 }
@@ -98,9 +104,26 @@ export function buildMicropubWritingFile(
     `published: ${published.toISOString()}`,
     `lastUpdated: ${published.toISOString()}`,
     `tags: ${JSON.stringify(entry.categories)}`,
-    'draft: false',
+    `draft: ${entry.postStatus === 'draft'}`,
+    `contentFormat: ${JSON.stringify(entry.contentFormat ?? 'text')}`,
+    `micropub: ${JSON.stringify({ type: [entry.h === 'event' ? 'h-event' : 'h-entry'], properties: entry.properties ?? propertiesForEntry(entry) })}`,
     `postType: ${JSON.stringify(toWritingPostType(entry))}`,
   ];
+
+  if (entry.audio?.length) lines.push(`audio: ${JSON.stringify(entry.audio)}`);
+  if (entry.video?.length) lines.push(`video: ${JSON.stringify(entry.video)}`);
+  if (entry.event) lines.push(`event: ${JSON.stringify(entry.event)}`);
+  const people = (entry.properties?.category ?? []).flatMap((value) => {
+    if (typeof value !== 'object') return [];
+    if (!Array.isArray(value.type) || !value.type.includes('h-card')) return [];
+    const props = value.properties as Record<string, unknown[]> | undefined;
+    const name = props?.name?.[0],
+      url = props?.url?.[0];
+    return typeof name === 'string' && typeof url === 'string'
+      ? [{ name: name.trim(), url: photoUrl(url) }]
+      : [];
+  });
+  if (people.length) lines.push(`people: ${JSON.stringify(people)}`);
 
   if (entry.inReplyTo)
     lines.push(`inReplyTo: ${JSON.stringify(entry.inReplyTo)}`);
@@ -172,7 +195,8 @@ export function micropubWritingPath(
  */
 export async function commitMicropubWriting(
   entry: MicropubCreateRequest,
-  options: MicropubCommitOptions
+  options: MicropubCommitOptions,
+  fetchImpl: typeof fetch = fetch
 ): Promise<MicropubCommitResult> {
   const { slug, path } = micropubWritingPath(
     entry,
@@ -189,7 +213,8 @@ export async function commitMicropubWriting(
       githubToken: options.token,
       defaultBranch: options.branch,
       contentPath: options.contentPath,
-    }
+    },
+    fetchImpl
   );
 
   return {
@@ -218,11 +243,11 @@ export async function writeMicropubWritingLocally(
   try {
     await mkdir(join(process.cwd(), contentPath), { recursive: true });
     if (await exists(absolutePath)) {
-      throw new MicropubStorageError(
+      throw new MicropubConflictError(
         `A writing with slug "${slug}" already exists.`
       );
     }
-    await writeFile(absolutePath, body, { encoding: 'utf8', flag: 'wx' });
+    await createLocalWriting(path, body);
   } catch (error) {
     throw localWriteError(error, path);
   }
@@ -240,22 +265,64 @@ async function exists(path: string): Promise<boolean> {
 }
 
 function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
-  const properties = body.properties ?? {};
+  if (!body || typeof body !== 'object' || Array.isArray(body))
+    throw new Error('invalid_request');
+  const properties = validateProperties(body.properties ?? {});
+  const types = body.type ?? ['h-entry'];
+  if (
+    !Array.isArray(types) ||
+    !types.every((value) => typeof value === 'string')
+  )
+    throw new Error('invalid_request');
+  const content = contentValue(properties.content);
+  for (const property of [
+    'in-reply-to',
+    'like-of',
+    'repost-of',
+    'bookmark-of',
+    'syndication',
+  ])
+    urlValues(properties[property], property);
+  if (properties.content)
+    properties.content = properties.content.map((value) =>
+      typeof value === 'object' && typeof value.html === 'string'
+        ? { ...value, html: sanitizeCommentHtml(value.html, site.origin) }
+        : value
+    );
+  const postStatus = firstJsonString(properties['post-status']);
+  if (
+    postStatus !== undefined &&
+    postStatus !== 'draft' &&
+    postStatus !== 'published'
+  )
+    throw new Error('invalid_request');
   return normalizeEntry({
-    h: (body.type ?? ['h-entry'])[0]?.replace(/^h-/, '') ?? 'entry',
-    content: firstJsonString(properties.content),
+    h: types[0]?.replace(/^h-/, '') ?? 'entry',
+    properties,
+    content: content.body,
+    contentFormat: content.format,
+    postStatus,
+    audio: urlValues(properties.audio, 'audio'),
+    video: urlValues(properties.video, 'video'),
+    event: types.includes('h-event')
+      ? {
+          start: firstJsonString(properties.start),
+          end: firstJsonString(properties.end),
+          location: properties.location?.[0],
+        }
+      : undefined,
     name: firstJsonString(properties.name),
     summary: firstJsonString(properties.summary),
     categories: jsonStrings(properties.category),
     slug: firstJsonString(properties['mp-slug']),
-    published: parseOptionalDate(firstJsonString(properties.published)),
+    published: validDate(firstJsonString(properties.published)),
     inReplyTo: citedUrl(properties['in-reply-to']),
     likeOf: citedUrl(properties['like-of']),
     repostOf: citedUrl(properties['repost-of']),
     bookmarkOf: citedUrl(properties['bookmark-of']),
     rsvp: firstJsonString(properties.rsvp),
     photos: parseJsonPhotos(properties.photo),
-    syndication: jsonStrings(properties.syndication),
+    syndication: urlValues(properties.syndication, 'syndication'),
     syndicateTo: jsonStrings(properties['mp-syndicate-to']),
   });
 }
@@ -270,7 +337,14 @@ function jsonStrings(values: unknown[] | undefined): string[] {
 
 function firstJsonString(values: unknown[] | undefined): string | undefined {
   const [first] = values ?? [];
-  return typeof first === 'string' ? first : undefined;
+  return typeof first === 'string'
+    ? first
+    : first &&
+        typeof first === 'object' &&
+        'value' in first &&
+        typeof first.value === 'string'
+      ? first.value
+      : undefined;
 }
 
 /**
@@ -283,7 +357,8 @@ function firstJsonString(values: unknown[] | undefined): string | undefined {
 function citedUrl(values: unknown[] | undefined): string | undefined {
   const [first] = values ?? [];
   if (first === undefined) return undefined;
-  if (typeof first === 'string') return first.trim() || undefined;
+  if (typeof first === 'string')
+    return first.trim() ? photoUrl(first) : undefined;
   if (first && typeof first === 'object') {
     const { properties, value } = first as {
       properties?: { url?: unknown };
@@ -292,7 +367,7 @@ function citedUrl(values: unknown[] | undefined): string | undefined {
     const [url] = Array.isArray(properties?.url) ? properties.url : [];
     for (const candidate of [url, value]) {
       if (typeof candidate === 'string' && candidate.trim()) {
-        return candidate.trim();
+        return photoUrl(candidate);
       }
     }
   }
@@ -300,14 +375,64 @@ function citedUrl(values: unknown[] | undefined): string | undefined {
 }
 
 function parseFormData(formData: FormData): MicropubCreateRequest {
+  const collected = new Map<string, (string | Record<string, unknown>)[]>();
+  for (const [field, value] of formData) {
+    if (['h', 'access_token', 'action', 'url'].includes(field)) continue;
+    if (typeof value !== 'string') {
+      if (field.startsWith('photo')) parseFormPhotos(formData);
+      throw new MicropubRequestError(
+        'Upload files to /micropub/media before creating the post.'
+      );
+    }
+    const name = field.replace(/\[\]$/, '');
+    if (name === 'content[html]') {
+      collected.set('content', [
+        { html: sanitizeCommentHtml(value, site.origin) },
+      ]);
+      continue;
+    }
+    collected.set(name, [...(collected.get(name) ?? []), value]);
+  }
+  const properties = Object.fromEntries(collected);
+  for (const property of [
+    'in-reply-to',
+    'like-of',
+    'repost-of',
+    'bookmark-of',
+    'syndication',
+  ])
+    urlValues(properties[property], property);
+  if (properties.category)
+    properties.category = formStringList(formData, 'category');
+  const content = contentValue(properties.content);
+  const postStatus = optionalFormString(formData.get('post-status'));
+  if (
+    postStatus !== undefined &&
+    postStatus !== 'draft' &&
+    postStatus !== 'published'
+  )
+    throw new Error('invalid_request');
   return normalizeEntry({
+    properties,
+    contentFormat: content.format,
+    postStatus,
+    audio: urlValues(properties.audio, 'audio'),
+    video: urlValues(properties.video, 'video'),
+    event:
+      formData.get('h') === 'event'
+        ? {
+            start: firstJsonString(properties.start),
+            end: firstJsonString(properties.end),
+            location: properties.location?.[0],
+          }
+        : undefined,
     h: String(formData.get('h') ?? 'entry'),
-    content: String(formData.get('content') ?? ''),
+    content: content.body,
     name: optionalFormString(formData.get('name')),
     summary: optionalFormString(formData.get('summary')),
     categories: formStringList(formData, 'category'),
     slug: optionalFormString(formData.get('mp-slug')),
-    published: parseOptionalDate(optionalFormString(formData.get('published'))),
+    published: validDate(optionalFormString(formData.get('published'))),
     inReplyTo: optionalFormString(formData.get('in-reply-to')),
     likeOf: optionalFormString(formData.get('like-of')),
     repostOf: optionalFormString(formData.get('repost-of')),
@@ -322,13 +447,46 @@ function parseFormData(formData: FormData): MicropubCreateRequest {
 function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
   const content = entry.content?.trim() ?? '';
   // A photo post may be the photo alone, without a caption.
-  if (entry.h !== 'entry' || (!content && entry.photos.length === 0)) {
+  if (
+    !['entry', 'event'].includes(entry.h) ||
+    (!content &&
+      entry.photos.length === 0 &&
+      !entry.audio?.length &&
+      !entry.video?.length &&
+      !entry.likeOf &&
+      !entry.repostOf &&
+      !entry.bookmarkOf &&
+      !entry.inReplyTo &&
+      entry.h !== 'event')
+  ) {
     throw new Error('invalid_request');
   }
   assertPhotoAlts(entry.photos);
+  if (entry.rsvp && !entry.inReplyTo)
+    throw new MicropubRequestError(
+      'An RSVP needs in-reply-to naming the event.'
+    );
+  if (
+    entry.h === 'event' &&
+    !entry.name &&
+    !entry.content &&
+    !entry.event?.start
+  )
+    throw new MicropubRequestError(
+      'An event needs a name, content, or start time.'
+    );
+  for (const date of [entry.event?.start, entry.event?.end])
+    if (date !== undefined && Number.isNaN(new Date(date).getTime()))
+      throw new MicropubRequestError('Event dates must be valid dates.');
 
   return {
-    h: 'entry',
+    h: entry.h as 'entry' | 'event',
+    properties: entry.properties,
+    contentFormat: entry.contentFormat,
+    postStatus: entry.postStatus,
+    audio: entry.audio,
+    video: entry.video,
+    event: entry.event,
     content,
     name: entry.name,
     summary: entry.summary,
@@ -420,6 +578,9 @@ function inferPostType(entry: MicropubPostTypeSource): MicropubPostType {
   if (entry.repostOf) return 'repost';
   if (entry.bookmarkOf) return 'bookmark';
   if (entry.inReplyTo) return 'reply';
+  if (entry.event) return 'event';
+  if (entry.video?.length) return 'video';
+  if (entry.audio?.length) return 'audio';
   if (entry.photos?.length) return 'photo';
   return entry.name ? 'article' : 'note';
 }
@@ -441,6 +602,10 @@ function normalizeRsvp(
   ) {
     return value;
   }
+  if (value !== undefined)
+    throw new MicropubRequestError(
+      'rsvp is one of yes, no, maybe, or interested.'
+    );
   return undefined;
 }
 
@@ -456,9 +621,87 @@ function titleForEntry(entry: MicropubCreateRequest, published: Date): string {
   if (entry.postType === 'photo') {
     return `Photo from ${formatDate(published)}`;
   }
+  if (['audio', 'video', 'event'].includes(entry.postType))
+    return `${entry.postType[0].toUpperCase()}${entry.postType.slice(1)} from ${formatDate(published)}`;
   return `Note from ${formatDate(published)}`;
 }
 
 function formatDate(date: Date): string {
   return isoDateOnly(date);
+}
+
+function validateProperties(
+  value: unknown
+): Record<string, (string | Record<string, unknown>)[]> {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('invalid_request');
+  return Object.fromEntries(
+    Object.entries(value).map(([key, values]) => {
+      if (
+        !Array.isArray(values) ||
+        !values.every(
+          (item) =>
+            typeof item === 'string' ||
+            (item && typeof item === 'object' && !Array.isArray(item))
+        )
+      )
+        throw new Error('invalid_request');
+      return [key, values];
+    })
+  );
+}
+
+function contentValue(
+  values: (string | Record<string, unknown>)[] | undefined
+): { body: string; format: 'text' | 'html' } {
+  const value = values?.[0];
+  if (value === undefined) return { body: '', format: 'text' };
+  if (typeof value === 'string') return { body: value, format: 'text' };
+  if (typeof value.html === 'string')
+    return {
+      body: sanitizeCommentHtml(value.html, site.origin),
+      format: 'html',
+    };
+  if (typeof value.value === 'string')
+    return { body: value.value, format: 'text' };
+  throw new Error('invalid_request');
+}
+
+function urlValues(
+  values: (string | Record<string, unknown>)[] | undefined,
+  name: string
+): string[] {
+  return (values ?? []).map((value) => {
+    const url = citedUrl([value]);
+    if (!url) throw new MicropubRequestError(`Each ${name} needs a URL.`);
+    return photoUrl(url);
+  });
+}
+
+function propertiesForEntry(
+  entry: MicropubCreateRequest
+): Record<string, (string | Record<string, unknown>)[]> {
+  return Object.fromEntries(
+    Object.entries({
+      content: entry.content ? [entry.content] : [],
+      name: entry.name ? [entry.name] : [],
+      summary: entry.summary ? [entry.summary] : [],
+      category: entry.categories,
+      'in-reply-to': entry.inReplyTo ? [entry.inReplyTo] : [],
+      'like-of': entry.likeOf ? [entry.likeOf] : [],
+      'repost-of': entry.repostOf ? [entry.repostOf] : [],
+      'bookmark-of': entry.bookmarkOf ? [entry.bookmarkOf] : [],
+      rsvp: entry.rsvp ? [entry.rsvp] : [],
+      photo: entry.photos.map(({ url, alt }) => ({ value: url, alt })),
+      syndication: entry.syndication,
+      audio: entry.audio ?? [],
+      video: entry.video ?? [],
+    }).filter(([, values]) => values.length)
+  );
+}
+
+function validDate(value: string | undefined): Date | undefined {
+  if (value !== undefined && Number.isNaN(new Date(value).getTime()))
+    throw new MicropubRequestError('published must be a valid date.');
+  return parseOptionalDate(value);
 }

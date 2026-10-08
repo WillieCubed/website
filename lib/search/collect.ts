@@ -12,6 +12,7 @@ import {
 import { getMediaMentions } from '@/lib/media';
 import { stripMdxSyntax } from '@/lib/text/strip-mdx';
 import { type WritingData, getWritingSlugs, loadWriting } from '@/lib/writings';
+import { writingText } from '@/lib/writings/content';
 
 import { type SearchableItem, UNDATED } from './types';
 
@@ -24,7 +25,7 @@ export function writingToItem(
     path: `/writings/${writing.slug}`,
     title: writing.title,
     description: writing.description,
-    content: stripMdxSyntax(content),
+    content: writingText(content, writing),
     tags: writing.tags,
     published: new Date(writing.published).toISOString(),
     type: 'writing',

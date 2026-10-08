@@ -6,7 +6,7 @@ import type { ReplyContext } from '@/lib/indieweb/reply-context';
 import { formatDate } from '@/lib/site';
 import { SeriesWithWritings, WritingData } from '@/lib/writings';
 
-import ReplyTarget, { replyTargetOf } from './ReplyTarget';
+import ReplyTarget, { replyTargetsOf } from './ReplyTarget';
 import './writing.css';
 
 interface WritingHeaderProps {
@@ -32,7 +32,7 @@ export default function WritingHeader({
 }: WritingHeaderProps) {
   const publishedIso = new Date(writing.published).toISOString();
   const updatedIso = new Date(writing.lastUpdated).toISOString();
-  const target = replyTargetOf(writing);
+  const targets = replyTargetsOf(writing);
 
   return (
     <header className="mx-auto max-w-breakpoint-md px-lg pb-10 pt-10 desktop:px-0">
@@ -43,13 +43,21 @@ export default function WritingHeader({
         <time className="dt-updated hidden" dateTime={updatedIso} />
       )}
 
-      {target && (
+      {targets.map((target) => (
         <ReplyTarget
+          key={`${target.kind}:${target.url}`}
           url={target.url}
           kind={target.kind}
           context={replyContexts?.get(target.url)}
           rsvpStatus={writing.rsvp?.status}
+          emitRsvpProperty={false}
         />
+      ))}
+
+      {writing.rsvp && (
+        <data className="p-rsvp hidden" value={writing.rsvp.status}>
+          {writing.rsvp.status}
+        </data>
       )}
 
       {writing.hasExplicitTitle ? (

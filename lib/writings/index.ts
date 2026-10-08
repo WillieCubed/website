@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import readingTime from 'reading-time';
 
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
+import { parseDocumentMetadata } from '@/lib/atproto/metadata';
 import { showDrafts } from '@/lib/drafts';
 import { RESERVED_WRITING_SLUGS } from '@/lib/indieweb/utils';
 
@@ -21,6 +22,7 @@ import {
   getSeriesSlugs as _getSeriesSlugs,
   getSeriesWithWritings as _getSeriesWithWritings,
 } from '../collections';
+import { writingText } from './content';
 import { parsePersonTags } from './person-tags';
 import { type TagGroup, groupByTag, normalizeTag } from './tags';
 import type {
@@ -66,6 +68,14 @@ interface RawFrontmatter {
     part: number;
   };
   syndication?: SyndicationLink[];
+  syndicateTo?: unknown;
+  atproto?: unknown;
+  contentFormat?: 'text' | 'html';
+  micropub?: WritingData['micropub'];
+  audio?: string[];
+  video?: string[];
+  event?: WritingData['event'];
+  location?: unknown;
   /** Photos, each `{ url, alt }`, as the Micropub endpoint writes them. */
   photo?: unknown;
   postType?: PostType;
@@ -175,8 +185,10 @@ export async function loadWriting(slug: string) {
   const { data, content } = matter(fileContent);
   const frontmatter = data as RawFrontmatter;
 
-  const stats = readingTime(fileContent);
-  const headings = extractHeadings(content);
+  const stats = readingTime(
+    writingText(content, { contentFormat: frontmatter.contentFormat })
+  );
+  const headings = frontmatter.contentFormat ? [] : extractHeadings(content);
 
   // Infer postType from interaction fields if not explicitly set
   let postType: PostType = frontmatter.postType ?? 'article';
@@ -244,6 +256,19 @@ export async function loadWriting(slug: string) {
     readingTime: Math.ceil(stats.minutes),
     series: frontmatter.series,
     syndication: frontmatter.syndication,
+    syndicateTo: Array.isArray(frontmatter.syndicateTo)
+      ? frontmatter.syndicateTo.filter(
+          (value): value is string =>
+            typeof value === 'string' && value.length > 0
+        )
+      : undefined,
+    atproto: parseDocumentMetadata(frontmatter.atproto),
+    contentFormat: frontmatter.contentFormat,
+    micropub: frontmatter.micropub,
+    audio: frontmatter.audio,
+    video: frontmatter.video,
+    event: frontmatter.event,
+    location: frontmatter.location,
     photos: parsePhotos(frontmatter.photo),
     postType,
     inReplyTo: frontmatter.inReplyTo,
@@ -287,11 +312,9 @@ function deriveTitle(
   const explicit = frontmatter.title?.trim();
   if (explicit) return { title: explicit, explicit: true };
 
-  const plain = content
-    .replace(/^import\s.*$/gm, '')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/[*_`#>]/g, '')
+  const plain = writingText(content, {
+    contentFormat: frontmatter.contentFormat,
+  })
     .replace(/\s+/g, ' ')
     .trim();
   const sentence = plain.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? plain;

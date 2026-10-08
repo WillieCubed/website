@@ -6,6 +6,9 @@ export const MIGRATIONS = [
   'lib/db/migrations/003_indieauth.sql',
   'lib/db/migrations/004_webmention_responses.sql',
   'lib/db/migrations/005_atproto_oauth.sql',
+  'lib/db/migrations/006_indieauth_refresh.sql',
+  'lib/db/migrations/007_micropub_deleted_archives.sql',
+  'lib/db/migrations/008_atproto_response_observations.sql',
 ];
 
 export const SCHEMA_QUERY = `SELECT (
@@ -18,8 +21,12 @@ export const SCHEMA_QUERY = `SELECT (
   to_regclass('public.atproto_oauth_sessions') IS NOT NULL AND
   to_regclass('public.atproto_browser_sessions') IS NOT NULL AND
   to_regclass('public.atproto_rate_limits') IS NOT NULL AND
+  to_regclass('public.atproto_response_observations') IS NOT NULL AND
   to_regclass('public.indieauth_codes') IS NOT NULL AND
   to_regclass('public.indieauth_tokens') IS NOT NULL AND
+  to_regclass('public.indieauth_refresh_families') IS NOT NULL AND
+  to_regclass('public.indieauth_refresh_tokens') IS NOT NULL AND
+  to_regclass('public.micropub_deleted_writings') IS NOT NULL AND
   to_regclass('public.indieauth_totp_steps') IS NOT NULL AND
   to_regclass('public.indieauth_sign_in_failures') IS NOT NULL AND
   EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'webmentions' AND column_name = 'original_source_hash') AND

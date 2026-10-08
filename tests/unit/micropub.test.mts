@@ -1,4 +1,5 @@
 import { POST as postMicropub } from '@/app/micropub/route';
+import matter from 'gray-matter';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -10,7 +11,10 @@ import {
   micropubWritingPath,
   parseMicropubCreateRequest,
 } from '@/lib/indieweb/micropub';
-import { MicropubRequestError } from '@/lib/indieweb/micropub-document';
+import {
+  MicropubRequestError,
+  micropubSource,
+} from '@/lib/indieweb/micropub-document';
 import { readMicropubAccessToken } from '@/lib/indieweb/micropub-endpoint';
 import type { MicropubCreateRequest } from '@/lib/indieweb/types';
 import { RESERVED_WRITING_SLUGS } from '@/lib/indieweb/utils';
@@ -33,7 +37,19 @@ test('getMicropubConfig advertises supported personal-site post types', () => {
   assert.equal(config['media-endpoint'], `${site.origin}/micropub/media`);
   assert.deepEqual(
     config['post-types'].map((postType) => postType.type),
-    ['note', 'photo', 'article', 'reply', 'like', 'repost', 'bookmark', 'rsvp']
+    [
+      'note',
+      'photo',
+      'article',
+      'reply',
+      'like',
+      'repost',
+      'bookmark',
+      'rsvp',
+      'audio',
+      'video',
+      'event',
+    ]
   );
   assert.deepEqual(config.q, ['config', 'source', 'syndicate-to', 'category']);
 });
@@ -113,25 +129,42 @@ const threads = site.syndication.find(
   (account) => account.service === 'Threads'
 );
 
-test('Micropub offers the Bluesky and Threads accounts as syndication targets', () => {
-  assert.ok(bluesky && threads, 'both accounts are configured');
-  assert.equal(
-    bluesky.profile,
-    `${bluesky.serviceUrl}profile/${site.author.atprotoDid}`,
-    'the Bluesky profile is linked by DID'
-  );
-  const targets = getMicropubSyndicationTargets();
+async function withAvailableBluesky(run: () => Promise<void>) {
+  const previous = process.env.ATPROTO_APP_PASSWORD;
+  process.env.ATPROTO_APP_PASSWORD = 'test-syndication-capability';
+  try {
+    await run();
+  } finally {
+    if (previous === undefined) delete process.env.ATPROTO_APP_PASSWORD;
+    else process.env.ATPROTO_APP_PASSWORD = previous;
+  }
+}
 
-  assert.deepEqual(
-    targets,
-    [bluesky, threads].map((account) => ({
-      uid: account.profile,
-      name: `${account.handle} on ${account.service}`,
-      service: { name: account.service, url: account.serviceUrl },
-      user: { name: account.handle, url: account.profile },
-    }))
-  );
-  assert.deepEqual(getMicropubConfig(false)['syndicate-to'], targets);
+test('Micropub advertises available destinations and omits manual copies', async () => {
+  await withAvailableBluesky(async () => {
+    assert.ok(bluesky && threads);
+    const targets = getMicropubSyndicationTargets();
+    assert.deepEqual(targets, [
+      {
+        uid: bluesky.profile,
+        name: `${bluesky.handle} on Bluesky`,
+        service: { name: 'Bluesky', url: bluesky.serviceUrl },
+        user: { name: bluesky.handle, url: bluesky.profile },
+      },
+    ]);
+    assert.deepEqual(getMicropubConfig(false)['syndicate-to'], targets);
+    await assert.rejects(
+      parseMicropubCreateRequest(
+        micropubRequest({
+          properties: {
+            content: ['A note.'],
+            'mp-syndicate-to': [threads.profile],
+          },
+        })
+      ),
+      /invalid_request/
+    );
+  });
 });
 
 test('parseMicropubCreateRequest accepts form-encoded replies', async () => {
@@ -181,43 +214,40 @@ function micropubRequest(body: URLSearchParams | object): Request {
   });
 }
 
-test('parseMicropubCreateRequest records form targets as intent, not copies', async () => {
-  const body = new URLSearchParams([
-    ['h', 'entry'],
-    ['content', 'Cross-posted note.'],
-    ['mp-syndicate-to[]', threads!.profile],
-    ['mp-syndicate-to[]', bluesky!.profile],
-  ]);
-
-  const entry = await parseMicropubCreateRequest(micropubRequest(body));
-  assert.deepEqual(
-    entry.syndicateTo.map(({ uid }) => uid),
-    [threads!.profile, bluesky!.profile]
-  );
-  const file = buildMicropubWritingFile(entry, 'cross-posted-note');
-  assert.ok(
-    file.includes(
-      `\nsyndicateTo: ${JSON.stringify([threads!.profile, bluesky!.profile])}\n`
-    )
-  );
-  assert.doesNotMatch(file, /\nsyndication:/);
+test('parseMicropubCreateRequest records advertised form targets as intent', async () => {
+  await withAvailableBluesky(async () => {
+    const body = new URLSearchParams([
+      ['h', 'entry'],
+      ['content', 'Cross-posted note.'],
+      ['mp-syndicate-to[]', bluesky!.profile],
+    ]);
+    const entry = await parseMicropubCreateRequest(micropubRequest(body));
+    assert.deepEqual(
+      entry.syndicateTo.map(({ uid }) => uid),
+      [bluesky!.profile]
+    );
+    const file = buildMicropubWritingFile(entry, 'cross-posted-note');
+    assert.match(file, /syndicateTo:/);
+    assert.doesNotMatch(file, /\nsyndication:/);
+  });
 });
 
 test('parseMicropubCreateRequest reads JSON syndication targets', async () => {
-  const entry = await parseMicropubCreateRequest(
-    micropubRequest({
-      type: ['h-entry'],
-      properties: {
-        content: ['Cross-posted note.'],
-        'mp-syndicate-to': [bluesky!.profile],
-      },
-    })
-  );
-
-  assert.deepEqual(
-    entry.syndicateTo.map(({ name }) => name),
-    [`${bluesky!.handle} on Bluesky`]
-  );
+  await withAvailableBluesky(async () => {
+    const entry = await parseMicropubCreateRequest(
+      micropubRequest({
+        type: ['h-entry'],
+        properties: {
+          content: ['Cross-posted note.'],
+          'mp-syndicate-to': [bluesky!.profile],
+        },
+      })
+    );
+    assert.deepEqual(
+      entry.syndicateTo.map(({ name }) => name),
+      [`${bluesky!.handle} on Bluesky`]
+    );
+  });
 });
 
 test('parseMicropubCreateRequest reads JSON citations embedded as h-cites', async () => {
@@ -480,4 +510,119 @@ test('micropubWritingPath moves a made slug off a route name', () => {
     'content/writings'
   );
   assert.match(slug, /^tags-\d+$/);
+});
+
+test('Micropub preserves nested and multivalued properties across a draft source round trip', async () => {
+  const cite = {
+    type: ['h-cite'],
+    properties: {
+      url: ['https://example.com/post'],
+      name: ['Cited title'],
+      author: [
+        {
+          type: ['h-card'],
+          properties: { name: ['Alice'], url: ['https://alice.example/'] },
+        },
+      ],
+    },
+  };
+  const properties = {
+    content: ['Literal {process.exit()} and <script>text</script>.'],
+    'in-reply-to': [cite, 'https://example.com/another'],
+    category: [
+      'bus',
+      {
+        type: ['h-card'],
+        properties: {
+          name: ['Alice'],
+          url: ['https://alice.example/'],
+          photo: ['https://alice.example/photo.jpg'],
+        },
+      },
+    ],
+    location: [
+      {
+        type: ['h-adr'],
+        properties: { locality: ['Las Vegas'], latitude: ['36.17'] },
+      },
+    ],
+    'custom-property': ['first', { value: 'second', extra: ['kept'] }],
+    'post-status': ['draft'],
+  };
+  const entry = await parseMicropubCreateRequest(
+    micropubRequest({ type: ['h-entry'], properties })
+  );
+  const file = buildMicropubWritingFile(entry, 'nested-draft');
+  const data = matter(file, {}).data;
+  assert.equal(data.draft, true);
+  assert.equal(data.contentFormat, 'text');
+  const returned = micropubSource(
+    file,
+    `${site.origin}/writings/nested-draft`
+  ).properties;
+  for (const [key, values] of Object.entries(properties))
+    assert.deepEqual(returned[key], values, key);
+});
+
+test('Micropub accepts contentless reactions, audio, video, and events', async () => {
+  for (const [properties, type, mf2Type] of [
+    [{ 'like-of': ['https://example.com/like'] }, 'like', 'h-entry'],
+    [{ 'repost-of': ['https://example.com/repost'] }, 'repost', 'h-entry'],
+    [
+      { 'bookmark-of': ['https://example.com/bookmark'] },
+      'bookmark',
+      'h-entry',
+    ],
+    [
+      { 'in-reply-to': ['https://example.com/event'], rsvp: ['yes'] },
+      'rsvp',
+      'h-entry',
+    ],
+    [{ audio: ['https://example.com/audio.mp3'] }, 'audio', 'h-entry'],
+    [{ video: ['https://example.com/video.mp4'] }, 'video', 'h-entry'],
+    [
+      {
+        name: ['Transit picnic'],
+        start: ['2026-10-10T12:00:00-07:00'],
+        end: ['2026-10-10T14:00:00-07:00'],
+        location: ['geo:36.17,-115.14'],
+      },
+      'event',
+      'h-event',
+    ],
+  ] as const) {
+    const entry = await parseMicropubCreateRequest(
+      micropubRequest({ type: [mf2Type], properties })
+    );
+    assert.equal(entry.postType, type);
+    assert.equal(entry.content, '');
+    const roundTrip = micropubSource(
+      buildMicropubWritingFile(entry, type),
+      `${site.origin}/writings/${type}`
+    );
+    assert.deepEqual(roundTrip.type, [mf2Type]);
+    for (const [key, values] of Object.entries(properties))
+      assert.deepEqual(roundTrip.properties[key], values);
+  }
+});
+
+test('Micropub sanitizes HTML content while preserving readable HTML source', async () => {
+  const entry = await parseMicropubCreateRequest(
+    micropubRequest({
+      type: ['h-entry'],
+      properties: {
+        content: [
+          {
+            html: '<p>Hello <strong>friend</strong>.</p><script>alert(1)</script><img src="javascript:bad" onerror="bad">',
+          },
+        ],
+      },
+    })
+  );
+  const file = buildMicropubWritingFile(entry, 'html-note');
+  assert.equal(matter(file, {}).data.contentFormat, 'html');
+  const content = micropubSource(file, `${site.origin}/writings/html-note`)
+    .properties.content[0] as { html: string };
+  assert.match(content.html, /<p>Hello <strong>friend<\/strong>\.<\/p>/);
+  assert.doesNotMatch(content.html, /script|javascript|onerror|alert/);
 });

@@ -6,11 +6,13 @@ import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 import PostInteractions from '@/components/writings/PostInteractions';
 import PostNavigation from '@/components/writings/PostNavigation';
+import { replyTargetsOf } from '@/components/writings/ReplyTarget';
 import WritingContent from '@/components/writings/WritingContent';
 import WritingHeader from '@/components/writings/WritingHeader';
 
 import { documentUri } from '@/lib/atproto/keys';
 import { documentPath } from '@/lib/atproto/records';
+import { loadBlueskyResponses, mergeResponses } from '@/lib/atproto/responses';
 import { OEMBED_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
 import {
   type ReplyContext,
@@ -148,12 +150,9 @@ async function loadWebmentions(slug: string): Promise<WebmentionGroup | null> {
 async function fetchReplyContexts(
   writing: WritingData
 ): Promise<Map<string, ReplyContext>> {
-  const urls: string[] = [];
-  if (writing.likeOf) urls.push(writing.likeOf);
-  if (writing.repostOf) urls.push(writing.repostOf);
-  if (writing.bookmarkOf) urls.push(writing.bookmarkOf);
-  if (writing.rsvp?.eventUrl) urls.push(writing.rsvp.eventUrl);
-  if (writing.inReplyTo) urls.push(writing.inReplyTo);
+  const urls = [
+    ...new Set(replyTargetsOf(writing).map((target) => target.url)),
+  ];
   return new Map(await loadReplyContexts(urls));
 }
 
@@ -208,6 +207,20 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
     fetchReplyContexts(writing),
   ]);
 
+  const atmosphere = await loadBlueskyResponses(writing);
+  const responses = mergeResponses(webmentions, atmosphere.groups);
+  if (
+    atmosphere.copyUrl &&
+    !writing.syndication?.some((copy) => copy.url === atmosphere.copyUrl)
+  ) {
+    writing = {
+      ...writing,
+      syndication: [
+        ...(writing.syndication ?? []),
+        { name: 'Bluesky', url: atmosphere.copyUrl },
+      ],
+    };
+  }
   const canonicalUrl = generateCanonicalUrl(writing.slug);
   const path = `/writings/${writing.slug}`;
   const documentAt = documentUri(documentPath(writing.slug), writing.published);
@@ -252,7 +265,9 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
         ]}
       />
       <main id="main">
-        <article className="h-entry mx-auto max-w-breakpoint-2xl">
+        <article
+          className={`${writing.postType === 'event' ? 'h-entry h-event' : 'h-entry'} mx-auto max-w-breakpoint-2xl`}
+        >
           <WritingHeader
             writing={writing}
             seriesData={seriesData}
@@ -269,7 +284,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
 
           <section className="mx-auto max-w-breakpoint-md px-lg pb-lg desktop:px-0">
             <PostInteractions
-              webmentions={webmentions}
+              webmentions={responses}
               backlinks={backlinks}
               slug={slug}
               target={canonicalUrl}

@@ -6,10 +6,13 @@ import type {
 } from '@atcute/standard-site';
 
 import { site } from '@/lib/site';
-import { stripMdxSyntax } from '@/lib/text/strip-mdx';
+import { clipText } from '@/lib/text/clip';
 import { themeSchemes } from '@/lib/theme';
+import { writingText } from '@/lib/writings/content';
+import type { WritingData } from '@/lib/writings/types';
 
 import { publishingIdentity } from './config';
+import { type DocumentMetadata, publicationSettings } from './metadata';
 
 /** A published writing, already loaded, in the shape a document needs. */
 export interface DocumentSource {
@@ -21,8 +24,17 @@ export interface DocumentSource {
   tags: string[];
   /** The MDX body. */
   body: string;
+  contentFormat?: WritingData['contentFormat'];
+  photos?: WritingData['photos'];
+  micropub?: WritingData['micropub'];
+  audio?: WritingData['audio'];
+  video?: WritingData['video'];
   /** `featuredImage`, when the writing sets one. */
   image?: string;
+  atproto?: DocumentMetadata;
+  syndicateTo?: string[];
+  syndication?: { name: string; url: string }[];
+  hasExplicitTitle?: boolean;
 }
 
 export interface DocumentExtras {
@@ -33,18 +45,6 @@ export interface DocumentExtras {
 
 export function documentPath(slug: string): string {
   return `/writings/${slug}`;
-}
-
-const graphemes = new Intl.Segmenter('en', { granularity: 'grapheme' });
-
-/** Cuts text to a lexicon's grapheme limit, ending on an ellipsis if it cut. */
-function clip(text: string, max: number): string {
-  const parts = [...graphemes.segment(text)];
-  if (parts.length <= max) return text;
-  return `${parts
-    .slice(0, max - 1)
-    .map(({ segment }) => segment)
-    .join('')}…`;
 }
 
 /** `#2f6f5e` as the lexicon's RGB color. */
@@ -64,6 +64,7 @@ function rgb(hex: string) {
  */
 export function publicationRecord(icon?: Blob): SiteStandardPublication.Main {
   const colors = themeSchemes.light;
+  const settings = publicationSettings();
   return {
     $type: 'site.standard.publication',
     name: site.name,
@@ -77,36 +78,39 @@ export function publicationRecord(icon?: Blob): SiteStandardPublication.Main {
       accent: rgb(colors.primary),
       accentForeground: rgb(colors.onPrimary),
     },
-    preferences: { showInDiscover: true },
+    ...(settings.labels && { labels: settings.labels }),
+    ...(settings.preferences && { preferences: settings.preferences }),
   };
 }
 
 /**
- * A writing as a standard.site document. `content` is left out on
- * purpose: the site renders its own HTML and readers link to it, while
- * `textContent` gives them the whole text for search and reading time.
+ * Extension content remains optional. Plain text gives every reader the
+ * complete writing even when it cannot render the supplied union member.
  */
 export function documentRecord(
   source: DocumentSource,
   extras: DocumentExtras = {}
 ): SiteStandardDocument.Main {
   const tags = source.tags
-    .map((tag) => clip(tag.replace(/^#+/, '').trim(), 128))
+    .map((tag) => clipText(tag.replace(/^#+/, '').trim(), 128, 1280))
     .filter(Boolean);
   const edited = source.lastUpdated.getTime() > source.published.getTime();
   return {
     $type: 'site.standard.document',
+    ...Object.fromEntries(
+      Object.entries(source.atproto ?? {}).filter(([, value]) => value !== null)
+    ),
     site: publishingIdentity().publicationUri,
     path: documentPath(source.slug),
-    title: clip(source.title, 500),
+    title: clipText(source.title, 500, 5000),
     ...(source.description &&
       source.description !== source.title && {
-        description: clip(source.description, 3000),
+        description: clipText(source.description, 3000, 30000),
       }),
     publishedAt: source.published.toISOString(),
     ...(edited && { updatedAt: source.lastUpdated.toISOString() }),
     ...(tags.length > 0 && { tags }),
-    textContent: stripMdxSyntax(source.body),
+    textContent: writingText(source.body, source),
     ...(extras.coverImage && { coverImage: extras.coverImage }),
     ...(extras.bskyPostRef && { bskyPostRef: extras.bskyPostRef }),
   };

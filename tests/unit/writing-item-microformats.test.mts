@@ -59,7 +59,10 @@ function parseEntry(
   const { items } = mf2(html, { baseUrl: index });
   assert.equal(items.length, 1, 'the entry stays inside the feed');
   const [entry] = items[0].children ?? [];
-  assert.deepEqual(entry?.type, ['h-entry']);
+  assert.deepEqual(
+    entry?.type,
+    writing.postType === 'event' ? ['h-entry', 'h-event'] : ['h-entry']
+  );
   return entry;
 }
 
@@ -158,4 +161,76 @@ test('the permalink puts an RSVP on the post, not on the event it cites', () => 
   const event = cite(entry, 'in-reply-to');
   assert.deepEqual(event.properties.url, [eventUrl]);
   assert.equal(event.properties.rsvp, undefined);
+});
+
+test('an event feed entry retains all reply targets, media, location and dates', () => {
+  const entry = parseEntry(
+    makeWriting({
+      postType: 'event',
+      micropub: {
+        type: ['h-entry', 'h-event'],
+        properties: {
+          'in-reply-to': [
+            'https://example.com/one',
+            {
+              type: ['h-cite'],
+              properties: {
+                url: ['https://example.com/two'],
+                name: ['Second post'],
+              },
+            },
+          ],
+          audio: ['https://media.example/sound.mp3'],
+          video: ['https://media.example/movie.mp4'],
+          attachment: ['https://media.example/file.pdf'],
+        },
+      },
+      event: {
+        start: '2026-10-07T12:00:00Z',
+        end: '2026-10-07T13:00:00Z',
+        location: {
+          type: ['h-adr'],
+          properties: { locality: ['Dallas'], region: ['Texas'] },
+        },
+      },
+    })
+  );
+  assert.equal(entry.properties['in-reply-to']?.length, 2);
+  assert.deepEqual(entry.properties.audio, ['https://media.example/sound.mp3']);
+  assert.deepEqual(entry.properties.video, ['https://media.example/movie.mp4']);
+  assert.deepEqual(entry.properties.attachment, [
+    'https://media.example/file.pdf',
+  ]);
+  assert.deepEqual(entry.properties.start, ['2026-10-07T12:00:00Z']);
+  assert.deepEqual(entry.properties.end, ['2026-10-07T13:00:00Z']);
+  assert.deepEqual(entry.properties.location, ['Dallas, Texas']);
+});
+
+test('a permalink with several event targets emits its RSVP once', async () => {
+  const { default: WritingHeader } =
+    await import('@/components/writings/WritingHeader');
+  const writing = makeWriting({
+    postType: 'rsvp',
+    rsvp: { eventUrl: 'https://example.com/one', status: 'yes' },
+    micropub: {
+      type: ['h-entry'],
+      properties: {
+        'in-reply-to': ['https://example.com/one', 'https://example.com/two'],
+      },
+    },
+  });
+  const html = renderToStaticMarkup(
+    createElement(
+      'article',
+      { className: 'h-entry' },
+      createElement(WritingHeader, {
+        writing,
+        seriesData: null,
+        canonicalUrl: `${site.origin}/writings/hello`,
+      })
+    )
+  );
+  const [entry] = mf2(html, { baseUrl: index }).items;
+  assert.deepEqual(entry.properties.rsvp, ['yes']);
+  assert.equal(entry.properties['in-reply-to']?.length, 2);
 });

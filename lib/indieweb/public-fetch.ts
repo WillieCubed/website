@@ -211,6 +211,8 @@ export type DocumentFetch = (
   url: string,
   init: {
     headers: Record<string, string>;
+    method?: string;
+    body?: URLSearchParams;
     redirect: 'manual';
     signal: AbortSignal;
   }
@@ -253,11 +255,11 @@ const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
  * Read a body as text, stopping once it passes `limit` bytes. Resolves null
  * for a body that is too large, without reading the rest of it.
  */
-export async function readCappedText(
+export async function readCappedBytes(
   body: ReadableStream<Uint8Array> | null,
   limit: number
-): Promise<string | null> {
-  if (!body) return '';
+): Promise<Uint8Array | null> {
+  if (!body) return new Uint8Array();
   const reader = body.getReader();
   const chunks: Uint8Array[] = [];
   let size = 0;
@@ -271,7 +273,15 @@ export async function readCappedText(
     }
     chunks.push(value);
   }
-  return new TextDecoder().decode(Buffer.concat(chunks));
+  return Buffer.concat(chunks);
+}
+
+export async function readCappedText(
+  body: ReadableStream<Uint8Array> | null,
+  limit: number
+): Promise<string | null> {
+  const bytes = await readCappedBytes(body, limit);
+  return bytes === null ? null : new TextDecoder().decode(bytes);
 }
 
 export interface PublicFetchOptions {
@@ -285,6 +295,8 @@ export interface PublicFetchOptions {
   maxBytes?: number;
   /** Milliseconds for the whole exchange, redirects included. */
   timeoutMs: number;
+  method?: 'GET' | 'HEAD' | 'POST';
+  body?: URLSearchParams;
 }
 
 /** A document reached on the public internet, after any redirects. */
@@ -293,6 +305,7 @@ export interface PublicDocument {
   url: string;
   status: number;
   contentType: string;
+  headers: Headers;
   /** The body, or '' for a status outside 200–299, which is not read. */
   body: string;
 }
@@ -312,6 +325,8 @@ export async function fetchPublicDocument(
     headers = {},
     maxBytes = PUBLIC_DOCUMENT_MAX_BYTES,
     timeoutMs,
+    method = 'GET',
+    body: requestBody,
   }: PublicFetchOptions
 ): Promise<PublicDocument | null> {
   const request = fetch ?? publicOnlyFetch(resolve);
@@ -321,11 +336,17 @@ export async function fetchPublicDocument(
     if (!(await isFetchableUrl(current, resolve))) return null;
     const response = await request(current.href, {
       headers,
+      method,
+      ...(requestBody && { body: requestBody }),
       redirect: 'manual',
       signal,
     });
 
     if (REDIRECT_STATUSES.has(response.status)) {
+      if (method === 'POST') {
+        await response.body?.cancel().catch(() => {});
+        return null;
+      }
       await response.body?.cancel().catch(() => {});
       const location = response.headers.get('location');
       if (!location) return null;
@@ -336,7 +357,12 @@ export async function fetchPublicDocument(
       url: current.href,
       status: response.status,
       contentType: response.headers.get('content-type') ?? '',
+      headers: response.headers,
     };
+    if (method === 'HEAD') {
+      await response.body?.cancel().catch(() => {});
+      return { ...document, body: '' };
+    }
     if (!response.ok) {
       await response.body?.cancel().catch(() => {});
       return { ...document, body: '' };
@@ -348,6 +374,47 @@ export async function fetchPublicDocument(
     }
     const body = await readCappedText(response.body, maxBytes);
     return body === null ? null : { ...document, body };
+  }
+  return null;
+}
+
+export async function fetchPublicBytes(
+  address: string,
+  maxBytes: number,
+  timeoutMs = 10000
+): Promise<{ bytes: Uint8Array; mimeType: string } | null> {
+  const request = publicOnlyFetch(systemResolver);
+  const signal = AbortSignal.timeout(timeoutMs);
+  let current = new URL(address);
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    if (!(await isFetchableUrl(current, systemResolver))) return null;
+    const response = await request(current.href, {
+      headers: {},
+      redirect: 'manual',
+      signal,
+    });
+    if (REDIRECT_STATUSES.has(response.status)) {
+      await response.body?.cancel().catch(() => {});
+      const location = response.headers.get('location');
+      if (!location) return null;
+      current = new URL(location, current);
+      continue;
+    }
+    if (
+      !response.ok ||
+      Number(response.headers.get('content-length')) > maxBytes
+    ) {
+      await response.body?.cancel().catch(() => {});
+      return null;
+    }
+    const bytes = await readCappedBytes(response.body, maxBytes);
+    return bytes
+      ? {
+          bytes,
+          mimeType:
+            response.headers.get('content-type')?.split(';')[0].trim() ?? '',
+        }
+      : null;
   }
   return null;
 }

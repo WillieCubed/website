@@ -314,3 +314,166 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     page.getByRole('button', { name: 'Recommend', exact: true })
   ).toBeFocused();
 });
+
+test('full-page subscription visual states in both themes and sizes', async ({
+  page,
+}) => {
+  test.skip(
+    !process.env.STANDARD_SOCIAL_FIXTURE,
+    'Visual review uses isolated responses.'
+  );
+  test.setTimeout(180_000);
+  mkdirSync(directory, { recursive: true });
+  let signedIn = false,
+    subscribed = false,
+    ready = true;
+  let holdStatus = true,
+    holdMutation = false,
+    holdLogin = false;
+  let releaseStatus: (() => void) | undefined,
+    releaseMutation: (() => void) | undefined,
+    releaseLogin: (() => void) | undefined;
+  let mutationStatus = 200,
+    loginStatus = 400,
+    logoutStatus = 200;
+  await page.route('**/api/atproto/social*', async (route) => {
+    if (holdStatus)
+      await new Promise<void>((resolve) => {
+        releaseStatus = resolve;
+      });
+    await route
+      .fulfill({ json: { enabled: true, ready, signedIn, subscribed } })
+      .catch(() => undefined);
+  });
+  await page.route('**/api/atproto/subscription', async (route) => {
+    if (holdMutation)
+      await new Promise<void>((resolve) => {
+        releaseMutation = resolve;
+      });
+    if (mutationStatus !== 200)
+      return route.fulfill({
+        status: mutationStatus,
+        json: { error: 'Provider failure' },
+      });
+    subscribed = route.request().method() === 'PUT';
+    await route.fulfill({ json: { active: subscribed } });
+  });
+  await page.route('**/api/atproto/login', async (route) => {
+    if (holdLogin)
+      await new Promise<void>((resolve) => {
+        releaseLogin = resolve;
+      });
+    await route
+      .fulfill({ status: loginStatus, json: { error: 'Provider failure' } })
+      .catch(() => undefined);
+  });
+  await page.route('**/api/atproto/logout', async (route) => {
+    if (logoutStatus === 200) signedIn = false;
+    await route.fulfill({ status: logoutStatus, json: { signedIn: false } });
+  });
+  const capture = async (state: string) => {
+    for (const theme of ['light', 'dark'] as const) {
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      for (const width of [1440, 390]) {
+        await page.setViewportSize({
+          width,
+          height: width === 390 ? 844 : 1000,
+        });
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth
+          )
+        ).toBe(true);
+        await page.screenshot({
+          path: `${directory}/subscription-${state}-${theme}-${width}.png`,
+          fullPage: true,
+        });
+      }
+    }
+  };
+  await page.goto('/writings');
+  await expect.poll(() => Boolean(releaseStatus)).toBe(true);
+  await capture('loading');
+  holdStatus = false;
+  releaseStatus!();
+  const action = (name: string) =>
+    page.getByRole('button', { name, exact: true });
+  await expect(action('Subscribe')).toBeVisible();
+  await capture('signed-out');
+  await action('Subscribe').click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await capture('sign-in');
+  await page.getByLabel('Your handle').fill('reader.bsky.social');
+  holdLogin = true;
+  await action('Continue').click();
+  await expect(action('Connecting…')).toBeVisible();
+  await capture('sign-in-pending');
+  holdLogin = false;
+  releaseLogin!();
+  await expect(page.getByLabel('Your handle')).toHaveAttribute(
+    'aria-invalid',
+    'true'
+  );
+  await capture('invalid-handle');
+  loginStatus = 502;
+  await action('Continue').click();
+  await expect(action('Try again')).toBeVisible();
+  await capture('sign-in-failed');
+  await action('Cancel').click();
+  signedIn = true;
+  await page.reload();
+  await expect(action('Subscribe')).toBeVisible();
+  await capture('signed-in');
+  holdMutation = true;
+  await action('Subscribe').click();
+  await expect(action('Subscribing…')).toBeVisible();
+  await capture('pending');
+  holdMutation = false;
+  releaseMutation!();
+  await expect(action('Subscribed')).toBeVisible();
+  await capture('confirmed');
+  await action('Subscription options').click();
+  await expect(action('Sign out')).toBeVisible();
+  await capture('menu');
+  logoutStatus = 502;
+  await action('Sign out').click();
+  await expect(action('Try again to sign out')).toBeVisible();
+  await capture('sign-out-failed');
+  await page.keyboard.press('Escape');
+  holdMutation = true;
+  await action('Subscribed').click();
+  await expect(action('Unsubscribing…')).toBeVisible();
+  await capture('undo-pending');
+  holdMutation = false;
+  releaseMutation!();
+  await expect(action('Subscribe')).toHaveAttribute('aria-pressed', 'false');
+  await capture('undone');
+  mutationStatus = 502;
+  await action('Subscribe').click();
+  await expect(action('Try again to subscribe')).toBeVisible();
+  await capture('failed');
+  mutationStatus = 200;
+  await action('Try again to subscribe').click();
+  await expect(action('Subscribed')).toBeVisible();
+  await capture('retry-confirmed');
+  await action('Subscribed').click();
+  mutationStatus = 409;
+  await action('Subscribe').click();
+  await expect(action('Unavailable')).toBeDisabled();
+  await capture('unavailable-action');
+  await page.reload();
+  mutationStatus = 429;
+  await action('Subscribe').click();
+  await expect(action('Wait a moment')).toBeDisabled();
+  await capture('rate-limited');
+  await page.reload();
+  mutationStatus = 401;
+  await action('Subscribe').click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await capture('expired-session');
+  await action('Cancel').click();
+  ready = false;
+  await page.reload();
+  await expect(action('Subscribe')).toHaveCount(0);
+  await capture('unavailable-target');
+});

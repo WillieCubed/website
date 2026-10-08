@@ -7,6 +7,11 @@ import {
 import { absoluteUrl, site } from '@/lib/site';
 
 import { fetchImageBlob } from './blobs';
+import {
+  type BlueskyCopyResult,
+  syncBlueskyCopies,
+  validateExplicitBlueskyCopies,
+} from './bluesky';
 import { createRepoClient } from './client';
 import {
   DOCUMENT_COLLECTION,
@@ -16,6 +21,7 @@ import {
   publishingIdentity,
 } from './config';
 import { documentRkey } from './keys';
+import { DOCUMENT_EXTENSION_FIELDS, publicationSettings } from './metadata';
 import { planSync } from './plan';
 import {
   type DocumentSource,
@@ -33,6 +39,7 @@ export type SyncReport =
       updated: number;
       deleted: number;
       unchanged: number;
+      announced: BlueskyCopyResult[];
       writes: { action: 'create' | 'update' | 'delete'; uri: string }[];
     };
 
@@ -68,7 +75,16 @@ async function publishedWritings(): Promise<DocumentSource[]> {
       lastUpdated: writing.lastUpdated,
       tags: writing.tags,
       body: content,
+      contentFormat: writing.contentFormat,
+      photos: writing.photos,
+      micropub: writing.micropub,
+      audio: writing.audio,
+      video: writing.video,
       image: writing.featuredImage,
+      atproto: writing.atproto,
+      syndicateTo: writing.syndicateTo,
+      syndication: writing.syndication,
+      hasExplicitTitle: writing.hasExplicitTitle,
     });
   }
   return sources;
@@ -85,6 +101,7 @@ async function desiredRecords(
       rkey: publishingIdentity().publicationRkey,
       value: publicationRecord(icon?.ref),
       blobs: icon ? [icon] : [],
+      removeFields: publicationSettings().labels === null ? ['labels'] : [],
     },
   ];
   for (const writing of writings) {
@@ -99,6 +116,9 @@ async function desiredRecords(
       rkey: documentRkey(path, writing.published),
       value: documentRecord(writing, { coverImage: cover?.ref }),
       blobs: cover ? [cover] : [],
+      removeFields: DOCUMENT_EXTENSION_FIELDS.filter(
+        (field) => writing.atproto?.[field] === null
+      ),
     });
   }
   return records;
@@ -111,6 +131,10 @@ async function desiredRecords(
  */
 function assertValid(records: DesiredRecord[]): void {
   for (const { collection, rkey, value } of records) {
+    if (Buffer.byteLength(JSON.stringify(value), 'utf8') > 900_000)
+      throw new Error(
+        `Record ${collection}/${rkey} exceeds the safe record size.`
+      );
     const result = safeParse(
       collection === PUBLICATION_COLLECTION
         ? SiteStandardPublication.mainSchema
@@ -135,8 +159,8 @@ function assertValid(records: DesiredRecord[]): void {
 export async function syncAtproto(
   options: SyncOptions = {}
 ): Promise<SyncReport> {
-  // Records are written wherever the password is set, which is Production
-  // only: a preview or acceptance deployment has none and never writes.
+  // Deployment credentials decide which account receives records. Acceptance
+  // uses its own DID and password, and previews without credentials skip.
   if (!PUBLICATION_URI) {
     return {
       status: 'skipped',
@@ -155,9 +179,12 @@ export async function syncAtproto(
 
   try {
     const writings = options.writings ?? (await publishedWritings());
+    await validateExplicitBlueskyCopies(client, writings);
     const desired = await desiredRecords(
       writings,
-      options.fetchImage ?? fetchImageBlob
+      options.fetchImage ??
+        ((url) =>
+          fetchImageBlob(url, { icon: url === absoluteUrl(site.author.photo) }))
     );
     assertValid(desired);
     const existing = [
@@ -165,10 +192,26 @@ export async function syncAtproto(
       ...(await client.listRecords(DOCUMENT_COLLECTION)),
     ];
     const plan = planSync(desired, existing);
+    assertValid(
+      plan.writes
+        .filter((write) => 'value' in write)
+        .map((write) => ({
+          collection: write.collection,
+          rkey: write.rkey,
+          value: ('value' in write
+            ? write.value
+            : {}) as DesiredRecord['value'],
+          blobs: [],
+        }))
+    );
 
+    let announced: BlueskyCopyResult[];
     if (!options.dryRun) {
       for (const blob of plan.uploads) await client.uploadBlob(blob);
       if (plan.writes.length > 0) await client.applyWrites(plan.writes);
+      announced = await syncBlueskyCopies(client, writings);
+    } else {
+      announced = await syncBlueskyCopies(client, writings, { dryRun: true });
     }
 
     const writes = plan.writes.map((write) => ({
@@ -187,6 +230,7 @@ export async function syncAtproto(
       deleted: count('delete'),
       unchanged: plan.unchanged,
       writes,
+      announced,
     };
   } finally {
     // Sign out only of a session this call opened. A failed sign-out must

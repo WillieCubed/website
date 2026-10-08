@@ -1,4 +1,5 @@
-import { readFile, unlink, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { link, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import type {
@@ -23,6 +24,8 @@ export class MicropubStorageError extends Error {
 }
 
 /** One file written with one commit. */
+export class MicropubConflictError extends MicropubStorageError {}
+
 export interface GitHubFileWrite {
   path: string;
   content: string;
@@ -107,7 +110,15 @@ export async function saveStoredWriting(
     );
   }
   try {
-    await writeFile(localPath(writing.path), source, 'utf8');
+    await assertUnchanged(writing);
+    const temporary = `${localPath(writing.path)}.${randomUUID()}.micropub`;
+    try {
+      await writeFile(temporary, source, { encoding: 'utf8', flag: 'wx' });
+      await assertUnchanged(writing);
+      await rename(temporary, localPath(writing.path));
+    } finally {
+      await unlink(temporary).catch(() => {});
+    }
   } catch (error) {
     throw localWriteError(error, writing.path);
   }
@@ -140,6 +151,7 @@ export async function deleteStoredWriting(
     return data.commit?.sha ?? '';
   }
   try {
+    await assertUnchanged(writing);
     await unlink(localPath(writing.path));
   } catch (error) {
     throw localWriteError(error, writing.path, 'delete');
@@ -179,6 +191,10 @@ export function localWriteError(
 ): MicropubStorageError {
   if (error instanceof MicropubStorageError) return error;
   const code = (error as NodeJS.ErrnoException).code;
+  if (code === 'EEXIST')
+    return new MicropubConflictError(
+      'Another post already occupies this path.'
+    );
   if (code === 'EROFS' || code === 'EACCES' || code === 'EPERM') {
     return new MicropubStorageError(
       `The content directory is read-only (${code}). Configure MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN so posts commit through GitHub instead.`
@@ -215,9 +231,10 @@ function githubHeaders(environment: MicropubRouteEnvironment): HeadersInit {
 }
 
 async function githubError(response: Response): Promise<MicropubStorageError> {
-  return new MicropubStorageError(
-    `GitHub Contents API failed: ${response.status} ${await response.text()}`
-  );
+  const message = `GitHub Contents API failed: ${response.status} ${await response.text()}`;
+  return response.status === 409 || response.status === 422
+    ? new MicropubConflictError(message)
+    : new MicropubStorageError(message);
 }
 
 async function readGitHubFile(
@@ -257,4 +274,56 @@ async function readLocalFile(path: string): Promise<{ source: string } | null> {
 // Micropub route, so this path needs no tracing of its own.
 function localPath(path: string): string {
   return join(/*turbopackIgnore: true*/ process.cwd(), path);
+}
+
+async function assertUnchanged(writing: StoredWriting): Promise<void> {
+  const current = await readLocalFile(writing.path);
+  if (!current || current.source !== writing.source) {
+    throw new MicropubConflictError(
+      'The post changed after this request read it.'
+    );
+  }
+}
+
+/** Restore the exact archived source without overwriting another post. */
+export async function restoreStoredWriting(
+  writing: StoredWriting,
+  environment: MicropubRouteEnvironment,
+  fetchImpl: typeof fetch = fetch
+): Promise<string> {
+  if (usesGitHub(environment))
+    return putGitHubFile(
+      {
+        path: writing.path,
+        content: writing.source,
+        message: `chore(content): Restore ${writing.slug} via Micropub`,
+      },
+      environment,
+      fetchImpl
+    );
+  try {
+    await createLocalWriting(writing.path, writing.source);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST')
+      throw new MicropubConflictError(
+        'Another post already occupies the archived path.'
+      );
+    throw localWriteError(error, writing.path, 'restore');
+  }
+  return '';
+}
+
+/** A complete temporary file becomes visible only if the target is absent. */
+export async function createLocalWriting(
+  path: string,
+  source: string
+): Promise<void> {
+  const target = localPath(path);
+  const temporary = `${target}.${randomUUID()}.micropub`;
+  try {
+    await writeFile(temporary, source, { encoding: 'utf8', flag: 'wx' });
+    await link(temporary, target);
+  } finally {
+    await unlink(temporary).catch(() => {});
+  }
 }

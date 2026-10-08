@@ -2,15 +2,29 @@ import assert from 'node:assert/strict';
 import { afterEach, mock, test } from 'node:test';
 
 import {
-  discoverWebmentionEndpoint,
+  discoverWebmentionEndpoint as discoverEndpoint,
   extractExternalLinks,
-  sendWebmention,
-  sendWebmentionsForPost,
+  sendWebmention as send,
+  sendWebmentionsForPost as sendForPost,
   targetsForUpdatedPost,
   webmentionTargetsForWriting,
 } from '@/lib/indieweb/send-webmention';
 import type { WebmentionSourceWriting } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
+
+const network = {
+  resolve: async () => [{ address: '93.184.216.34', family: 4 as const }],
+  fetch: (url: string, init: RequestInit) => globalThis.fetch(url, init),
+};
+const discoverWebmentionEndpoint = (url: string) =>
+  discoverEndpoint(url, network);
+const sendWebmention = (source: string, target: string) =>
+  send(source, target, network);
+
+const sendWebmentionsForPost = (
+  writing: WebmentionSourceWriting,
+  content: string
+) => sendForPost(writing, content, network);
 
 const target = 'https://example.com/posts/1';
 const source = `${site.origin}/writings/hello`;

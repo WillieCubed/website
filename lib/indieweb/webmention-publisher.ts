@@ -20,9 +20,11 @@ export async function sendChangedWebmentions(): Promise<{
   const { getWritingSlugs, loadWriting } = await import('../writings');
   let sent = 0;
   let failed = 0;
+  const published = new Set<string>();
   for (const slug of await getWritingSlugs()) {
     const { writing, content } = await loadWriting(slug);
     if (writing.draft) continue;
+    published.add(slug);
 
     const sourceUrl = absoluteUrl(`/writings/${slug}`);
     const currentTargets = webmentionTargetsForWriting(writing, content);
@@ -67,6 +69,22 @@ export async function sendChangedWebmentions(): Promise<{
       else failed++;
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
+  }
+  const former =
+    await sql`SELECT source_url, target_url, post_slug, content_hash, status FROM outgoing_webmentions`;
+  for (const row of former.rows) {
+    if (published.has(String(row.post_slug))) continue;
+    const hash = createHash('sha256')
+      .update(`unpublished:${row.source_url}`)
+      .digest('hex');
+    if (row.content_hash === hash && row.status === 'sent') continue;
+    const result = await sendWebmention(
+      String(row.source_url),
+      String(row.target_url)
+    );
+    await sql`UPDATE outgoing_webmentions SET content_hash = ${hash}, status = ${result.success ? 'sent' : 'failed'}, endpoint_url = ${result.endpoint ?? null}, response_code = ${result.statusCode ?? null}, error_message = ${result.error ?? null}, sent_at = ${result.success ? new Date().toISOString() : null} WHERE source_url = ${row.source_url} AND target_url = ${row.target_url}`;
+    if (result.success) sent++;
+    else failed++;
   }
   console.log(`Webmentions sent: ${sent}; failed: ${failed}`);
   return { sent, failed };

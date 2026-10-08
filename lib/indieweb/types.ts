@@ -14,7 +14,15 @@ export interface WebmentionAuthor {
   photo?: string;
 }
 
-export interface Webmention {
+export interface ResponseMedia {
+  kind: 'image' | 'audio' | 'video' | 'file';
+  url: string;
+  description?: string;
+  mimeType?: string;
+  poster?: string;
+}
+
+export interface PublishingResponse {
   id: string;
   sourceUrl: string;
   targetUrl: string;
@@ -29,7 +37,16 @@ export interface Webmention {
   /** Sanitized markup from the source's `e-content`, for the post to show. */
   contentHtml?: string;
   publishedAt?: Date;
+  observedAt?: Date;
   receivedAt: Date;
+  origin?: 'indieweb' | 'atproto';
+  parentUrl?: string;
+  threadDepth?: number;
+  sourceAliases?: string[];
+  media?: ResponseMedia[];
+}
+
+export interface Webmention extends PublishingResponse {
   verifiedAt?: Date;
   isVerified: boolean;
   isApproved: boolean;
@@ -61,6 +78,11 @@ export interface WebmentionActivity extends Webmention {
   activityDate: Date;
   targetSlug?: string;
 }
+export type ResponseActivity = PublishingResponse & {
+  activityDate: Date;
+  targetSlug?: string;
+  verifiedAt?: Date;
+};
 
 export interface ActivityFeedIndieWebMetadata {
   type: WebmentionType;
@@ -70,6 +92,9 @@ export interface ActivityFeedIndieWebMetadata {
 }
 
 export interface ActivityFeedItem {
+  author?: WebmentionAuthor;
+  content?: string;
+  attachments?: { url: string; mime_type: string; title?: string }[];
   id: string;
   title: string;
   description: string;
@@ -81,7 +106,7 @@ export interface ActivityFeedItem {
 }
 
 export interface BuildActivityFeedOptions {
-  titleForTarget: (targetUrl: string, activity: WebmentionActivity) => string;
+  titleForTarget: (targetUrl: string, activity: ResponseActivity) => string;
 }
 
 export interface ActivityFeedRouteConfig {
@@ -100,14 +125,16 @@ export interface WritingActivityFeedRouteProps {
   params: Promise<WritingActivityFeedRouteParams>;
 }
 
-export interface WebmentionGroup {
-  likes: Webmention[];
-  reposts: Webmention[];
-  replies: Webmention[];
-  mentions: Webmention[];
-  bookmarks: Webmention[];
-  rsvps: Webmention[];
+export interface WebmentionGroup<T extends PublishingResponse = Webmention> {
+  likes: T[];
+  reposts: T[];
+  replies: T[];
+  mentions: T[];
+  bookmarks: T[];
+  rsvps: T[];
 }
+
+export type ResponseGroup = WebmentionGroup<PublishingResponse>;
 
 export interface OutgoingWebmention {
   id: string;
@@ -337,7 +364,33 @@ export interface IndieAuthTokenRecord {
   scope: string[];
   issuedAt: Date;
   expiresAt: Date;
+  /** Absent on tokens issued before refresh grants existed. */
+  refreshFamilyId?: string;
 }
+
+/** The original grant and the first hashed refresh token. */
+export interface IndieAuthTokenGrant extends IndieAuthTokenRecord {
+  refreshFamilyId: string;
+  refreshTokenHash: string;
+  refreshExpiresAt: Date;
+}
+
+/** Replacement credentials for one atomic refresh rotation. */
+export interface IndieAuthRefreshRotation {
+  refreshTokenHash: string;
+  clientId: string;
+  /** Null preserves the original approved access scopes. */
+  scope: string[] | null;
+  nextRefreshTokenHash: string;
+  accessTokenHash: string;
+  now: Date;
+  accessExpiresAt: Date;
+  refreshExpiresAt: Date;
+}
+
+export type IndieAuthRefreshResult =
+  | { ok: true; record: IndieAuthTokenRecord }
+  | { ok: false; error: 'invalid_grant' | 'invalid_scope' };
 
 /**
  * Where codes and tokens live. Keys are SHA-256 digests, so the store never
@@ -351,6 +404,15 @@ export interface IndieAuthStore {
     now: Date
   ) => Promise<IndieAuthCodeRecord | null>;
   saveToken: (tokenHash: string, record: IndieAuthTokenRecord) => Promise<void>;
+  /** Persist the access token, refresh token, and grant in one transaction. */
+  saveTokenGrant: (
+    tokenHash: string,
+    grant: IndieAuthTokenGrant
+  ) => Promise<void>;
+  /** Serialize on the family; reuse revokes every token in that family. */
+  rotateRefreshToken: (
+    rotation: IndieAuthRefreshRotation
+  ) => Promise<IndieAuthRefreshResult>;
   /** The token when it exists, is unexpired, and has not been revoked. */
   findToken: (
     tokenHash: string,
@@ -440,7 +502,10 @@ export type MicropubPostType =
   | 'bookmark'
   | 'reply'
   | 'rsvp'
-  | 'photo';
+  | 'photo'
+  | 'audio'
+  | 'video'
+  | 'event';
 
 export type MicropubRsvpStatus = 'yes' | 'no' | 'maybe' | 'interested';
 
@@ -450,6 +515,12 @@ export interface MicropubPostTypeConfig {
 }
 
 export interface RawMicropubEntry {
+  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  contentFormat?: 'text' | 'html';
+  postStatus?: 'draft' | 'published';
+  audio?: string[];
+  video?: string[];
+  event?: { start?: string; end?: string; location?: unknown };
   h: string;
   content?: string;
   name?: string;
@@ -474,6 +545,12 @@ export interface MicropubPhoto {
 }
 
 export interface MicropubPostTypeSource {
+  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  contentFormat?: 'text' | 'html';
+  postStatus?: 'draft' | 'published';
+  audio?: string[];
+  video?: string[];
+  event?: { start?: string; end?: string; location?: unknown };
   name?: string;
   photos?: MicropubPhoto[];
   inReplyTo?: string;
@@ -484,7 +561,13 @@ export interface MicropubPostTypeSource {
 }
 
 export interface MicropubCreateRequest {
-  h: 'entry';
+  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  contentFormat?: 'text' | 'html';
+  postStatus?: 'draft' | 'published';
+  audio?: string[];
+  video?: string[];
+  event?: { start?: string; end?: string; location?: unknown };
+  h: 'entry' | 'event';
   content: string;
   name?: string;
   summary?: string;

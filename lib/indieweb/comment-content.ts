@@ -68,8 +68,36 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
       'ul',
       'ol',
       'li',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
+      'caption',
+      'pre',
+      'figure',
+      'figcaption',
+      'img',
+      'audio',
+      'video',
+      'source',
+      'track',
     ],
-    allowedAttributes: { a: ['href', 'rel'] },
+    allowedAttributes: {
+      a: ['href', 'rel'],
+      img: ['src', 'alt', 'loading'],
+      audio: ['src', 'controls', 'preload'],
+      video: ['src', 'poster', 'controls', 'preload', 'playsinline'],
+      source: ['src', 'type'],
+      track: ['src', 'kind', 'srclang', 'label'],
+    },
     allowedSchemes: ['http', 'https'],
     allowProtocolRelative: false,
     disallowedTagsMode: 'discard',
@@ -88,6 +116,21 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
     transformTags: {
       b: 'strong',
       i: 'em',
+      '*': (tagName, attribs): sanitizeHtml.Tag => {
+        const attributes = { ...attribs };
+        for (const name of ['src', 'poster']) {
+          const url = webHref(attributes[name], baseUrl);
+          if (url) attributes[name] = url;
+          else delete attributes[name];
+        }
+        if (tagName === 'video' || tagName === 'audio')
+          Object.assign(attributes, { controls: '', preload: 'none' });
+        if (tagName === 'img') {
+          attributes.loading = 'lazy';
+          attributes.alt ??= '';
+        }
+        return { tagName, attribs: attributes };
+      },
       a: (_tagName, attribs): sanitizeHtml.Tag => {
         const href = webHref(attribs.href, baseUrl);
         // A span is not allowed, so the link's text stays and the tag goes.
@@ -141,7 +184,8 @@ export function commentHtml(html: string, baseUrl: string): string | undefined {
   const clean = sanitizeCommentHtml(html, baseUrl).trim();
   if (!clean) return undefined;
   const fragment = parseFragment(clean);
-  if (textLength(fragment) === 0) return undefined;
+  if (textLength(fragment) === 0 && !/<(?:img|audio|video)\b/.test(clean))
+    return undefined;
   if (textLength(fragment) > COMMENT_TEXT_LIMIT) {
     keepText(fragment, { left: COMMENT_TEXT_LIMIT });
   }

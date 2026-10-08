@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { verifyIndieAuthToken } from '@/lib/indieweb/indieauth';
+import * as endpoints from '@/lib/indieweb/indieauth-endpoints';
 import {
   handleAuthorizationRequest,
   handleConsentDecision,
@@ -294,6 +295,7 @@ test('the full flow: approve, exchange, verify for Micropub, introspect, revoke'
     bearer: token.access_token,
     expectedMe: site.origin,
     store: context.store,
+    now: context.options.now!(),
   };
   assert.equal(
     await verifyIndieAuthToken({ ...micropub, requiredScope: 'create' }),
@@ -404,7 +406,7 @@ test('a code without a scope redeems for a profile, never a token', async () => 
   assert.deepEqual(await profile.json(), { me: `${site.origin}/` });
 });
 
-test('the token endpoint wants a form and the authorization_code grant', async () => {
+test('the token endpoint requires form fields for supported grants', async () => {
   const { options } = setup();
   const json = await handleTokenRequest(
     new Request(`${site.origin}/indieauth/token`, {
@@ -420,7 +422,7 @@ test('the token endpoint wants a form and the authorization_code grant', async (
     formPost('/indieauth/token', { grant_type: 'refresh_token' }),
     options
   );
-  assert.equal((await refresh.json()).error, 'unsupported_grant_type');
+  assert.equal((await refresh.json()).error, 'invalid_request');
 });
 
 test('introspection is off without its secret', async () => {
@@ -430,4 +432,212 @@ test('introspection is off without its secret', async () => {
     { ...options, introspectionSecret: undefined }
   );
   assert.equal(response.status, 503);
+});
+
+function refreshRequest(token: string, overrides: Record<string, string> = {}) {
+  return formPost('/indieauth/token', {
+    grant_type: 'refresh_token',
+    refresh_token: token,
+    client_id: CLIENT,
+    ...overrides,
+  });
+}
+
+async function issuedTokens(context: ReturnType<typeof setup>) {
+  const code = await approve(context);
+  return (
+    await handleTokenRequest(tokenRedemption(code), context.options)
+  ).json();
+}
+
+async function tokenStatus(context: ReturnType<typeof setup>, token: string) {
+  return handleTokenVerification(
+    new Request(`${site.origin}/indieauth/token`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    context.options
+  );
+}
+
+test('refresh rotates once and reuse disables the entire grant', async () => {
+  const context = setup();
+  const first = await issuedTokens(context);
+  assert.equal(first.expires_in, 3600);
+  assert.equal(typeof first.refresh_token, 'string');
+  const refreshed = await handleTokenRequest(
+    refreshRequest(first.refresh_token),
+    context.options
+  );
+  assert.equal(refreshed.status, 200);
+  const next = await refreshed.json();
+  assert.notEqual(next.access_token, first.access_token);
+  assert.notEqual(next.refresh_token, first.refresh_token);
+  assert.equal((await tokenStatus(context, first.access_token)).status, 200);
+  assert.equal((await tokenStatus(context, next.access_token)).status, 200);
+
+  const replay = await handleTokenRequest(
+    refreshRequest(first.refresh_token),
+    context.options
+  );
+  assert.equal((await replay.json()).error, 'invalid_grant');
+  assert.equal((await tokenStatus(context, first.access_token)).status, 401);
+  assert.equal((await tokenStatus(context, next.access_token)).status, 401);
+  const after = await handleTokenRequest(
+    refreshRequest(next.refresh_token),
+    context.options
+  );
+  assert.equal((await after.json()).error, 'invalid_grant');
+});
+
+test('refresh rejects another client and scope escalation without consuming the token', async () => {
+  const context = setup();
+  const first = await issuedTokens(context);
+  for (const [fields, error] of [
+    [{ client_id: 'https://other.example/' }, 'invalid_grant'],
+    [{ scope: 'create delete' }, 'invalid_scope'],
+    [{ scope: 'create bogus' }, 'invalid_scope'],
+    [{ scope: '' }, 'invalid_scope'],
+    [{ scope: 'email' }, 'invalid_scope'],
+  ] as const) {
+    const response = await handleTokenRequest(
+      refreshRequest(first.refresh_token, fields),
+      context.options
+    );
+    assert.equal((await response.json()).error, error);
+  }
+  const reduced = await handleTokenRequest(
+    refreshRequest(first.refresh_token, { scope: 'create' }),
+    context.options
+  );
+  assert.equal(reduced.status, 200);
+  const second = await reduced.json();
+  assert.equal(second.scope, 'create');
+  assert.equal(second.profile, undefined);
+  const restored = await handleTokenRequest(
+    refreshRequest(second.refresh_token),
+    context.options
+  );
+  assert.equal((await restored.json()).scope, first.scope);
+});
+
+test('concurrent refresh requests cannot both rotate the same token', async () => {
+  const context = setup();
+  const first = await issuedTokens(context);
+  const responses = await Promise.all([
+    handleTokenRequest(refreshRequest(first.refresh_token), context.options),
+    handleTokenRequest(refreshRequest(first.refresh_token), context.options),
+  ]);
+  assert.deepEqual(responses.map((r) => r.status).sort(), [200, 400]);
+  const accepted = await responses.find((r) => r.status === 200)!.json();
+  assert.equal((await tokenStatus(context, accepted.access_token)).status, 401);
+});
+
+test('refresh extends the 90 day inactivity deadline and access tokens expire after an hour', async () => {
+  const context = setup();
+  const first = await issuedTokens(context);
+  context.advance(3600 * 1000);
+  assert.equal((await tokenStatus(context, first.access_token)).status, 401);
+  context.advance(89 * 24 * 3600 * 1000 - 3600 * 1000);
+  const second = await (
+    await handleTokenRequest(
+      refreshRequest(first.refresh_token),
+      context.options
+    )
+  ).json();
+  assert.equal(typeof second.refresh_token, 'string');
+  context.advance(2 * 24 * 3600 * 1000);
+  const third = await handleTokenRequest(
+    refreshRequest(second.refresh_token),
+    context.options
+  );
+  assert.equal(third.status, 200);
+  const next = await third.json();
+  context.advance(90 * 24 * 3600 * 1000);
+  const expired = await handleTokenRequest(
+    refreshRequest(next.refresh_token),
+    context.options
+  );
+  assert.equal((await expired.json()).error, 'invalid_grant');
+});
+
+test('revoking a refresh token disables its family and related access tokens', async () => {
+  const context = setup();
+  const first = await issuedTokens(context);
+  const revoked = await handleRevocation(
+    formPost('/indieauth/revoke', { token: first.refresh_token }),
+    context.options
+  );
+  assert.equal(revoked.status, 200);
+  assert.equal((await tokenStatus(context, first.access_token)).status, 401);
+  const response = await handleTokenRequest(
+    refreshRequest(first.refresh_token),
+    context.options
+  );
+  assert.equal((await response.json()).error, 'invalid_grant');
+});
+
+test('userinfo returns only profile fields granted to a valid bearer token', async () => {
+  for (const scope of [['create'], ['profile'], ['profile', 'email']]) {
+    const context = setup();
+    const consent = await handleConsentDecision(
+      consentPost({
+        code: context.code(),
+        scope: scope.join(' '),
+        grant: scope,
+      }),
+      context.options
+    );
+    const code = new URL(consent.headers.get('location')!).searchParams.get(
+      'code'
+    )!;
+    const token = await (
+      await handleTokenRequest(tokenRedemption(code), context.options)
+    ).json();
+    const response = await endpoints.handleUserInfo(
+      new Request(`${site.origin}/indieauth/userinfo`, {
+        headers: { Authorization: `Bearer ${token.access_token}` },
+      }),
+      context.options
+    );
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    if (!scope.includes('profile')) {
+      assert.equal(response.status, 403);
+      assert.equal((await response.json()).error, 'insufficient_scope');
+    } else {
+      assert.equal(response.status, 200);
+      const profile = await response.json();
+      assert.equal(profile.name, site.author.name);
+      assert.equal(profile.url, `${site.origin}/`);
+      assert.equal(
+        profile.email,
+        scope.includes('email') ? site.author.email : undefined
+      );
+      assert.equal(profile.me, undefined);
+      await handleRevocation(
+        formPost('/indieauth/revoke', { token: token.access_token }),
+        context.options
+      );
+      const revoked = await endpoints.handleUserInfo(
+        new Request(`${site.origin}/indieauth/userinfo`, {
+          headers: { Authorization: `Bearer ${token.access_token}` },
+        }),
+        context.options
+      );
+      assert.equal(revoked.status, 401);
+    }
+  }
+  const context = setup();
+  const missing = await endpoints.handleUserInfo(
+    new Request(`${site.origin}/indieauth/userinfo`),
+    context.options
+  );
+  assert.equal(missing.status, 401);
+  const invalid = await endpoints.handleUserInfo(
+    new Request(`${site.origin}/indieauth/userinfo`, {
+      headers: { Authorization: 'Bearer invalid' },
+    }),
+    context.options
+  );
+  assert.equal(invalid.status, 401);
+  assert.equal((await invalid.json()).error, 'invalid_token');
 });

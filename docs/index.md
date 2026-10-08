@@ -25,6 +25,8 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## IndieWeb
 
+- [Publishing conformance](./publishing-conformance.md): pinned standards, schema CIDs, supported behavior and separate external release gates.
+
 - [IndieWeb](./indieweb/README.md): every protocol route, the environment
   variables that switch each on, the scripts that run after a build, and the
   IndieMark level 1 to 3 checklist with status.

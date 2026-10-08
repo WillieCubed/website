@@ -1,9 +1,10 @@
 import { WEBSUB_HUB } from '@/lib/indieweb/constants';
-import type { ActivityFeedItem } from '@/lib/indieweb/types';
+import type { ActivityFeedItem, WebmentionAuthor } from '@/lib/indieweb/types';
 import type { Initiative } from '@/lib/initiatives';
 import { site } from '@/lib/site';
 import { siteRoute } from '@/lib/url-utils';
 import type { WritingData } from '@/lib/writings';
+import { writingAttachments } from '@/lib/writings/media';
 import { normalizeTag, tagFeedPaths, tagPath } from '@/lib/writings/tags';
 
 const SITE_TITLE = site.name;
@@ -26,6 +27,13 @@ export interface FeedItem {
   updated?: Date;
   categories?: string[];
   indieweb?: ActivityFeedItem['indieweb'];
+  author?: WebmentionAuthor;
+  attachments?: {
+    url: string;
+    mime_type: string;
+    size_in_bytes?: number;
+    title?: string;
+  }[];
 }
 
 export interface RssFeedOptions {
@@ -89,6 +97,11 @@ export function writingToFeedItem(
     published: new Date(writing.published),
     updated: writing.lastUpdated ? new Date(writing.lastUpdated) : undefined,
     categories: writing.tags,
+    attachments: writingAttachments(writing).map((media) => ({
+      url: media.url,
+      mime_type: media.mimeType || 'application/octet-stream',
+      title: media.description,
+    })),
   };
 }
 
@@ -168,28 +181,38 @@ export function generateRssFeed(
     .map(
       (item) => `    <item>
       <title>${escapeXml(item.title)}</title>
-      <link>${item.url}</link>
+      <link>${escapeXml(item.url)}</link>
       <guid isPermaLink="${item.id ? 'false' : 'true'}">${escapeXml(item.id || item.url)}</guid>
       <description>${escapeXml(item.description)}</description>
       ${item.content ? `<content:encoded>${escapeXml(item.content)}</content:encoded>` : ''}
       <pubDate>${formatRssDate(item.published)}</pubDate>
+      <dc:creator>${escapeXml(item.author?.name || AUTHOR_NAME)}</dc:creator>
+      ${
+        item.attachments
+          ?.filter((attachment) => attachment.size_in_bytes !== undefined)
+          .map(
+            (attachment) =>
+              `<enclosure url="${escapeXml(attachment.url)}" type="${escapeXml(attachment.mime_type)}" length="${attachment.size_in_bytes}"/>`
+          )
+          .join('') || ''
+      }
       ${item.categories?.map((cat) => `<category>${escapeXml(cat)}</category>`).join('\n      ') || ''}
     </item>`
     )
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>${escapeXml(title)}</title>
-    <link>${alternateUrl}</link>
+    <link>${escapeXml(alternateUrl)}</link>
     <description>${escapeXml(description)}</description>
     <language>en-us</language>
     <lastBuildDate>${formatRssDate(latestFeedDate(items))}</lastBuildDate>
-    <atom:link href="${feedUrl}" rel="self" type="application/rss+xml"/>
-    <atom:link href="${WEBSUB_HUB}" rel="hub"/>
-    <managingEditor>${AUTHOR_EMAIL} (${AUTHOR_NAME})</managingEditor>
-    <webMaster>${AUTHOR_EMAIL} (${AUTHOR_NAME})</webMaster>
+    <atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml"/>
+    <atom:link href="${escapeXml(WEBSUB_HUB)}" rel="hub"/>
+    <managingEditor>${escapeXml(AUTHOR_EMAIL)} (${escapeXml(AUTHOR_NAME)})</managingEditor>
+    <webMaster>${escapeXml(AUTHOR_EMAIL)} (${escapeXml(AUTHOR_NAME)})</webMaster>
 ${itemsXml}
   </channel>
 </rss>`;
@@ -212,16 +235,17 @@ export function generateAtomFeed(
     .map(
       (item) => `  <entry>
     <title>${escapeXml(item.title)}</title>
-    <link href="${item.url}" rel="alternate" type="text/html"/>
+    <link href="${escapeXml(item.url)}" rel="alternate" type="text/html"/>
+    ${item.attachments?.map((attachment) => `<link rel="enclosure" href="${escapeXml(attachment.url)}" type="${escapeXml(attachment.mime_type)}"${attachment.size_in_bytes === undefined ? '' : ` length="${attachment.size_in_bytes}"`}/>`).join('') || ''}
     <id>${escapeXml(item.id || item.url)}</id>
     <published>${formatAtomDate(item.published)}</published>
     <updated>${formatAtomDate(item.updated || item.published)}</updated>
     <summary>${escapeXml(item.description)}</summary>
     ${item.content ? `<content type="html">${escapeXml(item.content)}</content>` : ''}
     <author>
-      <name>${AUTHOR_NAME}</name>
-      <email>${AUTHOR_EMAIL}</email>
-      <uri>${authorUri}</uri>
+      <name>${escapeXml(item.author?.name || AUTHOR_NAME)}</name>
+      ${item.author ? '' : `<email>${escapeXml(AUTHOR_EMAIL)}</email>`}
+      <uri>${escapeXml(item.author?.url || authorUri)}</uri>
     </author>
     ${item.categories?.map((cat) => `<category term="${escapeXml(cat)}"/>`).join('\n    ') || ''}
   </entry>`
@@ -232,15 +256,15 @@ export function generateAtomFeed(
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>${escapeXml(title)}</title>
   <subtitle>${escapeXml(subtitle)}</subtitle>
-  <link href="${alternateUrl}" rel="alternate" type="text/html"/>
-  <link href="${feedUrl}" rel="self" type="application/atom+xml"/>
-  <link href="${WEBSUB_HUB}" rel="hub"/>
+  <link href="${escapeXml(alternateUrl)}" rel="alternate" type="text/html"/>
+  <link href="${escapeXml(feedUrl)}" rel="self" type="application/atom+xml"/>
+  <link href="${escapeXml(WEBSUB_HUB)}" rel="hub"/>
   <id>${escapeXml(feedUrl)}</id>
   <updated>${formatAtomDate(latestFeedDate(items))}</updated>
   <author>
-    <name>${AUTHOR_NAME}</name>
-    <email>${AUTHOR_EMAIL}</email>
-    <uri>${authorUri}</uri>
+    <name>${escapeXml(AUTHOR_NAME)}</name>
+    <email>${escapeXml(AUTHOR_EMAIL)}</email>
+    <uri>${escapeXml(authorUri)}</uri>
   </author>
 ${entriesXml}
 </feed>`;
@@ -348,11 +372,23 @@ export function generateJsonFeed(
       url: item.url,
       title: item.title,
       summary: item.description,
-      content_html: item.content,
+      ...(item.content
+        ? { content_html: item.content }
+        : { content_text: item.description }),
       date_published: item.published.toISOString(),
       date_modified: item.updated?.toISOString(),
       tags: item.categories,
       _indieweb: item.indieweb,
+      ...(item.author && {
+        authors: [
+          {
+            name: item.author.name,
+            url: item.author.url,
+            avatar: item.author.photo,
+          },
+        ],
+      }),
+      ...(item.attachments?.length && { attachments: item.attachments }),
     })),
   };
 

@@ -4,7 +4,7 @@ import WebmentionSection, {
 
 import { socialSettings } from '@/lib/atproto/config';
 import { blueskyPostIntent, threadsPostIntent } from '@/lib/indieweb/posse';
-import type { WebmentionGroup } from '@/lib/indieweb/types';
+import type { ResponseGroup as WebmentionGroup } from '@/lib/indieweb/types';
 import type { Backlink } from '@/lib/writings/backlinks';
 import type { WritingData } from '@/lib/writings/types';
 

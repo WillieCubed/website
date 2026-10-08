@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { hashSecret } from '@/lib/indieweb/indieauth-server';
 import {
   type MediaStore,
   MediaUploadError,
@@ -9,7 +10,10 @@ import {
   parseMediaUpload,
   storeMedia,
 } from '@/lib/indieweb/media';
+import { handleMediaPost } from '@/lib/indieweb/media-endpoint';
 import { site } from '@/lib/site';
+
+import { memoryIndieAuthStore } from './indieauth-memory-store.mts';
 
 const endpoint = `${site.origin}/micropub/media`;
 
@@ -103,4 +107,111 @@ test('POST /micropub/media answers 503 until storage is configured', async () =>
     if (saved === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
     else process.env.BLOB_READ_WRITE_TOKEN = saved;
   }
+});
+
+test('media uploads accept signed audio, video, and PDF bytes and reject MIME spoofing', async () => {
+  const cases: [string, Uint8Array][] = [
+    ['audio/mpeg', new Uint8Array([0x49, 0x44, 0x33, 4, 0, 0, 0, 0, 0, 0])],
+    ['audio/wav', new Uint8Array([82, 73, 70, 70, 0, 0, 0, 0, 87, 65, 86, 69])],
+    [
+      'video/mp4',
+      new Uint8Array([
+        0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109, 0, 0, 0, 0,
+      ]),
+    ],
+    ['video/webm', new Uint8Array([0x1a, 0x45, 0xdf, 0xa3])],
+    ['application/pdf', new TextEncoder().encode('%PDF-1.7\n')],
+  ];
+  for (const [mime, bytes] of cases) {
+    const file = await parseMediaUpload(
+      upload(new File([bytes], 'upload', { type: mime }))
+    );
+    assert.equal(file.type, mime);
+  }
+  await assert.rejects(
+    parseMediaUpload(
+      upload(new File(['not an image'], 'spoof.jpg', { type: 'image/jpeg' }))
+    ),
+    MediaUploadError
+  );
+  await assert.rejects(
+    parseMediaUpload(
+      upload(
+        new File([new Uint8Array(4 * 1024 * 1024 + 1)], 'large.jpg', {
+          type: 'image/jpeg',
+        })
+      )
+    ),
+    /4 MiB/
+  );
+});
+
+test('the media endpoint checks bearer scopes, size, and signatures before storing', async () => {
+  const { store } = memoryIndieAuthStore();
+  const stored: string[] = [];
+  const options = {
+    tokenStore: store,
+    mediaStore: {
+      async put(path: string) {
+        stored.push(path);
+        return 'https://media.example/' + path;
+      },
+    },
+  };
+  const credential = async (scope: string) => {
+    const token = 'media-' + scope;
+    await store.saveToken(hashSecret(token), {
+      clientId: 'https://client.example/',
+      me: site.origin + '/',
+      scope: [scope],
+      issuedAt: new Date(),
+      expiresAt: new Date(Date.now() + 3600000),
+    });
+    return { Authorization: 'Bearer ' + token };
+  };
+  const missing = await handleMediaPost(upload(jpeg()), options);
+  assert.equal(missing.status, 401);
+  assert.equal(missing.headers.get('www-authenticate'), 'Bearer');
+  const invalid = await handleMediaPost(
+    upload(jpeg(), { Authorization: 'Bearer bad' }),
+    options
+  );
+  assert.equal(invalid.status, 401);
+  assert.match(invalid.headers.get('www-authenticate')!, /invalid_token/);
+  const insufficient = await handleMediaPost(
+    upload(jpeg(), await credential('update')),
+    options
+  );
+  assert.equal(insufficient.status, 403);
+  assert.match(
+    insufficient.headers.get('www-authenticate')!,
+    /insufficient_scope/
+  );
+  const bad = await handleMediaPost(
+    upload(
+      new File(['<script>bad</script>'], 'spoof.jpg', { type: 'image/jpeg' }),
+      await credential('create')
+    ),
+    options
+  );
+  assert.equal(bad.status, 400);
+  const large = await handleMediaPost(
+    upload(
+      new File([new Uint8Array(4 * 1024 * 1024 + 1)], 'large.jpg', {
+        type: 'image/jpeg',
+      }),
+      await credential('create')
+    ),
+    options
+  );
+  assert.equal(large.status, 413);
+  assert.deepEqual(stored, []);
+  const accepted = await handleMediaPost(
+    upload(jpeg(), await credential('draft')),
+    options
+  );
+  assert.equal(accepted.status, 201);
+  assert.equal(accepted.headers.get('location'), (await accepted.json()).url);
+  assert.equal(accepted.headers.get('access-control-allow-origin'), '*');
+  assert.equal(stored.length, 1);
 });

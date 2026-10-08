@@ -149,6 +149,33 @@ test('a target with no endpoint is not posted to', async () => {
   assert.ok(calls.every((call) => call.method !== 'POST'));
 });
 
+test('temporary discovery failures do not report a verified absent endpoint', async () => {
+  const calls = serve({ status: 503 });
+  const unavailable = await sendWebmention(source, target);
+  assert.equal(unavailable.success, false);
+  assert.match(unavailable.error!, /discovery.*503/i);
+  assert.equal(unavailable.statusCode, undefined);
+  assert.ok(calls.every((call) => call.method !== 'POST'));
+
+  mock.method(globalThis, 'fetch', async () => {
+    throw new Error('A temporary connection failure');
+  });
+  mock.method(console, 'error', () => {});
+  const disconnected = await sendWebmention(source, target);
+  assert.equal(disconnected.success, false);
+  assert.match(disconnected.error!, /temporary connection failure/i);
+  assert.notEqual(disconnected.error, 'No webmention endpoint found');
+
+  const guarded = await send(source, 'http://127.0.0.1/private', {
+    resolve: async () => [{ address: '127.0.0.1', family: 4 }],
+    fetch: async () => {
+      throw new Error('A blocked target must not be fetched');
+    },
+  });
+  assert.equal(guarded.success, false);
+  assert.match(guarded.error!, /discovery.*public document/i);
+});
+
 test('only external links are sent webmentions, once each', () => {
   const html = `
     <a href="https://example.com/a">a</a>

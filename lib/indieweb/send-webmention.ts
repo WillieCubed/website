@@ -35,17 +35,31 @@ export async function discoverWebmentionEndpoint(
   targetUrl: string,
   network: Pick<PublicFetchOptions, 'resolve' | 'fetch'> = {}
 ): Promise<string | null> {
+  const result = await discoverEndpoint(targetUrl, network);
+  return result.status === 'found' ? result.endpoint : null;
+}
+
+type EndpointDiscovery =
+  | { status: 'found'; endpoint: string }
+  | { status: 'absent' }
+  | { status: 'failed'; error: string };
+
+async function discoverEndpoint(
+  targetUrl: string,
+  network: Pick<PublicFetchOptions, 'resolve' | 'fetch'>
+): Promise<EndpointDiscovery> {
   try {
     const head = await fetchPublicDocument(targetUrl, {
       ...network,
       method: 'HEAD',
       timeoutMs: FETCH_TIMEOUT,
       headers: { 'User-Agent': 'WillieCubed-Webmention-Sender/1.0' },
-    });
+    }).catch(() => null);
     const headLink = head?.headers.get('link');
     if (headLink) {
       const endpoint = parseLinkHeader(headLink, 'webmention');
-      if (endpoint !== null) return resolveUrl(endpoint, head!.url);
+      if (endpoint !== null)
+        return { status: 'found', endpoint: resolveUrl(endpoint, head!.url) };
     }
     const document = await fetchPublicDocument(targetUrl, {
       ...network,
@@ -55,16 +69,32 @@ export async function discoverWebmentionEndpoint(
         'User-Agent': 'WillieCubed-Webmention-Sender/1.0',
       },
     });
-    if (!document || document.status < 200 || document.status >= 300)
-      return null;
+    if (!document)
+      return {
+        status: 'failed',
+        error:
+          'Webmention endpoint discovery failed: The target could not be read as a public document.',
+      };
+    if (document.status < 200 || document.status >= 300)
+      return {
+        status: 'failed',
+        error: `Webmention endpoint discovery failed: HTTP ${document.status}.`,
+      };
     const link = document.headers.get('link');
-    const endpoint = link ? parseLinkHeader(link, 'webmention') : null;
-    return endpoint !== null
-      ? resolveUrl(endpoint, document.url)
-      : parseHtmlForWebmentionEndpoint(document.body, document.url);
+    const declared = link ? parseLinkHeader(link, 'webmention') : null;
+    const endpoint =
+      declared !== null
+        ? resolveUrl(declared, document.url)
+        : parseHtmlForWebmentionEndpoint(document.body, document.url);
+    return endpoint === null
+      ? { status: 'absent' }
+      : { status: 'found', endpoint };
   } catch (error) {
     console.error('Endpoint discovery failed:', error);
-    return null;
+    return {
+      status: 'failed',
+      error: `Webmention endpoint discovery failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
   }
 }
 
@@ -172,15 +202,20 @@ export async function sendWebmention(
   targetUrl: string,
   network: Pick<PublicFetchOptions, 'resolve' | 'fetch'> = {}
 ): Promise<SendResult> {
-  const endpoint = await discoverWebmentionEndpoint(targetUrl, network);
+  const discovery = await discoverEndpoint(targetUrl, network);
 
-  if (!endpoint) {
+  if (discovery.status !== 'found') {
+    // Discovery errors did not reject a submitted mention and must remain retryable.
     return {
       targetUrl,
       success: false,
-      error: 'No webmention endpoint found',
+      error:
+        discovery.status === 'absent'
+          ? 'No webmention endpoint found'
+          : discovery.error,
     };
   }
+  const endpoint = discovery.endpoint;
 
   try {
     const response = await fetchPublicDocument(endpoint, {

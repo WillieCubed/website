@@ -57,7 +57,7 @@ activity feeds return empty documents; nothing else on the site notices.
 
 ## Current release contract
 
-The [conformance matrix](../publishing-conformance.md) records current standards and external release gates. Migrations 006 and 007 add rotating IndieAuth refresh families and private Micropub deletion archives. Apply them to acceptance before production.
+The [conformance matrix](../publishing-conformance.md) records current standards and external release gates. Migrations 006 and 007 add rotating IndieAuth refresh families and private Micropub deletion archives. Migration 009 binds grants to spent authorization codes so replay revokes their access and refresh tokens. Apply the migrations to acceptance before production, and apply 009 before deploying the code that calls its PostgreSQL functions.
 
 ## Markup
 
@@ -593,7 +593,7 @@ same goes for any challenge Cloudflare puts in front of the site.
 | `INDIEAUTH_TOTP_SECRET`                                                                            | owner sign-in on `/indieauth/consent`                                                                                                                                                       | unset, sign-in answers 503              |
 | `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                                                                                                                                                     | unset, route answers 503                |
 | `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                                                                                                                                                            | local write, `main`, `content/writings` |
-| `BLOB_STORE_ID` with Vercel OIDC, or `BLOB_READ_WRITE_TOKEN`                                       | `/micropub/media` photo storage in Vercel Blob                                                                                                                                              | unset, route answers 503                |
+| `BLOB_STORE_ID` with Vercel OIDC, or `BLOB_READ_WRITE_TOKEN`                                       | `/micropub/media` image, audio, video and PDF storage in Vercel Blob                                                                                                                        | unset, route answers 503                |
 | `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                                                                                                                                                      | JSON index                              |
 | `SEARCH_REINDEX_SECRET`                                                                            | `/api/search/reindex` in production                                                                                                                                                         | unset                                   |
 | `INDIEWEB_NOTIFY_SECRET`                                                                           | authenticates the post-deployment notification endpoint                                                                                                                                     | unset, endpoint refuses                 |
@@ -630,12 +630,12 @@ writings or actual syndicated copies.
 
 ## Not covered here
 
-The IndieAuth server signs in one person, the site owner, and has no refresh
-tokens or `userinfo` endpoint. Nothing federates over ActivityPub yet; that
-plan is in `docs/future/activitypub.md`.
+The IndieAuth server authorizes the site owner. AT Protocol visitor authorization uses a separate OAuth client. ActivityPub delivery remains outside this implementation; its proposal is in `docs/future/activitypub.md`.
 
 ## Refresh and UserInfo
 
-`/indieauth/token` accepts `grant_type=refresh_token`, `refresh_token`, and `client_id`. Rotation binds the credential to its original client and grant, rejects scope escalation, and atomically hashes and spends the old token. Reuse revokes the entire family. New access tokens last one hour. Each refresh starts a 90-day inactivity deadline. Existing access tokens keep their recorded expiry. `/indieauth/userinfo` returns identity and profile/email fields allowed by the token's scopes. Metadata advertises both capabilities. S256 PKCE remains mandatory.
+`/indieauth/token` accepts `grant_type=refresh_token`, `refresh_token`, and `client_id`. Rotation binds the credential to its original client and grant, rejects scope escalation, and atomically hashes and spends the old token. Reuse revokes the entire family. New access tokens last one hour. Each refresh starts a 90-day inactivity deadline. Existing access tokens keep their recorded expiry. `/indieauth/userinfo` returns identity and profile/email fields allowed by the token's scopes. Metadata advertises both capabilities. S256 PKCE remains mandatory. A scope-free code returns only the profile URL and never creates access or refresh credentials.
+
+Reusing an authorization code revokes every token in its grant. Migration 009 serializes replay and token issuance on the code row. The server retains spent code digests to preserve that association across refreshes. It removes only expired unused codes. Existing grants without an association and legacy access tokens retain their recorded expiry.
 
 Media uploads accept the MIME types in `MEDIA_TYPES` under `lib/indieweb/media.ts`. The limit is 4MiB. The endpoint checks file signatures and rejects SVG, empty files and mismatched types. Audio and video use native controls without autoplay; PDF files remain links. Signature checks recognize containers; they do not prove that a browser can decode every codec inside them.

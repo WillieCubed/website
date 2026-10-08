@@ -96,7 +96,7 @@ export default function NativeVideo({
       {failed && sourceUrl && (
         <SiteLink
           href={sourceUrl}
-          className="mt-2 inline-flex min-h-10 items-center rounded-full bg-soft px-4 text-label-medium text-ink"
+          className="mt-2 inline-flex min-h-10 items-center rounded-full bg-tray px-4 text-label-medium text-ink"
         >
           Open video
         </SiteLink>

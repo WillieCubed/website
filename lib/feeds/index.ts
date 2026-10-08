@@ -36,6 +36,22 @@ export interface FeedItem {
   }[];
 }
 
+function rssEnclosure(item: FeedItem): string {
+  const attachments =
+    item.attachments?.filter(
+      (attachment) => attachment.size_in_bytes !== undefined
+    ) ?? [];
+  const preferred = ['audio/', 'video/', 'image/']
+    .map((type) =>
+      attachments.find((attachment) => attachment.mime_type.startsWith(type))
+    )
+    .find((attachment) => attachment !== undefined);
+  const attachment = preferred ?? attachments[0];
+  return attachment
+    ? `<enclosure url="${escapeXml(attachment.url)}" type="${escapeXml(attachment.mime_type)}" length="${attachment.size_in_bytes}"/>`
+    : '';
+}
+
 export interface RssFeedOptions {
   title?: string;
   description?: string;
@@ -187,15 +203,7 @@ export function generateRssFeed(
       ${item.content ? `<content:encoded>${escapeXml(item.content)}</content:encoded>` : ''}
       <pubDate>${formatRssDate(item.published)}</pubDate>
       <dc:creator>${escapeXml(item.author?.name || AUTHOR_NAME)}</dc:creator>
-      ${
-        item.attachments
-          ?.filter((attachment) => attachment.size_in_bytes !== undefined)
-          .map(
-            (attachment) =>
-              `<enclosure url="${escapeXml(attachment.url)}" type="${escapeXml(attachment.mime_type)}" length="${attachment.size_in_bytes}"/>`
-          )
-          .join('') || ''
-      }
+      ${rssEnclosure(item)}
       ${item.categories?.map((cat) => `<category>${escapeXml(cat)}</category>`).join('\n      ') || ''}
     </item>`
     )

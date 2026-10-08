@@ -403,3 +403,73 @@ test('feed HTML links bare URLs and leaves sentence punctuation outside @mention
     /<a href="https:\/\/instagram\.com\/williecubed">@williecubed<\/a>\.<\/p>/
   );
 });
+
+test('RSS selects one compatible enclosure while Atom and JSON retain all media', () => {
+  const attachments = [
+    {
+      url: 'https://media.example/file.pdf',
+      mime_type: 'application/pdf',
+      size_in_bytes: 20,
+    },
+    {
+      url: 'https://media.example/image.png',
+      mime_type: 'image/png',
+      size_in_bytes: 30,
+    },
+    {
+      url: 'https://media.example/video.mp4',
+      mime_type: 'video/mp4',
+      size_in_bytes: 40,
+    },
+    {
+      url: 'https://media.example/audio.ogg',
+      mime_type: 'audio/ogg',
+      size_in_bytes: 50,
+    },
+  ];
+  const content = attachments
+    .map((attachment) => `<a href="${attachment.url}">Media</a>`)
+    .join('');
+  for (const candidates of [
+    attachments,
+    attachments.slice(0, 3),
+    attachments.slice(0, 2),
+    attachments.slice(0, 1),
+  ]) {
+    const entry = { ...item, content, attachments: candidates };
+    const rss = generateRssFeed([entry]);
+    assert.equal((rss.match(/<enclosure /g) ?? []).length, 1);
+    assert.match(
+      rss,
+      new RegExp(
+        `<enclosure url="${candidates.at(-1)!.url.replaceAll('.', '\\.')}"`
+      )
+    );
+    for (const attachment of attachments)
+      assert.ok(rss.includes(attachment.url));
+    assert.equal(
+      (generateAtomFeed([entry]).match(/rel="enclosure"/g) ?? []).length,
+      candidates.length
+    );
+    assert.deepEqual(
+      JSON.parse(generateJsonFeed([entry])).items[0].attachments,
+      candidates
+    );
+  }
+  assert.equal(
+    (
+      generateRssFeed([
+        {
+          ...item,
+          attachments: [
+            {
+              url: 'https://media.example/unknown.ogg',
+              mime_type: 'audio/ogg',
+            },
+          ],
+        },
+      ]).match(/<enclosure /g) ?? []
+    ).length,
+    0
+  );
+});

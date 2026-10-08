@@ -9,6 +9,7 @@ export const MIGRATIONS = [
   'lib/db/migrations/006_indieauth_refresh.sql',
   'lib/db/migrations/007_micropub_deleted_archives.sql',
   'lib/db/migrations/008_atproto_response_observations.sql',
+  'lib/db/migrations/009_indieauth_code_replay.sql',
 ];
 
 export const SCHEMA_QUERY = `SELECT (
@@ -26,6 +27,9 @@ export const SCHEMA_QUERY = `SELECT (
   to_regclass('public.indieauth_tokens') IS NOT NULL AND
   to_regclass('public.indieauth_refresh_families') IS NOT NULL AND
   to_regclass('public.indieauth_refresh_tokens') IS NOT NULL AND
+  to_regprocedure('public.indieauth_consume_code(text,timestamp with time zone)') IS NOT NULL AND
+  to_regprocedure('public.indieauth_save_token_grant(text,text,text,text,text,text,text,timestamp with time zone,timestamp with time zone,timestamp with time zone)') IS NOT NULL AND
+  EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'indieauth_refresh_families' AND column_name = 'authorization_code_hash') AND
   to_regclass('public.micropub_deleted_writings') IS NOT NULL AND
   to_regclass('public.indieauth_totp_steps') IS NOT NULL AND
   to_regclass('public.indieauth_sign_in_failures') IS NOT NULL AND

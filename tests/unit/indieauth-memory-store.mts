@@ -13,7 +13,11 @@ import type {
 export function memoryIndieAuthStore() {
   const codes = new Map<
     string,
-    { record: IndieAuthCodeRecord; usedAt: Date | null }
+    {
+      record: IndieAuthCodeRecord;
+      usedAt: Date | null;
+      replayedAt: Date | null;
+    }
   >();
   const tokens = new Map<
     string,
@@ -31,11 +35,20 @@ export function memoryIndieAuthStore() {
 
   const store: IndieAuthStore = {
     async saveCode(codeHash, record) {
-      codes.set(codeHash, { record, usedAt: null });
+      codes.set(codeHash, { record, usedAt: null, replayedAt: null });
     },
     async consumeCode(codeHash, now) {
       const row = codes.get(codeHash);
-      if (!row || row.usedAt || row.record.expiresAt <= now) return null;
+      if (!row) return null;
+      if (row.usedAt) {
+        row.replayedAt = now;
+        for (const family of families.values()) {
+          if (family.grant.authorizationCodeHash === codeHash)
+            family.revokedAt = now;
+        }
+        return null;
+      }
+      if (row.record.expiresAt <= now) return null;
       row.usedAt = now;
       return row.record;
     },
@@ -43,6 +56,21 @@ export function memoryIndieAuthStore() {
       tokens.set(tokenHash, { record, revokedAt: null });
     },
     async saveTokenGrant(tokenHash, grant) {
+      if (grant.authorizationCodeHash) {
+        const code = codes.get(grant.authorizationCodeHash);
+        if (
+          !code?.usedAt ||
+          code.replayedAt ||
+          code.record.clientId !== grant.clientId ||
+          code.record.me !== grant.me ||
+          code.record.scope.join(' ') !== grant.scope.join(' ') ||
+          [...families.values()].some(
+            (family) =>
+              family.grant.authorizationCodeHash === grant.authorizationCodeHash
+          )
+        )
+          return false;
+      }
       families.set(grant.refreshFamilyId, { grant, revokedAt: null });
       refreshTokens.set(grant.refreshTokenHash, {
         familyId: grant.refreshFamilyId,
@@ -50,6 +78,7 @@ export function memoryIndieAuthStore() {
         usedAt: null,
       });
       tokens.set(tokenHash, { record: grant, revokedAt: null });
+      return true;
     },
     async rotateRefreshToken(rotation) {
       const row = refreshTokens.get(rotation.refreshTokenHash);

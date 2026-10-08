@@ -265,7 +265,7 @@ test('denying sends access_denied back to the client', async () => {
   assert.equal(location.searchParams.get('code'), null);
 });
 
-test('the full flow: approve, exchange, verify for Micropub, introspect, revoke', async () => {
+test('the full flow verifies issued tokens and revokes them after code replay', async () => {
   const context = setup();
   // The owner clears the media box before approving.
   const code = await approve(context, ['create', 'profile']);
@@ -281,14 +281,6 @@ test('the full flow: approve, exchange, verify for Micropub, introspect, revoke'
   assert.equal(token.scope, 'create profile');
   assert.equal(token.me, `${site.origin}/`);
   assert.equal(token.profile.name, site.author.name);
-
-  // The code was spent by the exchange.
-  const replay = await handleTokenRequest(
-    tokenRedemption(code),
-    context.options
-  );
-  assert.equal(replay.status, 400);
-  assert.equal((await replay.json()).error, 'invalid_grant');
 
   // Micropub checks the token against the same store, locally.
   const micropub = {
@@ -333,6 +325,16 @@ test('the full flow: approve, exchange, verify for Micropub, introspect, revoke'
   ).json();
   assert.equal(active.active, true);
   assert.equal(active.client_id, CLIENT);
+
+  // The code was spent by the exchange.
+  const replay = await handleTokenRequest(
+    tokenRedemption(code),
+    context.options
+  );
+  assert.equal(replay.status, 400);
+  assert.equal((await replay.json()).error, 'invalid_grant');
+
+  assert.equal(await verifyIndieAuthToken(micropub), false);
 
   const revoked = await handleRevocation(
     formPost('/indieauth/revoke', { token: token.access_token }),
@@ -385,10 +387,10 @@ test('a code without a scope redeems for a profile, never a token', async () => 
     tokenRedemption(tokenCode),
     context.options
   );
-  assert.equal(refused.status, 400);
-  assert.equal((await refused.json()).error, 'invalid_grant');
+  assert.equal(refused.status, 200);
+  assert.deepEqual(await refused.json(), { me: `${site.origin}/` });
 
-  // A fresh code, since the refusal spent that one. Wait for the next TOTP
+  // A fresh code, since the exchange spent that one. Wait for the next TOTP
   // step, as each code signs in once.
   context.advance(30_000);
   const profileCode = await approve(context, []);

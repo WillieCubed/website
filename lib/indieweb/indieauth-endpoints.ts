@@ -182,7 +182,12 @@ export function handleAuthorizationRequest(request: Request): Response {
   consent.search = url.search;
   return new Response(null, {
     status: 302,
-    headers: { Location: consent.href, 'Cache-Control': 'no-store' },
+    headers: {
+      Location: consent.href,
+      'Cache-Control': 'no-store',
+      'X-Frame-Options': 'DENY',
+      'Content-Security-Policy': "frame-ancestors 'none'",
+    },
   });
 }
 
@@ -378,6 +383,9 @@ export async function handleTokenRequest(
     }
     return jsonResponse(refreshed.token, { headers: TOKEN_HEADERS });
   }
+  if (!form.get('grant_type')) {
+    return oauthError('invalid_request', 400, 'grant_type is required.');
+  }
   if (form.get('grant_type') !== 'authorization_code') {
     return oauthError(
       'unsupported_grant_type',
@@ -391,14 +399,19 @@ export async function handleTokenRequest(
     return oauthError(redemption.error, 400, redemption.description);
   }
   if (redemption.record.scope.length === 0) {
-    return oauthError(
-      'invalid_grant',
-      400,
-      'The code was issued without a scope, so it cannot become a token. Redeem it at the authorization endpoint.'
-    );
+    return jsonResponse(profileResponse(redemption.record), {
+      headers: TOKEN_HEADERS,
+    });
   }
 
   const token = await issueAccessToken(options.store, redemption.record, now);
+  if (!token) {
+    return oauthError(
+      'invalid_grant',
+      400,
+      'The authorization code was reused.'
+    );
+  }
   return jsonResponse(token, { headers: TOKEN_HEADERS });
 }
 

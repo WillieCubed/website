@@ -349,6 +349,8 @@ export interface IndieAuthAuthorizationRequest {
 
 /** What the authorization endpoint stored when it issued a code. */
 export interface IndieAuthCodeRecord {
+  /** Added during redemption to bind later tokens to the spent code. */
+  authorizationCodeHash?: string;
   clientId: string;
   redirectUri: string;
   me: string;
@@ -370,6 +372,7 @@ export interface IndieAuthTokenRecord {
 
 /** The original grant and the first hashed refresh token. */
 export interface IndieAuthTokenGrant extends IndieAuthTokenRecord {
+  authorizationCodeHash?: string;
   refreshFamilyId: string;
   refreshTokenHash: string;
   refreshExpiresAt: Date;
@@ -408,7 +411,7 @@ export interface IndieAuthStore {
   saveTokenGrant: (
     tokenHash: string,
     grant: IndieAuthTokenGrant
-  ) => Promise<void>;
+  ) => Promise<boolean | void>;
   /** Serialize on the family; reuse revokes every token in that family. */
   rotateRefreshToken: (
     rotation: IndieAuthRefreshRotation

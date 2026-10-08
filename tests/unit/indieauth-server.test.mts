@@ -22,6 +22,7 @@ import {
   parseScope,
   profileResponse,
   redeemAuthorizationCode,
+  refreshAccessToken,
   revokeAccessToken,
   verifyPkce,
 } from '@/lib/indieweb/indieauth-server';
@@ -307,6 +308,7 @@ test('an issued token verifies until it expires or is revoked', async () => {
   assert.ok(redeemed.ok);
 
   const response = await issueAccessToken(store, redeemed.record, NOW);
+  assert.ok(response);
   assert.equal(response.token_type, 'Bearer');
   assert.equal(response.scope, 'create');
   assert.equal(response.me, INDIEAUTH_ISSUER);
@@ -476,4 +478,89 @@ test('client metadata is read from JSON and from HTML', () => {
   assert.equal(html.name, 'Quill');
   assert.equal(html.logo, 'https://quill.example/logo.png');
   assert.deepEqual(html.redirectUris, ['https://quill.example/callback']);
+});
+
+test('replaying an authorization code revokes its original and refreshed tokens', async () => {
+  const { store } = memoryIndieAuthStore();
+  const code = await issueAuthorizationCode(
+    store,
+    request,
+    ['create', 'update'],
+    NOW
+  );
+  const redeemed = await redeemAuthorizationCode(store, redemption(code), NOW);
+  assert.ok(redeemed.ok);
+  const issued = await issueAccessToken(store, redeemed.record, NOW);
+  assert.ok(issued);
+  const rotated = await refreshAccessToken(
+    store,
+    new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: issued.refresh_token,
+      client_id: request.clientId,
+    }),
+    NOW
+  );
+  assert.ok(rotated.ok);
+  assert.ok(await findActiveToken(store, rotated.token.access_token, NOW));
+  assert.equal(
+    (await redeemAuthorizationCode(store, redemption(code), NOW)).ok,
+    false
+  );
+  assert.equal(await findActiveToken(store, issued.access_token, NOW), null);
+  assert.equal(
+    await findActiveToken(store, rotated.token.access_token, NOW),
+    null
+  );
+  assert.equal(
+    (
+      await refreshAccessToken(
+        store,
+        new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: rotated.token.refresh_token,
+          client_id: request.clientId,
+        }),
+        NOW
+      )
+    ).ok,
+    false
+  );
+});
+
+test('code replay between redemption and issuance cannot leave a live token', async () => {
+  const { store, tokens, families } = memoryIndieAuthStore();
+  const code = await issueAuthorizationCode(store, request, ['create'], NOW);
+  const redeemed = await redeemAuthorizationCode(store, redemption(code), NOW);
+  assert.ok(redeemed.ok);
+  assert.equal(
+    (await redeemAuthorizationCode(store, redemption(code), NOW)).ok,
+    false
+  );
+  assert.equal(await issueAccessToken(store, redeemed.record, NOW), null);
+  assert.equal(tokens.size, 0);
+  assert.equal(families.size, 0);
+});
+
+test('replaying one code leaves a separate authorization active', async () => {
+  const { store } = memoryIndieAuthStore();
+  const first = await issueAuthorizationCode(store, request, ['create'], NOW);
+  const second = await issueAuthorizationCode(store, request, ['create'], NOW);
+  const redemptionA = await redeemAuthorizationCode(
+    store,
+    redemption(first),
+    NOW
+  );
+  const redemptionB = await redeemAuthorizationCode(
+    store,
+    redemption(second),
+    NOW
+  );
+  assert.ok(redemptionA.ok && redemptionB.ok);
+  const tokenA = await issueAccessToken(store, redemptionA.record, NOW);
+  const tokenB = await issueAccessToken(store, redemptionB.record, NOW);
+  assert.ok(tokenA && tokenB);
+  await redeemAuthorizationCode(store, redemption(first), NOW);
+  assert.equal(await findActiveToken(store, tokenA.access_token, NOW), null);
+  assert.ok(await findActiveToken(store, tokenB.access_token, NOW));
 });

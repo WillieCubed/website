@@ -12,7 +12,7 @@ import type {
 
 /**
  * Postgres storage for the IndieAuth server. The tables are created by
- * migrations 003 and 006. Codes and tokens are stored as
+ * migrations 003, 006 and 009. Codes and tokens are stored as
  * SHA-256 digests, so a copy of the database holds nothing a client could
  * present.
  */
@@ -23,8 +23,8 @@ function scopeList(value: string): string[] {
 
 export const indieAuthStore: IndieAuthStore = {
   async saveCode(codeHash, record) {
-    // Spent and expired codes are useless, so each new code clears them.
-    await sql`DELETE FROM indieauth_codes WHERE expires_at < NOW()`;
+    // Spent digests remain associated with grants so replay revocation survives refresh.
+    await sql`DELETE FROM indieauth_codes WHERE expires_at < NOW() AND used_at IS NULL`;
     await sql`
       INSERT INTO indieauth_codes (
         code_hash, client_id, redirect_uri, me, scope, code_challenge,
@@ -38,14 +38,9 @@ export const indieAuthStore: IndieAuthStore = {
     `;
   },
   async consumeCode(codeHash, now) {
-    const result = await sql`
-      UPDATE indieauth_codes SET used_at = ${now.toISOString()}
-      WHERE code_hash = ${codeHash}
-        AND used_at IS NULL
-        AND expires_at > ${now.toISOString()}
-      RETURNING client_id, redirect_uri, me, scope, code_challenge, expires_at
-    `;
-    const row = result.rows[0];
+    const result = await sql`SELECT indieauth_consume_code(
+      ${codeHash}, ${now.toISOString()}) AS record`;
+    const row = result.rows[0].record;
     if (!row) return null;
     return {
       clientId: row.client_id,
@@ -69,29 +64,13 @@ export const indieAuthStore: IndieAuthStore = {
     `;
   },
   async saveTokenGrant(tokenHash, grant) {
-    await sql`
-      WITH family AS (
-        INSERT INTO indieauth_refresh_families (
-          family_id, client_id, me, scope, issued_at
-        ) VALUES (
-          ${grant.refreshFamilyId}, ${grant.clientId}, ${grant.me},
-          ${grant.scope.join(' ')}, ${grant.issuedAt.toISOString()}
-        ) RETURNING family_id
-      ), refresh AS (
-        INSERT INTO indieauth_refresh_tokens (
-          token_hash, family_id, issued_at, expires_at
-        ) SELECT ${grant.refreshTokenHash}, family_id,
-          ${grant.issuedAt.toISOString()}, ${grant.refreshExpiresAt.toISOString()}
-        FROM family
-        RETURNING family_id
-      )
-      INSERT INTO indieauth_tokens (
-        token_hash, client_id, me, scope, issued_at, expires_at, refresh_family_id
-      ) SELECT ${tokenHash}, ${grant.clientId}, ${grant.me},
-        ${grant.scope.join(' ')}, ${grant.issuedAt.toISOString()},
-        ${grant.expiresAt.toISOString()}, family_id
-      FROM refresh
-    `;
+    const result = await sql`SELECT indieauth_save_token_grant(
+      ${grant.authorizationCodeHash ?? null}, ${tokenHash},
+      ${grant.refreshFamilyId}, ${grant.refreshTokenHash},
+      ${grant.clientId}, ${grant.me}, ${grant.scope.join(' ')},
+      ${grant.issuedAt.toISOString()}, ${grant.expiresAt.toISOString()},
+      ${grant.refreshExpiresAt.toISOString()}) AS saved`;
+    return result.rows[0].saved === true;
   },
   async rotateRefreshToken(rotation) {
     const result = await sql`

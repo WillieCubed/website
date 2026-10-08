@@ -82,7 +82,7 @@ export default function WebmentionReplies({
               </p>
               {reply.contentHtml ? (
                 <div
-                  className="e-content space-y-2 text-body-medium text-ink [&_a]:link-animated [&_blockquote]:border-l-2 [&_blockquote]:border-line [&_blockquote]:pl-3 [&_code]:font-mono [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_img]:max-h-96 [&_img]:w-auto [&_img]:max-w-full [&_img]:rounded-xl [&_video]:max-h-96 [&_video]:w-full [&_video]:rounded-xl [&_audio]:w-full [&_figcaption]:text-muted [&_a.u-attachment]:inline-flex [&_a.u-attachment]:max-w-full [&_a.u-attachment]:rounded-full [&_a.u-attachment]:bg-soft [&_a.u-attachment]:px-4 [&_a.u-attachment]:py-2 [&_a.u-attachment]:break-words"
+                  className="e-content space-y-2 text-body-medium text-ink [&_a]:link-animated [&_blockquote]:border-l-2 [&_blockquote]:border-line [&_blockquote]:pl-3 [&_code]:font-mono [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_img]:max-h-96 [&_img]:w-auto [&_img]:max-w-full [&_img]:rounded-xl [&_video]:max-h-96 [&_video]:w-full [&_video]:rounded-xl [&_audio]:w-full [&_figcaption]:text-muted [&_a.u-attachment]:inline-flex [&_a.u-attachment]:max-w-full [&_a.u-attachment]:rounded-full [&_a.u-attachment]:bg-tray [&_a.u-attachment]:text-ink [&_a.u-attachment]:no-underline [&_a.u-attachment]:font-medium [&_a.u-attachment:hover]:bg-surface-container-highest [&_a.u-attachment]:px-4 [&_a.u-attachment]:py-2 [&_a.u-attachment]:break-words"
                   // Sanitized again here, not only when stored, so a row
                   // written by older code or by hand cannot carry script.
                   dangerouslySetInnerHTML={{
@@ -129,7 +129,7 @@ export default function WebmentionReplies({
                   ) : (
                     <SiteLink
                       href={media.url}
-                      className="inline-flex max-w-full rounded-full bg-soft px-4 py-2 text-label-large text-ink break-words"
+                      className="inline-flex max-w-full rounded-full bg-tray px-4 py-2 text-label-large text-ink break-words"
                     >
                       {media.description || 'Attachment'}
                     </SiteLink>

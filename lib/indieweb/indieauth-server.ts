@@ -162,16 +162,16 @@ export type AuthorizationRequestParse =
       description: string;
     };
 
-/**
- * Check the parameters of an authorization request. PKCE with S256 is
- * required, as the spec requires of clients, and `state` is required.
- */
 export function hasRepeatedOAuthParameters(params: URLSearchParams): boolean {
   return [...new Set(params.keys())].some(
     (key) => params.getAll(key).length > 1
   );
 }
 
+/**
+ * Check the parameters of an authorization request. PKCE with S256 is
+ * required, as the spec requires of clients, and `state` is required.
+ */
 export function parseAuthorizationRequest(
   params: URLSearchParams
 ): AuthorizationRequestParse {
@@ -333,7 +333,10 @@ export async function redeemAuthorizationCode(
       description: 'The code_verifier does not match the code_challenge.',
     };
   }
-  return { ok: true, record };
+  return {
+    ok: true,
+    record: { ...record, authorizationCodeHash: hashSecret(code) },
+  };
 }
 
 /** The `profile` object for a grant that includes the `profile` scope. */
@@ -365,6 +368,7 @@ export async function issueAccessToken(
   const token = newSecret();
   const refreshToken = newSecret();
   const grant = {
+    authorizationCodeHash: record.authorizationCodeHash,
     clientId: record.clientId,
     me: record.me,
     scope: record.scope,
@@ -374,7 +378,8 @@ export async function issueAccessToken(
     refreshTokenHash: hashSecret(refreshToken),
     refreshExpiresAt: new Date(now.getTime() + REFRESH_TOKEN_LIFETIME_MS),
   };
-  await store.saveTokenGrant(hashSecret(token), grant);
+  if ((await store.saveTokenGrant(hashSecret(token), grant)) === false)
+    return null;
   return tokenResponse(token, refreshToken, grant);
 }
 

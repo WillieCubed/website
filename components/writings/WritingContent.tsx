@@ -102,7 +102,7 @@ export default async function WritingContent({
                   ) : (
                     <SiteLink
                       href={media.url}
-                      className="u-attachment inline-flex rounded-full bg-soft px-4 py-2 text-label-large text-ink"
+                      className="u-attachment inline-flex rounded-full bg-tray px-4 py-2 text-label-large text-ink"
                     >
                       {media.description || 'Download attachment'}
                     </SiteLink>

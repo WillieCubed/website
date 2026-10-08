@@ -106,15 +106,19 @@ export default function WritingItem({
           <>
             <h2 className="p-name text-title-large font-semibold text-ink transition-colors group-hover:text-accent">
               <SharedTitle id={`writing-${writing.slug}`} size="small">
-                <span className="inline-block">{writing.title}</span>
+                <span dir="auto" className="inline-block">
+                  {writing.title}
+                </span>
               </SharedTitle>
             </h2>
-            <p className="p-summary text-body-medium text-muted">
+            <p dir="auto" className="p-summary text-body-medium text-muted">
               {writing.description}
             </p>
           </>
         ) : (
-          <p className="p-name text-body-large text-ink">{writing.title}</p>
+          <p dir="auto" className="p-name text-body-large text-ink">
+            {writing.title}
+          </p>
         )}
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-label-medium text-muted medium:grid medium:grid-cols-[minmax(0,1fr)_auto] medium:gap-x-4">

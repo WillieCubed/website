@@ -47,6 +47,49 @@ Because it runs every fifteen minutes.
 
 const url = `${site.origin}/writings/transit-notes`;
 
+test('Micropub create, source and edits preserve directional natural language values', async () => {
+  for (const content of [
+    '\u200fAlice שלום',
+    {
+      html: '<div dir="rtl">مرحبا <bdi dir="ltr">Alice</bdi><bdo dir="rtl">ABC</bdo></div>',
+    },
+  ]) {
+    const request = await parseMicropubCreateRequest(
+      new Request(`${site.origin}/micropub`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: ['h-entry'],
+          properties: {
+            name: ['مرحبا Alice'],
+            summary: ['\u200eשלום Alice'],
+            content: [content],
+          },
+        }),
+      })
+    );
+    const source = buildMicropubWritingFile(request, 'direction-roundtrip');
+    const initial = micropubSource(source, url);
+    assert.deepEqual(initial.properties.name, ['مرحبا Alice']);
+    assert.deepEqual(initial.properties.summary, ['\u200eשלום Alice']);
+    assert.deepEqual(initial.properties.content, [content]);
+    const edited = applyMicropubUpdate(
+      source,
+      {
+        replace: {},
+        add: { category: ['bidi'] },
+        deleteProperties: [],
+        deleteValues: {},
+      },
+      new Date('2026-10-08T13:00:00Z')
+    );
+    const after = micropubSource(edited, url);
+    assert.deepEqual(after.properties.name, initial.properties.name);
+    assert.deepEqual(after.properties.summary, initial.properties.summary);
+    assert.deepEqual(after.properties.content, initial.properties.content);
+  }
+});
+
 test('micropubSource maps frontmatter and body to h-entry properties', () => {
   assert.deepEqual(micropubSource(handWritten, url), {
     type: ['h-entry'],

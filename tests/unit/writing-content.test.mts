@@ -4,6 +4,22 @@ import { parseFragment } from 'parse5';
 
 import { htmlText, plainTextHtml, writingText } from '@/lib/writings/content';
 
+test('plaintext feeds retain explicit Unicode direction and determine each value direction', () => {
+  for (const body of [
+    'مرحبا Alice',
+    'Alice مرحبا',
+    '\u200fABC שלום',
+    '\u200eשלום ABC',
+  ]) {
+    const paragraph = parseFragment(plainTextHtml(body)).childNodes[0];
+    assert.ok('attrs' in paragraph && 'childNodes' in paragraph);
+    assert.deepEqual(paragraph.attrs, [{ name: 'dir', value: 'auto' }]);
+    assert.equal(paragraph.childNodes[0].nodeName, '#text');
+    assert.ok('value' in paragraph.childNodes[0]);
+    assert.equal(paragraph.childNodes[0].value, body);
+  }
+});
+
 test('literal Micropub text preserves entity spellings, code and comments in feeds', () => {
   const body =
     '&copy; <!-- example --> <script>code()</script>\nconst x = 1 < 2;';

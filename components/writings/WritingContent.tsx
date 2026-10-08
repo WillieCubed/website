@@ -57,11 +57,15 @@ export default async function WritingContent({
         {/* h-entry: e-content */}
         <div className="e-content">
           {writing.contentFormat === 'text' ? (
-            <div className="prose prose-neutral max-w-none whitespace-pre-wrap text-ink dark:prose-invert">
+            <div
+              dir="auto"
+              className="prose prose-neutral max-w-none whitespace-pre-wrap text-ink dark:prose-invert"
+            >
               {content}
             </div>
           ) : writing.contentFormat === 'html' ? (
             <div
+              dir="auto"
               className="prose prose-neutral max-w-none text-ink dark:prose-invert [&_audio]:w-full [&_video]:max-h-96 [&_video]:w-full"
               dangerouslySetInnerHTML={{
                 __html: sanitizeCommentHtml(

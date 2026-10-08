@@ -57,5 +57,5 @@ export function plainTextHtml(text: string): string {
         "'": '&#39;',
       })[character]!
   );
-  return `<p>${escaped.replace(/\n/g, '<br>')}</p>`;
+  return `<p dir="auto">${escaped.replace(/\n/g, '<br>')}</p>`;
 }

@@ -65,10 +65,12 @@ export default function WritingHeader({
           <div className="space-y-2">
             <h1 className="p-name text-headline-medium desktop:text-headline-large">
               <SharedTitle id={`writing-${writing.slug}`} size="large">
-                <span className="inline-block">{writing.title}</span>
+                <span dir="auto" className="inline-block">
+                  {writing.title}
+                </span>
               </SharedTitle>
             </h1>
-            <p className="p-summary text-body-large text-accent">
+            <p dir="auto" className="p-summary text-body-large text-accent">
               {writing.description}
             </p>
           </div>
@@ -89,7 +91,9 @@ export default function WritingHeader({
         </div>
       ) : (
         <>
-          <h1 className="p-name sr-only">{writing.title}</h1>
+          <h1 dir="auto" className="p-name sr-only">
+            {writing.title}
+          </h1>
           <Byline writing={writing} publishedIso={publishedIso} />
         </>
       )}

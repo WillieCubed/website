@@ -10,6 +10,35 @@ import {
 
 const base = 'https://alice.example/notes/42';
 
+test('directional HTML preserves overrides and isolates without executable attributes', () => {
+  const html =
+    '<div dir="rtl" onclick="bad()">مرحبا <span dir="ltr">Alice</span> ' +
+    '<bdi>שלום</bdi><bdo dir="rtl">ABC</bdo>' +
+    '<a dir="auto" href="/reply">תגובה</a></div>';
+  const clean = sanitizeCommentHtml(html, base);
+  assert.equal(
+    clean,
+    '<div dir="rtl">مرحبا <span dir="ltr">Alice</span> ' +
+      '<bdi>שלום</bdi><bdo dir="rtl">ABC</bdo>' +
+      '<a href="https://alice.example/reply" rel="nofollow ugc" dir="auto">תגובה</a></div>'
+  );
+  assert.equal(commentHtml(clean, base), clean);
+  assert.equal(
+    sanitizeCommentHtml(
+      '<p dir="invalid">Text</p><bdo dir="auto">ABC</bdo>',
+      base
+    ),
+    '<p>Text</p><bdo>ABC</bdo>'
+  );
+  assert.equal(
+    sanitizeCommentHtml(
+      '<p dir="RTL">مرحبا</p><a dir="LTR" href="javascript:bad()">Alice</a>',
+      base
+    ),
+    '<p dir="rtl">مرحبا</p><span dir="ltr">Alice</span>'
+  );
+});
+
 test('the allowed elements survive as written', () => {
   const html =
     '<p>One <em>two</em> <strong>three</strong><br>four</p>' +

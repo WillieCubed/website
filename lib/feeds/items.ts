@@ -38,7 +38,7 @@ export async function getWritingContentHtml(slug: string): Promise<string> {
     writing.contentFormat === 'text'
       ? plainTextHtml(content)
       : writing.contentFormat === 'html'
-        ? sanitizeCommentHtml(content, url)
+        ? `<div dir="auto">${sanitizeCommentHtml(content, url)}</div>`
         : await renderFeedHtml(content);
   return body + writingMediaHtml(writing, url);
 }

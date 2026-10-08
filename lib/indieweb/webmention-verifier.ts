@@ -161,7 +161,7 @@ export async function verifyWebmention(
 
     const { text: content, html: contentHtml } = extractContent(
       hEntry,
-      document.url
+      links.base
     );
 
     // Extract published date
@@ -305,17 +305,27 @@ function extractContent(
     typeof content.html === 'string'
       ? content.html
       : `<p>${escape(value)}</p>`;
+  const mediaUrls = new Set(
+    resolvedDocumentLinks(commentHtml(markup, baseUrl) ?? '', baseUrl).links
+  );
   for (const property of ['photo', 'audio', 'video', 'attachment']) {
     for (const item of properties[property] ?? []) {
       const url = propertyUrls(item)[0];
       if (!url) continue;
+      let identity: string;
+      try {
+        identity = new URL(url, baseUrl).href;
+      } catch {
+        continue;
+      }
+      if (mediaUrls.has(identity)) continue;
+      mediaUrls.add(identity);
       const alt =
         typeof item === 'object' &&
         'alt' in item &&
         typeof item.alt === 'string'
           ? item.alt
           : '';
-      if (markup.includes(escape(url))) continue;
       hasMedia = true;
       markup +=
         property === 'photo'

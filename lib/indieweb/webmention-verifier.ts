@@ -305,7 +305,7 @@ function extractContent(
     typeof content.html === 'string'
       ? content.html
       : `<p>${escape(value)}</p>`;
-  for (const property of ['photo', 'audio', 'video']) {
+  for (const property of ['photo', 'audio', 'video', 'attachment']) {
     for (const item of properties[property] ?? []) {
       const url = propertyUrls(item)[0];
       if (!url) continue;
@@ -320,7 +320,9 @@ function extractContent(
       markup +=
         property === 'photo'
           ? `<img src="${escape(url)}" alt="${escape(alt)}">`
-          : `<${property} src="${escape(url)}" controls preload="none"></${property}>`;
+          : property === 'attachment'
+            ? `<figure><a href="${escape(url)}">${escape(alt || 'Attachment')}</a></figure>`
+            : `<${property} src="${escape(url)}" controls preload="none"></${property}>`;
     }
   }
   return {

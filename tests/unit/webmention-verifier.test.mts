@@ -75,6 +75,21 @@ const softDeletes = () =>
 const verifications = () =>
   queries.filter((query) => /is_verified = TRUE/.test(query.text));
 
+test('a property-only linked file survives verification as a contained attachment', async () => {
+  const file = 'https://media.example/report.pdf';
+  serveSource(
+    `<article class="h-entry"><a class="u-in-reply-to" href="${target}">Original</a><p class="p-content">A report.</p><a class="u-attachment" href="${file}">Report</a></article>`
+  );
+  const result = await verify('wm-file', source, target);
+  assert.equal(result.success, true);
+  assert.equal(result.content, 'A report.');
+  assert.equal(
+    result.contentHtml,
+    `<p>A report.</p><figure><a href="${file}" rel="nofollow ugc">Attachment</a></figure>`
+  );
+  assert.ok(verifications()[0].values.includes(result.contentHtml));
+});
+
 test('a reply marked up as an h-entry is verified with its author and content', async () => {
   serveSource(`
     <article class="h-entry">

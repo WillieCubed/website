@@ -82,7 +82,7 @@ export default function WebmentionReplies({
               </p>
               {reply.contentHtml ? (
                 <div
-                  className="e-content space-y-2 text-body-medium text-ink [&_a]:link-animated [&_blockquote]:border-l-2 [&_blockquote]:border-line [&_blockquote]:pl-3 [&_code]:font-mono [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_img]:max-h-96 [&_img]:w-auto [&_img]:max-w-full [&_img]:rounded-xl [&_video]:max-h-96 [&_video]:w-full [&_video]:rounded-xl [&_audio]:w-full [&_figcaption]:text-muted"
+                  className="e-content space-y-2 text-body-medium text-ink [&_a]:link-animated [&_blockquote]:border-l-2 [&_blockquote]:border-line [&_blockquote]:pl-3 [&_code]:font-mono [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_img]:max-h-96 [&_img]:w-auto [&_img]:max-w-full [&_img]:rounded-xl [&_video]:max-h-96 [&_video]:w-full [&_video]:rounded-xl [&_audio]:w-full [&_figcaption]:text-muted [&_figure>a]:inline-flex [&_figure>a]:max-w-full [&_figure>a]:rounded-full [&_figure>a]:bg-soft [&_figure>a]:px-4 [&_figure>a]:py-2 [&_figure>a]:break-words"
                   // Sanitized again here, not only when stored, so a row
                   // written by older code or by hand cannot carry script.
                   dangerouslySetInnerHTML={{

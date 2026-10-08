@@ -117,46 +117,52 @@ export default function WritingItem({
           <p className="p-name text-body-large text-ink">{writing.title}</p>
         )}
 
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label-medium text-muted">
-          {target && (
-            <>
-              <span className="flex items-center gap-1">
-                <Icon
-                  name={TARGET_ICON[target.kind]}
-                  size={13}
-                  title={TARGET_WORD[target.kind]}
-                />
-                {hostOf(target.url)}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-label-medium text-muted medium:grid medium:grid-cols-[minmax(0,1fr)_auto] medium:gap-x-4">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {target && (
+              <>
+                <span className="flex items-center gap-1">
+                  <Icon
+                    name={TARGET_ICON[target.kind]}
+                    size={13}
+                    title={TARGET_WORD[target.kind]}
+                  />
+                  {hostOf(target.url)}
+                </span>
+                <span aria-hidden="true">·</span>
+              </>
+            )}
+            <time className="dt-published" dateTime={publishedIso}>
+              {formatDate(writing.published, 'short')}
+            </time>
+            {writing.draft && (
+              <span className="rounded-full bg-mint/40 px-2 py-0.5 text-ink">
+                Draft
               </span>
-              <span aria-hidden="true">·</span>
-            </>
-          )}
-          <time className="dt-published" dateTime={publishedIso}>
-            {formatDate(writing.published, 'short')}
-          </time>
+            )}
+          </p>
           {writing.hasExplicitTitle && (
-            <>
-              <span aria-hidden="true">·</span>
+            <span
+              className={`flex items-center gap-x-2 whitespace-nowrap medium:col-start-2 medium:row-start-1 medium:self-end ${showSeriesInfo && writing.series ? 'medium:row-span-2' : ''}`}
+            >
+              <span aria-hidden="true" className="medium:hidden">
+                ·
+              </span>
               <span>{writing.readingTime} min read</span>
-            </>
-          )}
-          {writing.draft && (
-            <span className="rounded-full bg-mint/40 px-2 py-0.5 text-ink">
-              Draft
             </span>
           )}
-        </p>
-        {showSeriesInfo && writing.series && (
-          <p className="text-label-medium text-muted">
-            Part {writing.series.part} of{' '}
-            <SiteLink
-              href={seriesHref ?? '/writings'}
-              className="link-animated pointer-events-auto relative z-20 font-medium text-ink"
-            >
-              {seriesName || writing.series.slug}
-            </SiteLink>
-          </p>
-        )}
+          {showSeriesInfo && writing.series && (
+            <p className="basis-full medium:col-start-1 medium:row-start-2">
+              Part {writing.series.part} of{' '}
+              <SiteLink
+                href={seriesHref ?? '/writings'}
+                className="link-animated pointer-events-auto relative z-20 font-medium text-ink"
+              >
+                {seriesName || writing.series.slug}
+              </SiteLink>
+            </p>
+          )}
+        </div>
       </div>
     </article>
   );

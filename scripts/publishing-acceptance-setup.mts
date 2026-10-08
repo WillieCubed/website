@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { stdin, stdout } from 'node:process';
 import { createInterface } from 'node:readline/promises';
+import { parseEnv } from 'node:util';
 
 const project = 'indieweb-acceptance';
 const scope = 'williecubed-projects';
@@ -117,10 +118,9 @@ console.log('Step 5: Configure only the isolated acceptance project.');
 const previousText = existsSync('.env.standard-test.local')
   ? readFileSync('.env.standard-test.local', 'utf8')
   : '';
-const previousIdentity = previousText.match(
-  /^NEXT_PUBLIC_ATPROTO_DID=(.+)$/m
-)?.[1];
-const previousKey = previousText.match(/^ATPROTO_PUBLICATION_RKEY=(.+)$/m)?.[1];
+const previousSettings = parseEnv(previousText);
+const previousIdentity = previousSettings.NEXT_PUBLIC_ATPROTO_DID;
+const previousKey = previousSettings.ATPROTO_PUBLICATION_RKEY;
 const settings: Record<string, string> = {
   NEXT_PUBLIC_ATPROTO_DID: did,
   NEXT_PUBLIC_BLUESKY_HANDLE: handle,

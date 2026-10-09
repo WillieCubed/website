@@ -211,6 +211,8 @@ export type DocumentFetch = (
   url: string,
   init: {
     headers: Record<string, string>;
+    method?: string;
+    body?: URLSearchParams;
     redirect: 'manual';
     signal: AbortSignal;
   }
@@ -291,8 +293,12 @@ export interface PublicFetchOptions {
   headers?: Record<string, string>;
   /** Bytes of body to read at most. */
   maxBytes?: number;
+  /** Read bodies only for these MIME types; other responses retain their headers. */
+  bodyContentTypes?: readonly string[];
   /** Milliseconds for the whole exchange, redirects included. */
   timeoutMs: number;
+  method?: 'GET' | 'HEAD' | 'POST';
+  body?: URLSearchParams;
 }
 
 /** A document reached on the public internet, after any redirects. */
@@ -301,6 +307,7 @@ export interface PublicDocument {
   url: string;
   status: number;
   contentType: string;
+  headers: Headers;
   /** The body, or '' for a status outside 200–299, which is not read. */
   body: string;
 }
@@ -319,7 +326,10 @@ export async function fetchPublicDocument(
     fetch,
     headers = {},
     maxBytes = PUBLIC_DOCUMENT_MAX_BYTES,
+    bodyContentTypes,
     timeoutMs,
+    method = 'GET',
+    body: requestBody,
   }: PublicFetchOptions
 ): Promise<PublicDocument | null> {
   const request = fetch ?? publicOnlyFetch(resolve);
@@ -329,11 +339,17 @@ export async function fetchPublicDocument(
     if (!(await isFetchableUrl(current, resolve))) return null;
     const response = await request(current.href, {
       headers,
+      method,
+      ...(requestBody && { body: requestBody }),
       redirect: 'manual',
       signal,
     });
 
     if (REDIRECT_STATUSES.has(response.status)) {
+      if (method === 'POST') {
+        await response.body?.cancel().catch(() => {});
+        return null;
+      }
       await response.body?.cancel().catch(() => {});
       const location = response.headers.get('location');
       if (!location) return null;
@@ -344,8 +360,18 @@ export async function fetchPublicDocument(
       url: current.href,
       status: response.status,
       contentType: response.headers.get('content-type') ?? '',
+      headers: response.headers,
     };
+    if (method === 'HEAD') {
+      await response.body?.cancel().catch(() => {});
+      return { ...document, body: '' };
+    }
     if (!response.ok) {
+      await response.body?.cancel().catch(() => {});
+      return { ...document, body: '' };
+    }
+    const mimeType = document.contentType.split(';')[0].trim().toLowerCase();
+    if (bodyContentTypes && mimeType && !bodyContentTypes.includes(mimeType)) {
       await response.body?.cancel().catch(() => {});
       return { ...document, body: '' };
     }
@@ -359,6 +385,7 @@ export async function fetchPublicDocument(
   }
   return null;
 }
+
 export async function fetchPublicBytes(
   address: string,
   maxBytes: number,

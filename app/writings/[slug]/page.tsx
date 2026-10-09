@@ -6,6 +6,7 @@ import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 import PostInteractions from '@/components/writings/PostInteractions';
 import PostNavigation from '@/components/writings/PostNavigation';
+import { replyTargetsOf } from '@/components/writings/ReplyTarget';
 import WritingContent from '@/components/writings/WritingContent';
 import WritingHeader from '@/components/writings/WritingHeader';
 
@@ -148,12 +149,9 @@ async function loadWebmentions(slug: string): Promise<WebmentionGroup | null> {
 async function fetchReplyContexts(
   writing: WritingData
 ): Promise<Map<string, ReplyContext>> {
-  const urls: string[] = [];
-  if (writing.likeOf) urls.push(writing.likeOf);
-  if (writing.repostOf) urls.push(writing.repostOf);
-  if (writing.bookmarkOf) urls.push(writing.bookmarkOf);
-  if (writing.rsvp?.eventUrl) urls.push(writing.rsvp.eventUrl);
-  if (writing.inReplyTo) urls.push(writing.inReplyTo);
+  const urls = [
+    ...new Set(replyTargetsOf(writing).map((target) => target.url)),
+  ];
   return new Map(await loadReplyContexts(urls));
 }
 
@@ -252,8 +250,11 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
         ]}
       />
       <main id="main">
-        <article className="h-entry mx-auto max-w-breakpoint-2xl">
+        <article
+          className={`${writing.postType === 'event' ? 'h-entry h-event' : 'h-entry'} mx-auto max-w-breakpoint-2xl`}
+        >
           <WritingHeader
+            content={content}
             writing={writing}
             seriesData={seriesData}
             canonicalUrl={canonicalUrl}

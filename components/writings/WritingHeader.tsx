@@ -5,14 +5,19 @@ import SharedTitle from '@/components/site/SharedTitle';
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
 import { formatDate } from '@/lib/site';
 import { SeriesWithWritings, WritingData } from '@/lib/writings';
+import {
+  prepareWritingHtmlMedia,
+  writingPhotoMedia,
+} from '@/lib/writings/media';
 
-import ReplyTarget, { replyTargetOf } from './ReplyTarget';
+import ReplyTarget, { replyTargetsOf } from './ReplyTarget';
 import './writing.css';
 
 interface WritingHeaderProps {
   writing: WritingData;
   seriesData: SeriesWithWritings | null;
   canonicalUrl: string;
+  content?: string;
   /** Pre-fetched reply contexts for interaction/reply URLs */
   replyContexts?: Map<string, ReplyContext>;
 }
@@ -28,11 +33,27 @@ export default function WritingHeader({
   writing,
   seriesData,
   canonicalUrl,
+  content = '',
   replyContexts,
 }: WritingHeaderProps) {
   const publishedIso = new Date(writing.published).toISOString();
   const updatedIso = new Date(writing.lastUpdated).toISOString();
-  const target = replyTargetOf(writing);
+  const targets = replyTargetsOf(writing);
+  const remainingPhotoUrls =
+    writing.contentFormat === 'html'
+      ? new Set(
+          prepareWritingHtmlMedia(
+            content,
+            writingPhotoMedia(writing),
+            canonicalUrl
+          ).attachments.map((photo) => new URL(photo.url, canonicalUrl).href)
+        )
+      : undefined;
+  const photos = (writing.photos ?? []).filter(
+    (photo) =>
+      !remainingPhotoUrls ||
+      remainingPhotoUrls.has(new URL(photo.url, canonicalUrl).href)
+  );
 
   return (
     <header className="mx-auto max-w-breakpoint-md px-lg pb-10 pt-10 desktop:px-0">
@@ -43,13 +64,21 @@ export default function WritingHeader({
         <time className="dt-updated hidden" dateTime={updatedIso} />
       )}
 
-      {target && (
+      {targets.map((target) => (
         <ReplyTarget
+          key={`${target.kind}:${target.url}`}
           url={target.url}
           kind={target.kind}
           context={replyContexts?.get(target.url)}
           rsvpStatus={writing.rsvp?.status}
+          emitRsvpProperty={false}
         />
+      ))}
+
+      {writing.rsvp && (
+        <data className="p-rsvp hidden" value={writing.rsvp.status}>
+          {writing.rsvp.status}
+        </data>
       )}
 
       {writing.hasExplicitTitle ? (
@@ -57,10 +86,12 @@ export default function WritingHeader({
           <div className="space-y-2">
             <h1 className="p-name text-headline-medium desktop:text-headline-large">
               <SharedTitle id={`writing-${writing.slug}`} size="large">
-                <span className="inline-block">{writing.title}</span>
+                <span dir="auto" className="inline-block">
+                  {writing.title}
+                </span>
               </SharedTitle>
             </h1>
-            <p className="p-summary text-body-large text-accent">
+            <p dir="auto" className="p-summary text-body-large text-accent">
               {writing.description}
             </p>
           </div>
@@ -81,14 +112,16 @@ export default function WritingHeader({
         </div>
       ) : (
         <>
-          <h1 className="p-name sr-only">{writing.title}</h1>
+          <h1 dir="auto" className="p-name sr-only">
+            {writing.title}
+          </h1>
           <Byline writing={writing} publishedIso={publishedIso} />
         </>
       )}
 
-      {writing.photos && (
+      {photos.length > 0 && (
         <div className="mt-lg space-y-md">
-          {writing.photos.map((photo) => (
+          {photos.map((photo) => (
             // A plain img: uploads live on the media store's host, which
             // the image optimizer does not allow, and their size is unknown.
             // eslint-disable-next-line @next/next/no-img-element

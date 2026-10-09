@@ -22,7 +22,7 @@ export interface ResponseMedia {
   poster?: string;
 }
 
-export interface Webmention {
+export interface PublishingResponse {
   id: string;
   sourceUrl: string;
   targetUrl: string;
@@ -37,7 +37,16 @@ export interface Webmention {
   /** Sanitized markup from the source's `e-content`, for the post to show. */
   contentHtml?: string;
   publishedAt?: Date;
+  observedAt?: Date;
   receivedAt: Date;
+  origin?: 'indieweb' | 'atproto';
+  parentUrl?: string;
+  threadDepth?: number;
+  sourceAliases?: string[];
+  media?: ResponseMedia[];
+}
+
+export interface Webmention extends PublishingResponse {
   verifiedAt?: Date;
   isVerified: boolean;
   isApproved: boolean;
@@ -69,6 +78,11 @@ export interface WebmentionActivity extends Webmention {
   activityDate: Date;
   targetSlug?: string;
 }
+export type ResponseActivity = PublishingResponse & {
+  activityDate: Date;
+  targetSlug?: string;
+  verifiedAt?: Date;
+};
 
 export interface ActivityFeedIndieWebMetadata {
   type: WebmentionType;
@@ -78,6 +92,9 @@ export interface ActivityFeedIndieWebMetadata {
 }
 
 export interface ActivityFeedItem {
+  author?: WebmentionAuthor;
+  content?: string;
+  attachments?: { url: string; mime_type: string; title?: string }[];
   id: string;
   title: string;
   description: string;
@@ -89,7 +106,7 @@ export interface ActivityFeedItem {
 }
 
 export interface BuildActivityFeedOptions {
-  titleForTarget: (targetUrl: string, activity: WebmentionActivity) => string;
+  titleForTarget: (targetUrl: string, activity: ResponseActivity) => string;
 }
 
 export interface ActivityFeedRouteConfig {
@@ -108,14 +125,16 @@ export interface WritingActivityFeedRouteProps {
   params: Promise<WritingActivityFeedRouteParams>;
 }
 
-export interface WebmentionGroup {
-  likes: Webmention[];
-  reposts: Webmention[];
-  replies: Webmention[];
-  mentions: Webmention[];
-  bookmarks: Webmention[];
-  rsvps: Webmention[];
+export interface WebmentionGroup<T extends PublishingResponse = Webmention> {
+  likes: T[];
+  reposts: T[];
+  replies: T[];
+  mentions: T[];
+  bookmarks: T[];
+  rsvps: T[];
 }
+
+export type ResponseGroup = WebmentionGroup<PublishingResponse>;
 
 export interface OutgoingWebmention {
   id: string;

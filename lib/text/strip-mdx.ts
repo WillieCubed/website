@@ -1,50 +1,71 @@
-/**
- * Strips MDX/Markdown syntax from content to get plain text. The result feeds
- * both the search index and the `textContent` of published standard.site
- * documents.
- */
-export function stripMdxSyntax(content: string): string {
-  return (
-    content
-      // Remove code first, so `Promise<Response>` in a code span is never read
-      // as a component tag
-      .replace(/```[\s\S]*?```/g, '')
-      .replace(/`[^`]+`/g, '')
-      // Remove import statements
-      .replace(/^import\s+.*$/gm, '')
-      // Remove export statements
-      .replace(/^export\s+.*$/gm, '')
-      // Remove JSX component tags but keep the text between them, so a
-      // component's children stay searchable. An attribute value may hold a
-      // `>` inside quotes or braces.
-      .replace(
-        /<\/?[A-Z][a-zA-Z]*(?:\s(?:"[^"]*"|'[^']*'|\{[^}]*\}|[^>"'{])*)?\/?>/g,
-        ''
+import remarkGfm from 'remark-gfm';
+import remarkMdx from 'remark-mdx';
+import remarkParse from 'remark-parse';
+import { unified } from 'unified';
+
+interface TextNode {
+  type: string;
+  value?: string;
+  alt?: string;
+  name?: string;
+  children?: TextNode[];
+  attributes?: { name?: string; value?: unknown }[];
+}
+
+function text(node: TextNode): string {
+  if (
+    [
+      'mdxjsEsm',
+      'mdxFlowExpression',
+      'mdxTextExpression',
+      'definition',
+    ].includes(node.type)
+  )
+    return '';
+  if (['image', 'imageReference'].includes(node.type)) return node.alt ?? '';
+  if (node.type === 'break') return '\n';
+  if (
+    node.type === 'text' ||
+    node.type === 'inlineCode' ||
+    node.type === 'code'
+  )
+    return node.value ?? '';
+  if (node.name && ['script', 'style', 'iframe'].includes(node.name)) return '';
+  const children = node.children ?? [];
+  const separator = [
+    'root',
+    'blockquote',
+    'list',
+    'mdxJsxFlowElement',
+  ].includes(node.type)
+    ? '\n\n'
+    : node.type === 'table'
+      ? '\n'
+      : node.type === 'tableRow'
+        ? '\t'
+        : node.type === 'listItem'
+          ? '\n'
+          : '';
+  const body = children.map(text).filter(Boolean).join(separator);
+  const descriptions =
+    node.attributes
+      ?.filter(
+        (attribute) =>
+          ['alt', 'caption', 'title'].includes(attribute.name ?? '') &&
+          typeof attribute.value === 'string'
       )
-      // Remove HTML tags
-      .replace(/<[^>]+>/g, '')
-      // Remove markdown images but keep the alt text. Before links, or the
-      // link pattern would match inside the image and leave its `!` behind.
-      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
-      // Remove markdown links but keep text
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      // Remove headings markers
-      .replace(/^#{1,6}\s+/gm, '')
-      // Remove bold/italic markers
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      // Underscore emphasis only at word edges, so snake_case_names survive
-      .replace(/(^|\W)__([^_]+)__(?=\W|$)/g, '$1$2')
-      .replace(/(^|\W)_([^_]+)_(?=\W|$)/g, '$1$2')
-      // Remove blockquotes
-      .replace(/^>\s+/gm, '')
-      // Remove horizontal rules
-      .replace(/^---+$/gm, '')
-      // Remove list markers
-      .replace(/^[\s]*[-*+]\s+/gm, '')
-      .replace(/^[\s]*\d+\.\s+/gm, '')
-      // Normalize whitespace
-      .replace(/\n{3,}/g, '\n\n')
-      .trim()
-  );
+      .map((attribute) => attribute.value as string) ?? [];
+  return [...descriptions, body].filter(Boolean).join('\n\n');
+}
+
+/** Parse content without evaluating MDX expressions or losing code and captions. */
+export function stripMdxSyntax(content: string): string {
+  const tree = unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkMdx)
+    .parse(content);
+  return text(tree as unknown as TextNode)
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }

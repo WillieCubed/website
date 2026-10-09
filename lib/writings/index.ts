@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import readingTime from 'reading-time';
 
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
+import { parseDocumentMetadata } from '@/lib/atproto/metadata';
 import { showDrafts } from '@/lib/drafts';
 import { RESERVED_WRITING_SLUGS } from '@/lib/indieweb/utils';
 
@@ -66,6 +67,10 @@ interface RawFrontmatter {
     part: number;
   };
   syndication?: SyndicationLink[];
+  atproto?: unknown;
+  micropub?: WritingData['micropub'];
+  audio?: string[];
+  video?: string[];
   /** Photos, each `{ url, alt }`, as the Micropub endpoint writes them. */
   photo?: unknown;
   postType?: PostType;
@@ -244,6 +249,10 @@ export async function loadWriting(slug: string) {
     readingTime: Math.ceil(stats.minutes),
     series: frontmatter.series,
     syndication: frontmatter.syndication,
+    atproto: parseDocumentMetadata(frontmatter.atproto),
+    micropub: frontmatter.micropub,
+    audio: frontmatter.audio,
+    video: frontmatter.video,
     photos: parsePhotos(frontmatter.photo),
     postType,
     inReplyTo: frontmatter.inReplyTo,

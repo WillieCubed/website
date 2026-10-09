@@ -1,3 +1,5 @@
+import type { DocumentMetadata } from '@/lib/atproto/metadata';
+
 /** Link to a syndicated copy of a post on another platform */
 export type SyndicationLink = {
   /** Full URL to the syndicated post */
@@ -86,6 +88,13 @@ export type WritingData = {
   photos?: WritingPhoto[];
   /** Links to syndicated copies on other platforms (POSSE) */
   syndication?: SyndicationLink[];
+  atproto?: DocumentMetadata;
+  micropub?: {
+    type: string[];
+    properties: Record<string, (string | Record<string, unknown>)[]>;
+  };
+  audio?: string[];
+  video?: string[];
   /** Type of post for IndieWeb h-entry classification */
   postType: PostType;
   /** URL this post is replying to. When present, marks this as a reply (u-in-reply-to). */

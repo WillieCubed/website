@@ -15,7 +15,7 @@ import type {
   RepoClient,
   Write,
 } from '@/lib/atproto/types';
-import { absoluteUrl } from '@/lib/site';
+import { absoluteUrl, site } from '@/lib/site';
 
 function fakeRepo() {
   const records: ExistingRecord[] = [];
@@ -252,4 +252,34 @@ test("a page's document link is the URI the sync creates", async () => {
     created.uri,
     documentUri(documentPath(note.slug), note.published)
   );
+});
+
+test('an explicit unrelated copy fails before any Standard record is published', async () => {
+  const { client, log } = fakeRepo();
+  const ref = {
+    uri: `at://${site.author.atprotoDid}/app.bsky.feed.post/manual`,
+    cid: 'bafyreifgg4ntz5pxvsdbaguqnz37qolup7kqlxztjaq5qy6cuddaptjcmi',
+  };
+  await assert.rejects(
+    syncAtproto({
+      client: {
+        ...client,
+        async getRecord() {
+          return {
+            ...ref,
+            value: {
+              $type: 'app.bsky.feed.post',
+              text: 'Another post.',
+              createdAt: note.published.toISOString(),
+            },
+          };
+        },
+      },
+      writings: [{ ...note, atproto: { bskyPostRef: ref } }],
+      fetchImage: png,
+    }),
+    /canonical writing/
+  );
+  assert.deepEqual(log.writes, []);
+  assert.deepEqual(log.uploads, []);
 });

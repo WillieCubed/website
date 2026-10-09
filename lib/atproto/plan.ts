@@ -45,7 +45,16 @@ function isOurs(record: ExistingRecord): boolean {
  * fetched image: every writing has an image source, so a missing one
  * means the fetch failed, and a failed fetch must not unpublish a blob.
  */
-const CARRIED_FIELDS = ['bskyPostRef', 'coverImage', 'icon'] as const;
+const CARRIED_FIELDS = [
+  'bskyPostRef',
+  'coverImage',
+  'icon',
+  'content',
+  'links',
+  'contributors',
+  'labels',
+  'preferences',
+] as const;
 
 /**
  * What it takes to make the repo match the content: create what is
@@ -90,12 +99,36 @@ export function planSync(
     const prior =
       current ??
       ('path' in want.value ? byPath.get(want.value.path) : undefined);
-    const value: Record<string, unknown> = { ...want.value };
+    const known = new Set([
+      '$type',
+      'url',
+      'name',
+      'description',
+      'basicTheme',
+      'preferences',
+      'site',
+      'path',
+      'title',
+      'publishedAt',
+      'updatedAt',
+      'tags',
+      'textContent',
+      ...CARRIED_FIELDS,
+    ]);
+    const extensions = Object.fromEntries(
+      Object.entries(prior?.value ?? {}).filter(([field]) => !known.has(field))
+    );
+    const value: Record<string, unknown> = { ...extensions, ...want.value };
     for (const field of CARRIED_FIELDS) {
-      if (value[field] === undefined && prior?.value[field]) {
+      if (
+        value[field] === undefined &&
+        prior?.value[field] &&
+        !want.removeFields?.includes(field)
+      ) {
         value[field] = prior.value[field];
       }
     }
+    for (const field of want.removeFields ?? []) delete value[field];
 
     if (current) {
       kept.add(key(current));

@@ -224,7 +224,7 @@ test('the search text keeps prose that JSX, code spans, and underscores used to 
     text(
       'Use `Promise<Response>` here. Keep this sentence.\n\n<Aside>side</Aside> end'
     ),
-    'Use  here. Keep this sentence.\n\nside end'
+    'Use Promise<Response> here. Keep this sentence.\n\nside end'
   );
   assert.equal(text('before <Callout tone={a > b} /> after'), 'before  after');
   assert.equal(

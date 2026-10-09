@@ -121,6 +121,82 @@ test('a retry recovers the existing copy after its document association failed',
   );
   assert.equal(repo.creates(), 1);
 });
+test('a concurrent association accepts the exact established copy and preserves authored edits', async () => {
+  const repo = repository();
+  const conflict = new Error('InvalidSwap');
+  let writes = 0;
+  repo.client.putRecord = async (collection, key, value) => {
+    writes++;
+    repo.records.set(`${collection}/${key}`, {
+      ...value,
+      title: 'A concurrent authored title',
+      textContent: 'Concurrent authored content',
+    });
+    throw conflict;
+  };
+  const result = await syncBlueskyCopies(repo.client, [requested]);
+  assert.equal(result[0].action, 'create');
+  assert.equal(writes, 1);
+  assert.equal(repo.creates(), 1);
+  assert.equal(
+    repo.records.get(`site.standard.document/${repo.rkey}`)?.title,
+    'A concurrent authored title'
+  );
+  assert.equal(
+    repo.records.get(`site.standard.document/${repo.rkey}`)?.textContent,
+    'Concurrent authored content'
+  );
+  assert.deepEqual(await syncBlueskyCopies(repo.client, [requested]), []);
+});
+test('association conflicts reject changed copies, foreign sites, invalid documents and deleted records', async () => {
+  for (const mutation of [
+    'copy',
+    'site',
+    'schema',
+    'deleted',
+    'identity',
+    'read',
+  ]) {
+    const repo = repository();
+    const conflict = new Error(`InvalidSwap ${mutation}`);
+    let writes = 0;
+    const originalGet = repo.client.getRecord!;
+    repo.client.putRecord = async (collection, key, value) => {
+      writes++;
+      if (mutation === 'deleted') repo.records.delete(`${collection}/${key}`);
+      else
+        repo.records.set(`${collection}/${key}`, {
+          ...value,
+          ...(mutation === 'copy'
+            ? {
+                bskyPostRef: {
+                  uri: `at://${publishingIdentity().did}/app.bsky.feed.post/other`,
+                  cid,
+                },
+              }
+            : {}),
+          ...(mutation === 'site' ? { site: 'https://other.example' } : {}),
+          ...(mutation === 'schema' ? { publishedAt: 'invalid' } : {}),
+        });
+      if (mutation === 'identity' || mutation === 'read')
+        repo.client.getRecord = async (name, rkey) => {
+          if (name === 'site.standard.document') {
+            if (mutation === 'read') throw new Error('Recovery read failed');
+            const current = await originalGet(name, rkey);
+            return current ? { ...current, uri: current.uri + '-other' } : null;
+          }
+          return originalGet(name, rkey);
+        };
+      throw conflict;
+    };
+    await assert.rejects(
+      syncBlueskyCopies(repo.client, [requested]),
+      (error: unknown) => error === conflict
+    );
+    assert.equal(writes, 1);
+    assert.equal(repo.creates(), 1);
+  }
+});
 test('missing Standard documents and occupied announcement keys fail without posting', async () => {
   const repo = repository();
   repo.records.delete(`site.standard.document/${repo.rkey}`);

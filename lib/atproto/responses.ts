@@ -1,4 +1,6 @@
+import { ComAtprotoRepoStrongRef } from '@atcute/atproto';
 import { AppBskyFeedPost } from '@atcute/bluesky';
+import type { Blob, LegacyBlob } from '@atcute/lexicons';
 import { safeParse } from '@atcute/lexicons';
 import { cacheLife, cacheTag } from 'next/cache';
 
@@ -24,6 +26,12 @@ import {
   type ResponseObservationStore,
   responseObservationStore,
 } from './response-observations';
+import {
+  type CurrentResponseRecord,
+  type ResponseRecordReader,
+  createResponseRecordReader,
+  parseCurrentResponsePost,
+} from './response-records';
 
 interface Profile {
   did: string;
@@ -35,11 +43,12 @@ interface Profile {
 }
 interface Post {
   uri: string;
+  cid?: string;
   author: Profile;
   record: {
     text?: string;
     createdAt?: string;
-    reply?: { parent?: { uri?: string } };
+    reply?: { parent?: { uri?: string }; root?: { uri?: string } };
   };
   indexedAt: string;
   labels?: Profile['labels'];
@@ -204,6 +213,179 @@ export function normalizeBlueskyPost(
   };
 }
 
+function currentMediaView(current: CurrentResponseRecord): Post['embed'] {
+  function blobUrl(blob: Blob | LegacyBlob): string {
+    const url = new URL('/xrpc/com.atproto.sync.getBlob', current.pds);
+    url.search = new URLSearchParams({
+      did: current.uri.split('/')[2],
+      cid: 'ref' in blob ? blob.ref.$link : blob.cid,
+    }).toString();
+    return url.href;
+  }
+  const embed = current.value.embed;
+  const raw =
+    embed?.$type === 'app.bsky.embed.recordWithMedia' ? embed.media : embed;
+  switch (raw?.$type) {
+    case 'app.bsky.embed.images':
+      return {
+        $type: 'app.bsky.embed.images#view',
+        images: raw.images.map((image) => ({
+          fullsize: blobUrl(image.image),
+          alt: image.alt,
+        })),
+      };
+    case 'app.bsky.embed.gallery':
+      return {
+        $type: 'app.bsky.embed.gallery#view',
+        items: raw.items.flatMap((item) =>
+          item.$type === 'app.bsky.embed.gallery#image'
+            ? [
+                {
+                  $type: 'app.bsky.embed.gallery#viewImage',
+                  fullsize: blobUrl(item.image),
+                  alt: item.alt,
+                },
+              ]
+            : []
+        ),
+      };
+    case 'app.bsky.embed.video':
+      return {
+        $type: 'app.bsky.embed.video#view',
+        playlist: blobUrl(raw.video),
+        alt: raw.alt,
+      };
+    case 'app.bsky.embed.external':
+      return { $type: 'app.bsky.embed.external#view', external: raw.external };
+    default:
+      return undefined;
+  }
+}
+
+interface ResponseCandidate {
+  post: Post;
+  type: 'reply' | 'mention' | 'copy';
+  parentUri?: string;
+}
+
+function quotesCopy(record: AppBskyFeedPost.Main, copyUri: string): boolean {
+  const embed = record.embed;
+  return (
+    (embed?.$type === 'app.bsky.embed.record' &&
+      embed.record.uri === copyUri) ||
+    (embed?.$type === 'app.bsky.embed.recordWithMedia' &&
+      embed.record.record.uri === copyUri)
+  );
+}
+
+/** AppView decides visibility; the author's current record decides content. */
+export async function refreshBlueskyCandidates(
+  candidates: ResponseCandidate[],
+  copyUri: string,
+  target: string,
+  hidden: Set<string>,
+  options: { reader?: ResponseRecordReader; signal?: AbortSignal } = {}
+): Promise<{ posts: Map<string, Post>; incomplete: boolean }> {
+  const signal = options.signal ?? AbortSignal.timeout(20000);
+  const reader = options.reader ?? createResponseRecordReader(signal);
+  const posts = new Map<string, Post>();
+  const visible = candidates.filter(
+    ({ post, type }) =>
+      normalizeBlueskyPost(
+        post,
+        target,
+        type === 'copy' ? 'mention' : type,
+        hidden
+      ) && post.uri.split('/')[2] === post.author.did
+  );
+  let next = 0;
+  let incomplete = false;
+  const reads = new Map<string, Promise<CurrentResponseRecord | null>>();
+  async function withinBudget<T>(pending: Promise<T>): Promise<T> {
+    signal.throwIfAborted();
+    let onAbort: () => void = () => {};
+    try {
+      return await Promise.race([
+        pending,
+        new Promise<never>((_, reject) => {
+          onAbort = () => reject(signal.reason);
+          signal.addEventListener('abort', onAbort, { once: true });
+        }),
+      ]);
+    } finally {
+      signal.removeEventListener('abort', onAbort);
+    }
+  }
+  async function worker() {
+    while (next < visible.length && !signal.aborted) {
+      const candidate = visible[next++];
+      try {
+        let pending = reads.get(candidate.post.uri);
+        if (!pending) {
+          pending = reader(candidate.post.uri);
+          reads.set(candidate.post.uri, pending);
+        }
+        const current = await withinBudget(pending);
+        if (!current || signal.aborted) continue;
+        if (
+          current.uri !== candidate.post.uri ||
+          !safeParse(ComAtprotoRepoStrongRef.mainSchema, current).ok ||
+          new URL(current.pds).protocol !== 'https:' ||
+          new URL(current.pds).username ||
+          new URL(current.pds).password
+        )
+          continue;
+        const currentValue = parseCurrentResponsePost(
+          current.value,
+          current.legacyBlobCids
+        ).value;
+        if (candidate.type === 'reply') {
+          if (
+            currentValue.reply?.parent.uri !== candidate.parentUri ||
+            currentValue.reply?.root.uri !== copyUri
+          )
+            continue;
+        } else if (
+          candidate.type === 'mention' &&
+          !quotesCopy(currentValue, copyUri)
+        )
+          continue;
+        const labels = currentValue.labels;
+        if (
+          labels?.$type === 'com.atproto.label.defs#selfLabels' &&
+          !allowed({ labels: labels.values })
+        )
+          continue;
+        const refreshed: Post = {
+          ...candidate.post,
+          cid: current.cid,
+          record: currentValue,
+          embed:
+            current.cid === candidate.post.cid
+              ? candidate.post.embed
+              : currentMediaView({ ...current, value: currentValue }),
+        };
+        if (
+          normalizeBlueskyPost(
+            refreshed,
+            target,
+            candidate.type === 'copy' ? 'mention' : candidate.type,
+            hidden
+          )
+        )
+          posts.set(candidate.post.uri, refreshed);
+      } catch {
+        incomplete = true;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: 4 }, () => worker()));
+  return {
+    posts,
+    incomplete: incomplete || signal.aborted || next < visible.length,
+  };
+}
+
 export async function normalizeBlueskyReposts(
   profiles: Profile[],
   target: string,
@@ -283,12 +465,23 @@ async function pages<T>(
   return values;
 }
 
-export async function loadBlueskyResponses(
-  writing: WritingData
-): Promise<{ groups: WebmentionGroup; copyUrl?: string }> {
+export async function loadBlueskyResponses(writing: WritingData): Promise<{
+  groups: WebmentionGroup;
+  copyUrl?: string;
+  incomplete?: boolean;
+}> {
   'use cache';
   cacheLife('minutes');
   cacheTag('atproto-responses');
+  return fetchBlueskyResponses(writing);
+}
+
+/** Uncached importer for fresh AppView reads and acceptance checks. */
+export async function fetchBlueskyResponses(writing: WritingData): Promise<{
+  groups: WebmentionGroup;
+  copyUrl?: string;
+  incomplete?: boolean;
+}> {
   const groups = emptyResponses();
   if (writing.draft) return { groups };
   try {
@@ -330,11 +523,48 @@ export async function loadBlueskyResponses(
       ),
     ]);
     const hidden = new Set(thread.threadgate?.record?.hiddenReplies ?? []);
+    const candidates: ResponseCandidate[] = [
+      { post: thread.thread.post, type: 'copy' },
+    ];
+    function discover(node: Thread, depth = 0) {
+      for (const child of node.replies ?? []) {
+        if (
+          !child.post ||
+          !normalizeBlueskyPost(child.post, target, 'reply', hidden) ||
+          child.post.record.reply?.parent?.uri !== node.post?.uri
+        )
+          continue;
+        candidates.push({
+          post: child.post,
+          type: 'reply',
+          parentUri: node.post?.uri,
+        });
+        if (depth < 99) discover(child, depth + 1);
+      }
+    }
+    discover(thread.thread);
+    candidates.push(
+      ...quotes.map((post) => ({ post, type: 'mention' as const }))
+    );
+    const current = await refreshBlueskyCandidates(
+      candidates,
+      uri,
+      target,
+      hidden
+    );
+    if (!current.posts.has(uri))
+      return {
+        groups,
+        copyUrl,
+        ...(current.incomplete && { incomplete: true }),
+      };
     function replies(node: Thread, depth = 0) {
       for (const child of node.replies ?? []) {
         if (!child.post) continue;
+        const refreshed = current.posts.get(child.post.uri);
+        if (!refreshed) continue;
         const response = normalizeBlueskyPost(
-          child.post,
+          refreshed,
           target,
           'reply',
           hidden
@@ -354,9 +584,12 @@ export async function loadBlueskyResponses(
       allowed(thread.thread.post.author)
     )
       replies(thread.thread);
-    groups.mentions = quotes.flatMap(
-      (post) => normalizeBlueskyPost(post, target, 'mention') ?? []
-    );
+    groups.mentions = quotes.flatMap((post) => {
+      const refreshed = current.posts.get(post.uri);
+      return refreshed
+        ? (normalizeBlueskyPost(refreshed, target, 'mention') ?? [])
+        : [];
+    });
     groups.likes = likes
       .filter(
         (like) =>
@@ -378,7 +611,7 @@ export async function loadBlueskyResponses(
         receivedAt: new Date(like.indexedAt),
       }));
     groups.reposts = await normalizeBlueskyReposts(reposts, target, uri);
-    return { groups, copyUrl };
+    return { groups, copyUrl, ...(current.incomplete && { incomplete: true }) };
   } catch (error) {
     console.error('Could not refresh Bluesky responses:', error);
     return { groups };

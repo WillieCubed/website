@@ -1,6 +1,7 @@
 import { ComAtprotoRepoStrongRef } from '@atcute/atproto';
 import { AppBskyFeedPost } from '@atcute/bluesky';
 import { type Did, safeParse } from '@atcute/lexicons';
+import { SiteStandardDocument } from '@atcute/standard-site';
 
 import { absoluteUrl, site } from '@/lib/site';
 import { clipText } from '@/lib/text/clip';
@@ -315,13 +316,43 @@ export async function syncBlueskyCopies(
         }
       }
     }
-    if (!options.dryRun)
-      await client.putRecord!(
-        'site.standard.document',
-        rkey,
-        { ...document!.value, bskyPostRef: copy },
-        document!.cid
-      );
+    if (!options.dryRun) {
+      try {
+        await client.putRecord!(
+          'site.standard.document',
+          rkey,
+          { ...document!.value, bskyPostRef: copy },
+          document!.cid
+        );
+      } catch (error) {
+        let associated = false;
+        try {
+          const current = await client.getRecord(
+            'site.standard.document',
+            rkey
+          );
+          const ref = current?.value.bskyPostRef as
+            | { uri?: unknown; cid?: unknown }
+            | undefined;
+          associated = Boolean(
+            current &&
+            current.uri ===
+              `at://${publishingIdentity().did}/site.standard.document/${rkey}` &&
+            current.value.site === publishingIdentity().publicationUri &&
+            safeParse(SiteStandardDocument.mainSchema, current.value, {
+              strict: true,
+            }).ok &&
+            ref?.uri === copy?.uri &&
+            ref?.cid === copy?.cid
+          );
+        } catch {
+          // A failed recovery read cannot establish that the intended association exists.
+        }
+        // A concurrent publisher may have associated this exact copy before our CID swap.
+        // Preserve its authored fields rather than retrying an overwrite with a newer CID.
+        if (!associated) throw error;
+      }
+    }
     results.push({
       action,
       url: canonical,

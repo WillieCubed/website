@@ -13,7 +13,7 @@ interface NativeVideoProps {
   className?: string;
 }
 
-/** Bluesky serves HLS; browsers without native HLS still keep native controls. */
+/** Bluesky serves HLS; every playback path keeps native controls. */
 export default function NativeVideo({
   src,
   poster,
@@ -26,15 +26,11 @@ export default function NativeVideo({
   const failed = failedSource === src;
   useEffect(() => {
     const element = video.current;
-    if (
-      !element ||
-      !new URL(src).pathname.endsWith('.m3u8') ||
-      element.canPlayType('application/vnd.apple.mpegurl')
-    )
-      return;
+    if (!element || !new URL(src).pathname.endsWith('.m3u8')) return;
     let player: Hls | undefined;
     let disposed = false;
     let requestedPlay = !element.paused;
+    const nativeError = () => setFailedSource(src);
     const start = () => {
       requestedPlay = true;
       player?.startLoad();
@@ -43,8 +39,14 @@ export default function NativeVideo({
     void import('hls.js')
       .then(({ default: Hls }) => {
         if (disposed) return;
+        // Chrome can report native HLS support and still reject a valid stream.
         if (!Hls.isSupported()) {
-          setFailedSource(src);
+          if (element.canPlayType('application/vnd.apple.mpegurl')) {
+            element.addEventListener('error', nativeError);
+            if (element.error) nativeError();
+          } else {
+            setFailedSource(src);
+          }
           return;
         }
         player = new Hls({
@@ -70,6 +72,7 @@ export default function NativeVideo({
     return () => {
       disposed = true;
       element.removeEventListener('play', start);
+      element.removeEventListener('error', nativeError);
       player?.destroy();
     };
   }, [src]);
@@ -78,12 +81,7 @@ export default function NativeVideo({
       <video
         ref={video}
         onError={() => {
-          const element = video.current;
-          if (
-            !new URL(src).pathname.endsWith('.m3u8') ||
-            element?.canPlayType('application/vnd.apple.mpegurl')
-          )
-            setFailedSource(src);
+          if (!new URL(src).pathname.endsWith('.m3u8')) setFailedSource(src);
         }}
         src={src}
         poster={poster}

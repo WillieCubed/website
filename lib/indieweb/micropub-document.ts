@@ -1,7 +1,11 @@
 import matter from 'gray-matter';
 
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
-import { syndicationName } from '@/lib/indieweb/syndication';
+import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
+import {
+  resolveSyndicationTargets,
+  syndicationName,
+} from '@/lib/indieweb/syndication';
 import { site } from '@/lib/site';
 
 /*
@@ -37,26 +41,6 @@ export interface MicropubUpdate {
   /** Values to remove: `"delete": { "category": ["indieweb"] }`. */
   deleteValues: Mf2Properties;
 }
-
-/**
- * The mf2 properties an update may change. `updated` is left out because
- * every update sets it to the time of the request.
- */
-const UPDATABLE = new Set([
-  'name',
-  'summary',
-  'content',
-  'published',
-  'category',
-  'in-reply-to',
-  'like-of',
-  'repost-of',
-  'bookmark-of',
-  'rsvp',
-  'photo',
-  'syndication',
-  'post-status',
-]);
 
 /** Single-valued frontmatter keys holding a URL, by mf2 property. */
 const URL_KEYS = [
@@ -103,7 +87,9 @@ export function micropubSource(
     ...sourceProperties(data, content),
     url: [url],
   };
-  if (requested.length === 0) return { type: ['h-entry'], properties };
+  const mf2 = data.micropub as { type?: string[] } | undefined;
+  if (requested.length === 0)
+    return { type: mf2?.type ?? ['h-entry'], properties };
   return {
     properties: Object.fromEntries(
       requested
@@ -133,7 +119,9 @@ export function applyMicropubUpdate(
   if (named.length === 0) {
     throw new MicropubRequestError('An update needs replace, add, or delete.');
   }
-  const unsupported = named.find((name) => !UPDATABLE.has(name));
+  const unsupported = named.find((name) =>
+    ['updated', 'url', 'access_token', 'mp-slug'].includes(name)
+  );
   if (unsupported) {
     throw new MicropubRequestError(
       `The property "${unsupported}" cannot be updated on this site.`
@@ -151,22 +139,44 @@ export function applyMicropubUpdate(
 
   const file = splitWritingFile(source);
   const { data } = readWritingSource(source);
-  const next = sourceProperties(data, file.body);
+  const current = sourceProperties(data, file.body);
+  const next: Mf2Properties = Object.assign(Object.create(null), current);
   for (const [name, values] of Object.entries(update.replace)) {
     next[name] = values;
   }
   for (const [name, values] of Object.entries(update.add)) {
-    next[name] = uniqueValues([...(next[name] ?? []), ...values]);
+    next[name] = uniqueValues([...(next[name] ?? []), ...values], name);
   }
   for (const name of update.deleteProperties) next[name] = [];
   for (const [name, values] of Object.entries(update.deleteValues)) {
-    const drop = new Set(values.map(valueKey));
+    const drop = new Set(values.map((value) => valueKey(value, name)));
     next[name] = (next[name] ?? []).filter(
-      (value) => !drop.has(valueKey(value))
+      (value) => !drop.has(valueKey(value, name))
     );
   }
 
+  if (next.content) next.content = sanitizeContentValues(next.content);
+  for (const key of Object.keys(next))
+    if (next[key].length === 0) delete next[key];
+  if (
+    sameJson(next, current) &&
+    (!named.includes('content') ||
+      data.contentFormat === 'text' ||
+      data.contentFormat === 'html')
+  )
+    return source;
   writeProperties(file, data, next, new Set(named));
+  next.updated = [now.toISOString()];
+  const original = data.micropub as { type?: string[] } | undefined;
+  setString(
+    file,
+    data,
+    'postType',
+    postTypeForProperties(next, original?.type)
+  );
+  setKey(file, 'micropub', [
+    `micropub: ${JSON.stringify({ type: original?.type ?? ['h-entry'], properties: next })}`,
+  ]);
   if (joinWritingFile(file) === source) return source;
   setKey(file, 'lastUpdated', [`lastUpdated: ${siteTimestamp(now)}`]);
   return checked(joinWritingFile(file));
@@ -207,7 +217,12 @@ function sourceProperties(data: Frontmatter, body: string): Mf2Properties {
   const rsvp = rsvpOf(data);
   put('name', text(data.title));
   put('summary', text(data.description));
-  put('content', text(body));
+  put(
+    'content',
+    data.contentFormat === 'html' && body.trim()
+      ? [{ html: body.trim() }]
+      : text(body)
+  );
   put('published', text(isoDate(data.published)));
   put('updated', text(isoDate(data.lastUpdated)));
   put('category', [...tagsOf(data), ...peopleOf(data).map(hCard)]);
@@ -225,7 +240,39 @@ function sourceProperties(data: Frontmatter, body: string): Mf2Properties {
     syndicationOf(data).map(({ url }) => url)
   );
   put('post-status', [isDraft(data) ? 'draft' : 'published']);
-  return properties;
+  put(
+    'mp-syndicate-to',
+    Array.isArray(data.syndicateTo)
+      ? data.syndicateTo.filter((value) => typeof value === 'string')
+      : []
+  );
+  put(
+    'audio',
+    Array.isArray(data.audio)
+      ? data.audio.filter((value) => typeof value === 'string')
+      : []
+  );
+  put(
+    'video',
+    Array.isArray(data.video)
+      ? data.video.filter((value) => typeof value === 'string')
+      : []
+  );
+  const event = data.event as Record<string, unknown> | undefined;
+  if (event) {
+    put('start', text(event.start));
+    put('end', text(event.end));
+    if (event.location !== undefined)
+      put('location', [event.location as Mf2Value]);
+  }
+  const mf2 = data.micropub as { properties?: Mf2Properties } | undefined;
+  if (mf2?.properties && !Object.hasOwn(mf2.properties, 'name'))
+    delete properties.name;
+  return Object.fromEntries(
+    Object.entries({ ...properties, ...(mf2?.properties ?? {}) }).filter(
+      ([, values]) => Array.isArray(values) && values.length
+    )
+  );
 }
 
 function writeProperties(
@@ -240,7 +287,7 @@ function writeProperties(
   if (touched.has('summary')) {
     setString(file, data, 'description', single(next.summary, 'summary'));
   }
-  if (touched.has('content')) writeContent(file, next.content ?? []);
+  if (touched.has('content')) writeContent(file, data, next.content ?? []);
   if (touched.has('published')) {
     const published = single(next.published, 'published');
     if (!published) {
@@ -251,8 +298,10 @@ function writeProperties(
   if (touched.has('category')) writeCategory(file, data, next.category ?? []);
   for (const [property, key] of URL_KEYS) {
     if (!touched.has(property)) continue;
-    const url = single(next[property], property);
-    setString(file, data, key, url && webUrl(url, property));
+    const urls = (next[property] ?? []).map((value) =>
+      webUrl(citationUrl(value), property)
+    );
+    setString(file, data, key, urls[0]);
   }
   if (touched.has('rsvp') || (touched.has('in-reply-to') && data.rsvp)) {
     writeRsvp(file, data, next);
@@ -260,6 +309,44 @@ function writeProperties(
   if (touched.has('photo')) writePhotos(file, data, next.photo ?? []);
   if (touched.has('syndication')) {
     writeSyndication(file, data, next.syndication ?? []);
+  }
+  if (touched.has('mp-syndicate-to')) {
+    const values = next['mp-syndicate-to'] ?? [];
+    if (values.some((value) => typeof value !== 'string'))
+      throw new MicropubRequestError(
+        'Each mp-syndicate-to value needs a target URL.'
+      );
+    const targets = resolveSyndicationTargets(values as string[]).map(
+      ({ uid }) => uid
+    );
+    setKey(
+      file,
+      'syndicateTo',
+      targets.length ? [`syndicateTo: ${JSON.stringify(targets)}`] : null
+    );
+  }
+  for (const name of ['audio', 'video']) {
+    if (!touched.has(name)) continue;
+    const urls = (next[name] ?? []).map((value) =>
+      webUrl(citationUrl(value), name)
+    );
+    if (!sameJson(urls, data[name] ?? []))
+      setKey(
+        file,
+        name,
+        urls.length ? [`${name}: ${JSON.stringify(urls)}`] : null
+      );
+  }
+  if (['start', 'end', 'location'].some((name) => touched.has(name))) {
+    const event = {
+      start: single(next.start, 'start'),
+      end: single(next.end, 'end'),
+      location: next.location?.[0],
+    };
+    for (const date of [event.start, event.end])
+      if (date !== undefined && Number.isNaN(new Date(date).getTime()))
+        throw new MicropubRequestError('Event dates must be valid dates.');
+    setKey(file, 'event', [`event: ${JSON.stringify(event)}`]);
   }
   if (touched.has('post-status')) {
     const status = single(next['post-status'], 'post-status');
@@ -273,28 +360,72 @@ function writeProperties(
   }
 }
 
-// The body is the post's Markdown, so content is a string. HTML from a
-// client would go into MDX unescaped, and one unclosed tag fails the build.
-function writeContent(file: WritingFile, values: Mf2Value[]) {
-  if (values.length > 1) {
-    throw new MicropubRequestError('The property "content" takes one value.');
-  }
+function postTypeForProperties(
+  properties: Mf2Properties,
+  types?: string[]
+): string {
+  if (properties.rsvp?.length) return 'rsvp';
+  if (properties['like-of']?.length) return 'like';
+  if (properties['repost-of']?.length) return 'repost';
+  if (properties['bookmark-of']?.length) return 'bookmark';
+  if (properties['in-reply-to']?.length) return 'note';
+  if (
+    types?.includes('h-event') ||
+    properties.start?.length ||
+    properties.end?.length ||
+    properties.location?.length
+  )
+    return 'event';
+  if (properties.video?.length) return 'video';
+  if (properties.audio?.length) return 'audio';
+  if (properties.photo?.length) return 'photo';
+  return properties.name?.length ? 'article' : 'note';
+}
+
+/** The primary content value is literal text or sanitized HTML, never MDX. */
+function writeContent(
+  file: WritingFile,
+  data: Frontmatter,
+  values: Mf2Value[]
+) {
   const [value] = values;
-  let content: string;
-  if (value === undefined) content = '';
-  else if (typeof value === 'string') content = value;
-  else if (typeof value.value === 'string' && value.html === undefined) {
-    content = value.value;
-  } else {
-    throw new MicropubRequestError(
-      'Send content as Markdown text; HTML content is not accepted.'
-    );
-  }
+  let content = '',
+    format = 'text';
+  if (typeof value === 'string') content = value;
+  else if (value && typeof value.html === 'string') {
+    content = value.html;
+    format = 'html';
+  } else if (value && typeof value.value === 'string') content = value.value;
+  else if (value !== undefined)
+    throw new MicropubRequestError('Content needs text, value, or html.');
   const lines = content.trim().replace(/\r?\n/g, '\n');
-  if (lines === file.body.trim().replace(/\r?\n/g, '\n')) return;
+  if (
+    lines === file.body.trim().replace(/\r?\n/g, '\n') &&
+    data.contentFormat === format
+  )
+    return;
+  setKey(file, 'contentFormat', [`contentFormat: ${JSON.stringify(format)}`]);
   file.body = lines
     ? `${file.eol}${lines.replace(/\n/g, file.eol)}${file.eol}`
     : file.eol;
+}
+
+function sanitizeContentValues(values: Mf2Value[]): Mf2Value[] {
+  return values.map((value) =>
+    typeof value === 'object' && typeof value.html === 'string'
+      ? { ...value, html: sanitizeCommentHtml(value.html, site.origin) }
+      : value
+  );
+}
+
+function citationUrl(value: Mf2Value): string {
+  if (typeof value === 'string') return value;
+  const properties = value.properties as { url?: unknown[] } | undefined;
+  const url = properties?.url?.[0] ?? value.value;
+  if (typeof url === 'string') return url;
+  throw new MicropubRequestError(
+    'A citation needs a URL or an embedded item with a URL.'
+  );
 }
 
 function writeCategory(
@@ -307,6 +438,9 @@ function writeCategory(
   ];
   const people = values
     .filter((value) => typeof value !== 'string')
+    .filter(
+      (value) => Array.isArray(value.type) && value.type.includes('h-card')
+    )
     .map(personFromCard);
   if (!sameJson(tags, tagsOf(data))) {
     setKey(file, 'tags', [`tags: ${JSON.stringify(tags)}`]);
@@ -331,7 +465,9 @@ function writeRsvp(file: WritingFile, data: Frontmatter, next: Mf2Properties) {
       'rsvp is one of "yes", "no", "maybe", or "interested".'
     );
   }
-  const eventUrl = single(next['in-reply-to'], 'in-reply-to');
+  const eventUrl = next['in-reply-to']?.[0]
+    ? citationUrl(next['in-reply-to'][0])
+    : undefined;
   if (!eventUrl) {
     throw new MicropubRequestError(
       'An RSVP needs in-reply-to naming the event.'
@@ -434,9 +570,6 @@ function setDate(
 /** The one value of a property the frontmatter holds once, if any. */
 function single(values: Mf2Value[] | undefined, name: string) {
   if (!values || values.length === 0) return undefined;
-  if (values.length > 1) {
-    throw new MicropubRequestError(`The property "${name}" takes one value.`);
-  }
   if (typeof values[0] !== 'string') {
     throw new MicropubRequestError(`The property "${name}" takes text.`);
   }
@@ -456,17 +589,19 @@ function webUrl(value: string, name: string): string {
 }
 
 /** What makes two values the same for add and delete: a photo or person by URL. */
-function valueKey(value: Mf2Value): string {
+function valueKey(value: Mf2Value, property: string): string {
   if (typeof value === 'string') return value;
+  if (property !== 'photo' && property !== 'category')
+    return JSON.stringify(value);
   if (typeof value.value === 'string') return value.value;
   const url = (value.properties as { url?: unknown[] } | undefined)?.url?.[0];
   return typeof url === 'string' ? url : JSON.stringify(value);
 }
 
-function uniqueValues(values: Mf2Value[]): Mf2Value[] {
+function uniqueValues(values: Mf2Value[], property: string): Mf2Value[] {
   const seen = new Set<string>();
   return values.filter((value) => {
-    const key = valueKey(value);
+    const key = valueKey(value, property);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

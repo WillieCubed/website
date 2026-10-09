@@ -7,6 +7,7 @@ export const MIGRATIONS = [
   'lib/db/migrations/004_webmention_responses.sql',
   'lib/db/migrations/005_atproto_oauth.sql',
   'lib/db/migrations/006_indieauth_refresh.sql',
+  'lib/db/migrations/007_micropub_deleted_archives.sql',
   'lib/db/migrations/009_indieauth_code_replay.sql',
 ];
 
@@ -38,6 +39,7 @@ export const SCHEMA_QUERY = `SELECT (
       AND indpred IS NULL
       AND pg_get_indexdef(indexrelid, 1, true) = 'authorization_code_hash'
   ) AND
+  to_regclass('public.micropub_deleted_writings') IS NOT NULL AND
   to_regclass('public.indieauth_totp_steps') IS NOT NULL AND
   to_regclass('public.indieauth_sign_in_failures') IS NOT NULL AND
   EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'webmentions' AND column_name = 'original_source_hash') AND

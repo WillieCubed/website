@@ -116,3 +116,41 @@ export function storeMedia(
 ): Promise<string> {
   return store.put(mediaPathname(file, now), file, file.type);
 }
+
+const AUTHORING_MEDIA_TYPES: Readonly<Record<string, string>> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/avif': 'avif',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+  'audio/mpeg': 'mp3',
+  'audio/mp4': 'm4a',
+  'audio/aac': 'aac',
+  'audio/ogg': 'ogg',
+  'audio/wav': 'wav',
+  'audio/webm': 'webm',
+  'audio/flac': 'flac',
+  'video/mp4': 'mp4',
+  'video/webm': 'webm',
+  'video/ogg': 'ogv',
+  'video/quicktime': 'mov',
+  'application/pdf': 'pdf',
+};
+
+export function mediaMimeForUrl(
+  value: string,
+  kind?: 'audio' | 'video' | 'file'
+): string | undefined {
+  try {
+    const extension = new URL(value).pathname.split('.').at(-1)?.toLowerCase();
+    return Object.entries(AUTHORING_MEDIA_TYPES).find(
+      ([mime, ext]) =>
+        ext === extension &&
+        (!kind || kind === 'file' || mime.startsWith(`${kind}/`))
+    )?.[0];
+  } catch {
+    return undefined;
+  }
+}

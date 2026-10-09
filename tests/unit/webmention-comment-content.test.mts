@@ -10,6 +10,35 @@ import {
 
 const base = 'https://alice.example/notes/42';
 
+test('directional HTML preserves overrides and isolates without executable attributes', () => {
+  const html =
+    '<div dir="rtl" onclick="bad()">مرحبا <span dir="ltr">Alice</span> ' +
+    '<bdi>שלום</bdi><bdo dir="rtl">ABC</bdo>' +
+    '<a dir="auto" href="/reply">תגובה</a></div>';
+  const clean = sanitizeCommentHtml(html, base);
+  assert.equal(
+    clean,
+    '<div dir="rtl">مرحبا <span dir="ltr">Alice</span> ' +
+      '<bdi>שלום</bdi><bdo dir="rtl">ABC</bdo>' +
+      '<a href="https://alice.example/reply" rel="nofollow ugc" dir="auto">תגובה</a></div>'
+  );
+  assert.equal(commentHtml(clean, base), clean);
+  assert.equal(
+    sanitizeCommentHtml(
+      '<p dir="invalid">Text</p><bdo dir="auto">ABC</bdo>',
+      base
+    ),
+    '<p>Text</p><bdo>ABC</bdo>'
+  );
+  assert.equal(
+    sanitizeCommentHtml(
+      '<p dir="RTL">مرحبا</p><a dir="LTR" href="javascript:bad()">Alice</a>',
+      base
+    ),
+    '<p dir="rtl">مرحبا</p><span dir="ltr">Alice</span>'
+  );
+});
+
 test('the allowed elements survive as written', () => {
   const html =
     '<p>One <em>two</em> <strong>three</strong><br>four</p>' +
@@ -44,7 +73,7 @@ test('event handlers, styles, and every other attribute are dropped', () => {
         '<a href="https://ok.example/" onmouseover="alert(1)" target="_blank" style="position:fixed">ok</a>',
       base
     ),
-    '<p>Hi</p><a href="https://ok.example/" rel="nofollow ugc">ok</a>'
+    '<p>Hi</p><img src="https://alice.example/notes/x" loading="lazy" alt="" /><a href="https://ok.example/" rel="nofollow ugc">ok</a>'
   );
 });
 
@@ -107,4 +136,25 @@ test('plain text stays text and is cut at the limit', () => {
   const cut = commentText('word '.repeat(COMMENT_TEXT_LIMIT));
   assert.ok(cut?.endsWith('…'));
   assert.ok((cut?.length ?? 0) <= COMMENT_TEXT_LIMIT + 1);
+});
+
+test('native response media keeps controls and drops autoplay and executable sources', () => {
+  const clean = sanitizeCommentHtml(
+    '<audio src="clip.mp3" autoplay onplay="bad()"></audio><video src="clip.mp4" poster="cover.jpg" autoplay></video><img src="javascript:bad()" onerror="bad()">',
+    base
+  );
+  assert.match(clean, /controls/);
+  assert.match(clean, /preload="none"/);
+  assert.match(clean, /https:\/\/alice.example\/notes\/clip.mp3/);
+  assert.doesNotMatch(clean, /autoplay|onplay|onerror|javascript:/);
+});
+
+test('attachment actions retain only their recognized media class through repeated sanitizing', () => {
+  const html =
+    '<p><a class="arbitrary u-attachment" href="files/reply.pdf">A PDF attachment</a> and <a class="arbitrary" href="https://example.com/">a citation</a>.</p>';
+  const once = sanitizeCommentHtml(html, 'https://reply.example/post');
+  assert.match(once, /class="u-attachment"/);
+  assert.doesNotMatch(once, /arbitrary/);
+  assert.equal(sanitizeCommentHtml(once, 'https://reply.example/post'), once);
+  assert.equal((once.match(/class=/g) ?? []).length, 1);
 });

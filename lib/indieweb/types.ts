@@ -14,6 +14,14 @@ export interface WebmentionAuthor {
   photo?: string;
 }
 
+export interface ResponseMedia {
+  kind: 'image' | 'audio' | 'video' | 'file';
+  url: string;
+  description?: string;
+  mimeType?: string;
+  poster?: string;
+}
+
 export interface Webmention {
   id: string;
   sourceUrl: string;
@@ -478,7 +486,10 @@ export type MicropubPostType =
   | 'bookmark'
   | 'reply'
   | 'rsvp'
-  | 'photo';
+  | 'photo'
+  | 'audio'
+  | 'video'
+  | 'event';
 
 export type MicropubRsvpStatus = 'yes' | 'no' | 'maybe' | 'interested';
 
@@ -488,6 +499,12 @@ export interface MicropubPostTypeConfig {
 }
 
 export interface RawMicropubEntry {
+  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  contentFormat?: 'text' | 'html';
+  postStatus?: 'draft' | 'published';
+  audio?: string[];
+  video?: string[];
+  event?: { start?: string; end?: string; location?: unknown };
   h: string;
   content?: string;
   name?: string;
@@ -512,6 +529,12 @@ export interface MicropubPhoto {
 }
 
 export interface MicropubPostTypeSource {
+  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  contentFormat?: 'text' | 'html';
+  postStatus?: 'draft' | 'published';
+  audio?: string[];
+  video?: string[];
+  event?: { start?: string; end?: string; location?: unknown };
   name?: string;
   photos?: MicropubPhoto[];
   inReplyTo?: string;
@@ -522,7 +545,13 @@ export interface MicropubPostTypeSource {
 }
 
 export interface MicropubCreateRequest {
-  h: 'entry';
+  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  contentFormat?: 'text' | 'html';
+  postStatus?: 'draft' | 'published';
+  audio?: string[];
+  video?: string[];
+  event?: { start?: string; end?: string; location?: unknown };
+  h: 'entry' | 'event';
   content: string;
   name?: string;
   summary?: string;

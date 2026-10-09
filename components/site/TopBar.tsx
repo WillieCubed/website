@@ -65,6 +65,7 @@ export default function TopBar({
       <TopBarFrame
         column={column}
         floatOnScroll={floating}
+        longTrail={crumbs.length >= 2}
         breadcrumbKey={crumbs
           .map(({ href, label }) => `${href}:${label}`)
           .join('|')}

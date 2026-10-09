@@ -412,17 +412,33 @@ body:has(header[data-column='reading'])
   width: 1.375em;
   height: 1.375em;
 }
-header[data-compact] .site-breadcrumb-name__mark {
+header[data-compact='true'] .site-breadcrumb-name__mark {
   display: block;
 }
 /* The name stays the link's accessible name while the cube shows. */
-header[data-compact] .site-breadcrumb-name__label {
+header[data-compact='true'] .site-breadcrumb-name__label {
   position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+/* Before the bar has measured itself, a phone with two or more crumbs
+   starts compact, since nearly every such trail overflows there. This keeps
+   the first paint from showing the name and then swapping it for the cube. */
+@media (max-width: 639px) {
+  header[data-long-trail]:not([data-compact]) .site-breadcrumb-name__mark {
+    display: block;
+  }
+  header[data-long-trail]:not([data-compact]) .site-breadcrumb-name__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 .site-breadcrumb-name:focus-visible {
   outline: 2px solid var(--color-accent);

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { skipUnlessPublished } from './published';
+
 for (const width of [320, 390, 1440]) {
   test(`breadcrumb units stay compact and separate at ${width}px`, async ({
     page,
@@ -239,4 +241,42 @@ test('an initiative crumb lists only its own children or parts', async ({
     1
   );
   await expect(parent.locator('.site-breadcrumb-menu__icon')).toHaveCount(0);
+});
+
+test('a long trail swaps the name for the cube on a phone', async ({
+  page,
+  request,
+}) => {
+  await skipUnlessPublished(request, '/initiatives/fall-tour-2026');
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/initiatives/fall-tour-2026');
+
+  const banner = page.getByRole('banner');
+  await expect(banner).toHaveAttribute('data-compact', 'true');
+  await expect(banner.locator('.site-breadcrumb-name__mark')).toBeVisible();
+  await expect(
+    banner.getByRole('link', { name: 'Willie Chalmers III' })
+  ).toBeVisible();
+
+  await page.setViewportSize({ width: 1280, height: 812 });
+  await expect(banner).toHaveAttribute('data-compact', 'false');
+  await expect(banner.locator('.site-breadcrumb-name__mark')).toBeHidden();
+});
+
+test('a long trail paints compact before the bar measures itself', async ({
+  browser,
+  request,
+}) => {
+  await skipUnlessPublished(request, '/initiatives/fall-tour-2026');
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 375, height: 812 },
+  });
+  const page = await context.newPage();
+  await page.goto('/initiatives/fall-tour-2026');
+
+  const banner = page.getByRole('banner');
+  await expect(banner).not.toHaveAttribute('data-compact');
+  await expect(banner.locator('.site-breadcrumb-name__mark')).toBeVisible();
+  await context.close();
 });

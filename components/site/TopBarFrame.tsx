@@ -9,6 +9,8 @@ interface TopBarFrameProps {
   breadcrumbKey: string;
   className: string;
   floatOnScroll?: boolean;
+  /** Two or more crumbs after the name, which the CSS treats as compact until measured. */
+  longTrail?: boolean;
 }
 
 /**
@@ -22,6 +24,7 @@ export default function TopBarFrame({
   breadcrumbKey,
   className,
   floatOnScroll = false,
+  longTrail = false,
   children,
 }: React.PropsWithChildren<TopBarFrameProps>) {
   const ref = useRef<HTMLElement>(null);
@@ -39,12 +42,14 @@ export default function TopBarFrame({
     if (!header) return;
     // The cube stands in for the name when the trail would not fit, so the
     // current page stays readable without scrolling. Scrolling is the last
-    // resort for a trail too long even then.
+    // resort for a trail too long even then. Both values are set explicitly
+    // so the measurement can override the server's guess (site.css).
     const revealCurrentCrumb = () => {
-      header.removeAttribute('data-compact');
-      if (rail.scrollWidth > rail.clientWidth) {
-        header.setAttribute('data-compact', '');
-      }
+      header.setAttribute('data-compact', 'false');
+      header.setAttribute(
+        'data-compact',
+        String(rail.scrollWidth > rail.clientWidth)
+      );
       if (
         window.matchMedia('(max-width: 639px)').matches &&
         rail.scrollWidth > rail.clientWidth
@@ -53,10 +58,13 @@ export default function TopBarFrame({
       }
     };
     revealCurrentCrumb();
-    window.addEventListener('resize', revealCurrentCrumb);
+    // The rail's width follows the header, which can change without a
+    // window resize, such as when the search trigger's width settles.
+    const observer = new ResizeObserver(revealCurrentCrumb);
+    observer.observe(rail);
     void document.fonts.ready.then(revealCurrentCrumb);
 
-    return () => window.removeEventListener('resize', revealCurrentCrumb);
+    return () => observer.disconnect();
   }, [breadcrumbKey]);
 
   useLayoutEffect(() => {
@@ -75,7 +83,12 @@ export default function TopBarFrame({
   }, [floatOnScroll]);
 
   return (
-    <header ref={ref} data-column={column} className={className}>
+    <header
+      ref={ref}
+      data-column={column}
+      data-long-trail={longTrail || undefined}
+      className={className}
+    >
       {children}
     </header>
   );

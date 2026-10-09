@@ -39,14 +39,21 @@ export default function WritingHeader({
   const publishedIso = new Date(writing.published).toISOString();
   const updatedIso = new Date(writing.lastUpdated).toISOString();
   const targets = replyTargetsOf(writing);
-  const photos =
+  const remainingPhotoUrls =
     writing.contentFormat === 'html'
-      ? prepareWritingHtmlMedia(
-          content,
-          writingPhotoMedia(writing),
-          canonicalUrl
-        ).attachments
-      : writingPhotoMedia(writing);
+      ? new Set(
+          prepareWritingHtmlMedia(
+            content,
+            writingPhotoMedia(writing),
+            canonicalUrl
+          ).attachments.map((photo) => new URL(photo.url, canonicalUrl).href)
+        )
+      : undefined;
+  const photos = (writing.photos ?? []).filter(
+    (photo) =>
+      !remainingPhotoUrls ||
+      remainingPhotoUrls.has(new URL(photo.url, canonicalUrl).href)
+  );
 
   return (
     <header className="mx-auto max-w-breakpoint-md px-lg pb-10 pt-10 desktop:px-0">
@@ -121,7 +128,7 @@ export default function WritingHeader({
             <img
               key={photo.url}
               src={photo.url}
-              alt={photo.description || ''}
+              alt={photo.alt}
               decoding="async"
               className="u-photo w-full rounded-2xl bg-card"
             />

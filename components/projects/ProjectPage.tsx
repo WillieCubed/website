@@ -94,7 +94,7 @@ export default function ProjectPage({
             <ol className="project-children">
               {childProjects.map((child) => (
                 <li key={child.slug}>
-                  <SiteLink href={child.href}>
+                  <SiteLink href={child.href} preview={false}>
                     <b>{child.title}</b>
                     {child.line && <span>{child.line}</span>}
                   </SiteLink>

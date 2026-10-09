@@ -1,6 +1,6 @@
 # Agent notes
 
-Commit scopes and conventions are documented in [docs/commits.md](docs/commits.md).
+Commit scopes and conventions are documented in [docs/commits.md](docs/commits.md). Pick the most specific scope that matches; `site` is only for shared chrome that no other scope covers, never a catch-all.
 Design decisions are governed by [docs/design-principles.md](docs/design-principles.md).
 Every in-site link uses `SiteLink`; the rule and the hover card are documented in [docs/links.md](docs/links.md).
 Page titles and social previews follow [docs/metadata.md](docs/metadata.md).

@@ -126,7 +126,7 @@ test('readMicropubAction treats a body without action as a create', async () => 
 test('readMicropubAction refuses unknown actions and malformed updates', async () => {
   for (const body of [
     { action: 'publish', url },
-    { action: 'undelete', url },
+
     { action: 'update' },
     { action: 'update', url, replace: { content: 'x' } },
     { action: 'update', url, delete: [1] },
@@ -140,10 +140,26 @@ test('readMicropubAction refuses unknown actions and malformed updates', async (
   await assert.rejects(
     readMicropubAction(
       formRequest([
+        ['action', 'publish'],
+        ['url', url],
+      ])
+    ),
+    { description: 'The action "publish" is not supported.' }
+  );
+});
+
+test('readMicropubAction accepts JSON and form undelete requests', async () => {
+  assert.deepEqual(
+    await readMicropubAction(jsonRequest({ action: 'undelete', url })),
+    { action: 'undelete', url }
+  );
+  assert.deepEqual(
+    await readMicropubAction(
+      formRequest([
         ['action', 'undelete'],
         ['url', url],
       ])
     ),
-    { description: 'The action "undelete" is not supported.' }
+    { action: 'undelete', url }
   );
 });

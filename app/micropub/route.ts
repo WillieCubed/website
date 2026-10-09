@@ -1,6 +1,7 @@
 import {
   handleMicropubGet,
   handleMicropubPost,
+  micropubCorsPreflight,
 } from '@/lib/indieweb/micropub-endpoint';
 
 /**
@@ -18,4 +19,8 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   return handleMicropubPost(request);
+}
+
+export function OPTIONS() {
+  return micropubCorsPreflight();
 }

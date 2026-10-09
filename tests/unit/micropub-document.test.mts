@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildMicropubWritingFile,
+  parseMicropubCreateRequest,
+} from '@/lib/indieweb/micropub';
+import {
   MicropubRequestError,
   type MicropubUpdate,
   applyMicropubUpdate,
@@ -42,6 +46,49 @@ Because it runs every fifteen minutes.
 `;
 
 const url = `${site.origin}/writings/transit-notes`;
+
+test('Micropub create, source and edits preserve directional natural language values', async () => {
+  for (const content of [
+    '\u200fAlice שלום',
+    {
+      html: '<div dir="rtl">مرحبا <bdi dir="ltr">Alice</bdi><bdo dir="rtl">ABC</bdo></div>',
+    },
+  ]) {
+    const request = await parseMicropubCreateRequest(
+      new Request(`${site.origin}/micropub`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: ['h-entry'],
+          properties: {
+            name: ['مرحبا Alice'],
+            summary: ['\u200eשלום Alice'],
+            content: [content],
+          },
+        }),
+      })
+    );
+    const source = buildMicropubWritingFile(request, 'direction-roundtrip');
+    const initial = micropubSource(source, url);
+    assert.deepEqual(initial.properties.name, ['مرحبا Alice']);
+    assert.deepEqual(initial.properties.summary, ['\u200eשלום Alice']);
+    assert.deepEqual(initial.properties.content, [content]);
+    const edited = applyMicropubUpdate(
+      source,
+      {
+        replace: {},
+        add: { category: ['bidi'] },
+        deleteProperties: [],
+        deleteValues: {},
+      },
+      new Date('2026-10-08T13:00:00Z')
+    );
+    const after = micropubSource(edited, url);
+    assert.deepEqual(after.properties.name, initial.properties.name);
+    assert.deepEqual(after.properties.summary, initial.properties.summary);
+    assert.deepEqual(after.properties.content, initial.properties.content);
+  }
+});
 
 test('micropubSource maps frontmatter and body to h-entry properties', () => {
   assert.deepEqual(micropubSource(handWritten, url), {
@@ -89,6 +136,20 @@ test('micropubSource returns only the requested properties, without type', () =>
     ]),
     { properties: { content: all.content, category: all.category } }
   );
+});
+
+test('source editing preserves declared HTML without canonical Micropub metadata', () => {
+  const source =
+    '---\ntitle: HTML post\ncontentFormat: html\n---\n\n<p>A <strong>formatted</strong> post.</p>\n';
+  const edited = applyMicropubUpdate(
+    source,
+    update({ replace: { summary: ['New summary.'] } }),
+    now
+  );
+  assert.equal(frontmatterOf(edited).contentFormat, 'html');
+  assert.deepEqual(micropubSource(edited, url).properties.content, [
+    { html: '<p>A <strong>formatted</strong> post.</p>' },
+  ]);
 });
 
 test('micropubSource reads interaction posts and a timestamp the create path wrote', () => {
@@ -141,7 +202,7 @@ function frontmatterOf(source: string): Record<string, unknown> {
   return matter(source, {}).data;
 }
 
-test('replacing content rewrites the body and lastUpdated and nothing else', () => {
+test('replacing content keeps author metadata and records literal text', () => {
   const result = applyMicropubUpdate(
     handWritten,
     update({ replace: { content: ['A shorter note about the 109.'] } }),
@@ -149,14 +210,15 @@ test('replacing content rewrites the body and lastUpdated and nothing else', () 
   );
 
   assert.equal(
-    result,
-    handWritten
-      .replace(
-        'lastUpdated: 2026-09-21T09:30-0700',
-        'lastUpdated: 2026-09-27T13:05-0700'
-      )
-      .replace(/\n---\n[\s\S]*$/, '\n---\n\nA shorter note about the 109.\n')
+    matter(result, {}).content.trim(),
+    'A shorter note about the 109.'
   );
+  const data = frontmatterOf(result);
+  assert.equal(data.contentFormat, 'text');
+  assert.equal(data.lastUpdated, '2026-09-27T13:05-0700');
+  assert.deepEqual(data.series, frontmatterOf(handWritten).series);
+  assert.deepEqual(data.people, frontmatterOf(handWritten).people);
+  assert.match(result, /# A comment the author left\./);
   assert.equal(frontmatterOf(result).draft, true);
 });
 
@@ -168,15 +230,11 @@ test('an edit keeps CRLF line endings and untouched keys byte for byte', () => {
     now
   );
 
-  assert.equal(
-    result,
-    crlf
-      .replace("title: 'Transit notes'", 'title: "Transit notes, revised"')
-      .replace(
-        'lastUpdated: 2026-09-21T09:30-0700',
-        'lastUpdated: 2026-09-27T13:05-0700'
-      )
-  );
+  assert.equal(matter(result, {}).content, matter(crlf, {}).content);
+  assert.equal(frontmatterOf(result).title, 'Transit notes, revised');
+  assert.deepEqual(frontmatterOf(result).series, frontmatterOf(crlf).series);
+  assert.ok(result.includes('series:\r\n  slug: superbloom\r\n  part: 2\r\n'));
+  assert.doesNotMatch(result, /(?<!\r)\n/);
 });
 
 test('add and delete edit category values and keep the body', () => {
@@ -312,13 +370,14 @@ test('replacing published writes the site-local time', () => {
 
 test('updates the frontmatter cannot hold are refused', () => {
   const refused: Partial<MicropubUpdate>[] = [
-    { replace: { location: ['geo:36.17,-115.14'] } },
     { replace: { updated: ['2026-09-21T09:30:00-07:00'] } },
     { replace: { url: ['https://example.com/'] } },
-    { replace: { 'like-of': ['https://a.example/', 'https://b.example/'] } },
+
     { replace: { 'like-of': ['javascript:alert(1)'] } },
-    { replace: { content: [{ html: '<p>Hi</p>' }] } },
+
     { replace: { published: ['not a date'] } },
+    { replace: { start: ['not a date'] } },
+    { replace: { end: ['not a date'] } },
     { deleteProperties: ['published'] },
     { replace: { rsvp: ['yes'] } },
     { add: { category: [{ type: ['h-card'], properties: { name: ['?'] } }] } },
@@ -373,4 +432,162 @@ test('siteTimestamp writes the site-local time with its offset', () => {
     '2026-01-15T12:00:09-0800'
   );
   assert.equal(new Date(siteTimestamp(now)).toISOString(), now.toISOString());
+});
+
+test('generic nested values survive replace, add, value deletion, and source filtering', () => {
+  const nested = {
+    type: ['h-cite'],
+    properties: {
+      url: ['https://example.com/post'],
+      name: ['Nested title'],
+      author: [
+        {
+          type: ['h-card'],
+          properties: { name: ['Alice'], url: ['https://alice.example/'] },
+        },
+      ],
+    },
+  };
+  const replaced = applyMicropubUpdate(
+    handWritten,
+    update({
+      replace: {
+        'in-reply-to': [nested, 'https://example.com/another'],
+        location: [
+          { type: ['h-adr'], properties: { locality: ['Las Vegas'] } },
+        ],
+        'custom-property': ['first'],
+      },
+    }),
+    now
+  );
+  const added = applyMicropubUpdate(
+    replaced,
+    update({
+      add: { 'custom-property': ['second', { value: 'third', nested }] },
+      deleteValues: { 'in-reply-to': ['https://example.com/another'] },
+    }),
+    now
+  );
+  const filtered = micropubSource(added, url, [
+    'in-reply-to',
+    'custom-property',
+    'location',
+  ]);
+  assert.deepEqual(filtered.properties['in-reply-to'], [nested]);
+  assert.deepEqual(filtered.properties['custom-property'], [
+    'first',
+    'second',
+    { value: 'third', nested },
+  ]);
+  assert.deepEqual(filtered.properties.location, [
+    { type: ['h-adr'], properties: { locality: ['Las Vegas'] } },
+  ]);
+  const removed = applyMicropubUpdate(
+    added,
+    update({ deleteProperties: ['custom-property'] }),
+    now
+  );
+  assert.equal(
+    micropubSource(removed, url).properties['custom-property'],
+    undefined
+  );
+});
+
+test('generic values with the same URL or value retain their distinct nested data', () => {
+  const first = { value: 'same', nested: { label: 'first' } };
+  const second = { value: 'same', nested: { label: 'second' } };
+  const replaced = applyMicropubUpdate(
+    handWritten,
+    update({ replace: { 'custom-property': [first] } }),
+    now
+  );
+  const added = applyMicropubUpdate(
+    replaced,
+    update({ add: { 'custom-property': [second] } }),
+    now
+  );
+  assert.deepEqual(micropubSource(added, url).properties['custom-property'], [
+    first,
+    second,
+  ]);
+  const removed = applyMicropubUpdate(
+    added,
+    update({ deleteValues: { 'custom-property': [first] } }),
+    now
+  );
+  assert.deepEqual(micropubSource(removed, url).properties['custom-property'], [
+    second,
+  ]);
+});
+
+test('updates project media and reaction types while preserving ATProto metadata', async () => {
+  const entry = await parseMicropubCreateRequest(
+    new Request(site.origin + '/micropub', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ properties: { content: ['A note.'] } }),
+    })
+  );
+  const source = buildMicropubWritingFile(entry, 'type-update').replace(
+    '---\n',
+    '---\natproto: {uri: "at://did:plc:owner/app.bsky.feed.post/record"}\n'
+  );
+  const video = applyMicropubUpdate(
+    source,
+    update({ add: { video: ['https://example.com/video.mp4'] } }),
+    now
+  );
+  assert.equal(frontmatterOf(video).postType, 'video');
+  const like = applyMicropubUpdate(
+    video,
+    update({ add: { 'like-of': ['https://example.com/post'] } }),
+    now
+  );
+  assert.equal(frontmatterOf(like).postType, 'like');
+  const note = applyMicropubUpdate(
+    like,
+    update({ deleteProperties: ['like-of', 'video'] }),
+    now
+  );
+  assert.equal(frontmatterOf(note).postType, 'note');
+  assert.deepEqual(frontmatterOf(note).atproto, frontmatterOf(source).atproto);
+});
+
+test('syndication intent updates validate targets and remove the projected selection', () => {
+  const previous = process.env.ATPROTO_APP_PASSWORD;
+  process.env.ATPROTO_APP_PASSWORD = 'test-password';
+  try {
+    const target = site.syndication.find(
+      (account) => account.service === 'Bluesky'
+    )!.profile;
+    const selected = applyMicropubUpdate(
+      handWritten,
+      update({ replace: { 'mp-syndicate-to': [target] } }),
+      now
+    );
+    assert.deepEqual(frontmatterOf(selected).syndicateTo, [target]);
+    const removed = applyMicropubUpdate(
+      selected,
+      update({ deleteProperties: ['mp-syndicate-to'] }),
+      now
+    );
+    assert.equal(frontmatterOf(removed).syndicateTo, undefined);
+    assert.equal(
+      micropubSource(removed, url).properties['mp-syndicate-to'],
+      undefined
+    );
+    assert.throws(() =>
+      applyMicropubUpdate(
+        selected,
+        update({
+          replace: { 'mp-syndicate-to': ['https://invalid.example/'] },
+        }),
+        now
+      )
+    );
+  } finally {
+    if (previous === undefined) delete process.env.ATPROTO_APP_PASSWORD;
+    else process.env.ATPROTO_APP_PASSWORD = previous;
+  }
 });

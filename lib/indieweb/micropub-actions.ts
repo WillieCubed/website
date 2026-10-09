@@ -9,7 +9,7 @@ import {
 export type MicropubAction =
   | { action: 'create' }
   | { action: 'update'; url: string; update: MicropubUpdate }
-  | { action: 'delete'; url: string };
+  | { action: 'delete' | 'undelete'; url: string };
 
 /**
  * Read the action from a POST without consuming its body, which a create
@@ -46,7 +46,8 @@ export async function readMicropubAction(
 
 function jsonAction(body: Record<string, unknown>): MicropubAction {
   const { action } = body;
-  if (action === 'delete') return { action, url: requiredUrl(body.url) };
+  if (action === 'delete' || action === 'undelete')
+    return { action, url: requiredUrl(body.url) };
   if (action !== 'update') throw unsupportedAction(action);
   return {
     action,
@@ -94,7 +95,8 @@ function propertyMap(value: unknown, field: string): Mf2Properties {
 
 function formAction(form: FormData): MicropubAction {
   const action = form.get('action');
-  if (action === 'delete') return { action, url: requiredUrl(form.get('url')) };
+  if (action === 'delete' || action === 'undelete')
+    return { action, url: requiredUrl(form.get('url')) };
   if (action !== 'update') throw unsupportedAction(action);
   const url = requiredUrl(form.get('url'));
   const deleteProperties: string[] = [];

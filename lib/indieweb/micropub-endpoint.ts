@@ -5,6 +5,7 @@ import {
   commitMicropubWriting,
   getMicropubConfig,
   getMicropubSyndicationTargets,
+  micropubWritingPath,
   parseMicropubCreateRequest,
   writeMicropubWritingLocally,
 } from '@/lib/indieweb/micropub';
@@ -13,16 +14,24 @@ import {
   readMicropubAction,
 } from '@/lib/indieweb/micropub-actions';
 import {
+  type MicropubArchiveStore,
+  micropubArchiveStore,
+  micropubMutationKey,
+} from '@/lib/indieweb/micropub-archive';
+import {
   MicropubRequestError,
   type MicropubUpdate,
   applyMicropubUpdate,
   micropubSource,
 } from '@/lib/indieweb/micropub-document';
 import {
+  MicropubConflictError,
   MicropubStorageError,
   deleteStoredWriting,
   findStoredWriting,
+  restoreStoredWriting,
   saveStoredWriting,
+  writingSlugForUrl,
 } from '@/lib/indieweb/micropub-store';
 import {
   jsonError,
@@ -43,6 +52,7 @@ export interface MicropubEndpointOptions {
   /** Where issued tokens live; the Postgres store by default. */
   store?: IndieAuthStore;
   environment?: MicropubRouteEnvironment;
+  archives?: MicropubArchiveStore;
   /** Used for GitHub's Contents API. */
   fetch?: typeof fetch;
   /** Tags of the published writings, for q=category. */
@@ -67,7 +77,7 @@ export function micropubEnvironment(
  * site and are public. `source` returns a post's own properties, drafts
  * included, so it needs a token for this site, with any scope.
  */
-export async function handleMicropubGet(
+async function micropubGet(
   request: Request,
   options: MicropubEndpointOptions = {}
 ): Promise<Response> {
@@ -112,7 +122,7 @@ export async function handleMicropubGet(
  * deploy path as a hand-authored writing. Otherwise the file is written into
  * the local content directory, which only works on a writable checkout.
  */
-export async function handleMicropubPost(
+async function micropubPost(
   request: Request,
   options: MicropubEndpointOptions = {}
 ): Promise<Response> {
@@ -126,16 +136,30 @@ export async function handleMicropubPost(
     actionError = error;
   }
 
-  const denied = await authorize(request, action?.action, options);
+  const denied = await authorize(
+    request,
+    action?.action === 'create' ? ['create', 'draft'] : action?.action,
+    options
+  );
   if (denied) return denied;
   if (!action) return errorResponse(actionError);
 
   try {
     if (action.action === 'create') return await create(request, options);
-    if (action.action === 'update') {
-      return await update(action.url, action.update, options);
-    }
-    return await remove(action.url, options);
+    const slug = writingSlugForUrl(action.url);
+    if (!slug) return postNotFound();
+    const permalink = absoluteRoute`/writings/${slug}`;
+    const environment = options.environment ?? micropubEnvironment();
+    const archives = options.archives ?? micropubArchiveStore;
+    return await archives.runExclusive(
+      micropubMutationKey(environment, permalink),
+      async () => {
+        if (action.action === 'update')
+          return update(permalink, action.update, options);
+        if (action.action === 'undelete') return restore(permalink, options);
+        return remove(permalink, options);
+      }
+    );
   } catch (error) {
     return errorResponse(error);
   }
@@ -183,12 +207,15 @@ export async function readMicropubAccessToken(
 /** A response refusing the request, or null when its token may proceed. */
 async function authorize(
   request: Request,
-  requiredScope: string | undefined,
+  requiredScope: string | string[] | undefined,
   options: MicropubEndpointOptions
 ): Promise<Response | null> {
   const access = await readMicropubAccessToken(request);
   if ('error' in access)
-    return jsonError(access.error, access.error === 'unauthorized' ? 401 : 400);
+    return authorizationError(
+      access.error,
+      access.error === 'unauthorized' ? 401 : 400
+    );
 
   // Tokens come from this site's own token endpoint and are checked locally.
   const status = await micropubTokenStatus({
@@ -198,9 +225,9 @@ async function authorize(
     store: options.store,
   }).catch(() => 'unavailable' as const);
 
-  if (status === 'invalid') return jsonError('invalid_token', 401);
+  if (status === 'invalid') return authorizationError('invalid_token', 401);
   if (status === 'insufficient_scope')
-    return jsonError('insufficient_scope', 403);
+    return authorizationError('insufficient_scope', 403, requiredScope);
   if (status === 'unavailable')
     return jsonError('temporarily_unavailable', 503);
   return null;
@@ -244,28 +271,46 @@ async function create(
   options: MicropubEndpointOptions
 ): Promise<Response> {
   const environment = options.environment ?? micropubEnvironment();
-  const entry = await parseMicropubCreateRequest(request);
-  const result =
-    environment.githubRepository && environment.githubToken
-      ? await commitMicropubWriting(entry, {
-          repository: environment.githubRepository,
-          token: environment.githubToken,
-          branch: environment.defaultBranch,
-          contentPath: environment.contentPath,
-        })
-      : await writeMicropubWritingLocally(entry, environment.contentPath);
-  const body: MicropubCreatedResponse = {
-    status: 'accepted',
-    location: result.location,
-    slug: result.slug,
-    path: result.path,
-    commit: result.sha,
-  };
+  const entry = await parseMicropubCreateRequest(request.clone());
+  if (entry.postStatus !== 'draft') {
+    const denied = await authorize(request, 'create', options);
+    if (denied) return denied;
+  }
+  entry.slug = micropubWritingPath(entry, environment.contentPath).slug;
+  const permalink = absoluteRoute`/writings/${entry.slug}`;
+  const archives = options.archives ?? micropubArchiveStore;
+  return archives.runExclusive(
+    micropubMutationKey(environment, permalink),
+    async () => {
+      if (await findStoredWriting(permalink, environment, options.fetch))
+        throw new MicropubConflictError('A post already uses this permalink.');
+      const result =
+        environment.githubRepository && environment.githubToken
+          ? await commitMicropubWriting(
+              entry,
+              {
+                repository: environment.githubRepository,
+                token: environment.githubToken,
+                branch: environment.defaultBranch,
+                contentPath: environment.contentPath,
+              },
+              options.fetch
+            )
+          : await writeMicropubWritingLocally(entry, environment.contentPath);
+      const body: MicropubCreatedResponse = {
+        status: 'accepted',
+        location: result.location,
+        slug: result.slug,
+        path: result.path,
+        commit: result.sha,
+      };
 
-  return jsonResponse(body, {
-    status: 202,
-    headers: { Location: result.location },
-  });
+      return jsonResponse(body, {
+        status: 202,
+        headers: { Location: result.location },
+      });
+    }
+  );
 }
 
 /**
@@ -303,8 +348,7 @@ async function update(
 }
 
 /**
- * Delete the writing's file outright. Its permalink answers 404 once the
- * next deploy is live, and nothing keeps a copy to undelete from.
+ * Commit a private archive before removing the public source file.
  */
 async function remove(
   url: string,
@@ -314,17 +358,43 @@ async function remove(
   const stored = await findStoredWriting(url, environment, options.fetch);
   if (!stored) return postNotFound();
 
+  const archives = options.archives ?? micropubArchiveStore;
+  const key = micropubMutationKey(environment, url);
+  await archives.save(key, url, stored);
   const commit = await deleteStoredWriting(
     stored,
     `chore(content): Delete ${stored.slug} via Micropub`,
     environment,
     options.fetch
   );
+  await archives.mark(key, 'deleted');
   return jsonResponse({
     url: absoluteRoute`/writings/${stored.slug}`,
     path: stored.path,
     commit,
   });
+}
+
+async function restore(
+  url: string,
+  options: MicropubEndpointOptions
+): Promise<Response> {
+  const environment = options.environment ?? micropubEnvironment();
+  const archives = options.archives ?? micropubArchiveStore;
+  const key = micropubMutationKey(environment, url);
+  const archived = await archives.find(key);
+  if (!archived) return postNotFound();
+  if (await findStoredWriting(url, environment, options.fetch))
+    throw new MicropubConflictError(
+      'Another post already occupies this permalink.'
+    );
+  const commit = await restoreStoredWriting(
+    archived,
+    environment,
+    options.fetch
+  );
+  await archives.mark(key, 'restored');
+  return jsonResponse({ url: archived.url, path: archived.path, commit });
 }
 
 function postNotFound(): Response {
@@ -345,10 +415,57 @@ function errorResponse(error: unknown): Response {
   if (error instanceof Error && error.message === 'invalid_request') {
     return jsonError('invalid_request', 400);
   }
+  if (error instanceof MicropubConflictError)
+    return jsonError('conflict', 409, error.message);
   if (error instanceof MicropubStorageError) {
     console.error('Micropub storage failed:', error.message);
     return jsonError('server_error', 500, error.message);
   }
   console.error('Micropub request failed:', error);
   return jsonError('server_error', 500);
+}
+
+const MICROPUB_CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+  'Access-Control-Expose-Headers': 'Location, WWW-Authenticate',
+};
+
+export function micropubCorsPreflight(): Response {
+  return new Response(null, { status: 204, headers: MICROPUB_CORS });
+}
+
+export function withMicropubCors(response: Response): Response {
+  for (const [key, value] of Object.entries(MICROPUB_CORS))
+    response.headers.set(key, value);
+  response.headers.set('Cache-Control', 'no-store');
+  return response;
+}
+
+export async function handleMicropubGet(
+  request: Request,
+  options: MicropubEndpointOptions = {}
+): Promise<Response> {
+  return withMicropubCors(await micropubGet(request, options));
+}
+export async function handleMicropubPost(
+  request: Request,
+  options: MicropubEndpointOptions = {}
+): Promise<Response> {
+  return withMicropubCors(await micropubPost(request, options));
+}
+
+export function authorizationError(
+  error: string,
+  status: number,
+  scope?: string | string[]
+): Response {
+  const response = jsonError(error, status);
+  const challenge =
+    error === 'unauthorized'
+      ? 'Bearer'
+      : `Bearer error="${error}"${scope ? `, scope="${Array.isArray(scope) ? scope.join(' ') : scope}"` : ''}`;
+  response.headers.set('WWW-Authenticate', challenge);
+  return response;
 }

@@ -46,19 +46,15 @@ function webHref(href: string | undefined, baseUrl: string): string | null {
   }
 }
 
-/**
- * Keep the few elements a reply needs to read as written: paragraphs, line
- * breaks, links, emphasis, quotes, code, and lists. Everything else goes,
- * attributes included, and script, style, and embedded documents go with
- * their text. `b` and `i` become `strong` and `em`. A link keeps only an
- * http(s) `href`, resolved against the reply's own address, and always
- * carries `rel="nofollow ugc"`, since a stranger wrote it; any other link
- * becomes its text.
- */
+/** Directional markup retains the author's chosen base direction in Micropub HTML. */
 export function sanitizeCommentHtml(html: string, baseUrl: string): string {
   return sanitizeHtml(html, {
     allowedTags: [
       'p',
+      'div',
+      'span',
+      'bdi',
+      'bdo',
       'br',
       'a',
       'em',
@@ -68,9 +64,39 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
       'ul',
       'ol',
       'li',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
+      'caption',
+      'pre',
+      'figure',
+      'figcaption',
+      'img',
+      'audio',
+      'video',
+      'source',
+      'track',
     ],
-    allowedAttributes: { a: ['href', 'rel'] },
+    allowedAttributes: {
+      '*': ['dir'],
+      a: ['href', 'rel', 'class'],
+      img: ['src', 'alt', 'loading'],
+      audio: ['src', 'controls', 'preload'],
+      video: ['src', 'poster', 'controls', 'preload', 'playsinline'],
+      source: ['src', 'type'],
+      track: ['src', 'kind', 'srclang', 'label'],
+    },
     allowedSchemes: ['http', 'https'],
+    allowedClasses: { a: ['u-attachment'] },
     allowProtocolRelative: false,
     disallowedTagsMode: 'discard',
     nonTextTags: [
@@ -88,12 +114,43 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
     transformTags: {
       b: 'strong',
       i: 'em',
+      '*': (tagName, attribs): sanitizeHtml.Tag => {
+        const attributes = { ...attribs };
+        const directions =
+          tagName === 'bdo' ? ['ltr', 'rtl'] : ['ltr', 'rtl', 'auto'];
+        if (attributes.dir) attributes.dir = attributes.dir.toLowerCase();
+        if (!directions.includes(attributes.dir)) delete attributes.dir;
+        for (const name of ['src', 'poster']) {
+          const url = webHref(attributes[name], baseUrl);
+          if (url) attributes[name] = url;
+          else delete attributes[name];
+        }
+        if (tagName === 'video' || tagName === 'audio')
+          Object.assign(attributes, { controls: '', preload: 'none' });
+        if (tagName === 'img') {
+          attributes.loading = 'lazy';
+          attributes.alt ??= '';
+        }
+        return { tagName, attribs: attributes };
+      },
       a: (_tagName, attribs): sanitizeHtml.Tag => {
         const href = webHref(attribs.href, baseUrl);
-        // A span is not allowed, so the link's text stays and the tag goes.
+        // The invalid-link tag is not allowed, so only its text remains.
         return href
-          ? { tagName: 'a', attribs: { href, rel: 'nofollow ugc' } }
-          : { tagName: 'span', attribs: {} };
+          ? {
+              tagName: 'a',
+              attribs: {
+                href,
+                rel: 'nofollow ugc',
+                ...(attribs.class?.split(/\s+/).includes('u-attachment')
+                  ? { class: 'u-attachment' }
+                  : {}),
+                ...(attribs.dir ? { dir: attribs.dir } : {}),
+              },
+            }
+          : attribs.dir
+            ? { tagName: 'span', attribs: { dir: attribs.dir } }
+            : { tagName: 'invalid-link', attribs: {} };
       },
     },
   });
@@ -141,7 +198,8 @@ export function commentHtml(html: string, baseUrl: string): string | undefined {
   const clean = sanitizeCommentHtml(html, baseUrl).trim();
   if (!clean) return undefined;
   const fragment = parseFragment(clean);
-  if (textLength(fragment) === 0) return undefined;
+  if (textLength(fragment) === 0 && !/<(?:img|audio|video)\b/.test(clean))
+    return undefined;
   if (textLength(fragment) > COMMENT_TEXT_LIMIT) {
     keepText(fragment, { left: COMMENT_TEXT_LIMIT });
   }

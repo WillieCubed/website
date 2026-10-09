@@ -1,14 +1,24 @@
 import { mf2 } from 'microformats-parser';
 import type { MicroformatRoot } from 'microformats-parser/dist/types';
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import WebmentionSection from '@/components/indieweb/WebmentionSection';
-
 import type { Webmention, WebmentionGroup } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
+
+const cssHooks = registerHooks({
+  load(url, context, nextLoad) {
+    return url.endsWith('.css')
+      ? { format: 'module', source: '', shortCircuit: true }
+      : nextLoad(url, context);
+  },
+});
+const { default: WebmentionSection } =
+  await import('@/components/indieweb/WebmentionSection');
+cssHooks.deregister();
 
 const target = `${site.origin}/writings/indiemark-level-3`;
 
@@ -110,8 +120,8 @@ test('a reply with markup renders it as e-content, sanitized again on the way ou
   const comment = cite(entry.properties.comment?.[0]);
   assert.deepEqual(comment.properties.content, [
     {
-      html: '<p>Agreed, see <a href="https://alice.example/this" rel="nofollow ugc">this</a>.</p>',
-      value: 'Agreed, see this.',
+      html: '<p>Agreed, see <a href="https://alice.example/this" rel="nofollow ugc">this</a>.</p><img src="https://alice.example/notes/x" loading="lazy" alt="">',
+      value: 'Agreed, see this. https://alice.example/notes/x',
     },
   ]);
 });

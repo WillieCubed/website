@@ -1,5 +1,7 @@
 import { site } from '@/lib/site';
 
+import type { WritingData } from './types';
+
 export function propertyText(value: unknown): string | undefined {
   if (typeof value === 'string') return value;
   if (!value || typeof value !== 'object') return undefined;
@@ -33,4 +35,40 @@ export function propertyUrl(value: unknown): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+export function propertyLinks(
+  writing: WritingData,
+  property: string
+): { url: string; name: string }[] {
+  return (writing.micropub?.properties[property] ?? []).flatMap((value) => {
+    const url = propertyUrl(value);
+    return url
+      ? [{ url, name: propertyText(value) || new URL(url).hostname }]
+      : [];
+  });
+}
+
+export function locationText(value: unknown): string | undefined {
+  const name = propertyText(value);
+  if (name) return name;
+  if (!value || typeof value !== 'object') return undefined;
+  const properties = (value as Record<string, unknown>).properties as
+    | Record<string, unknown[]>
+    | undefined;
+  if (!properties) return undefined;
+  const address = [
+    'street-address',
+    'locality',
+    'region',
+    'postal-code',
+    'country-name',
+  ]
+    .map((key) => propertyText(properties[key]?.[0]))
+    .filter(Boolean)
+    .join(', ');
+  if (address) return address;
+  const latitude = propertyText(properties.latitude?.[0]);
+  const longitude = propertyText(properties.longitude?.[0]);
+  return latitude && longitude ? `${latitude}, ${longitude}` : undefined;
 }

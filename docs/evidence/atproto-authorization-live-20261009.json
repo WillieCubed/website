@@ -1,0 +1,228 @@
+{
+  "scope": "atproto-authorization-and-subscription",
+  "started": "2026-10-09T07:48:27.561Z",
+  "runtime": {
+    "revision": "3120ee12571e4b186ea85ddfd4a2862b669a396a",
+    "publication": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb",
+    "cid": "bafyreiait5dbiszuznofbz2bmwgkmdeya3b3hrovikiezs2mgtb5kr7tzq"
+  },
+  "localVerifier": {
+    "revision": "ac0631e71ae70edaeee6b146a7a65b8a1fccb386",
+    "sourceHashes": {
+      "scripts/atproto-social-capture.mts": "ead1056562ce9c37d08366c655ea6e90d4a51b7cab9fe57a87ba2232e3baa5f2",
+      "scripts/atproto-social-failures.mts": "514e8a724ce5040ad2af82c559a0e9adba28965c6436e8534014b17f1640b706",
+      "scripts/atproto-acceptance-identities.mts": "5309ca11d6823c28ec58cc9b6a31277a76334de75087032673e4ebe83a18f78e",
+      "scripts/atproto-callback-proof.mts": "2e1a63248125fa32e27acb5e23da9508f30070aae4d07c76294197dc4aa9a25b",
+      "scripts/atproto-refresh-acceptance.mts": "0c95a50447e19902b094546d4fe0caa3961c3cca5dd4e4506762e1a259c1b7ae",
+      "lib/site.ts": "1632c0d81fb9d53953d6895a5f0137e3ed592a137f34dfd6dfd9f38261cf607f",
+      "lib/writings/index.ts": "02ee3b3fb12d380396ed02efd9017bff02e3d3337481342b2fc07cd132e535e5",
+      "lib/atproto/blobs.ts": "5e9d80be7d6b1397adcf05ea61b52c813b9cae4ed8da06da2d6f01dee590060d",
+      "lib/atproto/bluesky.ts": "d48b098f586ebcf5fab607caaeca38f610f113906c3d29b17d59613112e2b9fd",
+      "lib/atproto/client.ts": "9119f3a50d3729e1abf246ab36a60eb504ae24389a9fe7333aa884df0ea3b234",
+      "lib/atproto/config.ts": "883a6a4c1f5fa2a1a4697b6a639b945c7fe9fcd3b6bc74da341bc249b53faf16",
+      "lib/atproto/identity.ts": "57e3395ec4146e2a9a4d8725c2f1432b11af64798118fdc22d3b2c1e73274e2b",
+      "lib/atproto/keys.ts": "a71075046fcf67bca5b68ae17ebef85873ec7caa9d5802d5ffa40b947cc201dc",
+      "lib/atproto/metadata.ts": "068a54db802b5ec06744942035fbe65bd5b22b13f489b9c44ea8ec033ce6e1af",
+      "lib/atproto/oauth-binding.ts": "1444918a1d50c3f0dbab18bf559cf79c7f349de01c0409bcebb37c4ad123efea",
+      "lib/atproto/oauth-crypto.ts": "0c64d0469a3c69c995b0671fd0fd3117b71735e9e7cc7effbb7615ac4fabd2ab",
+      "lib/atproto/oauth-fetch.ts": "cb856a05e321f9da30a90cad25804e57733e3078b8287b5b750e1532190be0a3",
+      "lib/atproto/oauth-storage.ts": "65d5a8a86362d6ead8521acc0ad15a4eed92a548990523134023974e77356778",
+      "lib/atproto/oauth.ts": "4a2dc2aed29359bc5d97dec6629849e1e7292ce5c7d5bc2482f4e854552a56c6",
+      "lib/atproto/plan.ts": "31f9b03217e15cb965c8c5edbd6ca58ca882f5f822c02d89e24f1d6a6e996483",
+      "lib/atproto/records.ts": "4d8d33e847638868ebe185c7a0f9dbeda929bdc4d2e0fd1b0c406d9cb4549720",
+      "lib/atproto/response-observations.ts": "db4b624be741aa55a72959e6b0d10bad686a89a466171b8ac3df58c7a2b15436",
+      "lib/atproto/response-records.ts": "7be101d8b0899749a8d7b35a1939172917f02b9ab529d1aa9e6a56746d0513b0",
+      "lib/atproto/responses.ts": "45e2a188e3cb8d1c3c799e33918ccf6feb8421bc940a2a484b2e1f20a2f2e72e",
+      "lib/atproto/social-http.ts": "8913ba3986a33c34d072f4eba5580fb66bfa3975a7d27e85db8a31858021eef2",
+      "lib/atproto/social-targets.ts": "1b199ef8456b11791ea5bd98bbc6aa03d4e002f7aa872e73c92ea298b3aeda96",
+      "lib/atproto/social.ts": "dd3a7a5e8741fa33f42123dd99c9a6233ffb6b003841d057a457bb7508a52851",
+      "lib/atproto/sync.ts": "47f7c5c3401bc2ff87ed9f4cac6f9d73c3f9c98cf2c10b560ec673bccbdf3b32",
+      "lib/atproto/types.ts": "619992a2887d97812a9a60ad799d6ecf0883f2b034050c74591e7f8570ad8f4b",
+      "lib/atproto/verification.ts": "ba15baca161ad61fbd9c34edf782cc0a476184f4ba6d867c47d454a08df36c25"
+    },
+    "deployedCode": false,
+    "workingTreeModified": true
+  },
+  "status": "passed",
+  "fullVerification": "pending",
+  "pending": [
+    "Recommendation writes, undo and failure states require a published disposable writing.",
+    "The complete social failure, expired-browser-session and lost-response suite remains pending.",
+    "Hosted Atmosphere response rendering and the full combined verification remain pending."
+  ],
+  "checks": [
+    {
+      "name": "Normal Subscribe UI authorization creates the expected visitor subscription and real DPoP grant",
+      "details": {
+        "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.subscription/3mxgicubqnf27",
+        "cid": "bafyreibncqij7qlsduqdnc4arpejtnjihcbqecs7yh3mx4ezpe3b3p25vi",
+        "issuer": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev",
+        "audience": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev/",
+        "scope": "repo?collection=site.standard.graph.recommend&collection=site.standard.graph.subscription atproto"
+      }
+    },
+    {
+      "name": "Normal Subscribe UI authorization creates the expected visitor subscription and real DPoP grant",
+      "details": {
+        "visitor": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+        "uri": "at://did:plc:vvx2yc7zxnllgsk4xce5snhh/site.standard.graph.subscription/3mxgid63ct527",
+        "cid": "bafyreicvuek3yjliv2qxwvkkom2bboqinpzhlla4hl47wejvkftejwcyvq",
+        "issuer": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev",
+        "audience": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev/",
+        "scope": "repo?collection=site.standard.graph.recommend&collection=site.standard.graph.subscription atproto"
+      }
+    },
+    {
+      "name": "The genuine provider flow passes its callback, browser-binding, session and graph assertions",
+      "details": {
+        "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+        "expectation": "grant",
+        "outcome": "authorized",
+        "wrongBrowserRejected": true,
+        "sessionCookie": "present"
+      }
+    },
+    {
+      "name": "The genuine provider flow passes its callback, browser-binding, session and graph assertions",
+      "details": {
+        "visitor": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+        "expectation": "grant",
+        "outcome": "authorized",
+        "wrongBrowserRejected": true,
+        "sessionCookie": "present"
+      }
+    },
+    {
+      "name": "The genuine provider flow passes its callback, browser-binding, session and graph assertions",
+      "details": {
+        "visitor": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+        "expectation": "cancel",
+        "outcome": "rejected",
+        "wrongBrowserRejected": false,
+        "sessionCookie": "present"
+      }
+    },
+    {
+      "name": "The genuine provider flow passes its callback, browser-binding, session and graph assertions",
+      "details": {
+        "visitor": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+        "expectation": "expired",
+        "outcome": "rejected",
+        "wrongBrowserRejected": false,
+        "sessionCookie": "present",
+        "expirySource": "Only this genuine authorization state database deadline was moved into the past; the provider code was real."
+      }
+    },
+    {
+      "name": "The genuine provider flow passes its callback, browser-binding, session and graph assertions",
+      "details": {
+        "visitor": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+        "expectation": "cancel",
+        "outcome": "rejected",
+        "wrongBrowserRejected": false,
+        "sessionCookie": "absent"
+      }
+    },
+    {
+      "name": "The consumed real grant callback rejects replay without changing either visitor graph or database inventory"
+    },
+    {
+      "name": "Two independent processes force real provider refresh and authenticate a PDS read under distributed locks",
+      "details": {
+        "instances": [
+          {
+            "status": "passed",
+            "pid": 39500,
+            "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+            "providerRefresh": true,
+            "authenticatedPdsRead": true,
+            "accessGenerationChanged": true,
+            "refreshTokenRotated": true,
+            "beforeExpiresAt": "2026-10-09T08:48:04.822Z",
+            "afterExpiresAt": "2026-10-09T08:48:33.782Z"
+          },
+          {
+            "status": "passed",
+            "pid": 39501,
+            "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+            "providerRefresh": true,
+            "authenticatedPdsRead": true,
+            "accessGenerationChanged": true,
+            "refreshTokenRotated": true,
+            "beforeExpiresAt": "2026-10-09T08:48:04.822Z",
+            "afterExpiresAt": "2026-10-09T08:48:33.782Z"
+          }
+        ],
+        "forcedRefresh": true,
+        "naturalExpiry": false
+      }
+    },
+    {
+      "name": "Primary subscription undo is confirmed on its real PDS and preserves the second visitor graph"
+    },
+    {
+      "name": "Both real subscriptions are undone and isolated browser sign-out preserves the other account"
+    }
+  ],
+  "reproducibleVerifierRevision": "bab99295a85aa48cf23bf0fe6d1325d07ca08a07",
+  "method": "Normal provider consent on the deployed acceptance site; two independent local processes force real provider refresh under distributed PostgreSQL locks. No seeded grants or simulated provider responses.",
+  "cleanup": {
+    "authorization-cleanup": {
+      "checkedAt": "2026-10-09T07:49:53.146Z",
+      "status": "passed",
+      "runtimeRevision": "3120ee12571e4b186ea85ddfd4a2862b669a396a",
+      "unexpiredDatabaseRowsPreserved": true,
+      "expiredStatesPrunedByRuntime": [],
+      "visitorGraphsRestored": true,
+      "baselineCounts": {
+        "states": 0,
+        "grants": 0,
+        "browsers": 0
+      }
+    },
+    "capture-cleanup": {
+      "checkedAt": "2026-10-09T07:49:53.148Z",
+      "status": "passed",
+      "pending": [],
+      "owned": [
+        {
+          "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+          "grantCreated": true,
+          "inventoryComplete": true,
+          "records": [
+            {
+              "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.subscription/3mxgicubqnf27",
+              "cid": "bafyreibncqij7qlsduqdnc4arpejtnjihcbqecs7yh3mx4ezpe3b3p25vi",
+              "kind": "subscription",
+              "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb"
+            }
+          ],
+          "recordsClean": true,
+          "grantRevoked": true
+        },
+        {
+          "did": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+          "grantCreated": true,
+          "inventoryComplete": true,
+          "records": [
+            {
+              "uri": "at://did:plc:vvx2yc7zxnllgsk4xce5snhh/site.standard.graph.subscription/3mxgid63ct527",
+              "cid": "bafyreicvuek3yjliv2qxwvkkom2bboqinpzhlla4hl47wejvkftejwcyvq",
+              "kind": "subscription",
+              "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb"
+            }
+          ],
+          "recordsClean": true,
+          "grantRevoked": true
+        }
+      ]
+    }
+  },
+  "screenshots": [
+    "docs/evidence/screenshots/atproto-subscribed-20261009-1440-light.png",
+    "docs/evidence/screenshots/atproto-subscribed-20261009-1440-dark.png",
+    "docs/evidence/screenshots/atproto-subscribed-20261009-390-light.png",
+    "docs/evidence/screenshots/atproto-subscribed-20261009-390-dark.png"
+  ]
+}

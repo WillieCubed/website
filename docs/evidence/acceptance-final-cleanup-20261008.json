@@ -1,0 +1,122 @@
+{
+  "at": "2026-10-08T08:38:40.297Z",
+  "deploymentCommit": "bf74ce3029e97f39eb4f9d7402405fc3ab83f6e0",
+  "checks": [
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-acceptance",
+      "status": 404
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/websub-acceptance-20261008",
+      "status": 404
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008",
+      "status": 404
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-form-private-20261008",
+      "status": 404
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-multipart-private-20261008",
+      "status": 404
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/f1d96bfb3dbce3aa7c6dbe6aacdd1a3fba32db8d42629c42",
+      "status": 404
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/api/acceptance-websub-callback",
+      "status": 404
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings",
+      "status": 200,
+      "fixturesAbsent": true
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/feed.xml",
+      "status": 200,
+      "fixturesAbsent": true
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/feed/atom",
+      "status": 200,
+      "fixturesAbsent": true
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/feed/json",
+      "status": 200,
+      "fixturesAbsent": true
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-acceptance",
+      "status": 404
+    },
+    {
+      "url": "https://willie.page/writings/websub-acceptance-20261008",
+      "status": 404
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-completion-20261008",
+      "status": 404
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-form-private-20261008",
+      "status": 404
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-multipart-private-20261008",
+      "status": 404
+    },
+    {
+      "url": "https://willie.page/api/acceptance-webmention-source/f1d96bfb3dbce3aa7c6dbe6aacdd1a3fba32db8d42629c42",
+      "status": 404
+    },
+    {
+      "url": "https://willie.page/api/acceptance-websub-callback",
+      "status": 404
+    },
+    {
+      "url": "https://willie.page/writings",
+      "status": 200,
+      "fixturesAbsent": true
+    },
+    {
+      "url": "https://willie.page/writings/feed.xml",
+      "status": 200,
+      "fixturesAbsent": true
+    },
+    {
+      "url": "https://willie.page/writings/feed/atom",
+      "status": 200,
+      "fixturesAbsent": true
+    },
+    {
+      "url": "https://willie.page/writings/feed/json",
+      "status": 200,
+      "fixturesAbsent": true
+    }
+  ],
+  "productionSources": [
+    {
+      "slug": "fall-tour-2026-begins",
+      "draft": true
+    },
+    {
+      "slug": "indiemark-checklist",
+      "draft": true
+    },
+    {
+      "slug": "project-superbloom",
+      "draft": true
+    },
+    {
+      "slug": "testing-independent-publishing",
+      "draft": true
+    }
+  ],
+  "acceptanceProtectionRestored": "all_except_custom_domains",
+  "temporarySourceAliasRemoved": true
+}

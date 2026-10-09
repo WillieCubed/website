@@ -70,6 +70,7 @@ async function publishedWritings(): Promise<DocumentSource[]> {
       lastUpdated: writing.lastUpdated,
       tags: writing.tags,
       body: content,
+      contentFormat: writing.contentFormat,
       photos: writing.photos,
       micropub: writing.micropub,
       audio: writing.audio,

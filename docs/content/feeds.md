@@ -67,5 +67,10 @@ Initiatives are dated by `starts`, or by `updated` when they have no start
 date. An initiative with neither stays out of the feeds until it gets one.
 Drafts stay out of every feed, as they do everywhere else.
 
+RSS carries one enclosure per item so readers do not discard conflicting
+enclosures. The generator chooses audio, then video, then an image, then a
+linked file. An enclosure requires a known byte length. Full HTML retains
+every supported media item, and Atom and JSON Feed retain every attachment.
+
 Routes cache with `'use cache'` and `cacheLife('hours')`, so a new post shows
 up in feeds within the hour after a deploy.

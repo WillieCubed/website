@@ -24,6 +24,7 @@ export interface DocumentSource {
   tags: string[];
   /** The MDX body. */
   body: string;
+  contentFormat?: WritingData['contentFormat'];
   photos?: WritingData['photos'];
   micropub?: WritingData['micropub'];
   audio?: WritingData['audio'];

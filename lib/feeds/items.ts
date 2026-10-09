@@ -1,12 +1,16 @@
 import { cacheLife } from 'next/cache';
 
+import { fetchPublicDocument } from '@/lib/indieweb/public-fetch';
 import { getInitiatives } from '@/lib/initiatives';
+import { absoluteUrl } from '@/lib/site';
 import {
   type WritingData,
   getAllWritings,
   getWriting,
   getWritingsByTag,
 } from '@/lib/writings';
+import { plainTextHtml } from '@/lib/writings/content';
+import { writingMediaHtml } from '@/lib/writings/media';
 
 import { renderFeedHtml } from './html';
 import {
@@ -27,15 +31,50 @@ function newestFirst(items: FeedItem[]): FeedItem[] {
 export async function getWritingContentHtml(slug: string): Promise<string> {
   'use cache';
   cacheLife('hours');
-  const { content } = await getWriting(slug);
-  return renderFeedHtml(content);
+  const { content, writing } = await getWriting(slug);
+  const url = absoluteUrl(`/writings/${slug}`);
+  if (writing.contentFormat === 'html')
+    return writingMediaHtml(writing, url, `<div dir="auto">${content}</div>`);
+  const body =
+    writing.contentFormat === 'text'
+      ? plainTextHtml(content)
+      : await renderFeedHtml(content);
+  return body + writingMediaHtml(writing, url);
 }
 
 async function writingFeedItems(writings: WritingData[]) {
   const items = await Promise.all(
-    writings.map(async (writing) =>
-      writingToFeedItem(writing, await getWritingContentHtml(writing.slug))
-    )
+    writings.map(async (writing) => {
+      const item = writingToFeedItem(
+        writing,
+        await getWritingContentHtml(writing.slug)
+      );
+      for (const attachment of item.attachments ?? []) {
+        const response = await fetchPublicDocument(attachment.url, {
+          method: 'HEAD',
+          timeoutMs: 3000,
+        }).catch(() => null);
+        if (!response || response.status < 200 || response.status >= 300)
+          continue;
+        const length = response.headers?.get('content-length');
+        if (
+          length &&
+          /^\d+$/.test(length) &&
+          Number.isSafeInteger(Number(length))
+        )
+          attachment.size_in_bytes = Number(length);
+        const type = response.headers
+          ?.get('content-type')
+          ?.split(';')[0]
+          .trim();
+        if (
+          type &&
+          /^(?:image|audio|video)\/[a-z0-9.+-]+$|^application\/pdf$/i.test(type)
+        )
+          attachment.mime_type = type;
+      }
+      return item;
+    })
   );
   return newestFirst(items);
 }

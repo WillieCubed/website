@@ -8,6 +8,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { site } from '@/lib/site';
 import type { WritingData } from '@/lib/writings';
+import {
+  prepareWritingHtmlMedia,
+  writingPhotoMedia,
+} from '@/lib/writings/media';
 
 // The link component imports its stylesheet, which Next.js bundles and
 // plain Node cannot load, so a stylesheet loads as an empty module here.
@@ -23,6 +27,8 @@ const { default: ReplyTarget } =
   await import('@/components/writings/ReplyTarget');
 const { default: WritingItem } =
   await import('@/components/writings/WritingItem');
+const { default: WritingHeader } =
+  await import('@/components/writings/WritingHeader');
 
 const index = `${site.origin}/writings`;
 
@@ -59,7 +65,10 @@ function parseEntry(
   const { items } = mf2(html, { baseUrl: index });
   assert.equal(items.length, 1, 'the entry stays inside the feed');
   const [entry] = items[0].children ?? [];
-  assert.deepEqual(entry?.type, ['h-entry']);
+  assert.deepEqual(
+    entry?.type,
+    writing.postType === 'event' ? ['h-entry', 'h-event'] : ['h-entry']
+  );
   return entry;
 }
 
@@ -138,6 +147,56 @@ test('photo posts carry each photo as a u-photo', () => {
     'https://media.example/a.jpg',
     'https://media.example/b.jpg',
   ]);
+
+  const writing = makeWriting({
+    photos: [
+      {
+        url: 'https://example.com/photos/inline.png',
+        alt: 'An authored description',
+      },
+      {
+        url: 'https://example.com/photos/header.png',
+        alt: 'The additional photo',
+      },
+    ],
+  });
+  const canonicalUrl = `${site.origin}/writings/${writing.slug}`;
+  const content = '<img src="https://example.com/photos/inline.png">';
+  for (const contentFormat of ['html', 'text', undefined] as const) {
+    const header = renderToStaticMarkup(
+      createElement(WritingHeader, {
+        writing: { ...writing, contentFormat },
+        seriesData: null,
+        canonicalUrl,
+        content,
+      })
+    );
+    assert.equal(
+      (header.match(/<img/g) ?? []).length,
+      contentFormat === 'html' ? 1 : 2
+    );
+    if (contentFormat === 'html') {
+      assert.doesNotMatch(header, /inline\.png/);
+      const body = prepareWritingHtmlMedia(
+        content,
+        writingPhotoMedia(writing),
+        canonicalUrl
+      ).html;
+      const page = mf2(`<article class="h-entry">${header}${body}</article>`, {
+        baseUrl: canonicalUrl,
+      }).items[0];
+      assert.equal(page.properties.photo.length, 2);
+      assert.match(body, /alt="An authored description"/);
+      assert.match(body, /class="u-photo"/);
+    }
+  }
+  const explicitlyDecorative = prepareWritingHtmlMedia(
+    '<img src="https://example.com/photos/inline.png" alt="">',
+    writingPhotoMedia(writing),
+    canonicalUrl
+  );
+  assert.match(explicitlyDecorative.html, /alt=""/);
+  assert.doesNotMatch(explicitlyDecorative.html, /An authored description/);
 });
 
 test('the permalink puts an RSVP on the post, not on the event it cites', () => {
@@ -158,4 +217,76 @@ test('the permalink puts an RSVP on the post, not on the event it cites', () => 
   const event = cite(entry, 'in-reply-to');
   assert.deepEqual(event.properties.url, [eventUrl]);
   assert.equal(event.properties.rsvp, undefined);
+});
+
+test('an event feed entry retains all reply targets, media, location and dates', () => {
+  const entry = parseEntry(
+    makeWriting({
+      postType: 'event',
+      micropub: {
+        type: ['h-entry', 'h-event'],
+        properties: {
+          'in-reply-to': [
+            'https://example.com/one',
+            {
+              type: ['h-cite'],
+              properties: {
+                url: ['https://example.com/two'],
+                name: ['Second post'],
+              },
+            },
+          ],
+          audio: ['https://media.example/sound.mp3'],
+          video: ['https://media.example/movie.mp4'],
+          attachment: ['https://media.example/file.pdf'],
+        },
+      },
+      event: {
+        start: '2026-10-07T12:00:00Z',
+        end: '2026-10-07T13:00:00Z',
+        location: {
+          type: ['h-adr'],
+          properties: { locality: ['Dallas'], region: ['Texas'] },
+        },
+      },
+    })
+  );
+  assert.equal(entry.properties['in-reply-to']?.length, 2);
+  assert.deepEqual(entry.properties.audio, ['https://media.example/sound.mp3']);
+  assert.deepEqual(entry.properties.video, ['https://media.example/movie.mp4']);
+  assert.deepEqual(entry.properties.attachment, [
+    'https://media.example/file.pdf',
+  ]);
+  assert.deepEqual(entry.properties.start, ['2026-10-07T12:00:00Z']);
+  assert.deepEqual(entry.properties.end, ['2026-10-07T13:00:00Z']);
+  assert.deepEqual(entry.properties.location, ['Dallas, Texas']);
+});
+
+test('a permalink with several event targets emits its RSVP once', async () => {
+  const { default: WritingHeader } =
+    await import('@/components/writings/WritingHeader');
+  const writing = makeWriting({
+    postType: 'rsvp',
+    rsvp: { eventUrl: 'https://example.com/one', status: 'yes' },
+    micropub: {
+      type: ['h-entry'],
+      properties: {
+        'in-reply-to': ['https://example.com/one', 'https://example.com/two'],
+      },
+    },
+  });
+  const html = renderToStaticMarkup(
+    createElement(
+      'article',
+      { className: 'h-entry' },
+      createElement(WritingHeader, {
+        writing,
+        seriesData: null,
+        canonicalUrl: `${site.origin}/writings/hello`,
+      })
+    )
+  );
+  const [entry] = mf2(html, { baseUrl: index }).items;
+  assert.deepEqual(entry.properties.rsvp, ['yes']);
+  assert.equal(entry.properties['in-reply-to']?.length, 2);
 });

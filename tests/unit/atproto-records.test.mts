@@ -123,3 +123,18 @@ test('UTF-8 byte and grapheme budgets both constrain derived titles', () => {
   assert.ok(Buffer.byteLength(record.title) <= 5000);
   assert.ok(safeParse(SiteStandardDocument.mainSchema, record).ok);
 });
+
+test('literal Micropub content does not evaluate or strip braces and HTML-looking text', () => {
+  const record = documentRecord({
+    ...article,
+    contentFormat: 'text',
+    body: 'Use {value}. <Widget> is text.',
+    photos: [
+      { url: 'https://example.com/image.jpg', alt: 'The image description' },
+    ],
+  });
+  assert.equal(
+    record.textContent,
+    'Use {value}. <Widget> is text.\n\nThe image description'
+  );
+});

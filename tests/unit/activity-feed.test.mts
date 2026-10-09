@@ -117,3 +117,46 @@ test('buildActivityFeedItems gives likes and reposts first-class feed entries', 
   assert.equal(items[2].description, 'Author like liked this post.');
   assert.equal(items[1].description, 'I shared this with a note.');
 });
+
+test('activity feeds sanitize stored HTML again and retain separate native media', () => {
+  const items = buildActivityFeedItems(
+    [
+      {
+        id: 'native-reply',
+        origin: 'atproto',
+        sourceUrl: 'https://actor.example/reply',
+        targetUrl: `${site.origin}/writings/original-post`,
+        type: 'reply',
+        author: { name: 'Alice', url: 'https://actor.example/' },
+        contentHtml: '<p>Hello</p><script>bad()</script>',
+        receivedAt: baseDate,
+        activityDate: baseDate,
+        media: [
+          {
+            kind: 'audio',
+            url: 'https://actor.example/audio.mp3',
+            description: 'A short recording',
+            mimeType: 'audio/mpeg',
+          },
+        ],
+      },
+    ],
+    { titleForTarget: () => 'Original Post' }
+  );
+  assert.match(items[0].content ?? '', /<p>Hello<\/p>/);
+  assert.doesNotMatch(items[0].content ?? '', /script|bad\(\)|autoplay/);
+  assert.match(items[0].content ?? '', /controls/);
+  assert.match(items[0].content ?? '', /A short recording/);
+  assert.deepEqual(items[0].author, {
+    name: 'Alice',
+    url: 'https://actor.example/',
+  });
+  assert.deepEqual(items[0].attachments, [
+    {
+      url: 'https://actor.example/audio.mp3',
+      mime_type: 'audio/mpeg',
+      title: 'A short recording',
+    },
+  ]);
+  assert.match(items[0].id, /^atproto:/);
+});

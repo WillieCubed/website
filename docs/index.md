@@ -25,11 +25,17 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## IndieWeb
 
+- [Publishing conformance](./publishing-conformance.md): pinned standards, schema CIDs, supported behavior and separate external release gates.
+
 - [IndieWeb](./indieweb/README.md): every protocol route, the environment
   variables that switch each on, the scripts that run after a build, and the
   IndieMark level 1 to 3 checklist with status.
 - [AT Protocol](./atproto.md): the Bluesky handle, the standard.site
   publication, document sync, and visitor subscriptions and recommendations.
+- [Publishing conformance](./publishing-conformance.md): inspected standards,
+  implementation coverage, external results and unresolved release gates.
+- [Publishing verification](./publishing-verification.md): isolated acceptance
+  runners, real account checks, receipt requirements and cleanup.
 - [Content](./content/README.md): writing and feed documentation, including
   the frontmatter for notes, replies, likes, reposts, bookmarks, and RSVPs.
 - [ActivityPub plan](./future/activitypub.md): what federation would take,

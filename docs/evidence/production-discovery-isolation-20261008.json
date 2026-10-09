@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-10-08T08:18:56.257Z",
+  "origin": "https://willie.page",
+  "readOnly": true,
+  "entries": [
+    {
+      "path": "/oauth-client-metadata.json",
+      "status": 200,
+      "contentType": "application/json",
+      "challenge": null
+    },
+    {
+      "path": "/.well-known/atproto-jwks.json",
+      "status": 200,
+      "contentType": "application/json",
+      "challenge": null
+    },
+    {
+      "path": "/.well-known/site.standard.publication",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "challenge": null
+    },
+    {
+      "path": "/.well-known/oauth-authorization-server",
+      "status": 200,
+      "contentType": "application/json",
+      "challenge": null
+    },
+    {
+      "path": "/writings/indieweb-acceptance",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "challenge": null
+    },
+    {
+      "path": "/writings/websub-acceptance-20261008",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "challenge": null
+    },
+    {
+      "path": "/writings/indieweb-completion-20261008",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "challenge": null
+    }
+  ]
+}

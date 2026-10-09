@@ -20,39 +20,44 @@ for an isolated deployment. Do not write the hostname anywhere else.
 
 ## Routes
 
-| Route                                                              | Purpose                                                                                                         | Needs                                                        |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `/webmention` (alias of `/api/webmention`)                         | Receives webmentions, verifies the source, stores them for moderation                                           | Postgres                                                     |
-| `/webmentions?target=`                                             | Public JSON list of approved webmentions for one page                                                           | Postgres                                                     |
-| `/api/webmention/send`, `/api/webmention/send-all`                 | Send webmentions for one post or every post; bearer `WEBMENTION_SECRET`                                         | Postgres, `WEBMENTION_SECRET`                                |
-| `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                 | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
-| `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                        | Postgres (optional)                                          |
-| `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                        | Postgres (optional)                                          |
-| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, `?q=source`; `POST` creates, updates, and deletes writings   | IndieAuth token; see Micropub                                |
-| `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one photo and answers 201 with its `Location`                            | IndieAuth token, Vercel Blob connection                      |
-| `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                    | nothing                                                      |
-| `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL | Postgres                                                     |
-| `/indieauth/consent`                                               | The owner's consent page; approving needs a code from the authenticator app                                     | Postgres, `INDIEAUTH_TOTP_SECRET`                            |
-| `/indieauth/token`                                                 | Token endpoint; `POST` exchanges a code for a token, `GET` with a bearer token verifies one                     | Postgres                                                     |
-| `/indieauth/introspect`, `/indieauth/revoke`                       | Token introspection (RFC 7662) and revocation (RFC 7009); see IndieAuth                                         | Postgres; `INDIEAUTH_INTROSPECTION_SECRET` for introspection |
-| `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                                                            | nothing                                                      |
-| `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, initiatives, and pages, answered from this domain                         | nothing (Postgres optional)                                  |
-| `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres`                                | Postgres, `SEARCH_REINDEX_SECRET`                            |
-| ⌘K on every page                                                   | Command palette over the same Pagefind index as `/search`, served from `/pagefind/`                             | nothing                                                      |
-| `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints                                            | nothing                                                      |
-| `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                                                       | nothing                                                      |
-| `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                                                | nothing                                                      |
-| `/.well-known/host-meta.json`                                      | The same host-meta LRDD link as JSON                                                                            | nothing                                                      |
-| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`; 404 without one                                    | `NEXT_PUBLIC_ATPROTO_DID`                                    |
-| `/.well-known/site.standard.publication`                           | standard.site verification: the AT-URI of the publication record; see [atproto.md](../atproto.md)               | `NEXT_PUBLIC_ATPROTO_DID`, `ATPROTO_PUBLICATION_RKEY`        |
-| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and initiatives; each declares the WebSub hub                                           | nothing                                                      |
-| `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                                                | nothing                                                      |
-| `/writings/tags/[tag]`                                             | One published tag's h-feed; `/writings?tag=` redirects here with a 308                                          | nothing                                                      |
-| `/writings/tags/[tag]/feed.xml`, `/feed/atom`, `/feed/json`        | The same three formats scoped to one tag, advertised from its page                                              | nothing                                                      |
+| Route                                                              | Purpose                                                                                                                | Needs                                                        |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `/webmention` (alias of `/api/webmention`)                         | Receives webmentions, verifies the source, stores them for moderation                                                  | Postgres                                                     |
+| `/webmentions?target=`                                             | Public JSON list of approved webmentions for one page                                                                  | Postgres                                                     |
+| `/api/webmention/send`, `/api/webmention/send-all`                 | Send webmentions for one post or every post; bearer `WEBMENTION_SECRET`                                                | Postgres, `WEBMENTION_SECRET`                                |
+| `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                        | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
+| `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                               | Postgres (optional)                                          |
+| `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                               | Postgres (optional)                                          |
+| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, `?q=source`; `POST` creates, updates, deletes and restores writings | IndieAuth token; see Micropub                                |
+| `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one image, audio, video or PDF file and answers 201 with its `Location`         | IndieAuth token, Vercel Blob connection                      |
+| `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                           | nothing                                                      |
+| `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL        | Postgres                                                     |
+| `/indieauth/consent`                                               | The owner's consent page; approving needs a code from the authenticator app                                            | Postgres, `INDIEAUTH_TOTP_SECRET`                            |
+| `/indieauth/token`                                                 | Token endpoint; `POST` exchanges a code or rotates a refresh grant, `GET` with a bearer token verifies one             | Postgres                                                     |
+| `/indieauth/userinfo`                                              | Permitted profile information for an active bearer token                                                               | Postgres                                                     |
+| `/indieauth/introspect`, `/indieauth/revoke`                       | Token introspection (RFC 7662) and revocation (RFC 7009); see IndieAuth                                                | Postgres; `INDIEAUTH_INTROSPECTION_SECRET` for introspection |
+| `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                                                                   | nothing                                                      |
+| `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, initiatives, and pages, answered from this domain                                | nothing (Postgres optional)                                  |
+| `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres`                                       | Postgres, `SEARCH_REINDEX_SECRET`                            |
+| ⌘K on every page                                                   | Command palette over the same Pagefind index as `/search`, served from `/pagefind/`                                    | nothing                                                      |
+| `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints                                                   | nothing                                                      |
+| `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                                                              | nothing                                                      |
+| `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                                                       | nothing                                                      |
+| `/.well-known/host-meta.json`                                      | The same host-meta LRDD link as JSON                                                                                   | nothing                                                      |
+| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`; 404 without one                                           | `NEXT_PUBLIC_ATPROTO_DID`                                    |
+| `/.well-known/site.standard.publication`                           | standard.site verification: the AT-URI of the publication record; see [atproto.md](../atproto.md)                      | `NEXT_PUBLIC_ATPROTO_DID`, `ATPROTO_PUBLICATION_RKEY`        |
+| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and initiatives; each declares the WebSub hub                                                  | nothing                                                      |
+| `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                                                       | nothing                                                      |
+| `/writings/tags/[tag]`                                             | One published tag's h-feed; `/writings?tag=` redirects here with a 308                                                 | nothing                                                      |
+| `/writings/tags/[tag]/feed.xml`, `/feed/atom`, `/feed/json`        | The same three formats scoped to one tag, advertised from its page                                                     | nothing                                                      |
 
 Every route that says "Postgres" reads `POSTGRES_URL` through
 `@vercel/postgres`. Without it the webmention routes return errors and the
 activity feeds return empty documents; nothing else on the site notices.
+
+## Current release contract
+
+The [conformance matrix](../publishing-conformance.md) records current standards and external release gates. Migrations 006 and 007 add rotating IndieAuth refresh families and private Micropub deletion archives. Migration 009 binds grants to spent authorization codes so replay revokes their access and refresh tokens. Apply the migrations to acceptance before production, and apply 009 before deploying the code that calls its PostgreSQL functions.
 
 ## Markup
 
@@ -106,11 +111,14 @@ A reply is a `p-comment h-cite` with `u-url` (the reply's own page),
 `dt-published`, its text, and a `p-author h-card`. A reply whose source
 marked it up as `e-content` shows that markup as `e-content`, sanitized by
 `lib/indieweb/comment-content.ts` when it is stored and again when it
-renders. Only `p`, `br`, `a`, `em`, `strong`, `blockquote`, `code`, `ul`,
-`ol`, and `li` survive, `b` and `i` become `strong` and `em`, and a link
-keeps only an http(s) `href`, resolved against the reply, with
-`rel="nofollow ugc"`. Script, style, and embedded documents go with their
-text, and every other attribute goes. A reply given as `p-content` or a
+renders. The sanitizer retains prose, headings, lists, quotations, code,
+tables, figures, images, audio, video, sources, and caption tracks. It
+retains valid text direction and safe media descriptions. It resolves
+HTTP/HTTPS links and media against the reply URL. Links receive
+`rel="nofollow ugc"`; file links retain `u-attachment`. Audio and video use
+native controls with `preload="none"`. Images load lazily. The sanitizer
+removes scripts, styles, executable embeds, event handlers, autoplay, and
+attributes outside its explicit allowlist. A reply given as `p-content` or a
 summary shows as plain `p-content`. Both forms stop at 2,000 characters of
 text and end in "…". The `content` column keeps the plain text for the
 activity feeds, `/webmentions`, and moderation, and `content_html` holds the
@@ -199,10 +207,7 @@ host such as `www.willie.page` or an alias host such as `tour.willie.page`,
 because each one redirects to the canonical origin. It is stored under its
 canonical address, without a trailing slash, query, or fragment, so it
 matches the address the page reads its mentions from. The verifier then
-needs the source to contain an absolute or protocol-relative link that leads
-to the same page on one of those hosts. A relative link never counts: on the
-source's page it leads to the source's own origin, and
-`https://other.example/writings/foo` is not `/writings/foo` here. The logic
+resolves links against the fetched page's final URL and valid HTML base URL. An absolute or relative link counts when it resolves to the same target page on an allowed host. Distinct pages on the same site may mention each other. Identical source and target URLs are rejected. The logic
 and its tests live in `lib/indieweb/webmention-targets.ts` and
 `tests/unit/webmention-targets.test.mts`.
 
@@ -212,7 +217,7 @@ IndieAuth client fetch uses. It reaches public addresses only, follows three
 redirects at most and checks each hop, and gives up after 2 MB or ten
 seconds. A source it refuses fails verification and stays unverified.
 
-The first h-entry on the source decides the mention's type, by which of its
+The h-entry that cites the target decides the mention's type, by which of its
 properties cites the target: `like-of` makes a like, `repost-of` a repost,
 `in-reply-to` a reply, or an RSVP when the entry also gives a `p-rsvp`
 answer, and `bookmark-of` a bookmark. A source that only links to the
@@ -322,7 +327,7 @@ nothing is sent back. Each outcome is logged as
 
 ## Micropub
 
-`POST /micropub` accepts form-encoded or JSON `h-entry` bodies with a bearer
+`POST /micropub` accepts form-encoded, multipart, or JSON `h-entry` and `h-event` bodies with a bearer
 token. The token must be one this site's own token endpoint issued: it is
 looked up in the `indieauth_tokens` table (see IndieAuth below), with no call
 to another server, and must be unexpired, unrevoked, carry the scope the
@@ -330,17 +335,18 @@ request needs, and have a `me` on the canonical origin. A client may send one
 token in the bearer header or form body. Missing and invalid tokens get 401; a
 valid token without the scope gets 403 `insufficient_scope`. Two tokens get 400.
 
-| Request                                    | Scope    | Answer                                                                |
-| ------------------------------------------ | -------- | --------------------------------------------------------------------- |
-| `POST` an `h-entry`                        | `create` | 202 with `Location`; the post is live after the deploy                |
-| `POST` `action=update`                     | `update` | 200 with `{ url, path, commit }`                                      |
-| `POST` `action=delete`                     | `delete` | 200 with `{ url, path, commit }`; the permalink 404s after the deploy |
-| `GET ?q=source&url=` (and `properties[]=`) | any      | the writing's mf2 JSON, drafts included                               |
-| `GET ?q=config`, `?q=syndicate-to`         | none     | capabilities, syndication targets, and the `q` values it answers      |
-| `GET ?q=category` (and `filter=`)          | none     | `{ categories }`, the tags of published writings                      |
+| Request                                    | Scope      | Answer                                                                |
+| ------------------------------------------ | ---------- | --------------------------------------------------------------------- |
+| `POST` an `h-entry`                        | `create`   | 202 with `Location`; the post is live after the deploy                |
+| `POST` `action=update`                     | `update`   | 200 with `{ url, path, commit }`                                      |
+| `POST` `action=delete`                     | `delete`   | 200 with `{ url, path, commit }`; the permalink 404s after the deploy |
+| `POST` `action=undelete`                   | `undelete` | Restores the archived original source and permalink                   |
+| `GET ?q=source&url=` (and `properties[]=`) | any        | the writing's mf2 JSON, drafts included                               |
+| `GET ?q=config`, `?q=syndicate-to`         | none       | capabilities, syndication targets, and the `q` values it answers      |
+| `GET ?q=category` (and `filter=`)          | none       | `{ categories }`, the tags of published writings                      |
 
 In a JSON body, `in-reply-to`, `like-of`, `repost-of`, and `bookmark-of`
-may each be a URL or an embedded `h-cite`. The post keeps the h-cite's first
+may each be a URL or an embedded `h-cite`. The post preserves the embedded h-cite and every supplied value. Rendering uses its
 `url`, or its `value` when it has no `url`, and a citation that names neither
 gets a 400 `invalid_request`.
 
@@ -367,8 +373,8 @@ correct outcome on Vercel and Workers: set the GitHub variables there.
 `{ "type": ["h-entry"], "properties": { ... } }`. It reads the file from the
 same place a create writes it, the GitHub branch or the local checkout, so it
 returns a post committed a minute ago that has not deployed yet. `title`
-becomes `name`, `description` becomes `summary`, the MDX body becomes
-`content` as Markdown text, and `draft` becomes `post-status`. `published`
+becomes `name`, `description` becomes `summary`, the original body becomes
+`content` as literal text or an HTML object according to its source format, and `draft` becomes `post-status`. `published`
 and `lastUpdated` come back as `published` and `updated` in UTC. `tags` come
 back as `category` strings and `people` as `category` h-cards. `inReplyTo`,
 `likeOf`, `repostOf`, `bookmarkOf`, and `rsvp` come back as `in-reply-to`,
@@ -394,13 +400,7 @@ drafts carry, even on a development server that shows drafts.
 `replace`, `add`, and `delete`. The body is JSON as the spec defines it, or
 form-encoded as `replace[name][]=…`, `add[category][]=…`,
 `delete[category][]=…`, and `delete[]=photo`. `delete` takes a list of
-property names to remove whole, or a map of values to remove. An update may
-change `name`, `summary`, `content`, `published`, `category`,
-`in-reply-to`, `like-of`, `repost-of`, `bookmark-of`, `rsvp`, `photo`,
-`syndication`, and `post-status`, and any other property gets 400
-`invalid_request`. `content` must be Markdown text, because HTML would go
-into the MDX unescaped. A URL that is not a writing gets the same 400 as
-`q=source`.
+property names to remove whole, or a map of values to remove. An update retains nested and multivalued properties, including audio, video, file attachments, locations, citations and syndication intent. Recognized fields update their page projections. Additional MF2 properties remain in the private source map without executing supplied code. Literal text renders literally; HTML content receives the same safe markup policy as approved replies. A URL that is not a writing gets the same 400 as `q=source`.
 
 The route reads the file from storage and rewrites only the frontmatter keys
 whose values change, plus the body when `content` changes. Every other byte
@@ -412,7 +412,7 @@ or deleted. An update that changes nothing answers 200 with an empty
 `commit` and makes no commit. On GitHub the commit is
 `chore(content): Update <slug> via Micropub`, and it carries the blob SHA
 the route read, so an update that races another commit to the same file
-fails with a 500 instead of overwriting it. The change is live after the
+fails with 409 instead of overwriting it. The change is live after the
 deploy.
 
 ### Deletes
@@ -421,7 +421,7 @@ deploy.
 the writing's file. On GitHub that is a Contents API `DELETE` carrying the
 blob SHA the route read, committed as
 `chore(content): Delete <slug> via Micropub`, so a delete that races another
-commit to the file fails with a 500 instead of discarding that commit.
+commit to the file fails with 409 instead of discarding that commit.
 Without GitHub the route unlinks the file in the local checkout. After the
 deploy the permalink answers 404, and the post leaves the lists, feeds,
 sitemap, and search index, which the build makes from the files. With
@@ -429,41 +429,19 @@ sitemap, and search index, which the build makes from the files. With
 `/api/search/reindex` runs. Photos the post cited stay in Blob storage, and
 webmentions stored for its URL stay in Postgres.
 
-Nothing records the deletion and nothing keeps a copy, so there is no
-undelete: `action=undelete` answers 400 `invalid_request`. To bring a post
-back, revert the delete commit.
+The private `micropub_deleted_writings` archive stores the exact source and permalink before removing the published file. `action=undelete` requires the `undelete` scope and restores that source at the original permalink. A conflicting file rejects restoration with 409. Transaction advisory locks serialize lifecycle operations across instances. The archive commits separately before an external file mutation; a failed operation may leave a recoverable archive. Deleted posts notify previous Webmention targets after deployment.
 
 ### Syndication
 
-`?q=syndicate-to` and `?q=config` list two targets, Bluesky and Threads, each
-with `uid`, `name`, `service`, and `user`. The accounts live in
-`site.syndication` in `lib/site.ts`. The Bluesky account comes from
-`NEXT_PUBLIC_ATPROTO_DID` and `NEXT_PUBLIC_BLUESKY_HANDLE`, and is linked by
-DID (`https://bsky.app/profile/<did>`) so the link and the `uid` survive a
-handle change; without a DID it is not offered. A create request may name
-either `uid` in `mp-syndicate-to`, and any other value gets a 400.
+`?q=syndicate-to` and `?q=config` advertise only the configured Bluesky account when publishing credentials are available. Creation and updates retain explicit per-writing `mp-syndicate-to` intent. Standard publishing executes it after the document exists. [AT Protocol publishing](../atproto.md) describes duplicate prevention and copy associations. Manual Bluesky and Threads sharing remains available on writing pages.
 
-The site has no API access to either service, so choosing a target posts
-nothing. The route records the choice as intent, `syndicateTo: [uid, ...]` in
-the post's frontmatter, and the response carries no syndication URL.
-Syndication stays manual POSSE: after the post deploys, Willie posts the copy
-from his account (a writing's **Share on Bluesky** or **Share on Threads** link
-opens an editable draft in the chosen service with the canonical URL), confirms
-the copy links back, and then
-adds its exact permalink to `syndication`, by hand or with an update that
-adds a `syndication` value. `syndicateTo` never renders, and
-nothing clears it once the copy exists. When an account integration can return
-the permalink of the copy it created, it should read `syndicateTo`, post, and
-write `syndication`.
-
-### Photos
+### Media
 
 `?q=config` advertises `/micropub/media` as the `media-endpoint` only when
 the Vercel Blob connection supplies OIDC credentials or a legacy
 `BLOB_READ_WRITE_TOKEN` configures storage. A client such as Quill uploads
-each photo there first. The upload is the multipart
-`file` part, and the token needs the `media` or the `create` scope. JPEG, PNG,
-GIF, WebP, AVIF, and HEIC are accepted; SVG and anything else get a 400. The
+each media file there first. The upload is the multipart
+`file` part, and the token needs the `media` or the `create` scope. Supported images, audio, video and PDF files pass signature and 4MiB size checks. SVG receives 400. The
 file is stored as a public blob in Vercel Blob under
 `media/<year>/<month>/<name>-<random>.<ext>`, and the endpoint answers 201
 with the blob's URL in `Location` (and as `url` in the JSON body). Without
@@ -474,8 +452,9 @@ The client then cites that URL in a JSON `photo` property. Each photo must be
 `photo[]` values and bare JSON URLs receive 400 `invalid_request`. A post with
 a photo becomes `postType: photo`,
 and the caption may be empty. Each photo is written into the `photo`
-frontmatter as `{ url, alt }` and renders under the date in
-`WritingHeader.tsx` as a `u-photo`. A photo value that is not an http(s) URL
+frontmatter as `{ url, alt }`. An inline authored photo stays at its original
+position with `u-photo` markup. The header renders only photos absent from
+the authored body, so the page does not repeat the same media. A photo value that is not an http(s) URL
 gets a 400 `invalid_request`. Multipart photo files sent directly to
 `/micropub` receive 400 before any upload. Send files to `/micropub/media` first.
 The build and pre-push checks apply the same nonblank alt rule to authored content.
@@ -535,9 +514,7 @@ navigation, Material surface roles from `lib/theme.ts`, and variable Atkinson
 faces from `public/fonts`. Update those public copies when the site's fonts
 change.
 
-Access tokens last 90 days. There are no refresh tokens, so a client signs in
-again after that. The `profile` scope adds the name, URL, and photo to the
-response, and `email` beside it adds the email address.
+New access tokens last one hour and refresh authorization expires after 90 days of inactivity. Existing access tokens retain their recorded expiry. The refresh and UserInfo section below describes client binding and replay revocation.
 
 | Endpoint                                   | Answers                                                                                                                   |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
@@ -620,7 +597,7 @@ same goes for any challenge Cloudflare puts in front of the site.
 | `INDIEAUTH_TOTP_SECRET`                                                                            | owner sign-in on `/indieauth/consent`                                                                                                                                                       | unset, sign-in answers 503              |
 | `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                                                                                                                                                     | unset, route answers 503                |
 | `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                                                                                                                                                            | local write, `main`, `content/writings` |
-| `BLOB_STORE_ID` with Vercel OIDC, or `BLOB_READ_WRITE_TOKEN`                                       | `/micropub/media` photo storage in Vercel Blob                                                                                                                                              | unset, route answers 503                |
+| `BLOB_STORE_ID` with Vercel OIDC, or `BLOB_READ_WRITE_TOKEN`                                       | `/micropub/media` image, audio, video and PDF storage in Vercel Blob                                                                                                                        | unset, route answers 503                |
 | `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                                                                                                                                                      | JSON index                              |
 | `SEARCH_REINDEX_SECRET`                                                                            | `/api/search/reindex` in production                                                                                                                                                         | unset                                   |
 | `INDIEWEB_NOTIFY_SECRET`                                                                           | authenticates the post-deployment notification endpoint                                                                                                                                     | unset, endpoint refuses                 |
@@ -657,6 +634,18 @@ writings or actual syndicated copies.
 
 ## Not covered here
 
-The IndieAuth server signs in one person, the site owner, and has no refresh
-tokens or `userinfo` endpoint. Nothing federates over ActivityPub yet; that
-plan is in `docs/future/activitypub.md`.
+The IndieAuth server authorizes the site owner. AT Protocol visitor authorization uses a separate OAuth client. ActivityPub delivery remains outside this implementation; its proposal is in `docs/future/activitypub.md`.
+
+## Refresh and UserInfo
+
+`/indieauth/token` accepts `grant_type=refresh_token`, `refresh_token`, and `client_id`. Rotation binds the credential to its original client and grant, rejects scope escalation, and atomically hashes and spends the old token. Reuse revokes the entire family. New access tokens last one hour. Each refresh starts a 90-day inactivity deadline. Existing access tokens keep their recorded expiry. `/indieauth/userinfo` returns identity and profile/email fields allowed by the token's scopes. Metadata advertises both capabilities. S256 PKCE remains mandatory. A scope-free code returns only the profile URL and never creates access or refresh credentials.
+
+Reusing an authorization code revokes every token in its grant. Migration 009 serializes replay and token issuance on the code row. The server retains spent code digests to preserve that association across refreshes. It removes only expired unused codes. Existing grants without an association and legacy access tokens retain their recorded expiry.
+
+Media uploads accept the MIME types in `MEDIA_TYPES` under `lib/indieweb/media.ts`. The limit is 4MiB. The endpoint checks file signatures and rejects SVG, empty files and mismatched types. Audio and video use native controls without autoplay; PDF files remain links. Signature checks recognize containers; they do not prove that a browser can decode every codec inside them.
+
+## Outgoing delivery retries
+
+The publisher sends changed writings after deployment. It retains outgoing history and skips unchanged successful deliveries, confirmed missing endpoints and terminal HTTP 4xx rejections. HTTP 408, 425 and 429 remain retryable, as do server errors and failed endpoint discovery. Changing the writing retries its targets. An operator can reset a delivery to pending to request an explicit retry.
+
+A successfully fetched public page without a Webmention endpoint counts as unsupported. A network failure or failed HTTP fetch does not establish absence. The notification fails on attempted delivery errors and required publishing failures; it does not fail because an ordinary external link has no endpoint.

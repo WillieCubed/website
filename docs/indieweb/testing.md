@@ -2,7 +2,7 @@
 
 This runbook is for a maintainer changing IndieWeb routes or markup. Run the
 local checks, then use the [supported behavior contract](spec.md) to choose
-which public interoperability checks the change affects. Keep the disposable
+which public interoperability checks the change affects. The [current verification guide](../publishing-verification.md) covers isolated account checks and recovery. The [conformance matrix](../publishing-conformance.md) links observed hosted results. Keep the disposable
 writing and database outside production.
 
 ## Read-only checks
@@ -28,6 +28,11 @@ psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/001_l
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/002_webmention_rate_limits.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/003_indieauth.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/004_webmention_responses.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/005_atproto_oauth.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/006_indieauth_refresh.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/007_micropub_deleted_archives.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/008_atproto_response_observations.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/009_indieauth_code_replay.sql
 cp tests/fixtures/indieweb-acceptance.mdx content/writings/indieweb-acceptance.mdx
 pnpm build
 ```
@@ -94,13 +99,9 @@ sequenceDiagram
 Use a separate public Blob store for acceptance photos. New Vercel Blob
 connections use `BLOB_STORE_ID` and short-lived OIDC credentials; a legacy
 `BLOB_READ_WRITE_TOKEN` also works. Upload a photo through `/micropub/media`,
-then create a JSON photo post with its URL and nonblank alt text. Confirm that
-a direct multipart post returns 400 before it stores a file.
+then create a JSON photo post with its URL and nonblank alt text. Confirm that multipart creation preserves the uploaded media and its description. Validate images, audio, video, and PDF signatures under the 4MiB upload limit.
 
-Micropub Rocks requires an email sign-in before its server cases. Try its
-IndieAuth flow first. If its client does not send a PKCE verifier, register a
-short-lived `create` token manually against the isolated endpoint and record
-that authorization failure separately from the Micropub case results. Run
+Micropub Rocks requires a passkey or email sign-in before its server cases. Its current client supports PKCE. Complete its IndieAuth flow with S256 before running publishing cases. Do not weaken PKCE or substitute a manually issued token for authorization proof. Run
 write cases only where the endpoint has an isolated publishing path. Revoke
 the test token after the run. The [verification record](verification-2026-09-23.md)
 shows the responses from both paths.

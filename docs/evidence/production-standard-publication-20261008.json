@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-08T08:14:46.392Z",
+  "readOnly": true,
+  "endpoint": "https://willie.page/.well-known/site.standard.publication",
+  "endpointStatus": 200,
+  "uri": "at://did:plc:iyn6nc3ffqm2e3555exyrgvv/site.standard.publication/3mwxne5td6lid",
+  "endpointMatches": true,
+  "pdsStatus": 200,
+  "recordCid": "bafyreifgg4ntz5pxvsdbaguqnz37qolup7kqlxztjaq5qy6cuddaptjcmi",
+  "recordUrl": "https://willie.page",
+  "recordName": "Willie Chalmers III",
+  "recordUrlMatches": true,
+  "documentStatus": 200,
+  "documentCount": 0,
+  "cursor": null
+}

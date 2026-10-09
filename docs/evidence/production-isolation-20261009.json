@@ -1,0 +1,39 @@
+{
+  "observedAt": "2026-10-09T07:00:51.068Z",
+  "kind": "Read-only production discovery and acceptance-content isolation. No production writes.",
+  "results": [
+    {
+      "path": "/writings",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "noAcceptanceContent": true
+    },
+    {
+      "path": "/.well-known/site.standard.publication",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "value": "at://did:plc:iyn6nc3ffqm2e3555exyrgvv/site.standard.publication/3mwxne5td6lid"
+    },
+    {
+      "path": "/oauth-client-metadata.json",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/.well-known/atproto-jwks.json",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/.well-known/oauth-authorization-server",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/indieauth/userinfo",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8"
+    }
+  ],
+  "productionDocumentCount": 0
+}

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "status": "passed",
+  "cleanup": {
+    "stage": "source",
+    "checkedAt": "2026-10-09T10:41:14.350Z",
+    "cleanDeploymentAttempted": true,
+    "releaseGate": "final4d-notification-and-parent-cleanup-passed",
+    "cleanRevision": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+    "sourceCleanup": "passed",
+    "finalWorkflow": "passed-actual4d-atproto-synced-and-drained",
+    "pdsCleanup": "passed"
+  },
+  "notification": {
+    "version": 1,
+    "origin": "https://indieweb-acceptance.vercel.app",
+    "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+    "branch": "codex/publishing-compatibility-acceptance-20261008",
+    "sha": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+    "started": "2026-10-09T10:45:43.718Z",
+    "status": "passed",
+    "quiesced": true,
+    "subscriberReceipt": "not-established",
+    "trigger": "workflow_dispatch",
+    "run": {
+      "conclusion": "success",
+      "createdAt": "2026-10-09T10:45:45Z",
+      "databaseId": 37919577933,
+      "event": "workflow_dispatch",
+      "headBranch": "codex/publishing-compatibility-acceptance-20261008",
+      "headSha": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+      "status": "completed",
+      "url": "https://github.com/WillieCubed/website/actions/runs/37919577933"
+    },
+    "atproto": "synced",
+    "terminalObservedAt": "2026-10-09T10:46:01.672Z"
+  },
+  "pushRun": {
+    "id": 37919522943,
+    "conclusion": "success",
+    "sha": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+    "url": "https://github.com/WillieCubed/website/actions/runs/37919522943"
+  },
+  "subscriberReceipt": "Separate signed receipt is retained in websub-rss-receipt-20261008.json."
+}

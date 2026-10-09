@@ -11,7 +11,8 @@ Use one of these scopes. Omit the scope only for repository-wide changes.
 - **`projects`** — the project content model, `lib/projects`, `components/projects`, and the `/projects` routes
 - **`writings`** — the writing system: `lib/writings`, `components/writings`, and page routes
 - **`content`** — data and content files under `content/` and `data/` directories
-- **`theme`** — Tailwind configuration, `app/globals.css`, and shared styling
+- **`theme`** — how the site looks: Tailwind configuration, `app/globals.css`, and the colors, type, spacing, and motion every surface shares
+- **`site`** — the chrome every page shares: the top bar and breadcrumbs, their menus, the footer and its dock, the skip link, fragment links, and page transitions in `components/site` and `lib/footer`. It is the last resort, not a catch-all: use it only when no other scope matches, so a breadcrumb change on initiative pages alone is `initiatives` and a color change is `theme`
 - **`initiatives`** — the initiative content model, `lib/initiatives`, `components/initiatives`, and the `/initiatives` routes
 - **`links`** — the in-site link component, hover cards, and the entity registry under `lib/entities`
 - **`indieweb`** — webmentions, feeds, discovery endpoints, and microformats; infrastructure for content interaction and syndication

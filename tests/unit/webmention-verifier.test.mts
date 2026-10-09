@@ -75,6 +75,36 @@ const softDeletes = () =>
 const verifications = () =>
   queries.filter((query) => /is_verified = TRUE/.test(query.text));
 
+test('a property-only linked file survives verification as a contained attachment', async () => {
+  const file = 'https://media.example/report.pdf';
+  serveSource(
+    `<article class="h-entry"><a class="u-in-reply-to" href="${target}">Original</a><p class="p-content">A report.</p><a class="u-attachment" href="${file}">Report</a></article>`
+  );
+  const result = await verify('wm-file', source, target);
+  assert.equal(result.success, true);
+  assert.equal(result.content, 'A report.');
+  assert.equal(
+    result.contentHtml,
+    `<p>A report.</p><figure><a href="${file}" rel="nofollow ugc" class="u-attachment">Attachment</a></figure>`
+  );
+  assert.ok(verifications()[0].values.includes(result.contentHtml));
+});
+
+test('relative inline attachments keep their labels without duplicating absolute properties', async () => {
+  const file = 'https://media.example/reports/report.pdf?format=pdf&download=1';
+  const missing = 'https://media.example/reports/appendix.pdf';
+  serveSource(
+    `<head><base href="https://media.example/reports/"></head><article class="h-entry"><a class="u-in-reply-to" href="${target}">Original</a><div class="e-content"><p><a class="u-attachment" href="report.pdf?format=pdf&amp;download=1">A named PDF report</a></p><p>The appendix URL is ${missing}.</p></div><a class="u-attachment" href="${file.replaceAll('&', '&amp;')}">The same report</a><a class="u-attachment" href="${missing}">Appendix</a></article>`
+  );
+  const result = await verify('wm-inline-file', source, target);
+  assert.equal(result.success, true);
+  assert.equal(
+    result.contentHtml,
+    `<p><a href="${file.replaceAll('&', '&amp;')}" rel="nofollow ugc" class="u-attachment">A named PDF report</a></p><p>The appendix URL is ${missing}.</p><figure><a href="${missing}" rel="nofollow ugc" class="u-attachment">Attachment</a></figure>`
+  );
+  assert.ok(verifications()[0].values.includes(result.contentHtml));
+});
+
 test('a reply marked up as an h-entry is verified with its author and content', async () => {
   serveSource(`
     <article class="h-entry">
@@ -323,13 +353,13 @@ test('a source that redirects to a private address is not followed', async () =>
   assert.equal(queries.length, 0);
 });
 
-test('mentions from this site or to another site are refused unfetched', async () => {
+test('identical source and target or foreign targets are refused unfetched', async () => {
   serveSource(`<a href="${target}">self</a>`);
 
-  const self = await verify('wm-1', `${site.origin}/writings/other`, target);
+  const self = await verify('wm-1', target, target);
   assert.deepEqual(self, {
     success: false,
-    error: 'Self-mentions not allowed',
+    error: 'Source and target must be different pages.',
   });
 
   const offsite = await verify('wm-1', source, 'https://example.org/post');
@@ -343,4 +373,42 @@ test('mentions from this site or to another site are refused unfetched', async (
 
   assert.deepEqual(fetched, []);
   assert.equal(queries.length, 0);
+});
+
+test('a distinct HTTP source on this site can mention another page', async () => {
+  serveSource(
+    `<article class="h-entry"><a class="u-in-reply-to" href="${target}">Parent</a><p class="p-content">Local reply</p></article>`
+  );
+  const result = await verify(
+    'local',
+    `${site.origin.replace('https:', 'http:')}/writings/other`,
+    target
+  );
+  assert.equal(result.type, 'reply');
+});
+
+test('verification selects the citing entry and resolves its base URL', async () => {
+  serveSource(
+    `<base href="${site.origin}/writings/"><article class="h-entry"><p class="p-content">Unrelated entry</p></article><article class="h-entry"><a class="u-in-reply-to" href="hello">Parent</a><p class="p-content">Selected reply</p></article>`
+  );
+  const result = await verify('second', source, target);
+  assert.equal(result.content, 'Selected reply');
+  assert.equal(result.type, 'reply');
+});
+
+test('a target printed as text does not verify a link', async () => {
+  serveSource(`<p>${target}</p>`);
+  assert.equal((await verify('text', source, target)).isDeleted, true);
+});
+
+test('verification retains the submitted target query while storage stays canonical', async () => {
+  serveSource(`<a href="${target}">Canonical only</a>`);
+  assert.equal(
+    (
+      await verify('query', source, target, {
+        verificationTarget: target + '?context=1',
+      })
+    ).isDeleted,
+    true
+  );
 });

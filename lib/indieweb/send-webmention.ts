@@ -1,5 +1,9 @@
 import { type DefaultTreeAdapterMap, parse } from 'parse5';
 
+import {
+  type PublicFetchOptions,
+  fetchPublicDocument,
+} from '@/lib/indieweb/public-fetch';
 import type { WebmentionSourceWriting } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
@@ -28,75 +32,71 @@ interface SendResult {
  * A relative endpoint resolves against the URL reached after any redirects.
  */
 export async function discoverWebmentionEndpoint(
-  targetUrl: string
+  targetUrl: string,
+  network: Pick<PublicFetchOptions, 'resolve' | 'fetch'> = {}
 ): Promise<string | null> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
-    let response: Response;
-    try {
-      response = await fetch(targetUrl, {
-        method: 'HEAD',
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'WillieCubed-Webmention-Sender/1.0',
-        },
-      });
-    } finally {
-      clearTimeout(timeoutId);
-    }
-
-    // Check Link header first
-    const headEndpoint = endpointFromLinkHeader(response, targetUrl);
-    if (headEndpoint) return headEndpoint;
-
-    // If no header, fetch the full page and check HTML
-    const controller2 = new AbortController();
-    const timeoutId2 = setTimeout(() => controller2.abort(), FETCH_TIMEOUT);
-
-    let htmlResponse: Response;
-    try {
-      htmlResponse = await fetch(targetUrl, {
-        signal: controller2.signal,
-        headers: {
-          Accept: 'text/html',
-          'User-Agent': 'WillieCubed-Webmention-Sender/1.0',
-        },
-      });
-    } finally {
-      clearTimeout(timeoutId2);
-    }
-
-    if (!htmlResponse.ok) return null;
-
-    // A server that leaves Link off its HEAD response still sends it here.
-    const getEndpoint = endpointFromLinkHeader(htmlResponse, targetUrl);
-    if (getEndpoint) return getEndpoint;
-
-    const html = await htmlResponse.text();
-    return parseHtmlForWebmentionEndpoint(html, htmlResponse.url || targetUrl);
-  } catch (error) {
-    console.error('Endpoint discovery failed:', error);
-    return null;
-  }
+  const result = await discoverEndpoint(targetUrl, network);
+  return result.status === 'found' ? result.endpoint : null;
 }
 
-/**
- * The webmention endpoint in a response's Link header, resolved against the
- * URL the response came from after any redirects.
- */
-function endpointFromLinkHeader(
-  response: Response,
-  targetUrl: string
-): string | null {
-  const linkHeader = response.headers.get('Link');
-  if (!linkHeader) return null;
-  const endpoint = parseLinkHeader(linkHeader, 'webmention');
-  // An empty URI reference is the page itself, so only null means none.
-  return endpoint === null
-    ? null
-    : resolveUrl(endpoint, response.url || targetUrl);
+type EndpointDiscovery =
+  | { status: 'found'; endpoint: string }
+  | { status: 'absent' }
+  | { status: 'failed'; error: string };
+
+async function discoverEndpoint(
+  targetUrl: string,
+  network: Pick<PublicFetchOptions, 'resolve' | 'fetch'>
+): Promise<EndpointDiscovery> {
+  try {
+    const head = await fetchPublicDocument(targetUrl, {
+      ...network,
+      method: 'HEAD',
+      timeoutMs: FETCH_TIMEOUT,
+      headers: { 'User-Agent': 'WillieCubed-Webmention-Sender/1.0' },
+    }).catch(() => null);
+    const headLink = head?.headers.get('link');
+    if (headLink) {
+      const endpoint = parseLinkHeader(headLink, 'webmention');
+      if (endpoint !== null)
+        return { status: 'found', endpoint: resolveUrl(endpoint, head!.url) };
+    }
+    const document = await fetchPublicDocument(targetUrl, {
+      ...network,
+      timeoutMs: FETCH_TIMEOUT,
+      bodyContentTypes: ['text/html', 'application/xhtml+xml'],
+      headers: {
+        Accept: 'text/html',
+        'User-Agent': 'WillieCubed-Webmention-Sender/1.0',
+      },
+    });
+    if (!document)
+      return {
+        status: 'failed',
+        error:
+          'Webmention endpoint discovery failed: The target could not be read as a public document.',
+      };
+    if (document.status < 200 || document.status >= 300)
+      return {
+        status: 'failed',
+        error: `Webmention endpoint discovery failed: HTTP ${document.status}.`,
+      };
+    const link = document.headers.get('link');
+    const declared = link ? parseLinkHeader(link, 'webmention') : null;
+    const endpoint =
+      declared !== null
+        ? resolveUrl(declared, document.url)
+        : parseHtmlForWebmentionEndpoint(document.body, document.url);
+    return endpoint === null
+      ? { status: 'absent' }
+      : { status: 'found', endpoint };
+  } catch (error) {
+    console.error('Endpoint discovery failed:', error);
+    return {
+      status: 'failed',
+      error: `Webmention endpoint discovery failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
 }
 
 /**
@@ -200,43 +200,43 @@ function resolveUrl(url: string, base: string): string {
  */
 export async function sendWebmention(
   sourceUrl: string,
-  targetUrl: string
+  targetUrl: string,
+  network: Pick<PublicFetchOptions, 'resolve' | 'fetch'> = {}
 ): Promise<SendResult> {
-  const endpoint = await discoverWebmentionEndpoint(targetUrl);
+  const discovery = await discoverEndpoint(targetUrl, network);
 
-  if (!endpoint) {
+  if (discovery.status !== 'found') {
+    // Discovery errors did not reject a submitted mention and must remain retryable.
     return {
       targetUrl,
       success: false,
-      error: 'No webmention endpoint found',
+      error:
+        discovery.status === 'absent'
+          ? 'No webmention endpoint found'
+          : discovery.error,
     };
   }
+  const endpoint = discovery.endpoint;
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
-    let response: Response;
-    try {
-      response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'WillieCubed-Webmention-Sender/1.0',
-        },
-        body: new URLSearchParams({
-          source: sourceUrl,
-          target: targetUrl,
-        }),
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeoutId);
-    }
+    const response = await fetchPublicDocument(endpoint, {
+      ...network,
+      method: 'POST',
+      timeoutMs: FETCH_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'WillieCubed-Webmention-Sender/1.0',
+      },
+      body: new URLSearchParams({ source: sourceUrl, target: targetUrl }),
+    });
+    if (!response)
+      throw new Error(
+        'The Webmention endpoint is not a public HTTP or HTTPS address.'
+      );
 
     return {
       targetUrl,
-      success: response.ok || response.status === 202,
+      success: response.status >= 200 && response.status < 300,
       endpoint,
       statusCode: response.status,
     };
@@ -356,13 +356,14 @@ export function webmentionTargetsForWriting(
  */
 export async function sendWebmentionsForPost(
   writing: WebmentionSourceWriting,
-  content: string
+  content: string,
+  network: Pick<PublicFetchOptions, 'resolve' | 'fetch'> = {}
 ): Promise<SendResult[]> {
   const sourceUrl = `${SITE_URL}/writings/${writing.slug}`;
   const results: SendResult[] = [];
 
   for (const targetUrl of webmentionTargetsForWriting(writing, content)) {
-    const result = await sendWebmention(sourceUrl, targetUrl);
+    const result = await sendWebmention(sourceUrl, targetUrl, network);
     results.push(result);
 
     // Small delay to be polite

@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-10-09T01:29:03.297Z",
+  "origin": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev",
+  "image": "ghcr.io/bluesky-social/pds@sha256:3a8feb3415e319dbcc13372293b7ef1fb05a318a6ff1d55968cf99ba6633c5d4",
+  "serverVersion": "0.5.37",
+  "accounts": [
+    {
+      "handle": "pub3eafb75977.willieechalmers-18f.workers.dev",
+      "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+      "emailConfirmed": true,
+      "publicAppViewPostCid": "bafyreicw3xevcko6pvzqbsikapumarvzh7cv2ahjrf3b76qm5qywovsa4q",
+      "probeRemoved": true
+    },
+    {
+      "handle": "vis3eafb75977.willieechalmers-18f.workers.dev",
+      "did": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+      "emailConfirmed": true,
+      "publicAppViewPostCid": "bafyreigyweuxcls3dxcin37dt34rk2pqpebtgiwuidn2cmvaxlhfwf4ejy",
+      "probeRemoved": true
+    }
+  ],
+  "network": {
+    "plc": "https://plc.directory",
+    "relay": "https://bsky.network",
+    "appView": "https://public.api.bsky.app"
+  },
+  "advertisedVersion": "0.4.5037",
+  "cleanupObservedAt": "2026-10-09T01:30:35.694Z",
+  "cleanupPublicAppView": [
+    {
+      "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+      "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxfsz7egjyw6",
+      "status": 200,
+      "absent": true
+    },
+    {
+      "did": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+      "uri": "at://did:plc:vvx2yc7zxnllgsk4xce5snhh/app.bsky.feed.post/3mxfszbblfoqd",
+      "status": 200,
+      "absent": true
+    }
+  ]
+}

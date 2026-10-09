@@ -19,7 +19,7 @@ const PROJECTS = {
     neonName: 'willie-page-indieweb-acceptance',
     neonRegion: 'aws-us-east-2',
     blobName: 'willie-indieweb-acceptance-media',
-    branch: 'codex/indieweb-test-publish-20260923',
+    branch: 'codex/publishing-compatibility-acceptance',
   },
 };
 

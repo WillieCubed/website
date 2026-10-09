@@ -357,6 +357,11 @@ test('deployment setup writes secrets through stdin and pairs the acceptance not
     'MICROPUB_GITHUB_REPO',
     'MICROPUB_GITHUB_BRANCH',
     'NEXT_PUBLIC_SITE_ORIGIN',
+    'NEXT_PUBLIC_ATPROTO_DID',
+    'ATPROTO_PUBLICATION_RKEY',
+    'ATPROTO_APP_PASSWORD',
+    'ATPROTO_OAUTH_JWK',
+    'ATPROTO_OAUTH_STORAGE_KEY',
   ]);
   const writes: Array<{ program: string; args: string[]; input?: string }> = [];
   const result = ensureVariables({

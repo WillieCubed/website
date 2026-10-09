@@ -1,0 +1,30 @@
+{
+  "acceptanceDeployment": "dpl_4KcCYRQ3hXLwKbxPW29kx8j3KmW8",
+  "revision": "de5b2ab",
+  "checks": [
+    {
+      "url": "https://indieweb-acceptance.vercel.app/api/acceptance-websub/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "status": 404,
+      "expected": 404,
+      "checkedAt": "2026-10-08T07:35:15.746Z"
+    },
+    {
+      "url": "https://willie.page/writings/websub-acceptance-20261008",
+      "status": 404,
+      "expected": 404,
+      "checkedAt": "2026-10-08T07:35:18.090Z"
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-acceptance",
+      "status": 404,
+      "expected": 404,
+      "checkedAt": "2026-10-08T07:35:18.526Z"
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/websub-acceptance-20261008",
+      "status": 200,
+      "expected": 200,
+      "checkedAt": "2026-10-08T07:35:18.830Z"
+    }
+  ]
+}

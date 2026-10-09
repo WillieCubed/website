@@ -6,6 +6,8 @@ export const MIGRATIONS = [
   'lib/db/migrations/003_indieauth.sql',
   'lib/db/migrations/004_webmention_responses.sql',
   'lib/db/migrations/005_atproto_oauth.sql',
+  'lib/db/migrations/006_indieauth_refresh.sql',
+  'lib/db/migrations/009_indieauth_code_replay.sql',
 ];
 
 export const SCHEMA_QUERY = `SELECT (
@@ -20,6 +22,22 @@ export const SCHEMA_QUERY = `SELECT (
   to_regclass('public.atproto_rate_limits') IS NOT NULL AND
   to_regclass('public.indieauth_codes') IS NOT NULL AND
   to_regclass('public.indieauth_tokens') IS NOT NULL AND
+  to_regclass('public.indieauth_refresh_families') IS NOT NULL AND
+  to_regclass('public.indieauth_refresh_tokens') IS NOT NULL AND
+  to_regprocedure('public.indieauth_rotate_refresh(text,text,text,text,text,timestamp with time zone,timestamp with time zone,timestamp with time zone)') IS NOT NULL AND
+  to_regprocedure('public.indieauth_consume_code(text,timestamp with time zone)') IS NOT NULL AND
+  to_regprocedure('public.indieauth_save_token_grant(text,text,text,text,text,text,text,timestamp with time zone,timestamp with time zone,timestamp with time zone)') IS NOT NULL AND
+  EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'indieauth_tokens' AND column_name = 'refresh_family_id') AND
+  EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'indieauth_codes' AND column_name = 'replayed_at') AND
+  EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'indieauth_refresh_families' AND column_name = 'authorization_code_hash') AND
+  EXISTS (
+    SELECT 1 FROM pg_index
+    WHERE indexrelid = to_regclass('public.idx_indieauth_grant_code')
+      AND indrelid = to_regclass('public.indieauth_refresh_families')
+      AND indisunique AND indisvalid AND indnkeyatts = 1
+      AND indpred IS NULL
+      AND pg_get_indexdef(indexrelid, 1, true) = 'authorization_code_hash'
+  ) AND
   to_regclass('public.indieauth_totp_steps') IS NOT NULL AND
   to_regclass('public.indieauth_sign_in_failures') IS NOT NULL AND
   EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'webmentions' AND column_name = 'original_source_hash') AND

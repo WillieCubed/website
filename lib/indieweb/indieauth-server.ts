@@ -50,8 +50,10 @@ export const INDIEAUTH_SCOPES = [
 
 /** The spec recommends codes live at most ten minutes. */
 export const AUTHORIZATION_CODE_LIFETIME_MS = 10 * 60 * 1000;
-/** Access tokens last 90 days; there are no refresh tokens. */
-export const ACCESS_TOKEN_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
+/** New access tokens last one hour; stored legacy expiries remain intact. */
+export const ACCESS_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
+/** Each successful rotation restarts the refresh inactivity deadline. */
+export const REFRESH_TOKEN_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 
 const SUPPORTED_SCOPES = new Set<string>(INDIEAUTH_SCOPES);
 // RFC 7636: 43 to 128 characters from the unreserved set.
@@ -79,7 +81,9 @@ export function buildIndieAuthMetadata() {
     revocation_endpoint_auth_methods_supported: ['none'],
     scopes_supported: [...INDIEAUTH_SCOPES],
     response_types_supported: ['code'],
-    grant_types_supported: ['authorization_code'],
+    grant_types_supported: ['authorization_code', 'refresh_token'],
+    userinfo_endpoint: absoluteSiteUrl('/indieauth/userinfo', SITE_URL),
+    token_endpoint_auth_methods_supported: ['none'],
     service_documentation: 'https://indieauth.spec.indieweb.org/',
     code_challenge_methods_supported: ['S256'],
     authorization_response_iss_parameter_supported: true,
@@ -158,6 +162,12 @@ export type AuthorizationRequestParse =
       description: string;
     };
 
+export function hasRepeatedOAuthParameters(params: URLSearchParams): boolean {
+  return [...new Set(params.keys())].some(
+    (key) => params.getAll(key).length > 1
+  );
+}
+
 /**
  * Check the parameters of an authorization request. PKCE with S256 is
  * required, as the spec requires of clients, and `state` is required.
@@ -165,6 +175,13 @@ export type AuthorizationRequestParse =
 export function parseAuthorizationRequest(
   params: URLSearchParams
 ): AuthorizationRequestParse {
+  if (hasRepeatedOAuthParameters(params)) {
+    return {
+      ok: false,
+      fatal: true,
+      description: 'Authorization parameters must not appear more than once.',
+    };
+  }
   const clientId = parseClientId(params.get('client_id'));
   if (!clientId) {
     return {
@@ -316,7 +333,10 @@ export async function redeemAuthorizationCode(
       description: 'The code_verifier does not match the code_challenge.',
     };
   }
-  return { ok: true, record };
+  return {
+    ok: true,
+    record: { ...record, authorizationCodeHash: hashSecret(code) },
+  };
 }
 
 /** The `profile` object for a grant that includes the `profile` scope. */
@@ -346,22 +366,93 @@ export async function issueAccessToken(
   now: Date
 ) {
   const token = newSecret();
-  await store.saveToken(hashSecret(token), {
+  const refreshToken = newSecret();
+  const grant = {
+    authorizationCodeHash: record.authorizationCodeHash,
     clientId: record.clientId,
     me: record.me,
     scope: record.scope,
     issuedAt: now,
     expiresAt: new Date(now.getTime() + ACCESS_TOKEN_LIFETIME_MS),
-  });
+    refreshFamilyId: newSecret(),
+    refreshTokenHash: hashSecret(refreshToken),
+    refreshExpiresAt: new Date(now.getTime() + REFRESH_TOKEN_LIFETIME_MS),
+  };
+  if ((await store.saveTokenGrant(hashSecret(token), grant)) === false)
+    return null;
+  return tokenResponse(token, refreshToken, grant);
+}
+
+function tokenResponse(
+  accessToken: string,
+  refreshToken: string,
+  record: IndieAuthTokenRecord
+) {
   const profile = buildProfile(record.scope);
   return {
-    access_token: token,
+    access_token: accessToken,
+    refresh_token: refreshToken,
     token_type: 'Bearer',
     scope: record.scope.join(' '),
     me: record.me,
     expires_in: Math.floor(ACCESS_TOKEN_LIFETIME_MS / 1000),
     ...(profile ? { profile } : {}),
   };
+}
+
+/** Validate the request before the store atomically spends and replaces it. */
+export async function refreshAccessToken(
+  store: IndieAuthStore,
+  form: URLSearchParams,
+  now: Date
+) {
+  const refreshToken = form.get('refresh_token');
+  const rawClientId = form.get('client_id');
+  if (!refreshToken || !rawClientId) {
+    return {
+      ok: false,
+      error: 'invalid_request',
+      description: 'refresh_token and client_id are required.',
+    } as const;
+  }
+  const clientId = parseClientId(rawClientId)?.href;
+  if (!clientId) {
+    return {
+      ok: false,
+      error: 'invalid_grant',
+      description: 'The refresh token is not valid for this client.',
+    } as const;
+  }
+  // Keep unsupported scopes for the store's subset check; parseScope would
+  // silently discard them and accept a request for extra privileges.
+  const scope = form.has('scope')
+    ? [...new Set((form.get('scope') ?? '').split(/\s+/).filter(Boolean))]
+    : null;
+  const nextRefreshToken = newSecret();
+  const accessToken = newSecret();
+  const result = await store.rotateRefreshToken({
+    refreshTokenHash: hashSecret(refreshToken),
+    clientId,
+    scope,
+    nextRefreshTokenHash: hashSecret(nextRefreshToken),
+    accessTokenHash: hashSecret(accessToken),
+    now,
+    accessExpiresAt: new Date(now.getTime() + ACCESS_TOKEN_LIFETIME_MS),
+    refreshExpiresAt: new Date(now.getTime() + REFRESH_TOKEN_LIFETIME_MS),
+  });
+  if (!result.ok) {
+    return {
+      ...result,
+      description:
+        result.error === 'invalid_scope'
+          ? 'The requested scope must be a non-empty subset of the approved scopes.'
+          : 'The refresh token is unknown, expired, revoked, or already used.',
+    };
+  }
+  return {
+    ok: true,
+    token: tokenResponse(accessToken, nextRefreshToken, result.record),
+  } as const;
 }
 
 /** The stored grant behind a token, or null when it is not active. */
@@ -374,7 +465,7 @@ export function findActiveToken(
   return store.findToken(hashSecret(token), now);
 }
 
-/** Revoke a token. Unknown and already revoked tokens are not an error. */
+/** Revoke an access token or refresh family; unknown tokens also succeed. */
 export async function revokeAccessToken(
   store: IndieAuthStore,
   token: string,

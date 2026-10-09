@@ -1,0 +1,68 @@
+{
+  "observedAt": "2026-10-08T08:11:26.541Z",
+  "classification": "PostgreSQL backend fixture; no real provider, browser, or independent client authorization",
+  "database": {
+    "host": "ep-winter-wind-b5iiaxe7-pooler.c-7.us-east-2.aws.neon.tech",
+    "isolated": true,
+    "maxConnections": 2
+  },
+  "migration": {
+    "name": "009_indieauth_code_replay.sql",
+    "sha256": "e6290ccf5e652e3bfa88b8980e8a137e1fb4a16b43cc061e5327859746cc40a2",
+    "applied": true
+  },
+  "checks": [
+    {
+      "name": "A code consumes once and replay revokes original and refreshed access tokens",
+      "result": "passed",
+      "details": {
+        "accessTokensRevoked": 2
+      }
+    },
+    {
+      "name": "New issuance and refresh are refused after code replay",
+      "result": "passed"
+    },
+    {
+      "name": "Concurrent grant issuance before replay leaves no active grant",
+      "result": "passed",
+      "details": {
+        "actualBlockedConnection": true
+      }
+    },
+    {
+      "name": "Concurrent replay before grant issuance leaves no active grant",
+      "result": "passed",
+      "details": {
+        "actualBlockedConnection": true
+      }
+    },
+    {
+      "name": "Concurrent code consumption succeeds exactly once and blocks later issuance",
+      "result": "passed"
+    },
+    {
+      "name": "Grant issuance preserves authorization-code client, identity, and scope binding",
+      "result": "passed"
+    },
+    {
+      "name": "Replay leaves unrelated refresh grants and legacy access tokens active",
+      "result": "passed"
+    },
+    {
+      "name": "Exact-owned fixture cleanup leaves all original database rows unchanged",
+      "result": "passed"
+    }
+  ],
+  "cleanup": "passed",
+  "fixture": "unique SHA-256 digests and exact-owned deletion only",
+  "baselineCounts": {
+    "indieauth_codes": 6,
+    "indieauth_tokens": 5,
+    "indieauth_refresh_families": 4,
+    "indieauth_refresh_tokens": 5
+  },
+  "preexistingRowsPreserved": true,
+  "status": "passed",
+  "completedAt": "2026-10-08T08:11:31.843Z"
+}

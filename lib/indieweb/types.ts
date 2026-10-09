@@ -322,6 +322,8 @@ export interface IndieAuthAuthorizationRequest {
 
 /** What the authorization endpoint stored when it issued a code. */
 export interface IndieAuthCodeRecord {
+  /** Added during redemption to bind later tokens to the spent code. */
+  authorizationCodeHash?: string;
   clientId: string;
   redirectUri: string;
   me: string;
@@ -337,7 +339,34 @@ export interface IndieAuthTokenRecord {
   scope: string[];
   issuedAt: Date;
   expiresAt: Date;
+  /** Absent on tokens issued before refresh grants existed. */
+  refreshFamilyId?: string;
 }
+
+/** The original grant and the first hashed refresh token. */
+export interface IndieAuthTokenGrant extends IndieAuthTokenRecord {
+  authorizationCodeHash?: string;
+  refreshFamilyId: string;
+  refreshTokenHash: string;
+  refreshExpiresAt: Date;
+}
+
+/** Replacement credentials for one atomic refresh rotation. */
+export interface IndieAuthRefreshRotation {
+  refreshTokenHash: string;
+  clientId: string;
+  /** Null preserves the original approved access scopes. */
+  scope: string[] | null;
+  nextRefreshTokenHash: string;
+  accessTokenHash: string;
+  now: Date;
+  accessExpiresAt: Date;
+  refreshExpiresAt: Date;
+}
+
+export type IndieAuthRefreshResult =
+  | { ok: true; record: IndieAuthTokenRecord }
+  | { ok: false; error: 'invalid_grant' | 'invalid_scope' };
 
 /**
  * Where codes and tokens live. Keys are SHA-256 digests, so the store never
@@ -351,6 +380,15 @@ export interface IndieAuthStore {
     now: Date
   ) => Promise<IndieAuthCodeRecord | null>;
   saveToken: (tokenHash: string, record: IndieAuthTokenRecord) => Promise<void>;
+  /** Persist the access token, refresh token, and grant in one transaction. */
+  saveTokenGrant: (
+    tokenHash: string,
+    grant: IndieAuthTokenGrant
+  ) => Promise<boolean | void>;
+  /** Serialize on the family; reuse revokes every token in that family. */
+  rotateRefreshToken: (
+    rotation: IndieAuthRefreshRotation
+  ) => Promise<IndieAuthRefreshResult>;
   /** The token when it exists, is unexpired, and has not been revoked. */
   findToken: (
     tokenHash: string,

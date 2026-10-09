@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "status": "passed",
+  "configurationCleared": true,
+  "publicationRemoved": true,
+  "identitiesCleaned": true,
+  "ownedConfigurationEntriesRemoved": 4,
+  "accounts": [
+    {
+      "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+      "deactivated": true
+    },
+    {
+      "did": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+      "deactivated": true
+    }
+  ],
+  "workersRemoved": true,
+  "tunnelStopped": true,
+  "container": "dev-williecubed-website-pds-3eafb75977",
+  "ownershipJournalSha256": "a447ddfd3ffc81c47283bc3242508b3b0e981b7031dbccd11d43501b105f8189",
+  "limitation": "Only four owned setup entries are removed. Preexisting origin, OAuth keys, database configuration, notification secrets and production remain unchanged. The sensitive remote database value cannot be retrieved; its exact existing ID/metadata is preserved and the local database guard and passing runtime receipts supply the prior binding. Immutable old deployments retain their environment; this companion does not claim retroactive credential erasure.",
+  "recovery": "The first cleanup stopped after both account deactivations and Worker removal because its SIGTERM tunnel deadline elapsed. The operator verified the exact owned PID and full command, sent SIGKILL, and resumed the same journal to completion."
+}

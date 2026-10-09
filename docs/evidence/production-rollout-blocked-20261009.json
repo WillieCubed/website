@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checkedAt": "2026-10-09T11:30:54.328225+00:00",
+  "status": "blocked-by-external-deployment-quota",
+  "mainRevision": "e390d9f0c6f3351bdab9b085407d60fa5a30c993",
+  "productionRevision": "59f0c063cc0330398af589b406a88d367f3eef8d",
+  "project": "prj_sdOlkYTaqb3M2R8YporGCi9NnRvb",
+  "attempts": [
+    {
+      "method": "Git-source REST API",
+      "httpStatus": 402,
+      "code": "api-deployments-free-per-day",
+      "result": "rejected"
+    },
+    {
+      "method": "Clean exact-main archive CLI upload",
+      "code": "api-deployments-free-per-day",
+      "result": "rejected"
+    }
+  ],
+  "providerMessage": "Resource is limited - try again in 24 hours (more than 100).",
+  "buildSettingsRestored": true,
+  "productionFeedItems": 0,
+  "fixtureChecks": [
+    {
+      "slug": "indieweb-acceptance",
+      "status": 404
+    },
+    {
+      "slug": "indieweb-acceptance-note",
+      "status": 404
+    },
+    {
+      "slug": "atproto-acceptance-20261009",
+      "status": 404
+    },
+    {
+      "slug": "atproto-acceptance-20261008",
+      "status": 404
+    },
+    {
+      "slug": "publishing-acceptance-20261008",
+      "status": 404
+    },
+    {
+      "slug": "websub-acceptance-20261008",
+      "status": 404
+    }
+  ],
+  "existingReadyProductionRevisions": [
+    "59f0c063cc0330398af589b406a88d367f3eef8d",
+    "3915651cbc177b133abb55e3d737c3ef0e398746",
+    "79f89b5bc4234f6a9a962fdc21ec1ad408e23f56"
+  ],
+  "existingPreviewCannotReplaceProduction": "The publishing app password targets production only. Promoting a preview would retain its original environment and would not configure verified publishing.",
+  "productionMigration": "Passed separately with exact legacy-token preservation.",
+  "acceptanceVerification": "All five verification epics passed and closed; production rollout is not complete."
+}

@@ -69,7 +69,7 @@ async function main() {
   const did = process.env.NEXT_PUBLIC_ATPROTO_DID;
   assert(
     did && did !== OWNER,
-    'Configure a separate acceptance DID. The production owner is forbidden.'
+    'Configure a separate acceptance DID with scripts/publishing-acceptance-setup.mts. The production owner is forbidden.'
   );
   assert.equal(
     process.env.NEXT_PUBLIC_SITE_ORIGIN?.replace(/\/$/, ''),

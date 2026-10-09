@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "observedAt": "2026-10-09T10:54:27.851Z",
+  "projectId": "icy-sound-09771903",
+  "mode": "applied",
+  "acceptanceApprovedByOperator": true,
+  "applied": [
+    "lib/db/migrations/006_indieauth_refresh.sql",
+    "lib/db/migrations/007_micropub_deleted_archives.sql",
+    "lib/db/migrations/008_atproto_response_observations.sql",
+    "lib/db/migrations/009_indieauth_code_replay.sql"
+  ],
+  "originalAccessTokenRows": 1,
+  "exactOriginalFieldsPreserved": true,
+  "originalExpiryPreserved": true,
+  "schemaBeforeReady": false,
+  "schemaReady": true
+}

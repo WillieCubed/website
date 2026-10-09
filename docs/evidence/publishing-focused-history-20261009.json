@@ -1,0 +1,226 @@
+{
+  "initialMain": "59f0c063cc0330398af589b406a88d367f3eef8d",
+  "prs": [
+    {
+      "number": 154,
+      "scope": "standard",
+      "headSha": "d205fe721d73089b933914f269ed0e9690ef04a1",
+      "mainSha": "12f3bc0bff286706ae392db0aeddee7d23d7447e",
+      "previousMain": "59f0c063cc0330398af589b406a88d367f3eef8d",
+      "tree": "9d71d6fd06a7c5447374958cff780ec820d7f8d2",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37893457742/job/113699344350"
+        }
+      ]
+    },
+    {
+      "number": 176,
+      "scope": "auth",
+      "headSha": "950f16bcf0c5e8db1521cee79af6915afab288ee",
+      "mainSha": "35428e9dee3a6a6cdd4eadfb35573a1398f2bb43",
+      "previousMain": "12f3bc0bff286706ae392db0aeddee7d23d7447e",
+      "tree": "cbdb01a173f4152a19bb50fe525fc9786d9d492e",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37921133678/job/113789054165"
+        }
+      ]
+    },
+    {
+      "number": 177,
+      "scope": "micropub",
+      "headSha": "438097aa8b332850093c67ddcc85262f83a22bfd",
+      "mainSha": "6efa92f0febfad06718a57c4e3436eac00e8ca3b",
+      "previousMain": "35428e9dee3a6a6cdd4eadfb35573a1398f2bb43",
+      "tree": "d0bb3d9810f6688d4b31bf55a88556483229c77b",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37921520081/job/113790319331"
+        }
+      ]
+    },
+    {
+      "number": 178,
+      "scope": "media",
+      "headSha": "3f131d0e55eb38c679e14a87b44e6b7aa4fb5123",
+      "mainSha": "60cf7f7e021dc98c373ef4256a9aa08ca0dae317",
+      "previousMain": "6efa92f0febfad06718a57c4e3436eac00e8ca3b",
+      "tree": "b0148b391444fa0cec153dc1d025f73430b9bb34",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37921708723/job/113790934930"
+        }
+      ]
+    },
+    {
+      "number": 179,
+      "scope": "webmention",
+      "headSha": "79793954f82548ebca88cea070ed2746039102dd",
+      "mainSha": "ed3c28c4d749bea83b82f3d0c28d995e06f9e005",
+      "previousMain": "60cf7f7e021dc98c373ef4256a9aa08ca0dae317",
+      "tree": "0d6059f94d37e45b9e2e66490e2dbb86143f5be4",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37921934989/job/113791674631"
+        }
+      ]
+    },
+    {
+      "number": 180,
+      "scope": "infrastructure",
+      "headSha": "009c95b54c79f281e039228a7a81d5e6bb69b28f",
+      "mainSha": "d868e7fe20780f3035f8d4547f3256aaa6cbe5a9",
+      "previousMain": "ed3c28c4d749bea83b82f3d0c28d995e06f9e005",
+      "tree": "37661c1a442478337208344088a9d40ac0a878e9",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37922179161/job/113792475583"
+        }
+      ]
+    },
+    {
+      "number": 181,
+      "scope": "syndication",
+      "headSha": "e5468a1bbde3b793ed06d62ea415d11a717fe1d1",
+      "mainSha": "6e26146a57ae51529b43941cd343c1ba0851b4a2",
+      "previousMain": "d868e7fe20780f3035f8d4547f3256aaa6cbe5a9",
+      "tree": "d19b599ed94815b504e3400d233c9d5a5dc65ecc",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37922387915/job/113793170504"
+        }
+      ]
+    },
+    {
+      "number": 182,
+      "scope": "bluesky",
+      "headSha": "6029f83a80f320cb394957e2e1e810b2d1cfeb2b",
+      "mainSha": "5182cc79bd2e65df4c99c9ce7b0166aae73ef841",
+      "previousMain": "6e26146a57ae51529b43941cd343c1ba0851b4a2",
+      "tree": "131cef9e1ca62c83c146d839fd9a02f80ae1a9cf",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37922614045/job/113793909766"
+        }
+      ]
+    },
+    {
+      "number": 183,
+      "scope": "social",
+      "headSha": "b0f2c1d8e024d6e515a166651b827a53fcd7223c",
+      "mainSha": "26121737d9dc6276c6e56d0596bb69294b2ec0ea",
+      "previousMain": "5182cc79bd2e65df4c99c9ce7b0166aae73ef841",
+      "tree": "8f3756587ea359cadb533149184a72ae1fa1c906",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37922853532/job/113794703276"
+        }
+      ]
+    },
+    {
+      "number": 184,
+      "scope": "indieweb-verification",
+      "headSha": "4abd8133f8f4f88b11c5cdf629ad0996f9d2cbf7",
+      "mainSha": "8302333c7073e963cd069241765dc52a6e101bcf",
+      "previousMain": "26121737d9dc6276c6e56d0596bb69294b2ec0ea",
+      "tree": "78da63ebecc1eb88f58a84cabcbc7b5a1e1711e9",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37923073440/job/113795426865"
+        }
+      ]
+    },
+    {
+      "number": 185,
+      "scope": "websub",
+      "headSha": "f74586fb7cab99e4fa23714689db3ed426eda5a4",
+      "mainSha": "84bcc6f35253e6b51ebf96dd1e5bffe7694b37c5",
+      "previousMain": "8302333c7073e963cd069241765dc52a6e101bcf",
+      "tree": "337417b81d2d02bb6c5b6705147ae9a83f5d158d",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37923314904/job/113796222366"
+        }
+      ]
+    },
+    {
+      "number": 186,
+      "scope": "cards",
+      "headSha": "b2bad2744221c40a2215efd105b5765e7d1fe93e",
+      "mainSha": "e390d9f0c6f3351bdab9b085407d60fa5a30c993",
+      "previousMain": "84bcc6f35253e6b51ebf96dd1e5bffe7694b37c5",
+      "tree": "0587db03957e34c3cb6f34d1e252b9a662a3e45f",
+      "oneCommitBeforeMerge": true,
+      "method": "rebase",
+      "merged": true,
+      "requiredCi": [
+        {
+          "name": "ci",
+          "conclusion": "success",
+          "detailsUrl": "https://github.com/WillieCubed/website/actions/runs/37923558294/job/113797033696"
+        }
+      ]
+    }
+  ],
+  "version": 1,
+  "checkedAt": "2026-10-09T11:32:40.357440+00:00",
+  "status": "twelve-focused-prs-landed-with-required-ci",
+  "documentationPr": 187,
+  "productionRelease": "Separately blocked by Vercel quota; merge completion does not establish deployment."
+}

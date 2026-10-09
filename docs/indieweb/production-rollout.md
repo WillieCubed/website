@@ -1,5 +1,7 @@
 # Production IndieWeb rollout
 
+This is the September 23, 2026 rollout record. Its deployment and configuration statements are historical. Use the [current conformance matrix](../publishing-conformance.md) for present release gates.
+
 This record is for Willie before publishing on `willie.page`. Review the
 [exact draft text](publication-review.md), enroll the production IndieAuth
 secret in an authenticator, and approve the posts that should become public.

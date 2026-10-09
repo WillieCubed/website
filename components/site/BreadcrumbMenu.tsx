@@ -11,10 +11,13 @@ import Popover from './Popover';
 export interface BreadcrumbMenuItem {
   label: string;
   href: string;
+  /** The crumb this item stands in for inside the ellipsis crumb's menu. */
+  depth?: number;
 }
 
 export default function BreadcrumbMenu({
   label,
+  title,
   href,
   items,
   showArrow,
@@ -22,6 +25,8 @@ export default function BreadcrumbMenu({
   prefetchHome = true,
 }: {
   label: string;
+  /** Names the menu when the visible label cannot, such as an ellipsis. */
+  title?: string;
   href: string;
   items: BreadcrumbMenuItem[];
   showArrow: boolean;
@@ -48,7 +53,7 @@ export default function BreadcrumbMenu({
 
   return (
     <Popover
-      label={`Open menu for ${label}`}
+      label={title ?? `Open menu for ${label}`}
       current={href === pathname}
       placement="breadcrumb"
       trigger={
@@ -66,7 +71,7 @@ export default function BreadcrumbMenu({
     >
       <nav
         className="site-breadcrumb-menu__items"
-        aria-label={`${label} destinations`}
+        aria-label={title ?? `${label} destinations`}
       >
         {items.map((item) => (
           <SiteLink
@@ -74,6 +79,7 @@ export default function BreadcrumbMenu({
             href={item.href}
             preview={false}
             className="site-breadcrumb-menu__link"
+            data-depth={item.depth}
             aria-current={item.href === pathname ? 'page' : undefined}
             onClick={() => {
               if (item.href.startsWith('#')) {

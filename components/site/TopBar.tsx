@@ -35,6 +35,18 @@ export const COLUMN = {
 
 export type Column = keyof typeof COLUMN;
 
+/**
+ * Whether a phone should paint the trail folded before the bar measures
+ * itself (TopBarFrame). Three crumbs fold below 500px (site.css has the
+ * bands), and two only fail to fit below about 344px once their labels pass
+ * about 26 characters. Both bands come from the Fall Tour pages.
+ */
+function collapseGuess(crumbs: Crumb[]): 'phone' | 'narrow' | undefined {
+  if (crumbs.length >= 3) return 'phone';
+  const characters = crumbs.reduce((sum, { label }) => sum + label.length, 0);
+  return crumbs.length === 2 && characters >= 26 ? 'narrow' : undefined;
+}
+
 interface TopBarProps {
   crumbs?: Crumb[];
   floating?: boolean;
@@ -66,6 +78,7 @@ export default function TopBar({
         column={column}
         floatOnScroll={floating}
         longTrail={crumbs.length >= 2}
+        deepTrail={collapseGuess(crumbs)}
         breadcrumbKey={crumbs
           .map(({ href, label }) => `${href}:${label}`)
           .join('|')}
@@ -85,10 +98,31 @@ export default function TopBar({
               prefetchHome={prefetchHome}
             />
           </div>
+          {crumbs.length >= 2 && (
+            <div className="site-breadcrumbs__crumb site-breadcrumbs__crumb--collapsed flex items-center">
+              <span aria-hidden="true">/</span>
+              <div className="site-breadcrumb-item">
+                <BreadcrumbMenu
+                  label="…"
+                  title="Pages above this one"
+                  href={crumbs[crumbs.length - 2].href}
+                  items={crumbs
+                    .slice(0, -1)
+                    .map(({ label, href }, depth) => ({ label, href, depth }))}
+                  showArrow={false}
+                />
+              </div>
+            </div>
+          )}
           {crumbs.map((crumb, index) => (
             <div
               key={crumb.href}
-              className="site-breadcrumbs__crumb flex items-center"
+              className={`site-breadcrumbs__crumb flex items-center${
+                index < crumbs.length - 1
+                  ? ' site-breadcrumbs__crumb--middle'
+                  : ''
+              }`}
+              data-depth={index < crumbs.length - 1 ? index : undefined}
             >
               <span aria-hidden="true">/</span>
               <div className="site-breadcrumb-item">

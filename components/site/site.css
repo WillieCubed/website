@@ -440,6 +440,67 @@ header[data-compact='true'] .site-breadcrumb-name__label {
     white-space: nowrap;
   }
 }
+/* The ellipsis crumb swaps in for the crumbs it folds, with no transition
+   between them, when the cube alone does not make room. TopBarFrame marks
+   each folded crumb and the menu link that stands in for it. */
+.site-breadcrumbs__crumb--collapsed,
+header[data-folded] .site-breadcrumbs__crumb--middle[data-folded],
+header[data-folded]
+  .site-breadcrumbs__crumb--collapsed
+  .site-breadcrumb-menu__link:not([data-folded]) {
+  display: none;
+}
+header[data-folded]:not([data-folded='0']) .site-breadcrumbs__crumb--collapsed {
+  display: flex;
+}
+/* Trails that nearly always fold on a phone start folded, for the same
+   reason long trails start compact. TopBar makes the guess, and the widths
+   are where the Fall Tour part and initiative pages stop fitting. */
+@media (max-width: 419px) {
+  header[data-deep-trail='phone']:not([data-folded])
+    .site-breadcrumbs__crumb--middle {
+    display: none;
+  }
+}
+@media (min-width: 420px) and (max-width: 499px) {
+  header[data-deep-trail='phone']:not([data-folded])
+    .site-breadcrumbs__crumb--middle[data-depth='0'] {
+    display: none;
+  }
+}
+@media (max-width: 343px) {
+  header[data-deep-trail='narrow']:not([data-folded])
+    .site-breadcrumbs__crumb--middle {
+    display: none;
+  }
+}
+@media (max-width: 499px) {
+  header[data-deep-trail='phone']:not([data-folded])
+    .site-breadcrumbs__crumb--collapsed {
+    display: flex;
+  }
+}
+@media (max-width: 343px) {
+  header[data-deep-trail='narrow']:not([data-folded])
+    .site-breadcrumbs__crumb--collapsed {
+    display: flex;
+  }
+}
+/* The current page's label truncates when even the collapsed trail does not
+   fit, so the rail never has to scroll. */
+.site-breadcrumbs__crumb:last-child {
+  flex-shrink: 1;
+  min-width: 0;
+}
+.site-breadcrumbs__crumb:last-child
+  :is(.site-breadcrumb-item, .site-breadcrumb-menu-trigger) {
+  min-width: 0;
+}
+.site-breadcrumbs__crumb:last-child .site-breadcrumb-menu__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .site-breadcrumb-name:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
@@ -574,17 +635,36 @@ header[data-column] .site-breadcrumb {
     padding-inline: 4px;
   }
 }
+/* A compact trail draws its crumbs closer, which saves 10px a crumb before
+   anything has to fold. Phones at or below 360px are already this close. */
+@media (min-width: 361px) {
+  header[data-compact='true'] .site-breadcrumbs,
+  header[data-compact='true'] .site-breadcrumbs__crumb {
+    --home-crumb-padding-x: 6px;
+    gap: 4px;
+  }
+  header[data-compact='true'] .site-breadcrumbs .site-breadcrumb {
+    padding-inline: 6px;
+  }
+}
+@media (min-width: 361px) and (max-width: 639px) {
+  header[data-long-trail]:not([data-compact]) .site-breadcrumbs,
+  header[data-long-trail]:not([data-compact]) .site-breadcrumbs__crumb {
+    --home-crumb-padding-x: 6px;
+    gap: 4px;
+  }
+  header[data-long-trail]:not([data-compact])
+    .site-breadcrumbs
+    .site-breadcrumb {
+    padding-inline: 6px;
+  }
+}
 @media (max-width: 639px) {
   .site-breadcrumbs {
-    /* Keep the expanded visual state inside the scrolling breadcrumb rail. */
+    /* Keep the expanded visual state inside the clipped breadcrumb rail. */
     margin-left: calc(-1 * var(--home-crumb-padding-x));
     padding-left: var(--home-crumb-padding-x);
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-  }
-  .site-breadcrumbs::-webkit-scrollbar {
-    display: none;
+    overflow-x: clip;
   }
 }
 header[data-column] .site-breadcrumb::before {

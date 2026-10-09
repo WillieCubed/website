@@ -69,14 +69,15 @@ export function ensureVariables({
       : { ok: true, changed: false };
   }
 
-  const publishingValues =
-    target.projectName === 'website'
-      ? [
-          'NEXT_PUBLIC_ATPROTO_DID',
-          'ATPROTO_PUBLICATION_RKEY',
-          'ATPROTO_APP_PASSWORD',
-        ]
-      : [];
+  const publishingValues = ['website', 'indieweb-acceptance'].includes(
+    target.projectName
+  )
+    ? [
+        'NEXT_PUBLIC_ATPROTO_DID',
+        'ATPROTO_PUBLICATION_RKEY',
+        'ATPROTO_APP_PASSWORD',
+      ]
+    : [];
   const neededOwnerValues = [
     ...publishingValues,
     'INDIEAUTH_TOTP_SECRET',

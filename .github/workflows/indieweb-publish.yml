@@ -6,6 +6,8 @@ on:
     branches:
       - main
       - codex/indieweb-test-publish-20260923
+      - codex/publishing-compatibility-acceptance
+      - codex/publishing-compatibility-acceptance-20261008
 
 permissions:
   contents: read
@@ -34,7 +36,7 @@ jobs:
           else
             origin=https://indieweb-acceptance.vercel.app
             secret=$ACCEPTANCE_SECRET
-            atproto_required=false
+            atproto_required=true
           fi
           if [ -z "$secret" ]; then
             echo "Notifications are disabled for $origin until its secret is configured."

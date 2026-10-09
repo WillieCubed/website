@@ -1,0 +1,46 @@
+{
+  "at": "2026-10-08T08:49:42.809Z",
+  "runUrl": "https://github.com/WillieCubed/website/actions/runs/37752152964",
+  "branch": "codex/publishing-compatibility-acceptance-20261008",
+  "revision": "6c53ac177982d283c6484883a8b39c1e0762e344",
+  "conclusion": "failure",
+  "httpStatus": 502,
+  "observed": {
+    "websub": {
+      "ok": true,
+      "status": 202
+    },
+    "webmentions": {
+      "sent": 0,
+      "failed": 1
+    },
+    "atproto": {
+      "status": "skipped",
+      "reason": "NEXT_PUBLIC_ATPROTO_DID or ATPROTO_PUBLICATION_RKEY is not set"
+    }
+  },
+  "interpretation": "The automatic workflow authenticated after deployment. Required publishing failed because the isolated identity is absent. The unrelated earlier Webmention rejection is preserved; the followup records the new retry behavior.",
+  "followup": {
+    "at": "2026-10-08T09:07:30.936856+00:00",
+    "runUrl": "https://github.com/WillieCubed/website/actions/runs/37754156522",
+    "revision": "270d2efad64e71a3563275b960dcd316cb7aa692",
+    "conclusion": "failure",
+    "httpStatus": 502,
+    "observed": {
+      "websub": {
+        "ok": true,
+        "status": 202
+      },
+      "webmentions": {
+        "sent": 0,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "atproto": {
+        "status": "skipped",
+        "reason": "NEXT_PUBLIC_ATPROTO_DID or ATPROTO_PUBLICATION_RKEY is not set"
+      }
+    },
+    "interpretation": "The preserved unchanged September rejection no longer retries or fails the notification. Required sync still fails the run because the isolated identity is absent. Hub acceptance does not prove subscriber receipt."
+  }
+}

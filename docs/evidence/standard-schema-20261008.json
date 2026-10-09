@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-10-08T07:28:05.092Z",
+  "result": "All seven schema CIDs match the October 7 conformance baseline.",
+  "owner": "did:plc:re3ebnp5v7ffagz6rb6xfei4",
+  "pds": "https://auriporia.us-west.host.bsky.network",
+  "independentSiteValidator": "Not run. Prior browser security denial remains unresolved.",
+  "schemas": [
+    {
+      "schema": "site.standard.publication",
+      "url": "https://auriporia.us-west.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did%3Aplc%3Are3ebnp5v7ffagz6rb6xfei4&collection=com.atproto.lexicon.schema&rkey=site.standard.publication",
+      "cid": "bafyreiapvnarfn3nl2wvg27hsylli5zqvou7a74p7od5mu4detprtejapy",
+      "lexicon": 1
+    },
+    {
+      "schema": "site.standard.document",
+      "url": "https://auriporia.us-west.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did%3Aplc%3Are3ebnp5v7ffagz6rb6xfei4&collection=com.atproto.lexicon.schema&rkey=site.standard.document",
+      "cid": "bafyreifylc5lfr4vqfzrwdtqm4pnfg7cbra7z4acbgikylqandzefwdeaq",
+      "lexicon": 1
+    },
+    {
+      "schema": "site.standard.graph.subscription",
+      "url": "https://auriporia.us-west.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did%3Aplc%3Are3ebnp5v7ffagz6rb6xfei4&collection=com.atproto.lexicon.schema&rkey=site.standard.graph.subscription",
+      "cid": "bafyreiccyb5e4vq3rwhrajeud72ztezljufzrqbo73vz6mw2jwbgsxfqta",
+      "lexicon": 1
+    },
+    {
+      "schema": "site.standard.graph.recommend",
+      "url": "https://auriporia.us-west.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did%3Aplc%3Are3ebnp5v7ffagz6rb6xfei4&collection=com.atproto.lexicon.schema&rkey=site.standard.graph.recommend",
+      "cid": "bafyreibglev4uvatb5do5obqxlif5w6b63tysjb7ve6w44x54g7hfe2rgy",
+      "lexicon": 1
+    },
+    {
+      "schema": "site.standard.authSocial",
+      "url": "https://auriporia.us-west.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did%3Aplc%3Are3ebnp5v7ffagz6rb6xfei4&collection=com.atproto.lexicon.schema&rkey=site.standard.authSocial",
+      "cid": "bafyreibdamyqel7hurrk66bbpvrqgf6cby3kmpnchvwrkjb5rijgkrdsve",
+      "lexicon": 1
+    },
+    {
+      "schema": "site.standard.theme.basic",
+      "url": "https://auriporia.us-west.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did%3Aplc%3Are3ebnp5v7ffagz6rb6xfei4&collection=com.atproto.lexicon.schema&rkey=site.standard.theme.basic",
+      "cid": "bafyreiabm6f64zosv5jcdmwd3qvekjhoi7enevg53rxj734ney4sd6lmku",
+      "lexicon": 1
+    },
+    {
+      "schema": "site.standard.theme.color",
+      "url": "https://auriporia.us-west.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did%3Aplc%3Are3ebnp5v7ffagz6rb6xfei4&collection=com.atproto.lexicon.schema&rkey=site.standard.theme.color",
+      "cid": "bafyreicps42z5maxdqwml7t3klsrrpk332jthyfgpeb4zjn3wlvp5vyjia",
+      "lexicon": 1
+    }
+  ]
+}

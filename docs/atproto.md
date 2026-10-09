@@ -8,17 +8,18 @@ The site publishes Standard.site publication and document records to the owner's
 
 Production uses the existing owner DID `did:plc:iyn6nc3ffqm2e3555exyrgvv` and publication key `3mwxne5td6lid`. Keep both stable. The publication URI and document-key algorithm remain unchanged.
 
-| Variable                     | Purpose                                                                                                      |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SITE_ORIGIN`    | Public origin; production defaults to `https://willie.page`. Isolated deployments must set their own origin. |
-| `NEXT_PUBLIC_ATPROTO_DID`    | Publication owner and public DID discovery.                                                                  |
-| `NEXT_PUBLIC_BLUESKY_HANDLE` | Display handle; profile links use the DID.                                                                   |
-| `ATPROTO_PUBLICATION_RKEY`   | Publication TID generated once.                                                                              |
-| `ATPROTO_APP_PASSWORD`       | Owner app password for publishing; sensitive and production-only.                                            |
-| `ATPROTO_OAUTH_JWK`          | Private ES256 signing JWK with a unique `kid`; sensitive server variable.                                    |
-| `ATPROTO_OAUTH_STORAGE_KEY`  | Base64 encoding of 32 random bytes for credential encryption; sensitive server variable.                     |
-| `POSTGRES_URL`               | Durable OAuth and browser sessions; migration `005_atproto_oauth.sql` is required.                           |
-| `INDIEWEB_NOTIFY_SECRET`     | Sensitive bearer secret shared with GitHub `INDIEWEB_NOTIFY_SECRET_PRODUCTION`.                              |
+| Variable                       | Purpose                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_ORIGIN`      | Public origin; production defaults to `https://willie.page`. Isolated deployments must set their own origin. |
+| `NEXT_PUBLIC_ATPROTO_DID`      | Publication owner and public DID discovery.                                                                  |
+| `NEXT_PUBLIC_BLUESKY_HANDLE`   | Display handle; profile links use the DID.                                                                   |
+| `ATPROTO_PUBLICATION_RKEY`     | Publication TID generated once.                                                                              |
+| `ATPROTO_PUBLICATION_SETTINGS` | Optional schema-validated JSON for publication labels and discovery preference.                              |
+| `ATPROTO_APP_PASSWORD`         | Owner app password for publishing; sensitive and production-only.                                            |
+| `ATPROTO_OAUTH_JWK`            | Private ES256 signing JWK with a unique `kid`; sensitive server variable.                                    |
+| `ATPROTO_OAUTH_STORAGE_KEY`    | Base64 encoding of 32 random bytes for credential encryption; sensitive server variable.                     |
+| `POSTGRES_URL`                 | Durable OAuth and browser sessions; migration `005_atproto_oauth.sql` is required.                           |
+| `INDIEWEB_NOTIFY_SECRET`       | Sensitive bearer secret shared with GitHub `INDIEWEB_NOTIFY_SECRET_PRODUCTION`.                              |
 
 OAuth signing and storage keys differ between production and acceptance. Never copy production credentials into a preview. Rotating the storage key invalidates encrypted sessions and authorization state. Rotate the signing key only with a planned overlap in public JWKS; the current single-key configuration does not retain old signing keys.
 
@@ -36,9 +37,9 @@ The script prints numbered steps, opens the app-password settings, collects the 
 
 After a push to `main`, the notification workflow waits for the exact deployed Git revision. It sends `atprotoRequired: true` to `/api/indieweb/notify`. A required sync returns HTTP 200 only when publishing reports `synced`. Missing credentials and skipped syncs fail the workflow. Acceptance sends `atprotoRequired: false` and does not publish to the production account.
 
-The sync reads uncached published writings, builds and validates the publication and document records, preserves records from other publications, and applies changed records in batches of 200. Drafts never produce documents. Repeated syncs leave unchanged records alone. The record builders publish metadata and full plain text in `textContent`; they omit rendered `content`.
+The sync reads uncached published writings, builds and validates the publication and document records, preserves records from other publications, and applies changed records in batches of 200. Drafts never produce documents. Repeated syncs leave unchanged records alone. The record builders publish metadata and full plain text in `textContent`; they retain optional typed `content` and `links` supplied in frontmatter. Unknown valid union members preserve their payload. Omission preserves an existing extension; explicit `null` removes it. The exporter retains code, tables, image descriptions, and supplied media descriptions without evaluating MDX expressions.
 
-A document key combines its original publication time with a path-derived clock ID. Changing its slug or publication time moves the record and breaks existing references. Covers and icons come from the live site and must stay under 1,000,000 bytes. A failed image fetch preserves the existing blob.
+A document key combines its original publication time with a path-derived clock ID. Changing its slug or publication time moves the record and breaks existing references. Covers and icons come from the live site and must stay under 1,000,000 bytes. A failed image fetch preserves the existing blob. Image signatures must match their MIME type. Publication icons must be square and at least 256 pixels. The publisher rejects malformed records before uploading blobs or changing PDS records.
 
 Publication verification requires the record's URL and `/.well-known/site.standard.publication` to agree. Document verification requires the record's publication and path to match a `<link rel="site.standard.document">` in the writing's HTML head. The social handlers verify the PDS record and live website before every write. [Standard.site verification](https://standard.site/docs/verification/) defines these checks.
 
@@ -102,3 +103,11 @@ Run unit tests with `pnpm exec tsx --env-file=tests/unit/test.env --test --test-
 For browser fixtures, copy `tests/fixtures/indieweb-acceptance.mdx` into `content/writings/indieweb-acceptance.mdx`, build with isolated OAuth configuration, and run `STANDARD_SOCIAL_FIXTURE=1 pnpm exec playwright test tests/e2e/standard-site.spec.mts --project=desktop --workers=1`. The test uses simulated provider responses and saves desktop and 390px screenshots under `.playwright-mcp`. Remove the copied writing before a production build or commit. These checks do not prove a live account-provider grant or real PDS social write.
 
 On 2026-10-06, all four authored writings remain drafts. Production document verification and recommendation checks therefore wait for the first approved publication. A controlled acceptance account must complete a real OAuth grant and social write before those external checks can be called verified. Bluesky announcements, imported comments, public counts, and a reader feed are separate features.
+
+## Standard.site extensions and conformance
+
+A writing may supply `atproto.contributors`, `labels`, `content`, `links`, and `bskyPostRef`. The union fields require objects with a valid lexicon `$type`. Known member schemas are checked. The site never invents a Standard.site content format. An explicit copy reference must resolve to a valid post owned by the publication account that links to the canonical writing. This validation does not create a Bluesky announcement.
+
+Run the Standard unit checks with `pnpm exec tsx --env-file=tests/unit/test.env --test --test-concurrency=2 tests/unit/atproto-*.test.mts`. The standalone `scripts/standard-site-acceptance.mts` requires separately configured acceptance credentials and refuses the production owner. Its default mode reads the publication. Its `--write` mode journals disposable records and restores the original publication; use the same `--receipt` with `--cleanup` to resume interrupted cleanup. Do not run it against production.
+
+The retained [schema receipt](evidence/standard-schema-20261008.json), [live lifecycle receipt](evidence/standard-site-live-20261008.json), and [independent validator receipt](evidence/standard-site-independent-20261008.json) record earlier acceptance runs on 2026-10-08. Their original source revisions remain unchanged. They do not establish a fresh validation of a rewritten history. Production document verification still waits for an approved authored publication.

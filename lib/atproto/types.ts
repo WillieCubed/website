@@ -23,6 +23,7 @@ export interface DesiredRecord {
   value: RecordValue;
   /** Blobs `value` references, uploaded only when the record is written. */
   blobs: LocalBlob[];
+  removeFields?: string[];
 }
 
 /** A record as the PDS lists it. */
@@ -58,4 +59,23 @@ export interface RepoClient {
   applyWrites(writes: Write[]): Promise<void>;
   uploadBlob(blob: LocalBlob): Promise<void>;
   close(): Promise<void>;
+  getRecord?(
+    collection: string,
+    rkey: string
+  ): Promise<{
+    uri: string;
+    cid: string;
+    value: Record<string, unknown>;
+  } | null>;
+  createRecord?(
+    collection: string,
+    rkey: string,
+    value: Record<string, unknown>
+  ): Promise<{ uri: string; cid: string }>;
+  putRecord?(
+    collection: string,
+    rkey: string,
+    value: Record<string, unknown>,
+    cid: string
+  ): Promise<void>;
 }

@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "started": "2026-10-09T01:44:12.432Z",
+  "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+  "pds": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev",
+  "publicationUri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb",
+  "checks": [
+    {
+      "name": "Actual loader excludes every authored draft",
+      "observedAt": "2026-10-09T01:44:16.987Z",
+      "details": {
+        "drafts": 5
+      }
+    },
+    {
+      "name": "Create and complete readable text with typed extension round trip",
+      "observedAt": "2026-10-09T01:44:20.177Z",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxfty5eeo26g",
+        "cid": "bafyreif53kvk3hrcqkefpcvd34t2lj3qou56rp6qx7penc2d3s7twltgy4",
+        "publicationCid": "bafyreiabh5nt2p6h7kjwe3p43zvzbkekjhuu5g6ts5qxj42ls2bx7dmhya"
+      }
+    },
+    {
+      "name": "Repeated sync changes no records",
+      "observedAt": "2026-10-09T01:44:21.368Z"
+    },
+    {
+      "name": "Update preserves the document key and updates author content",
+      "observedAt": "2026-10-09T01:44:23.190Z",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxfty5eeo26g",
+        "cid": "bafyreiaekiwnoa4drwmiatvmve27sd5xmcbm74234viflibkob7hs5mcl4"
+      }
+    },
+    {
+      "name": "Every supported known union member round trips through both typed fields",
+      "observedAt": "2026-10-09T01:44:35.870Z",
+      "details": {
+        "types": [
+          "app.bsky.feed.post",
+          "site.standard.document",
+          "site.standard.publication",
+          "site.standard.theme.basic",
+          "site.standard.theme.color#rgb",
+          "site.standard.theme.color#rgba",
+          "com.atproto.label.defs#selfLabels"
+        ]
+      }
+    },
+    {
+      "name": "Publication discovery preference accepts both configured values",
+      "observedAt": "2026-10-09T01:44:42.731Z"
+    },
+    {
+      "name": "Oversize blobs, unsupported MIME, record size and invalid dates fail before any PDS mutation",
+      "observedAt": "2026-10-09T01:44:45.634Z",
+      "details": {
+        "scope": "Publishing validation with real unchanged PDS CIDs",
+        "blobMaxBytes": 1000000,
+        "recordSafeMaxBytes": 900000
+      }
+    },
+    {
+      "name": "Actual hosted image fetch accepts the valid icon and rejects undersized and unsupported icons",
+      "observedAt": "2026-10-09T01:44:46.993Z",
+      "details": {
+        "validSize": 400,
+        "rejectedSize": 96,
+        "minimumIconSize": 256,
+        "scope": "Actual public acceptance HTTP image responses"
+      }
+    },
+    {
+      "name": "Title, description and tag schema boundaries produce valid real records",
+      "observedAt": "2026-10-09T01:44:49.028Z",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxfty5eeo26g",
+        "cid": "bafyreiatefx2dytjbbptalo54utndc7zfv3updrzxrxnqdwbrwq4at6qem",
+        "titleGraphemes": 500,
+        "descriptionGraphemes": 3000,
+        "tagGraphemes": 128
+      }
+    },
+    {
+      "name": "Malformed known unions, contributors and label limits fail authoring without changing PDS records",
+      "observedAt": "2026-10-09T01:44:50.882Z",
+      "details": {
+        "scope": "Authoring validation with independent PDS unchanged read",
+        "cases": 7
+      }
+    },
+    {
+      "name": "Omission and failed image fetch retain externally supplied fields",
+      "observedAt": "2026-10-09T01:44:52.622Z"
+    },
+    {
+      "name": "Explicit null removes only selected extension fields",
+      "observedAt": "2026-10-09T01:44:54.711Z"
+    },
+    {
+      "name": "Deletion and foreign publication/document preservation",
+      "observedAt": "2026-10-09T01:44:56.432Z"
+    },
+    {
+      "name": "Unpublished writing restores the original permalink, key and complete author record",
+      "observedAt": "2026-10-09T01:44:59.945Z",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxfty5eeo26g",
+        "cid": "bafyreiaekiwnoa4drwmiatvmve27sd5xmcbm74234viflibkob7hs5mcl4",
+        "unchangedRepeatedWrites": 0
+      }
+    }
+  ],
+  "cleanup": "passed",
+  "runnerRevision": "b49854e",
+  "contentRevision": "270d2efad64e71a3563275b960dcd316cb7aa692",
+  "command": "pnpm exec tsx scripts/standard-site-acceptance.mts --env <private acceptance credentials> --receipt <private ownership receipt> --write",
+  "ownedRecords": [
+    {
+      "collection": "site.standard.publication",
+      "rkey": "3mxft54ocokzb",
+      "observedCids": [
+        "bafyreiait5dbiszuznofbz2bmwgkmdeya3b3hrovikiezs2mgtb5kr7tzq",
+        "bafyreiabh5nt2p6h7kjwe3p43zvzbkekjhuu5g6ts5qxj42ls2bx7dmhya",
+        "bafyreib2zxw3s7vzdcpm6iw4fj4yv6jsr7aqrdp73uldktnphaerijton4",
+        "bafyreifhtcqvekmpeppouruuybdtltzmbtpqxw4wpzsrl5fkv6eyjlptae"
+      ]
+    },
+    {
+      "collection": "site.standard.publication",
+      "rkey": "3mxfty5n642ku",
+      "observedCids": [
+        "bafyreidlpmlddnvkcnqrzqpwkxhr5eby7fdrk6o7xogj42oi4o4aywakle"
+      ]
+    },
+    {
+      "collection": "site.standard.document",
+      "rkey": "3mxfty5nb4fmo",
+      "observedCids": [
+        "bafyreidqbjfqrm6akepc6hbscdgu6fxom3numlpmoe5b472cxhmjjcy24i"
+      ]
+    },
+    {
+      "collection": "site.standard.document",
+      "rkey": "3mxfty5eeo26g",
+      "observedCids": [
+        "bafyreif53kvk3hrcqkefpcvd34t2lj3qou56rp6qx7penc2d3s7twltgy4",
+        "bafyreiaekiwnoa4drwmiatvmve27sd5xmcbm74234viflibkob7hs5mcl4",
+        "bafyreiewp3vmqu4gsucxonloouqz4yj5rdv4vla6kr5vugoymfwvatkl6u",
+        "bafyreiahmqkvmdnmkpdquw6k7senobrnna6v6ehpm4q62dxz4tqyaofcdu",
+        "bafyreicahdbk2ta5efdwfssbh4ojoyqzrrpjldwxkyl6e4sqbjmbe57ie4",
+        "bafyreidswjql6gm756ajewfgyyvka2unesrxw7rzg24cm7fapqbgsjgcfy",
+        "bafyreibppa2skcoalvzkw7yc7jolvk5rnv6wfu2fnpet2xmuihfbw2iqoy",
+        "bafyreiakwrduloeis7vj2p3caq3rzmgpksb5mtrg2pjaqas7yl4e4ymu3i",
+        "bafyreieybg2vghcwv55qsdniiqe27dnfrypecvbr4opncusdye3hb2mn5i",
+        "bafyreiatefx2dytjbbptalo54utndc7zfv3updrzxrxnqdwbrwq4at6qem",
+        "bafyreicq54l23tnsywgh77k6eugs5obukfnfng43n66o2cpyr4dbulgs5m",
+        "bafyreiepak3q4ltl5ebebbfkw2web2aif6bjhmbcwwvaeafezpv7bsm2xi"
+      ]
+    },
+    {
+      "collection": "app.bsky.feed.post",
+      "rkey": "3mxftybphgrlk",
+      "observedCids": [
+        "bafyreibkntdtqypevzcmztd5vn4xgdimpu4tw7wclb2jvxpq7zwehefwj4"
+      ]
+    }
+  ],
+  "cleanupBehavior": "Every owned record was confirmed absent by authenticated PDS reads. CID guards prevented deletion of changed records. No prior publication existed. Foreign preservation fixtures were unchanged until their own cleanup."
+}

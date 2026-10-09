@@ -1,0 +1,1963 @@
+{
+  "version": 1,
+  "scope": "real-social-only",
+  "status": "passed-functional-cleanup-and-final-craft-review",
+  "recordedAt": "2026-10-09T10:41:17.905951Z",
+  "origin": "https://indieweb-acceptance.vercel.app",
+  "runtime": {
+    "revision": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+    "dirtyFixtureOverlay": true,
+    "publication": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb",
+    "cid": "bafyreiait5dbiszuznofbz2bmwgkmdeya3b3hrovikiezs2mgtb5kr7tzq",
+    "document": {
+      "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a",
+      "cid": "bafyreifdpgs2aagx43byuykuvkkuomwp7hd5efskfos7r25oood5ivxdo4",
+      "sourceHash": "5a77d47542803e78d087a1e745a279b5c04ef7d1a03a7ff96009208c83ae4ba1",
+      "dirtyFixtureOverlay": true
+    }
+  },
+  "localVerifier": {
+    "revision": "daca8a72269fffab63d8fcb52ed4cb65e2d83ed0",
+    "sourceHashes": {
+      "scripts/atproto-social-capture.mts": "836313530c21b7f18756626b9e642f26406d1ee19ad3bbf59836a8bc6f6466ea",
+      "scripts/atproto-social-failures.mts": "02f8e41f3ed7098ed3fc50a724efcc0834bcad4bb4fe8cc87f8a8a40bc750cb1",
+      "scripts/atproto-acceptance-identities.mts": "5309ca11d6823c28ec58cc9b6a31277a76334de75087032673e4ebe83a18f78e",
+      "scripts/atproto-callback-proof.mts": "2e1a63248125fa32e27acb5e23da9508f30070aae4d07c76294197dc4aa9a25b",
+      "scripts/atproto-refresh-acceptance.mts": "0c95a50447e19902b094546d4fe0caa3961c3cca5dd4e4506762e1a259c1b7ae",
+      "lib/site.ts": "1632c0d81fb9d53953d6895a5f0137e3ed592a137f34dfd6dfd9f38261cf607f",
+      "lib/writings/index.ts": "02ee3b3fb12d380396ed02efd9017bff02e3d3337481342b2fc07cd132e535e5",
+      "lib/atproto/blobs.ts": "5e9d80be7d6b1397adcf05ea61b52c813b9cae4ed8da06da2d6f01dee590060d",
+      "lib/atproto/bluesky.ts": "d48b098f586ebcf5fab607caaeca38f610f113906c3d29b17d59613112e2b9fd",
+      "lib/atproto/client.ts": "9119f3a50d3729e1abf246ab36a60eb504ae24389a9fe7333aa884df0ea3b234",
+      "lib/atproto/config.ts": "883a6a4c1f5fa2a1a4697b6a639b945c7fe9fcd3b6bc74da341bc249b53faf16",
+      "lib/atproto/identity.ts": "57e3395ec4146e2a9a4d8725c2f1432b11af64798118fdc22d3b2c1e73274e2b",
+      "lib/atproto/keys.ts": "a71075046fcf67bca5b68ae17ebef85873ec7caa9d5802d5ffa40b947cc201dc",
+      "lib/atproto/metadata.ts": "068a54db802b5ec06744942035fbe65bd5b22b13f489b9c44ea8ec033ce6e1af",
+      "lib/atproto/oauth-binding.ts": "1444918a1d50c3f0dbab18bf559cf79c7f349de01c0409bcebb37c4ad123efea",
+      "lib/atproto/oauth-crypto.ts": "0c64d0469a3c69c995b0671fd0fd3117b71735e9e7cc7effbb7615ac4fabd2ab",
+      "lib/atproto/oauth-fetch.ts": "cb856a05e321f9da30a90cad25804e57733e3078b8287b5b750e1532190be0a3",
+      "lib/atproto/oauth-storage.ts": "65d5a8a86362d6ead8521acc0ad15a4eed92a548990523134023974e77356778",
+      "lib/atproto/oauth.ts": "4a2dc2aed29359bc5d97dec6629849e1e7292ce5c7d5bc2482f4e854552a56c6",
+      "lib/atproto/plan.ts": "31f9b03217e15cb965c8c5edbd6ca58ca882f5f822c02d89e24f1d6a6e996483",
+      "lib/atproto/records.ts": "4d8d33e847638868ebe185c7a0f9dbeda929bdc4d2e0fd1b0c406d9cb4549720",
+      "lib/atproto/response-observations.ts": "db4b624be741aa55a72959e6b0d10bad686a89a466171b8ac3df58c7a2b15436",
+      "lib/atproto/response-records.ts": "7be101d8b0899749a8d7b35a1939172917f02b9ab529d1aa9e6a56746d0513b0",
+      "lib/atproto/responses.ts": "45e2a188e3cb8d1c3c799e33918ccf6feb8421bc940a2a484b2e1f20a2f2e72e",
+      "lib/atproto/social-http.ts": "8913ba3986a33c34d072f4eba5580fb66bfa3975a7d27e85db8a31858021eef2",
+      "lib/atproto/social-targets.ts": "1b199ef8456b11791ea5bd98bbc6aa03d4e002f7aa872e73c92ea298b3aeda96",
+      "lib/atproto/social.ts": "dd3a7a5e8741fa33f42123dd99c9a6233ffb6b003841d057a457bb7508a52851",
+      "lib/atproto/sync.ts": "47f7c5c3401bc2ff87ed9f4cac6f9d73c3f9c98cf2c10b560ec673bccbdf3b32",
+      "lib/atproto/types.ts": "619992a2887d97812a9a60ad799d6ecf0883f2b034050c74591e7f8570ad8f4b",
+      "lib/atproto/verification.ts": "ba15baca161ad61fbd9c34edf782cc0a476184f4ba6d867c47d454a08df36c25"
+    },
+    "deployedCode": false
+  },
+  "fullVerification": "pending",
+  "method": "Normal provider consent in separate browser contexts, actual deployed social API mutations and public PDS readback, controlled real browser-delivery failures, exact owned target/PDS outage recovery, and independent official provider token inventory.",
+  "counts": {
+    "apiChecks": 18,
+    "uiFailureChecks": 5,
+    "logoutUiChecks": 1
+  },
+  "apiChecks": [
+    {
+      "name": "Existing real OAuth grants and Secure/HttpOnly/Lax cookies are accepted",
+      "observedAt": "2026-10-09T10:36:44.098Z",
+      "details": {
+        "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+        "secondVisitor": "did:plc:vvx2yc7zxnllgsk4xce5snhh"
+      }
+    },
+    {
+      "name": "Deployed metadata and real DPoP grants request Standard.site social permissions",
+      "observedAt": "2026-10-09T10:36:44.628Z",
+      "details": {
+        "grants": [
+          {
+            "subject": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+            "issuer": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev",
+            "audience": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev/",
+            "scope": "repo?collection=site.standard.graph.recommend&collection=site.standard.graph.subscription atproto",
+            "tokenType": "DPoP"
+          },
+          {
+            "subject": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+            "issuer": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev",
+            "audience": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev/",
+            "scope": "repo?collection=site.standard.graph.recommend&collection=site.standard.graph.subscription atproto",
+            "tokenType": "DPoP"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Anonymous and cross-origin requests cannot write",
+      "observedAt": "2026-10-09T10:36:45.188Z"
+    },
+    {
+      "name": "Missing writings and authored drafts reject create and undo without changing either visitor graph",
+      "observedAt": "2026-10-09T10:36:47.696Z"
+    },
+    {
+      "name": "Real subscription writes are idempotent and match public PDS state",
+      "observedAt": "2026-10-09T10:36:51.807Z",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.subscription/3mxgrqjli2a27",
+        "cid": "bafyreiduib4yhejyneiubvz73pindnyiutjlxpz3gmxtmef4kvpk4yg5ta"
+      }
+    },
+    {
+      "name": "Explicit subscription undo removes matching PDS records",
+      "observedAt": "2026-10-09T10:36:54.002Z"
+    },
+    {
+      "name": "Real subscription records created by a second publishing client are recognized and explicitly removed",
+      "observedAt": "2026-10-09T10:36:57.942Z"
+    },
+    {
+      "name": "Real recommendation writes are idempotent and match public PDS state",
+      "observedAt": "2026-10-09T10:38:04.092Z",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.recommend/3mxgrso2gfi27",
+        "cid": "bafyreiamjtdhqrgtqosaf5zlwmezhnufnmsgmtzrchgloeymz3grirlt7e"
+      }
+    },
+    {
+      "name": "Explicit recommendation undo removes matching PDS records",
+      "observedAt": "2026-10-09T10:38:06.431Z"
+    },
+    {
+      "name": "Real recommendation records created by a second publishing client are recognized and explicitly removed",
+      "observedAt": "2026-10-09T10:38:10.655Z"
+    },
+    {
+      "name": "One visitor cannot change another account or browser state",
+      "observedAt": "2026-10-09T10:38:12.546Z"
+    },
+    {
+      "name": "A captured consumed provider callback cannot create a new session or replay its action",
+      "observedAt": "2026-10-09T10:38:13.343Z"
+    },
+    {
+      "name": "Real provider cancel callback rejects the action without replacing a session",
+      "observedAt": "2026-10-09T10:38:13.604Z",
+      "details": {}
+    },
+    {
+      "name": "Real provider expired callback rejects the action without replacing a session",
+      "observedAt": "2026-10-09T10:38:13.867Z",
+      "details": {
+        "expirySource": "Only this genuine authorization state database deadline was moved into the past; the provider code was real."
+      }
+    },
+    {
+      "name": "A fresh signed-out browser declined genuine provider authorization and returned without a session or social write",
+      "observedAt": "2026-10-09T10:38:14.045Z",
+      "details": {
+        "sessionCookie": "absent",
+        "sessionHashMeaning": "SHA256 of the actually absent cookie; not an authenticated session hash"
+      }
+    },
+    {
+      "name": "Two isolated processes force real provider refresh under distributed locks and read the authenticated PDS",
+      "observedAt": "2026-10-09T10:39:18.396Z",
+      "details": {
+        "instances": [
+          {
+            "status": "passed",
+            "pid": 6070,
+            "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+            "providerRefresh": true,
+            "authenticatedPdsRead": true,
+            "accessGenerationChanged": true,
+            "refreshTokenRotated": true,
+            "beforeExpiresAt": "2026-10-09T11:34:14.195Z",
+            "afterExpiresAt": "2026-10-09T11:38:16.953Z"
+          },
+          {
+            "status": "passed",
+            "pid": 6069,
+            "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+            "providerRefresh": true,
+            "authenticatedPdsRead": true,
+            "accessGenerationChanged": true,
+            "refreshTokenRotated": true,
+            "beforeExpiresAt": "2026-10-09T11:34:14.195Z",
+            "afterExpiresAt": "2026-10-09T11:38:16.953Z"
+          }
+        ],
+        "forcedRefresh": true,
+        "naturalExpiry": false
+      }
+    },
+    {
+      "name": "A genuinely issued browser session rejects reads/writes after its isolated deadline is moved into the past",
+      "observedAt": "2026-10-09T10:39:25.177Z"
+    },
+    {
+      "name": "Sign-out revokes only the current browser session",
+      "observedAt": "2026-10-09T10:39:27.839Z"
+    }
+  ],
+  "uiFailureChecks": [
+    {
+      "name": "A lost real subscription success response retains inactive UI until retry confirms the same PDS record",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.subscription/3mxgrmsy5ty27",
+        "cid": "bafyreifckgifs7752udhfynu4sfc3xc4s67mv37uemph5wv5p4i7jw6jyq",
+        "fault": "Only the browser delivery was aborted after a genuine deployed 200 and durable PDS inventory."
+      }
+    },
+    {
+      "name": "A lost real recommendation success response retains inactive UI until retry confirms the same PDS record",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.recommend/3mxgrnbhiyq27",
+        "cid": "bafyreiatwl4a2q3xj4uzjwoiox3gzdcsq77htmseavmiiexgkchchbpuka",
+        "fault": "Only the browser delivery was aborted after a genuine deployed 200 and durable PDS inventory."
+      }
+    },
+    {
+      "name": "A real schema-valid publication with a mismatched URL rejects writes and undo, hides controls on load and preserves both visitors\u2019 graph collections",
+      "details": {
+        "originalCid": "bafyreiait5dbiszuznofbz2bmwgkmdeya3b3hrovikiezs2mgtb5kr7tzq",
+        "modifiedCid": "bafyreigwuzq5cf2g3i2wcypmi5r3djlwg3xigvdkule7h6quddtz7ikllm"
+      }
+    },
+    {
+      "name": "A genuinely paused owned PDS rejects the action without successful UI state",
+      "details": {
+        "container": "dev-williecubed-website-pds-3eafb75977",
+        "healthStatus": 0,
+        "actionStatus": 502,
+        "coverage": "The deployed action returned a provider error; the shared outage does not independently locate the failure at visitor graph writes."
+      }
+    },
+    {
+      "name": "An explicitly aborted browser request shows local retry feedback; a subsequent real request confirms and can undo",
+      "details": {
+        "coverage": "Local transport failure only; no provider failure is claimed by this case."
+      }
+    }
+  ],
+  "logoutUi": {
+    "observedAt": "2026-10-09T10:39:39.517Z",
+    "status": "passed",
+    "transportFailure": "Only the first browser request was aborted; its real session stayed active.",
+    "retry": "The retry used the actual deployed response and cleared the actual browser cookie."
+  },
+  "refresh": {
+    "observedAt": "2026-10-09T10:39:18.396Z",
+    "instances": [
+      {
+        "status": "passed",
+        "pid": 6070,
+        "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+        "providerRefresh": true,
+        "authenticatedPdsRead": true,
+        "accessGenerationChanged": true,
+        "refreshTokenRotated": true,
+        "beforeExpiresAt": "2026-10-09T11:34:14.195Z",
+        "afterExpiresAt": "2026-10-09T11:38:16.953Z"
+      },
+      {
+        "status": "passed",
+        "pid": 6069,
+        "visitor": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+        "providerRefresh": true,
+        "authenticatedPdsRead": true,
+        "accessGenerationChanged": true,
+        "refreshTokenRotated": true,
+        "beforeExpiresAt": "2026-10-09T11:34:14.195Z",
+        "afterExpiresAt": "2026-10-09T11:38:16.953Z"
+      }
+    ],
+    "forcedRefresh": true,
+    "naturalExpiry": false
+  },
+  "expiry": {
+    "authorizationState": "Only a genuinely issued authorization state deadline was moved into the past.",
+    "browserSession": "Only a genuinely issued owned browser-session deadline was moved into the past.",
+    "naturalExpiryWait": false
+  },
+  "cleanup": {
+    "status": "passed",
+    "checkedAt": "2026-10-09T10:39:52.545Z",
+    "pending": [],
+    "owners": [
+      {
+        "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+        "grantCreated": true,
+        "inventoryComplete": true,
+        "records": [
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.recommend/3mxgrlyhniy27",
+            "cid": "bafyreiehpbcrnur4be5d7b2spby2wu3l2ordhylzbkfqudye4aynnfifoe",
+            "kind": "recommendation",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.subscription/3mxgrmsy5ty27",
+            "cid": "bafyreifckgifs7752udhfynu4sfc3xc4s67mv37uemph5wv5p4i7jw6jyq",
+            "kind": "subscription",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.recommend/3mxgrnbhiyq27",
+            "cid": "bafyreiatwl4a2q3xj4uzjwoiox3gzdcsq77htmseavmiiexgkchchbpuka",
+            "kind": "recommendation",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.recommend/3mxgrq2evqa27",
+            "cid": "bafyreiafhfp73fshslum77rnpwpnqt2xbcbbf3wfjj46cfkz77i7ej4heu",
+            "kind": "recommendation",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.subscription/3mxgrqjli2a27",
+            "cid": "bafyreiduib4yhejyneiubvz73pindnyiutjlxpz3gmxtmef4kvpk4yg5ta",
+            "kind": "subscription",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.subscription/3mxgrqoc5xv5n",
+            "cid": "bafyreid7pq45u53ropx5dtsbq46tbeapytpamatis4xqxeb6nnlga44fge",
+            "kind": "subscription",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.subscription/3mxgrqoioaxwt",
+            "cid": "bafyreiad43rr22itlliq3ezztnt2fshzt6lrg4ixslzuibdmcs6txtbnxq",
+            "kind": "subscription",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.recommend/3mxgrso2gfi27",
+            "cid": "bafyreiamjtdhqrgtqosaf5zlwmezhnufnmsgmtzrchgloeymz3grirlt7e",
+            "kind": "recommendation",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.recommend/3mxgrstejeza7",
+            "cid": "bafyreieejbkrttfhkrj4j2pfqyxa6xvntu3amertyaxu6vxk5fpygaxrmu",
+            "kind": "recommendation",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a"
+          },
+          {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.graph.recommend/3mxgrstlr3ors",
+            "cid": "bafyreidl3qy3ucrpn47nbgd4x5h2g7byw6hqd6s5e3j7in2ecamwxbtenq",
+            "kind": "recommendation",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a"
+          }
+        ],
+        "recordsClean": true,
+        "grantRevoked": true
+      },
+      {
+        "did": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+        "grantCreated": true,
+        "inventoryComplete": true,
+        "records": [
+          {
+            "uri": "at://did:plc:vvx2yc7zxnllgsk4xce5snhh/site.standard.graph.subscription/3mxgrmbryey27",
+            "cid": "bafyreia6ym6rp5v7vplvx2h6vkl5fufc5nr34hoq4qziltazlo26qoucv4",
+            "kind": "subscription",
+            "target": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb"
+          }
+        ],
+        "recordsClean": true,
+        "grantRevoked": true
+      }
+    ],
+    "authorization": {
+      "checkedAt": "2026-10-09T10:39:52.543Z",
+      "status": "passed",
+      "runtimeRevision": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+      "unexpiredDatabaseRowsPreserved": true,
+      "expiredStatesPrunedByRuntime": [],
+      "visitorGraphsRestored": true,
+      "baselineCounts": {
+        "states": 0,
+        "grants": 0,
+        "browsers": 0
+      }
+    },
+    "publicationMismatchRestored": true,
+    "ownedPdsOutageRecovered": true,
+    "providerRevocationMeaning": "SDK request and local deletion; independent owned-provider inventory must confirm remote invalidation."
+  },
+  "providerInventory": {
+    "version": 1,
+    "status": "passed",
+    "checkedAt": "2026-10-09T10:40:27.660Z",
+    "method": "Official PDS account.sqlite token table; node:sqlite readOnly transaction",
+    "scope": "Current active token rows for the canonical acceptance client and two owned DIDs. authorized_client consent metadata is independent and is not required to be absent. This check does not prove an earlier revocation HTTP response.",
+    "canonicalClient": "https://indieweb-acceptance.vercel.app/oauth-client-metadata.json",
+    "containerId": "352c2befbf48d88b11c623d34d960352356f0cf08d3f33ba357173cd15d28e97",
+    "image": "ghcr.io/bluesky-social/pds@sha256:3a8feb3415e319dbcc13372293b7ef1fb05a318a6ff1d55968cf99ba6633c5d4",
+    "imageId": "sha256:3a8feb3415e319dbcc13372293b7ef1fb05a318a6ff1d55968cf99ba6633c5d4",
+    "baselineCompared": true,
+    "foreignTokensPreserved": true,
+    "tokenCounts": [
+      {
+        "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+        "tokens": 0
+      },
+      {
+        "did": "did:plc:vvx2yc7zxnllgsk4xce5snhh",
+        "tokens": 0
+      }
+    ],
+    "foreignTokens": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "screenshots": {
+    "status": "passed-invoked-capture-gates-and-representative-final-craft-review",
+    "acceptedForFinalCraft": true,
+    "retainedCaptureCount": 180,
+    "stateCount": 45,
+    "variants": {
+      "widths": [
+        1440,
+        390
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    "method": "Before each full-page render, the browser invoked the computed-color predicate, confirmed actual theme/color-scheme, body and visible muted/action colors, and waited for running CSS transitions to end. Each render also passed the one-pixel document-overflow bound.",
+    "helperSha256": "02f8e41f3ed7098ed3fc50a724efcc0834bcad4bb4fe8cc87f8a8a40bc750cb1",
+    "reason": "An independent agent personally inspected 20 current representative screenshots and found no actionable defect. It did not inspect all180 images.",
+    "captures": [
+      {
+        "file": "browser-session-before-expiry-1440-dark.png",
+        "sha256": "c23b823d4d4b6bcfa65dca1cc4bc5ab9b3f5fbb212c7dc7addd3798469d8b010",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/browser-session-before-expiry-1440-dark.png"
+      },
+      {
+        "file": "browser-session-before-expiry-1440-light.png",
+        "sha256": "70889b1cd86232935487aede860064fc0b8fd0045bcb0d04a69dcf2a6b5c1a6a",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/browser-session-before-expiry-1440-light.png"
+      },
+      {
+        "file": "browser-session-before-expiry-390-dark.png",
+        "sha256": "9a8b8ec098eab0a6276ad09b64c4db8946fbfefd993eb1f6a5c5097f1a4df8fd",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/browser-session-before-expiry-390-dark.png"
+      },
+      {
+        "file": "browser-session-before-expiry-390-light.png",
+        "sha256": "37c3f3e0b571ffb7e26dcc60f193c358f48ce01b38ae3c721871dd89a43edb24",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/browser-session-before-expiry-390-light.png"
+      },
+      {
+        "file": "browser-session-expired-sign-in-recovery-1440-dark.png",
+        "sha256": "55ca7787e10f303b5760fa8d8004f46eb9ae337f76140e1dc448ba94f2b86fb9",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/browser-session-expired-sign-in-recovery-1440-dark.png"
+      },
+      {
+        "file": "browser-session-expired-sign-in-recovery-1440-light.png",
+        "sha256": "89a14524884a00f16e74caa8d54d9266b9c840c84f43106da9143b673a891e29",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/browser-session-expired-sign-in-recovery-1440-light.png"
+      },
+      {
+        "file": "browser-session-expired-sign-in-recovery-390-dark.png",
+        "sha256": "ee40edf06b20b6f21420cd2b5f27e977744ae1c1b02bfd8170c3c0366dc487bf",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/browser-session-expired-sign-in-recovery-390-dark.png"
+      },
+      {
+        "file": "browser-session-expired-sign-in-recovery-390-light.png",
+        "sha256": "e44e643dc744a1f093957a7d93395b033965aff6ff6690779d74388d3eb91219",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/browser-session-expired-sign-in-recovery-390-light.png"
+      },
+      {
+        "file": "callback-cancelled-returned-1440-dark.png",
+        "sha256": "925d40e8fcdb9b57dea0a3616c5fd09a307d5cf006db697e779d1c66cae03761",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-returned-1440-dark.png"
+      },
+      {
+        "file": "callback-cancelled-returned-1440-light.png",
+        "sha256": "62a8972a043e5afd3c0fe09720dc7d64c83b2e2cf2dcfbb3f0e7086252730aea",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-returned-1440-light.png"
+      },
+      {
+        "file": "callback-cancelled-returned-390-dark.png",
+        "sha256": "356fed3d556332c5b6afff7aeece5b15b06d941b100dda937f7606af977435ef",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-returned-390-dark.png"
+      },
+      {
+        "file": "callback-cancelled-returned-390-light.png",
+        "sha256": "e3fb368434834bb985220916304827eb44a8e7f276c66dc1fb75c3765f348d54",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-returned-390-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-invalid-handle-1440-dark.png",
+        "sha256": "614cd290010498c1c0cdb5500b4264a286e5a8532fcf96bf2c59390b02cfe6f6",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-invalid-handle-1440-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-invalid-handle-1440-light.png",
+        "sha256": "f1863d7e8222d7acab230edfa32e69078513e303a40683cb2c9bd488cefd5cc1",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-invalid-handle-1440-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-invalid-handle-390-dark.png",
+        "sha256": "8abe879b72edbed2816607fe0f93d4964d6d8ce1435b7c0f3b981be38e708841",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-invalid-handle-390-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-invalid-handle-390-light.png",
+        "sha256": "81bd75dc4600e5be4e764173018a0e09491507f13eef0ef3678bd67e35fd6707",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-invalid-handle-390-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-loading-1440-dark.png",
+        "sha256": "0630c3685be8cb8828aae1bfbfefcc1ef7abb4fbe3962a1c25d61f5c8831b615",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-loading-1440-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-loading-1440-light.png",
+        "sha256": "d85617a61f633e0613aa62da54a813c8de0471897e8d053a34add2d947052e5e",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-loading-1440-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-loading-390-dark.png",
+        "sha256": "3356c712868a2463473988ff624b2783bdf36dac57c921eb5322150d29cb088d",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-loading-390-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-loading-390-light.png",
+        "sha256": "cdf59b721ebac319434791d6a4a8fad22ca13274c85735454bd288db242624cb",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-loading-390-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-returned-1440-dark.png",
+        "sha256": "a3a25d7c6ee37bcbc82be59098714f715f677c17858fc1279d15c54797ed509e",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-returned-1440-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-returned-1440-light.png",
+        "sha256": "b320cbd22132fb0fcfeac47a59f455e5a98ba4c6338c3799f068f2c0708c4c9b",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-returned-1440-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-returned-390-dark.png",
+        "sha256": "703a8bc5b5c51055b4cd76af6bdf895701033008c671fd09dd2740cd780aaad3",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-returned-390-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-returned-390-light.png",
+        "sha256": "337a27234f981fbe5ab3d2d17ad69b28730f9e5f90628df4a6229ea31b96fcd6",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-returned-390-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-sign-in-1440-dark.png",
+        "sha256": "63ac00cfecd141cec87080448586a8b15e55c7b9c3bfcb4e2719c8a14c260ba7",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-sign-in-1440-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-sign-in-1440-light.png",
+        "sha256": "618bbce5c3837423f0e91ad61462a85c7efc43aac4028f58437194131f8220d3",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-sign-in-1440-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-sign-in-390-dark.png",
+        "sha256": "b1e722983ac52420749aa119ed504da4d825ffa6460fb9805d0a42cfee8ab74b",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-sign-in-390-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-sign-in-390-light.png",
+        "sha256": "eec907ff7f570b033230d7c60b1f037883bca696bf6a8f655754033b9884e0ac",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-sign-in-390-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-sign-in-pending-1440-dark.png",
+        "sha256": "d1f795b175d1f86cdf079b34c9a64900df704fede7badbc48a16cc21a2abf92a",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-sign-in-pending-1440-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-sign-in-pending-1440-light.png",
+        "sha256": "e005c5a2803954a7005257aaa1c06d7928ed9ea3a92316ea05065587a2247467",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-sign-in-pending-1440-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-sign-in-pending-390-dark.png",
+        "sha256": "9179beb166bcb38a3c0ccd0a2652fc821bae2cc926da12f464213b3e49c6514f",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-sign-in-pending-390-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-sign-in-pending-390-light.png",
+        "sha256": "18efa82b54d25961139b049022b368fb6560d0c8fdf6c259ddde8daf3fd98eb9",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-sign-in-pending-390-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-signed-out-1440-dark.png",
+        "sha256": "56ea4beb80a95f04e01bb1e22fb9acddf94061cc30d48f45873f6de873e0ac71",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-signed-out-1440-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-signed-out-1440-light.png",
+        "sha256": "e799e17f51472910d74443fe1565a53b5ffc429b6b09bf85206c58b304c6bf92",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-signed-out-1440-light.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-signed-out-390-dark.png",
+        "sha256": "0777191fd2efaa796c26bf65d4db9a3e7bf2da27727b17658c006f4a082147a4",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-signed-out-390-dark.png"
+      },
+      {
+        "file": "callback-cancelled-signed-out-signed-out-390-light.png",
+        "sha256": "0276d9506d3dfd6264dc93c68831359479fa6fdf96ca9a7be1659c7553ddbd68",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-cancelled-signed-out-signed-out-390-light.png"
+      },
+      {
+        "file": "callback-expired-returned-1440-dark.png",
+        "sha256": "925d40e8fcdb9b57dea0a3616c5fd09a307d5cf006db697e779d1c66cae03761",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-expired-returned-1440-dark.png"
+      },
+      {
+        "file": "callback-expired-returned-1440-light.png",
+        "sha256": "9a02aecdcfcd0447e8b37a26f25b51e6cb57aef9074a2b4ed8508371a99f58c0",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-expired-returned-1440-light.png"
+      },
+      {
+        "file": "callback-expired-returned-390-dark.png",
+        "sha256": "356fed3d556332c5b6afff7aeece5b15b06d941b100dda937f7606af977435ef",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-expired-returned-390-dark.png"
+      },
+      {
+        "file": "callback-expired-returned-390-light.png",
+        "sha256": "e3fb368434834bb985220916304827eb44a8e7f276c66dc1fb75c3765f348d54",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-expired-returned-390-light.png"
+      },
+      {
+        "file": "callback-primary-invalid-handle-1440-dark.png",
+        "sha256": "1a466936d0c8e76049a2e3465d1a8350206344c013cafca930a24b26ab4ab2c7",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-invalid-handle-1440-dark.png"
+      },
+      {
+        "file": "callback-primary-invalid-handle-1440-light.png",
+        "sha256": "84f9ababb1f9127cd3f7acd108c941c47bf050be21a39c312920f119db9e9663",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-invalid-handle-1440-light.png"
+      },
+      {
+        "file": "callback-primary-invalid-handle-390-dark.png",
+        "sha256": "e0c3267fbd9b5088b1c510e920775953ecabdcd4f32c835cbd10b0c61a618b8d",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-invalid-handle-390-dark.png"
+      },
+      {
+        "file": "callback-primary-invalid-handle-390-light.png",
+        "sha256": "e8b90b3d0bcfa0efed4a2c6398ba7847f782a7efbb8a8ad8c15bd65c676e2f9c",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-invalid-handle-390-light.png"
+      },
+      {
+        "file": "callback-primary-loading-1440-dark.png",
+        "sha256": "a26de99f0502ebd6d6f5bb50e3a89d64f7b2d86de62be1eedb6afdb4a2b7939f",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-loading-1440-dark.png"
+      },
+      {
+        "file": "callback-primary-loading-1440-light.png",
+        "sha256": "4b3b929dcedaec7038811f8471c2c1a1bacb5e61c2424b78a45a67f1ce707a99",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-loading-1440-light.png"
+      },
+      {
+        "file": "callback-primary-loading-390-dark.png",
+        "sha256": "96e3842d9eabfc4ac71e115552edccd10eeda23e15d09bd8b77f49046ba986ea",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-loading-390-dark.png"
+      },
+      {
+        "file": "callback-primary-loading-390-light.png",
+        "sha256": "87d6ea4ce44a8e60dbabb71369326b16b0047d775fc3e24c0059993585eff8fb",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-loading-390-light.png"
+      },
+      {
+        "file": "callback-primary-returned-1440-dark.png",
+        "sha256": "50ceca3a5408496ba66c4372cfcba938b3a4e9f85074484ce316826e3330c82e",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-returned-1440-dark.png"
+      },
+      {
+        "file": "callback-primary-returned-1440-light.png",
+        "sha256": "c420acd91a7fd164a00e59d4352cee60cb812f0fda27175d276dad1182dc6000",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-returned-1440-light.png"
+      },
+      {
+        "file": "callback-primary-returned-390-dark.png",
+        "sha256": "a33cda6e660f83898d2a58f7514f754cfc4bc69c739ee89e0f61604bc3f0b161",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-returned-390-dark.png"
+      },
+      {
+        "file": "callback-primary-returned-390-light.png",
+        "sha256": "29e660f70b0d8c01af27c86265b262320b6a6969d7efa5e1b0847bd67e3d8dc1",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-returned-390-light.png"
+      },
+      {
+        "file": "callback-primary-sign-in-1440-dark.png",
+        "sha256": "aa08735d7ebfb9bd1a49ecafcfe2a36c73f4e38cf61b87f002b4ffe93d036803",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-sign-in-1440-dark.png"
+      },
+      {
+        "file": "callback-primary-sign-in-1440-light.png",
+        "sha256": "8c54b1e0323ab138db1375922e3a7fcef1f574d7bf6dffdf1ce5f5eeaca9666f",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-sign-in-1440-light.png"
+      },
+      {
+        "file": "callback-primary-sign-in-390-dark.png",
+        "sha256": "2337beea52ce1bac7cfcdcaaa28b483b16c5af211b8bbc44ef70c83dab7fd0bf",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-sign-in-390-dark.png"
+      },
+      {
+        "file": "callback-primary-sign-in-390-light.png",
+        "sha256": "79045879906a668435ed1514a4056612fa3baa42f80d90d6dbec7da635fe7b28",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-sign-in-390-light.png"
+      },
+      {
+        "file": "callback-primary-sign-in-pending-1440-dark.png",
+        "sha256": "2553b6b04a48b1283b0a003b903fa030a6bf2fe0da748285dd1e629af4445798",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-sign-in-pending-1440-dark.png"
+      },
+      {
+        "file": "callback-primary-sign-in-pending-1440-light.png",
+        "sha256": "b545baeefa7f910fc8635a62f70bb10114d5525a22167eafdd534315271b1639",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-sign-in-pending-1440-light.png"
+      },
+      {
+        "file": "callback-primary-sign-in-pending-390-dark.png",
+        "sha256": "0d770d5d4f34c2147693eb9987d50946c6581338ddb174084dfdd1bc38b2af75",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-sign-in-pending-390-dark.png"
+      },
+      {
+        "file": "callback-primary-sign-in-pending-390-light.png",
+        "sha256": "168cdd4a4252c813666ffb658465625ef68660a400aa1094df7b44ca343887c2",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-sign-in-pending-390-light.png"
+      },
+      {
+        "file": "callback-primary-signed-out-1440-dark.png",
+        "sha256": "f1e28962c4941d5e6fd0eff04d56d5a0fa7c382fed3eabcb13a6470137cd78f5",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-signed-out-1440-dark.png"
+      },
+      {
+        "file": "callback-primary-signed-out-1440-light.png",
+        "sha256": "a851ac870cd07d60f3cc6d2d693a4ff04db6f5334de05a74168bb9141b858a86",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-signed-out-1440-light.png"
+      },
+      {
+        "file": "callback-primary-signed-out-390-dark.png",
+        "sha256": "2b5d37f7d559fb4dc0fd32785e5c2eeb37011231321a7dfa3d88f605592696eb",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-signed-out-390-dark.png"
+      },
+      {
+        "file": "callback-primary-signed-out-390-light.png",
+        "sha256": "bab496453ec9c8ced795e6be7394ee5f11cebdf1fcc2386856b8e8351fa03b73",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-primary-signed-out-390-light.png"
+      },
+      {
+        "file": "callback-second-returned-1440-dark.png",
+        "sha256": "925d40e8fcdb9b57dea0a3616c5fd09a307d5cf006db697e779d1c66cae03761",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-second-returned-1440-dark.png"
+      },
+      {
+        "file": "callback-second-returned-1440-light.png",
+        "sha256": "6e67a82330b6dd2f82d443a63ede091ede0dadbad76ee20c3de487e0118aadd9",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-second-returned-1440-light.png"
+      },
+      {
+        "file": "callback-second-returned-390-dark.png",
+        "sha256": "356fed3d556332c5b6afff7aeece5b15b06d941b100dda937f7606af977435ef",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-second-returned-390-dark.png"
+      },
+      {
+        "file": "callback-second-returned-390-light.png",
+        "sha256": "e3fb368434834bb985220916304827eb44a8e7f276c66dc1fb75c3765f348d54",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/callback-second-returned-390-light.png"
+      },
+      {
+        "file": "recommendation-after-provider-recovery-1440-dark.png",
+        "sha256": "0b47bbf4e7c73a3db481a2f2b1e2756e8cacbb6b11369f6373b1592eb546cdb5",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-after-provider-recovery-1440-dark.png"
+      },
+      {
+        "file": "recommendation-after-provider-recovery-1440-light.png",
+        "sha256": "01c5cd804b7a9511e41ac172d88d033f80f77102b44eed9b90f45f3df3841330",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-after-provider-recovery-1440-light.png"
+      },
+      {
+        "file": "recommendation-after-provider-recovery-390-dark.png",
+        "sha256": "0a5c94ac245854d50c0c1d8416a14d0d76cd77bccb4d93bce8f21baac8d36721",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-after-provider-recovery-390-dark.png"
+      },
+      {
+        "file": "recommendation-after-provider-recovery-390-light.png",
+        "sha256": "5331289dc358df3d87fd33ad1b7e4b2f31d058e90a4b7fbf518d0ed1f0d6441c",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-after-provider-recovery-390-light.png"
+      },
+      {
+        "file": "recommendation-confirmed-1440-dark.png",
+        "sha256": "24530444af21f69a4e2a6b55882433b71334db89e8626fd11787861db9cd5d37",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-confirmed-1440-dark.png"
+      },
+      {
+        "file": "recommendation-confirmed-1440-light.png",
+        "sha256": "f07487fc226d4e8c71f4f8efe70f4616165be20a06bbfe1af48bb9bf2ef21d46",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-confirmed-1440-light.png"
+      },
+      {
+        "file": "recommendation-confirmed-390-dark.png",
+        "sha256": "f1c6dcb12c773034e2ce8cbb03027fc1af45e1644c1798f46b61e737563d6277",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-confirmed-390-dark.png"
+      },
+      {
+        "file": "recommendation-confirmed-390-light.png",
+        "sha256": "ae3c482f59850437df8dd909ac24b8a072b4ae172cdffeb2ecd30b9c9c2e0e76",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-confirmed-390-light.png"
+      },
+      {
+        "file": "recommendation-local-retry-confirmed-1440-dark.png",
+        "sha256": "938b27e95e0366651094429a2363c6e1b2ae412b26e74580537fea31b2b8d7de",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-confirmed-1440-dark.png"
+      },
+      {
+        "file": "recommendation-local-retry-confirmed-1440-light.png",
+        "sha256": "3cb1f6da04cfab8bab92319878812c672b1cb82193034513d14046fc59123d59",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-confirmed-1440-light.png"
+      },
+      {
+        "file": "recommendation-local-retry-confirmed-390-dark.png",
+        "sha256": "60e57bab7b34c43edb2f396c6f78cb86fe77c22d3c5a9144ddbc55d47640b1f3",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-confirmed-390-dark.png"
+      },
+      {
+        "file": "recommendation-local-retry-confirmed-390-light.png",
+        "sha256": "f9d060678f5bfeedab58a9d703d03da5b3872d99725ad11199374d51cc1e6ad6",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-confirmed-390-light.png"
+      },
+      {
+        "file": "recommendation-local-retry-pending-1440-dark.png",
+        "sha256": "9c93a873ee1a9411696a1cac41ee028c2957bcad14c858cb1f912fda22bb7910",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-pending-1440-dark.png"
+      },
+      {
+        "file": "recommendation-local-retry-pending-1440-light.png",
+        "sha256": "b986cdbd515bd435ea7d725d13100a4e8551d4efd64d2dbb02408b9cf58f581e",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-pending-1440-light.png"
+      },
+      {
+        "file": "recommendation-local-retry-pending-390-dark.png",
+        "sha256": "8ea527f2ef8af392d03bf00eeeaba3aa3bf513e81d9fa86900dd57f54a2dc778",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-pending-390-dark.png"
+      },
+      {
+        "file": "recommendation-local-retry-pending-390-light.png",
+        "sha256": "430f5303b8921d1ab1b46cb37d83906aa7559bcc9fd9e219baf6388f9f8febed",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-pending-390-light.png"
+      },
+      {
+        "file": "recommendation-local-retry-undo-confirmed-1440-dark.png",
+        "sha256": "f3adad726ec82c4d359bf3bc68a99efc7b612723cf0e7ab2725aad8775aa4c5a",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-undo-confirmed-1440-dark.png"
+      },
+      {
+        "file": "recommendation-local-retry-undo-confirmed-1440-light.png",
+        "sha256": "1d979e9d7b74ebf51424331311fe5e4ce2f7c65028392a16808d648dc13440c3",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-undo-confirmed-1440-light.png"
+      },
+      {
+        "file": "recommendation-local-retry-undo-confirmed-390-dark.png",
+        "sha256": "0a5c94ac245854d50c0c1d8416a14d0d76cd77bccb4d93bce8f21baac8d36721",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-undo-confirmed-390-dark.png"
+      },
+      {
+        "file": "recommendation-local-retry-undo-confirmed-390-light.png",
+        "sha256": "5331289dc358df3d87fd33ad1b7e4b2f31d058e90a4b7fbf518d0ed1f0d6441c",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-undo-confirmed-390-light.png"
+      },
+      {
+        "file": "recommendation-local-retry-undo-pending-1440-dark.png",
+        "sha256": "a841a7ad5e22d038b658705bfad5450e1e29309c9004b0179f43163f9140272a",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-undo-pending-1440-dark.png"
+      },
+      {
+        "file": "recommendation-local-retry-undo-pending-1440-light.png",
+        "sha256": "b7523bb072658234d7b11c07b2e576dadbc8f9ea97583b512f939ca7be486c1e",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-undo-pending-1440-light.png"
+      },
+      {
+        "file": "recommendation-local-retry-undo-pending-390-dark.png",
+        "sha256": "a62e18e47c61474ee54005d6252ddf0988f9c3c843d4085ca0e6bccc97967be1",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-undo-pending-390-dark.png"
+      },
+      {
+        "file": "recommendation-local-retry-undo-pending-390-light.png",
+        "sha256": "23fabc25cd24948709255a44c8e37444b21652c35adcd1c027aea077f7c8b5b7",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-retry-undo-pending-390-light.png"
+      },
+      {
+        "file": "recommendation-local-transport-failure-1440-dark.png",
+        "sha256": "0763ef9c7f940949d7c55b47ed1a7f8e271debf807c11f5fbed38e89a6d9532a",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-transport-failure-1440-dark.png"
+      },
+      {
+        "file": "recommendation-local-transport-failure-1440-light.png",
+        "sha256": "4dbf903340484fa0da8183ed42649ba4064f0d8e606d841796efcaa28c646fa6",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-transport-failure-1440-light.png"
+      },
+      {
+        "file": "recommendation-local-transport-failure-390-dark.png",
+        "sha256": "893d68398333e2a3f282e544daf48bddf679fc9c6342660f566f46a3e313b6b3",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-transport-failure-390-dark.png"
+      },
+      {
+        "file": "recommendation-local-transport-failure-390-light.png",
+        "sha256": "5c5a87cf7d7671e19762e31795f29804a6bc3fa0e99bf5a1b7291acd49b6297b",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-local-transport-failure-390-light.png"
+      },
+      {
+        "file": "recommendation-lost-response-1440-dark.png",
+        "sha256": "33ac4167ff39760a7d9936ef7e569b50158e7dc389f033d5aaa2cf3c3540bd39",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-lost-response-1440-dark.png"
+      },
+      {
+        "file": "recommendation-lost-response-1440-light.png",
+        "sha256": "23998c11752d485b4cc76723a1f9d89d9be2f79cca502eb5f9f7c316d0d0d768",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-lost-response-1440-light.png"
+      },
+      {
+        "file": "recommendation-lost-response-390-dark.png",
+        "sha256": "79df48091d422a7bfab3495406ad253cfea83e9ee35a16c55873a050f13c35c9",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-lost-response-390-dark.png"
+      },
+      {
+        "file": "recommendation-lost-response-390-light.png",
+        "sha256": "e1977ada21406c12c02ac8672877a013e3a66d5b3ff96d9efe70040570be8d74",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-lost-response-390-light.png"
+      },
+      {
+        "file": "recommendation-owned-pds-outage-1440-dark.png",
+        "sha256": "0f7ad49e03f5e20f0b995a8263514633878592dbcf14826b0f2f268a5e02f334",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-owned-pds-outage-1440-dark.png"
+      },
+      {
+        "file": "recommendation-owned-pds-outage-1440-light.png",
+        "sha256": "e8fffdd7b7136612f569ff8de0b7ff165c94cd780dedf47c779b7edd0ee87e6d",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-owned-pds-outage-1440-light.png"
+      },
+      {
+        "file": "recommendation-owned-pds-outage-390-dark.png",
+        "sha256": "79df48091d422a7bfab3495406ad253cfea83e9ee35a16c55873a050f13c35c9",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-owned-pds-outage-390-dark.png"
+      },
+      {
+        "file": "recommendation-owned-pds-outage-390-light.png",
+        "sha256": "e1977ada21406c12c02ac8672877a013e3a66d5b3ff96d9efe70040570be8d74",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-owned-pds-outage-390-light.png"
+      },
+      {
+        "file": "recommendation-pending-1440-dark.png",
+        "sha256": "3083288e321bbae4d5020614811902ff55714769ca44639b17e14f5fb8a14c42",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-pending-1440-dark.png"
+      },
+      {
+        "file": "recommendation-pending-1440-light.png",
+        "sha256": "2bd47f50f8f0cdc134fe02baa9b684786005a338ea4ed219c43899c123c53c71",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-pending-1440-light.png"
+      },
+      {
+        "file": "recommendation-pending-390-dark.png",
+        "sha256": "8adcfce83e712b7a411bdc2ec68a954b93ac82924be368d4f795f80b8c10bb11",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-pending-390-dark.png"
+      },
+      {
+        "file": "recommendation-pending-390-light.png",
+        "sha256": "219401013c2c44dd2fb94ce7a619ec1b6b658e239d38911608b5e2aa92f45953",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-pending-390-light.png"
+      },
+      {
+        "file": "recommendation-signed-in-inactive-1440-dark.png",
+        "sha256": "1fbdc6c095b5b3cc685ff2207523c75924253e9f6d08c7c899987b521c98cd18",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-signed-in-inactive-1440-dark.png"
+      },
+      {
+        "file": "recommendation-signed-in-inactive-1440-light.png",
+        "sha256": "8e50364a17a1bcf5cc370ecfdfd8269307984eab6a726a19e577647688f9dae5",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-signed-in-inactive-1440-light.png"
+      },
+      {
+        "file": "recommendation-signed-in-inactive-390-dark.png",
+        "sha256": "816f240d6786a4e815be3565c43d4baec7c03fcc772b9b29118eb4e3b62f005f",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-signed-in-inactive-390-dark.png"
+      },
+      {
+        "file": "recommendation-signed-in-inactive-390-light.png",
+        "sha256": "4e6c9f784066e285426fde8494b30cd4d98e8b413bdc1ad27d87c7ec398a969e",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-signed-in-inactive-390-light.png"
+      },
+      {
+        "file": "recommendation-undo-confirmed-1440-dark.png",
+        "sha256": "f0ff7c36b4e0382d1b7b72f82ffe071b320d31cf26a1d4fa29831c74b7fdab33",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-undo-confirmed-1440-dark.png"
+      },
+      {
+        "file": "recommendation-undo-confirmed-1440-light.png",
+        "sha256": "4640f71a5afdb3e8d3197fcbd6263dd85ebb528649e458a20c2a4ab80fcd3747",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-undo-confirmed-1440-light.png"
+      },
+      {
+        "file": "recommendation-undo-confirmed-390-dark.png",
+        "sha256": "816f240d6786a4e815be3565c43d4baec7c03fcc772b9b29118eb4e3b62f005f",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-undo-confirmed-390-dark.png"
+      },
+      {
+        "file": "recommendation-undo-confirmed-390-light.png",
+        "sha256": "4e6c9f784066e285426fde8494b30cd4d98e8b413bdc1ad27d87c7ec398a969e",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-undo-confirmed-390-light.png"
+      },
+      {
+        "file": "recommendation-undo-pending-1440-dark.png",
+        "sha256": "431f6d996b24381743e7c4969d4e7601742b90f6f427573cc33e98544e6ffde4",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-undo-pending-1440-dark.png"
+      },
+      {
+        "file": "recommendation-undo-pending-1440-light.png",
+        "sha256": "7dba96f2dfc4f49fc753b2d057f5f4996989aeaef6064572fc2587076e81bc10",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-undo-pending-1440-light.png"
+      },
+      {
+        "file": "recommendation-undo-pending-390-dark.png",
+        "sha256": "a00ac2997339659ee9605a1332e1e395b52912c25aea964f2e49b5363c25ad4f",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-undo-pending-390-dark.png"
+      },
+      {
+        "file": "recommendation-undo-pending-390-light.png",
+        "sha256": "0334609f672178c4c27e4944abe89be87263007c93cedb704f0280a1c0b185b6",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-undo-pending-390-light.png"
+      },
+      {
+        "file": "recommendation-unverified-action-1440-dark.png",
+        "sha256": "3d33688ca9b8b36e96360f19d8685e2031b186d07388a0499ef063e2fc8d3e20",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-unverified-action-1440-dark.png"
+      },
+      {
+        "file": "recommendation-unverified-action-1440-light.png",
+        "sha256": "8541e4db916407c099b5da97e5c97ea29bd2fbf155551a97f779c6f4d2be77c6",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-unverified-action-1440-light.png"
+      },
+      {
+        "file": "recommendation-unverified-action-390-dark.png",
+        "sha256": "54cdcb43b966a8fbe73b359b0b9bca8038147290094cbf57e47c19e7a116078b",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-unverified-action-390-dark.png"
+      },
+      {
+        "file": "recommendation-unverified-action-390-light.png",
+        "sha256": "2989dd9f5c5954dd0bd4007f780603848bb756f2c77746329eba5d1cae05fead",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/recommendation-unverified-action-390-light.png"
+      },
+      {
+        "file": "sign-out-confirmed-1440-dark.png",
+        "sha256": "7a71c68eb4dc9555fb3fe74e24b022b782afb9aa05202a9de373605419c21cb6",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-confirmed-1440-dark.png"
+      },
+      {
+        "file": "sign-out-confirmed-1440-light.png",
+        "sha256": "9ba02e7584cb8379d21db600205a629650c8736bf94b9bcefce0853c9b7c78e0",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-confirmed-1440-light.png"
+      },
+      {
+        "file": "sign-out-confirmed-390-dark.png",
+        "sha256": "0777191fd2efaa796c26bf65d4db9a3e7bf2da27727b17658c006f4a082147a4",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-confirmed-390-dark.png"
+      },
+      {
+        "file": "sign-out-confirmed-390-light.png",
+        "sha256": "c174475d55a92b6910c74f880c95dfd73617a0851eeeaed7892dad31b62850df",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-confirmed-390-light.png"
+      },
+      {
+        "file": "sign-out-local-failure-1440-dark.png",
+        "sha256": "ce70a3fcfc88ce4c6afcdbc51db3047340843dc454d37b10b75bac0b2505ff99",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-local-failure-1440-dark.png"
+      },
+      {
+        "file": "sign-out-local-failure-1440-light.png",
+        "sha256": "ee10d514ad9416685115c35a6f3181670c358679f47ee6072d7124a012ac3425",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-local-failure-1440-light.png"
+      },
+      {
+        "file": "sign-out-local-failure-390-dark.png",
+        "sha256": "50b14357b8043a2a507669a7e7c7615f41f1060e9e1d8e1a2a035769080f0774",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-local-failure-390-dark.png"
+      },
+      {
+        "file": "sign-out-local-failure-390-light.png",
+        "sha256": "50beea06ba9f160f4a39d4c5002a7e56ce00bbef2214c473a85eeaa982fb014d",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-local-failure-390-light.png"
+      },
+      {
+        "file": "sign-out-options-1440-dark.png",
+        "sha256": "edb917d24284ed5a416ada468428b23a58470fe17e3d14fb7e26956840eb68b4",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-options-1440-dark.png"
+      },
+      {
+        "file": "sign-out-options-1440-light.png",
+        "sha256": "cb0eada3ee23073e2c0113be866fb3c32b3244464fbd3658e5cd48a1354747ba",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-options-1440-light.png"
+      },
+      {
+        "file": "sign-out-options-390-dark.png",
+        "sha256": "030b5a51ae5c4fee1a73519cbc35275e2c1f536c5aed633829c6402dfe8d4bf5",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-options-390-dark.png"
+      },
+      {
+        "file": "sign-out-options-390-light.png",
+        "sha256": "eb5b99056143e724c325e9847982011be6288ca7a075276b7be1b9b271495d2b",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-options-390-light.png"
+      },
+      {
+        "file": "sign-out-pending-1440-dark.png",
+        "sha256": "76bb1bf0ac046eeed553f28437286fbe7e29a01ca7caee34d0a5b2728b1e1e6b",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-pending-1440-dark.png"
+      },
+      {
+        "file": "sign-out-pending-1440-light.png",
+        "sha256": "79ec30346b88c2c9fda27208a88154ce32c0da0700867d7a966030eac2e1835f",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-pending-1440-light.png"
+      },
+      {
+        "file": "sign-out-pending-390-dark.png",
+        "sha256": "f4918ff3f83ab781acf30000746f4bebb46964a60423f97f9da63780f5d60aff",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-pending-390-dark.png"
+      },
+      {
+        "file": "sign-out-pending-390-light.png",
+        "sha256": "a9d5950fb0d87365417e77748875332a14bb08164e5daecd2d409ee2d62a85d6",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/sign-out-pending-390-light.png"
+      },
+      {
+        "file": "signed-in-primary-1440-dark.png",
+        "sha256": "50ceca3a5408496ba66c4372cfcba938b3a4e9f85074484ce316826e3330c82e",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-in-primary-1440-dark.png"
+      },
+      {
+        "file": "signed-in-primary-1440-light.png",
+        "sha256": "c8a41a06a7b906f41a9fec9166ca1dfb603f068c0847ad1b8b7aab863e9aba50",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-in-primary-1440-light.png"
+      },
+      {
+        "file": "signed-in-primary-390-dark.png",
+        "sha256": "a33cda6e660f83898d2a58f7514f754cfc4bc69c739ee89e0f61604bc3f0b161",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-in-primary-390-dark.png"
+      },
+      {
+        "file": "signed-in-primary-390-light.png",
+        "sha256": "29e660f70b0d8c01af27c86265b262320b6a6969d7efa5e1b0847bd67e3d8dc1",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-in-primary-390-light.png"
+      },
+      {
+        "file": "signed-in-second-1440-dark.png",
+        "sha256": "925d40e8fcdb9b57dea0a3616c5fd09a307d5cf006db697e779d1c66cae03761",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-in-second-1440-dark.png"
+      },
+      {
+        "file": "signed-in-second-1440-light.png",
+        "sha256": "62a8972a043e5afd3c0fe09720dc7d64c83b2e2cf2dcfbb3f0e7086252730aea",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-in-second-1440-light.png"
+      },
+      {
+        "file": "signed-in-second-390-dark.png",
+        "sha256": "356fed3d556332c5b6afff7aeece5b15b06d941b100dda937f7606af977435ef",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-in-second-390-dark.png"
+      },
+      {
+        "file": "signed-in-second-390-light.png",
+        "sha256": "e3fb368434834bb985220916304827eb44a8e7f276c66dc1fb75c3765f348d54",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-in-second-390-light.png"
+      },
+      {
+        "file": "signed-out-primary-1440-dark.png",
+        "sha256": "14dd83364c1ce817aa322ee08ea4f7666727771be586ccbd37b3b0f7397312f9",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-out-primary-1440-dark.png"
+      },
+      {
+        "file": "signed-out-primary-1440-light.png",
+        "sha256": "e8b71542efc53f5a99afa0ee1795e5104b62da7bcf90d7dd74b8a5d1e70f9196",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-out-primary-1440-light.png"
+      },
+      {
+        "file": "signed-out-primary-390-dark.png",
+        "sha256": "2e85638b9c389d0cd5b4f44c16002f4ed49811aba949777f92c4dda63fe02190",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-out-primary-390-dark.png"
+      },
+      {
+        "file": "signed-out-primary-390-light.png",
+        "sha256": "8d984f22707cf598bf1676a65a4c3ddedf82e822a9dfcd29b6cd48602b35760f",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/signed-out-primary-390-light.png"
+      },
+      {
+        "file": "subscription-confirmed-1440-dark.png",
+        "sha256": "fef4d361b97342d6a6093ca36be43f9f61f212ba944ae2dd8e7cc63a3d0a17e8",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-confirmed-1440-dark.png"
+      },
+      {
+        "file": "subscription-confirmed-1440-light.png",
+        "sha256": "7e26b4607ce3a2e84810d65cf28d8ca77ab52d01a0f8e5debf97321b01304f89",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-confirmed-1440-light.png"
+      },
+      {
+        "file": "subscription-confirmed-390-dark.png",
+        "sha256": "356fed3d556332c5b6afff7aeece5b15b06d941b100dda937f7606af977435ef",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-confirmed-390-dark.png"
+      },
+      {
+        "file": "subscription-confirmed-390-light.png",
+        "sha256": "739c07be523da366ca3df111eacd62dde892f8b0e9c9246c9a315252feddbdee",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-confirmed-390-light.png"
+      },
+      {
+        "file": "subscription-lost-response-1440-dark.png",
+        "sha256": "6deb595fe7e2673f37d56d08ece9e8c7d92cddc630a5b26b907fdd1d804f5c3f",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-lost-response-1440-dark.png"
+      },
+      {
+        "file": "subscription-lost-response-1440-light.png",
+        "sha256": "9416006ba12022234febd0e10ee86a1d007683157bf0d42f03538a28839ea6e9",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-lost-response-1440-light.png"
+      },
+      {
+        "file": "subscription-lost-response-390-dark.png",
+        "sha256": "dd1b91bf5ecf4465f10819f6d5e7ce81e512ff81f9445ac7fc3b75ca9df16533",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-lost-response-390-dark.png"
+      },
+      {
+        "file": "subscription-lost-response-390-light.png",
+        "sha256": "7ac66e07809799a3909cac852d70dcfe54e8150eecc41cbdf4b5564287408277",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-lost-response-390-light.png"
+      },
+      {
+        "file": "subscription-pending-1440-dark.png",
+        "sha256": "3f8e4034003b9bf4847342046539da2166fc24678c8865a859e94ec40f20c2e3",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-pending-1440-dark.png"
+      },
+      {
+        "file": "subscription-pending-1440-light.png",
+        "sha256": "a60d215e4b3d2426d1b0c37800aa3e9881da790dd5b83cad0e8a24ec79c7e59e",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-pending-1440-light.png"
+      },
+      {
+        "file": "subscription-pending-390-dark.png",
+        "sha256": "ba51dbe05acf97775e146db4083ee41b8b90f32c6c0d9f4bf4f91d8461ed10e7",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-pending-390-dark.png"
+      },
+      {
+        "file": "subscription-pending-390-light.png",
+        "sha256": "f9d2f6d065f1f84c1b406a9ada0724315887da9aa05be7c8286324c889371fe9",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-pending-390-light.png"
+      },
+      {
+        "file": "subscription-signed-in-inactive-1440-dark.png",
+        "sha256": "e3389de966ef6ed6eda73352e09728b4f9f4aecfbb69366b71e6d0ba08ce31bd",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-signed-in-inactive-1440-dark.png"
+      },
+      {
+        "file": "subscription-signed-in-inactive-1440-light.png",
+        "sha256": "799d08b5bef39cdc48c1fa73ff07213011208f1467c7001a205c874d5ecd087d",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-signed-in-inactive-1440-light.png"
+      },
+      {
+        "file": "subscription-signed-in-inactive-390-dark.png",
+        "sha256": "312094c936d72f2b2a2322a7a9e63ecd017065fe1c2cbb98be709acb510a8296",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-signed-in-inactive-390-dark.png"
+      },
+      {
+        "file": "subscription-signed-in-inactive-390-light.png",
+        "sha256": "d52f35d621027156846224f4f64c1eea55c11cf99979218a1df971f5a5ffb107",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-signed-in-inactive-390-light.png"
+      },
+      {
+        "file": "subscription-undo-confirmed-1440-dark.png",
+        "sha256": "51dad1f1e0a5c5b0e0459ce830d31af8298d36d398e18be4814f86588f7ee191",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-undo-confirmed-1440-dark.png"
+      },
+      {
+        "file": "subscription-undo-confirmed-1440-light.png",
+        "sha256": "a299eff448b4d8fd732efb7bdee00ea6cc449d17e7459d2d0ddb0982a556cc41",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-undo-confirmed-1440-light.png"
+      },
+      {
+        "file": "subscription-undo-confirmed-390-dark.png",
+        "sha256": "4bed4dd164249ceb2ae629e7f3fd9e5ed23e749729cc493ce0c04da81003c68b",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-undo-confirmed-390-dark.png"
+      },
+      {
+        "file": "subscription-undo-confirmed-390-light.png",
+        "sha256": "d52f35d621027156846224f4f64c1eea55c11cf99979218a1df971f5a5ffb107",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-undo-confirmed-390-light.png"
+      },
+      {
+        "file": "subscription-undo-pending-1440-dark.png",
+        "sha256": "89d05fd066ee4441aa156f954ceef6052031f5f8794a8d7950c70b4bcde87f96",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-undo-pending-1440-dark.png"
+      },
+      {
+        "file": "subscription-undo-pending-1440-light.png",
+        "sha256": "faa68c0b2b18ab569a6adad451a70900bf846f2756d81d981ec235f462590a9c",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-undo-pending-1440-light.png"
+      },
+      {
+        "file": "subscription-undo-pending-390-dark.png",
+        "sha256": "6446f6c9760dcbf16df17d7d79edebe337837b0478a6743c4656a34bb997343a",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-undo-pending-390-dark.png"
+      },
+      {
+        "file": "subscription-undo-pending-390-light.png",
+        "sha256": "9734c1e0b485ec66058e4cfa25c7c5851c311e0fad33deb5e2f05a3cbb03723c",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/subscription-undo-pending-390-light.png"
+      },
+      {
+        "file": "unverified-controls-hidden-1440-dark.png",
+        "sha256": "e6346b9f1cb20468373169c6c4e893d05dad5eeb578e1b8aaa8b0b3b21f5d003",
+        "width": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/unverified-controls-hidden-1440-dark.png"
+      },
+      {
+        "file": "unverified-controls-hidden-1440-light.png",
+        "sha256": "23990b63bba934c396d4d17813907cb5f932edf4b9d6fe53c09000f5725549cc",
+        "width": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/unverified-controls-hidden-1440-light.png"
+      },
+      {
+        "file": "unverified-controls-hidden-390-dark.png",
+        "sha256": "83234200ad104ab6a720c7fbd16debb47b5344bc77e1675cd518d8f2ad728e8e",
+        "width": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/unverified-controls-hidden-390-dark.png"
+      },
+      {
+        "file": "unverified-controls-hidden-390-light.png",
+        "sha256": "50b9654b18797d2691bc32f76d8f6f6a67b6ccc9a20afe2a830e32bef20a0bee",
+        "width": 390,
+        "theme": "light",
+        "fullPage": true,
+        "retainedFile": "docs/evidence/atproto-social-states-20261009/unverified-controls-hidden-390-light.png"
+      }
+    ],
+    "representativeReview": {
+      "status": "passed",
+      "reviewedCount": 20,
+      "manuallyInspectedAllCaptures": false,
+      "files": [
+        "callback-primary-loading-390-light.png",
+        "callback-primary-sign-in-390-dark.png",
+        "callback-primary-invalid-handle-390-light.png",
+        "callback-primary-sign-in-pending-1440-dark.png",
+        "callback-expired-returned-1440-light.png",
+        "browser-session-expired-sign-in-recovery-390-dark.png",
+        "signed-out-primary-1440-dark.png",
+        "subscription-confirmed-1440-light.png",
+        "subscription-pending-390-dark.png",
+        "subscription-undo-pending-1440-light.png",
+        "recommendation-confirmed-390-light.png",
+        "recommendation-local-transport-failure-1440-dark.png",
+        "recommendation-lost-response-390-light.png",
+        "recommendation-owned-pds-outage-390-light.png",
+        "recommendation-unverified-action-1440-light.png",
+        "unverified-controls-hidden-390-dark.png",
+        "sign-out-options-1440-light.png",
+        "sign-out-local-failure-390-dark.png",
+        "sign-out-pending-1440-dark.png",
+        "sign-out-confirmed-390-light.png"
+      ],
+      "finding": "No actionable defect. Small tonal split buttons, local errors and native/IndieWeb/manual sharing button actions remain contained. Light metadata colors match the theme."
+    }
+  },
+  "issueCoverage": {
+    "161": {
+      "functional": "passed",
+      "finalVisual": "passed-representative-review",
+      "criteria": "Actual subscription/recommendation create/read/undo, retries/concurrency, second-client matching records, verified-target rejection and provider failure checks passed."
+    },
+    "162": {
+      "functional": "passed",
+      "finalVisual": "passed-representative-review",
+      "preCookieRecovery": {
+        "evidence": "docs/evidence/atproto-callback-delivery-recovery-20261009.json",
+        "scope": "Separate actual probe on clean runtime3120; not executed by this social-only run."
+      }
+    }
+  },
+  "parentFixtureAndAliasCleanup": {
+    "status": "separate-parent-owned-recovery",
+    "required": true
+  },
+  "privateReceiptSha256": {
+    "run-scope.json": "0f88f211c96683fc1a05088e8f7e49d06a3e90ef826e8d8c6304fcc255ab7382",
+    "social-only-receipt.json": "c0ab1afdf1d8afd8ba58be611aa4140c0e8220a5abb3a8bccba3f36ccc76ede6",
+    "social-receipt.json": "ebb9647b4b8cef16f82876052517a8b3c76f8cc17ae7d973947db5e9a326b80f",
+    "social-ui-receipt.json": "690a38015e82f8a21b8e7d78b0bfcd2e18b1f39271b5f3879a3238ceb0a4e606",
+    "social-logout-ui-receipt.json": "2fe3c2560cfbb61df04cedd94ff3f97e73fd6f97c44780f92b0752d9cc3f59a3",
+    "capture-cleanup.json": "83bf4efa5684ac8b7fe150e83e4a58da2c5e972627fd6d870b91cd8374d8efe4",
+    "authorization-cleanup.json": "f35e895b3d0bbdcbd7ec09b54925b3bdead866597af49b406e48921a40852740",
+    "authorization-baseline.json": "90631fce6fec14af4c751564b509f52c834f22037869022c277d3d6176dad008",
+    "cleanup-ownership.json": "d3d361a90d114ea9dc99e9b47db8169923b96892d38474f923d2b5fb2111f523",
+    "social-failure-recovery.json": "11520bdeb89d79a88f8f80846a50e60581ce9ec6089137954d0d474445d71367",
+    "provider-cleanup-readonly.json": "7ac8494878be791180b64d6331c8fab6023790369bbd94efae520244de13ffd3",
+    "private-credential-cleanup.json": "a5576a6b370c368d38051fe61d0c7f9b74f8f05f115d0be88915b7e01bf5e1ec"
+  },
+  "limitations": [
+    "No natural token-expiry wait occurred. Provider refresh was forced through the supported client in two isolated processes.",
+    "Authorization-state and browser-session expiry used exact isolated database deadline changes, not a real-time wait.",
+    "The genuine owned-PDS outage returned502 but the publisher and visitors share that provider. This does not independently locate the failure at visitor graph writes.",
+    "The provider inventory proves current canonical-client token absence. It does not prove the earlier SDK revocation HTTP response.",
+    "The provider baseline comparison preserved an empty foreign-token inventory. It does not demonstrate preservation of populated unrelated-client grants. authorized_client consent metadata is independent.",
+    "The fixture is a journaled dirty overlay on Git/runtime base4d, not a committed fixture. The local verifier source hashes are recorded separately and do not claim new deployed code.",
+    "All180 current full-page captures passed the corrected invoked color/transition and overflow gates. A separate representative20-image review passed; the reviewer did not inspect every image.",
+    "This run did not verify hosted Atmosphere response formats/cache refresh or simultaneous Atmosphere and IndieWeb responses on one writing.",
+    "Publishing lifecycles, independent validation, final notification workflow, fixture/alias removal and production rollout require their own receipts."
+  ],
+  "privateRun": "full-publishing-social-final-20261009",
+  "supplementalVerifierSourceHashes": {
+    "observedAt": "2026-10-09T10:41:34.084942Z",
+    "method": "Read-only source hash after terminal receipts; this child-script hash was not included in the capture startup source-hash map.",
+    "sourceHashes": {
+      "scripts/atproto-social-acceptance.mts": "afc93be84d68e2a47ec7d4bf8b021422c80f1ffcf02c36f6283af6a7cddd4290"
+    }
+  },
+  "privateCredentialCleanup": {
+    "status": "passed",
+    "providerInventorySha256": "7ac8494878be791180b64d6331c8fab6023790369bbd94efae520244de13ffd3",
+    "ownedEncryptedBackupsRemoved": [],
+    "rawCallbackAndBrowserCookieFilesAbsent": true
+  }
+}

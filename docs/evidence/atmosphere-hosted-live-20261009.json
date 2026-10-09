@@ -1,0 +1,471 @@
+{
+  "version": 1,
+  "scope": "actual-hosted-Atmosphere-and-same-writing-IndieWeb-responses",
+  "status": "functional-hosted-and-incoming-playback-passed-captures-retained-final-parent-release-gates-pending",
+  "recordedAt": "2026-10-09T10:33:45.896Z",
+  "origin": "https://indieweb-acceptance.vercel.app",
+  "target": "https://indieweb-acceptance.vercel.app/writings/atproto-acceptance-20261009",
+  "runtime": {
+    "revision": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+    "baseGitRevision": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+    "dirtyFixtureOverlay": true,
+    "runtimeCodeUnchanged": true,
+    "sourceJournal": "/Users/williecubed/.codex/worktrees/754d/website/.playwright-mcp/full-publishing-live-20261009/fixture-source-journal.json",
+    "publicationJournal": "/Users/williecubed/.codex/worktrees/754d/website/.playwright-mcp/full-publishing-live-20261009/fixture-publication-journal.json",
+    "sourceSha256": "5a77d47542803e78d087a1e745a279b5c04ef7d1a03a7ff96009208c83ae4ba1",
+    "nonce": "4038d95d-3c92-408b-a144-38ecf1db490d",
+    "publishedAt": "2026-10-09T09:22:45.696Z",
+    "documentUri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a",
+    "limits": [
+      "Hosted rendering uses the verified existing acceptance artifact at 4d0ff1f9a76010ff429c84b9917fa6da4416297c.",
+      "The existing artifact contains the parent-owned fixture overlay; its base Git tree has no fixture.",
+      "The local loader supplies explicit opt-in; the immutable hosted source remains unchanged.",
+      "This proves the pinned hosted artifact, not a later local revision or production."
+    ]
+  },
+  "method": "Real owned PDS posts, AppView discovery, actual hosted loader/cache and native playback; expiring owned public Cloudflare h-entry delivered through actual Webmention receiver and authenticated moderator.",
+  "counts": {
+    "hostedChecks": 8,
+    "hostedCaptures": 20,
+    "combinedCaptures": 4,
+    "ownedAtmosphereRecordsRemoved": 10,
+    "approvedIndieWebMentionsRemoved": 1,
+    "ownedSourceWorkersRemoved": 1
+  },
+  "hosted": {
+    "checks": [
+      {
+        "name": "Actual local loader opt-in creates an automatic copy associated with the retained hosted document through its current PDS record",
+        "observedAt": "2026-10-09T10:19:52.589Z",
+        "details": {
+          "post": {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgnm42kk26a",
+            "cid": "bafyreib5p4ecvrasrotlmls4x2napoyjezlwupxb4ogl7hp7f66blc64ta"
+          },
+          "document": {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgnm42kk26a",
+            "cid": "bafyreibvr5iptztzoxo5hctb7aewvrnzwn2a5v36ovuvredksvdxmmtqa4"
+          }
+        }
+      },
+      {
+        "name": "The actual video CDN serves complete playlists and nonempty media/init segments before browser playback",
+        "observedAt": "2026-10-09T10:19:58.652Z",
+        "details": {
+          "playlists": 3,
+          "segments": 2
+        }
+      },
+      {
+        "name": "Successful AppView and the actual writing loader import all real reply/media/reaction formats",
+        "observedAt": "2026-10-09T10:19:59.954Z",
+        "details": {
+          "replies": [
+            {
+              "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsa74zw4x",
+              "cid": "bafyreig25wx2eu3gkrybroqhwg34u5gnwtldlljkye7hvu5mj663saqcqq"
+            },
+            {
+              "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsahb3arf",
+              "cid": "bafyreieidquzhltfqvcwda34wxlx3ojtrf5f3t2c454zspsm4ezwb5gcpm"
+            },
+            {
+              "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsaoslekg",
+              "cid": "bafyreiesz7swzbc57dhu2d2m55ul55wa4vty7rar6sepnlxicamuxwybfu"
+            },
+            {
+              "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsb3vjj6w",
+              "cid": "bafyreifgt2yeufvmcn3mmgbf4topum3aqbjealmkfleniusmymgj6zxm6u"
+            },
+            {
+              "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsbc5sbnp",
+              "cid": "bafyreidgukobucptbow7vum7wq26lxeud7xvcktwa6vo5azcor3yecbzym"
+            }
+          ],
+          "quote": {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsbi62wgq",
+            "cid": "bafyreibq2kuxbei5lvgxcppzay27zk5xjczali5zaivvieaactb3hi62x4"
+          },
+          "like": {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.like/3mxgqsbnikhhq",
+            "cid": "bafyreifzwc4pcjd22x2egn2ydsz6nj2bdyr565a54dvpaynahuh4y52iqm"
+          },
+          "repost": {
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.repost/3mxgqsbsxlzmn",
+            "cid": "bafyreiclhl4tqrxpsnmyh3xvc6oqrdalr5ixh5kvppjsaidfgd6yxsjx5e"
+          }
+        }
+      },
+      {
+        "name": "Hosted full-page desktop/mobile light/dark render actual text, nesting, image, playable video, linked file, quote and reactions",
+        "observedAt": "2026-10-09T10:21:08.232Z"
+      },
+      {
+        "name": "AppView discovery and hosted cache refresh display the verified current PDS edit with a surviving control",
+        "observedAt": "2026-10-09T10:22:10.445Z",
+        "details": {
+          "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsa74zw4x",
+          "currentPdsCid": "bafyreidm7ku4tqr4oycr3xolw232e4i3g6wess26p65makg5cwsordz554",
+          "text": "This Atmosphere reply was edited on its real PDS."
+        }
+      },
+      {
+        "name": "Actual threadgate hides an existing image reply while surviving text/video responses remain visible on the hosted page",
+        "observedAt": "2026-10-09T10:23:13.493Z"
+      },
+      {
+        "name": "Removing the owned threadgate restores the existing image reply through the hosted cache",
+        "observedAt": "2026-10-09T10:24:14.760Z"
+      },
+      {
+        "name": "Successful direct AppView absence and surviving reply prove hosted media/quote/reaction deletion refresh",
+        "observedAt": "2026-10-09T10:25:18.531Z"
+      }
+    ],
+    "recordReferences": [
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgnm42kk26a",
+        "cid": "bafyreib5p4ecvrasrotlmls4x2napoyjezlwupxb4ogl7hp7f66blc64ta",
+        "previousCids": [],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsa74zw4x",
+        "cid": "bafyreidm7ku4tqr4oycr3xolw232e4i3g6wess26p65makg5cwsordz554",
+        "previousCids": [
+          "bafyreig25wx2eu3gkrybroqhwg34u5gnwtldlljkye7hvu5mj663saqcqq"
+        ],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsahb3arf",
+        "cid": "bafyreieidquzhltfqvcwda34wxlx3ojtrf5f3t2c454zspsm4ezwb5gcpm",
+        "previousCids": [],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsaoslekg",
+        "cid": "bafyreiesz7swzbc57dhu2d2m55ul55wa4vty7rar6sepnlxicamuxwybfu",
+        "previousCids": [],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsb3vjj6w",
+        "cid": "bafyreifgt2yeufvmcn3mmgbf4topum3aqbjealmkfleniusmymgj6zxm6u",
+        "previousCids": [],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsbc5sbnp",
+        "cid": "bafyreidgukobucptbow7vum7wq26lxeud7xvcktwa6vo5azcor3yecbzym",
+        "previousCids": [],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxgqsbi62wgq",
+        "cid": "bafyreibq2kuxbei5lvgxcppzay27zk5xjczali5zaivvieaactb3hi62x4",
+        "previousCids": [],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.like/3mxgqsbnikhhq",
+        "cid": "bafyreifzwc4pcjd22x2egn2ydsz6nj2bdyr565a54dvpaynahuh4y52iqm",
+        "previousCids": [],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.repost/3mxgqsbsxlzmn",
+        "cid": "bafyreiclhl4tqrxpsnmyh3xvc6oqrdalr5ixh5kvppjsaidfgd6yxsjx5e",
+        "previousCids": [],
+        "deleted": true
+      },
+      {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.threadgate/3mxgnm42kk26a",
+        "cid": "bafyreih5h7sztdqtwv7v5gjzgypyditnv2aikq5b2iywerojmxkqks7x6q",
+        "previousCids": [],
+        "deleted": true
+      }
+    ],
+    "captures": [
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-all-formats-1440-light.png",
+        "sha256": "3b38ce5325f735978a2a6614f516851b5b2ed1f61bb2f2fd56881fc38dc30479",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-all-formats-1440-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-all-formats-1440-dark.png",
+        "sha256": "80c303e0cbb73a4ddef4ad15318f07c7a3ecafbaff1d16454d36f8c33aa940e0",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-all-formats-1440-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-all-formats-390-light.png",
+        "sha256": "779a3c8bea40410599c58eb2adb24ea6befc7ab527d2bfb3ef023ab6046199eb",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-all-formats-390-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-all-formats-390-dark.png",
+        "sha256": "8b48b40cd1fb8147e0c7aba60898234c79ff4d8de57263a88a791b38a09ac85f",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-all-formats-390-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-edited-1440-light.png",
+        "sha256": "40971bd60227e7c73370ed527766699084d5c3c8861ebec167150db87702fd0b",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-edited-1440-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-edited-1440-dark.png",
+        "sha256": "a515a7b12d6ff80422984f43261c211827f4f06bc6732beda986c6a2451b6a86",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-edited-1440-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-edited-390-light.png",
+        "sha256": "9b6c7ecb950157c2fb43f8c9f96ce716a0d226d1f39d9e06ff3c52b86319dcb1",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-edited-390-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-edited-390-dark.png",
+        "sha256": "10d79b630b94e73353c2394eafa5fc241e9edb5741706022b6f8b8e6d7f80d5c",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-edited-390-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-hidden-1440-light.png",
+        "sha256": "61786d3035fee545d9ca3384fe6bec246d1c205df9fefb2d4062443a7bb974b2",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-hidden-1440-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-hidden-1440-dark.png",
+        "sha256": "5f60c0319393ad9bac1fed844d63985e027ad44156e5e739b1f42a3ad634b6a3",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-hidden-1440-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-hidden-390-light.png",
+        "sha256": "22c51564b752451833e26f02bcb3ca63f81b175886fbd4e252663e7c72dc9d1a",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-hidden-390-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-hidden-390-dark.png",
+        "sha256": "6bce752898096ac04cadf14aeaa54f475e636a1449f8af0a2ea172680041e543",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-hidden-390-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-restored-1440-light.png",
+        "sha256": "9a30e4b0dc11e6abf5c104073adeb96ce58195174d0709f19455e5557b5809da",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-restored-1440-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-restored-1440-dark.png",
+        "sha256": "cf3784c110a1dc51550523efffb2586a618a60cfc8eb41d322019de4f9f98f99",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-restored-1440-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-restored-390-light.png",
+        "sha256": "09c939ee78b9a71143eef9658943edf276a21bea8fa59645bf10bb28258e518a",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-restored-390-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-restored-390-dark.png",
+        "sha256": "0df23e1c79ea46e1879239bae3e1ede1222754cf1fc7096220b014478b2563af",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-restored-390-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-deleted-1440-light.png",
+        "sha256": "36887cfb8c999cce7c25d2c0426baaea9edb6247087ba5f5557cae95e05a9b39",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-deleted-1440-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-deleted-1440-dark.png",
+        "sha256": "ce23685818c6d3255b304665e79401b170c55b2efa8e89bd2169da273c143b41",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-deleted-1440-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-deleted-390-light.png",
+        "sha256": "edae6193ce7b735e017cf02b472f6b148a1c5088086175ec480f1f8ec1c6736c",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-deleted-390-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/atmosphere-deleted-390-dark.png",
+        "sha256": "a8002defb481214516358051f19c07f914e1209d6577a20164aff95862ef6bf7",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/atmosphere-deleted-390-dark.png"
+      }
+    ],
+    "cleanup": {
+      "status": "passed",
+      "sourceRestored": true,
+      "documentRestored": true,
+      "foreignDocumentBaselineCount": 0
+    }
+  },
+  "incomingWebmention": {
+    "source": "https://dev-williecubed-website-reply-e2043e9a5e6b1f88.willieechalmers-18f.workers.dev/reply/033d0bf16b3b37a77faf7f8cbd9b2ef2a8f81b1499c325ef",
+    "sourceHost": "temporary-owned-cloudflare-worker",
+    "mentionId": "e0b2f12c-31c4-4b6d-a8a3-49fe63c0f1a1",
+    "receiverStatus": 202,
+    "verified": true,
+    "moderatedThroughActualEndpoint": true,
+    "approved": true,
+    "contentHtmlSha256": "677eeb6e44b2ef83088e4a8a9088fbbd4d66f1cde84988c5c65937ce949ab7c8",
+    "workerSourceSha256": "63e4f7e783526255fa88d761b6fff216d09d49daec02a472ed8a4f2ffe11c3e3",
+    "media": {
+      "image": "https://indieweb-acceptance.vercel.app/apple-touch-icon.png",
+      "audio": "https://media.w3.org/2010/07/bunny/04-Death_Becomes_Fur.oga",
+      "video": "https://media.w3.org/2010/05/sintel/trailer.mp4",
+      "pdf": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+    },
+    "cleanup": {
+      "checkedAt": "2026-10-09T10:26:31.442Z",
+      "status": "passed",
+      "target": "https://indieweb-acceptance.vercel.app/writings/atproto-acceptance-20261009",
+      "source": "https://dev-williecubed-website-reply-e2043e9a5e6b1f88.willieechalmers-18f.workers.dev/reply/033d0bf16b3b37a77faf7f8cbd9b2ef2a8f81b1499c325ef",
+      "mentionId": "e0b2f12c-31c4-4b6d-a8a3-49fe63c0f1a1",
+      "exactMentionAbsent": true,
+      "exactOwnedWorkerAbsent": true,
+      "unrelatedWebmentionInventoryPreserved": true,
+      "sourceTableCreated": false,
+      "scope": "owned-incoming-reply-and-source-only",
+      "parentFixtureCleanup": "separate-root-owned-journal"
+    }
+  },
+  "sameWritingCombinedCapture": {
+    "reportedStatus": "passed",
+    "checkedAt": "2026-10-09T10:21:10.817Z",
+    "target": "https://indieweb-acceptance.vercel.app/writings/atproto-acceptance-20261009",
+    "actualAtmospherePermalinks": [
+      "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxgqsa74zw4x",
+      "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxgqsahb3arf",
+      "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxgqsaoslekg",
+      "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxgqsb3vjj6w",
+      "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxgqsbc5sbnp",
+      "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxgqsbi62wgq"
+    ],
+    "richIncomingContent": [
+      "code",
+      "quote",
+      "bidi",
+      "image",
+      "audio",
+      "video",
+      "pdf"
+    ],
+    "sourceResponseSha256": "a01d3ec0c4fb1e0c3812b2733b3eefe30aa8420ea9d944950bb2fff74dc1172a",
+    "writingResponseSha256": "9d1336a4f9d9493a0a19d48dae1531e90a8159255a6b0fe16b2517b2a927e0e2",
+    "captures": [
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/combined-response-renders/combined-responses-1440-light.png",
+        "sha256": "67179869c1ee0d90e38f000c84ff8c17562aa0b66d48c2855ed71920b12fd4ad",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/combined-responses-1440-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/combined-response-renders/combined-responses-1440-dark.png",
+        "sha256": "8595148b7bd87f35b632d253a383faa71727dba23dc2257952bd8c251282bffb",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/combined-responses-1440-dark.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/combined-response-renders/combined-responses-390-light.png",
+        "sha256": "17c581069eaf021c7894090454133f88f01a312760c893e0a9a1ced0df46a18a",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/combined-responses-390-light.png"
+      },
+      {
+        "file": ".playwright-mcp/full-publishing-live-20261009/combined-response-renders/combined-responses-390-dark.png",
+        "sha256": "18e918bbaa652e2510e08026c5fb96ca0283fffc6c1834d8882bc47a041aeb9e",
+        "retainedFile": "docs/evidence/atmosphere-hosted-20261009/combined-responses-390-dark.png"
+      }
+    ],
+    "originalLaterPlaybackSamples": [
+      {
+        "kind": "audio",
+        "currentTime": 0,
+        "duration": 74.861134,
+        "controls": true,
+        "autoplay": false
+      },
+      {
+        "kind": "video",
+        "currentTime": 0,
+        "duration": 52.208333,
+        "controls": true,
+        "autoplay": false
+      }
+    ],
+    "originalPlaybackInterpretation": "The original bare string arrow wait did not execute its predicate. Both later currentTime samples were0. This original receipt does not prove positive incoming playback.",
+    "colorSettlingInterpretation": "The shared capture helper used a bare string arrow color wait at this time. The predicate did not execute. These captures need direct visual review; the software color-settling gate is not claimed."
+  },
+  "incomingPositivePlaybackSupplement": {
+    "status": "passed",
+    "checkedAt": "2026-10-09T10:25:07.954Z",
+    "scope": "incoming-owned-Webmention-positive-playback-only",
+    "target": "https://indieweb-acceptance.vercel.app/writings/atproto-acceptance-20261009",
+    "runtimeRevision": "4d0ff1f9a76010ff429c84b9917fa6da4416297c",
+    "source": "https://dev-williecubed-website-reply-e2043e9a5e6b1f88.willieechalmers-18f.workers.dev/reply/033d0bf16b3b37a77faf7f8cbd9b2ef2a8f81b1499c325ef",
+    "mentionId": "e0b2f12c-31c4-4b6d-a8a3-49fe63c0f1a1",
+    "approvedSourceReceiptSha256": "19abcd45b924eca407e5029b80f879e847b16c2be954b20dfaba304afdf66932",
+    "sourceResponseSha256": "a01d3ec0c4fb1e0c3812b2733b3eefe30aa8420ea9d944950bb2fff74dc1172a",
+    "writingResponseSha256": "531e91fc69e09d331c7862379cab6ebd32f0906683cfbb374357a2d08246c4e6",
+    "sampleMethod": "Literal positive state returned atomically by browser waitForFunction, then JSHandle.jsonValue, then pause",
+    "playback": [
+      {
+        "kind": "audio",
+        "currentTime": 0.160781,
+        "duration": 74.861134,
+        "controls": true,
+        "autoplay": false,
+        "paused": false,
+        "readyState": 4,
+        "observedAt": "2026-10-09T10:25:07.492Z"
+      },
+      {
+        "kind": "video",
+        "currentTime": 0.151253,
+        "duration": 52.208333,
+        "controls": true,
+        "autoplay": false,
+        "paused": false,
+        "readyState": 4,
+        "observedAt": "2026-10-09T10:25:07.826Z"
+      }
+    ],
+    "screenshot": ".playwright-mcp/full-publishing-live-20261009/combined-indieweb-positive-playback-20261009-2/incoming-webmention-positive-playback.png",
+    "historicalCombinedCapture": "Separate earlier same-page receipt; this probe does not assert active Atmosphere CIDs, all-formats state, or replace its receipt.",
+    "cleanup": "separate-root-owned-source-and-parent-journals",
+    "screenshotSha256": "0266f846645c58c3e46742d1297463c548659f81119aadaf3753b8152e43b441",
+    "relationship": "This later read-only probe on the same4d/source/target captures positive incoming audio/video state atomically. It does not rerun all six Atmosphere permalink assertions during later hosted edit/hide/delete work and does not overwrite the earlier combined receipt."
+  },
+  "verifierProvenance": {
+    "collectedAfterTerminal": true,
+    "wrapperSha256": "0a868138e27054452a2c9a6da7192594c0ec6a1d8abc6e9523e0e6d5c5f29c90",
+    "baseHelperSha256": "0f2f42a8dc5da881c76dd01bc6279d147b16a51a733946a86161b80851c84a9d",
+    "wrapperDelta": "The wrapper differs from the base only by one bounded child invocation of the combined companion after all-formats capture and before edits.",
+    "originalCombinedCompanionSha256": "e0a528ccf7cf921bc7f1f6328f64080282222a23c1df706063299bb8566a7d30",
+    "sourceHelperSha256": "c83b2391fa2114fc7f3c24977596c869781701fea326b624610d1dda6c7607e0",
+    "atomicIncomingProbeSha256": "374ada9955d921e4286f96e6568c3c56d9ec8db8e06102d33ac77f09a808ba84"
+  },
+  "privateReceiptSha256": {
+    "hosted-atmosphere-hls-fixed.json": "1e3d6ac0c5b90ce0f97913c7dfac27b89f91e56f6c6782fc8b650d27625569aa",
+    "combined-indieweb-source.json": "166b5874bda54e8331cf1287dcb3b1995c234847ac77efd642793bc949ed4d32",
+    "combined-indieweb-source.json.receipt.json": "19abcd45b924eca407e5029b80f879e847b16c2be954b20dfaba304afdf66932",
+    "combined-indieweb-source.json.cleanup.json": "fce28c17c32c25c511f97942c200ab32bef1c6c04f8e83a6b9015b5ac360b2c7",
+    "combined-response-renders/combined-response-visual.json": "4c2aa16244a328b3f196276a68367d0571989b75644f5a416177cf8182fd919b",
+    "combined-indieweb-positive-playback-20261009/receipt.json": "834a622a40025159c32378a0bd98df66db930135931fb93ec8d064e1f3d94c5e",
+    "combined-indieweb-positive-playback-20261009-2/receipt.json": "1b074afd499166fedffc091b77ba533f5214600fd2b9b28e948ab7e5b7beb358"
+  },
+  "limits": [
+    "The4d Git base has no committed acceptance fixture. The deployed fixture is the exact parent-owned dirty source overlay.",
+    "Hosted source remains unchanged; actual local opt-in and the current public Standard document association connect the real Bluesky copy.",
+    "The original combined playback and color-settle string-arrow waits did not execute. Positive incoming playback is supplied only by the later invoked-expression atomic probe.",
+    "The final hosted20captures and combined4captures are retained with hashes. This sanitized receipt does not substitute for direct final craft review.",
+    "The incoming source Worker and exact mention were removed. The parent fixture source, publication/document, alias and final4d notification workflow use separate pending ownership journals.",
+    "No production write or production rollout is claimed."
+  ],
+  "sampledVisualReview": {
+    "reviewer": "Codex",
+    "method": "Direct full-page image inspection at desktop and390px in both themes, including actual all-formats, edited, hidden and deleted states.",
+    "files": [
+      "atmosphere-all-formats-1440-light.png",
+      "atmosphere-all-formats-390-dark.png",
+      "combined-responses-390-light.png",
+      "atmosphere-edited-1440-dark.png",
+      "atmosphere-hidden-390-light.png",
+      "atmosphere-deleted-390-dark.png"
+    ],
+    "remainingParentReleaseGates": "Separate root-owned cleanup and rollout receipts."
+  }
+}

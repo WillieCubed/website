@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "started": "2026-10-09T04:05:11.521Z",
+  "did": "did:plc:l3ycfv2ycqya33wyyw6zv6j6",
+  "pds": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev",
+  "publicationUri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb",
+  "checks": [
+    {
+      "name": "Concurrent independently authenticated first publishers create exactly one announcement",
+      "observedAt": "2026-10-09T04:05:15.119Z",
+      "details": {
+        "writers": 2,
+        "absentPdsReads": 2,
+        "actions": ["recover", "create"]
+      }
+    },
+    {
+      "name": "No automatic post without intent; explicit copy links Standard document/publication",
+      "observedAt": "2026-10-09T04:05:15.482Z",
+      "details": {
+        "post": {
+          "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxg3ualbrcr7",
+          "cid": "bafyreid7cxyov5w4in25pjf56iutl5hm3z5djhjf43afjib4yy5ta35eqq"
+        },
+        "document": {
+          "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxg3ualbrcr7",
+          "cid": "bafyreigljec32vu6foa2wy7qjrko6iruzusc7i4cxsyxpsrrksebo5un3m"
+        },
+        "associatedRefs": [
+          {
+            "cid": "bafyreiewvynndmd2sgkcvguasq4e74ewg2bwerwr6dowxmm4rbil2hvq4y",
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxg3ualbrcr7"
+          },
+          {
+            "cid": "bafyreifhkkmyestqr34qo7ce3nggcr6spked27hxar4i37ypoliq75tnlq",
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.publication/3mxft54ocokzb"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Repeated and edited publications keep exactly one immutable announcement",
+      "observedAt": "2026-10-09T04:05:16.904Z"
+    },
+    {
+      "name": "Interrupted association recovers the original deterministic post",
+      "observedAt": "2026-10-09T04:05:18.137Z"
+    },
+    {
+      "name": "Manual-copy association prevents a duplicate announcement",
+      "observedAt": "2026-10-09T04:05:20.155Z",
+      "details": {
+        "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxg3uh3gxf6q",
+        "cid": "bafyreihafxjtvypfeipzk6abh7hbjkxmjhfuytw4w2lw2y4pjcvrtjbybq"
+      }
+    },
+    {
+      "name": "Invalid owner copy refuses publishing and leaves every PDS record/CID unchanged",
+      "observedAt": "2026-10-09T04:05:21.728Z"
+    },
+    {
+      "name": "Invalid CID copy refuses publishing and leaves every PDS record/CID unchanged",
+      "observedAt": "2026-10-09T04:05:22.218Z"
+    },
+    {
+      "name": "Invalid canonical backlink copy refuses publishing and leaves every PDS record/CID unchanged",
+      "observedAt": "2026-10-09T04:05:22.706Z"
+    },
+    {
+      "name": "Real AppView imports threading, image description, identity, quote, like and repost",
+      "observedAt": "2026-10-09T04:05:28.007Z",
+      "details": {
+        "groups": {
+          "likes": [
+            {
+              "id": "like:did:plc:l3ycfv2ycqya33wyyw6zv6j6:at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxg3ualbrcr7",
+              "source": "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6"
+            }
+          ],
+          "reposts": [
+            {
+              "id": "repost:did:plc:l3ycfv2ycqya33wyyw6zv6j6:at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxg3ualbrcr7",
+              "source": "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6"
+            }
+          ],
+          "replies": [
+            {
+              "id": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxg3ulzjqenf",
+              "source": "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxg3ulzjqenf"
+            },
+            {
+              "id": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxg3ulapoxj2",
+              "source": "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxg3ulapoxj2"
+            },
+            {
+              "id": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxg3ull3ssw6",
+              "source": "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxg3ull3ssw6"
+            }
+          ],
+          "mentions": [
+            {
+              "id": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/app.bsky.feed.post/3mxg3umecs6cq",
+              "source": "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxg3umecs6cq"
+            }
+          ],
+          "bookmarks": [],
+          "rsvps": []
+        }
+      }
+    },
+    {
+      "name": "Current PDS edits import after AppView discovery; AppView hidden, restored and deleted responses refresh",
+      "observedAt": "2026-10-09T04:07:37.992Z"
+    },
+    {
+      "name": "Unpublishing removes the Standard document and preserves its existing Bluesky copy",
+      "observedAt": "2026-10-09T04:07:39.361Z"
+    }
+  ],
+  "cleanup": "passed",
+  "provenance": "Actual independent authenticated PDS clients and public Bluesky AppView; root reviewed the terminal receipt. These lifecycle checks use an in-memory writing. Deployed writing, video and screenshot proof remain separate.",
+  "publisherCodeRevision": "235da0e",
+  "responseCodeRevision": "a5e3762",
+  "acceptanceRuntimeRevision": "9014e42aeb9c566d7952485fc40bf6137913fe5f",
+  "productionUsed": false
+}

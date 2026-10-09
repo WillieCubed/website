@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-10-09T06:59:25.536Z",
+  "runnerRevision": "fdd2d5ffaacf28eab3d7ed7ae690dc7192ea070b",
+  "kind": "Read-only importer check against an actual configured HTTPS endpoint returning an authentication error, with a real linked PDS document.",
+  "documentUri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgfj3bwdswb",
+  "documentCid": "bafyreidbakz3f75hrfiu7dnnou3dzh3ad6xohv7i63k2dy6p6svsfgyzwu",
+  "appviewOrigin": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev",
+  "methodStatus": 401,
+  "result": {
+    "groups": {
+      "likes": [],
+      "reposts": [],
+      "replies": [],
+      "mentions": [],
+      "bookmarks": [],
+      "rsvps": []
+    },
+    "copyUrl": "https://bsky.app/profile/did:plc:l3ycfv2ycqya33wyyw6zv6j6/post/3mxgfj3bwdswb",
+    "incomplete": true
+  },
+  "limitation": "This proves configured endpoint errors are marked incomplete. It does not simulate or prove a production AppView outage."
+}

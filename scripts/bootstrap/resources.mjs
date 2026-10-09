@@ -8,6 +8,7 @@ export const MIGRATIONS = [
   'lib/db/migrations/005_atproto_oauth.sql',
   'lib/db/migrations/006_indieauth_refresh.sql',
   'lib/db/migrations/007_micropub_deleted_archives.sql',
+  'lib/db/migrations/008_atproto_response_observations.sql',
   'lib/db/migrations/009_indieauth_code_replay.sql',
 ];
 
@@ -21,6 +22,7 @@ export const SCHEMA_QUERY = `SELECT (
   to_regclass('public.atproto_oauth_sessions') IS NOT NULL AND
   to_regclass('public.atproto_browser_sessions') IS NOT NULL AND
   to_regclass('public.atproto_rate_limits') IS NOT NULL AND
+  to_regclass('public.atproto_response_observations') IS NOT NULL AND
   to_regclass('public.indieauth_codes') IS NOT NULL AND
   to_regclass('public.indieauth_tokens') IS NOT NULL AND
   to_regclass('public.indieauth_refresh_families') IS NOT NULL AND

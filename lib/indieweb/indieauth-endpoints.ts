@@ -11,7 +11,9 @@ import {
   INDIEAUTH_ME,
   authorizationRedirect,
   bearerMatches,
+  buildProfile,
   findActiveToken,
+  hasRepeatedOAuthParameters,
   introspectionResponse,
   issueAccessToken,
   issueAuthorizationCode,
@@ -19,6 +21,7 @@ import {
   parseScope,
   profileResponse,
   redeemAuthorizationCode,
+  refreshAccessToken,
   revokeAccessToken,
 } from '@/lib/indieweb/indieauth-server';
 import { jsonError, jsonResponse } from '@/lib/indieweb/responses';
@@ -179,7 +182,12 @@ export function handleAuthorizationRequest(request: Request): Response {
   consent.search = url.search;
   return new Response(null, {
     status: 302,
-    headers: { Location: consent.href, 'Cache-Control': 'no-store' },
+    headers: {
+      Location: consent.href,
+      'Cache-Control': 'no-store',
+      'X-Frame-Options': 'DENY',
+      'Content-Security-Policy': "frame-ancestors 'none'",
+    },
   });
 }
 
@@ -248,8 +256,9 @@ export async function handleConsentDecision(
     'code_challenge_method',
     'scope',
   ]) {
-    const value = body.get(key);
-    if (typeof value === 'string') params.set(key, value);
+    for (const value of body.getAll(key)) {
+      if (typeof value === 'string') params.append(key, value);
+    }
   }
 
   const checked = await checkAuthorizationRequest(params, options);
@@ -322,6 +331,13 @@ export async function handleProfileRedemption(
   if (!form) {
     return oauthError('invalid_request', 400, 'Send a form-encoded body.');
   }
+  if (hasRepeatedOAuthParameters(form)) {
+    return oauthError(
+      'invalid_request',
+      400,
+      'OAuth parameters must not appear more than once.'
+    );
+  }
   const redemption = await redeemAuthorizationCode(
     options.store,
     form,
@@ -336,8 +352,8 @@ export async function handleProfileRedemption(
 }
 
 /**
- * POST on the token endpoint: redeem a code for an access token, or, for
- * older clients, `action=revoke` with a `token`.
+ * POST on the token endpoint: redeem a code, rotate a refresh token, or
+ * revoke a token for older clients using `action=revoke`.
  */
 export async function handleTokenRequest(
   request: Request,
@@ -347,17 +363,34 @@ export async function handleTokenRequest(
   if (!form) {
     return oauthError('invalid_request', 400, 'Send a form-encoded body.');
   }
+  if (hasRepeatedOAuthParameters(form)) {
+    return oauthError(
+      'invalid_request',
+      400,
+      'OAuth parameters must not appear more than once.'
+    );
+  }
   const now = clock(options);
 
   if (form.get('action') === 'revoke') {
     await revokeAccessToken(options.store, form.get('token') ?? '', now);
     return new Response(null, { status: 200, headers: TOKEN_HEADERS });
   }
+  if (form.get('grant_type') === 'refresh_token') {
+    const refreshed = await refreshAccessToken(options.store, form, now);
+    if (!refreshed.ok) {
+      return oauthError(refreshed.error, 400, refreshed.description);
+    }
+    return jsonResponse(refreshed.token, { headers: TOKEN_HEADERS });
+  }
+  if (!form.get('grant_type')) {
+    return oauthError('invalid_request', 400, 'grant_type is required.');
+  }
   if (form.get('grant_type') !== 'authorization_code') {
     return oauthError(
       'unsupported_grant_type',
       400,
-      'Only the authorization_code grant is supported.'
+      'Use the authorization_code or refresh_token grant.'
     );
   }
 
@@ -366,14 +399,19 @@ export async function handleTokenRequest(
     return oauthError(redemption.error, 400, redemption.description);
   }
   if (redemption.record.scope.length === 0) {
-    return oauthError(
-      'invalid_grant',
-      400,
-      'The code was issued without a scope, so it cannot become a token. Redeem it at the authorization endpoint.'
-    );
+    return jsonResponse(profileResponse(redemption.record), {
+      headers: TOKEN_HEADERS,
+    });
   }
 
   const token = await issueAccessToken(options.store, redemption.record, now);
+  if (!token) {
+    return oauthError(
+      'invalid_grant',
+      400,
+      'The authorization code was reused.'
+    );
+  }
   return jsonResponse(token, { headers: TOKEN_HEADERS });
 }
 
@@ -398,6 +436,36 @@ export async function handleTokenVerification(
     },
     { headers: TOKEN_HEADERS }
   );
+}
+
+/** GET the current profile fields authorized by an active access token. */
+export async function handleUserInfo(
+  request: Request,
+  options: IndieAuthEndpointOptions
+): Promise<Response> {
+  const bearer = getBearerToken(request);
+  if (!bearer) {
+    return new Response(null, {
+      status: 401,
+      headers: { ...TOKEN_HEADERS, 'WWW-Authenticate': 'Bearer' },
+    });
+  }
+  const record = await findActiveToken(options.store, bearer, clock(options));
+  if (!record) {
+    const response = oauthError('invalid_token', 401);
+    response.headers.set('WWW-Authenticate', 'Bearer error="invalid_token"');
+    return response;
+  }
+  const profile = buildProfile(record.scope);
+  if (!profile) {
+    const response = oauthError('insufficient_scope', 403);
+    response.headers.set(
+      'WWW-Authenticate',
+      'Bearer error="insufficient_scope", scope="profile"'
+    );
+    return response;
+  }
+  return jsonResponse(profile, { headers: TOKEN_HEADERS });
 }
 
 /**

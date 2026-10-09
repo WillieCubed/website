@@ -43,11 +43,12 @@ export async function createRepoClient(password: string): Promise<RepoClient> {
       };
     },
     async createRecord(collection, rkey, record) {
-      return ok(
+      const created = ok(
         await rpc.post('com.atproto.repo.createRecord', {
           input: { repo: did, collection: collection as Nsid, rkey, record },
         })
       );
+      return { uri: created.uri, cid: created.cid };
     },
     async putRecord(collection, rkey, record, swapRecord) {
       await ok(

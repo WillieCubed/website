@@ -12,6 +12,7 @@ import WritingHeader from '@/components/writings/WritingHeader';
 
 import { documentUri } from '@/lib/atproto/keys';
 import { documentPath } from '@/lib/atproto/records';
+import { loadBlueskyResponses, mergeResponses } from '@/lib/atproto/responses';
 import { OEMBED_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
 import {
   type ReplyContext,
@@ -206,6 +207,20 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
     fetchReplyContexts(writing),
   ]);
 
+  const atmosphere = await loadBlueskyResponses(writing);
+  const responses = mergeResponses(webmentions, atmosphere.groups);
+  if (
+    atmosphere.copyUrl &&
+    !writing.syndication?.some((copy) => copy.url === atmosphere.copyUrl)
+  ) {
+    writing = {
+      ...writing,
+      syndication: [
+        ...(writing.syndication ?? []),
+        { name: 'Bluesky', url: atmosphere.copyUrl },
+      ],
+    };
+  }
   const canonicalUrl = generateCanonicalUrl(writing.slug);
   const path = `/writings/${writing.slug}`;
   const documentAt = documentUri(documentPath(writing.slug), writing.published);
@@ -270,7 +285,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
 
           <section className="mx-auto max-w-breakpoint-md px-lg pb-lg desktop:px-0">
             <PostInteractions
-              webmentions={webmentions}
+              webmentions={responses}
               backlinks={backlinks}
               slug={slug}
               target={canonicalUrl}

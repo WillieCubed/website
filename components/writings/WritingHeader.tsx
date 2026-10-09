@@ -5,6 +5,10 @@ import SharedTitle from '@/components/site/SharedTitle';
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
 import { formatDate } from '@/lib/site';
 import { SeriesWithWritings, WritingData } from '@/lib/writings';
+import {
+  prepareWritingHtmlMedia,
+  writingPhotoMedia,
+} from '@/lib/writings/media';
 
 import ReplyTarget, { replyTargetsOf } from './ReplyTarget';
 import './writing.css';
@@ -13,6 +17,7 @@ interface WritingHeaderProps {
   writing: WritingData;
   seriesData: SeriesWithWritings | null;
   canonicalUrl: string;
+  content?: string;
   /** Pre-fetched reply contexts for interaction/reply URLs */
   replyContexts?: Map<string, ReplyContext>;
 }
@@ -28,11 +33,20 @@ export default function WritingHeader({
   writing,
   seriesData,
   canonicalUrl,
+  content = '',
   replyContexts,
 }: WritingHeaderProps) {
   const publishedIso = new Date(writing.published).toISOString();
   const updatedIso = new Date(writing.lastUpdated).toISOString();
   const targets = replyTargetsOf(writing);
+  const photos =
+    writing.contentFormat === 'html'
+      ? prepareWritingHtmlMedia(
+          content,
+          writingPhotoMedia(writing),
+          canonicalUrl
+        ).attachments
+      : writingPhotoMedia(writing);
 
   return (
     <header className="mx-auto max-w-breakpoint-md px-lg pb-10 pt-10 desktop:px-0">
@@ -98,16 +112,16 @@ export default function WritingHeader({
         </>
       )}
 
-      {writing.photos && (
+      {photos.length > 0 && (
         <div className="mt-lg space-y-md">
-          {writing.photos.map((photo) => (
+          {photos.map((photo) => (
             // A plain img: uploads live on the media store's host, which
             // the image optimizer does not allow, and their size is unknown.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={photo.url}
               src={photo.url}
-              alt={photo.alt}
+              alt={photo.description || ''}
               decoding="async"
               className="u-photo w-full rounded-2xl bg-card"
             />

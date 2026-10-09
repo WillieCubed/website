@@ -1,6 +1,5 @@
 import { cacheLife } from 'next/cache';
 
-import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import { fetchPublicDocument } from '@/lib/indieweb/public-fetch';
 import { getInitiatives } from '@/lib/initiatives';
 import { absoluteUrl } from '@/lib/site';
@@ -34,12 +33,12 @@ export async function getWritingContentHtml(slug: string): Promise<string> {
   cacheLife('hours');
   const { content, writing } = await getWriting(slug);
   const url = absoluteUrl(`/writings/${slug}`);
+  if (writing.contentFormat === 'html')
+    return writingMediaHtml(writing, url, `<div dir="auto">${content}</div>`);
   const body =
     writing.contentFormat === 'text'
       ? plainTextHtml(content)
-      : writing.contentFormat === 'html'
-        ? `<div dir="auto">${sanitizeCommentHtml(content, url)}</div>`
-        : await renderFeedHtml(content);
+      : await renderFeedHtml(content);
   return body + writingMediaHtml(writing, url);
 }
 

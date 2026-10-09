@@ -269,6 +269,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
           className={`${writing.postType === 'event' ? 'h-entry h-event' : 'h-entry'} mx-auto max-w-breakpoint-2xl`}
         >
           <WritingHeader
+            content={content}
             writing={writing}
             seriesData={seriesData}
             canonicalUrl={canonicalUrl}

@@ -8,6 +8,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { site } from '@/lib/site';
 import type { WritingData } from '@/lib/writings';
+import {
+  prepareWritingHtmlMedia,
+  writingPhotoMedia,
+} from '@/lib/writings/media';
 
 // The link component imports its stylesheet, which Next.js bundles and
 // plain Node cannot load, so a stylesheet loads as an empty module here.
@@ -23,6 +27,8 @@ const { default: ReplyTarget } =
   await import('@/components/writings/ReplyTarget');
 const { default: WritingItem } =
   await import('@/components/writings/WritingItem');
+const { default: WritingHeader } =
+  await import('@/components/writings/WritingHeader');
 
 const index = `${site.origin}/writings`;
 
@@ -141,6 +147,56 @@ test('photo posts carry each photo as a u-photo', () => {
     'https://media.example/a.jpg',
     'https://media.example/b.jpg',
   ]);
+
+  const writing = makeWriting({
+    photos: [
+      {
+        url: 'https://example.com/photos/inline.png',
+        alt: 'An authored description',
+      },
+      {
+        url: 'https://example.com/photos/header.png',
+        alt: 'The additional photo',
+      },
+    ],
+  });
+  const canonicalUrl = `${site.origin}/writings/${writing.slug}`;
+  const content = '<img src="https://example.com/photos/inline.png">';
+  for (const contentFormat of ['html', 'text', undefined] as const) {
+    const header = renderToStaticMarkup(
+      createElement(WritingHeader, {
+        writing: { ...writing, contentFormat },
+        seriesData: null,
+        canonicalUrl,
+        content,
+      })
+    );
+    assert.equal(
+      (header.match(/<img/g) ?? []).length,
+      contentFormat === 'html' ? 1 : 2
+    );
+    if (contentFormat === 'html') {
+      assert.doesNotMatch(header, /inline\.png/);
+      const body = prepareWritingHtmlMedia(
+        content,
+        writingPhotoMedia(writing),
+        canonicalUrl
+      ).html;
+      const page = mf2(`<article class="h-entry">${header}${body}</article>`, {
+        baseUrl: canonicalUrl,
+      }).items[0];
+      assert.equal(page.properties.photo.length, 2);
+      assert.match(body, /alt="An authored description"/);
+      assert.match(body, /class="u-photo"/);
+    }
+  }
+  const explicitlyDecorative = prepareWritingHtmlMedia(
+    '<img src="https://example.com/photos/inline.png" alt="">',
+    writingPhotoMedia(writing),
+    canonicalUrl
+  );
+  assert.match(explicitlyDecorative.html, /alt=""/);
+  assert.doesNotMatch(explicitlyDecorative.html, /An authored description/);
 });
 
 test('the permalink puts an RSVP on the post, not on the event it cites', () => {

@@ -5,10 +5,13 @@ import SiteLink from '@/components/link/SiteLink';
 import NativeVideo from '@/components/media/NativeVideo';
 import References from '@/components/references/References';
 
-import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import { absoluteUrl } from '@/lib/site';
 import { SeriesWithWritings, TOCHeading, WritingData } from '@/lib/writings';
-import { writingAttachments } from '@/lib/writings/media';
+import {
+  prepareWritingHtmlMedia,
+  writingAttachments,
+  writingPhotoMedia,
+} from '@/lib/writings/media';
 import {
   locationText,
   propertyLinks,
@@ -33,7 +36,18 @@ export default async function WritingContent({
   seriesData,
 }: WritingContentProps) {
   const showToc = headings.length >= 3;
-  const attachments = writingAttachments(writing);
+  const suppliedAttachments = writingAttachments(writing);
+  const htmlMedia =
+    writing.contentFormat === 'html'
+      ? prepareWritingHtmlMedia(
+          content,
+          [...writingPhotoMedia(writing), ...suppliedAttachments],
+          absoluteUrl(`/writings/${writing.slug}`)
+        )
+      : undefined;
+  const attachments = htmlMedia
+    ? htmlMedia.attachments.filter((media) => media.kind !== 'image')
+    : suppliedAttachments;
   const location = writing.event?.location ?? writing.location;
   const locationName = locationText(location);
   const locationUrl = propertyUrl(location);
@@ -66,12 +80,9 @@ export default async function WritingContent({
           ) : writing.contentFormat === 'html' ? (
             <div
               dir="auto"
-              className="prose prose-neutral max-w-none text-ink dark:prose-invert [&_audio]:w-full [&_video]:max-h-96 [&_video]:w-full"
+              className="prose prose-neutral max-w-none text-ink dark:prose-invert [&_audio]:w-full [&_video]:max-h-96 [&_video]:w-full [&_a.u-attachment]:inline-flex [&_a.u-attachment]:max-w-full [&_a.u-attachment]:rounded-full [&_a.u-attachment]:bg-tray [&_a.u-attachment]:px-4 [&_a.u-attachment]:py-2 [&_a.u-attachment]:font-medium [&_a.u-attachment]:text-ink [&_a.u-attachment]:no-underline [&_a.u-attachment:hover]:bg-surface-container-highest"
               dangerouslySetInnerHTML={{
-                __html: sanitizeCommentHtml(
-                  content,
-                  absoluteUrl(`/writings/${writing.slug}`)
-                ),
+                __html: htmlMedia!.html,
               }}
             />
           ) : (

@@ -1,0 +1,366 @@
+{
+  "at": "2026-10-09T06:42:20.231Z",
+  "kind": "Actual isolated normal S256 consent, Micropub uploads and publishing, independent deployed JSON Feed/MF2/media SHA256 checks.",
+  "origin": "https://indieweb-acceptance.vercel.app",
+  "checks": [
+    {
+      "name": "Normal S256/TOTP consent and scoped UserInfo",
+      "evidence": {
+        "authorizationStatus": 303,
+        "redemptionStatus": 200,
+        "userinfoStatus": 200
+      }
+    },
+    {
+      "name": "Actual image upload",
+      "evidence": {
+        "status": 201,
+        "bytes": 3189,
+        "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-image-YlafhFNfaTMqmmxxHyVRIvwmX0aml4.png",
+        "sha256": "24b17b1724a6e81e705ba2d4cb50136a078bb5582377761f9a024912a17ae25a"
+      }
+    },
+    {
+      "name": "Actual audio upload",
+      "evidence": {
+        "status": 201,
+        "bytes": 572409,
+        "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-audio-K2sDe2E3m7mxUGjYj5T0fP5m73Kx53.ogg",
+        "sha256": "6b24f9d01e66789965a02b56ecd2135fc24ab979ba30b1b005fa0ca96a13ecfb"
+      }
+    },
+    {
+      "name": "Actual video upload",
+      "evidence": {
+        "status": 201,
+        "bytes": 2757913,
+        "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-video-pU9wKkH5eIHZqtk9vOcRN1D2jPDTye.mp4",
+        "sha256": "80c548058688a577ce9ca501cf9807311b95cc526cc82d292ec7e138e42257de"
+      }
+    },
+    {
+      "name": "Actual pdf upload",
+      "evidence": {
+        "status": 201,
+        "bytes": 13264,
+        "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-pdf-s6S9lwlDDYBJCaP9tc4o1Ks8hpcEPT.pdf",
+        "sha256": "3df79d34abbca99308e79cb94461c1893582604d68329a41fd4bec1885e6adb4"
+      }
+    },
+    {
+      "name": "Actual hosted Micropub fixture",
+      "evidence": {
+        "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-media-proof-f5bbd9545624a71fbc0f41a1",
+        "published": "2026-10-09T06:42:28.920Z",
+        "updated": "2026-10-09T06:42:28.920Z"
+      }
+    },
+    {
+      "name": "Independent actual JSON Feed/MF2 and exact four-upload SHA256 verification",
+      "evidence": {
+        "at": "2026-10-09T06:45:30.639Z",
+        "kind": "Independent read-only parsing of deployed JSON Feed and public media hash comparison against the exact locally retained upload bytes.",
+        "feedUrl": "https://indieweb-acceptance.vercel.app/writings/feed/json",
+        "canonicalItemUrl": "https://indieweb-acceptance.vercel.app/writings/indieweb-media-proof-f5bbd9545624a71fbc0f41a1",
+        "feedSha256": "9dbb5ac0d28bc4eac0deab4e352b8e3e1eda4a5562c72ebe6a967a5406c83331",
+        "verified": {
+          "author": {
+            "name": "Willie Chalmers III",
+            "url": "https://indieweb-acceptance.vercel.app/"
+          },
+          "title": "Media interoperability proof f5bbd9545624a71fbc0f41a1",
+          "published": "2026-10-09T06:42:28.920Z",
+          "updated": "2026-10-09T06:42:28.920Z",
+          "contentHtmlPresent": true
+        },
+        "media": [
+          {
+            "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-image-YlafhFNfaTMqmmxxHyVRIvwmX0aml4.png",
+            "mimeType": "image/png",
+            "bytes": 3189,
+            "sha256": "24b17b1724a6e81e705ba2d4cb50136a078bb5582377761f9a024912a17ae25a",
+            "matchesUploadedBytes": true,
+            "jsonAttachment": false,
+            "contentProperty": "photo"
+          },
+          {
+            "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-audio-K2sDe2E3m7mxUGjYj5T0fP5m73Kx53.ogg",
+            "mimeType": "audio/ogg",
+            "bytes": 572409,
+            "sha256": "6b24f9d01e66789965a02b56ecd2135fc24ab979ba30b1b005fa0ca96a13ecfb",
+            "matchesUploadedBytes": true,
+            "jsonAttachment": true,
+            "contentProperty": "audio"
+          },
+          {
+            "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-video-pU9wKkH5eIHZqtk9vOcRN1D2jPDTye.mp4",
+            "mimeType": "video/mp4",
+            "bytes": 2757913,
+            "sha256": "80c548058688a577ce9ca501cf9807311b95cc526cc82d292ec7e138e42257de",
+            "matchesUploadedBytes": true,
+            "jsonAttachment": true,
+            "contentProperty": "video"
+          },
+          {
+            "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-pdf-s6S9lwlDDYBJCaP9tc4o1Ks8hpcEPT.pdf",
+            "mimeType": "application/pdf",
+            "bytes": 13264,
+            "sha256": "3df79d34abbca99308e79cb94461c1893582604d68329a41fd4bec1885e6adb4",
+            "matchesUploadedBytes": true,
+            "jsonAttachment": true,
+            "contentProperty": "attachment"
+          }
+        ],
+        "result": "passed",
+        "writes": "Receipt only. No posts, uploads, grants, database changes or deployments."
+      }
+    },
+    {
+      "name": "Actual page native media controls, MF2 and no duplicate media",
+      "evidence": {
+        "image": 1,
+        "audio": 1,
+        "video": 1,
+        "pdf": 1,
+        "autoplay": 0
+      }
+    },
+    {
+      "name": "Actual RSS/Atom parsing, native playback and full-page renders in both themes",
+      "evidence": {
+        "observedAt": "2026-10-09T06:45:31.374Z",
+        "canonicalUrl": "https://indieweb-acceptance.vercel.app/writings/indieweb-media-proof-f5bbd9545624a71fbc0f41a1",
+        "result": "passed",
+        "results": [
+          {
+            "width": 1440,
+            "theme": "light",
+            "nativePlayback": [
+              {
+                "kind": "audio",
+                "controls": true,
+                "autoplay": false,
+                "duration": 74.861134,
+                "advancedTo": 0.001228
+              },
+              {
+                "kind": "video",
+                "controls": true,
+                "autoplay": false,
+                "duration": 300.141134,
+                "advancedTo": 0.073189,
+                "width": 320,
+                "height": 240
+              }
+            ],
+            "oneImage": true,
+            "onePdfAttachment": true,
+            "viewportContained": true,
+            "screenshot": "docs/evidence/screenshots/authored-media-20261009-1440-light.png"
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "nativePlayback": [
+              {
+                "kind": "audio",
+                "controls": true,
+                "autoplay": false,
+                "duration": 74.861134,
+                "advancedTo": 0.021951
+              },
+              {
+                "kind": "video",
+                "controls": true,
+                "autoplay": false,
+                "duration": 300.141134,
+                "advancedTo": 0.057107,
+                "width": 320,
+                "height": 240
+              }
+            ],
+            "oneImage": true,
+            "onePdfAttachment": true,
+            "viewportContained": true,
+            "screenshot": "docs/evidence/screenshots/authored-media-20261009-1440-dark.png"
+          },
+          {
+            "width": 390,
+            "theme": "light",
+            "nativePlayback": [
+              {
+                "kind": "audio",
+                "controls": true,
+                "autoplay": false,
+                "duration": 74.861134,
+                "advancedTo": 0.034809
+              },
+              {
+                "kind": "video",
+                "controls": true,
+                "autoplay": false,
+                "duration": 300.141134,
+                "advancedTo": 0.047093,
+                "width": 320,
+                "height": 240
+              }
+            ],
+            "oneImage": true,
+            "onePdfAttachment": true,
+            "viewportContained": true,
+            "screenshot": "docs/evidence/screenshots/authored-media-20261009-390-light.png"
+          },
+          {
+            "width": 390,
+            "theme": "dark",
+            "nativePlayback": [
+              {
+                "kind": "audio",
+                "controls": true,
+                "autoplay": false,
+                "duration": 74.861134,
+                "advancedTo": 0.034879
+              },
+              {
+                "kind": "video",
+                "controls": true,
+                "autoplay": false,
+                "duration": 300.141134,
+                "advancedTo": 0.046786,
+                "width": 320,
+                "height": 240
+              }
+            ],
+            "oneImage": true,
+            "onePdfAttachment": true,
+            "viewportContained": true,
+            "screenshot": "docs/evidence/screenshots/authored-media-20261009-390-dark.png"
+          }
+        ],
+        "feeds": [
+          {
+            "kind": "rss",
+            "feedUrl": "https://indieweb-acceptance.vercel.app/writings/feed.xml",
+            "title": "Media interoperability proof f5bbd9545624a71fbc0f41a1",
+            "id": "https://indieweb-acceptance.vercel.app/writings/indieweb-media-proof-f5bbd9545624a71fbc0f41a1",
+            "published": "Fri, 09 Oct 2026 06:42:28 GMT",
+            "author": "Willie Chalmers III",
+            "content": "<div dir=\"auto\">\n<p>This isolated fixture verifies native media and one contained attachment.</p><img src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-image-YlafhFNfaTMqmmxxHyVRIvwmX0aml4.png\" alt=\"The authored inline image\" loading=\"lazy\" class=\"u-photo\"><audio controls=\"\" preload=\"none\"><source src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-audio-K2sDe2E3m7mxUGjYj5T0fP5m73Kx53.ogg\" class=\"u-audio\"></audio><video src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-video-pU9wKkH5eIHZqtk9vOcRN1D2jPDTye.mp4\" controls=\"\" preload=\"none\" class=\"u-video\"></video><p><a href=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-pdf-s6S9lwlDDYBJCaP9tc4o1Ks8hpcEPT.pdf\" rel=\"nofollow ugc\" class=\"u-attachment\">Read the PDF</a></p>\n</div>",
+            "enclosures": [
+              {
+                "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-audio-K2sDe2E3m7mxUGjYj5T0fP5m73Kx53.ogg",
+                "mimeType": "audio/ogg",
+                "length": "572409"
+              }
+            ]
+          },
+          {
+            "kind": "atom",
+            "feedUrl": "https://indieweb-acceptance.vercel.app/writings/feed/atom",
+            "title": "Media interoperability proof f5bbd9545624a71fbc0f41a1",
+            "id": "https://indieweb-acceptance.vercel.app/writings/indieweb-media-proof-f5bbd9545624a71fbc0f41a1",
+            "published": "2026-10-09T06:42:28.920Z",
+            "updated": "2026-10-09T06:42:28.920Z",
+            "author": "Willie Chalmers III",
+            "authorUrl": "https://indieweb-acceptance.vercel.app/",
+            "content": "<div dir=\"auto\">\n<p>This isolated fixture verifies native media and one contained attachment.</p><img src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-image-YlafhFNfaTMqmmxxHyVRIvwmX0aml4.png\" alt=\"The authored inline image\" loading=\"lazy\" class=\"u-photo\"><audio controls=\"\" preload=\"none\"><source src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-audio-K2sDe2E3m7mxUGjYj5T0fP5m73Kx53.ogg\" class=\"u-audio\"></audio><video src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-video-pU9wKkH5eIHZqtk9vOcRN1D2jPDTye.mp4\" controls=\"\" preload=\"none\" class=\"u-video\"></video><p><a href=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-pdf-s6S9lwlDDYBJCaP9tc4o1Ks8hpcEPT.pdf\" rel=\"nofollow ugc\" class=\"u-attachment\">Read the PDF</a></p>\n</div>",
+            "enclosures": [
+              {
+                "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-audio-K2sDe2E3m7mxUGjYj5T0fP5m73Kx53.ogg",
+                "mimeType": "audio/ogg",
+                "length": "572409"
+              },
+              {
+                "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-video-pU9wKkH5eIHZqtk9vOcRN1D2jPDTye.mp4",
+                "mimeType": "video/mp4",
+                "length": "2757913"
+              },
+              {
+                "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-pdf-s6S9lwlDDYBJCaP9tc4o1Ks8hpcEPT.pdf",
+                "mimeType": "application/pdf",
+                "length": "13264"
+              }
+            ]
+          }
+        ],
+        "activeCheck": "390px dark: viewport containment",
+        "writes": "Browser playback and local receipts only."
+      }
+    }
+  ],
+  "result": "passed",
+  "cleanup": {
+    "sourceAndFeedsAbsent": true,
+    "normalRevocation": true,
+    "exactOwnedOutgoingRowsAbsent": true,
+    "exactOwnedGrantAndArchiveRowsAbsent": true,
+    "exactOwnedBlobsAbsent": [
+      {
+        "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-image-YlafhFNfaTMqmmxxHyVRIvwmX0aml4.png",
+        "status": 404
+      },
+      {
+        "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-audio-K2sDe2E3m7mxUGjYj5T0fP5m73Kx53.ogg",
+        "status": 404
+      },
+      {
+        "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-video-pU9wKkH5eIHZqtk9vOcRN1D2jPDTye.mp4",
+        "status": 404
+      },
+      {
+        "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/f5bbd9545624a71fbc0f41a1-pdf-s6S9lwlDDYBJCaP9tc4o1Ks8hpcEPT.pdf",
+        "status": 404
+      }
+    ]
+  },
+  "provenance": {
+    "runnerRevision": "e9a465b7ee603b559386cc053be890f38c2e6d60",
+    "runnerSha256": "a212fc1af037226cee08b65e4ccaf1a51647c106fd8708506b16e302a3a4ab1c",
+    "publishedRevision": "f408879567a3406951e08e648d08534ea362ff80",
+    "cleanupSourceRevision": "5e1c92e32e21c6a98e848e965a26f3b2a11eb184",
+    "cleanupDeploymentRevision": "3120ee12571e4b186ea85ddfd4a2862b669a396a",
+    "cleanupTree": "02cb97e6807500e1b399c11b0d2634b1c285e041",
+    "cleanupDeployment": "https://indieweb-acceptance-apg47rkm8-williecubed-projects.vercel.app",
+    "note": "Vercel refused a new cleanup deployment after its100-per-day limit. Promotion restored an existing clean deployment with the identical source tree. Its actual revision served404 and absent feeds. The obsolete waiting workflow was cancelled. A separate required notification returned synced and deleted exactly the owned document. This does not claim that the cleanup push deployed or its workflow passed."
+  },
+  "cleanupNotification": {
+    "observedAt": "2026-10-09T06:55:24.838Z",
+    "origin": "https://indieweb-acceptance.vercel.app",
+    "revision": "3120ee12571e4b186ea85ddfd4a2862b669a396a",
+    "status": 200,
+    "body": {
+      "websub": {
+        "ok": true,
+        "status": 202
+      },
+      "webmentions": {
+        "sent": 0,
+        "failed": 0,
+        "unsupported": 4
+      },
+      "atproto": {
+        "status": "synced",
+        "created": 0,
+        "updated": 0,
+        "deleted": 1,
+        "unchanged": 1,
+        "writes": [
+          {
+            "action": "delete",
+            "uri": "at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgenirtq22d"
+          }
+        ],
+        "announced": []
+      }
+    }
+  },
+  "cleanupDocumentReadback": {
+    "observedAt": "2026-10-09T07:00:49.818Z",
+    "url": "https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev/xrpc/com.atproto.repo.getRecord?repo=did:plc:l3ycfv2ycqya33wyyw6zv6j6&collection=site.standard.document&rkey=3mxgenirtq22d",
+    "status": 400,
+    "body": {
+      "error": "RecordNotFound",
+      "message": "Could not locate record: at://did:plc:l3ycfv2ycqya33wyyw6zv6j6/site.standard.document/3mxgenirtq22d"
+    }
+  }
+}

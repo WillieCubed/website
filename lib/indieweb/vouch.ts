@@ -1,5 +1,6 @@
 import { type DefaultTreeAdapterMap, parse } from 'parse5';
 
+import { resolvedDocumentLinks } from '@/lib/indieweb/document-links';
 import {
   type AddressResolver,
   type DocumentFetch,
@@ -94,14 +95,15 @@ export function linksToDomain(
   pageUrl: string,
   domain: string
 ): boolean {
+  const { base } = resolvedDocumentLinks(html, pageUrl);
   type ParentNode = DefaultTreeAdapterMap['parentNode'];
   const walk = (node: ParentNode): boolean =>
     node.childNodes.some((child) => {
       if (!('tagName' in child)) return false;
       if (child.tagName === 'a' || child.tagName === 'area') {
         const href = child.attrs.find((attr) => attr.name === 'href')?.value;
-        if (href !== undefined && URL.canParse(href, pageUrl)) {
-          const url = new URL(href, pageUrl);
+        if (href !== undefined && URL.canParse(href, base)) {
+          const url = new URL(href, base);
           if (
             (url.protocol === 'https:' || url.protocol === 'http:') &&
             vouchDomain(url.href) === domain

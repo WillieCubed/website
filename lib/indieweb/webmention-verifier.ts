@@ -8,6 +8,10 @@ import {
 import { commentHtml, commentText } from '@/lib/indieweb/comment-content';
 import { SITE_URL } from '@/lib/indieweb/constants';
 import {
+  resolvedDocumentLinks,
+  sameDocumentUrl,
+} from '@/lib/indieweb/document-links';
+import {
   type AddressResolver,
   type DocumentFetch,
   fetchPublicDocument,
@@ -22,7 +26,6 @@ import {
   markWebmentionDeleted,
   updateVerifiedWebmention,
 } from '@/lib/indieweb/webmention-storage';
-import { linksToTarget } from '@/lib/indieweb/webmention-targets';
 import type { RSVPStatus } from '@/lib/writings/types';
 
 export { extractAuthor } from '@/lib/indieweb/authorship';
@@ -37,6 +40,7 @@ const SOURCE_TIMEOUT_MS = 10000;
 const SOURCE_MAX_BYTES = 2 * 1024 * 1024;
 
 export interface VerifyWebmentionOptions extends AuthorshipOptions {
+  verificationTarget?: string;
   /** Resolves host names for the source fetch; the system resolver by default. */
   resolve?: AddressResolver;
   /** Requests the source; a public-only fetch by default. */
@@ -56,10 +60,12 @@ export async function verifyWebmention(
     // Validate the source URL; sameOrigin rejects an invalid target below
     const source = new URL(sourceUrl);
 
-    // Reject if source is from our own domain (unless intentional)
-    if (source.hostname === new URL(SITE_URL).hostname) {
-      return { success: false, error: 'Self-mentions not allowed' };
-    }
+    const verificationTarget = options.verificationTarget ?? targetUrl;
+    if (sameDocumentUrl(source.href, verificationTarget))
+      return {
+        success: false,
+        error: 'Source and target must be different pages.',
+      };
 
     // Reject if target is not on our domain
     if (!sameOrigin(targetUrl, SITE_URL)) {
@@ -114,7 +120,8 @@ export async function verifyWebmention(
     const html = document.body;
 
     // Check if the source actually links to the target
-    if (!linksToTarget(html, targetUrl)) {
+    const links = resolvedDocumentLinks(html, document.url);
+    if (!links.links.some((url) => sameDocumentUrl(url, verificationTarget))) {
       // Source no longer links to target - this is a delete
       await markWebmentionDeleted(id);
       return {
@@ -125,8 +132,18 @@ export async function verifyWebmention(
     }
 
     // Relative links resolve against where the source ended up.
-    const parsed = mf2(html, { baseUrl: document.url });
-    const found = findEntry(parsed.items);
+    const parsed = mf2(html, { baseUrl: links.base });
+    const citing = links.entries.find((entry) =>
+      entry.links.some((url) => sameDocumentUrl(url, verificationTarget))
+    );
+    const found = citing
+      ? findEntry(mf2(citing.html, { baseUrl: links.base }).items)
+      : null;
+    if (found) {
+      // Keep the original feed for author inheritance when selecting a later entry.
+      const original = findEntry(parsed.items);
+      found.feed = original?.feed;
+    }
 
     if (!found) {
       // No h-entry found, but link exists - treat as simple mention
@@ -137,14 +154,14 @@ export async function verifyWebmention(
     const hEntry = found.entry;
 
     // Determine webmention type
-    const type = determineWebmentionType(hEntry, targetUrl);
+    const type = determineWebmentionType(hEntry, verificationTarget);
     const rsvp = type === 'rsvp' ? rsvpAnswer(hEntry) : undefined;
 
     const author = await discoverAuthor(parsed, found, document.url, options);
 
     const { text: content, html: contentHtml } = extractContent(
       hEntry,
-      document.url
+      links.base
     );
 
     // Extract published date
@@ -207,7 +224,7 @@ function determineWebmentionType(
   const properties = hEntry.properties;
   const cites = (property: string) =>
     properties[property]?.some((value) =>
-      propertyUrls(value).some((url) => linksToTarget(url, targetUrl))
+      propertyUrls(value).some((url) => sameDocumentUrl(url, targetUrl))
     );
 
   // Check for specific interaction types
@@ -257,15 +274,71 @@ function extractContent(
   const content =
     properties.content?.[0] || properties.summary?.[0] || properties.name?.[0];
 
-  if (typeof content === 'string') return { text: commentText(content) };
-  if (!content || !('value' in content) || typeof content.value !== 'string') {
-    return {};
+  const escape = (value: string) =>
+    value.replace(
+      /[&<>"']/g,
+      (character) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[character]!
+    );
+  const value =
+    typeof content === 'string'
+      ? content
+      : content && 'value' in content && typeof content.value === 'string'
+        ? content.value
+        : '';
+  const hasMarkup =
+    content &&
+    typeof content === 'object' &&
+    'html' in content &&
+    typeof content.html === 'string';
+  let hasMedia = false;
+  let markup =
+    content &&
+    typeof content === 'object' &&
+    'html' in content &&
+    typeof content.html === 'string'
+      ? content.html
+      : `<p>${escape(value)}</p>`;
+  const mediaUrls = new Set(
+    resolvedDocumentLinks(commentHtml(markup, baseUrl) ?? '', baseUrl).links
+  );
+  for (const property of ['photo', 'audio', 'video', 'attachment']) {
+    for (const item of properties[property] ?? []) {
+      const url = propertyUrls(item)[0];
+      if (!url) continue;
+      let identity: string;
+      try {
+        identity = new URL(url, baseUrl).href;
+      } catch {
+        continue;
+      }
+      if (mediaUrls.has(identity)) continue;
+      mediaUrls.add(identity);
+      const alt =
+        typeof item === 'object' &&
+        'alt' in item &&
+        typeof item.alt === 'string'
+          ? item.alt
+          : '';
+      hasMedia = true;
+      markup +=
+        property === 'photo'
+          ? `<img src="${escape(url)}" alt="${escape(alt)}">`
+          : property === 'attachment'
+            ? `<figure><a class="u-attachment" href="${escape(url)}">${escape(alt || 'Attachment')}</a></figure>`
+            : `<${property} src="${escape(url)}" controls preload="none"></${property}>`;
+    }
   }
-  const html =
-    'html' in content && typeof content.html === 'string'
-      ? commentHtml(content.html, baseUrl)
-      : undefined;
-  return { text: commentText(content.value), html };
+  return {
+    text: commentText(value),
+    html: hasMarkup || hasMedia ? commentHtml(markup, baseUrl) : undefined,
+  };
 }
 
 function extractPublishedDate(hEntry: MicroformatRoot): Date | undefined {

@@ -2,15 +2,29 @@ import assert from 'node:assert/strict';
 import { afterEach, mock, test } from 'node:test';
 
 import {
-  discoverWebmentionEndpoint,
+  discoverWebmentionEndpoint as discoverEndpoint,
   extractExternalLinks,
-  sendWebmention,
-  sendWebmentionsForPost,
+  sendWebmention as send,
+  sendWebmentionsForPost as sendForPost,
   targetsForUpdatedPost,
   webmentionTargetsForWriting,
 } from '@/lib/indieweb/send-webmention';
 import type { WebmentionSourceWriting } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
+
+const network = {
+  resolve: async () => [{ address: '93.184.216.34', family: 4 as const }],
+  fetch: (url: string, init: RequestInit) => globalThis.fetch(url, init),
+};
+const discoverWebmentionEndpoint = (url: string) =>
+  discoverEndpoint(url, network);
+const sendWebmention = (source: string, target: string) =>
+  send(source, target, network);
+
+const sendWebmentionsForPost = (
+  writing: WebmentionSourceWriting,
+  content: string
+) => sendForPost(writing, content, network);
 
 const target = 'https://example.com/posts/1';
 const source = `${site.origin}/writings/hello`;
@@ -46,7 +60,7 @@ function serve(page: Page, postStatus = 202) {
       if (method === 'POST') return new Response(null, { status: postStatus });
       return new Response(method === 'HEAD' ? null : (page.html ?? ''), {
         status: page.status ?? 200,
-        headers: page.headers,
+        headers: { 'Content-Type': 'text/html', ...page.headers },
       });
     }
   );
@@ -69,6 +83,45 @@ test('an endpoint in the Link header is found without fetching the page', async 
     calls.map((call) => call.method),
     ['HEAD']
   );
+});
+
+test('large media without an endpoint is unsupported rather than a failed document fetch', async () => {
+  const calls = serve({
+    headers: { 'Content-Type': 'video/mp4', 'Content-Length': '2757913' },
+    html: 'Binary media is not parsed as HTML.',
+  });
+  const result = await sendWebmention(source, target);
+  assert.equal(result.success, false);
+  assert.equal(result.error, 'No webmention endpoint found');
+  assert.deepEqual(
+    calls.map((call) => call.method),
+    ['HEAD', 'GET']
+  );
+});
+
+test('large media can advertise its endpoint only in GET response headers', async () => {
+  const methods: string[] = [];
+  mock.method(
+    globalThis,
+    'fetch',
+    async (_input: string | URL, init: RequestInit = {}) => {
+      const method = init.method ?? 'GET';
+      methods.push(method);
+      if (method === 'HEAD') return new Response(null, { status: 405 });
+      if (method === 'POST') return new Response(null, { status: 202 });
+      return new Response('Binary media is not parsed as HTML.', {
+        headers: {
+          'Content-Type': 'video/mp4',
+          'Content-Length': '2757913',
+          Link: '</webmention>; rel="webmention"',
+        },
+      });
+    }
+  );
+  const result = await sendWebmention(source, target);
+  assert.equal(result.success, true);
+  assert.equal(result.endpoint, 'https://example.com/webmention');
+  assert.deepEqual(methods, ['HEAD', 'GET', 'POST']);
 });
 
 test('an endpoint in the page is found and resolved against it', async () => {
@@ -133,6 +186,33 @@ test('a target with no endpoint is not posted to', async () => {
     error: 'No webmention endpoint found',
   });
   assert.ok(calls.every((call) => call.method !== 'POST'));
+});
+
+test('temporary discovery failures do not report a verified absent endpoint', async () => {
+  const calls = serve({ status: 503 });
+  const unavailable = await sendWebmention(source, target);
+  assert.equal(unavailable.success, false);
+  assert.match(unavailable.error!, /discovery.*503/i);
+  assert.equal(unavailable.statusCode, undefined);
+  assert.ok(calls.every((call) => call.method !== 'POST'));
+
+  mock.method(globalThis, 'fetch', async () => {
+    throw new Error('A temporary connection failure');
+  });
+  mock.method(console, 'error', () => {});
+  const disconnected = await sendWebmention(source, target);
+  assert.equal(disconnected.success, false);
+  assert.match(disconnected.error!, /temporary connection failure/i);
+  assert.notEqual(disconnected.error, 'No webmention endpoint found');
+
+  const guarded = await send(source, 'http://127.0.0.1/private', {
+    resolve: async () => [{ address: '127.0.0.1', family: 4 }],
+    fetch: async () => {
+      throw new Error('A blocked target must not be fetched');
+    },
+  });
+  assert.equal(guarded.success, false);
+  assert.match(guarded.error!, /discovery.*public document/i);
 });
 
 test('only external links are sent webmentions, once each', () => {

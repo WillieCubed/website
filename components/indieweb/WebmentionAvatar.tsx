@@ -1,3 +1,5 @@
+import SiteLink from '@/components/link/SiteLink';
+
 import type { WebmentionAuthor } from '@/lib/indieweb/types';
 
 interface WebmentionAvatarProps {
@@ -50,7 +52,7 @@ export default function WebmentionAvatar({
     <span className="p-author h-card block flex-shrink-0">
       {author.name && <data className="p-name" value={author.name} />}
       {author.url ? (
-        <a
+        <SiteLink
           href={author.url}
           target="_blank"
           rel="noopener noreferrer"
@@ -58,7 +60,7 @@ export default function WebmentionAvatar({
           title={name}
         >
           {content}
-        </a>
+        </SiteLink>
       ) : (
         content
       )}

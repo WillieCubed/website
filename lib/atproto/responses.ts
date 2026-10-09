@@ -484,6 +484,7 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
 }> {
   const groups = emptyResponses();
   if (writing.draft) return { groups };
+  let copyUrl: string | undefined;
   try {
     const document = documentUri(
       `/writings/${writing.slug}`,
@@ -496,7 +497,7 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
     assertOwnerCopy(ref);
     const uri = ref.uri;
     const target = absoluteUrl(`/writings/${writing.slug}`);
-    const copyUrl = blueskyPostUrl(uri);
+    copyUrl = blueskyPostUrl(uri);
     const thread = await query<{
       thread: Thread;
       threadgate?: { record?: { hiddenReplies?: string[] } };
@@ -504,7 +505,7 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
       uri,
       depth: '100',
       parentHeight: '0',
-    }).catch(() => null);
+    });
     if (
       !thread?.thread.post ||
       !allowed(thread.thread.post) ||
@@ -512,15 +513,13 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
     )
       return { groups, copyUrl };
     const [quotes, likes, reposts] = await Promise.all([
-      pages<Post>('app.bsky.feed.getQuotes', uri, 'posts').catch(() => []),
+      pages<Post>('app.bsky.feed.getQuotes', uri, 'posts'),
       pages<{ actor: Profile; createdAt: string; indexedAt: string }>(
         'app.bsky.feed.getLikes',
         uri,
         'likes'
-      ).catch(() => []),
-      pages<Profile>('app.bsky.feed.getRepostedBy', uri, 'repostedBy').catch(
-        () => []
       ),
+      pages<Profile>('app.bsky.feed.getRepostedBy', uri, 'repostedBy'),
     ]);
     const hidden = new Set(thread.threadgate?.record?.hiddenReplies ?? []);
     const candidates: ResponseCandidate[] = [
@@ -614,7 +613,7 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
     return { groups, copyUrl, ...(current.incomplete && { incomplete: true }) };
   } catch (error) {
     console.error('Could not refresh Bluesky responses:', error);
-    return { groups };
+    return { groups, ...(copyUrl && { copyUrl }), incomplete: true };
   }
 }
 

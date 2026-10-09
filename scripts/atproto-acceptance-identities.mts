@@ -255,6 +255,7 @@ async function deployWorker(
     JSON.stringify({
       main_module: 'index.mjs',
       compatibility_date: '2026-10-08',
+      compatibility_flags: ['global_fetch_strictly_public'],
     })
   );
   form.set(
@@ -1410,6 +1411,28 @@ async function federation(journal: Journal, journalPath: string) {
     await removeProbes(journal, journalPath);
     return;
   }
+  await request('https://bsky.network', 'com.atproto.sync.requestCrawl', {
+    hostname: new URL(journal.origin).hostname,
+  });
+  // A newly discovered relay host starts at its current stream offset.
+  // Subscribe before writing the records that must reach AppView.
+  let relayActive = false;
+  for (let attempt = 0; attempt < 30; attempt++) {
+    try {
+      const host = (await request(
+        'https://bsky.network',
+        `com.atproto.sync.getHostStatus?hostname=${new URL(journal.origin).hostname}`
+      )) as unknown as { status?: string };
+      if (host.status === 'active') {
+        relayActive = true;
+        break;
+      }
+    } catch {
+      // The relay may not expose the newly requested host yet.
+    }
+    await pause(1000);
+  }
+  assert(relayActive, 'The relay has not subscribed to the owned PDS.');
   for (const [role, account] of [
     ['publisher', journal.publisher],
     ['visitor', journal.visitor],
@@ -1495,9 +1518,6 @@ async function federation(journal: Journal, journalPath: string) {
       await save(journalPath, journal);
     }
   }
-  await request('https://bsky.network', 'com.atproto.sync.requestCrawl', {
-    hostname: new URL(journal.origin).hostname,
-  });
   for (let attempt = 0; attempt < 60; attempt++) {
     try {
       for (const account of [journal.publisher, journal.visitor]) {

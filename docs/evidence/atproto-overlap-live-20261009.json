@@ -1,0 +1,352 @@
+{
+  "version": 1,
+  "reviews": [
+    {
+      "reviewer": "root agent",
+      "scope": "Actual journal, native-only hosted baseline and all four overlap screenshots",
+      "hostedBoundaryConfirmed": true,
+      "visualDefects": []
+    },
+    {
+      "reviewer": "independent overlap_runner agent",
+      "scope": "Actual journal, native-only hosted baseline and all four overlap screenshots",
+      "hostedBoundaryConfirmed": true,
+      "visualDefects": []
+    }
+  ],
+  "reader": "The maintainer deciding whether issue #166 has real overlap acceptance evidence.",
+  "decision": "The original real overlap acceptance criterion passed, including exact cleanup.",
+  "observedAt": "2026-10-09T17:43:38.156Z",
+  "origin": "https://indieweb-acceptance.vercel.app",
+  "target": "https://indieweb-acceptance.vercel.app/writings/overlap-acceptance-20261009",
+  "isolation": {
+    "vercelProject": "indieweb-acceptance",
+    "database": "ep-winter-wind-b5iiaxe7 / neondb",
+    "toolOwnedPublisher": "did:plc:omuauqr4ea7g5igdhbguig4z",
+    "toolOwnedVisitor": "did:plc:rbg5bxin2xzegje7p7k3nywd",
+    "productionTouched": false
+  },
+  "scenario": "The hosted page first displays the actual native repost while the incoming Worker and Webmention do not exist. An independently hosted public h-entry then reposts the writing with the same canonical Bluesky DID profile in its author h-card. The real receiver verifies it and the real moderator approves it. The same deployment displays that actor once and retains the incoming IndieWeb source while the native repost still exists.",
+  "deployment": {
+    "id": "dpl_AzrGgeWMDXggdVB8LU4xTtnn7oUA",
+    "url": "indieweb-acceptance-eib50oy97-williecubed-projects.vercel.app",
+    "runtimeCodeBase": "1ba27df040ef489751d1a0be940125235ec65e82",
+    "runtimeCodeDiffEmpty": true,
+    "revisionEndpoint": "",
+    "limitation": "The CLI archive exposes no Git SHA. The actual READY deployment, canonical alias, unique fixture nonce and unchanged runtime source identify this proof."
+  },
+  "fixture": {
+    "slug": "overlap-acceptance-20261009",
+    "sourceSha256": "1e64eee4c46319dd66f839770c4bbb421ccef1e363fbb38d4a74391149ad00ab",
+    "publishedAt": "2026-10-09T17:36:02.578Z",
+    "explicitSyndicationTarget": "https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z",
+    "publicationUri": "at://did:plc:omuauqr4ea7g5igdhbguig4z/site.standard.publication/3mxhj5gv54nup",
+    "copy": {
+      "cid": "bafyreihrscgwjs3rlilrlmfprn2uy3buopskvkmuhv2gikfhpuepejetbq",
+      "uri": "at://did:plc:omuauqr4ea7g5igdhbguig4z/app.bsky.feed.post/3mxhj65tpmk4w"
+    }
+  },
+  "hostedNativeBaseline": {
+    "observedAt": "2026-10-09T17:38:30.968Z",
+    "matchingReposts": 1,
+    "source": "https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z",
+    "html": "<li class=\"u-repost h-cite rounded-full ring-2 ring-ground \"><data class=\"u-url\" value=\"https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z\"></data><span class=\"p-author h-card block flex-shrink-0\"><data class=\"p-name\" value=\"Website acceptance publisher\"></data><a target=\"_blank\" rel=\"noopener noreferrer\" class=\"u-url block transition-opacity hover:opacity-80\" title=\"Website acceptance publisher\" href=\"https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z\"><span aria-hidden=\"true\" class=\"h-6 w-6 flex items-center justify-center rounded-full bg-primary/20 text-sm font-medium text-primary \">W</span></a></span></li>",
+    "incomingMentionAbsent": true,
+    "sourceWorkerNotDeployed": true
+  },
+  "independentInputs": {
+    "indieweb": {
+      "receiverStatus": 202,
+      "actualRedeliveries": 1,
+      "moderatorAction": "approve",
+      "database": {
+        "id": "dccb25ac-d360-4b7b-b81b-44a5dec5a526",
+        "source_url": "https://dev-williecubed-website-overlap-41a3973bcb309212.willieechalmers-18f.workers.dev/repost/6da17d42abda92625a4c3e678989dfa879eb155c34b21d0c",
+        "target_url": "https://indieweb-acceptance.vercel.app/writings/overlap-acceptance-20261009",
+        "type": "repost",
+        "author_url": "https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z",
+        "is_verified": true,
+        "is_approved": true,
+        "received_at": "2026-10-09T17:43:18.096442+00:00",
+        "verified_at": "2026-10-09T17:43:18.184538+00:00"
+      },
+      "receivedMicroformats": {
+        "type": ["h-entry"],
+        "properties": {
+          "url": [
+            "https://dev-williecubed-website-overlap-41a3973bcb309212.willieechalmers-18f.workers.dev/repost/6da17d42abda92625a4c3e678989dfa879eb155c34b21d0c"
+          ],
+          "author": [
+            {
+              "type": ["h-card"],
+              "value": "Owned overlap actor",
+              "properties": {
+                "url": [
+                  "https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z"
+                ],
+                "name": ["Owned overlap actor"]
+              }
+            }
+          ],
+          "content": [
+            {
+              "html": "This owned repost checks one response received through two publishing protocols.",
+              "value": "This owned repost checks one response received through two publishing protocols."
+            }
+          ],
+          "published": ["2026-10-09T17:36:02.577Z"],
+          "repost-of": [
+            "https://indieweb-acceptance.vercel.app/writings/overlap-acceptance-20261009"
+          ]
+        }
+      },
+      "publicSourceWorkerSha256": "26f0d078d18989dc5f4388fdde22ba1593b09d695cea452d7e8b9b89589105e2"
+    },
+    "atmosphere": {
+      "nativeRecord": {
+        "collection": "app.bsky.feed.repost",
+        "rkey": "3mxhj65tpge2t",
+        "value": {
+          "$type": "app.bsky.feed.repost",
+          "subject": {
+            "cid": "bafyreihrscgwjs3rlilrlmfprn2uy3buopskvkmuhv2gikfhpuepejetbq",
+            "uri": "at://did:plc:omuauqr4ea7g5igdhbguig4z/app.bsky.feed.post/3mxhj65tpmk4w"
+          },
+          "createdAt": "2026-10-09T17:36:02.577Z"
+        },
+        "cid": "bafyreif6zoelnyz24lvdzbm4dqwks3gryp3qxnq2ciwpvds5ecrx5v2aby"
+      },
+      "importedReposts": [
+        {
+          "id": "repost:did:plc:omuauqr4ea7g5igdhbguig4z:at://did:plc:omuauqr4ea7g5igdhbguig4z/app.bsky.feed.post/3mxhj65tpmk4w",
+          "sourceUrl": "https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z",
+          "targetUrl": "https://indieweb-acceptance.vercel.app/writings/overlap-acceptance-20261009",
+          "type": "repost",
+          "origin": "atproto",
+          "sourceAliases": [
+            "https://bsky.app/profile/pubebeb382190.willieechalmers-18f.workers.dev"
+          ],
+          "author": {
+            "name": "Website acceptance publisher",
+            "url": "https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z"
+          },
+          "receivedAt": "2026-10-09T17:38:26.635Z",
+          "observedAt": "2026-10-09T17:38:26.635Z"
+        }
+      ],
+      "count": 1
+    }
+  },
+  "renderedResult": {
+    "selector": ".u-repost with an author anchor matching the canonical owned DID profile",
+    "matchingCount": 1,
+    "retainedSource": "https://dev-williecubed-website-overlap-41a3973bcb309212.willieechalmers-18f.workers.dev/repost/6da17d42abda92625a4c3e678989dfa879eb155c34b21d0c",
+    "retainedHtml": "<li class=\"u-repost h-cite rounded-full ring-2 ring-ground \"><data class=\"u-url\" value=\"https://dev-williecubed-website-overlap-41a3973bcb309212.willieechalmers-18f.workers.dev/repost/6da17d42abda92625a4c3e678989dfa879eb155c34b21d0c\"></data><span class=\"p-author h-card block flex-shrink-0\"><data class=\"p-name\" value=\"Owned overlap actor\"></data><a target=\"_blank\" rel=\"noopener noreferrer\" class=\"u-url block transition-opacity hover:opacity-80\" title=\"Owned overlap actor\" href=\"https://bsky.app/profile/did:plc:omuauqr4ea7g5igdhbguig4z\"><span aria-hidden=\"true\" class=\"h-6 w-6 flex items-center justify-center rounded-full bg-primary/20 text-sm font-medium text-primary \">O</span></a></span></li>",
+    "screenshots": [
+      {
+        "path": "docs/evidence/atproto-overlap-20261009/native-only-1440-light.png",
+        "sha256": "4d5dd68176e92fda47838df043a9e9928928bec05d18f93234f98051d2448606",
+        "viewportWidth": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "matchingReposts": 1,
+        "horizontalOverflow": false,
+        "role": "native-only baseline"
+      },
+      {
+        "path": "docs/evidence/atproto-overlap-20261009/overlap-1440-light.png",
+        "sha256": "271597d486b47dcc31e6aa57af075ef73cdef76f868f7c70c4f715a6a111c177",
+        "viewportWidth": 1440,
+        "theme": "light",
+        "fullPage": true,
+        "matchingReposts": 1,
+        "horizontalOverflow": false,
+        "role": "overlap"
+      },
+      {
+        "path": "docs/evidence/atproto-overlap-20261009/overlap-1440-dark.png",
+        "sha256": "c7f71cfb5717d5f39014e52a08f89f6ca54983d9952e721cad6adad0484437fe",
+        "viewportWidth": 1440,
+        "theme": "dark",
+        "fullPage": true,
+        "matchingReposts": 1,
+        "horizontalOverflow": false,
+        "role": "overlap"
+      },
+      {
+        "path": "docs/evidence/atproto-overlap-20261009/overlap-390-light.png",
+        "sha256": "c66ab5c50dbe7f32f4bcb002a5b9dacce71919f5482cbc0c4726d7a65eec34c6",
+        "viewportWidth": 390,
+        "theme": "light",
+        "fullPage": true,
+        "matchingReposts": 1,
+        "horizontalOverflow": false,
+        "role": "overlap"
+      },
+      {
+        "path": "docs/evidence/atproto-overlap-20261009/overlap-390-dark.png",
+        "sha256": "f4a41bb3485eb622c0257dd6a295c755cc6ac696feac8dfebc48b22d3cd16c17",
+        "viewportWidth": 390,
+        "theme": "dark",
+        "fullPage": true,
+        "matchingReposts": 1,
+        "horizontalOverflow": false,
+        "role": "overlap"
+      }
+    ],
+    "visualReview": "Two agents inspected all five captures. The baseline shows the native publisher before incoming delivery. The four overlap views show one repost, working light/dark themes and no horizontal clipping."
+  },
+  "cleanup": {
+    "records": {
+      "status": "passed",
+      "observedAt": "2026-10-09T17:43:53.521Z",
+      "ownedMentionRows": 0,
+      "ownedObservationRows": 0,
+      "foreignMentionInventoryUnchanged": true,
+      "records": [
+        {
+          "collection": "site.standard.publication",
+          "rkey": "3mxhj5gv54nup",
+          "status": 400,
+          "error": "RecordNotFound"
+        },
+        {
+          "collection": "site.standard.document",
+          "rkey": "3mxhj65tpmk4w",
+          "status": 400,
+          "error": "RecordNotFound"
+        },
+        {
+          "collection": "app.bsky.feed.post",
+          "rkey": "3mxhj65tpmk4w",
+          "status": 400,
+          "error": "RecordNotFound"
+        },
+        {
+          "collection": "site.standard.document",
+          "rkey": "3mxhj65tpmk4w",
+          "status": 400,
+          "error": "RecordNotFound"
+        },
+        {
+          "collection": "app.bsky.feed.repost",
+          "rkey": "3mxhj65tpge2t",
+          "status": 400,
+          "error": "RecordNotFound"
+        }
+      ]
+    },
+    "publicAppView": {
+      "status": "passed",
+      "observedAt": "2026-10-09T17:45:33.823Z",
+      "copyUri": "at://did:plc:omuauqr4ea7g5igdhbguig4z/app.bsky.feed.post/3mxhj65tpmk4w",
+      "actualPublicAppViewPosts": 0
+    },
+    "publicationJournalPassed": true,
+    "incomingWorkerRemoved": true,
+    "mentionRemoved": true,
+    "configuration": {
+      "status": "passed",
+      "checkedAt": "2026-10-09T17:43:59.879906+00:00",
+      "project": "prj_rurUFlQ4YKYKoMxGCaAyL6ASijHm",
+      "ownedKeysRemoved": [
+        "NEXT_PUBLIC_ATPROTO_DID",
+        "NEXT_PUBLIC_BLUESKY_HANDLE",
+        "ATPROTO_APP_PASSWORD",
+        "ATPROTO_PUBLICATION_RKEY"
+      ],
+      "preexistingSettingsRetained": true,
+      "originRetained": "https://indieweb-acceptance.vercel.app"
+    },
+    "source": {
+      "status": "passed",
+      "observedAt": "2026-10-09T17:45:48.655Z",
+      "deploymentId": "dpl_BaECjiEduFSCTExY7u9DyK5vGk1L",
+      "checks": [
+        {
+          "path": "/writings/overlap-acceptance-20261009",
+          "status": 404,
+          "fixtureAndOwnedIdentityAbsent": true
+        },
+        {
+          "path": "/.well-known/site.standard.publication",
+          "status": 404,
+          "fixtureAndOwnedIdentityAbsent": true
+        },
+        {
+          "path": "/.well-known/atproto-did",
+          "status": 404,
+          "fixtureAndOwnedIdentityAbsent": true
+        },
+        {
+          "path": "/writings",
+          "status": 200,
+          "fixtureAndOwnedIdentityAbsent": true
+        },
+        {
+          "path": "/writings/feed.xml",
+          "status": 200,
+          "fixtureAndOwnedIdentityAbsent": true
+        },
+        {
+          "path": "/writings/feed/atom",
+          "status": 200,
+          "fixtureAndOwnedIdentityAbsent": true
+        },
+        {
+          "path": "/writings/feed/json",
+          "status": 200,
+          "fixtureAndOwnedIdentityAbsent": true
+        }
+      ]
+    },
+    "infrastructure": {
+      "status": "passed",
+      "checkedAt": "2026-10-09T17:49:12.969Z",
+      "accountsDeactivated": [
+        "did:plc:omuauqr4ea7g5igdhbguig4z",
+        "did:plc:rbg5bxin2xzegje7p7k3nywd"
+      ],
+      "workersRemoved": [
+        "willie-pds-ebeb382190",
+        "pubebeb382190",
+        "visebeb382190"
+      ],
+      "containerRemoved": "dev-williecubed-website-pds-ebeb382190",
+      "dataRemoved": true,
+      "tunnelStopped": 38054,
+      "credentialJournalScrubbed": true,
+      "privateEnvCopyRemoved": true,
+      "existingPdsRepairedAt": "2026-10-09T17:48:30.133Z"
+    }
+  },
+  "verification": {
+    "fullTypeScript": "./node_modules/.bin/tsc --noEmit --incremental false passed",
+    "targetedESLint": "The three acceptance helpers passed.",
+    "prettier": "The three acceptance helpers passed.",
+    "newRegressionTests": false,
+    "helpers": [
+      {
+        "path": "scripts/atproto-overlap-acceptance.mts",
+        "sha256": "295129d0aa2ad7778ce0102c7fd39c589fabdb65243ff14ffaf6c1b45be584c1"
+      },
+      {
+        "path": "scripts/atproto-fixture-source.mts",
+        "sha256": "e71190884a7618f9b10f417a9e3753b11dccc05ead5eaf16271cf0b32596b919"
+      },
+      {
+        "path": "scripts/atproto-acceptance-identities.mts",
+        "sha256": "61c12f72618661b695caddca90ce44c824f8eb3c5e230b5ea3b5d692be81c4b0"
+      }
+    ]
+  },
+  "limits": [
+    "The CLI archive reports an empty runtime revision SHA. The actual READY deployment, canonical alias, unique fixture nonce, and empty runtime-source diff against 1ba27df040ef489751d1a0be940125235ec65e82 establish this acceptance artifact. This is not a Git-linked deployment SHA claim.",
+    "The overlap is one actual repost by an owned actor through two real input paths. It does not claim cross-protocol text-reply equivalence or add source-provenance UI.",
+    "An earlier isolated run lacked a native-only hosted baseline and had two helper build failures. Its resources were fully cleaned before this corrected run. This run used one successful fixture archive and one successful clean archive. Its proof supersedes the earlier hosted-boundary inference.",
+    "The fresh PDS initially emitted profile/probe commits before relay subscription. The active relay did not replay those historical commits. Guarded changed commits for the exact owned probes reached the relay and AppView. The provisioner now subscribes before writing the records.",
+    "The incoming receiver first returned 202 without verifying the new public source. One actual redelivery through the same receiver succeeded. No verified database row was fabricated.",
+    "Identity teardown resumed after provider 502 responses. Docker reported exit 135 and OOMKilled=false. The existing guarded repair recovered the same PDS and accounts; the crash cause remains unproven. Any tunnel that exceeded its graceful deadline was stopped only after checking its exact journaled PID and command.",
+    "Cleanup deactivated both accounts and destroyed their PDS storage. Public PLC history remains. Historical immutable fixture archives remain on Vercel with removed test infrastructure and credentials."
+  ]
+}

@@ -16,7 +16,8 @@ export async function fixtureSource(
   output: string,
   workspace: string,
   slug: string,
-  recovery = false
+  recovery = false,
+  syndicateTo?: string[]
 ) {
   assert(/^[a-z0-9-]+-acceptance-[a-z0-9-]+$/.test(slug));
   const path = resolve(workspace, 'content/writings', `${slug}.mdx`);
@@ -54,7 +55,16 @@ export async function fixtureSource(
       readFile(receipt, 'utf8'),
       (error: unknown) => (error as NodeJS.ErrnoException).code === 'ENOENT'
     );
-    const original = `---\ntitle: 'Publishing acceptance'\ndescription: 'A temporary note for independent publishing checks.'\npublished: '${new Date().toISOString()}'\ntags: []\ndraft: false\n---\n\nThis temporary note belongs to the isolated acceptance site.\n\nFixture identifier: ${randomUUID()}.\n`;
+    assert(
+      !syndicateTo ||
+        syndicateTo.every((url) =>
+          /^https:\/\/bsky\.app\/profile\/did:plc:[a-z2-7]+$/.test(url)
+        )
+    );
+    const optIn = syndicateTo?.length
+      ? `syndicateTo: ${JSON.stringify(syndicateTo)}\n`
+      : '';
+    const original = `---\ntitle: 'Publishing acceptance'\ndescription: 'A temporary note for independent publishing checks.'\npublished: '${new Date().toISOString()}'\ntags: []\ndraft: false\n${optIn}---\n\nThis temporary note belongs to the isolated acceptance site.\n\nFixture identifier: ${randomUUID()}.\n`;
     journal = {
       version: 1,
       workspace,

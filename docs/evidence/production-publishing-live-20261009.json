@@ -1,0 +1,332 @@
+{
+  "version": 1,
+  "status": "passed",
+  "checkedAt": "2026-10-09T16:45:01Z",
+  "revision": "1ba27df040ef489751d1a0be940125235ec65e82",
+  "origin": "https://willie.page",
+  "httpChecks": [
+    {
+      "url": "https://willie.page/api/indieweb/revision?release=1ba27df040ef489751d1a0be940125235ec65e82",
+      "finalUrl": "https://willie.page/api/indieweb/revision?release=1ba27df040ef489751d1a0be940125235ec65e82",
+      "status": 200,
+      "sha256": "5350d6894ac2b08580721af33d5a4a98edca4c285fff7e05a4c0a3087a6e3caf",
+      "challengeDetected": false,
+      "contentType": "application/json",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/feed/json",
+      "finalUrl": "https://willie.page/writings/feed/json",
+      "status": 200,
+      "sha256": "a4cfe59539e5c25c91fc30168016f47999752415177bbe500293b5150f8c6bf2",
+      "challengeDetected": false,
+      "contentType": "application/feed+json; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/feed.xml",
+      "finalUrl": "https://willie.page/writings/feed.xml",
+      "status": 200,
+      "sha256": "edb347669a7645a3b80d07851fee5453fcd64f8956f7a1913fd95945c7f564bc",
+      "challengeDetected": false,
+      "contentType": "application/rss+xml; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/feed/atom",
+      "finalUrl": "https://willie.page/writings/feed/atom",
+      "status": 200,
+      "sha256": "6e814883e34daefffabcf044bf5debb166c2c2fab98080daed6531e44adb52fb",
+      "challengeDetected": false,
+      "contentType": "application/atom+xml; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/oauth-client-metadata.json",
+      "finalUrl": "https://willie.page/oauth-client-metadata.json",
+      "status": 200,
+      "sha256": "27e4a968617677b40be3b208bd28de0e6f35474f46f8e006ec5196501cac229e",
+      "challengeDetected": false,
+      "contentType": "application/json",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/.well-known/atproto-jwks.json",
+      "finalUrl": "https://willie.page/.well-known/atproto-jwks.json",
+      "status": 200,
+      "sha256": "e39438c0215468d69e83449f2d7c0615890465bfa0998d2bb911b2f638336119",
+      "challengeDetected": false,
+      "contentType": "application/json",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/.well-known/oauth-authorization-server",
+      "finalUrl": "https://willie.page/.well-known/oauth-authorization-server",
+      "status": 200,
+      "sha256": "4d204d87a929345c1fd3c6779269cc0cc92f4eca888867e2f112df18b6f9c3df",
+      "challengeDetected": false,
+      "contentType": "application/json",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/indieauth/userinfo",
+      "finalUrl": "https://willie.page/indieauth/userinfo",
+      "status": 401,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "challengeDetected": false,
+      "contentType": null,
+      "wwwAuthenticate": "Bearer"
+    },
+    {
+      "url": "https://willie.page/indieauth/userinfo",
+      "finalUrl": "https://willie.page/indieauth/userinfo",
+      "status": 401,
+      "sha256": "b0c01f0f0fc139dabb2a6433f1335a1beaec00d5b9fae671c82ec3b25c6b7de4",
+      "challengeDetected": false,
+      "contentType": "application/json",
+      "wwwAuthenticate": "Bearer error=\"invalid_token\""
+    },
+    {
+      "url": "https://willie.page/api/atproto/social",
+      "finalUrl": "https://willie.page/api/atproto/social",
+      "status": 200,
+      "sha256": "695c40876c66683d22f6fb921b985a22520f3a8a6a2b0973d615e49cfa56516d",
+      "challengeDetected": false,
+      "contentType": "application/json",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/",
+      "finalUrl": "https://willie.page/",
+      "status": 200,
+      "sha256": "905e4d4812a235cd8bd9ef7e599f47dc6f80b441bf7e52810d99cf5411b456aa",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings",
+      "finalUrl": "https://willie.page/writings",
+      "status": 200,
+      "sha256": "8ebd2484b87935eb78ae7c3c1a6d27a03d5a8f893de9b7dd2393163db2236b3f",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/.well-known/atproto-did",
+      "finalUrl": "https://willie.page/.well-known/atproto-did",
+      "status": 200,
+      "sha256": "ab0cb0a0eabe13bde934b911e9389c596df142e4429cfe173f898c8690ab7044",
+      "challengeDetected": false,
+      "contentType": "text/plain; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/robots.txt",
+      "finalUrl": "https://willie.page/robots.txt",
+      "status": 200,
+      "sha256": "afd7cb6806266cbb223a7af9547e05fb19cfaadbb33742c4c825472b79e47c37",
+      "challengeDetected": false,
+      "contentType": "text/plain; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/sitemap.xml",
+      "finalUrl": "https://willie.page/sitemap.xml",
+      "status": 200,
+      "sha256": "d5efe0e7c84e9955053054a81b038a156cd9911afb38063a2ca9171c0b2c1f8f",
+      "challengeDetected": false,
+      "contentType": "application/xml",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/.well-known/site.standard.publication",
+      "finalUrl": "https://willie.page/.well-known/site.standard.publication",
+      "status": 200,
+      "sha256": "ac5fb1c48482519931f3ccece60e798261c8c79608b23a46635ceefb3b67f664",
+      "challengeDetected": false,
+      "contentType": "text/plain; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://plc.directory/did:plc:iyn6nc3ffqm2e3555exyrgvv",
+      "finalUrl": "https://plc.directory/did:plc:iyn6nc3ffqm2e3555exyrgvv",
+      "status": 200,
+      "sha256": "4f2cd3ccb6a900c7c1b539f3cdbc740328b94d30a3bcd68d037e569ce9e2e379",
+      "challengeDetected": false,
+      "contentType": "application/did+ld+json; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://porcini.us-east.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did:plc:iyn6nc3ffqm2e3555exyrgvv&collection=site.standard.publication&rkey=3mwxne5td6lid",
+      "finalUrl": "https://porcini.us-east.host.bsky.network/xrpc/com.atproto.repo.getRecord?repo=did:plc:iyn6nc3ffqm2e3555exyrgvv&collection=site.standard.publication&rkey=3mwxne5td6lid",
+      "status": 200,
+      "sha256": "a1f389dde22a34791a269f663d129a401bae047777e357d9059ef869760fcc88",
+      "challengeDetected": false,
+      "contentType": "application/json; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://porcini.us-east.host.bsky.network/xrpc/com.atproto.repo.listRecords?repo=did:plc:iyn6nc3ffqm2e3555exyrgvv&collection=site.standard.document&limit=100",
+      "finalUrl": "https://porcini.us-east.host.bsky.network/xrpc/com.atproto.repo.listRecords?repo=did:plc:iyn6nc3ffqm2e3555exyrgvv&collection=site.standard.document&limit=100",
+      "status": 200,
+      "sha256": "1b8b4c0b6f6ad1d32565952720bc004eeb1f188f62045e4d5525ae2af8c78432",
+      "challengeDetected": false,
+      "contentType": "application/json; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-acceptance",
+      "finalUrl": "https://willie.page/writings/indieweb-acceptance",
+      "status": 404,
+      "sha256": "d969ddb4e701836a6eb598fbbb659ef3815da11e82724e246c5b31d403a57623",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-acceptance-note",
+      "finalUrl": "https://willie.page/writings/indieweb-acceptance-note",
+      "status": 404,
+      "sha256": "d135fa00a5849eb8097c5de7b4faec418fcd571b3c51dd24a89bb7058a6fa301",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/websub-acceptance-20261008",
+      "finalUrl": "https://willie.page/writings/websub-acceptance-20261008",
+      "status": 404,
+      "sha256": "c90a4fa66254ac4a325ca2254c3442ed00e76c257711843829b5c415bf83fe41",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/publishing-acceptance-20261008",
+      "finalUrl": "https://willie.page/writings/publishing-acceptance-20261008",
+      "status": 404,
+      "sha256": "20bdc3572d4d372852304c6c7b803609ba7d197dc1b04e31d8e8b227fc52fdcc",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/atproto-acceptance-20261008",
+      "finalUrl": "https://willie.page/writings/atproto-acceptance-20261008",
+      "status": 404,
+      "sha256": "987a4ce8eada059f9ddc1a9982d5aad368a46bad0048109a126c3710b08b4b79",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/atproto-acceptance-20261009",
+      "finalUrl": "https://willie.page/writings/atproto-acceptance-20261009",
+      "status": 404,
+      "sha256": "4b1b23db672fe44e0508e1eb759d535626c9460d3d6d6e07f20ed30e0b02dee3",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-completion-20261008",
+      "finalUrl": "https://willie.page/writings/indieweb-completion-20261008",
+      "status": 404,
+      "sha256": "7797258e98b7728fbde66dea00ce1109291f6197f3f811129828f4248bd64181",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-form-private-20261008",
+      "finalUrl": "https://willie.page/writings/indieweb-form-private-20261008",
+      "status": 404,
+      "sha256": "f57cca7caf3f9355ad952e5f809afeea12cedab913c143516eafce4f1f277022",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-multipart-private-20261008",
+      "finalUrl": "https://willie.page/writings/indieweb-multipart-private-20261008",
+      "status": 404,
+      "sha256": "3dde55ab95a23dc73742d039b9b0700521fcc0c49f048f45c771813425e13cdc",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    },
+    {
+      "url": "https://willie.page/writings/indieweb-interoperability-20260923",
+      "finalUrl": "https://willie.page/writings/indieweb-interoperability-20260923",
+      "status": 404,
+      "sha256": "516438069f5301fb8e8fa57882815043eb75a483e5cc297007dc7da7c5a825de",
+      "challengeDetected": false,
+      "contentType": "text/html; charset=utf-8",
+      "wwwAuthenticate": null
+    }
+  ],
+  "publication": {
+    "uri": "at://did:plc:iyn6nc3ffqm2e3555exyrgvv/site.standard.publication/3mwxne5td6lid",
+    "cid": "bafyreifgg4ntz5pxvsdbaguqnz37qolup7kqlxztjaq5qy6cuddaptjcmi",
+    "pds": "https://porcini.us-east.host.bsky.network",
+    "httpPdsAgreement": true
+  },
+  "publishedDocuments": 0,
+  "feedItems": 0,
+  "oauthPublicOnly": true,
+  "indieauthRefreshAndUserInfoAdvertised": true,
+  "fixtureSlugsAbsent": [
+    "indieweb-acceptance",
+    "indieweb-acceptance-note",
+    "websub-acceptance-20261008",
+    "publishing-acceptance-20261008",
+    "atproto-acceptance-20261008",
+    "atproto-acceptance-20261009",
+    "indieweb-completion-20261008",
+    "indieweb-form-private-20261008",
+    "indieweb-multipart-private-20261008",
+    "indieweb-interoperability-20260923"
+  ],
+  "limitation": "No authored draft was published. Production document/recommendation target verification remains a first approved publication check; isolated acceptance proves that behavior.",
+  "deployment": {
+    "id": "dpl_9sVvNZGBsvnFjkTawQUKnMGyarau",
+    "target": "production",
+    "state": "READY",
+    "sourceRevision": "1ba27df040ef489751d1a0be940125235ec65e82",
+    "url": "https://website-bklfdiyv5-williecubed-projects.vercel.app"
+  },
+  "notification": {
+    "runId": 37925736651,
+    "attempt": 2,
+    "url": "https://github.com/WillieCubed/website/actions/runs/37925736651/attempts/2",
+    "conclusion": "success",
+    "response": {
+      "websub": {
+        "ok": true
+      },
+      "webmentions": {
+        "sent": 1,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "atproto": {
+        "status": "synced",
+        "created": 0,
+        "updated": 0,
+        "deleted": 0,
+        "unchanged": 1,
+        "writes": [],
+        "announced": []
+      }
+    },
+    "scope": "Actual production required-sync workflow; subscriber receipt remains covered separately by the isolated signed WebSub delivery receipt."
+  },
+  "verifier": {
+    "path": "private production-public-proof.py",
+    "sha256": "6d3515e3c0430aba6abf3b5135daee363ea5e2e4a9066f48fb83324e6a9eeb15",
+    "tls": "System CA bundle; TLS verification enabled",
+    "corrections": "Two earlier verifier attempts failed on its own assumptions about an empty missing-token UserInfo response and case-sensitive header lookup. The successful run checks the actual401 Bearer challenge and a separate invalid-token JSON response."
+  }
+}

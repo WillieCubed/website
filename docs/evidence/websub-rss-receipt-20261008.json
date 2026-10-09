@@ -1,0 +1,35 @@
+{
+  "startedAt": "2026-10-08T07:22:19.746Z",
+  "topic": "https://indieweb-acceptance.vercel.app/writings/feed.xml",
+  "expectedMarker": "websub-acceptance-20261008-7d1f",
+  "publisherPingIsNotDelivery": true,
+  "result": "passed",
+  "hub": "https://websubhub.com/hub",
+  "discovery": "embedded-link",
+  "baselineSha256": "95941ef223f360219fa28afccf1fa78b655185d01b9b69c8b1cf50c9444f2414",
+  "contentType": "application/rss+xml",
+  "callbackOrigin": "https://indieweb-acceptance.vercel.app",
+  "callbackKind": "temporary-hosted-acceptance-route",
+  "subscriptionRequestStatus": 202,
+  "subscriptionVerification": {
+    "at": "2026-10-08T07:22:21.771Z",
+    "leaseSeconds": 3600,
+    "challengeSha256": "4833101c2cf2bc7db312fec8336aebc1ca48b864cd55f0e3a3fe7403b914a744"
+  },
+  "delivery": {
+    "at": "2026-10-08T07:26:49.695Z",
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:content=\"http://purl.org/rss/1.0/modules/content/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n  <channel>\n    <title>Willie&apos;s Writings</title>\n    <link>https://indieweb-acceptance.vercel.app/writings</link>\n    <description>Thoughts, tutorials, and notes on software, music, and creativity from Willie Chalmers III.</description>\n    <language>en-us</language>\n    <lastBuildDate>Thu, 08 Oct 2026 07:24:00 GMT</lastBuildDate>\n    <atom:link href=\"https://indieweb-acceptance.vercel.app/writings/feed.xml\" rel=\"self\" type=\"application/rss+xml\"/>\n    <atom:link href=\"https://websubhub.com/hub\" rel=\"hub\"/>\n    <managingEditor>hello@willie.page (Willie Chalmers III)</managingEditor>\n    <webMaster>hello@willie.page (Willie Chalmers III)</webMaster>\n    <item>\n      <title>WebSub acceptance receipt</title>\n      <link>https://indieweb-acceptance.vercel.app/writings/websub-acceptance-20261008</link>\n      <guid isPermaLink=\"true\">https://indieweb-acceptance.vercel.app/writings/websub-acceptance-20261008</guid>\n      <description>This temporary note verifies delivery on the isolated acceptance deployment.</description>\n      <content:encoded>&lt;p&gt;websub-acceptance-20261008-7d1f&lt;/p&gt;\n&lt;p&gt;This controlled note exists only on the isolated acceptance branch. It will be removed after subscriber receipt and response checks.&lt;/p&gt;</content:encoded>\n      <pubDate>Thu, 08 Oct 2026 07:24:00 GMT</pubDate>\n      <dc:creator>Willie Chalmers III</dc:creator>\n      \n      \n    </item>\n  </channel>\n</rss>",
+    "bytes": 1632,
+    "sha256": "c91b7662d14138ab16318399424561f864c119afe736343e579c4fa63dbdf5d6",
+    "contentType": "application/rss+xml",
+    "signatureAlgorithm": "sha256"
+  },
+  "publicTopicSha256": "c91b7662d14138ab16318399424561f864c119afe736343e579c4fa63dbdf5d6",
+  "completedAt": "2026-10-08T07:26:51.252Z",
+  "unsubscribeRequestStatus": 202,
+  "unsubscribeVerification": {
+    "at": "2026-10-08T07:26:51.487Z",
+    "challengeSha256": "6687451668037b80058f8a43dbcf8dfcb07ecb6fc4a1d321dc21c3bd4dac79c6"
+  },
+  "cleanup": "unsubscription-verified"
+}

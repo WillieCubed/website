@@ -1,0 +1,29 @@
+{
+  "deployment": "dpl_4KcCYRQ3hXLwKbxPW29kx8j3KmW8",
+  "checks": [
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/feed.xml",
+      "status": 200,
+      "discovered": "Embedded XML links",
+      "checkedAt": "2026-10-08T07:36:05.691Z"
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/feed/atom",
+      "status": 200,
+      "discovered": "Embedded XML links",
+      "checkedAt": "2026-10-08T07:36:05.900Z"
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings/feed/json",
+      "status": 200,
+      "discovered": "JSON Feed hubs plus HTTP Link",
+      "checkedAt": "2026-10-08T07:36:06.196Z"
+    },
+    {
+      "url": "https://indieweb-acceptance.vercel.app/writings",
+      "status": 200,
+      "discovered": "HTML alternate links to all three feed topics",
+      "checkedAt": "2026-10-08T07:36:06.724Z"
+    }
+  ]
+}

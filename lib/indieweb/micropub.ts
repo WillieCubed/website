@@ -41,6 +41,7 @@ import {
   plainTextExcerpt,
 } from '@/lib/indieweb/utils';
 import { absoluteRoute, site } from '@/lib/site';
+import { htmlText } from '@/lib/writings/content';
 
 const DEFAULT_CONTENT_PATH = 'content/writings';
 
@@ -93,7 +94,9 @@ export function buildMicropubWritingFile(
   const title = entry.name ?? titleForEntry(entry, published);
   const description =
     entry.summary ??
-    (plainTextExcerpt(entry.content) ||
+    (plainTextExcerpt(
+      entry.contentFormat === 'html' ? htmlText(entry.content) : entry.content
+    ) ||
       (entry.postType === 'photo'
         ? `A photo from ${site.author.givenName}.`
         : `A short note from ${site.author.givenName}.`));

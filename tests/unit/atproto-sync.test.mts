@@ -127,6 +127,35 @@ test('a dry run plans without writing', async () => {
   assert.deepEqual(log.uploads, []);
 });
 
+test('a dry run reports explicit Bluesky copy creation without creating Standard records', async () => {
+  const { client, log } = fakeRepo();
+  const report = await syncAtproto({
+    client: {
+      ...client,
+      async getRecord() {
+        return null;
+      },
+    },
+    dryRun: true,
+    writings: [
+      {
+        ...note,
+        syndicateTo: [
+          site.syndication.find((account) => account.service === 'Bluesky')!
+            .profile,
+        ],
+      },
+    ],
+    fetchImage: png,
+  });
+  assert.equal(report.status, 'planned');
+  assert.deepEqual(report.status !== 'skipped' && report.announced, [
+    { action: 'create', url: absoluteUrl('/writings/a-note'), post: null },
+  ]);
+  assert.deepEqual(log.writes, []);
+  assert.deepEqual(log.uploads, []);
+});
+
 test('a sync publishes once and then has nothing to do', async () => {
   const { client, records, log } = fakeRepo();
   const first = await syncAtproto({

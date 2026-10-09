@@ -32,6 +32,9 @@ export interface DocumentSource {
   /** `featuredImage`, when the writing sets one. */
   image?: string;
   atproto?: DocumentMetadata;
+  syndicateTo?: string[];
+  syndication?: { name: string; url: string }[];
+  hasExplicitTitle?: boolean;
 }
 
 export interface DocumentExtras {

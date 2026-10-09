@@ -7,7 +7,11 @@ import {
 import { absoluteUrl, site } from '@/lib/site';
 
 import { fetchImageBlob } from './blobs';
-import { validateExplicitBlueskyCopies } from './bluesky';
+import {
+  type BlueskyCopyResult,
+  syncBlueskyCopies,
+  validateExplicitBlueskyCopies,
+} from './bluesky';
 import { createRepoClient } from './client';
 import {
   DOCUMENT_COLLECTION,
@@ -35,6 +39,7 @@ export type SyncReport =
       updated: number;
       deleted: number;
       unchanged: number;
+      announced: BlueskyCopyResult[];
       writes: { action: 'create' | 'update' | 'delete'; uri: string }[];
     };
 
@@ -77,6 +82,9 @@ async function publishedWritings(): Promise<DocumentSource[]> {
       video: writing.video,
       image: writing.featuredImage,
       atproto: writing.atproto,
+      syndicateTo: writing.syndicateTo,
+      syndication: writing.syndication,
+      hasExplicitTitle: writing.hasExplicitTitle,
     });
   }
   return sources;
@@ -197,9 +205,13 @@ export async function syncAtproto(
         }))
     );
 
+    let announced: BlueskyCopyResult[];
     if (!options.dryRun) {
       for (const blob of plan.uploads) await client.uploadBlob(blob);
       if (plan.writes.length > 0) await client.applyWrites(plan.writes);
+      announced = await syncBlueskyCopies(client, writings);
+    } else {
+      announced = await syncBlueskyCopies(client, writings, { dryRun: true });
     }
 
     const writes = plan.writes.map((write) => ({
@@ -218,6 +230,7 @@ export async function syncAtproto(
       deleted: count('delete'),
       unchanged: plan.unchanged,
       writes,
+      announced,
     };
   } finally {
     // Sign out only of a session this call opened. A failed sign-out must

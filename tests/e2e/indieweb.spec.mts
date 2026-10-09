@@ -231,10 +231,12 @@ test('Micropub advertises capabilities and rejects unauthenticated creation', as
   expect(capabilities['post-types']).toEqual(
     expect.arrayContaining([expect.objectContaining({ type: 'note' })])
   );
-  const targets = site.syndication.map((account) =>
-    expect.objectContaining({ uid: account.profile })
-  );
-  expect(capabilities['syndicate-to']).toEqual(targets);
+  const targets = capabilities['syndicate-to'];
+  expect(Array.isArray(targets)).toBe(true);
+  for (const target of targets) {
+    expect(target.service.name).toBe('Bluesky');
+    expect(target.uid).toMatch(/^https:\/\/bsky\.app\/profile\//);
+  }
   expect(
     (await (await request.get('/micropub?q=syndicate-to')).json())[
       'syndicate-to'

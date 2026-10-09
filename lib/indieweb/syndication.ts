@@ -1,18 +1,21 @@
+import { PUBLICATION_URI, appPassword } from '@/lib/atproto/config';
 import type { MicropubSyndicationTarget } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
-/**
- * The accounts in `site.syndication` as Micropub syndication targets. The
- * site has no API access to either service, so choosing one records the
- * intent in the post (`syndicateTo`) and the copy is still posted by hand.
- */
+/** Advertise only configured destinations whose publishing can run. */
 export function getMicropubSyndicationTargets(): MicropubSyndicationTarget[] {
-  return site.syndication.map((account) => ({
-    uid: account.profile,
-    name: `${account.handle} on ${account.service}`,
-    service: { name: account.service, url: account.serviceUrl },
-    user: { name: account.handle, url: account.profile },
-  }));
+  return site.syndication
+    .filter(
+      (account) =>
+        account.service === 'Bluesky' &&
+        Boolean(PUBLICATION_URI && appPassword())
+    )
+    .map((account) => ({
+      uid: account.profile,
+      name: `${account.handle} on ${account.service}`,
+      service: { name: account.service, url: account.serviceUrl },
+      user: { name: account.handle, url: account.profile },
+    }));
 }
 
 /**

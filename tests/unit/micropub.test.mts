@@ -140,25 +140,31 @@ async function withAvailableBluesky(run: () => Promise<void>) {
   }
 }
 
-test('Micropub offers the Bluesky and Threads accounts as syndication targets', () => {
-  assert.ok(bluesky && threads, 'both accounts are configured');
-  assert.equal(
-    bluesky.profile,
-    `${bluesky.serviceUrl}profile/${site.author.atprotoDid}`,
-    'the Bluesky profile is linked by DID'
-  );
-  const targets = getMicropubSyndicationTargets();
-
-  assert.deepEqual(
-    targets,
-    [bluesky, threads].map((account) => ({
-      uid: account.profile,
-      name: `${account.handle} on ${account.service}`,
-      service: { name: account.service, url: account.serviceUrl },
-      user: { name: account.handle, url: account.profile },
-    }))
-  );
-  assert.deepEqual(getMicropubConfig(false)['syndicate-to'], targets);
+test('Micropub advertises available destinations and omits manual copies', async () => {
+  await withAvailableBluesky(async () => {
+    assert.ok(bluesky && threads);
+    const targets = getMicropubSyndicationTargets();
+    assert.deepEqual(targets, [
+      {
+        uid: bluesky.profile,
+        name: `${bluesky.handle} on Bluesky`,
+        service: { name: 'Bluesky', url: bluesky.serviceUrl },
+        user: { name: bluesky.handle, url: bluesky.profile },
+      },
+    ]);
+    assert.deepEqual(getMicropubConfig(false)['syndicate-to'], targets);
+    await assert.rejects(
+      parseMicropubCreateRequest(
+        micropubRequest({
+          properties: {
+            content: ['A note.'],
+            'mp-syndicate-to': [threads.profile],
+          },
+        })
+      ),
+      /invalid_request/
+    );
+  });
 });
 
 test('parseMicropubCreateRequest accepts form-encoded replies', async () => {

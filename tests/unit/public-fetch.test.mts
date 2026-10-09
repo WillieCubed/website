@@ -1,5 +1,12 @@
 import assert from 'node:assert/strict';
+import { execFile, execFileSync } from 'node:child_process';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { type ServerHttp2Session, createSecureServer } from 'node:http2';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
+import { promisify } from 'node:util';
+import { gzipSync } from 'node:zlib';
 
 import { isPublicAddress } from '@/lib/indieweb/public-fetch';
 
@@ -57,4 +64,95 @@ test('without the allowance loopback is refused', () => {
     assert.equal(isPublicAddress('127.0.0.1'), false);
     assert.equal(isPublicAddress('::1'), false);
   });
+});
+
+test('cold publishing imports preserve native HTTPS headers and gzip bodies', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'native-fetch-'));
+  const certificate = join(directory, 'certificate.pem');
+  const key = join(directory, 'key.pem');
+  let server: ReturnType<typeof createSecureServer> | undefined;
+  const sessions = new Set<ServerHttp2Session>();
+  try {
+    execFileSync(
+      'openssl',
+      [
+        'req',
+        '-x509',
+        '-newkey',
+        'ec',
+        '-pkeyopt',
+        'ec_paramgen_curve:P-256',
+        '-nodes',
+        '-keyout',
+        key,
+        '-out',
+        certificate,
+        '-days',
+        '1',
+        '-subj',
+        '/CN=127.0.0.1',
+        '-addext',
+        'subjectAltName=IP:127.0.0.1',
+      ],
+      { stdio: 'ignore' }
+    );
+    server = createSecureServer({
+      key: await readFile(key),
+      cert: await readFile(certificate),
+      allowHTTP1: true,
+    });
+    server.on('session', (session) => {
+      sessions.add(session);
+      session.on('close', () => sessions.delete(session));
+    });
+    const body = JSON.stringify({ message: 'Readable metadata' });
+    server.on('request', (_request, response) => {
+      response.writeHead(200, {
+        'content-type': 'application/did+ld+json',
+        'content-encoding': 'gzip',
+        link: '</token>; rel="token_endpoint"',
+      });
+      response.end(gzipSync(body));
+    });
+    await new Promise<void>((finish, reject) => {
+      server!.once('error', reject);
+      server!.listen(0, '127.0.0.1', finish);
+    });
+    const address = server.address();
+    assert(address && typeof address !== 'string');
+    const script = `
+      await Promise.all([
+        import('./lib/atproto/bluesky.ts'),
+        import('./lib/atproto/responses.ts'),
+      ]);
+      const response = await fetch('https://127.0.0.1:${address.port}');
+      console.log(JSON.stringify({
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        link: response.headers.get('link'),
+        body: await response.text(),
+      }));
+      await (await import('undici')).getGlobalDispatcher().close();
+    `;
+    const { stdout } = await promisify(execFile)(
+      process.execPath,
+      ['--import', 'tsx', '--input-type=module', '--eval', script],
+      {
+        // A fresh process preserves the failing import order without changing TLS verification.
+        env: { ...process.env, NODE_EXTRA_CA_CERTS: certificate },
+        timeout: 15000,
+      }
+    );
+    assert.deepEqual(JSON.parse(stdout), {
+      status: 200,
+      contentType: 'application/did+ld+json',
+      link: '</token>; rel="token_endpoint"',
+      body,
+    });
+  } finally {
+    for (const session of sessions) session.destroy();
+    if (server?.listening)
+      await new Promise<void>((finish) => server!.close(() => finish()));
+    await rm(directory, { recursive: true, force: true });
+  }
 });

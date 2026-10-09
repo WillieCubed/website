@@ -82,7 +82,7 @@
     "remark-rehype": "^11.1.2",
     "sanitize-html": "^2.17.7",
     "shiki": "^3.23.0",
-    "undici": "^8.11.0",
+    "undici": "^8.11.2",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0",
     "zod": "^4.6.5"

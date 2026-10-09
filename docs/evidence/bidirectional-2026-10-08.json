@@ -1,0 +1,74 @@
+{
+  "revision": "9c98e0f17b08201d0120d110694dd29bd368f263",
+  "evidenceKind": "Real Chromium component renders of local fixtures. No authored or public post.",
+  "checks": [
+    {
+      "theme": "light",
+      "viewportWidth": 390,
+      "actual": {
+        "rtl": "rtl",
+        "ltr": "ltr",
+        "rlm": "rtl",
+        "title": "rtl",
+        "summary": "rtl",
+        "isolate": "isolate",
+        "override": "isolate-override",
+        "metadata": "ltr",
+        "scroll": 390,
+        "width": 390
+      },
+      "screenshot": "bidirectional/bidi-light-390.png"
+    },
+    {
+      "theme": "light",
+      "viewportWidth": 1440,
+      "actual": {
+        "rtl": "rtl",
+        "ltr": "ltr",
+        "rlm": "rtl",
+        "title": "rtl",
+        "summary": "rtl",
+        "isolate": "isolate",
+        "override": "isolate-override",
+        "metadata": "ltr",
+        "scroll": 1440,
+        "width": 1440
+      },
+      "screenshot": "bidirectional/bidi-light-1440.png"
+    },
+    {
+      "theme": "dark",
+      "viewportWidth": 390,
+      "actual": {
+        "rtl": "rtl",
+        "ltr": "ltr",
+        "rlm": "rtl",
+        "title": "rtl",
+        "summary": "rtl",
+        "isolate": "isolate",
+        "override": "isolate-override",
+        "metadata": "ltr",
+        "scroll": 390,
+        "width": 390
+      },
+      "screenshot": "bidirectional/bidi-dark-390.png"
+    },
+    {
+      "theme": "dark",
+      "viewportWidth": 1440,
+      "actual": {
+        "rtl": "rtl",
+        "ltr": "ltr",
+        "rlm": "rtl",
+        "title": "rtl",
+        "summary": "rtl",
+        "isolate": "isolate",
+        "override": "isolate-override",
+        "metadata": "ltr",
+        "scroll": 1440,
+        "width": 1440
+      },
+      "screenshot": "bidirectional/bidi-dark-1440.png"
+    }
+  ]
+}

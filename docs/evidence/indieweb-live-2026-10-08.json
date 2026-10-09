@@ -1,0 +1,1492 @@
+{
+  "at": "2026-10-08T08:30:06.715Z",
+  "site": "https://indieweb-acceptance.vercel.app/",
+  "deploymentCommit": "a1d24a0",
+  "kind": "Real isolated hosted behavior and independent validator receipts. OAuth grants used normal owner TOTP and S256 consent. Production content and accounts were not used.",
+  "indieAuth": {
+    "at": "2026-10-08T08:27:17.425Z",
+    "site": "https://indieweb-acceptance.vercel.app/",
+    "runUrl": "https://indieauth.rocks/runs/01M4D9BQXNH2V11N4HQ82GBH8Y",
+    "kind": "Actual independent server validator through normal TOTP/S256 consent after deployment a1d24a0.",
+    "counts": {
+      "pass": 78,
+      "fail": 0,
+      "warning": 0,
+      "skipped": 6
+    },
+    "checks": [
+      {
+        "id": "S101",
+        "status": "pass",
+        "name": "Profile URL is valid and can be fetched",
+        "summary": "Fetched with HTTP 200."
+      },
+      {
+        "id": "S102",
+        "status": "pass",
+        "name": "Advertises indieauth-metadata",
+        "summary": "Found https://indieweb-acceptance.vercel.app/.well-known/oauth-authorization-server in the Link header."
+      },
+      {
+        "id": "S103",
+        "status": "pass",
+        "name": "Link header and HTML agree",
+        "summary": "Both point to the same URL."
+      },
+      {
+        "id": "S104",
+        "status": "pass",
+        "name": "Metadata is a JSON document",
+        "summary": "HTTP 200 with a JSON object."
+      },
+      {
+        "id": "S105",
+        "status": "pass",
+        "name": "Issuer identifier is valid",
+        "summary": "issuer is https://indieweb-acceptance.vercel.app/"
+      },
+      {
+        "id": "S106",
+        "status": "pass",
+        "name": "Authorization endpoint is listed",
+        "summary": "authorization_endpoint is https://indieweb-acceptance.vercel.app/indieauth/auth"
+      },
+      {
+        "id": "S107",
+        "status": "pass",
+        "name": "Token endpoint is listed",
+        "summary": "token_endpoint is https://indieweb-acceptance.vercel.app/indieauth/token"
+      },
+      {
+        "id": "S108",
+        "status": "pass",
+        "name": "Introspection endpoint is listed",
+        "summary": "introspection_endpoint is https://indieweb-acceptance.vercel.app/indieauth/introspect"
+      },
+      {
+        "id": "S109",
+        "status": "pass",
+        "name": "PKCE S256 is supported",
+        "summary": "S256 is listed."
+      },
+      {
+        "id": "S110",
+        "status": "pass",
+        "name": "Advertises the iss response parameter",
+        "summary": "authorization_response_iss_parameter_supported is true."
+      },
+      {
+        "id": "S111",
+        "status": "pass",
+        "name": "Lists supported scopes",
+        "summary": "scopes_supported lists profile, email, create, draft, update, delete, undelete, media"
+      },
+      {
+        "id": "S112",
+        "status": "pass",
+        "name": "Response and grant types are consistent",
+        "summary": "Consistent (or using the defaults)."
+      },
+      {
+        "id": "S113",
+        "status": "pass",
+        "name": "Revocation needs no client authentication",
+        "summary": "revocation_endpoint_auth_methods_supported is [\"none\"]."
+      },
+      {
+        "id": "S114",
+        "status": "pass",
+        "name": "Metadata can be read by browser-based apps",
+        "summary": "Access-Control-Allow-Origin: *"
+      },
+      {
+        "id": "S115",
+        "status": "pass",
+        "name": "Legacy endpoint links match the metadata",
+        "summary": "Legacy links match the metadata."
+      },
+      {
+        "id": "S116",
+        "status": "pass",
+        "name": "Endpoints use https",
+        "summary": "All endpoints use https."
+      },
+      {
+        "id": "S117",
+        "status": "pass",
+        "name": "Serves metadata at the RFC 8414 well-known URL",
+        "summary": "Served at https://indieweb-acceptance.vercel.app/.well-known/oauth-authorization-server with the same issuer."
+      },
+      {
+        "id": "S201",
+        "status": "pass",
+        "name": "Returns state unmodified",
+        "summary": "state was returned unmodified."
+      },
+      {
+        "id": "S202",
+        "status": "pass",
+        "name": "Returns the iss parameter",
+        "summary": "iss matched the issuer on every redirect."
+      },
+      {
+        "id": "S203",
+        "status": "pass",
+        "name": "Issues an authorization code",
+        "summary": "A code was issued."
+      },
+      {
+        "id": "S204",
+        "status": "pass",
+        "name": "Keeps the query string of the redirect URI",
+        "summary": "The query string of the redirect URI was kept."
+      },
+      {
+        "id": "S205",
+        "status": "pass",
+        "name": "Fetches client information",
+        "summary": "Your server fetched the client_id document."
+      },
+      {
+        "id": "S206",
+        "status": "pass",
+        "name": "Consent screen identifies the application",
+        "summary": "The approval screen showed the application name and client_id."
+      },
+      {
+        "id": "S207",
+        "status": "pass",
+        "name": "Reports a denied request to the client",
+        "summary": "Cancelling returned error=access_denied."
+      },
+      {
+        "id": "S208",
+        "status": "pass",
+        "name": "Refuses an unregistered cross-origin redirect URI",
+        "summary": "Your server showed an error and did not redirect."
+      },
+      {
+        "id": "S209",
+        "status": "skipped",
+        "name": "Accepts a registered cross-origin redirect URI",
+        "summary": "Inconclusive: you reported something other than the expected outcomes."
+      },
+      {
+        "id": "S210",
+        "status": "pass",
+        "name": "Matches redirect URIs exactly",
+        "summary": "Your server showed an error and did not redirect."
+      },
+      {
+        "id": "S211",
+        "status": "pass",
+        "name": "Is not fooled by credentials in a URL",
+        "summary": "Your server showed an error and did not redirect."
+      },
+      {
+        "id": "S212",
+        "status": "pass",
+        "name": "Ignores client metadata for a different client_id",
+        "summary": "Your server showed an error and did not redirect."
+      },
+      {
+        "id": "S213",
+        "status": "pass",
+        "name": "Rejects a repeated redirect_uri parameter",
+        "summary": "Your server showed an error and did not redirect."
+      },
+      {
+        "id": "S214",
+        "status": "pass",
+        "name": "Is not an open redirector",
+        "summary": "Your server showed an error and did not redirect."
+      },
+      {
+        "id": "S215",
+        "status": "pass",
+        "name": "Requires PKCE",
+        "summary": "Your server refused the request with error=invalid_request."
+      },
+      {
+        "id": "S216",
+        "status": "pass",
+        "name": "Refuses the plain PKCE method",
+        "summary": "Your server refused the request with error=invalid_request."
+      },
+      {
+        "id": "S217",
+        "status": "pass",
+        "name": "Refuses the implicit flow",
+        "summary": "Your server refused the request with error=unsupported_response_type."
+      },
+      {
+        "id": "S218",
+        "status": "pass",
+        "name": "Handles a missing state parameter",
+        "summary": "Your server refused the request with error=invalid_request."
+      },
+      {
+        "id": "S219",
+        "status": "pass",
+        "name": "Refuses an invalid client_id",
+        "summary": "Your server showed an error."
+      },
+      {
+        "id": "S220",
+        "status": "pass",
+        "name": "Does not trust the me parameter",
+        "summary": "Your server returned https://indieweb-acceptance.vercel.app/ rather than the profile URL the request asked for."
+      },
+      {
+        "id": "S221",
+        "status": "pass",
+        "name": "Refuses a PKCE method without a challenge",
+        "summary": "Your server refused the request with error=invalid_request."
+      },
+      {
+        "id": "S222",
+        "status": "pass",
+        "name": "Refuses a challenge without a method",
+        "summary": "Your server refused the request with error=invalid_request."
+      },
+      {
+        "id": "S301",
+        "status": "pass",
+        "name": "Exchanges a code at the token endpoint",
+        "summary": "The code was exchanged for tokens."
+      },
+      {
+        "id": "S302",
+        "status": "pass",
+        "name": "Codes can only be used once",
+        "summary": "The used code was refused (HTTP 400 invalid_grant)."
+      },
+      {
+        "id": "S303",
+        "status": "pass",
+        "name": "Reusing a code revokes its tokens",
+        "summary": "The tokens issued for the code were revoked when it was replayed."
+      },
+      {
+        "id": "S310",
+        "status": "pass",
+        "name": "Refuses a wrong code_verifier",
+        "summary": "The wrong verifier was refused (HTTP 400 invalid_grant)."
+      },
+      {
+        "id": "S311",
+        "status": "pass",
+        "name": "Refuses a missing code_verifier",
+        "summary": "Refused (HTTP 400 invalid_request)."
+      },
+      {
+        "id": "S312",
+        "status": "skipped",
+        "name": "Refuses a code presented by another client",
+        "summary": "Inconclusive: the code was no longer valid after an earlier rejected attempt. Run the extended tests to check this separately."
+      },
+      {
+        "id": "S313",
+        "status": "skipped",
+        "name": "Refuses a mismatched redirect_uri",
+        "summary": "Inconclusive: the code was no longer valid after an earlier rejected attempt. Run the extended tests to check this separately."
+      },
+      {
+        "id": "S320",
+        "status": "pass",
+        "name": "Exchanges a code without a scope",
+        "summary": "Returned me (https://indieweb-acceptance.vercel.app/) and no access token."
+      },
+      {
+        "id": "S330",
+        "status": "pass",
+        "name": "Refuses an unknown code",
+        "summary": "Refused with HTTP 400 invalid_grant."
+      },
+      {
+        "id": "S331",
+        "status": "pass",
+        "name": "Refuses missing or unsupported grant types",
+        "summary": "Refused with invalid_request and unsupported_grant_type."
+      },
+      {
+        "id": "S332",
+        "status": "pass",
+        "name": "Errors are JSON with an error code",
+        "summary": "Error responses are JSON with an error code."
+      },
+      {
+        "id": "S333",
+        "status": "pass",
+        "name": "Token endpoint refuses GET requests",
+        "summary": "GET requests are refused (HTTP 401 invalid_token)."
+      },
+      {
+        "id": "S334",
+        "status": "pass",
+        "name": "Token endpoint supports CORS preflight",
+        "summary": "Preflight allowed for *."
+      },
+      {
+        "id": "S401",
+        "status": "pass",
+        "name": "Token response is JSON",
+        "summary": "HTTP 200 with a JSON object."
+      },
+      {
+        "id": "S402",
+        "status": "pass",
+        "name": "Includes an access token",
+        "summary": "An access token was issued."
+      },
+      {
+        "id": "S403",
+        "status": "pass",
+        "name": "Token type is Bearer",
+        "summary": "token_type is Bearer."
+      },
+      {
+        "id": "S404",
+        "status": "pass",
+        "name": "Returns a valid me",
+        "summary": "me is https://indieweb-acceptance.vercel.app/"
+      },
+      {
+        "id": "S405",
+        "status": "pass",
+        "name": "The returned me is verified",
+        "summary": "me matches a URL seen during discovery."
+      },
+      {
+        "id": "S406",
+        "status": "pass",
+        "name": "Token responses are not cached",
+        "summary": "Cache-Control: no-store is set."
+      },
+      {
+        "id": "S407",
+        "status": "pass",
+        "name": "Says when the token expires",
+        "summary": "expires_in is 3600 seconds."
+      },
+      {
+        "id": "S408",
+        "status": "pass",
+        "name": "Reports the granted scope",
+        "summary": "scope is \"profile\"."
+      },
+      {
+        "id": "S409",
+        "status": "pass",
+        "name": "Profile information is well formed",
+        "summary": "The profile object is well formed."
+      },
+      {
+        "id": "S410",
+        "status": "pass",
+        "name": "Access tokens are hard to guess",
+        "summary": "The access token is long enough."
+      },
+      {
+        "id": "S420",
+        "status": "pass",
+        "name": "Access token format",
+        "summary": "Access tokens are opaque strings, which resource servers check by introspection."
+      },
+      {
+        "id": "S421",
+        "status": "skipped",
+        "name": "JWT header marks it an access token",
+        "summary": "The access token is not a JWT."
+      },
+      {
+        "id": "S422",
+        "status": "skipped",
+        "name": "JWT verifies against the published keys",
+        "summary": "The access token is not a JWT."
+      },
+      {
+        "id": "S423",
+        "status": "skipped",
+        "name": "JWT claims are complete",
+        "summary": "The access token is not a JWT."
+      },
+      {
+        "id": "S501",
+        "status": "pass",
+        "name": "Refreshes an access token",
+        "summary": "Refreshing returned a new access token."
+      },
+      {
+        "id": "S502",
+        "status": "pass",
+        "name": "Refuses a refresh by another client",
+        "summary": "Refused for a different client_id (HTTP 400 invalid_grant)."
+      },
+      {
+        "id": "S503",
+        "status": "pass",
+        "name": "Refuses to add scopes on refresh",
+        "summary": "Asking for more scope was refused (HTTP 400 invalid_scope)."
+      },
+      {
+        "id": "S504",
+        "status": "pass",
+        "name": "Old refresh tokens stop working after rotation",
+        "summary": "The replaced refresh token was refused (HTTP 400 invalid_grant)."
+      },
+      {
+        "id": "S505",
+        "status": "pass",
+        "name": "Refresh token reuse revokes the grant",
+        "summary": "Reusing the old refresh token revoked the newest tokens too."
+      },
+      {
+        "id": "S601",
+        "status": "pass",
+        "name": "Revokes an access token",
+        "summary": "Returned HTTP 200."
+      },
+      {
+        "id": "S602",
+        "status": "pass",
+        "name": "Revoked tokens stop working",
+        "summary": "The revoked token is refused (HTTP 401 invalid_token)."
+      },
+      {
+        "id": "S603",
+        "status": "pass",
+        "name": "Revokes a refresh token",
+        "summary": "The revoked refresh token is refused (HTTP 400 invalid_grant)."
+      },
+      {
+        "id": "S604",
+        "status": "pass",
+        "name": "Revoking an unknown token succeeds",
+        "summary": "Returned HTTP 200."
+      },
+      {
+        "id": "S701",
+        "status": "pass",
+        "name": "Returns profile information",
+        "summary": "Returned the profile for https://indieweb-acceptance.vercel.app/."
+      },
+      {
+        "id": "S702",
+        "status": "pass",
+        "name": "Refuses a request without a token",
+        "summary": "Returned HTTP 401."
+      },
+      {
+        "id": "S703",
+        "status": "pass",
+        "name": "Refuses an invalid token",
+        "summary": "Returned HTTP 401 with error=\"invalid_token\"."
+      },
+      {
+        "id": "S801",
+        "status": "pass",
+        "name": "Introspection requires authorization",
+        "summary": "Unauthenticated introspection was refused with HTTP 401."
+      },
+      {
+        "id": "S802",
+        "status": "pass",
+        "name": "Refused introspection reveals nothing",
+        "summary": "The refusal reveals nothing about the token."
+      },
+      {
+        "id": "S901",
+        "status": "pass",
+        "name": "Token endpoint requires TLS",
+        "summary": "Plain http requests are not processed (HTTP 308)."
+      },
+      {
+        "id": "S902",
+        "status": "pass",
+        "name": "Authorization pages cannot be framed",
+        "summary": "Framing is prevented (X-Frame-Options: DENY)."
+      },
+      {
+        "id": "S905",
+        "status": "pass",
+        "name": "Tokens never appear in URLs",
+        "summary": "No tokens appeared in redirect URLs."
+      },
+      {
+        "id": "S906",
+        "status": "pass",
+        "name": "No credentialed wildcard CORS",
+        "summary": "No credentialed wildcard CORS."
+      }
+    ]
+  },
+  "normalRefresh": {
+    "at": "2026-10-08T08:23:00.484Z",
+    "origin": "https://indieweb-acceptance.vercel.app",
+    "client": "http://localhost:8766/",
+    "checks": [
+      {
+        "name": "invalid_grant",
+        "parameters": [
+          "client_id"
+        ],
+        "duplicate": false,
+        "status": 400
+      },
+      {
+        "name": "invalid_scope",
+        "parameters": [
+          "scope"
+        ],
+        "duplicate": false,
+        "status": 400
+      },
+      {
+        "name": "invalid_request",
+        "parameters": [],
+        "duplicate": true,
+        "status": 400
+      },
+      {
+        "name": "Actual rotation narrows access scope and serves permitted profile",
+        "status": 200,
+        "scope": "profile",
+        "expiresIn": 3600
+      },
+      {
+        "name": "Concurrent refresh issues one replacement and replay revokes the entire family",
+        "statuses": [
+          200,
+          400
+        ],
+        "accessStatus": 401,
+        "refreshStatus": 400
+      }
+    ]
+  },
+  "codeBindings": [
+    {
+      "origin": "https://indieweb-acceptance.vercel.app",
+      "client": "http://localhost:8780/",
+      "at": "2026-10-08T08:28:08.591Z",
+      "name": "wrong-client",
+      "status": 400
+    },
+    {
+      "origin": "https://indieweb-acceptance.vercel.app",
+      "client": "http://localhost:8781/",
+      "at": "2026-10-08T08:28:36.645Z",
+      "name": "wrong-redirect",
+      "status": 400
+    }
+  ],
+  "micropub": {
+    "origin": "https://indieweb-acceptance.vercel.app",
+    "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008",
+    "checks": [
+      {
+        "name": "JSON draft creation, nested values, HTML, all media source round trip",
+        "at": "2026-10-08T07:56:10.287Z",
+        "evidence": {
+          "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008",
+          "status": 202
+        }
+      },
+      {
+        "name": "authenticated property-filtered source query",
+        "at": "2026-10-08T07:56:11.669Z",
+        "evidence": {
+          "properties": [
+            "name",
+            "content"
+          ]
+        }
+      },
+      {
+        "name": "source query authentication",
+        "at": "2026-10-08T07:56:11.885Z",
+        "evidence": {
+          "status": 401
+        }
+      },
+      {
+        "name": "replace/add/remove preserves nested properties",
+        "at": "2026-10-08T07:56:14.745Z",
+        "evidence": {
+          "status": 200
+        }
+      },
+      {
+        "name": "explicit controlled fixture publication",
+        "at": "2026-10-08T07:58:31.938Z",
+        "evidence": {
+          "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008"
+        }
+      },
+      {
+        "name": "Draft exclusion on actual deployed688633d",
+        "at": "2026-10-08T07:58:59.177Z",
+        "evidence": [
+          {
+            "path": "/writings/indieweb-completion-20261008",
+            "status": 404,
+            "draftExcluded": true
+          },
+          {
+            "path": "/writings",
+            "status": 200,
+            "draftExcluded": true
+          },
+          {
+            "path": "/writings/feed.xml",
+            "status": 200,
+            "draftExcluded": true
+          },
+          {
+            "path": "/writings/feed/atom",
+            "status": 200,
+            "draftExcluded": true
+          },
+          {
+            "path": "/writings/feed/json",
+            "status": 200,
+            "draftExcluded": true
+          }
+        ]
+      },
+      {
+        "name": "Actual deployed published HTML and feed projection",
+        "at": "2026-10-08T08:01:49.860Z",
+        "evidence": [
+          {
+            "path": "/writings/feed.xml",
+            "status": 200,
+            "fixturePresent": true,
+            "uploadedMediaPresent": true
+          },
+          {
+            "path": "/writings/feed/atom",
+            "status": 200,
+            "fixturePresent": true,
+            "uploadedMediaPresent": true
+          },
+          {
+            "path": "/writings/feed/json",
+            "status": 200,
+            "fixturePresent": true,
+            "uploadedMediaPresent": true
+          }
+        ]
+      },
+      {
+        "name": "Actual form no-op replace/add source roundtrip",
+        "at": "2026-10-08T08:11:23.336Z",
+        "evidence": {
+          "status": 200,
+          "sourceStatus": 200,
+          "noDuplicateCategory": true
+        }
+      },
+      {
+        "name": "Actual multipart no-op replace/add source roundtrip",
+        "at": "2026-10-08T08:11:23.895Z",
+        "evidence": {
+          "status": 200,
+          "sourceStatus": 200,
+          "noDuplicateCategory": true
+        }
+      },
+      {
+        "name": "Ambiguous body/header credentials rejected",
+        "at": "2026-10-08T08:11:24.022Z",
+        "evidence": {
+          "status": 400
+        }
+      },
+      {
+        "name": "delete removes source",
+        "at": "2026-10-08T08:24:06.380Z",
+        "evidence": {
+          "status": 400,
+          "error": "invalid_request",
+          "commit": "708dcd673682bf735d63132907a0bbe813eab471"
+        }
+      }
+    ],
+    "createStatus": 202
+  },
+  "restore": {
+    "at": "2026-10-08T08:25:41.613Z",
+    "origin": "https://indieweb-acceptance.vercel.app",
+    "checks": [
+      {
+        "name": "Deployed deletion returns 404 and removes original permalink from index and all feeds",
+        "pageStatus": 404
+      },
+      {
+        "name": "Concurrent restore rejects conflicting operation and restores original permalink once",
+        "statuses": [
+          200,
+          409
+        ]
+      },
+      {
+        "name": "Restored source preserves original permalink, edited content, nested extension and media",
+        "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008"
+      }
+    ]
+  },
+  "archive": {
+    "at": "2026-10-08T08:28:35.248Z",
+    "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008",
+    "archiveState": "restored",
+    "exactRestoredBytes": true,
+    "sha256": "03cda1c7caf24ac7d138d8a7bc73fd1a667257b01a15ebb344cd2136a7244359",
+    "bytes": 2756
+  },
+  "media": [
+    {
+      "kind": "image",
+      "status": 201,
+      "bytes": 3189,
+      "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-QPGLVlWwhcmmra3FBKqSWzGgpJfpyZ.png"
+    },
+    {
+      "kind": "audio",
+      "status": 201,
+      "bytes": 572409,
+      "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-Wj1F93eAvGFmQKfhaWCywLZuvCIMkD.ogg"
+    },
+    {
+      "kind": "pdf",
+      "status": 201,
+      "bytes": 13264,
+      "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf"
+    },
+    {
+      "kind": "video",
+      "status": 201,
+      "bytes": 2757913,
+      "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-82rWajGpeCtTLOmJ1kCMkmrfy7qp9P.mp4"
+    }
+  ],
+  "mediaRejections": [
+    {
+      "name": "spoofed-image",
+      "status": 400,
+      "error": "invalid_request"
+    },
+    {
+      "name": "over-limit",
+      "status": 413,
+      "error": "invalid_request"
+    }
+  ],
+  "microformats": [
+    {
+      "parser": "go",
+      "url": "https://go.microformats.io/?url=https%3A%2F%2Findieweb-acceptance.vercel.app%2Fwritings%2Findieweb-completion-20261008",
+      "entry": {
+        "type": [
+          "h-entry"
+        ],
+        "properties": {
+          "attachment": [
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf",
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf"
+          ],
+          "audio": [
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-Wj1F93eAvGFmQKfhaWCywLZuvCIMkD.ogg"
+          ],
+          "author": [
+            {
+              "value": "Willie Chalmers III",
+              "type": [
+                "h-card"
+              ],
+              "properties": {
+                "name": [
+                  "Willie Chalmers III"
+                ],
+                "url": [
+                  "https://indieweb-acceptance.vercel.app/"
+                ]
+              }
+            }
+          ],
+          "category": [
+            {
+              "value": "https://example.com/person",
+              "type": [
+                "h-card"
+              ],
+              "properties": {
+                "name": [
+                  "A tagged person"
+                ],
+                "url": [
+                  "https://example.com/person"
+                ]
+              }
+            },
+            "second-category"
+          ],
+          "comment": [
+            {
+              "value": "CControlled acceptance readerOct 7, 2026This received reply verifies the upstream conversation refresh.",
+              "type": [
+                "h-cite"
+              ],
+              "properties": {
+                "author": [
+                  {
+                    "value": "Controlled acceptance reader",
+                    "type": [
+                      "h-card"
+                    ],
+                    "properties": {
+                      "name": [
+                        "Controlled acceptance reader"
+                      ],
+                      "url": [
+                        "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/4ea565daf7ff4114cd02b6f161df5fc6a39e20ada52e49be#author"
+                      ]
+                    }
+                  }
+                ],
+                "content": [
+                  {
+                    "html": "<p>This received reply verifies the upstream conversation refresh.</p>",
+                    "value": "This received reply verifies the upstream conversation refresh."
+                  }
+                ],
+                "published": [
+                  "2026-10-07T12:00:00.000Z"
+                ],
+                "url": [
+                  "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/4ea565daf7ff4114cd02b6f161df5fc6a39e20ada52e49be"
+                ]
+              }
+            }
+          ],
+          "content": [
+            {
+              "html": "<div dir=\"auto\" class=\"prose prose-neutral max-w-none text-ink dark:prose-invert [&amp;_audio]:w-full [&amp;_video]:max-h-96 [&amp;_video]:w-full\">\n<p dir=\"rtl\">\u0645\u0631\u062d\u0628\u0627 <bdi dir=\"ltr\">Alice (42)</bdi>.</p><pre><code>const answer = 42;</code></pre><p><a href=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf\" rel=\"nofollow ugc\" class=\"u-attachment\">The controlled PDF</a></p>\n</div><div class=\"mt-6 space-y-4\"><figure><audio src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-Wj1F93eAvGFmQKfhaWCywLZuvCIMkD.ogg\" class=\"u-audio w-full\" controls=\"\" preload=\"none\" aria-label=\"Audio\"></audio></figure><figure><div><video src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-82rWajGpeCtTLOmJ1kCMkmrfy7qp9P.mp4\" controls=\"\" preload=\"none\" playsinline=\"\" class=\"u-video max-h-96 w-full rounded-2xl\" aria-label=\"Video\"></video></div></figure><figure><a class=\"u-attachment inline-flex rounded-full bg-tray px-4 py-2 text-label-large text-ink\" href=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf\" rel=\"noopener\">Download attachment</a></figure></div>",
+              "value": "\u0645\u0631\u062d\u0628\u0627 Alice (42).const answer = 42;The controlled PDF\nDownload attachment"
+            }
+          ],
+          "in-reply-to": [
+            {
+              "value": "https://indieweb-acceptance-sources.vercel.app/api/acceptance-webmention-source/f1d96bfb3dbce3aa7c6dbe6aacdd1a3fba32db8d42629c42",
+              "type": [
+                "h-cite"
+              ],
+              "properties": {
+                "author": [
+                  {
+                    "value": "Controlled acceptance reader",
+                    "type": [
+                      "h-card"
+                    ],
+                    "properties": {
+                      "name": [
+                        "Controlled acceptance reader"
+                      ]
+                    }
+                  }
+                ],
+                "name": [
+                  "Controlled original conversation"
+                ],
+                "published": [
+                  "2026-10-07T12:00:00.000Z"
+                ],
+                "summary": [
+                  "This isolated upstream page receives the conversation update."
+                ]
+              }
+            }
+          ],
+          "name": [
+            "\u0645\u0631\u062d\u0628\u0627 Alice \u2014 acceptance only"
+          ],
+          "photo": [
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-QPGLVlWwhcmmra3FBKqSWzGgpJfpyZ.png"
+          ],
+          "published": [
+            "2026-10-08T07:55:38.596Z"
+          ],
+          "summary": [
+            "An edited summary."
+          ],
+          "uid": [
+            "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008"
+          ],
+          "updated": [
+            "2026-10-08T08:03:54.000Z"
+          ],
+          "url": [
+            "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008"
+          ],
+          "video": [
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-82rWajGpeCtTLOmJ1kCMkmrfy7qp9P.mp4"
+          ]
+        }
+      }
+    },
+    {
+      "parser": "php",
+      "url": "https://php.microformats.io/?url=https%3A%2F%2Findieweb-acceptance.vercel.app%2Fwritings%2Findieweb-completion-20261008",
+      "entry": {
+        "type": [
+          "h-entry"
+        ],
+        "properties": {
+          "name": [
+            "\u0645\u0631\u062d\u0628\u0627 Alice \u2014 acceptance only"
+          ],
+          "summary": [
+            "An edited summary."
+          ],
+          "category": [
+            "second-category",
+            {
+              "type": [
+                "h-card"
+              ],
+              "properties": {
+                "name": [
+                  "A tagged person"
+                ],
+                "url": [
+                  "https://example.com/person"
+                ]
+              },
+              "lang": "en",
+              "value": "https://example.com/person"
+            }
+          ],
+          "url": [
+            "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008"
+          ],
+          "uid": [
+            "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008"
+          ],
+          "photo": [
+            {
+              "value": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-QPGLVlWwhcmmra3FBKqSWzGgpJfpyZ.png",
+              "alt": "The site icon used as a controlled image fixture"
+            }
+          ],
+          "attachment": [
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf",
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf"
+          ],
+          "audio": [
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-Wj1F93eAvGFmQKfhaWCywLZuvCIMkD.ogg"
+          ],
+          "video": [
+            "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-82rWajGpeCtTLOmJ1kCMkmrfy7qp9P.mp4"
+          ],
+          "updated": [
+            "2026-10-08T08:03:54.000Z"
+          ],
+          "published": [
+            "2026-10-08T07:55:38.596Z"
+          ],
+          "content": [
+            {
+              "html": "<div dir=\"auto\" class=\"prose prose-neutral max-w-none text-ink dark:prose-invert [&amp;_audio]:w-full [&amp;_video]:max-h-96 [&amp;_video]:w-full\">\n<p dir=\"rtl\">\u0645\u0631\u062d\u0628\u0627 <bdi dir=\"ltr\">Alice (42)</bdi>.</p><pre><code>const answer = 42;</code></pre><p><a href=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf\" rel=\"nofollow ugc\" class=\"u-attachment\">The controlled PDF</a></p>\n</div><div class=\"mt-6 space-y-4\"><figure><audio src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-Wj1F93eAvGFmQKfhaWCywLZuvCIMkD.ogg\" class=\"u-audio w-full\" controls=\"\" preload=\"none\" aria-label=\"Audio\"></audio></figure><figure><div><video src=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-82rWajGpeCtTLOmJ1kCMkmrfy7qp9P.mp4\" controls=\"\" preload=\"none\" playsinline=\"\" class=\"u-video max-h-96 w-full rounded-2xl\" aria-label=\"Video\"></video></div></figure><figure><a class=\"u-attachment inline-flex rounded-full bg-tray px-4 py-2 text-label-large text-ink\" href=\"https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf\" rel=\"noopener\">Download attachment</a></figure></div>",
+              "value": "\u0645\u0631\u062d\u0628\u0627 Alice (42).const answer = 42;\nThe controlled PDF Download attachment",
+              "lang": "en"
+            }
+          ],
+          "author": [
+            {
+              "type": [
+                "h-card"
+              ],
+              "properties": {
+                "name": [
+                  "Willie Chalmers III"
+                ],
+                "url": [
+                  "https://indieweb-acceptance.vercel.app/"
+                ]
+              },
+              "lang": "en",
+              "value": "Willie Chalmers III"
+            }
+          ],
+          "in-reply-to": [
+            {
+              "type": [
+                "h-cite"
+              ],
+              "properties": {
+                "name": [
+                  "Controlled original conversation"
+                ],
+                "summary": [
+                  "This isolated upstream page receives the conversation update."
+                ],
+                "published": [
+                  "2026-10-07T12:00:00.000Z"
+                ],
+                "author": [
+                  {
+                    "type": [
+                      "h-card"
+                    ],
+                    "properties": {
+                      "name": [
+                        "Controlled acceptance reader"
+                      ]
+                    },
+                    "lang": "en",
+                    "value": "Controlled acceptance reader"
+                  }
+                ]
+              },
+              "lang": "en",
+              "value": "https://indieweb-acceptance-sources.vercel.app/api/acceptance-webmention-source/f1d96bfb3dbce3aa7c6dbe6aacdd1a3fba32db8d42629c42"
+            }
+          ],
+          "comment": [
+            {
+              "type": [
+                "h-cite"
+              ],
+              "properties": {
+                "url": [
+                  "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/4ea565daf7ff4114cd02b6f161df5fc6a39e20ada52e49be"
+                ],
+                "published": [
+                  "2026-10-07T12:00:00.000Z"
+                ],
+                "content": [
+                  {
+                    "html": "<p>This received reply verifies the upstream conversation refresh.</p>",
+                    "value": "This received reply verifies the upstream conversation refresh.",
+                    "lang": "en"
+                  }
+                ],
+                "author": [
+                  {
+                    "type": [
+                      "h-card"
+                    ],
+                    "properties": {
+                      "name": [
+                        "Controlled acceptance reader"
+                      ],
+                      "url": [
+                        "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/4ea565daf7ff4114cd02b6f161df5fc6a39e20ada52e49be#author"
+                      ]
+                    },
+                    "lang": "en",
+                    "value": "Controlled acceptance reader"
+                  }
+                ]
+              },
+              "lang": "en",
+              "value": "C\nControlled acceptance readerOct 7, 2026\nThis received reply verifies the upstream conversation refresh."
+            }
+          ]
+        },
+        "lang": "en"
+      }
+    }
+  ],
+  "feeds": {
+    "rss": {
+      "method": "W3C fetch of canonical URL; manual=1 and verification parameter on validator request avoid stale checker cache.",
+      "response": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<env:Envelope xmlns:env=\"http://www.w3.org/2003/05/soap-envelope\">\n<env:Body>\n<m:feedvalidationresponse env:encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:m=\"http://www.w3.org/2005/10/feed-validator\">\n      <m:uri>https://indieweb-acceptance.vercel.app/writings/feed.xml</m:uri> \n      <m:checkedby>http://validator.w3.org/feed/check.cgi</m:checkedby>\n      <m:date>2026-10-08T08:21:20.378114</m:date>\n      <m:validity>true</m:validity>\n  <m:errors>\n        <m:errorcount>0</m:errorcount>\n        <m:errorlist></m:errorlist>\n    </m:errors>\n    <m:warnings>\n        <m:warningcount>0</m:warningcount>\n\t<m:warninglist></m:warninglist>\n    </m:warnings>\n    <m:informations>\n\t<m:infocount>0</m:infocount>\n\t<m:infolist></m:infolist>\n    </m:informations>\n</m:feedvalidationresponse>\n</env:Body>\n</env:Envelope>\n\n",
+      "valid": true,
+      "errors": 0,
+      "warnings": 0
+    },
+    "atom": {
+      "service": "https://validator.w3.org/feed/",
+      "format": "atom",
+      "url": "https://indieweb-acceptance.vercel.app/writings/feed/atom",
+      "valid": true,
+      "errors": 0,
+      "warnings": 0,
+      "response": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<env:Envelope xmlns:env=\"http://www.w3.org/2003/05/soap-envelope\">\n<env:Body>\n<m:feedvalidationresponse env:encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:m=\"http://www.w3.org/2005/10/feed-validator\">\n      <m:uri>https://indieweb-acceptance.vercel.app/writings/feed/atom</m:uri> \n      <m:checkedby>http://validator.w3.org/feed/check.cgi</m:checkedby>\n      <m:date>2026-10-08T08:02:25.766399</m:date>\n      <m:validity>true</m:validity>\n  <m:errors>\n        <m:errorcount>0</m:errorcount>\n        <m:errorlist></m:errorlist>\n    </m:errors>\n    <m:warnings>\n        <m:warningcount>0</m:warningcount>\n\t<m:warninglist></m:warninglist>\n    </m:warnings>\n    <m:informations>\n\t<m:infocount>0</m:infocount>\n\t<m:infolist></m:infolist>\n    </m:informations>\n</m:feedvalidationresponse>\n</env:Body>\n</env:Envelope>\n\n"
+    }
+  },
+  "webmentions": {
+    "creationVouch": {
+      "id": "6dd4957691252545d57a0d276a5b20be8fbf6437a21a1738",
+      "vouchId": "3b0292c1db5d73d72972e0e72dedf03011a6b029c34d76b9",
+      "source": "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/6dd4957691252545d57a0d276a5b20be8fbf6437a21a1738",
+      "vouch": "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/3b0292c1db5d73d72972e0e72dedf03011a6b029c34d76b9",
+      "target": "https://indieweb-acceptance.vercel.app/writings/websub-acceptance-20261008",
+      "createdAt": "2026-10-08T07:38:39.018Z",
+      "result": {
+        "id": "dbd7da67-a444-4857-8fe7-3ac659e7589c",
+        "is_verified": true,
+        "is_approved": true,
+        "is_deleted": false,
+        "author_name": "Controlled acceptance reader",
+        "vouch_url": "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/3b0292c1db5d73d72972e0e72dedf03011a6b029c34d76b9"
+      },
+      "recaptureResult": {
+        "id": "68c379eb-3dc8-43ea-9084-49aa61da273d",
+        "is_verified": true,
+        "is_approved": true,
+        "is_deleted": false
+      }
+    },
+    "liveHttpSalmention": [
+      {
+        "name": "Real HTTP source, final URL/base, citing entry and authenticated moderation",
+        "id": "72d3495a-5045-4682-91bc-aa7404447150",
+        "sourceFinalUrl": "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/29f8c5361e14a9f2392f14875c0cbfd5a60002a36642615e",
+        "verified": true,
+        "approved": true,
+        "selectedSecondEntry": true,
+        "validBaseUsed": true
+      },
+      {
+        "name": "Real approved nested reply triggers Salmention and upstream refetch receipt",
+        "received": {
+          "at": "2026-10-08T08:16:24.112Z",
+          "source": "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008",
+          "target": "https://indieweb-acceptance-sources.vercel.app/api/acceptance-webmention-source/f1d96bfb3dbce3aa7c6dbe6aacdd1a3fba32db8d42629c42",
+          "pageUrl": "https://indieweb-acceptance.vercel.app/writings/indieweb-completion-20261008",
+          "pageSha256": "5562f15fcdd75b937c836ba745b432d34b584483476a72bf92e5c10536961827",
+          "nestedReplyFound": true,
+          "upstreamLinkFound": true
+        }
+      }
+    ],
+    "updates": [
+      {
+        "name": "Source update and repeated submission preserve one approved record",
+        "id": "dbd7da67-a444-4857-8fe7-3ac659e7589c",
+        "marker": "Verified source edit at 2026-10-08T08:22:10.529Z"
+      },
+      {
+        "name": "Identical source and target rejected",
+        "status": 400
+      }
+    ],
+    "deletion": {
+      "at": "2026-10-08T08:23:41.523Z",
+      "checks": [
+        {
+          "name": "Authenticated rejection stays hidden after repeated source submission",
+          "id": "72d3495a-5045-4682-91bc-aa7404447150",
+          "status": 200
+        },
+        {
+          "name": "Actual source 410 removes approved response from public writing",
+          "id": "dbd7da67-a444-4857-8fe7-3ac659e7589c",
+          "sourceStatus": 410,
+          "publicStatus": 200
+        }
+      ]
+    }
+  },
+  "visual": {
+    "directory": "/Users/williecubed/.codex/visualizations/2026/10/07/01a11411-311d-79d1-b9ff-b118755c6bcf/indieweb-received-media",
+    "results": [
+      {
+        "theme": "light",
+        "width": 390,
+        "image": true,
+        "audio": true,
+        "video": true,
+        "file": true,
+        "files": [
+          {
+            "background": "rgb(231, 234, 226)",
+            "radius": "3.35544e+07px",
+            "decoration": "none",
+            "display": "inline-flex"
+          },
+          {
+            "background": "rgb(231, 234, 226)",
+            "radius": "3.35544e+07px",
+            "decoration": "none",
+            "display": "inline-flex"
+          }
+        ],
+        "autoplay": false,
+        "overflow": false,
+        "title": "WebSub acceptance receipt \u00b7 Willie Chalmers III",
+        "replyText": true
+      },
+      {
+        "theme": "light",
+        "width": 1440,
+        "image": true,
+        "audio": true,
+        "video": true,
+        "file": true,
+        "files": [
+          {
+            "background": "rgb(231, 234, 226)",
+            "radius": "3.35544e+07px",
+            "decoration": "none",
+            "display": "inline-flex"
+          },
+          {
+            "background": "rgb(231, 234, 226)",
+            "radius": "3.35544e+07px",
+            "decoration": "none",
+            "display": "inline-flex"
+          }
+        ],
+        "autoplay": false,
+        "overflow": false,
+        "title": "WebSub acceptance receipt \u00b7 Willie Chalmers III",
+        "replyText": true
+      },
+      {
+        "theme": "dark",
+        "width": 390,
+        "image": true,
+        "audio": true,
+        "video": true,
+        "file": true,
+        "files": [
+          {
+            "background": "rgb(39, 43, 41)",
+            "radius": "3.35544e+07px",
+            "decoration": "none",
+            "display": "inline-flex"
+          },
+          {
+            "background": "rgb(39, 43, 41)",
+            "radius": "3.35544e+07px",
+            "decoration": "none",
+            "display": "inline-flex"
+          }
+        ],
+        "autoplay": false,
+        "overflow": false,
+        "title": "WebSub acceptance receipt \u00b7 Willie Chalmers III",
+        "replyText": true
+      },
+      {
+        "theme": "dark",
+        "width": 1440,
+        "image": true,
+        "audio": true,
+        "video": true,
+        "file": true,
+        "files": [
+          {
+            "background": "rgb(39, 43, 41)",
+            "radius": "3.35544e+07px",
+            "decoration": "none",
+            "display": "inline-flex"
+          },
+          {
+            "background": "rgb(39, 43, 41)",
+            "radius": "3.35544e+07px",
+            "decoration": "none",
+            "display": "inline-flex"
+          }
+        ],
+        "autoplay": false,
+        "overflow": false,
+        "title": "WebSub acceptance receipt \u00b7 Willie Chalmers III",
+        "replyText": true
+      }
+    ],
+    "repositoryDirectory": "docs/evidence/received-media"
+  },
+  "limits": {
+    "micropubRocks": "Administrator browser policy denied this domain. No alternate access was attempted.",
+    "temporal": "90-day inactivity and preexisting access-token expiry boundaries use backend clock fixtures; no claim of waiting 90 real days.",
+    "jwt": "Optional JWT checks do not apply to opaque access tokens."
+  },
+  "cleanup": {
+    "complete": true,
+    "database": {
+      "at": "2026-10-08T08:31:24.419Z",
+      "site": "https://indieweb-acceptance.vercel.app",
+      "counts": {
+        "tokens": 6,
+        "refreshTokens": 6,
+        "refreshFamilies": 4,
+        "codes": 5,
+        "mentions": 4,
+        "salmentionWindows": 1,
+        "archives": 3,
+        "sources": 7
+      },
+      "remaining": {
+        "sources": 0,
+        "sourceTableDropped": true,
+        "tokens": 0,
+        "archives": 0
+      }
+    },
+    "controlledPublicationDeleteCommit": "f34adadf764629439b9bddfc7197b68402ffc188",
+    "sourceRouteRemovedFromAcceptanceCheckout": true,
+    "media": {
+      "at": "2026-10-08T08:32:57.255Z",
+      "deleted": [
+        {
+          "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-QPGLVlWwhcmmra3FBKqSWzGgpJfpyZ.png",
+          "status": 404
+        },
+        {
+          "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-Wj1F93eAvGFmQKfhaWCywLZuvCIMkD.ogg",
+          "status": 404
+        },
+        {
+          "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-U7UXyffN6AZfxW6qGDSpbOzRIPbSxr.pdf",
+          "status": 404
+        },
+        {
+          "url": "https://b0dgluyotqkpvpbg.public.blob.vercel-storage.com/media/2026/10/sample-82rWajGpeCtTLOmJ1kCMkmrfy7qp9P.mp4",
+          "status": 404
+        }
+      ]
+    },
+    "completionScope": "Owned database records, grants and exact blobs are removed. Root deployed removal of the marker/source route at bf74ce3029e97f39eb4f9d7402405fc3ab83f6e0, removed the source alias and restored original acceptance protection. See acceptance-final-cleanup-20261008.json.",
+    "indieAuthValidator": {
+      "at": "2026-10-08T08:34:35.152Z",
+      "clients": [
+        "https://indieauth.rocks/clients/pdkysvd8041fzakk/main",
+        "https://indieauth.rocks/clients/db6e0mvedrqgwtsd/main"
+      ],
+      "counts": {
+        "tokens": 7,
+        "refreshTokens": 7,
+        "families": 5,
+        "codes": 12
+      }
+    },
+    "public": {
+      "at": "2026-10-08T08:35:39.253Z",
+      "pages": [
+        {
+          "slug": "indieweb-completion-20261008",
+          "status": 404
+        },
+        {
+          "slug": "indieweb-form-private-20261008",
+          "status": 404
+        },
+        {
+          "slug": "indieweb-multipart-private-20261008",
+          "status": 404
+        }
+      ],
+      "feeds": [
+        {
+          "path": "/writings",
+          "status": 200,
+          "ownedFixtureAbsent": true
+        },
+        {
+          "path": "/writings/feed.xml",
+          "status": 200,
+          "ownedFixtureAbsent": true
+        },
+        {
+          "path": "/writings/feed/atom",
+          "status": 200,
+          "ownedFixtureAbsent": true
+        },
+        {
+          "path": "/writings/feed/json",
+          "status": 200,
+          "ownedFixtureAbsent": true
+        }
+      ]
+    },
+    "sharedDeploymentReceipt": "acceptance-final-cleanup-20261008.json",
+    "outgoingWebmentionsAudit": {
+      "at": "2026-10-08T08:50:13.083416+00:00",
+      "workflow": "https://github.com/WillieCubed/website/actions/runs/37752152964",
+      "ownedOrphans": 0,
+      "removed": 0,
+      "preservedUnrelatedHistory": [
+        {
+          "id": "55c6658f-f07b-4141-9c1c-62fa2dcf6411",
+          "source_url": "https://indieweb-acceptance.vercel.app/writings/indieweb-interoperability-20260923",
+          "target_url": "https://webmention.rocks/test/1",
+          "endpoint_url": "https://webmention.rocks/test/1/webmention?head=true",
+          "post_slug": "indieweb-interoperability-20260923",
+          "content_hash": "799277c64b044b80971a1cce62c0781f76f0a79f1c6befec64b78cb1b905e8d9",
+          "status": "failed",
+          "response_code": 400,
+          "response_body": null,
+          "error_message": null,
+          "sent_at": null,
+          "created_at": "2026-09-24T00:50:23.724Z",
+          "updated_at": "2026-10-08T08:48:11.747Z"
+        }
+      ],
+      "notificationRemainingFailure": "The September 24 legacy fixture row returned HTTP 400; the required AT Protocol sync also remains skipped for missing acceptance identity."
+    }
+  },
+  "indieAuthSupplements": {
+    "registeredCrossOriginRedirect": {
+      "origin": "https://indieweb-acceptance.vercel.app",
+      "client": "https://indieweb-acceptance-sources.vercel.app/api/acceptance-webmention-source/050aca33705c3abcc9b932e353908c5f6fe86906a19a5ebd",
+      "redirect": "https://indieweb-acceptance.vercel.app/api/acceptance-webmention-source/0d68d96011aec6d8dd2104d7c3a2974ab9ac17d403f96cc6",
+      "callbackStatus": 303,
+      "exchangeStatus": 200,
+      "userInfoStatus": 200,
+      "replayStatus": 400,
+      "replayedAccessStatus": 401,
+      "at": "2026-10-08T08:29:21.840Z"
+    },
+    "freshCodeBindings": [
+      {
+        "origin": "https://indieweb-acceptance.vercel.app",
+        "client": "http://localhost:8780/",
+        "at": "2026-10-08T08:28:08.591Z",
+        "name": "wrong-client",
+        "status": 400
+      },
+      {
+        "origin": "https://indieweb-acceptance.vercel.app",
+        "client": "http://localhost:8781/",
+        "at": "2026-10-08T08:28:36.645Z",
+        "name": "wrong-redirect",
+        "status": 400
+      }
+    ]
+  },
+  "micropubTransports": {
+    "origin": "https://indieweb-acceptance.vercel.app",
+    "at": "2026-10-08T08:30:12.331Z",
+    "checks": [
+      {
+        "format": "form",
+        "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-form-private-20261008",
+        "createStatus": 202,
+        "sourceStatus": 200,
+        "draft": true,
+        "multivalueCategories": [
+          "alpha",
+          "beta"
+        ],
+        "deleteStatus": 200
+      },
+      {
+        "format": "multipart",
+        "url": "https://indieweb-acceptance.vercel.app/writings/indieweb-multipart-private-20261008",
+        "createStatus": 202,
+        "sourceStatus": 200,
+        "draft": true,
+        "multivalueCategories": [
+          "alpha",
+          "beta"
+        ],
+        "deleteStatus": 200
+      }
+    ]
+  }
+}

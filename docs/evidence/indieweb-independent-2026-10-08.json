@@ -1,0 +1,471 @@
+{
+  "startedAt": "2026-10-08T07:17:44.979Z",
+  "evidenceKind": "Live independent fixture fetches and validation of current component/feed output. No post, PDS record, Webmention, token, or stored media is created.",
+  "checks": [
+    {
+      "name": "Authorship Rocks 1",
+      "status": "passed",
+      "evidence": {
+        "url": "https://authorship.rocks/test/1",
+        "actual": {
+          "name": "William Shakespeare"
+        }
+      }
+    },
+    {
+      "name": "Authorship Rocks 2",
+      "status": "passed",
+      "evidence": {
+        "url": "https://authorship.rocks/test/2",
+        "actual": {
+          "name": "Homer",
+          "url": "https://en.wikiquote.org/wiki/Homer",
+          "photo": "https://authorship.rocks/images/homer.jpg"
+        }
+      }
+    },
+    {
+      "name": "Authorship Rocks 3",
+      "status": "passed",
+      "evidence": {
+        "url": "https://authorship.rocks/test/3",
+        "actual": {
+          "name": "Patañjali",
+          "url": "https://authorship.rocks/test/3/about-patanjali"
+        }
+      }
+    },
+    {
+      "name": "Authorship Rocks 4",
+      "status": "passed",
+      "evidence": {
+        "url": "https://authorship.rocks/test/4",
+        "actual": {
+          "name": "Virginia Woolf",
+          "url": "https://authorship.rocks/test/4/about-virginia-woolf",
+          "photo": "https://authorship.rocks/images/virginia-woolf.jpg"
+        }
+      }
+    },
+    {
+      "name": "Authorship Rocks 5",
+      "status": "passed",
+      "evidence": {
+        "url": "https://authorship.rocks/test/5",
+        "actual": {
+          "name": "Basho",
+          "url": "https://authorship.rocks/test/5/about-basho",
+          "photo": "https://authorship.rocks/images/basho.jpg"
+        }
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 1",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/1",
+        "endpoint": "https://webmention.rocks/test/1/webmention?head=true",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 2",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/2",
+        "endpoint": "https://webmention.rocks/test/2/webmention?head=true",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 3",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/3",
+        "endpoint": "https://webmention.rocks/test/3/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 4",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/4",
+        "endpoint": "https://webmention.rocks/test/4/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 5",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/5",
+        "endpoint": "https://webmention.rocks/test/5/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 6",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/6",
+        "endpoint": "https://webmention.rocks/test/6/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 7",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/7",
+        "endpoint": "https://webmention.rocks/test/7/webmention?head=true",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 8",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/8",
+        "endpoint": "https://webmention.rocks/test/8/webmention?head=true",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 9",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/9",
+        "endpoint": "https://webmention.rocks/test/9/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 10",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/10",
+        "endpoint": "https://webmention.rocks/test/10/webmention?head=true",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 11",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/11",
+        "endpoint": "https://webmention.rocks/test/11/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 12",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/12",
+        "endpoint": "https://webmention.rocks/test/12/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 13",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/13",
+        "endpoint": "https://webmention.rocks/test/13/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 14",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/14",
+        "endpoint": "https://webmention.rocks/test/14/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 15",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/15",
+        "endpoint": "https://webmention.rocks/test/15",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 16",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/16",
+        "endpoint": "https://webmention.rocks/test/16/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 17",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/17",
+        "endpoint": "https://webmention.rocks/test/17/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 18",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/18",
+        "endpoint": "https://webmention.rocks/test/18/webmention?head=true",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 19",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/19",
+        "endpoint": "https://webmention.rocks/test/19/webmention?head=true",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 20",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/20",
+        "endpoint": "https://webmention.rocks/test/20/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 21",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/21",
+        "endpoint": "https://webmention.rocks/test/21/webmention?query=yes",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 22",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/22",
+        "endpoint": "https://webmention.rocks/test/22/webmention",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Webmention Rocks discovery 23",
+      "status": "passed",
+      "evidence": {
+        "url": "https://webmention.rocks/test/23/page",
+        "endpoint": "https://webmention.rocks/test/23/page/webmention-endpoint/yKEmL2Nmiat16Lboyx7Z",
+        "proves": "Endpoint discovery only. No mention is sent."
+      }
+    },
+    {
+      "name": "Independent go Microformats parser",
+      "status": "passed",
+      "evidence": {
+        "service": "https://go.microformats.io/",
+        "entry": {
+          "type": [
+            "h-entry",
+            "h-event"
+          ],
+          "properties": {
+            "attachment": [
+              "https://media.example/file.pdf"
+            ],
+            "audio": [
+              "https://media.example/sound.mp3"
+            ],
+            "content": [
+              {
+                "html": "<div dir=\"auto\"><p dir=\"rtl\">مرحبا <bdi dir=\"ltr\">Alice</bdi></p><bdo dir=\"rtl\">ABC</bdo></div>",
+                "value": "مرحبا AliceABC"
+              }
+            ],
+            "end": [
+              "2026-11-01T13:00:00Z"
+            ],
+            "in-reply-to": [
+              {
+                "value": "https://event.example/",
+                "type": [
+                  "h-cite"
+                ],
+                "properties": {
+                  "name": [
+                    "event.example"
+                  ],
+                  "url": [
+                    "https://event.example/"
+                  ]
+                }
+              },
+              {
+                "value": "https://event.example/two",
+                "type": [
+                  "h-cite"
+                ],
+                "properties": {
+                  "name": [
+                    "event.example"
+                  ],
+                  "url": [
+                    "https://event.example/two"
+                  ]
+                }
+              }
+            ],
+            "location": [
+              "A garden"
+            ],
+            "name": [
+              "مرحبا Alice"
+            ],
+            "photo": [
+              "https://media.example/image.jpg"
+            ],
+            "published": [
+              "2026-10-07T12:00:00.000Z"
+            ],
+            "rsvp": [
+              "yes"
+            ],
+            "start": [
+              "2026-11-01T12:00:00Z"
+            ],
+            "summary": [
+              "שלום Alice"
+            ],
+            "url": [
+              "/writings/local-component-validation"
+            ],
+            "video": [
+              "https://media.example/video.mp4"
+            ]
+          }
+        },
+        "inputKind": "Current WritingItem rendered from a local in-memory fixture. No public writing."
+      }
+    },
+    {
+      "name": "Independent php Microformats parser",
+      "status": "passed",
+      "evidence": {
+        "service": "https://php.microformats.io/",
+        "entry": {
+          "type": [
+            "h-entry",
+            "h-event"
+          ],
+          "properties": {
+            "rsvp": [
+              "yes"
+            ],
+            "location": [
+              "A garden"
+            ],
+            "name": [
+              "مرحبا Alice"
+            ],
+            "summary": [
+              "שלום Alice"
+            ],
+            "url": [
+              "https://willie.page/writings/local-component-validation"
+            ],
+            "photo": [
+              "https://media.example/image.jpg"
+            ],
+            "audio": [
+              "https://media.example/sound.mp3"
+            ],
+            "video": [
+              "https://media.example/video.mp4"
+            ],
+            "attachment": [
+              "https://media.example/file.pdf"
+            ],
+            "start": [
+              "2026-11-01T12:00:00Z"
+            ],
+            "end": [
+              "2026-11-01T13:00:00Z"
+            ],
+            "published": [
+              "2026-10-07T12:00:00.000Z"
+            ],
+            "content": [
+              {
+                "html": "<div dir=\"auto\"><p dir=\"rtl\">مرحبا <bdi dir=\"ltr\">Alice</bdi></p><bdo dir=\"rtl\">ABC</bdo></div>",
+                "value": "مرحبا AliceABC"
+              }
+            ],
+            "in-reply-to": [
+              {
+                "type": [
+                  "h-cite"
+                ],
+                "properties": {
+                  "name": [
+                    "event.example"
+                  ],
+                  "url": [
+                    "https://event.example/"
+                  ]
+                },
+                "value": "https://event.example/"
+              },
+              {
+                "type": [
+                  "h-cite"
+                ],
+                "properties": {
+                  "name": [
+                    "event.example"
+                  ],
+                  "url": [
+                    "https://event.example/two"
+                  ]
+                },
+                "value": "https://event.example/two"
+              }
+            ]
+          }
+        },
+        "inputKind": "Current WritingItem rendered from a local in-memory fixture. No public writing."
+      }
+    },
+    {
+      "name": "W3C rss feed validator",
+      "status": "passed",
+      "evidence": {
+        "service": "https://validator.w3.org/feed/check.cgi",
+        "inputKind": "Current feed serializer output from an in-memory fixture, not a deployed feed.",
+        "errorCount": 0,
+        "warningCount": 2,
+        "warningContext": "Direct input has no document location for its self link. The validator also warns about the valid bdo direction override retained for Micropub rendering.",
+        "response": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<env:Envelope xmlns:env=\"http://www.w3.org/2003/05/soap-envelope\">\n<env:Body>\n<m:feedvalidationresponse env:encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:m=\"http://www.w3.org/2005/10/feed-validator\">\n      <m:uri></m:uri> \n      <m:checkedby>http://validator.w3.org/feed/check.cgi</m:checkedby>\n      <m:date>2026-10-08T07:17:48.168050</m:date>\n      <m:validity>true</m:validity>\n  <m:errors>\n        <m:errorcount>0</m:errorcount>\n        <m:errorlist></m:errorlist>\n    </m:errors>\n    <m:warnings>\n        <m:warningcount>2</m:warningcount>\n\t<m:warninglist><warning>\n  <level>warning</level>\n  <type>SelfDoesntMatchLocation</type>\n  <line>9</line>\n  <column>90</column>\n  <text>Self reference doesn&apos;t match document location</text>\n  <msgcount>1</msgcount>\n  <backupcolumn>90</backupcolumn>\n  <backupline>9</backupline>\n  <element>href</element>\n  <parent>channel</parent>\n</warning>\n\n<warning>\n  <level>warning</level>\n  <type>SecurityRisk</type>\n  <line>17</line>\n  <column>0</column>\n  <text>content:encoded should not contain bdo tag</text>\n  <msgcount>1</msgcount>\n  <backupcolumn>257</backupcolumn>\n  <backupline>18</backupline>\n  <element>content:encoded</element>\n  <parent>item</parent>\n  <tag>bdo</tag>\n</warning>\n</m:warninglist>\n    </m:warnings>\n    <m:informations>\n\t<m:infocount>0</m:infocount>\n\t<m:infolist></m:infolist>\n    </m:informations>\n</m:feedvalidationresponse>\n</env:Body>\n</env:Envelope>\n\n"
+      }
+    },
+    {
+      "name": "W3C atom feed validator",
+      "status": "passed",
+      "evidence": {
+        "service": "https://validator.w3.org/feed/check.cgi",
+        "inputKind": "Current feed serializer output from an in-memory fixture, not a deployed feed.",
+        "errorCount": 0,
+        "warningCount": 2,
+        "warningContext": "Direct input has no document location for its self link. The validator also warns about the valid bdo direction override retained for Micropub rendering.",
+        "response": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<env:Envelope xmlns:env=\"http://www.w3.org/2003/05/soap-envelope\">\n<env:Body>\n<m:feedvalidationresponse env:encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:m=\"http://www.w3.org/2005/10/feed-validator\">\n      <m:uri></m:uri> \n      <m:checkedby>http://validator.w3.org/feed/check.cgi</m:checkedby>\n      <m:date>2026-10-08T07:17:49.671917</m:date>\n      <m:validity>true</m:validity>\n  <m:errors>\n        <m:errorcount>0</m:errorcount>\n        <m:errorlist></m:errorlist>\n    </m:errors>\n    <m:warnings>\n        <m:warningcount>2</m:warningcount>\n\t<m:warninglist><warning>\n  <level>warning</level>\n  <type>SelfDoesntMatchLocation</type>\n  <line>6</line>\n  <column>85</column>\n  <text>Self reference doesn&apos;t match document location</text>\n  <msgcount>1</msgcount>\n  <backupcolumn>85</backupcolumn>\n  <backupline>6</backupline>\n  <element>href</element>\n  <parent>feed</parent>\n</warning>\n\n<warning>\n  <level>warning</level>\n  <type>SecurityRisk</type>\n  <line>22</line>\n  <column>0</column>\n  <text>content should not contain bdo tag</text>\n  <msgcount>1</msgcount>\n  <backupcolumn>259</backupcolumn>\n  <backupline>23</backupline>\n  <element>content</element>\n  <parent>entry</parent>\n  <tag>bdo</tag>\n</warning>\n</m:warninglist>\n    </m:warnings>\n    <m:informations>\n\t<m:infocount>0</m:infocount>\n\t<m:infolist></m:infolist>\n    </m:informations>\n</m:feedvalidationresponse>\n</env:Body>\n</env:Envelope>\n\n"
+      }
+    }
+  ],
+  "finishedAt": "2026-10-08T07:17:50.831Z"
+}

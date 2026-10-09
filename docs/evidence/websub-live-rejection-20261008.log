@@ -1,0 +1,4 @@
+PASS hosted wrong-topic challenge rejected404
+PASS hosted unrequested challenge rejected404
+PASS hosted unsigned delivery rejected403
+PASS hosted bad HMAC delivery rejected403

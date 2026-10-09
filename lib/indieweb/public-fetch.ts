@@ -293,6 +293,8 @@ export interface PublicFetchOptions {
   headers?: Record<string, string>;
   /** Bytes of body to read at most. */
   maxBytes?: number;
+  /** Read bodies only for these MIME types; other responses retain their headers. */
+  bodyContentTypes?: readonly string[];
   /** Milliseconds for the whole exchange, redirects included. */
   timeoutMs: number;
   method?: 'GET' | 'HEAD' | 'POST';
@@ -324,6 +326,7 @@ export async function fetchPublicDocument(
     fetch,
     headers = {},
     maxBytes = PUBLIC_DOCUMENT_MAX_BYTES,
+    bodyContentTypes,
     timeoutMs,
     method = 'GET',
     body: requestBody,
@@ -364,6 +367,11 @@ export async function fetchPublicDocument(
       return { ...document, body: '' };
     }
     if (!response.ok) {
+      await response.body?.cancel().catch(() => {});
+      return { ...document, body: '' };
+    }
+    const mimeType = document.contentType.split(';')[0].trim().toLowerCase();
+    if (bodyContentTypes && mimeType && !bodyContentTypes.includes(mimeType)) {
       await response.body?.cancel().catch(() => {});
       return { ...document, body: '' };
     }

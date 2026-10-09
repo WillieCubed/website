@@ -64,6 +64,7 @@ async function discoverEndpoint(
     const document = await fetchPublicDocument(targetUrl, {
       ...network,
       timeoutMs: FETCH_TIMEOUT,
+      bodyContentTypes: ['text/html', 'application/xhtml+xml'],
       headers: {
         Accept: 'text/html',
         'User-Agent': 'WillieCubed-Webmention-Sender/1.0',

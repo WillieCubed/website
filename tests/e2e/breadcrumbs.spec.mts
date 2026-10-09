@@ -280,3 +280,114 @@ test('a long trail paints compact before the bar measures itself', async ({
   await expect(banner.locator('.site-breadcrumb-name__mark')).toBeVisible();
   await context.close();
 });
+
+for (const width of [320, 375, 390]) {
+  test(`a long trail never scrolls and keeps the cube on the text edge at ${width}px`, async ({
+    page,
+    request,
+  }) => {
+    await skipUnlessPublished(request, '/initiatives/fall-tour-2026');
+    await page.setViewportSize({ width, height: 812 });
+    for (const path of [
+      '/initiatives/fall-tour-2026',
+      '/initiatives/fall-tour-2026/part-1',
+      '/projects/hackportal',
+    ]) {
+      await page.goto(path);
+      await expect(page.getByRole('banner')).toHaveAttribute(
+        'data-compact',
+        'true'
+      );
+      const layout = await page.evaluate(() => {
+        const rail = document.querySelector<HTMLElement>('.site-breadcrumbs')!;
+        // Part pages inset their h1 inside the hero card, so the page's
+        // text edge is the leftmost heading or paragraph.
+        const edge = Math.min(
+          ...[...document.querySelectorAll('main :is(h1, p)')].map(
+            (element) => element.getBoundingClientRect().left
+          )
+        );
+        return {
+          overflow: rail.scrollWidth - rail.clientWidth,
+          scrollLeft: rail.scrollLeft,
+          cube: document
+            .querySelector('.site-breadcrumb-name__mark')!
+            .getBoundingClientRect().left,
+          edge,
+        };
+      });
+      expect(layout.overflow, path).toBeLessThanOrEqual(0);
+      expect(layout.scrollLeft, path).toBe(0);
+      expect(Math.abs(layout.cube - layout.edge), path).toBeLessThan(1);
+    }
+  });
+}
+
+test('a trail folds only as many crumbs as it has to', async ({
+  page,
+  request,
+}) => {
+  await skipUnlessPublished(request, '/initiatives/fall-tour-2026');
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/initiatives/fall-tour-2026');
+  const banner = page.getByRole('banner');
+  // Drawing the crumbs closer makes room for this trail without folding.
+  await expect(banner).toHaveAttribute('data-folded', '0');
+  await expect(
+    banner.getByRole('button', { name: 'Open menu for Initiatives' })
+  ).toBeVisible();
+
+  await page.goto('/initiatives/fall-tour-2026/part-1');
+  await expect(banner).toHaveAttribute('data-folded', '2');
+  const ellipsis = banner.getByRole('button', {
+    name: 'Pages above this one',
+  });
+  await ellipsis.click();
+  const folded = page
+    .getByRole('navigation', { name: 'Pages above this one' })
+    .getByRole('link');
+  await expect(folded).toHaveCount(2);
+  await expect(folded.nth(0)).toHaveAttribute('href', '/initiatives');
+  await expect(folded.nth(1)).toHaveAttribute('href', '/initiatives/twd');
+  await page.keyboard.press('Escape');
+
+  await page.setViewportSize({ width: 430, height: 812 });
+  await expect(banner).toHaveAttribute('data-folded', '1');
+  await expect(
+    banner.getByRole('button', { name: 'Open menu for The Willie Diaries' })
+  ).toBeVisible();
+  await ellipsis.click();
+  await expect(folded.locator('visible=true')).toHaveCount(1);
+  await expect(folded.locator('visible=true')).toHaveAttribute(
+    'href',
+    '/initiatives'
+  );
+  await page.keyboard.press('Escape');
+
+  await page.setViewportSize({ width: 1280, height: 812 });
+  await expect(banner).toHaveAttribute('data-folded', '0');
+  await expect(ellipsis).toBeHidden();
+});
+
+test('a deep trail paints folded before the bar measures itself', async ({
+  browser,
+  request,
+}) => {
+  await skipUnlessPublished(request, '/initiatives/fall-tour-2026');
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 375, height: 812 },
+  });
+  const page = await context.newPage();
+  await page.goto('/initiatives/fall-tour-2026/part-1');
+
+  const banner = page.getByRole('banner');
+  await expect(banner).not.toHaveAttribute('data-folded');
+  await expect(
+    banner.getByRole('button', { name: 'Pages above this one' })
+  ).toBeVisible();
+  await expect(
+    banner.getByRole('button', { name: 'Open menu for Initiatives' })
+  ).toBeHidden();
+  await context.close();
+});

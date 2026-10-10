@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useId, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import BlueskyIcon from '@/components/icons/BlueskyIcon';
@@ -35,6 +35,21 @@ export default function PostActions({
   const replySurface = useRef<HTMLDivElement>(null);
   const replyTrigger = useRef<HTMLDivElement>(null);
   const transitioning = useRef(false);
+
+  useEffect(() => {
+    const expanded = window.matchMedia('(min-width: 600px)');
+    function showExpandedDestinations() {
+      const menu =
+        replyTrigger.current?.querySelector<HTMLElement>('[popover]');
+      if (!expanded.matches || !menu?.matches(':popover-open')) return;
+      const restoreFocus = menu.contains(document.activeElement);
+      menu.hidePopover();
+      if (restoreFocus) replyTrigger.current?.querySelector('button')?.focus();
+    }
+    expanded.addEventListener('change', showExpandedDestinations);
+    return () =>
+      expanded.removeEventListener('change', showExpandedDestinations);
+  }, []);
 
   async function toggleReply() {
     if (transitioning.current) return;
@@ -103,18 +118,50 @@ export default function PostActions({
   return (
     <>
       <div className={styles.actions} role="group" aria-label="Writing actions">
-        <div ref={replyTrigger} className={styles.reply}>
-          {blueskyReplyUrl ? (
+        <div
+          ref={replyTrigger}
+          className={styles.reply}
+          data-split={blueskyReplyUrl ? '' : undefined}
+          role={blueskyReplyUrl ? 'group' : undefined}
+          aria-label={blueskyReplyUrl ? 'Reply to this writing' : undefined}
+        >
+          <button
+            type="button"
+            data-post-action
+            className={`${styles.action} ${styles.replyAction} ${styles.replyMain}`}
+            aria-label="Reply via IndieWeb"
+            aria-expanded={replyOpen}
+            aria-controls={replyId}
+            onClick={toggleReply}
+          >
+            <Icon name="reply" size={16} />
+            {blueskyReplyUrl ? (
+              <>
+                <span className={styles.replyCompactLabel}>Reply</span>
+                <span className={styles.replyExpandedLabel}>
+                  Reply via IndieWeb
+                </span>
+              </>
+            ) : (
+              'Reply via IndieWeb'
+            )}
+          </button>
+          {blueskyReplyUrl && (
+            <SiteLink
+              href={blueskyReplyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.action} ${styles.replyAction} ${styles.replyDestination}`}
+            >
+              <BlueskyIcon className="size-4" />
+              Reply on Bluesky
+            </SiteLink>
+          )}
+          {blueskyReplyUrl && (
             <Popover
               label="Reply options"
-              trigger={
-                <>
-                  <Icon name="reply" size={16} />
-                  Reply
-                  <Icon name="chevron-down" size={16} />
-                </>
-              }
-              triggerClassName={`${styles.action} ${styles.replyAction}`}
+              trigger={<Icon name="chevron-down" size={18} />}
+              triggerClassName={`${styles.action} ${styles.replyAction} ${styles.splitArrow} ${styles.replyArrow}`}
               panelClassName={styles.menu}
               width={228}
             >
@@ -144,18 +191,6 @@ export default function PostActions({
                 Reply on Bluesky
               </SiteLink>
             </Popover>
-          ) : (
-            <button
-              type="button"
-              data-post-action
-              className={`${styles.action} ${styles.replyAction}`}
-              aria-expanded={replyOpen}
-              aria-controls={replyId}
-              onClick={toggleReply}
-            >
-              <Icon name="reply" size={16} />
-              Reply via IndieWeb
-            </button>
           )}
         </div>
         <div className={styles.recommendation}>{recommendation}</div>
@@ -168,7 +203,7 @@ export default function PostActions({
             type="button"
             data-post-action
             onClick={sharePost}
-            className={`${styles.action} ${styles.shareMain}`}
+            className={`${styles.action} ${styles.splitMain} ${styles.shareMain}`}
             aria-label={shareStatus || 'Share this writing'}
             title={shareStatus || 'Share this writing'}
           >
@@ -181,7 +216,7 @@ export default function PostActions({
           <Popover
             label="More sharing options"
             trigger={<Icon name="chevron-down" size={18} />}
-            triggerClassName={`${styles.action} ${styles.shareArrow}`}
+            triggerClassName={`${styles.action} ${styles.splitArrow}`}
             panelClassName={styles.menu}
             align="end"
             width={228}

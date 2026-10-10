@@ -285,6 +285,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
 
           <section className="mx-auto max-w-breakpoint-md px-lg pb-lg desktop:px-0">
             <PostInteractions
+              blueskyReplyUrl={atmosphere.replyUrl}
               webmentions={responses}
               backlinks={backlinks}
               slug={slug}

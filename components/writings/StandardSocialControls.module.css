@@ -360,3 +360,21 @@
     animation: none;
   }
 }
+
+.compact .action {
+  width: 48px;
+  padding-inline: 0;
+}
+
+.compact .action > span:last-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.compact .action[aria-pressed='true']:not([data-retry]) > svg {
+  fill: currentColor;
+}

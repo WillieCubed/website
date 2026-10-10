@@ -275,7 +275,7 @@ test('the Webmention receiver rejects invalid input before storage', async ({
 });
 
 const postPath = process.env.INDIEWEB_TEST_POST_PATH;
-test('post actions reveal an IndieWeb reply and use native sharing', async ({
+test('post actions offer reply destinations and retain native sharing', async ({
   page,
 }) => {
   test.skip(!postPath, 'Set INDIEWEB_TEST_POST_PATH to a test writing.');
@@ -288,83 +288,54 @@ test('post actions reveal an IndieWeb reply and use native sharing', async ({
     });
   });
   await page.goto(postPath!);
-  await page.evaluate(() => {
-    const start = document.startViewTransition.bind(document);
-    Object.defineProperty(document, 'startViewTransition', {
-      configurable: true,
-      value: (update: () => void) => {
-        Reflect.set(
-          window,
-          '__replyTransitionCalls',
-          (Reflect.get(window, '__replyTransitionCalls') ?? 0) + 1
-        );
-        return start(update);
-      },
-    });
-  });
   const actions = page.getByRole('group', { name: 'Post actions' });
   const replySurface = actions.locator('[data-reply-surface]');
-  const reply = actions.getByRole('button', { name: 'Reply via IndieWeb' });
+  const replyOptions = actions.getByRole('button', { name: 'Reply options' });
+  const indieWebReply = actions.getByRole('button', {
+    name: 'Reply via IndieWeb',
+  });
+  const hasBlueskyCopy = await replyOptions.count();
+  const reply = hasBlueskyCopy ? replyOptions : indieWebReply;
+  const share = actions.getByRole('button', {
+    name: 'Share this writing',
+    exact: true,
+  });
+  const moreSharing = actions.getByRole('button', {
+    name: 'More sharing options',
+  });
   const bluesky = actions.getByRole('link', { name: 'Share on Bluesky' });
   const threads = actions.getByRole('link', { name: 'Share on Threads' });
-  const share = actions.getByRole('button', { name: 'Share', exact: true });
+
   await expect(reply).toBeVisible();
-  await expect(replySurface).toBeVisible();
-  await page.evaluate(() => {
-    Reflect.set(
-      window,
-      '__replySurface',
-      document.querySelector('[data-reply-surface]')
-    );
-  });
-  const closedBounds = await replySurface.boundingBox();
+  await expect(replySurface).toBeHidden();
+  await expect(share).toBeVisible();
+  await expect(bluesky).toBeHidden();
+  await expect(threads).toBeHidden();
+  await moreSharing.click();
   await expect(bluesky).toBeVisible();
   await expect(bluesky).toHaveAttribute(
     'href',
     /^https:\/\/bsky\.app\/intent\/compose/
   );
   await expect(threads).toBeVisible();
-  await expect(share).toBeVisible();
-  expect(await actions.locator('[data-post-action]').allTextContents()).toEqual(
-    ['Reply via IndieWeb', 'Share on Bluesky', 'Share on Threads', 'Share']
-  );
-  await expect(reply).toHaveAttribute('aria-expanded', 'false');
+  await page.keyboard.press('Escape');
+  await expect(bluesky).toBeHidden();
+  await expect(moreSharing).toBeFocused();
+
   await reply.click();
-  await expect(reply).toHaveAttribute('aria-expanded', 'true');
-  await expect
-    .poll(() =>
-      page.evaluate(() => Reflect.get(window, '__replyTransitionCalls'))
-    )
-    .toBe(1);
+  if (hasBlueskyCopy) {
+    await expect(
+      actions.getByRole('link', { name: 'Reply on Bluesky' })
+    ).toHaveAttribute('href', /^https:\/\/bsky\.app\/profile\/.+\/post\/.+/);
+    await indieWebReply.click();
+  }
+  await expect(replySurface).toBeVisible();
   await expect(
     page.getByRole('textbox', { name: 'Published reply URL' })
-  ).toBeVisible();
-  expect(
-    await page.evaluate(
-      () =>
-        Reflect.get(window, '__replySurface') ===
-        document.querySelector('[data-reply-surface]')
-    )
-  ).toBe(true);
-  await expect
-    .poll(async () => (await replySurface.boundingBox())?.width ?? 0)
-    .toBeGreaterThan((closedBounds?.width ?? 0) * 2);
-  await expect
-    .poll(async () => (await replySurface.boundingBox())?.height ?? 0)
-    .toBeGreaterThan((closedBounds?.height ?? 0) * 2);
-  await expect(
-    replySurface.getByRole('link', { name: 'Share on Threads' })
-  ).toHaveCount(0);
-  await reply.click();
-  await expect(reply).toHaveAttribute('aria-expanded', 'false');
-  await expect
-    .poll(async () => (await replySurface.boundingBox())?.height ?? 0)
-    .toBeLessThan((closedBounds?.height ?? 0) * 1.5);
-  await expect
-    .poll(() =>
-      page.evaluate(() => Reflect.get(window, '__replyTransitionCalls'))
-    )
-    .toBe(2);
+  ).toBeFocused();
+  await page.getByRole('button', { name: 'Close IndieWeb reply' }).click();
+  await expect(replySurface).toBeHidden();
+  await expect(reply).toBeFocused();
   await share.click();
   await expect
     .poll(() => page.evaluate(() => Reflect.get(window, '__sharedPost')))

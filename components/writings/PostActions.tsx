@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef, useState } from 'react';
+import { type ReactNode, useId, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import BlueskyIcon from '@/components/icons/BlueskyIcon';
@@ -8,19 +8,23 @@ import Icon from '@/components/icons/Icon';
 import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import WebmentionForm from '@/components/indieweb/WebmentionForm';
 import SiteLink from '@/components/link/SiteLink';
+import Popover from '@/components/site/Popover';
+
+import styles from './PostActions.module.css';
 
 interface PostActionsProps {
   blueskyHref: string;
+  blueskyReplyUrl?: string;
+  recommendation?: ReactNode;
   target: string;
   threadsHref: string;
   title: string;
 }
 
-const secondaryAction =
-  'inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-label-large font-medium text-ink no-underline transition-colors hover:border-accent hover:bg-tray';
-
 export default function PostActions({
   blueskyHref,
+  blueskyReplyUrl,
+  recommendation,
   target,
   threadsHref,
   title,
@@ -29,6 +33,7 @@ export default function PostActions({
   const [shareStatus, setShareStatus] = useState('');
   const replyId = useId();
   const replySurface = useRef<HTMLDivElement>(null);
+  const replyTrigger = useRef<HTMLDivElement>(null);
   const transitioning = useRef(false);
 
   async function toggleReply() {
@@ -41,6 +46,12 @@ export default function PostActions({
       !surface
     ) {
       setReplyOpen(opening);
+      requestAnimationFrame(() =>
+        (opening
+          ? surface?.querySelector('input')
+          : replyTrigger.current?.querySelector('button')
+        )?.focus()
+      );
       return;
     }
 
@@ -55,6 +66,10 @@ export default function PostActions({
       // only finished is awaited here.
       started.ready.catch(() => undefined);
       await started.finished;
+      (opening
+        ? surface.querySelector('input')
+        : replyTrigger.current?.querySelector('button')
+      )?.focus();
     } catch {
       // The browser can cancel a transition without cancelling its state update.
     } finally {
@@ -87,71 +102,132 @@ export default function PostActions({
 
   return (
     <>
-      <div className="flex flex-wrap items-start gap-2">
+      <div className={styles.actions} role="group" aria-label="Writing actions">
+        <div ref={replyTrigger} className={styles.reply}>
+          {blueskyReplyUrl ? (
+            <Popover
+              label="Reply options"
+              trigger={
+                <>
+                  <Icon name="reply" size={16} />
+                  Reply
+                  <Icon name="chevron-down" size={16} />
+                </>
+              }
+              triggerClassName={`${styles.action} ${styles.replyAction}`}
+              panelClassName={styles.menu}
+              width={228}
+            >
+              <button
+                type="button"
+                className={styles.menuAction}
+                aria-controls={replyId}
+                aria-expanded={replyOpen}
+                onClick={(event) => {
+                  event.currentTarget
+                    .closest<HTMLElement>('[popover]')
+                    ?.hidePopover();
+                  if (!replyOpen) void toggleReply();
+                  else replySurface.current?.querySelector('input')?.focus();
+                }}
+              >
+                <Icon name="reply" size={18} />
+                Reply via IndieWeb
+              </button>
+              <SiteLink
+                href={blueskyReplyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.menuAction}
+              >
+                <BlueskyIcon className="size-4" />
+                Reply on Bluesky
+              </SiteLink>
+            </Popover>
+          ) : (
+            <button
+              type="button"
+              data-post-action
+              className={`${styles.action} ${styles.replyAction}`}
+              aria-expanded={replyOpen}
+              aria-controls={replyId}
+              onClick={toggleReply}
+            >
+              <Icon name="reply" size={16} />
+              Reply via IndieWeb
+            </button>
+          )}
+        </div>
+        <div className={styles.recommendation}>{recommendation}</div>
         <div
-          ref={replySurface}
-          data-reply-surface
-          className={
-            replyOpen
-              ? 'bleed w-[calc(100%+2*var(--bleed))] shrink-0 rounded-3xl bg-surface-container py-5'
-              : 'rounded-full bg-primary text-on-primary'
-          }
+          className={styles.share}
+          role="group"
+          aria-label="Share this writing"
         >
           <button
             type="button"
             data-post-action
-            aria-expanded={replyOpen}
-            aria-controls={replyId}
-            onClick={toggleReply}
-            className={
-              replyOpen
-                ? 'flex w-full items-center gap-2 text-title-medium font-semibold text-ink'
-                : 'inline-flex items-center gap-2 rounded-full px-4 py-2 text-label-large font-semibold transition-colors hover:bg-primary/90'
-            }
+            onClick={sharePost}
+            className={`${styles.action} ${styles.shareMain}`}
+            aria-label={shareStatus || 'Share this writing'}
+            title={shareStatus || 'Share this writing'}
           >
-            <Icon name="reply" size={16} />
-            <span className="flex-1 text-left">Reply via IndieWeb</span>
-            {replyOpen && (
-              <Icon name="arrow-right" size={18} className="-rotate-90" />
-            )}
+            <Icon
+              name={shareStatus === 'Post link copied.' ? 'check' : 'share'}
+              size={16}
+            />
+            <span className={styles.shareLabel}>Share</span>
           </button>
-          <div id={replyId} hidden={!replyOpen} className="pt-4">
-            <WebmentionForm target={target} />
-          </div>
+          <Popover
+            label="More sharing options"
+            trigger={<Icon name="chevron-down" size={18} />}
+            triggerClassName={`${styles.action} ${styles.shareArrow}`}
+            panelClassName={styles.menu}
+            align="end"
+            width={228}
+          >
+            <SiteLink
+              href={blueskyHref}
+              target="_blank"
+              className={styles.menuAction}
+            >
+              <BlueskyIcon className="size-4" />
+              Share on Bluesky
+            </SiteLink>
+            <SiteLink
+              href={threadsHref}
+              target="_blank"
+              className={styles.menuAction}
+            >
+              <ThreadsIcon className="size-4" />
+              Share on Threads
+            </SiteLink>
+          </Popover>
         </div>
-        <SiteLink
-          href={blueskyHref}
-          target="_blank"
-          data-post-action
-          className={secondaryAction}
-        >
-          <BlueskyIcon className="size-4" />
-          Share on Bluesky
-        </SiteLink>
-        <SiteLink
-          href={threadsHref}
-          target="_blank"
-          data-post-action
-          className={secondaryAction}
-        >
-          <ThreadsIcon className="size-4" />
-          Share on Threads
-        </SiteLink>
-        <button
-          type="button"
-          data-post-action
-          onClick={sharePost}
-          className={secondaryAction}
-        >
-          <Icon name="share" size={16} />
-          Share
-        </button>
       </div>
-      {shareStatus && (
-        <p role="status" className="mt-2 text-label-medium text-muted">
-          {shareStatus}
-        </p>
-      )}
+      <div
+        ref={replySurface}
+        data-reply-surface
+        id={replyId}
+        hidden={!replyOpen}
+        className={styles.form}
+      >
+        <div className={styles.formHeading}>
+          <h2>Reply via IndieWeb</h2>
+          <button
+            type="button"
+            className={`${styles.action} ${styles.close}`}
+            aria-label="Close IndieWeb reply"
+            onClick={toggleReply}
+          >
+            <Icon name="x" size={18} />
+          </button>
+        </div>
+        <WebmentionForm target={target} />
+      </div>
+      <span role="status" className="sr-only">
+        {shareStatus}
+      </span>
     </>
   );
 }

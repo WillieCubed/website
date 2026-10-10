@@ -23,9 +23,14 @@ interface Feedback {
 interface Props {
   action: 'subscription' | 'recommendation';
   slug?: string;
+  compact?: boolean;
 }
 
-export default function StandardSocialControls({ action, slug }: Props) {
+export default function StandardSocialControls({
+  action,
+  slug,
+  compact = false,
+}: Props) {
   const [state, setState] = useState<SocialState | null>(null);
   const [signIn, setSignIn] = useState(false);
   const [pending, setPending] = useState<'action' | 'login' | 'logout' | null>(
@@ -282,7 +287,10 @@ export default function StandardSocialControls({ action, slug }: Props) {
   if (!available) return null;
   const retryAction = feedback && feedback.retry !== 'logout';
   return (
-    <div className={styles.root} data-standard-social={action}>
+    <div
+      className={`${styles.root} ${compact ? styles.compact : ''}`}
+      data-standard-social={action}
+    >
       {available && (
         <div
           className={styles.actions}
@@ -296,6 +304,7 @@ export default function StandardSocialControls({ action, slug }: Props) {
             disabled={busy || Boolean(retryAction && feedback.retry === null)}
             aria-pressed={Boolean(active)}
             aria-busy={busy}
+            data-retry={compact && retryAction ? true : undefined}
             aria-label={
               retryAction && feedback.retry !== null
                 ? `Try again to ${action === 'subscription' ? (active ? 'unsubscribe' : 'subscribe') : active ? 'withdraw the recommendation' : 'recommend this writing'}`
@@ -310,7 +319,9 @@ export default function StandardSocialControls({ action, slug }: Props) {
                   ? action === 'subscription'
                     ? 'Unsubscribe'
                     : 'Withdraw recommendation'
-                  : undefined
+                  : compact
+                    ? label
+                    : undefined
             }
             onClick={toggle}
           >
@@ -319,11 +330,13 @@ export default function StandardSocialControls({ action, slug }: Props) {
             ) : (
               <Icon
                 name={
-                  action === 'subscription'
-                    ? active
-                      ? 'check'
-                      : 'rss'
-                    : 'heart'
+                  compact && retryAction
+                    ? 'repeat'
+                    : action === 'subscription'
+                      ? active
+                        ? 'check'
+                        : 'rss'
+                      : 'heart'
                 }
                 size={17}
               />

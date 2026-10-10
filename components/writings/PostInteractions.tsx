@@ -13,6 +13,7 @@ import PostActions from './PostActions';
 import StandardSocialControls from './StandardSocialControls';
 
 interface PostInteractionsProps {
+  blueskyReplyUrl?: string;
   webmentions: WebmentionGroup | null;
   backlinks: Backlink[];
   slug: string;
@@ -22,6 +23,7 @@ interface PostInteractionsProps {
 }
 
 export default function PostInteractions({
+  blueskyReplyUrl,
   webmentions,
   backlinks,
   slug,
@@ -47,20 +49,22 @@ export default function PostInteractions({
         className={hasResponses ? 'mt-8' : undefined}
       >
         <PostActions
+          blueskyReplyUrl={blueskyReplyUrl}
           blueskyHref={blueskyPostIntent(writing, target)}
           target={target}
           threadsHref={threadsPostIntent(writing, target)}
           title={writing.title}
+          recommendation={
+            !writing.draft && socialSettings() ? (
+              <StandardSocialControls
+                key={slug}
+                action="recommendation"
+                slug={slug}
+                compact
+              />
+            ) : undefined
+          }
         />
-        {!writing.draft && socialSettings() && (
-          <div className="mt-3">
-            <StandardSocialControls
-              key={slug}
-              action="recommendation"
-              slug={slug}
-            />
-          </div>
-        )}
       </div>
     </section>
   );

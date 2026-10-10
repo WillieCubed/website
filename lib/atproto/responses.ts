@@ -468,6 +468,7 @@ async function pages<T>(
 export async function loadBlueskyResponses(writing: WritingData): Promise<{
   groups: WebmentionGroup;
   copyUrl?: string;
+  replyUrl?: string;
   incomplete?: boolean;
 }> {
   'use cache';
@@ -480,6 +481,7 @@ export async function loadBlueskyResponses(writing: WritingData): Promise<{
 export async function fetchBlueskyResponses(writing: WritingData): Promise<{
   groups: WebmentionGroup;
   copyUrl?: string;
+  replyUrl?: string;
   incomplete?: boolean;
 }> {
   const groups = emptyResponses();
@@ -610,7 +612,12 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
         receivedAt: new Date(like.indexedAt),
       }));
     groups.reposts = await normalizeBlueskyReposts(reposts, target, uri);
-    return { groups, copyUrl, ...(current.incomplete && { incomplete: true }) };
+    return {
+      groups,
+      copyUrl,
+      replyUrl: copyUrl,
+      ...(current.incomplete && { incomplete: true }),
+    };
   } catch (error) {
     console.error('Could not refresh Bluesky responses:', error);
     return { groups, ...(copyUrl && { copyUrl }), incomplete: true };

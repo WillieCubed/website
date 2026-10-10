@@ -291,11 +291,11 @@ test('post actions offer reply destinations and retain native sharing', async ({
   const actions = page.getByRole('group', { name: 'Post actions' });
   const replySurface = actions.locator('[data-reply-surface]');
   const replyOptions = actions.getByRole('button', { name: 'Reply options' });
-  const indieWebReply = actions.getByRole('button', {
-    name: 'Reply via IndieWeb',
-  });
+  const indieWebReply = actions.locator(
+    'button[data-post-action][aria-label="Reply via IndieWeb"]'
+  );
   const hasBlueskyCopy = await replyOptions.count();
-  const reply = hasBlueskyCopy ? replyOptions : indieWebReply;
+  const reply = indieWebReply;
   const share = actions.getByRole('button', {
     name: 'Share this writing',
     exact: true,
@@ -322,13 +322,15 @@ test('post actions offer reply destinations and retain native sharing', async ({
   await expect(bluesky).toBeHidden();
   await expect(moreSharing).toBeFocused();
 
-  await reply.click();
   if (hasBlueskyCopy) {
+    await replyOptions.click();
     await expect(
       actions.getByRole('link', { name: 'Reply on Bluesky' })
     ).toHaveAttribute('href', /^https:\/\/bsky\.app\/profile\/.+\/post\/.+/);
-    await indieWebReply.click();
+    await page.keyboard.press('Escape');
+    await expect(replyOptions).toBeFocused();
   }
+  await reply.click();
   await expect(replySurface).toBeVisible();
   await expect(
     page.getByRole('textbox', { name: 'Published reply URL' })

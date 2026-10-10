@@ -6,6 +6,8 @@
 }
 
 .reply {
+  display: flex;
+  gap: 2px;
   flex: 1;
   min-width: 0;
 }
@@ -56,6 +58,26 @@
   );
 }
 
+.replyMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.replyExpandedLabel,
+.replyDestination {
+  display: none;
+}
+
+.replyDestination {
+  border: 1px solid var(--color-outline);
+  color: var(--color-primary);
+  background: color-mix(
+    in srgb,
+    var(--color-primary) var(--state-layer),
+    var(--color-surface)
+  );
+}
+
 .recommendation {
   display: none;
   flex: none;
@@ -72,25 +94,25 @@
 }
 
 .shareMain,
-.shareArrow {
+.splitArrow {
   width: 48px;
+  flex: none;
   padding-inline: 0;
 }
 
-.shareMain {
+.splitMain,
+.reply[data-split] .replyMain {
   border-radius: 20px 4px 4px 20px;
 }
-.shareArrow {
+.splitArrow {
   border-radius: 4px 20px 20px 4px;
 }
-.shareArrow[aria-expanded='true'] {
-  border-radius: 20px;
-}
-.shareArrow svg {
+.splitArrow svg {
+  transform: translateX(-1px);
   transition: transform 220ms var(--ease-site);
 }
-.shareArrow[aria-expanded='true'] svg {
-  transform: rotate(180deg);
+.splitArrow[aria-expanded='true'] svg {
+  transform: translateX(0) rotate(180deg);
 }
 
 .shareLabel {
@@ -153,11 +175,12 @@
 .action:active {
   --state-layer: 10%;
 }
-.shareMain:is(:focus-visible, :active) {
+.splitMain:is(:focus-visible, :active),
+.reply[data-split] .replyMain:is(:focus-visible, :active) {
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
 }
-.shareArrow:is(:focus-visible, :active) {
+.splitArrow:is(:focus-visible, :active) {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
 }
@@ -166,14 +189,19 @@
   .action:hover {
     --state-layer: 8%;
   }
-  .shareMain:hover {
+  .splitMain:hover,
+  .reply[data-split] .replyMain:hover {
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
   }
-  .shareArrow:hover {
+  .splitArrow:hover {
     border-top-left-radius: 12px;
     border-bottom-left-radius: 12px;
   }
+}
+
+.splitArrow[aria-expanded='true'] {
+  border-radius: 20px;
 }
 
 @media (max-width: 379px) {
@@ -200,10 +228,29 @@
 
 @media (min-width: 600px) {
   .reply {
-    flex: none;
+    gap: 8px;
+  }
+  .replyArrow,
+  .replyCompactLabel {
+    display: none;
+  }
+  .replyExpandedLabel {
+    display: inline;
+  }
+  .replyDestination {
+    display: inline-flex;
+    min-width: 0;
+    flex: 1;
+  }
+  .reply[data-split] .replyMain {
+    border-radius: 20px;
+  }
+  .replyAction {
+    width: auto;
+    white-space: nowrap;
   }
   .share {
-    margin-left: auto;
+    margin-left: 0;
   }
   .shareMain {
     width: auto;
@@ -218,9 +265,24 @@
   }
 }
 
+@media (min-width: 600px) and (max-width: 699px) {
+  .actions {
+    flex-wrap: wrap;
+  }
+  .reply {
+    flex-basis: 100%;
+  }
+  .share {
+    flex: 1;
+  }
+  .shareMain {
+    flex: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .action,
-  .shareArrow svg {
+  .splitArrow svg {
     transition: none;
   }
 }

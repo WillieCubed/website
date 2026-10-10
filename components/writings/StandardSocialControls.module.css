@@ -364,6 +364,17 @@
 .compact .action {
   width: 48px;
   padding-inline: 0;
+  border: 1px solid transparent;
+}
+
+.compact .action[aria-pressed='false']:not([data-retry]):enabled {
+  border-color: var(--color-outline);
+  color: var(--color-on-surface-variant);
+  background: color-mix(
+    in srgb,
+    var(--color-on-surface-variant) var(--state-layer),
+    var(--color-surface)
+  );
 }
 
 .compact .action > span:last-child {

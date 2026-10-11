@@ -106,10 +106,21 @@ export default function Popover({
       }
     };
     menu?.addEventListener('toggle', toggle);
+    // The breadcrumb fitter moves the anchor after the resize event by
+    // replacing the name with the cube or folding earlier crumbs.
+    const layout = new MutationObserver(place);
+    const header = button.current?.closest('header');
+    if (placement === 'breadcrumb' && header) {
+      layout.observe(header, {
+        attributes: true,
+        attributeFilter: ['data-compact', 'data-folded'],
+      });
+    }
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, { passive: true });
     return () => {
       menu?.removeEventListener('toggle', toggle);
+      layout.disconnect();
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place);
     };

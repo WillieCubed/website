@@ -19,16 +19,15 @@ for (const width of [320, 390, 1440]) {
     await expect(brand).toHaveAttribute('aria-controls', /.+/);
 
     const spacing = await trail.evaluate((element) => {
-      // Measure the name's text, not the link box around it.
-      const siteText = document.createRange();
-      siteText.selectNodeContents(
-        element.querySelector('.site-breadcrumb-item--home a')!
-      );
+      const compact = element.closest('header')?.dataset.compact === 'true';
+      const siteLabel = element.querySelector(
+        compact ? '.site-breadcrumb-name__mark' : '.site-breadcrumb-name__label'
+      )!;
       const slash = element.querySelector('.site-breadcrumbs__crumb > span')!;
       const brandLabel = element.querySelector(
         '.site-breadcrumbs__crumb button span'
       )!;
-      const siteRect = siteText.getBoundingClientRect();
+      const siteRect = siteLabel.getBoundingClientRect();
       const slashRect = slash.getBoundingClientRect();
       const brandRect = brandLabel.getBoundingClientRect();
       return {
@@ -113,32 +112,36 @@ test('an open breadcrumb popup stays aligned after resizing', async ({
   await expect(menu).toHaveCSS('transform', 'none');
 
   await page.setViewportSize({ width: 320, height: 844 });
+  const measurePlacement = () =>
+    menu.evaluate((element) => {
+      const label = document.querySelector<HTMLElement>(
+        '.site-breadcrumbs__crumb .site-breadcrumb-menu__label'
+      )!;
+      const link = element.querySelector<HTMLElement>(
+        '.site-breadcrumb-menu__link'
+      )!;
+      const menuRect = element.getBoundingClientRect();
+      const linkTextInset =
+        link.getBoundingClientRect().left -
+        menuRect.left +
+        parseFloat(getComputedStyle(link).paddingLeft);
+      const preferredLeft = label.getBoundingClientRect().left - linkTextInset;
+      return {
+        left: menuRect.left,
+        expectedLeft: Math.min(
+          Math.max(16, preferredLeft),
+          innerWidth - menuRect.width - 16
+        ),
+        right: menuRect.right,
+      };
+    });
   await expect
-    .poll(async () => (await menu.boundingBox())?.x)
-    .toBeLessThan(160);
-  const placement = await menu.evaluate((element) => {
-    const label = document.querySelector<HTMLElement>(
-      '.site-breadcrumbs__crumb .site-breadcrumb-menu__label'
-    )!;
-    const link = element.querySelector<HTMLElement>(
-      '.site-breadcrumb-menu__link'
-    )!;
-    const menuRect = element.getBoundingClientRect();
-    const linkTextInset =
-      link.getBoundingClientRect().left -
-      menuRect.left +
-      parseFloat(getComputedStyle(link).paddingLeft);
-    const preferredLeft = label.getBoundingClientRect().left - linkTextInset;
-    return {
-      left: menuRect.left,
-      expectedLeft: Math.min(
-        Math.max(16, preferredLeft),
-        innerWidth - menuRect.width - 16
-      ),
-      right: menuRect.right,
-    };
-  });
-  expect(Math.abs(placement.left - placement.expectedLeft)).toBeLessThan(2);
+    .poll(async () => {
+      const placement = await measurePlacement();
+      return Math.abs(placement.left - placement.expectedLeft);
+    })
+    .toBeLessThan(2);
+  const placement = await measurePlacement();
   expect(placement.right).toBeLessThanOrEqual(304);
 });
 

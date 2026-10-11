@@ -40,6 +40,12 @@ press that gives slightly. Interaction belongs on real objects on the page, not
 on ambient canvases or background effects. Jace-style hover focus and shared
 element transitions are the minimum, not extras.
 
+Use native buttons for actions that change the interface, including filters,
+menus, dialogs, and curation controls. Give them visible button surfaces and
+distinct hover, focus, pressed, and selected states. Reserve underlines and
+other link styling for web navigation. Use links when the visitor follows a
+destination, and never intercept a link just to open a dialog.
+
 **Responsive.** The site works first on a 390px phone and scales up from there.
 It also responds to time, so current work surfaces first and older work steps
 back without anyone editing the homepage by hand. Layouts change at the Material

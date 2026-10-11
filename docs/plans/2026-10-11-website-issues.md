@@ -26,7 +26,7 @@ media interaction. The public site therefore uses one `/music` route.
 
 - Let headings stand on their own. Do not add decorative overlines or eyebrow
   text. Put track counts and series positions below playlist titles.
-- Use text navigation for series and keep counts quiet. Distinguish the optional
+- Use selectable tonal buttons for series and keep counts quiet. Distinguish the optional
   featured playlist through cover size, title size, authored notes, and space.
   Do not add a decorative badge or eyebrow. Expose its status to screen readers.
 - Let the Music page, its top bar, and its prototype controls share a 1600px
@@ -41,6 +41,9 @@ media interaction. The public site therefore uses one `/music` route.
   playlists stay private. Keep complete artwork square and intact.
 - Give series visible navigation. Selecting a series changes the gallery in
   place, shows its notes, and uses the series' explicit playlist order.
+- Use native buttons for interface actions. Give curation and playlist opening
+  visible button affordances. Reserve underlines and link styling for web
+  navigation. Expose the selected series through its pressed state.
 - Open a playlist into a focused view with its cover, title, notes, ordered
   tracks, series context, and a Spotify link. Use a two-column modal on desktop
   and a full-screen view on phones.
@@ -48,8 +51,18 @@ media interaction. The public site therefore uses one `/music` route.
   entry, refresh, Back, Forward, Escape, restored focus, and retained scroll.
 - Let visitors move between playlists in the current collection. Keep repeated
   songs and unavailable positions in the track list.
-- Search within the selected collection. Keep actions available on touch and
+- Show one search field within the selected collection. Omit the top bar's
+  search trigger on Music. Keep actions available on touch and
   keyboard input, with reduced-motion fallbacks.
+- Expand the focus surface from the clicked cover's bounds while the cover
+  moves independently into place. Reverse the transition on dismissal when
+  the destination cover remains visible. Fade the controls and title in
+  before the track list. Separate spatial movement from opacity changes,
+  following [Material motion](https://m3.material.io/styles/motion).
+- Show part of the next collection row on initial load. If the viewport cannot
+  reveal at least 56px of its first cover, show a More playlists button that
+  scrolls there and moves keyboard focus to that playlist. Recheck after fonts
+  load and the viewport changes. Hide the cue after the visitor scrolls.
 
 The gallery uses these layouts. Series and search results use equal cards in
 their own order without promoting the featured playlist.
@@ -160,15 +173,20 @@ Verify the prototype at 1440px and 390px in both themes, plus 320px reflow.
 Exercise touch, keyboard, Back and Forward, direct links, unavailable tracks,
 draft recovery, and review/application separation. Capture screenshots.
 
-The prototype passed 42 browser checks across desktop and touch-emulated phone
+The prototype passed 50 browser checks across desktop and touch-emulated phone
 layouts in both themes. The two phone projects skip native mouse dragging;
-their earlier and later buttons pass. The October 11 layout pass also checked
-11 widths from 320px to 2560px in both themes. The featured cover remains at least
-1.5 times as wide as regular covers, with no horizontal overflow. Lint, the five
-theme contract tests, and type checking pass for this revision.
+their earlier and later buttons pass. The checks include native surface and
+cover transitions, staggered content, interrupted motion, missing transition
+support, keyboard focus, and scroll affordances in short viewports. The layout
+pass checked 11 widths from 320px to 2560px in both themes on October 11.
+The featured cover remains at least
+1.5 times as wide as regular covers, with no horizontal overflow.
 
-The preceding delivery check passed all 880 repository tests and the production
-build. Its production HTTP checks confirmed
+This revision passed all 880 repository tests, lint, type checking, and the
+production build. The build retains warnings in unchanged highlight CSS,
+font fallback generation, and filesystem tracing. All 9 command palette checks
+passed against the production build, including Space activation and search
+navigation without JavaScript. Its production HTTP checks confirmed
 that the prototype, About, and Research return 404 and stay out of the sitemap
 and search index. These checks do not verify Spotify or hosted publication.
 

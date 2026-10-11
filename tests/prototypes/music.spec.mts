@@ -41,6 +41,12 @@ test('the gallery shows its lead once and preserves the selected series order', 
     page.getByRole('article', { name: 'Featured playlist' })
   ).toHaveCount(0);
   await expect(page).toHaveURL(/series=fall-tour/);
+  await expect(
+    page.getByRole('button', { name: 'Fall Tour', pressed: true })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'All playlists', pressed: false })
+  ).toBeVisible();
 });
 
 test('featuring is optional, explicit, and independent of series or search order', async ({
@@ -322,6 +328,12 @@ test('the gallery and focus view are accessible and produce review screenshots',
 test('search works on touch and keyboard focus remains inside the playlist', async ({
   page,
 }) => {
+  await expect(
+    page.locator('header[data-column] .palette-trigger')
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('textbox', { name: 'Find a playlist' })
+  ).toHaveCount(1);
   await page.locator('.mp-search').click();
   const search = page.getByRole('textbox', { name: 'Find a playlist' });
   await expect(search).toBeFocused();
@@ -376,6 +388,58 @@ test('opening, advancing, and closing work with full motion enabled', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.evaluate(() => {
+    const audit = {
+      records: [] as {
+        surface: number[];
+        cover: number[];
+        summaryDelay: number;
+        tracksDelay: number;
+      }[],
+      errors: [] as string[],
+    };
+    Object.assign(window, { musicMotionAudit: audit });
+    const native = document.startViewTransition.bind(document);
+    document.startViewTransition = (...args) => {
+      const transition = native(...args);
+      void transition.ready
+        .then(() => {
+          const effects = document
+            .getAnimations()
+            .map((animation) => animation.effect)
+            .filter(
+              (effect): effect is KeyframeEffect =>
+                effect instanceof KeyframeEffect
+            );
+          const named = (name: string) =>
+            effects.find(
+              (effect) =>
+                effect.pseudoElement ===
+                `::view-transition-group(music-prototype-${name})`
+            );
+          const widths = (name: string) =>
+            named(name)
+              ?.getKeyframes()
+              .map((frame) => parseFloat(String(frame.width))) ?? [];
+          const delay = (name: string) =>
+            effects
+              .find(
+                (effect) =>
+                  effect.pseudoElement ===
+                  `::view-transition-new(music-prototype-${name})`
+              )
+              ?.getTiming().delay ?? 0;
+          audit.records.push({
+            surface: widths('surface'),
+            cover: widths('cover'),
+            summaryDelay: delay('summary'),
+            tracksDelay: delay('tracks'),
+          });
+        })
+        .catch((error) => audit.errors.push(String(error)));
+      return transition;
+    };
+  });
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   const opener = page.getByRole('button', {
@@ -386,6 +450,32 @@ test('opening, advancing, and closing work with full motion enabled', async ({
   await expect(
     page.getByRole('dialog', { name: 'Fall Tour 2026, Part 1', exact: true })
   ).toBeVisible();
+  const readAudit = () =>
+    page.evaluate(
+      () =>
+        (
+          window as typeof window & {
+            musicMotionAudit: {
+              records: {
+                surface: number[];
+                cover: number[];
+                summaryDelay: number;
+                tracksDelay: number;
+              }[];
+              errors: string[];
+            };
+          }
+        ).musicMotionAudit
+    );
+  await expect.poll(async () => (await readAudit()).records.length).toBe(1);
+  const opening = (await readAudit()).records[0];
+  expect(opening.surface).toHaveLength(2);
+  expect(opening.cover).toHaveLength(2);
+  expect(opening.surface[0]).toBeCloseTo(opening.cover[0], 0);
+  expect(opening.surface[1]).toBeGreaterThan(opening.surface[0]);
+  expect(opening.cover[1]).toBeLessThan(opening.cover[0]);
+  expect(opening.summaryDelay).toBeGreaterThan(0);
+  expect(opening.tracksDelay).toBeGreaterThan(opening.summaryDelay);
   await page
     .getByRole('button', { name: 'Next playlist', exact: true })
     .click();
@@ -395,6 +485,110 @@ test('opening, advancing, and closing work with full motion enabled', async ({
   await page
     .getByRole('button', { name: 'Close playlist', exact: true })
     .click();
+  await expect(page.locator('dialog.mp-detail')).not.toBeVisible();
+  await expect(opener).toBeFocused();
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.documentElement.dataset.musicMotion)
+    )
+    .toBeUndefined();
+  expect((await readAudit()).errors).toEqual([]);
+  expect(
+    await page.evaluate(
+      () =>
+        [...document.querySelectorAll<HTMLElement>('[style]')].filter(
+          (element) =>
+            element.style.viewTransitionName.startsWith('music-prototype-')
+        ).length
+    )
+  ).toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test('the first screen shows a collection preview or a working scroll cue', async ({
+  page,
+}) => {
+  for (const [width, height] of [
+    [320, 740],
+    [390, 844],
+    [600, 650],
+    [840, 700],
+    [1440, 700],
+    [1920, 800],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const next = document
+            .querySelector('.mp-card:not(.mp-card-lead)')!
+            .getBoundingClientRect();
+          return (
+            next.top + 56 <= (window.visualViewport?.height ?? innerHeight) ||
+            !!document.querySelector('.mp-scroll-cue')
+          );
+        })
+      )
+      .toBe(true);
+  }
+  const cue = page.getByRole('button', { name: 'Scroll to more playlists' });
+  await expect(cue).toBeVisible();
+  expect(
+    (await new AxeBuilder({ page }).include('.music-prototype').analyze())
+      .violations
+  ).toEqual([]);
+  await page.screenshot({
+    path: `.playwright-mcp/music/${test.info().project.name}-scroll-cue.png`,
+  });
+  await cue.click();
+  await expect(cue).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Open Summer 2026', exact: true })
+  ).toBeFocused();
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(32);
+});
+
+test('interrupted motion and unavailable view transitions leave the gallery usable', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const opener = page.getByRole('button', {
+    name: 'Open Fall Tour 2026, Part 1',
+    exact: true,
+  });
+  await opener.evaluate((button) => button.click());
+  await expect(page.locator('dialog.mp-detail')).toBeVisible();
+  await page.evaluate(() => {
+    document
+      .querySelector<HTMLButtonElement>('[aria-label="Next playlist"]')!
+      .click();
+    document
+      .querySelector<HTMLButtonElement>('[aria-label="Close playlist"]')!
+      .click();
+  });
+  await expect(page.locator('dialog.mp-detail')).not.toBeVisible();
+  await expect(page).not.toHaveURL(/detail=/);
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.documentElement.dataset.musicMotion)
+    )
+    .toBeUndefined();
+  await expect(
+    page.locator('[data-playlist="fall-1"] .mp-art-frame')
+  ).toBeVisible();
+  await page.evaluate(() =>
+    Object.defineProperty(document, 'startViewTransition', {
+      value: undefined,
+      configurable: true,
+    })
+  );
+  await opener.click();
+  await expect(
+    page.getByRole('dialog', { name: 'Fall Tour 2026, Part 1', exact: true })
+  ).toBeVisible();
+  await page.keyboard.press('Escape');
   await expect(page.locator('dialog.mp-detail')).not.toBeVisible();
   await expect(opener).toBeFocused();
   expect(errors).toEqual([]);

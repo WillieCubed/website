@@ -8,7 +8,6 @@ import LinkedinIcon from '@/components/icons/LinkedinIcon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
 import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import SiteLink from '@/components/link/SiteLink';
-import Microstatus from '@/components/status/Microstatus';
 
 import { randomlyChooseTagline, taglineHref } from '@/lib/enhancements';
 import { routedPages, site } from '@/lib/site';
@@ -25,7 +24,7 @@ import './site.css';
  * bar's <noscript> link instead.
  */
 const PAGES = routedPages
-  .filter((page) => page.path !== '/brand' && page.path !== '/status')
+  .filter((page) => page.path !== '/brand')
   .map((page) => ({
     label: page.label,
     href: page.path,
@@ -140,7 +139,6 @@ export default function SiteFooter() {
             <Suspense fallback={<p className="text-body-medium">&nbsp;</p>}>
               <Tagline />
             </Suspense>
-            <Microstatus />
           </div>
           <nav aria-label="Pages" className="site-footer__pages">
             {PAGE_GROUPS.filter((group) => group.pages.length > 0).map(

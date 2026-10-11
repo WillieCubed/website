@@ -10,6 +10,7 @@ import { currentPart, getInitiatives } from '@/lib/initiatives';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
 import { absoluteUrl, pageMetadata, sitePage } from '@/lib/site';
+import { isPrivatePreview } from '@/lib/studio/config';
 
 const INITIATIVES_PAGE = sitePage('/initiatives');
 const INITIATIVES = {
@@ -90,6 +91,9 @@ export default async function InitiativesPage() {
                   </div>
                 )}
                 <div className="p-5">
+                  {isPrivatePreview() && item.draft && (
+                    <p className="text-label-medium text-muted">Draft</p>
+                  )}
                   <h2 className="p-name mt-1 text-title-large text-ink">
                     <SiteLink
                       preview={false}

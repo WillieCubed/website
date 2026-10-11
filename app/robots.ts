@@ -2,11 +2,14 @@ import type { MetadataRoute } from 'next';
 
 import { MCP_ENDPOINT } from '@/lib/mcp/constants';
 import { absoluteUrl } from '@/lib/site';
+import { isPrivatePreview } from '@/lib/studio/config';
 
 /**
  * Generates a robots.txt file for the website.
  */
 export default function robots(): MetadataRoute.Robots {
+  if (isPrivatePreview()) return { rules: { userAgent: '*', disallow: '/' } };
+
   return {
     rules: [
       // Everyone not named below, including the agents llms.txt speaks to:
@@ -18,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
         // llms.txt advertises the MCP server, which lives under /api/. The
         // longer Allow wins over the Disallow (RFC 9309).
         allow: ['/', MCP_ENDPOINT],
-        disallow: ['/api/'],
+        disallow: ['/api/', '/studio'],
       },
       // AI training crawlers stay off the whole site, which covers the
       // writings and the search artifacts that carry their full text. Search

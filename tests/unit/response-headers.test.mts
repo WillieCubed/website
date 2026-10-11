@@ -83,7 +83,10 @@ test('every path carries the Clacks overhead', () => {
 
 test('every public page advertises the discovery endpoints in a Link header', () => {
   const pages = appRoutes().filter(
-    (route) => route.kind === 'page' && !DEVELOPMENT_ONLY_PAGES.has(route.path)
+    (route) =>
+      route.kind === 'page' &&
+      !DEVELOPMENT_ONLY_PAGES.has(route.path) &&
+      !route.path.startsWith('/studio')
   );
   assert.ok(pages.length >= 8, 'found the pages under app/');
 
@@ -213,4 +216,13 @@ test('public widget documents stay sandboxed when opened directly and reveal no 
   ]) {
     assert.ok(!headersFor(path).has('Content-Security-Policy'), path);
   }
+});
+
+test('studio pages do not advertise public discovery endpoints', () => {
+  assert.equal(headersFor('/studio').get('Link'), undefined);
+  assert.equal(headersFor('/studio/private-writing').get('Link'), undefined);
+  assert.equal(
+    headersFor('/generated-blocks/test.html').get('Content-Security-Policy'),
+    "sandbox allow-scripts; frame-ancestors 'self'"
+  );
 });

@@ -1,7 +1,10 @@
+import matter from 'gray-matter';
+
 import { SITE_URL } from '@/lib/indieweb/constants';
 import { getBearerToken, micropubTokenStatus } from '@/lib/indieweb/indieauth';
 import {
   MicropubValidationError,
+  buildMicropubWritingFile,
   commitMicropubWriting,
   getMicropubConfig,
   getMicropubSyndicationTargets,
@@ -27,8 +30,11 @@ import {
 import {
   MicropubConflictError,
   MicropubStorageError,
+  type PrivateMicropubOptions,
+  createPrivateMicropubWriting,
   deleteStoredWriting,
   findStoredWriting,
+  privateMicropubStore,
   restoreStoredWriting,
   saveStoredWriting,
   writingSlugForUrl,
@@ -44,11 +50,12 @@ import type {
   MicropubRouteEnvironment,
 } from '@/lib/indieweb/types';
 import { absoluteRoute } from '@/lib/site';
+import { StudioError } from '@/lib/studio/errors';
 import { getAllWritings } from '@/lib/writings';
 import { groupByTag, normalizeTag } from '@/lib/writings/tags';
 
 /** What the handlers use, each replaceable in tests. */
-export interface MicropubEndpointOptions {
+export interface MicropubEndpointOptions extends PrivateMicropubOptions {
   /** Where issued tokens live; the Postgres store by default. */
   store?: IndieAuthStore;
   environment?: MicropubRouteEnvironment;
@@ -117,10 +124,10 @@ async function micropubGet(
  * Create, update, or delete a writing. Each needs the scope of the same
  * name.
  *
- * When MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN are set every change
- * is committed through GitHub's Contents API so it flows through the same
- * deploy path as a hand-authored writing. Otherwise the file is written into
- * the local content directory, which only works on a writable checkout.
+ * Drafts always use durable private studio revisions. With studio storage
+ * configured, publication exports an explicitly selected saved revision.
+ * Existing published-only deployments retain GitHub Contents API or writable
+ * checkout publication for compatibility; drafts never use either fallback.
  */
 async function micropubPost(
   request: Request,
@@ -150,6 +157,19 @@ async function micropubPost(
     if (!slug) return postNotFound();
     const permalink = absoluteRoute`/writings/${slug}`;
     const environment = options.environment ?? micropubEnvironment();
+    // Studio revisions already use transactional compare-and-swap. Private
+    // source never enters the public Micropub archive database.
+    if (privateMicropubStore(options) && action.action === 'update')
+      return update(permalink, action.update, options);
+    if (privateMicropubStore(options) && action.action === 'delete') {
+      const stored = await findStoredWriting(
+        permalink,
+        environment,
+        options.fetch,
+        options
+      );
+      if (stored?.privateDocumentId) return remove(permalink, options);
+    }
     const archives = options.archives ?? micropubArchiveStore;
     return await archives.runExclusive(
       micropubMutationKey(environment, permalink),
@@ -251,7 +271,8 @@ async function source(
     const stored = await findStoredWriting(
       target,
       options.environment ?? micropubEnvironment(),
-      options.fetch
+      options.fetch,
+      options
     );
     if (!stored) return postNotFound();
     return jsonResponse(
@@ -278,6 +299,25 @@ async function create(
   }
   entry.slug = micropubWritingPath(entry, environment.contentPath).slug;
   const permalink = absoluteRoute`/writings/${entry.slug}`;
+  if (entry.postStatus === 'draft' || privateMicropubStore(options)) {
+    const { slug, path } = micropubWritingPath(entry, environment.contentPath);
+    const { draft, commit } = await createPrivateMicropubWriting(
+      slug,
+      buildMicropubWritingFile(entry, slug),
+      options
+    );
+    return jsonResponse(
+      {
+        status: 'accepted',
+        location: permalink,
+        slug,
+        path,
+        commit,
+        revision: draft.head.id,
+      },
+      { status: 202, headers: { ...noStoreJsonHeaders(), Location: permalink } }
+    );
+  }
   const archives = options.archives ?? micropubArchiveStore;
   return archives.runExclusive(
     micropubMutationKey(environment, permalink),
@@ -324,7 +364,12 @@ async function update(
   options: MicropubEndpointOptions
 ): Promise<Response> {
   const environment = options.environment ?? micropubEnvironment();
-  const stored = await findStoredWriting(url, environment, options.fetch);
+  const stored = await findStoredWriting(
+    url,
+    environment,
+    options.fetch,
+    options
+  );
   if (!stored) return postNotFound();
 
   const now = (options.now ?? (() => new Date()))();
@@ -337,7 +382,8 @@ async function update(
           source,
           `chore(content): Update ${stored.slug} via Micropub`,
           environment,
-          options.fetch
+          options.fetch,
+          options
         );
 
   return jsonResponse({
@@ -348,16 +394,41 @@ async function update(
 }
 
 /**
- * Commit a private archive before removing the public source file.
+ * Archive public source before removing it; private drafts keep immutable studio revisions.
  */
 async function remove(
   url: string,
   options: MicropubEndpointOptions
 ): Promise<Response> {
   const environment = options.environment ?? micropubEnvironment();
-  const stored = await findStoredWriting(url, environment, options.fetch);
+  const stored = await findStoredWriting(
+    url,
+    environment,
+    options.fetch,
+    options
+  );
   if (!stored) return postNotFound();
 
+  if (stored.privateDocumentId) {
+    const commit = await deleteStoredWriting(
+      stored,
+      `chore(content): Delete ${stored.slug} via Micropub`,
+      environment,
+      options.fetch,
+      options
+    );
+    return jsonResponse({
+      url: absoluteRoute`/writings/${stored.slug}`,
+      path: stored.path,
+      commit,
+    });
+  }
+  // Legacy drafts must be imported before any public archive mutation.
+  if (matter(stored.source).data.draft)
+    throw new StudioError(
+      503,
+      'Import this draft into private storage before deleting it.'
+    );
   const archives = options.archives ?? micropubArchiveStore;
   const key = micropubMutationKey(environment, url);
   await archives.save(key, url, stored);
@@ -365,7 +436,8 @@ async function remove(
     stored,
     `chore(content): Delete ${stored.slug} via Micropub`,
     environment,
-    options.fetch
+    options.fetch,
+    options
   );
   await archives.mark(key, 'deleted');
   return jsonResponse({
@@ -384,7 +456,7 @@ async function restore(
   const key = micropubMutationKey(environment, url);
   const archived = await archives.find(key);
   if (!archived) return postNotFound();
-  if (await findStoredWriting(url, environment, options.fetch))
+  if (await findStoredWriting(url, environment, options.fetch, options))
     throw new MicropubConflictError(
       'Another post already occupies this permalink.'
     );
@@ -406,6 +478,13 @@ function postNotFound(): Response {
 }
 
 function errorResponse(error: unknown): Response {
+  if (error instanceof StudioError) {
+    return jsonError(
+      error.status >= 500 ? 'temporarily_unavailable' : 'invalid_request',
+      error.status,
+      error.message
+    );
+  }
   if (error instanceof MicropubValidationError) {
     return jsonError('invalid_request', 400, error.message);
   }

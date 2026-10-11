@@ -1,0 +1,392 @@
+/* Legacy library affordances retained until the library consumes native site styles. */
+.studio-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.studio-mark {
+  display: inline-flex;
+  padding: 7px;
+  flex-shrink: 0;
+}
+.studio-mark img {
+  width: 28px;
+  height: 28px;
+}
+/* The private editor is the site's reading page with editable text. These
+   rules cover editing affordances; typography and navigation stay native. */
+.studio-editor {
+  color: var(--color-ink);
+  padding-bottom: var(--spacing-2xl, 3rem);
+}
+.studio-editor-context,
+.studio-task-heading,
+.studio-insertion-row,
+.studio-selection-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.studio-editor-context {
+  padding-top: 8px;
+}
+.studio-editor-context > [role='status'] {
+  flex: 1;
+}
+.studio-editor .feeds-button,
+.studio-action-menu button,
+.studio-format-menu button,
+.studio-inline-trigger,
+.studio-tag-trigger {
+  min-height: 44px;
+}
+.studio-inline-title,
+.studio-inline-summary {
+  display: block;
+  width: 100%;
+  field-sizing: content;
+  resize: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  overflow: hidden;
+}
+.studio-inline-summary {
+  color: var(--color-accent);
+}
+.studio-inline-title::placeholder,
+.studio-inline-summary::placeholder {
+  color: var(--color-muted);
+}
+.studio-editor textarea:focus-visible,
+.studio-editor input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+.studio-editor .studio-prose {
+  min-height: 1lh;
+  outline: none;
+  overflow-wrap: anywhere;
+}
+.studio-editor .studio-prose:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 8px;
+  border-radius: 4px;
+}
+.studio-writing-space[data-empty='true'] .studio-prose p:first-child::before {
+  content: 'Begin anywhere…';
+  float: left;
+  height: 0;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+.studio-insertion-row {
+  justify-content: flex-start;
+  margin-top: 24px;
+}
+.studio-selection-tools {
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+.studio-inline-trigger,
+.studio-tag-trigger {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-muted);
+  padding: 0 4px;
+  font: inherit;
+}
+.studio-tag-trigger {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.studio-inline-trigger:hover {
+  color: var(--color-accent);
+}
+.studio-action-menu button,
+.studio-format-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  text-align: left;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.studio-action-menu button:hover,
+.studio-format-menu button:hover,
+.studio-format-menu button[aria-pressed='true'] {
+  background: var(--color-surface-container-highest);
+}
+.studio-editor button:disabled,
+.studio-action-menu button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.studio-task,
+.studio-editor .studio-notice,
+.studio-editor .studio-review {
+  border: 0;
+  border-top: 1px solid var(--color-line);
+  border-radius: 0;
+  padding: 24px 0;
+  background: transparent;
+  margin: 16px 0;
+}
+.studio-task-form {
+  padding: 16px;
+}
+.studio-editor .studio-task-form {
+  padding: 0;
+}
+.studio-task-form label,
+.studio-editor .studio-catalog-block label {
+  display: block;
+  margin: 20px 0;
+  font-size: var(--text-label-large, 14px);
+}
+.studio-task-form input,
+.studio-task-form textarea,
+.studio-task-form select,
+.studio-editor .studio-catalog-block input,
+.studio-editor .studio-catalog-block textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font: inherit;
+}
+.studio-task-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+.studio-editor .studio-widget-generator > p,
+.studio-editor .studio-widget-generator form > p {
+  color: var(--color-muted);
+}
+.studio-connection {
+  margin: 24px 0;
+}
+.studio-connection summary,
+.studio-block-details summary {
+  cursor: pointer;
+  padding: 12px 0;
+  min-height: 44px;
+}
+.studio-runtime {
+  border: 0;
+  margin: 0;
+  padding: 0 0 16px;
+}
+.studio-runtime button {
+  min-height: 44px;
+}
+.studio-runtime a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+.studio-proposal-text {
+  white-space: pre-wrap;
+  margin: 24px 0;
+}
+.studio-generation {
+  border-top: 1px solid var(--color-line);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+.studio-editor .studio-catalog-block,
+.studio-editor .studio-source {
+  background: transparent;
+  border: 0;
+  border-block: 1px solid var(--color-line);
+  border-radius: 0;
+  padding: 16px 0;
+}
+.studio-preview-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+}
+.studio-preview-tabs [aria-pressed='true'] {
+  background: var(--color-tray);
+}
+.studio-editor .studio-preview,
+.studio-editor .studio-sandbox,
+.studio-editor .studio-block-preview {
+  background: var(--color-ground);
+  color-scheme: light dark;
+  border: 0;
+}
+.studio-editor .studio-preview {
+  display: block;
+}
+.studio-editor .studio-prose table {
+  display: block;
+  overflow-x: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-editor * {
+    scroll-behavior: auto;
+  }
+}
+
+.studio-editor .studio-source textarea {
+  width: 100%;
+  min-height: 12rem;
+  padding: 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+}
+.studio-block-heading {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+.studio-editor .studio-catalog-block input[type='checkbox'] {
+  width: auto;
+}
+.studio-block-preview {
+  width: 100%;
+  margin: 16px 0;
+}
+.studio-sandbox {
+  width: 100%;
+  min-height: 15rem;
+}
+.studio-revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.studio-editor pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.studio-editor .studio-preview {
+  width: 100%;
+}
+
+.studio-selection-tools {
+  position: fixed;
+  z-index: 30;
+
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 8px;
+  border-radius: 999px;
+  margin: 0;
+}
+
+.studio-editor .studio-insertion-row {
+  position: sticky;
+  top: 8px;
+  z-index: 10;
+  width: max-content;
+  margin: 0 0 20px;
+  border-radius: 999px;
+  background: var(--color-ground);
+}
+
+.studio-editor-context,
+.studio-editor .studio-insertion-row {
+  display: contents;
+}
+.studio-byline {
+  position: relative;
+}
+.studio-byline .feeds-button,
+.studio-byline .studio-inline-trigger {
+  margin-block: 0;
+}
+.studio-editor-context > [role='status'] {
+  font-size: inherit;
+  flex: 1;
+}
+.studio-byline > [role='status']::before {
+  content: '·';
+  padding-inline: 4px 8px;
+}
+.studio-editor .studio-prose:has(p:only-child:empty) {
+  min-height: 3lh;
+}
+
+.studio-selection-tools[hidden] {
+  display: none;
+}
+.studio-history-inspection {
+  flex: 1;
+  min-width: 0;
+}
+.studio-history-inspection summary {
+  min-height: 44px;
+  cursor: pointer;
+  display: list-item;
+}
+
+/* A useful writing area, with the same column and ground as the reading page. */
+.studio-editor {
+  min-height: calc(100svh - 5rem);
+}
+.studio-writing-space {
+  min-height: 50svh;
+  cursor: text;
+}
+.studio-save-state {
+  min-width: 5ch;
+}
+.studio-task,
+.studio-review-screen {
+  animation: studio-task-enter 180ms var(--ease-site);
+}
+.studio-editor .feeds-button,
+.studio-editor .studio-inline-trigger {
+  transition:
+    background-color 180ms var(--ease-site),
+    color 180ms var(--ease-site);
+}
+@keyframes studio-task-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-task,
+  .studio-review-screen {
+    animation: none;
+  }
+  .studio-editor .feeds-button,
+  .studio-editor .studio-inline-trigger {
+    transition: none;
+  }
+}

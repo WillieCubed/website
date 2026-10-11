@@ -14,7 +14,7 @@ import { getAllWritings } from '@/lib/writings';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [initiatives, writings, projects] = await Promise.all([
     getInitiatives(),
-    getAllWritings(),
+    getAllWritings(false),
     getPublishedProjects(),
   ]);
   return buildSitemap({ initiatives, writings, projects });

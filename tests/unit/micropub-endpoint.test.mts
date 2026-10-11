@@ -683,6 +683,24 @@ test('delete archives privately and undelete restores the same source and permal
   });
 });
 
+test('deleting a legacy draft never copies its prose into the public archive', async () => {
+  await withContent(async (options, file) => {
+    const privateSource = source.replace('draft: false', 'draft: true');
+    await writeFile(file, privateSource);
+    let archiveWrites = 0;
+    options.archives!.save = async () => {
+      archiveWrites += 1;
+    };
+    const response = await handleMicropubPost(
+      postJson({ action: 'delete', url: postUrl }, await tokenWith('delete')),
+      options
+    );
+    assert.equal(response.status, 503);
+    assert.equal(archiveWrites, 0);
+    assert.equal(await readFile(file, 'utf8'), privateSource);
+  });
+});
+
 test('an archive failure leaves the public source untouched', async () => {
   await withContent(async (options, file) => {
     options.archives!.save = async () => {
@@ -738,7 +756,7 @@ test('a delete that loses a race with another commit fails instead of discarding
   assert.equal(calls[1].method, 'DELETE');
 });
 
-test('a draft-scoped token creates drafts but cannot publish', async () => {
+test('a draft-scoped token needs private storage and cannot publish', async () => {
   await withContent(async (options) => {
     const token = await tokenWith('draft');
     const draft = await handleMicropubPost(
@@ -754,12 +772,18 @@ test('a draft-scoped token creates drafts but cannot publish', async () => {
       ),
       options
     );
-    assert.equal(draft.status, 202);
-    const file = await readFile(
-      join(process.cwd(), options.environment!.contentPath, 'draft-only.mdx'),
-      'utf8'
+    assert.equal(draft.status, 503);
+    assert.match(
+      (await draft.json()).error_description,
+      /Private draft storage/
     );
-    assert.equal(matter(file, {}).data.draft, true);
+    await assert.rejects(
+      readFile(
+        join(process.cwd(), options.environment!.contentPath, 'draft-only.mdx'),
+        'utf8'
+      ),
+      { code: 'ENOENT' }
+    );
     const published = await handleMicropubPost(
       postJson(
         {

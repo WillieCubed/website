@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { searchContent } from '@/lib/search/server';
 import type { SearchContentType } from '@/lib/search/types';
+import { studioRoute } from '@/lib/studio/auth';
+import { isPrivatePreview } from '@/lib/studio/config';
 
 const CONTENT_TYPES: SearchContentType[] = [
   'writing',
@@ -24,6 +26,34 @@ const CONTENT_TYPES: SearchContentType[] = [
  * - offset: Pagination offset (default: 0)
  */
 export async function GET(request: NextRequest) {
+  if (isPrivatePreview()) {
+    return studioRoute(request, async () => {
+      const { searchPrivate } = await import('@/lib/studio/search');
+      const searchParams = request.nextUrl.searchParams;
+      const query = searchParams.get('q');
+      if (!query)
+        return NextResponse.json(
+          { error: 'Missing required parameter: q' },
+          { status: 400 }
+        );
+      if (searchParams.get('type') === 'project')
+        return NextResponse.json({
+          results: [],
+          total: 0,
+          query,
+          backend: 'private',
+        });
+      const type =
+        CONTENT_TYPES.find((value) => value === searchParams.get('type')) ??
+        'all';
+      const result = await searchPrivate(query, {
+        type,
+        limit: clampInteger(searchParams.get('limit'), 20, 1, 100),
+        offset: clampInteger(searchParams.get('offset'), 0, 0),
+      });
+      return NextResponse.json(result);
+    });
+  }
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
   const typeParam = searchParams.get('type');

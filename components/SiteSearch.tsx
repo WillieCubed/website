@@ -5,6 +5,7 @@ import SiteLink from '@/components/link/SiteLink';
 import { resultMeta } from '@/lib/search/meta';
 import { searchContent, searchResultPath } from '@/lib/search/server';
 import type { SearchResult } from '@/lib/search/types';
+import { isPrivatePreview } from '@/lib/studio/config';
 
 interface SiteSearchProps {
   /** The query from the URL, if any. */
@@ -20,7 +21,11 @@ interface SiteSearchProps {
  */
 export default async function SiteSearch({ query = '' }: SiteSearchProps) {
   const trimmed = query.trim();
-  const response = trimmed ? await searchContent(trimmed) : null;
+  const response = trimmed
+    ? await (isPrivatePreview()
+        ? (await import('@/lib/studio/search')).searchPrivate(trimmed)
+        : searchContent(trimmed))
+    : null;
 
   return (
     <div className="w-full space-y-lg">

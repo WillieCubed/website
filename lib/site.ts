@@ -179,19 +179,7 @@ export const sitePages: SitePage[] = [
     description: 'Browse pages, writings, initiatives, and feeds.',
     routed: true,
   },
-  {
-    path: '/about',
-    label: 'About',
-    description: 'Who Willie is, what he has done, and where he is going.',
-    routed: false,
-  },
-  {
-    path: '/research',
-    label: 'Research',
-    description:
-      'Questions about intelligence, software, and the systems people use.',
-    routed: false,
-  },
+
   {
     path: '/colophon',
     label: 'Colophon',

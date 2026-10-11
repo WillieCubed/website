@@ -2,11 +2,13 @@ import { cacheLife } from 'next/cache';
 
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
 import { type Initiative, getInitiatives } from '@/lib/initiatives';
+import { type Project, getPublishedProjects } from '@/lib/projects';
 import { formatDate, isInternalHref, site } from '@/lib/site';
 import { type WritingData, getAllWritings } from '@/lib/writings';
 
 import { entityKey } from './key';
 import { STATIC_PAGES } from './pages';
+import { projectCards } from './projects';
 import { tagCards } from './tags';
 import type { EntityCard } from './types';
 import { VENTURE_CARDS } from './ventures';
@@ -40,11 +42,12 @@ export async function getEntityRegistry(): Promise<EntityCard[]> {
   'use cache';
   cacheLife('hours');
 
-  const [writings, initiatives] = await Promise.all([
+  const [writings, initiatives, projects] = await Promise.all([
     getAllWritings(false),
     getInitiatives(),
+    getPublishedProjects(),
   ]);
-  return entityCards(writings, initiatives);
+  return entityCards(writings, initiatives, projects);
 }
 
 /**
@@ -66,14 +69,19 @@ export async function publishedLinks<T extends { href: string }>(
 
 /**
  * The cards for the static pages and ventures plus the given writings, the
- * tags they carry, and initiatives. Kept apart from the cached loader so it
- * runs under plain Node.
+ * tags they carry, initiatives, and published projects. Kept apart from the
+ * cached loader so it runs under plain Node.
  */
 export function entityCards(
   writings: WritingData[],
-  initiatives: Initiative[]
+  initiatives: Initiative[],
+  projects: Project[] = []
 ): EntityCard[] {
-  const cards: EntityCard[] = [...STATIC_PAGES, ...VENTURE_CARDS];
+  const cards: EntityCard[] = [
+    ...STATIC_PAGES,
+    ...VENTURE_CARDS,
+    ...projectCards(projects),
+  ];
 
   for (const writing of writings) {
     cards.push({

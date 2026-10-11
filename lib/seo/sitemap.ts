@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 import type { Initiative } from '@/lib/initiatives';
+import type { Project } from '@/lib/projects';
 import { canonicalUrl, routedPages } from '@/lib/site';
 import type { WritingData } from '@/lib/writings';
 import { groupByTag, tagPath } from '@/lib/writings/tags';
@@ -51,6 +52,7 @@ export function publishedSitemapContent(input: {
 export function buildSitemap(input: {
   writings: WritingData[];
   initiatives: Initiative[];
+  projects?: Project[];
 }): MetadataRoute.Sitemap {
   const published = publishedSitemapContent(input);
   const initiatives = published.initiatives.flatMap((item) => [
@@ -70,5 +72,8 @@ export function buildSitemap(input: {
     ...initiatives,
     ...writings,
     ...tags,
+    ...(input.projects ?? [])
+      .filter((project) => !project.draft && project.visibility !== 'hidden')
+      .map((project) => entry(project.href, project.updated)),
   ];
 }

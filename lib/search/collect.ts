@@ -10,6 +10,8 @@ import {
   partTitle,
 } from '@/lib/initiatives';
 import { getMediaMentions } from '@/lib/media';
+import { type Project, loadAllProjects } from '@/lib/projects';
+import { projectFacts } from '@/lib/projects/facts';
 import { stripMdxSyntax } from '@/lib/text/strip-mdx';
 import { type WritingData, getWritingSlugs, loadWriting } from '@/lib/writings';
 import { writingText } from '@/lib/writings/content';
@@ -124,10 +126,31 @@ function byNewest(a: SearchableItem, b: SearchableItem): number {
   return new Date(b.published).getTime() - new Date(a.published).getTime();
 }
 
+export function projectToItem(project: Project): SearchableItem {
+  return {
+    slug: `projects/${project.slug}`,
+    path: project.href,
+    title: project.title,
+    description: project.line ?? '',
+    content: [
+      projectFacts(project).join(' · '),
+      project.visibility === 'public' ? stripMdxSyntax(project.content) : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n'),
+    tags: project.roles,
+    published:
+      project.starts?.toISOString() ??
+      project.updated?.toISOString() ??
+      UNDATED,
+    type: 'project',
+  };
+}
+
 /**
  * Everything the site's search covers: published writings and their tags,
  * initiatives and their parts, the static pages, and the homepage ventures
- * and products that are not hidden. A tag is searched as a page, since it
+ * and products that are not hidden, and published projects. A tag is searched as a page, since it
  * has one. Drafts are excluded here rather than trusted to the
  * loaders, because the prebuild script runs outside Next.js where the
  * loaders show drafts. It reads through the uncached loaders for the same
@@ -146,7 +169,13 @@ export async function collectSearchDocuments(): Promise<SearchableItem[]> {
   const initiatives = loadAllInitiatives().flatMap(initiativeToItems);
   const pages = STATIC_PAGES.map(pageToItem);
   const ventures = Object.values(entries).map(entryToItem);
-  return [...writings, ...tags, ...initiatives, ...pages, ...ventures].sort(
-    byNewest
-  );
+  const projects = loadAllProjects({ includeDrafts: false }).map(projectToItem);
+  return [
+    ...writings,
+    ...tags,
+    ...initiatives,
+    ...pages,
+    ...ventures,
+    ...projects,
+  ].sort(byNewest);
 }

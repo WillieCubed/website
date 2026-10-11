@@ -36,6 +36,7 @@ const ICONS: Record<CommandKind | SearchKind, IconName> = {
   page: 'arrow-right',
   writing: 'file',
   initiative: 'calendar',
+  project: 'compass',
   venture: 'compass',
   copy: 'copy',
   mail: 'mail',

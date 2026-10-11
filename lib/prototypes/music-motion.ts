@@ -29,6 +29,7 @@ export function playlistMotion(
   let cleaned = false;
   const name = (parts: PlaylistMotionParts) => {
     for (const [part, element] of Object.entries(parts)) {
+      if (kind === 'swap' && part === 'controls') continue;
       if (!element || !element.getBoundingClientRect().height) continue;
       element.style.viewTransitionName = `music-prototype-${part}`;
       named.add(element);

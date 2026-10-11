@@ -38,10 +38,11 @@ media interaction. The public site therefore uses one `/music` route.
   sits beside the gallery. The horizontal gaps match the cover grid so the
   controls and collection read as one layout. Stack the series controls above
   the gallery below 840px.
-- Align the featured title and details with the top of the cover on wider
-  layouts. On phones, center the cover and caption as one block, using the
-  available content width up to 420px. Give both sides equal outer space and
-  align the caption with the cover's left edge.
+- Align the featured title with the bottom of the cover on wider layouts.
+  Put the track count and a labeled Open playlist button in a compact row
+  below that edge. Put authored notes below the row. On phones, center the
+  cover, title, and metadata as one block up to 420px wide. The cover and title
+  remain the opening control, so omit the duplicate action on phones.
 - Keep the phone focus view's cover and title beside one another. Put editing
   controls and the track sequence across the full width below them. Preserve
   the larger cover and adjacent context on desktop.
@@ -60,10 +61,14 @@ media interaction. The public site therefore uses one `/music` route.
 - Use equal 48px targets and 24px icons in the focused view's 80px toolbar.
   Group Previous and Next with connected shapes. Use tonal styling for Previous
   and primary filled styling for Next. Separate Close with a tonal square
-  button. Align the bar's side insets with the content below it, and leave room
+  button. Keep the context label aligned with the content below it. Inset the
+  action group 16px from the top and right container edges, including room
   for keyboard focus rings. Change shape on press and preserve reduced motion.
   Use [Material's expressive icon-button guidance](https://github.com/material-components/material-components-android/blob/master/docs/components/IconButton.md#m3-expressive)
   for color variants and shape behavior.
+- Focus the playlist title on opening without adding the content region to Tab
+  navigation. Keep focus on controls during pagination. Support keyboard
+  scrolling from the toolbar without outlining the whole content region.
 - Encode the selected series and focused playlist in the URL. Support direct
   entry, refresh, Back, Forward, Escape, restored focus, and retained scroll.
 - Let visitors move between playlists in the current collection. Keep repeated
@@ -75,13 +80,15 @@ media interaction. The public site therefore uses one `/music` route.
   moves independently into place. Reverse the transition on dismissal when
   the destination cover remains visible. Fade the controls and title in
   before the track list. Separate spatial movement from opacity changes,
-  following [Material motion](https://m3.material.io/styles/motion).
+  following [Material motion](https://m3.material.io/styles/motion). Keep the
+  container and toolbar stationary on Previous and Next. Crossfade the changed
+  content together without entrance translation or stagger.
 - Show part of the next collection row on initial load. If the viewport cannot
   reveal at least 56px of its first cover, show a More playlists button that
   scrolls there and moves keyboard focus to that playlist. Recheck after fonts
   load and the viewport changes. Keep the cue at the viewport's bottom edge
   and center it under the featured artwork. Raise it on compact screens only
-  when its normal position would overlap the caption.
+  when its normal position would overlap the title or authored notes.
   Hide the cue after the visitor scrolls.
 
 The gallery uses these layouts. Series and search results use equal cards in
@@ -193,12 +200,15 @@ Verify the prototype at 1440px and 390px in both themes, plus 320px reflow.
 Exercise touch, keyboard, Back and Forward, direct links, unavailable tracks,
 draft recovery, and review/application separation. Capture screenshots.
 
-The prototype passed 50 browser checks across desktop and touch-emulated phone
+The prototype passed 54 browser checks across desktop and touch-emulated phone
 layouts in both themes. The two phone projects skip native mouse dragging;
 their earlier and later buttons pass. The checks include native surface and
 cover transitions, staggered content, interrupted motion, missing transition
-support, keyboard focus, and scroll affordances in short viewports. The layout
-pass checked 11 widths from 320px to 2560px in both themes on October 11.
+support, keyboard focus, and scroll affordances in short viewports. The labeled
+featured action retains the cover transition and restores focus on dismissal.
+The scroll cue leaves authored notes readable. Pagination crossfades without
+translation and keeps the toolbar still. The content region is outside Tab
+navigation, and page keys scroll it from the toolbar. The layout pass checked 11 widths from 320px to 2560px in both themes on October 11.
 The featured cover remains at least 1.5 times as wide as regular covers, with
 no horizontal overflow. The sidebar spacing pass captured 320×740, 390×844,
 768×1024, 1024×768, 1440×1000, and 1920×1080 viewports in both themes.

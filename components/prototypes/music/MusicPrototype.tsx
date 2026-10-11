@@ -120,8 +120,12 @@ export default function MusicPrototype() {
         (editing || catalog.selected.includes(state.detail!));
       setFocused(allowed ? state.detail : null);
       if (external) ownDetailEntry.current = false;
-      if (allowed && !dialog.current?.open) dialog.current?.showModal();
-      else if (!allowed) dialog.current?.close();
+      if (allowed && !dialog.current?.open) {
+        dialog.current?.showModal();
+        dialog.current
+          ?.querySelector<HTMLElement>('#mp-detail-title')
+          ?.focus({ preventScroll: true });
+      } else if (!allowed) dialog.current?.close();
     };
     sync();
     const pop = () => {
@@ -166,8 +170,25 @@ export default function MusicPrototype() {
     const before = alreadyOpen ? focusParts() : cardParts(source);
     cancelMotion.current = playlistMotion(
       () => {
+        const focusedControl = document.activeElement;
         flushSync(() => setFocused(id));
-        if (!dialog.current?.open) dialog.current?.showModal();
+        if (!dialog.current?.open) {
+          dialog.current?.showModal();
+          dialog.current
+            ?.querySelector<HTMLElement>('#mp-detail-title')
+            ?.focus({ preventScroll: true });
+        }
+        if (
+          alreadyOpen &&
+          focusedControl instanceof HTMLButtonElement &&
+          focusedControl.disabled
+        ) {
+          dialog.current
+            ?.querySelector<HTMLElement>(
+              '.mp-detail-pagination button:not(:disabled)'
+            )
+            ?.focus({ preventScroll: true });
+        }
         const scroller =
           dialog.current?.querySelector<HTMLElement>('.mp-detail-scroll');
         if (scroller) scroller.scrollTop = 0;
@@ -183,7 +204,8 @@ export default function MusicPrototype() {
     );
   }
 
-  function cardParts(card?: HTMLElement | null): PlaylistMotionParts {
+  function cardParts(source?: HTMLElement | null): PlaylistMotionParts {
+    const card = source?.closest<HTMLElement>('.mp-card') ?? source;
     return {
       surface: card?.querySelector<HTMLElement>('[data-card-surface]'),
       cover: card?.querySelector<HTMLElement>('[data-card-cover]'),
@@ -312,11 +334,12 @@ export default function MusicPrototype() {
 
   function renderCard(playlist: SamplePlaylist, index: number) {
     const selected = catalog.selected.includes(playlist.id);
+    const featured = playlist.id === lead;
     return (
       <article
         key={playlist.id}
-        className={`mp-card${playlist.id === lead ? ' mp-card-lead' : ''}${editing && !selected ? ' mp-card-unselected' : ''}`}
-        aria-label={playlist.id === lead ? 'Featured playlist' : undefined}
+        className={`mp-card${featured ? ' mp-card-lead' : ''}${editing && !selected ? ' mp-card-unselected' : ''}`}
+        aria-label={featured ? 'Featured playlist' : undefined}
         data-playlist={playlist.id}
         data-focused={playlist.id === focused || undefined}
         draggable={editing && !search}
@@ -345,18 +368,38 @@ export default function MusicPrototype() {
           <div className="mp-card-caption">
             <div>
               <h3>{playlist.title}</h3>
-              <p className="mp-small">
-                {series ? `${index + 1} of ${matching.length} · ` : ''}6 tracks
-              </p>
-              {playlist.id === lead && catalog.notes[playlist.id] && (
-                <p className="mp-card-note">{catalog.notes[playlist.id]}</p>
+              {!featured && (
+                <p className="mp-small">
+                  {series ? `${index + 1} of ${matching.length} · ` : ''}6
+                  tracks
+                </p>
               )}
             </div>
-            <span className="mp-open-icon">
-              <Icon name="arrow-right" size={20} />
-            </span>
+            {!featured && (
+              <span className="mp-open-icon">
+                <Icon name="arrow-right" size={20} />
+              </span>
+            )}
           </div>
         </button>
+        {featured && (
+          <div className="mp-feature-details">
+            <div className="mp-feature-meta">
+              <p className="mp-small">6 tracks</p>
+              <button
+                className="mp-button mp-tonal mp-feature-action"
+                onClick={(event) =>
+                  openPlaylist(playlist.id, event.currentTarget)
+                }
+              >
+                Open playlist
+              </button>
+            </div>
+            {catalog.notes[playlist.id] && (
+              <p className="mp-card-note">{catalog.notes[playlist.id]}</p>
+            )}
+          </div>
+        )}
         {editing && (
           <div className="mp-card-controls">
             <label className="mp-check">
@@ -393,7 +436,7 @@ export default function MusicPrototype() {
   }
 
   return (
-    <div className="music-prototype">
+    <div className="music-prototype" aria-busy={!ready}>
       <div className="mp-prototype-bar">
         <span>Local prototype · Sample content</span>
         <button
@@ -579,6 +622,45 @@ export default function MusicPrototype() {
         ref={dialog}
         className="mp-detail"
         aria-labelledby="mp-detail-title"
+        onKeyDown={(event) => {
+          if (event.key === 'Tab') {
+            const controls = Array.from(
+              dialog.current?.querySelectorAll<HTMLElement>(
+                'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href]'
+              ) ?? []
+            ).filter(
+              (element) =>
+                element.tabIndex >= 0 && element.getClientRects().length
+            );
+            const index = controls.indexOf(
+              document.activeElement as HTMLElement
+            );
+            const wrap = event.shiftKey
+              ? index <= 0
+              : index < 0 || index === controls.length - 1;
+            if (wrap && controls.length) {
+              event.preventDefault();
+              controls[event.shiftKey ? controls.length - 1 : 0].focus();
+            }
+            return;
+          }
+          const scroller =
+            dialog.current?.querySelector<HTMLElement>('.mp-detail-scroll');
+          if (!scroller || scroller.contains(event.target as Node)) return;
+          if (event.altKey || event.ctrlKey || event.metaKey) return;
+          const distance: Record<string, number> = {
+            ArrowDown: 40,
+            ArrowUp: -40,
+            PageDown: scroller.clientHeight * 0.85,
+            PageUp: -scroller.clientHeight * 0.85,
+            Home: -scroller.scrollHeight,
+            End: scroller.scrollHeight,
+          };
+          if (!(event.key in distance)) return;
+          // The toolbar sits outside the scrollport, so target its content explicitly.
+          event.preventDefault();
+          scroller.scrollBy({ top: distance[event.key], behavior: 'instant' });
+        }}
         onCancel={(event) => {
           event.preventDefault();
           closePlaylist();
@@ -631,7 +713,7 @@ export default function MusicPrototype() {
               className="mp-detail-scroll"
               role="region"
               aria-label="Playlist details"
-              tabIndex={0}
+              tabIndex={-1}
             >
               <div className="mp-detail-art-column">
                 <div className="mp-detail-art" data-focus-cover="">
@@ -654,7 +736,9 @@ export default function MusicPrototype() {
                 </div>
               </div>
               <div className="mp-detail-body">
-                <h2 id="mp-detail-title">{current.title}</h2>
+                <h2 id="mp-detail-title" tabIndex={-1} aria-live="polite">
+                  {current.title}
+                </h2>
                 <p className="mp-detail-meta">6 tracks · Sample sequence</p>
                 {!editing && catalog.notes[current.id] && (
                   <p className="mp-playlist-note">

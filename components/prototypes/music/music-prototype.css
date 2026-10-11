@@ -305,13 +305,17 @@ html[data-music-motion] {
   border-radius: 12px;
 }
 .mp-card-lead {
+  display: grid;
   grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 32px;
   margin-bottom: 24px;
 }
 .mp-card-lead .mp-card-open {
   display: grid;
+  grid-column: 1 / -1;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
+  align-items: end;
   gap: 32px;
 }
 .mp-card-lead .mp-card-caption {
@@ -320,7 +324,7 @@ html[data-music-motion] {
 }
 .mp-card-lead .mp-card-caption h3 {
   max-width: 13ch;
-  margin: 0 0 14px;
+  margin: 0;
   font-size: clamp(40px, 3.6vw, 56px);
   line-height: 1.08;
   letter-spacing: -0.035em;
@@ -329,15 +333,14 @@ html[data-music-motion] {
 .mp-card-lead .mp-small {
   font-size: 14px;
 }
-.mp-card-lead .mp-open-icon {
-  display: grid;
-  margin-top: 28px;
-  width: 52px;
-  height: 52px;
+.mp-feature-details {
+  grid-column: 2;
+  min-width: 0;
 }
-.mp-card-lead .mp-open-icon svg {
-  width: 28px;
-  height: 28px;
+.mp-feature-meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 .mp-card-note {
   display: -webkit-box;
@@ -390,6 +393,18 @@ html[data-music-motion] {
 }
 .mp-button.mp-primary:hover {
   background: color-mix(in srgb, var(--color-primary), var(--color-ink) 12%);
+}
+.mp-button.mp-tonal {
+  border-color: transparent;
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+.mp-button.mp-tonal:hover:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--color-secondary-container),
+    var(--color-on-secondary-container) 8%
+  );
 }
 .music-prototype .mp-button:disabled {
   opacity: 1;
@@ -619,7 +634,7 @@ html:has(dialog.mp-detail[open], dialog.mp-review[open]) {
   justify-content: space-between;
   gap: 16px;
   height: var(--mp-toolbar-height);
-  padding: 16px var(--mp-detail-inset);
+  padding: 16px 16px 16px var(--mp-detail-inset);
   color: var(--color-muted);
   font-size: 13px;
 }
@@ -687,9 +702,9 @@ html:has(dialog.mp-detail[open], dialog.mp-review[open]) {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.mp-detail-scroll:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -4px;
+.mp-detail-scroll:focus,
+#mp-detail-title:focus {
+  outline: none;
 }
 .mp-detail-art-column {
   grid-column: 1;
@@ -975,11 +990,11 @@ html[data-music-motion]::view-transition-old(music-prototype-context),
 html[data-music-motion]::view-transition-old(music-prototype-editor) {
   animation: mp-content-out 90ms var(--mp-effects) both;
 }
-html[data-music-motion]::view-transition-new(music-prototype-controls),
-html[data-music-motion]::view-transition-new(music-prototype-summary),
-html[data-music-motion]::view-transition-new(music-prototype-tracks),
-html[data-music-motion]::view-transition-new(music-prototype-context),
-html[data-music-motion]::view-transition-new(music-prototype-editor) {
+html[data-music-motion='open']::view-transition-new(music-prototype-controls),
+html[data-music-motion='open']::view-transition-new(music-prototype-summary),
+html[data-music-motion='open']::view-transition-new(music-prototype-tracks),
+html[data-music-motion='open']::view-transition-new(music-prototype-context),
+html[data-music-motion='open']::view-transition-new(music-prototype-editor) {
   animation:
     mp-content-in 220ms var(--mp-effects) 150ms both,
     mp-content-arrive 350ms var(--mp-spatial) 150ms both;
@@ -996,6 +1011,25 @@ html[data-music-motion]::view-transition-old(root) {
 }
 html[data-music-motion]::view-transition-new(root) {
   animation: mp-background-in 180ms var(--mp-effects) both;
+}
+html[data-music-motion='swap']::view-transition-group(music-prototype-surface),
+html[data-music-motion='swap']::view-transition-group(music-prototype-cover),
+html[data-music-motion='swap']::view-transition-group(music-prototype-summary),
+html[data-music-motion='swap']::view-transition-group(music-prototype-tracks),
+html[data-music-motion='swap']::view-transition-group(music-prototype-context),
+html[data-music-motion='swap']::view-transition-group(music-prototype-editor),
+html[data-music-motion='swap']::view-transition-old(root),
+html[data-music-motion='swap']::view-transition-new(root) {
+  animation: none;
+}
+html[data-music-motion='swap']::view-transition-old(root) {
+  opacity: 0;
+}
+html[data-music-motion='swap']::view-transition-new(music-prototype-summary),
+html[data-music-motion='swap']::view-transition-new(music-prototype-tracks),
+html[data-music-motion='swap']::view-transition-new(music-prototype-context),
+html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
+  animation: mp-content-in 160ms var(--mp-effects) both;
 }
 @keyframes mp-surface-shape {
   from {
@@ -1064,6 +1098,8 @@ html[data-music-motion]::view-transition-new(root) {
     gap: 36px 24px;
   }
   .mp-card-lead {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    column-gap: 28px;
     margin-bottom: 20px;
   }
   .mp-card-lead .mp-card-open {
@@ -1219,33 +1255,35 @@ html[data-music-motion]::view-transition-new(root) {
     border-radius: 3px;
   }
   .mp-card-lead {
+    display: block;
+    width: min(100%, 420px);
+    margin-inline: auto;
     margin-bottom: 18px;
   }
   .mp-card-lead .mp-card-open {
     display: block;
-    width: min(100%, 420px);
-    margin-inline: auto;
+    width: 100%;
   }
   .mp-card-lead .mp-art-frame {
     width: 100%;
   }
   .mp-card-lead .mp-card-caption {
-    display: flex;
-    align-items: start;
-    gap: 20px;
+    display: block;
     padding-top: 18px;
   }
   .mp-card-lead .mp-card-caption h3 {
     max-width: 19ch;
-    margin-bottom: 8px;
     font-size: clamp(28px, 7.2vw, 34px);
     letter-spacing: -0.025em;
   }
   .mp-card-lead .mp-small {
     font-size: 12px;
   }
-  .mp-card-lead .mp-open-icon {
-    margin-top: 0;
+  .mp-feature-details {
+    margin-top: 8px;
+  }
+  .mp-feature-action {
+    display: none;
   }
   .mp-card-note {
     margin-top: 12px;

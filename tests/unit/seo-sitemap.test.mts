@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import type { Initiative, Part } from '@/lib/initiatives';
 import { buildSitemap } from '@/lib/seo/sitemap';
-import { site } from '@/lib/site';
+import { canonicalUrl, routedPages, site } from '@/lib/site';
 import type { WritingData } from '@/lib/writings';
 
 function part(overrides: Partial<Part> = {}): Part {
@@ -66,11 +66,7 @@ test('every entry is absolute, unique, and free of ignored hints', () => {
   const urls = entries.map((entry) => entry.url);
   assert.deepEqual(urls, [
     site.origin,
-    `${site.origin}/writings`,
-    `${site.origin}/initiatives`,
-    `${site.origin}/media`,
-    `${site.origin}/brand`,
-    `${site.origin}/sitemap`,
+    ...routedPages.map((page) => canonicalUrl(page.path)),
     `${site.origin}/initiatives/fall-tour-2026`,
     `${site.origin}/initiatives/fall-tour-2026/part-1`,
     `${site.origin}/writings/hello`,

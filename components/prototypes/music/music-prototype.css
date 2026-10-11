@@ -1,6 +1,12 @@
 .music-prototype {
   --mp-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mp-page-width: 1600px;
+  --mp-page-gutter: clamp(20px, 3vw, 48px);
   padding-bottom: 56px;
+}
+.music-prototype > header[data-column] {
+  max-width: var(--mp-page-width);
+  padding-inline: var(--mp-page-gutter);
 }
 :where(.music-prototype) :is(button, input, textarea) {
   font: inherit;
@@ -22,7 +28,11 @@
   align-items: center;
   gap: 16px;
   min-height: 42px;
-  padding: 6px max(20px, calc((100vw - 1160px) / 2));
+  padding: 6px
+    max(
+      var(--mp-page-gutter),
+      calc((100vw - var(--mp-page-width)) / 2 + var(--mp-page-gutter))
+    );
   background: var(--color-surface-container);
   color: var(--color-muted);
   font-size: 12px;
@@ -40,10 +50,10 @@
 .mp-shell {
   display: grid;
   grid-template-columns: 184px minmax(0, 1fr);
-  gap: 72px;
-  max-width: 1200px;
-  margin: 64px auto 0;
-  padding: 0 20px;
+  gap: 64px;
+  max-width: var(--mp-page-width);
+  margin: 48px auto 0;
+  padding: 0 var(--mp-page-gutter);
 }
 .mp-rail {
   align-self: start;
@@ -160,8 +170,8 @@
 }
 .mp-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 40px 28px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 48px 32px;
   align-items: start;
 }
 .mp-card {
@@ -204,6 +214,7 @@
   line-height: 23px;
   font-weight: 500;
   text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 .mp-open-icon {
   display: none;
@@ -219,22 +230,22 @@
 }
 .mp-card-lead {
   grid-column: 1 / -1;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
 }
 .mp-card-lead .mp-card-open {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
-  gap: 40px;
+  gap: 32px;
 }
 .mp-card-lead .mp-card-caption {
   display: block;
-  padding: 0;
+  padding: 0 24px;
 }
 .mp-card-lead .mp-card-caption h3 {
   max-width: 13ch;
   margin: 0 0 14px;
-  font-size: 42px;
+  font-size: clamp(40px, 3.6vw, 56px);
   line-height: 1.08;
   letter-spacing: -0.035em;
   text-wrap: balance;
@@ -263,6 +274,7 @@
   font-size: 16px;
   line-height: 25px;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .mp-sample-note {
   margin-top: 38px;
@@ -719,13 +731,18 @@ dialog.mp-review {
     font-size: 64px;
   }
   .mp-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px 24px;
   }
   .mp-card-lead {
-    margin-bottom: 4px;
+    margin-bottom: 20px;
   }
   .mp-card-lead .mp-card-open {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
     gap: 28px;
+  }
+  .mp-card-lead .mp-card-caption {
+    padding: 0;
   }
   .mp-card-lead .mp-card-caption h3 {
     font-size: 34px;
@@ -779,7 +796,7 @@ dialog.mp-review {
     margin-bottom: 0;
   }
   .mp-card-lead .mp-card-caption h3 {
-    font-size: 36px;
+    font-size: clamp(30px, 4.3vw, 36px);
   }
   dialog.mp-detail {
     width: 100vw;
@@ -864,28 +881,39 @@ dialog.mp-review {
     width: 100%;
   }
   .mp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 30px 20px;
   }
   .mp-art {
     border-radius: 3px;
   }
   .mp-card-lead {
-    margin-bottom: 8px;
+    margin-bottom: 18px;
   }
   .mp-card-lead .mp-card-open {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    display: block;
+  }
+  .mp-card-lead .mp-art {
+    width: 84%;
+    max-width: 420px;
+  }
+  .mp-card-lead .mp-card-caption {
+    display: flex;
+    align-items: center;
     gap: 20px;
+    padding-top: 18px;
   }
   .mp-card-lead .mp-card-caption h3 {
-    margin-bottom: 10px;
-    font-size: clamp(22px, 6.2vw, 28px);
+    max-width: 19ch;
+    margin-bottom: 8px;
+    font-size: clamp(28px, 7.2vw, 34px);
     letter-spacing: -0.025em;
   }
   .mp-card-lead .mp-small {
     font-size: 12px;
   }
   .mp-card-lead .mp-open-icon {
-    margin-top: 14px;
+    margin-top: 0;
   }
   .mp-card-note {
     margin-top: 12px;

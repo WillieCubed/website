@@ -2,8 +2,8 @@
 
 This note is for the maintainer who edits the About or Research proposals.
 Neither page is approved for publication. Keep both in `app/_proposals`
-and keep their `sitePages` entries unrouted until Willie approves their
-content and public release.
+and leave them out of `sitePages` until Willie approves their content
+and public release.
 
 The October 10, 2026 release published both pages without explicit content
 approval. The correction removes their routes and discovery entries while

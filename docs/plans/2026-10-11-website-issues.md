@@ -26,6 +26,12 @@ media interaction. The public site therefore uses one `/music` route.
 
 - Let headings stand on their own. Do not add decorative overlines or eyebrow
   text. Put track counts and series positions below playlist titles.
+- Use text navigation for series and keep counts quiet. Present the optional
+  lead as a square cover beside its title and authored notes. This gives it
+  prominence while keeping more of the collection visible on phones.
+- Keep the phone focus view's cover and title beside one another. Put editing
+  controls and the track sequence across the full width below them. Preserve
+  the larger cover and adjacent context on desktop.
 - Show an optional lead playlist once, followed by the selected collection in
   Willie's order. Keep complete artwork square and intact.
 - Give series visible navigation. Selecting a series changes the gallery in

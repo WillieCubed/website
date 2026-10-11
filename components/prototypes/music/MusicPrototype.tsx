@@ -593,31 +593,37 @@ export default function MusicPrototype() {
                   ? `${series.title} / ${String(currentIndex + 1).padStart(2, '0')}`
                   : `${currentIndex + 1} of ${displayed.length}`}
               </span>
-              <div>
-                <button
-                  className="mp-icon-button"
-                  disabled={currentIndex <= 0}
-                  onClick={() => openPlaylist(displayed[currentIndex - 1])}
-                  aria-label="Previous playlist"
+              <div className="mp-detail-actions">
+                <div
+                  className="mp-detail-pagination"
+                  role="group"
+                  aria-label="Playlist navigation"
                 >
-                  <Icon name="arrow-left" size={20} />
-                </button>
+                  <button
+                    className="mp-icon-button mp-icon-button--tonal"
+                    disabled={currentIndex <= 0}
+                    onClick={() => openPlaylist(displayed[currentIndex - 1])}
+                    aria-label="Previous playlist"
+                  >
+                    <Icon name="arrow-left" size={24} />
+                  </button>
+                  <button
+                    className="mp-icon-button mp-icon-button--filled"
+                    disabled={
+                      currentIndex < 0 || currentIndex >= displayed.length - 1
+                    }
+                    onClick={() => openPlaylist(displayed[currentIndex + 1])}
+                    aria-label="Next playlist"
+                  >
+                    <Icon name="arrow-right" size={24} />
+                  </button>
+                </div>
                 <button
-                  className="mp-icon-button"
-                  disabled={
-                    currentIndex < 0 || currentIndex >= displayed.length - 1
-                  }
-                  onClick={() => openPlaylist(displayed[currentIndex + 1])}
-                  aria-label="Next playlist"
-                >
-                  <Icon name="arrow-right" size={20} />
-                </button>
-                <button
-                  className="mp-icon-button"
+                  className="mp-icon-button mp-icon-button--tonal mp-detail-close"
                   onClick={closePlaylist}
                   aria-label="Close playlist"
                 >
-                  <Icon name="x" size={22} />
+                  <Icon name="x" size={24} />
                 </button>
               </div>
             </div>

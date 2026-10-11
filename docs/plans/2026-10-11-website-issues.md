@@ -32,7 +32,8 @@ media interaction. The public site therefore uses one `/music` route.
 - Let the Music page, its top bar, and its prototype controls share a 1600px
   maximum width. This page needs room for artwork and collection browsing.
   Keep other pages at their existing widths.
-- Keep the series rail 32px from the gallery on large screens and 24px away
+- Give the series rail a 256px width on large screens and 224px at 840–1199px.
+  Keep it 32px from the gallery on large screens and 24px away
   at 840–1199px. Give the title 24px of space before the filters when the rail
   sits beside the gallery. The horizontal gaps match the cover grid so the
   controls and collection read as one layout. Stack the series controls above
@@ -56,6 +57,13 @@ media interaction. The public site therefore uses one `/music` route.
 - Open a playlist into a focused view with its cover, title, notes, ordered
   tracks, series context, and a Spotify link. Use a two-column modal on desktop
   and a full-screen view on phones.
+- Use equal 48px targets and 24px icons in the focused view's 80px toolbar.
+  Group Previous and Next with connected shapes. Use tonal styling for Previous
+  and primary filled styling for Next. Separate Close with a tonal square
+  button. Align the bar's side insets with the content below it, and leave room
+  for keyboard focus rings. Change shape on press and preserve reduced motion.
+  Use [Material's expressive icon-button guidance](https://github.com/material-components/material-components-android/blob/master/docs/components/IconButton.md#m3-expressive)
+  for color variants and shape behavior.
 - Encode the selected series and focused playlist in the URL. Support direct
   entry, refresh, Back, Forward, Escape, restored focus, and retained scroll.
 - Let visitors move between playlists in the current collection. Keep repeated
@@ -71,8 +79,9 @@ media interaction. The public site therefore uses one `/music` route.
 - Show part of the next collection row on initial load. If the viewport cannot
   reveal at least 56px of its first cover, show a More playlists button that
   scrolls there and moves keyboard focus to that playlist. Recheck after fonts
-  load and the viewport changes. Center the cue under the featured artwork
-  and keep it clear of the caption.
+  load and the viewport changes. Keep the cue at the viewport's bottom edge
+  and center it under the featured artwork. Raise it on compact screens only
+  when its normal position would overlap the caption.
   Hide the cue after the visitor scrolls.
 
 The gallery uses these layouts. Series and search results use equal cards in

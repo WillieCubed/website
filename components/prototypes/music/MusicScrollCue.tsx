@@ -29,9 +29,14 @@ export default function MusicScrollCue({
       const cover = gallery.current
         ?.querySelector<HTMLElement>('.mp-card-lead .mp-art-frame')
         ?.getBoundingClientRect();
+      const caption = gallery.current
+        ?.querySelector<HTMLElement>('.mp-card-lead .mp-card-caption')
+        ?.getBoundingClientRect();
+      const overlapsCaption =
+        caption && caption.top < height - 20 && caption.bottom > height - 64;
       setLeft(cover ? cover.left + cover.width / 2 : null);
       setBottom(
-        cover && innerWidth < 600
+        cover && innerWidth < 600 && overlapsCaption
           ? Math.max(20, height - cover.bottom + 12)
           : 20
       );

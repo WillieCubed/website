@@ -548,6 +548,18 @@ test('the first screen shows a collection preview or a working scroll cue', asyn
         })
       )
       .toBe(true);
+    if (width === 390) {
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const cue = document.querySelector('.mp-scroll-cue');
+            return cue
+              ? innerHeight - cue.getBoundingClientRect().bottom
+              : null;
+          })
+        )
+        .toBe(20);
+    }
   }
   const cue = page.getByRole('button', { name: 'Scroll to more playlists' });
   await expect(cue).toBeVisible();

@@ -214,7 +214,7 @@ export const sitePages: SitePage[] = [
     path: '/projects',
     label: 'Projects',
     description: 'Apps and other things Willie has built.',
-    routed: false,
+    routed: true,
   },
   {
     path: '/random',

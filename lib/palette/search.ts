@@ -32,11 +32,12 @@ const LIMIT = 8;
 /** How long typing has to pause before a query runs. */
 const DEBOUNCE_MS = 120;
 
-export type SearchKind = 'writing' | 'initiative' | 'page';
+export type SearchKind = 'writing' | 'initiative' | 'project' | 'page';
 
 export const SEARCH_GROUPS: Array<{ kind: SearchKind; label: string }> = [
   { kind: 'writing', label: 'Writings' },
   { kind: 'initiative', label: 'Initiatives' },
+  { kind: 'project', label: 'Projects' },
   { kind: 'page', label: 'Pages' },
 ];
 
@@ -118,7 +119,9 @@ export function excerptParts(html: string): ExcerptPart[] {
 }
 
 function kindOf(type: string | undefined): SearchKind {
-  return type === 'writing' || type === 'initiative' ? type : 'page';
+  return type === 'writing' || type === 'initiative' || type === 'project'
+    ? type
+    : 'page';
 }
 
 /** Maps one Pagefind result to a palette row. */

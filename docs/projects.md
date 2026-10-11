@@ -70,6 +70,43 @@ An owner is a key in `OWNERS` in `lib/projects/owners.ts`. To add one, add a key
 
 Run `pnpm test && pnpm typecheck`. The tests load every file in `content/projects` through the schema. Run `pnpm content:check` as well when you touch an image.
 
-## Not built yet
+## The public index
 
-The `/projects` list is parked (`routed: false` in `lib/site.ts`) until Willie picks a layout. The steps to unpark it are in `app/_(pages)/README.md`.
+The `/projects` index shows the published ventures and products from
+`lib/home/ventures.ts` under Current work. Each card reuses the entry's title,
+copy, and image alt text and opens its existing homepage detail view. A hidden
+venture and its products do not appear. The cards stay neutral until a visitor
+points at or focuses one, when its existing Fidelity scheme applies.
+
+Published project files appear in a second section. The index leaves that
+section out until there is a published project. The top bar's global search
+finds the published work. The layout uses one column
+below 600px and two columns above it inside the same 840px content column as
+the top bar and footer.
+
+`getPublishedProjects()` always calls the loader with `includeDrafts: false`.
+The index, hover-card registry, sitemap, and site feeds use it even in
+development. The search collector uses the same uncached loader option so it
+can run under Node. Feeds leave out undated projects rather than invent a
+publication date, and facts-only projects never carry body text or media.
+
+This component diagram shows the public project discovery modules.
+
+```mermaid
+flowchart LR
+  loader[Public project loader]
+  catalog[Projects index]
+  entities[Entity registry]
+  search[Search collector]
+  feeds[Site feed collector]
+  sitemap[Sitemap builder]
+  loader --> catalog
+  loader --> entities
+  loader --> search
+  loader --> feeds
+  loader --> sitemap
+```
+
+Willie still controls publication by clearing each file's draft flag. The
+current content files remain drafts, so the public index contains only the
+already published homepage work.

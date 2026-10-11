@@ -3,7 +3,7 @@
 Next.js never routes a folder whose name starts with an underscore, so
 every page in here returns a 404. These are the pages from the old site
 that have not been rebuilt in the new design yet. Landing, writings,
-initiatives, and brand are the only routed pages.
+initiatives, projects, and brand have been rebuilt and routed.
 
 To bring a page back, rebuild it, move its folder to `app/<route>`, and
 set its `routed` flag to true in `sitePages` in `lib/site.ts`. The footer
@@ -16,16 +16,10 @@ card, because the helper declares every custom social image as
 `/assets/headshot.jpg`, which is 1157×1157, so fix the image or add an
 image-size option to `pageMetadata` when they are routed again.
 
-The project detail route is routed already and lives at
-`app/projects/[codename]`, and `lib/response-headers.ts` covers it. Only the
-`/projects` index is still parked.
-
-Projects also left the site feeds and search. When the `/projects` index is
-unparked, restore the project items in the three site feeds under
-`app/feed.xml` and `app/feed/`, remove the project exclusions in
-`selectSearchable` (`lib/search/server.ts`), `SearchContentType`
-(`lib/search/types.ts`), and `app/api/search/route.ts`, and have
-`lib/search/collect.ts` emit project items.
+The project index and detail routes live at `app/projects`. Public project
+files also enter search, hover cards, the sitemap, and the three site feeds.
+Every discovery path excludes drafts and hidden projects, including in
+development. See [the projects guide](../../docs/projects.md).
 
 `layout.tsx` here is the old layout for these pages, which adds the top
 bar. It only applies while the pages sit in this folder.

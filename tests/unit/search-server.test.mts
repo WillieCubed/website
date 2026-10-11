@@ -37,10 +37,10 @@ const items: SearchableItem[] = [
   },
 ];
 
-test('selectSearchable never returns projects', () => {
+test('selectSearchable includes published projects', () => {
   assert.deepEqual(
     selectSearchable(items, 'all').map((item) => item.slug),
-    ['hello', 'initiatives/twd', 'pages/writings']
+    ['hello', 'initiatives/twd', 'pages/writings', 'greenhouse']
   );
 });
 

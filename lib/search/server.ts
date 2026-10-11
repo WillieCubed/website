@@ -52,17 +52,12 @@ export async function loadSearchIndex(): Promise<SearchableItem[]> {
   return indexPromise;
 }
 
-/**
- * The items a query may match. Projects never match while their pages are
- * parked in app/_(pages), because a result would link to a 404.
- */
+/** The published items a query may match, optionally limited by type. */
 export function selectSearchable(
   items: SearchableItem[],
   type: SearchContentType
 ): SearchableItem[] {
-  return items.filter(
-    (item) => item.type !== 'project' && (type === 'all' || item.type === type)
-  );
+  return items.filter((item) => type === 'all' || item.type === type);
 }
 
 export async function searchContent(

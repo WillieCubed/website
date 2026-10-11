@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 import { getInitiatives } from '@/lib/initiatives';
+import { getPublishedProjects } from '@/lib/projects';
 import { buildSitemap } from '@/lib/seo/sitemap';
 import { getAllWritings } from '@/lib/writings';
 
@@ -11,9 +12,10 @@ import { getAllWritings } from '@/lib/writings';
  * out until they are rebuilt and routed again.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [initiatives, writings] = await Promise.all([
+  const [initiatives, writings, projects] = await Promise.all([
     getInitiatives(),
     getAllWritings(),
+    getPublishedProjects(),
   ]);
-  return buildSitemap({ initiatives, writings });
+  return buildSitemap({ initiatives, writings, projects });
 }

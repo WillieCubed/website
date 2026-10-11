@@ -2,6 +2,7 @@ import { cacheLife } from 'next/cache';
 
 import { fetchPublicDocument } from '@/lib/indieweb/public-fetch';
 import { getInitiatives } from '@/lib/initiatives';
+import { getPublishedProjects } from '@/lib/projects';
 import { absoluteUrl } from '@/lib/site';
 import {
   type WritingData,
@@ -16,6 +17,7 @@ import { renderFeedHtml } from './html';
 import {
   type FeedItem,
   initiativeToFeedItem,
+  projectToFeedItem,
   writingToFeedItem,
 } from './index';
 
@@ -100,11 +102,26 @@ export async function getInitiativeFeedItems(): Promise<FeedItem[]> {
   return newestFirst(items.filter((item) => item !== null));
 }
 
-/** What the site feeds carry: writings and initiatives, newest first. */
+/** Every published project with a real date and only its public body. */
+export async function getProjectFeedItems(): Promise<FeedItem[]> {
+  const projects = await getPublishedProjects();
+  const items = await Promise.all(
+    projects.map(async (project) =>
+      projectToFeedItem(
+        project,
+        project.content ? await renderFeedHtml(project.content) : undefined
+      )
+    )
+  );
+  return newestFirst(items.filter((item) => item !== null));
+}
+
+/** What the site feeds carry: published writings, initiatives, and projects. */
 export async function getSiteFeedItems(): Promise<FeedItem[]> {
-  const [writings, initiatives] = await Promise.all([
+  const [writings, initiatives, projects] = await Promise.all([
     getWritingFeedItems(),
     getInitiativeFeedItems(),
+    getProjectFeedItems(),
   ]);
-  return newestFirst([...writings, ...initiatives]);
+  return newestFirst([...writings, ...initiatives, ...projects]);
 }

@@ -16,6 +16,13 @@ export async function getProjects(): Promise<Project[]> {
   return loadAllProjects({ includeDrafts: showDrafts });
 }
 
+/** Public discovery never includes drafts, including on a development server. */
+export async function getPublishedProjects(): Promise<Project[]> {
+  'use cache';
+  cacheLife('hours');
+  return loadAllProjects({ includeDrafts: false });
+}
+
 export async function getProject(slug: string): Promise<Project | null> {
   return (await getProjects()).find((project) => project.slug === slug) ?? null;
 }

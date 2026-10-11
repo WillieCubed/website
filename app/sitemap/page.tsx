@@ -7,6 +7,8 @@ import TopBar, { COLUMN } from '@/components/site/TopBar';
 import { STATIC_PAGES } from '@/lib/entities/pages';
 import { getPublicResources } from '@/lib/indieweb/resources';
 import { getInitiatives } from '@/lib/initiatives';
+import { getPublishedProjects } from '@/lib/projects';
+import { projectFacts } from '@/lib/projects/facts';
 import { publishedSitemapContent } from '@/lib/seo/sitemap';
 import { formatDate, pageMetadata, sitePage } from '@/lib/site';
 import { getAllWritings } from '@/lib/writings';
@@ -58,9 +60,10 @@ function SitemapLink({
 }
 
 export default async function SitemapPage() {
-  const [writings, initiatives] = await Promise.all([
+  const [writings, initiatives, projects] = await Promise.all([
     getAllWritings(false),
     getInitiatives(),
+    getPublishedProjects(),
   ]);
   const published = publishedSitemapContent({ writings, initiatives });
   const resourceGroups = getPublicResources()
@@ -125,6 +128,26 @@ export default async function SitemapPage() {
                           ))}
                         </ul>
                       )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {projects.length > 0 && (
+              <section aria-labelledby="sitemap-projects">
+                <h2 id="sitemap-projects" className="text-title-large">
+                  Projects
+                </h2>
+                <ul className="sitemap-links sitemap-grid">
+                  {projects.map((project) => (
+                    <li key={project.href}>
+                      <SitemapLink
+                        href={project.href}
+                        title={project.title}
+                        description={
+                          project.line ?? projectFacts(project).join(' · ')
+                        }
+                      />
                     </li>
                   ))}
                 </ul>

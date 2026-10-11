@@ -16,7 +16,12 @@ import {
   sampleTracks,
   validCatalog,
 } from '@/lib/prototypes/music';
+import {
+  type PlaylistMotionParts,
+  playlistMotion,
+} from '@/lib/prototypes/music-motion';
 
+import MusicScrollCue from './MusicScrollCue';
 import SampleCover from './SampleCover';
 import './music-prototype.css';
 
@@ -25,38 +30,6 @@ const STORAGE_KEY = 'willie-music-prototype-v1';
 function readLocation() {
   const params = new URLSearchParams(location.search);
   return { series: params.get('series'), detail: params.get('detail') };
-}
-
-function morph(
-  update: () => void,
-  before: HTMLElement | null,
-  after: () => HTMLElement | null
-) {
-  const animate =
-    typeof document.startViewTransition === 'function' &&
-    !matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (animate && before)
-    before.style.viewTransitionName = 'music-prototype-cover';
-  let destination: HTMLElement | null = null;
-  const change = () => {
-    if (before) before.style.viewTransitionName = '';
-    update();
-    destination = after();
-    if (animate && destination)
-      destination.style.viewTransitionName = 'music-prototype-cover';
-  };
-  if (!animate) {
-    change();
-    return;
-  }
-  const transition = document.startViewTransition(change);
-  transition.ready.catch(() => undefined);
-  void transition.finished
-    .catch(() => undefined)
-    .finally(() => {
-      if (before) before.style.viewTransitionName = '';
-      if (destination) destination.style.viewTransitionName = '';
-    });
 }
 
 export default function MusicPrototype() {
@@ -72,9 +45,12 @@ export default function MusicPrototype() {
   const [newSeries, setNewSeries] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
+  const gallery = useRef<HTMLDivElement>(null);
+  const cancelMotion = useRef<(() => void) | null>(null);
   const reviewDialog = useRef<HTMLDialogElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const ownDetailEntry = useRef(false);
+  const ownPop = useRef(false);
   const dragId = useRef<string | null>(null);
   const catalog = editing ? draft : live;
   const series = catalog.series.find((item) => item.id === seriesId);
@@ -102,6 +78,8 @@ export default function MusicPrototype() {
   const current = playlists.find((item) => item.id === focused);
   const currentIndex = focused ? displayed.indexOf(focused) : -1;
   const changed = JSON.stringify(live) !== JSON.stringify(draft);
+
+  useEffect(() => () => cancelMotion.current?.(), []);
 
   useEffect(() => {
     try {
@@ -146,7 +124,14 @@ export default function MusicPrototype() {
       else if (!allowed) dialog.current?.close();
     };
     sync();
-    const pop = () => sync(true);
+    const pop = () => {
+      if (ownPop.current) {
+        ownPop.current = false;
+        return;
+      }
+      cancelMotion.current?.();
+      sync(true);
+    };
     window.addEventListener('popstate', pop);
     return () => window.removeEventListener('popstate', pop);
   }, [catalog, editing]);
@@ -175,46 +160,74 @@ export default function MusicPrototype() {
   }
 
   function openPlaylist(id: string, source?: HTMLElement) {
+    cancelMotion.current?.();
     if (source) returnFocus.current = source;
-    const before = dialog.current?.open
-      ? dialog.current.querySelector<HTMLElement>('[data-focus-cover]')
-      : (source?.querySelector<HTMLElement>('[data-card-cover]') ?? null);
     const alreadyOpen = !!dialog.current?.open;
-    morph(
+    const before = alreadyOpen ? focusParts() : cardParts(source);
+    cancelMotion.current = playlistMotion(
       () => {
         flushSync(() => setFocused(id));
         if (!dialog.current?.open) dialog.current?.showModal();
         const scroller =
           dialog.current?.querySelector<HTMLElement>('.mp-detail-scroll');
         if (scroller) scroller.scrollTop = 0;
+        if (alreadyOpen) history.replaceState(null, '', href(seriesId, id));
+        else {
+          history.pushState(null, '', href(seriesId, id));
+          ownDetailEntry.current = true;
+        }
       },
       before,
-      () =>
-        dialog.current?.querySelector<HTMLElement>('[data-focus-cover]') ?? null
+      focusParts,
+      alreadyOpen ? 'swap' : 'open'
     );
-    if (alreadyOpen) history.replaceState(null, '', href(seriesId, id));
-    else {
-      history.pushState(null, '', href(seriesId, id));
-      ownDetailEntry.current = true;
-    }
+  }
+
+  function cardParts(card?: HTMLElement | null): PlaylistMotionParts {
+    return {
+      surface: card?.querySelector<HTMLElement>('[data-card-surface]'),
+      cover: card?.querySelector<HTMLElement>('[data-card-cover]'),
+    };
+  }
+
+  function focusParts(): PlaylistMotionParts {
+    const find = (selector: string) =>
+      dialog.current?.querySelector<HTMLElement>(selector);
+    return {
+      surface: dialog.current,
+      cover: find('[data-focus-cover]'),
+      controls: find('.mp-detail-bar'),
+      summary: find('.mp-detail-body'),
+      tracks: find('.mp-detail-tracks'),
+      context: find('.mp-detail-context'),
+      editor: find('.mp-context-editor'),
+    };
   }
 
   function closePlaylist() {
-    const before =
-      dialog.current?.querySelector<HTMLElement>('[data-focus-cover]') ?? null;
-    const target = returnFocus.current;
-    morph(
+    cancelMotion.current?.();
+    const target = gallery.current?.querySelector<HTMLElement>(
+      `[data-playlist="${focused}"] .mp-card-open`
+    );
+    const box = target?.getBoundingClientRect();
+    const visibleTarget =
+      box && box.bottom > 0 && box.top < innerHeight ? target : null;
+    cancelMotion.current = playlistMotion(
       () => {
         dialog.current?.close();
         flushSync(() => setFocused(null));
-        if (target?.isConnected) target.focus({ preventScroll: true });
+        const restore = returnFocus.current ?? target;
+        if (restore?.isConnected) restore.focus({ preventScroll: true });
+        if (ownDetailEntry.current) {
+          ownPop.current = true;
+          history.back();
+        } else history.replaceState(null, '', href(seriesId, null));
+        ownDetailEntry.current = false;
       },
-      before,
-      () => target?.querySelector<HTMLElement>('[data-card-cover]') ?? null
+      visibleTarget ? focusParts() : {},
+      () => cardParts(visibleTarget),
+      'close'
     );
-    if (ownDetailEntry.current) history.back();
-    else history.replaceState(null, '', href(seriesId, null));
-    ownDetailEntry.current = false;
   }
 
   const backdrop = useBackdropDismiss(closePlaylist);
@@ -305,6 +318,7 @@ export default function MusicPrototype() {
         className={`mp-card${playlist.id === lead ? ' mp-card-lead' : ''}${editing && !selected ? ' mp-card-unselected' : ''}`}
         aria-label={playlist.id === lead ? 'Featured playlist' : undefined}
         data-playlist={playlist.id}
+        data-focused={playlist.id === focused || undefined}
         draggable={editing && !search}
         onDragStart={() => {
           dragId.current = playlist.id;
@@ -319,12 +333,14 @@ export default function MusicPrototype() {
           onClick={(event) => openPlaylist(playlist.id, event.currentTarget)}
           aria-label={`Open ${playlist.title}`}
         >
-          <div
-            className="mp-art"
-            data-card-cover=""
-            style={{ background: playlist.color }}
-          >
-            <SampleCover playlist={playlist} />
+          <div className="mp-art-frame" data-card-surface="">
+            <div
+              className="mp-art"
+              data-card-cover=""
+              style={{ background: playlist.color }}
+            >
+              <SampleCover playlist={playlist} />
+            </div>
           </div>
           <div className="mp-card-caption">
             <div>
@@ -394,6 +410,7 @@ export default function MusicPrototype() {
       </div>
       <TopBar
         column="wide"
+        showSearch={false}
         crumbs={[{ label: 'Music', href: '/prototypes/music' }]}
       />
       <main id="main" className="mp-shell">
@@ -402,10 +419,7 @@ export default function MusicPrototype() {
             <h1>Music</h1>
           </div>
           <nav className="mp-series-nav" aria-label="Playlist series">
-            <button
-              aria-current={!series ? 'true' : undefined}
-              onClick={() => chooseSeries(null)}
-            >
+            <button aria-pressed={!series} onClick={() => chooseSeries(null)}>
               <span>All playlists</span>
               <span>
                 {editing ? playlists.length : catalog.selected.length}
@@ -414,7 +428,7 @@ export default function MusicPrototype() {
             {catalog.series.map((item) => (
               <button
                 key={item.id}
-                aria-current={series?.id === item.id ? 'true' : undefined}
+                aria-pressed={series?.id === item.id}
                 onClick={() => chooseSeries(item.id)}
               >
                 <span>{item.title}</span>
@@ -518,11 +532,18 @@ export default function MusicPrototype() {
               {storageError}
             </p>
           )}
-          <div className={`mp-grid${editing ? ' mp-grid-editing' : ''}`}>
+          <div
+            ref={gallery}
+            className={`mp-grid${editing ? ' mp-grid-editing' : ''}`}
+          >
             {displayed.map((id, index) =>
               renderCard(playlists.find((item) => item.id === id)!, index)
             )}
           </div>
+          <MusicScrollCue
+            gallery={gallery}
+            collection={`${seriesId}:${search}:${editing}:${displayed.join(',')}`}
+          />
           {!matching.length && (
             <div className="mp-empty">
               <Icon name="music" size={32} />
@@ -610,19 +631,21 @@ export default function MusicPrototype() {
                 <div className="mp-detail-art" data-focus-cover="">
                   <SampleCover playlist={current} />
                 </div>
-                {catalog.series
-                  .filter((item) => item.playlistIds.includes(current.id))
-                  .map((item) => (
-                    <p key={item.id} className="mp-detail-series">
-                      <span>{item.title}</span>
-                      <span>
-                        {String(
-                          item.playlistIds.indexOf(current.id) + 1
-                        ).padStart(2, '0')}{' '}
-                        / {String(item.playlistIds.length).padStart(2, '0')}
-                      </span>
-                    </p>
-                  ))}
+                <div className="mp-detail-context">
+                  {catalog.series
+                    .filter((item) => item.playlistIds.includes(current.id))
+                    .map((item) => (
+                      <p key={item.id} className="mp-detail-series">
+                        <span>{item.title}</span>
+                        <span>
+                          {String(
+                            item.playlistIds.indexOf(current.id) + 1
+                          ).padStart(2, '0')}{' '}
+                          / {String(item.playlistIds.length).padStart(2, '0')}
+                        </span>
+                      </p>
+                    ))}
+                </div>
               </div>
               <div className="mp-detail-body">
                 <h2 id="mp-detail-title">{current.title}</h2>

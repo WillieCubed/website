@@ -2,6 +2,7 @@ import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
+import SiteLink from '@/components/link/SiteLink';
 import PaletteProvider from '@/components/palette/PaletteProvider';
 import Fragmention from '@/components/site/Fragmention';
 import SiteFooter from '@/components/site/SiteFooter';
@@ -11,6 +12,7 @@ import { PUBLICATION_URI } from '@/lib/atproto/config';
 import { ENDPOINT_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
 import { site } from '@/lib/site';
 import { SPECULATION_RULES } from '@/lib/speculation-rules';
+import { isPrivatePreview } from '@/lib/studio/config';
 import { themeTransitionScript } from '@/lib/theme-transition';
 
 import { monoFont, sansFont } from './fonts';
@@ -53,11 +55,11 @@ export const metadata: Metadata = {
   icons: SITE_ICONS,
   manifest: SITE_MANIFEST,
   robots: {
-    index: true,
-    follow: true,
+    index: !isPrivatePreview(),
+    follow: !isPrivatePreview(),
     googleBot: {
-      index: true,
-      follow: true,
+      index: !isPrivatePreview(),
+      follow: !isPrivatePreview(),
       'max-image-preview': 'large',
       'max-snippet': -1,
       'max-video-preview': -1,
@@ -91,6 +93,7 @@ export default async function RootLayout({
     <html
       lang={site.language}
       className={`${sansFont.variable} ${monoFont.variable}`}
+      data-site-mode={isPrivatePreview() ? 'preview' : 'public'}
       suppressHydrationWarning
     >
       <head>
@@ -104,31 +107,36 @@ export default async function RootLayout({
         {/* After the homepage: the IndieWeb authorship algorithm follows
             the first rel="author" link to find the author's h-card. */}
         <link rel="author" type="text/plain" href="/humans.txt" />
-        {ENDPOINT_DISCOVERY_LINKS.map(({ rel, href }) => (
-          <link key={rel} rel={rel} href={href} />
-        ))}
-        <link
-          rel="alternate"
-          type="application/rss+xml"
-          title={`${site.name} (RSS)`}
-          href="/feed.xml"
-        />
-        <link
-          rel="alternate"
-          type="application/atom+xml"
-          title={`${site.name} (Atom)`}
-          href="/feed/atom"
-        />
-        <link
-          rel="alternate"
-          type="application/feed+json"
-          title={`${site.name} (JSON Feed)`}
-          href="/feed/json"
-        />
-        {/* standard.site: the AT Protocol publication this site is.
-            /.well-known/site.standard.publication confirms it. */}
-        {PUBLICATION_URI && (
-          <link rel="site.standard.publication" href={PUBLICATION_URI} />
+        {!isPrivatePreview() &&
+          ENDPOINT_DISCOVERY_LINKS.map(({ rel, href }) => (
+            <link key={rel} rel={rel} href={href} />
+          ))}
+        {!isPrivatePreview() && (
+          <>
+            <link
+              rel="alternate"
+              type="application/rss+xml"
+              title={`${site.name} (RSS)`}
+              href="/feed.xml"
+            />
+            <link
+              rel="alternate"
+              type="application/atom+xml"
+              title={`${site.name} (Atom)`}
+              href="/feed/atom"
+            />
+            <link
+              rel="alternate"
+              type="application/feed+json"
+              title={`${site.name} (JSON Feed)`}
+              href="/feed/json"
+            />
+            {/* standard.site: the AT Protocol publication this site is.
+                /.well-known/site.standard.publication confirms it. */}
+            {PUBLICATION_URI && (
+              <link rel="site.standard.publication" href={PUBLICATION_URI} />
+            )}
+          </>
         )}
         {/* Prefetches, never prerenders; lib/speculation-rules.ts says why. */}
         <script
@@ -138,17 +146,31 @@ export default async function RootLayout({
           }}
         />
         {/* Lets a browser offer this site as a search engine in its address bar. */}
-        <link
-          rel="search"
-          type="application/opensearchdescription+xml"
-          title={site.shortName}
-          href="/opensearch.xml"
-        />
+        {!isPrivatePreview() && (
+          <link
+            rel="search"
+            type="application/opensearchdescription+xml"
+            title={site.shortName}
+            href="/opensearch.xml"
+          />
+        )}
       </head>
       <body className="flex min-h-dvh flex-col bg-ground text-ink font-sans antialiased">
         <PaletteProvider>
           <SkipLink />
+          {isPrivatePreview() && (
+            <aside
+              aria-label="Private preview"
+              className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-5 py-2 text-label-medium text-muted"
+            >
+              <span>Preview · Private</span>
+              <SiteLink href="/studio" preview={false}>
+                Your writing
+              </SiteLink>
+            </aside>
+          )}
           {process.env.NODE_ENV === 'production' &&
+            !isPrivatePreview() &&
             process.env.NEXT_PUBLIC_GTAG_ID && (
               <>
                 <Script

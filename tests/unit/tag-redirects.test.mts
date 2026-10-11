@@ -8,7 +8,9 @@ import { config, proxy } from '../../proxy';
 
 /** Where the proxy sends a request, or null when it lets it through. */
 function redirectFor(url: string) {
-  const response = proxy(new NextRequest(new URL(url, site.origin)));
+  const response = proxy(
+    new NextRequest(new URL(url, site.origin))
+  ) as import('next/server').NextResponse;
   const location = response.headers.get('location');
   if (!location) return null;
   const target = new URL(location);
@@ -36,8 +38,6 @@ test('an empty tag query leaves the writings index alone', () => {
   assert.equal(redirectFor('/writings?tag='), null);
 });
 
-test('the proxy runs only on the writings index with a tag query', () => {
-  assert.deepEqual(config.matcher, [
-    { source: '/writings', has: [{ type: 'query', key: 'tag' }] },
-  ]);
+test('the proxy covers every path to protect preview assets and direct origins', () => {
+  assert.deepEqual(config.matcher, ['/:path*']);
 });

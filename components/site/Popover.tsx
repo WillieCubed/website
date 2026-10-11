@@ -15,6 +15,7 @@ export default function Popover({
   placement = 'default',
   width: preferredWidth = 240,
   disabled = false,
+  anchorRect,
 }: {
   label: string;
   current?: boolean;
@@ -26,6 +27,7 @@ export default function Popover({
   placement?: 'default' | 'breadcrumb';
   width?: number;
   disabled?: boolean;
+  anchorRect?: () => Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'> | null;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -33,7 +35,7 @@ export default function Popover({
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function place() {
-      const anchor = button.current?.getBoundingClientRect();
+      const anchor = anchorRect?.() ?? button.current?.getBoundingClientRect();
       const menu = panel.current;
       if (!anchor || !menu?.matches(':popover-open')) return;
       const horizontalInset = 16;
@@ -100,7 +102,11 @@ export default function Popover({
       setOpen(open);
       place();
       if (open) {
-        menu?.querySelector<HTMLElement>('a, button, [tabindex="0"]')?.focus();
+        menu
+          ?.querySelector<HTMLElement>(
+            'a[href], button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex="0"]'
+          )
+          ?.focus();
       } else if (menu?.contains(document.activeElement)) {
         button.current?.focus();
       }
@@ -124,7 +130,7 @@ export default function Popover({
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place);
     };
-  }, [align, placement, preferredWidth]);
+  }, [align, placement, preferredWidth, anchorRect]);
   return (
     <>
       <button

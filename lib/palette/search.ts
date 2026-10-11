@@ -55,6 +55,14 @@ export interface SearchRow {
   excerpt: ExcerptPart[];
 }
 
+function isPreviewBrowser(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_SITE_MODE === 'preview' ||
+    (typeof document !== 'undefined' &&
+      document.documentElement.dataset.siteMode === 'preview')
+  );
+}
+
 let loading: Promise<PagefindApi> | null = null;
 
 /**
@@ -63,6 +71,8 @@ let loading: Promise<PagefindApi> | null = null;
  * forgotten so the next query can try again.
  */
 export function loadPagefind(): Promise<PagefindApi> {
+  if (isPreviewBrowser())
+    return Promise.reject(new Error('Preview uses private search'));
   loading ??= (async () => {
     const pagefind = (await import(
       /* webpackIgnore: true */ new URL(PAGEFIND_URL, window.location.href).href
@@ -140,6 +150,32 @@ export function toSearchRow(data: PagefindResultData): SearchRow {
  * while it waited out the debounce, so the caller keeps its current rows.
  */
 export async function searchSite(query: string): Promise<SearchRow[] | null> {
+  if (isPreviewBrowser()) {
+    const response = await fetch(
+      `/api/search?q=${encodeURIComponent(query)}&limit=${LIMIT}`,
+      {
+        cache: 'no-store',
+        credentials: 'same-origin',
+      }
+    );
+    if (!response.ok) throw new Error('Private search failed');
+    const data = (await response.json()) as {
+      results: Array<{
+        path: string;
+        title: string;
+        type: string;
+        snippet?: string;
+        description: string;
+      }>;
+    };
+    return data.results.map((result) => ({
+      id: `search:${result.path}`,
+      title: result.title,
+      href: result.path,
+      kind: kindOf(result.type),
+      excerpt: [{ text: result.snippet || result.description, mark: false }],
+    }));
+  }
   const pagefind = await loadPagefind();
   const search = await pagefind.debouncedSearch(query, {}, DEBOUNCE_MS);
   if (!search) return null;

@@ -201,6 +201,10 @@ export async function commitMicropubWriting(
   options: MicropubCommitOptions,
   fetchImpl: typeof fetch = fetch
 ): Promise<MicropubCommitResult> {
+  if (entry.postStatus === 'draft')
+    throw new MicropubValidationError(
+      'Drafts must be saved in private studio storage.'
+    );
   const { slug, path } = micropubWritingPath(
     entry,
     options.contentPath || DEFAULT_CONTENT_PATH
@@ -239,6 +243,10 @@ export async function writeMicropubWritingLocally(
   entry: MicropubCreateRequest,
   contentPath = DEFAULT_CONTENT_PATH
 ): Promise<MicropubCommitResult> {
+  if (entry.postStatus === 'draft')
+    throw new MicropubValidationError(
+      'Drafts must be saved in private studio storage.'
+    );
   const { slug, path } = micropubWritingPath(entry, contentPath);
   const absolutePath = join(process.cwd(), path);
   const body = buildMicropubWritingFile(entry, slug);
@@ -292,7 +300,7 @@ function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
         ? { ...value, html: sanitizeCommentHtml(value.html, site.origin) }
         : value
     );
-  const postStatus = firstJsonString(properties['post-status']);
+  const postStatus = parsePostStatus(properties['post-status']);
   if (
     postStatus !== undefined &&
     postStatus !== 'draft' &&
@@ -408,7 +416,7 @@ function parseFormData(formData: FormData): MicropubCreateRequest {
   if (properties.category)
     properties.category = formStringList(formData, 'category');
   const content = contentValue(properties.content);
-  const postStatus = optionalFormString(formData.get('post-status'));
+  const postStatus = parsePostStatus(formData.getAll('post-status'));
   if (
     postStatus !== undefined &&
     postStatus !== 'draft' &&
@@ -445,6 +453,26 @@ function parseFormData(formData: FormData): MicropubCreateRequest {
     syndication: formStringList(formData, 'syndication'),
     syndicateTo: formStringList(formData, 'mp-syndicate-to'),
   });
+}
+
+function parsePostStatus(
+  values: unknown[] | undefined
+): 'draft' | 'published' | undefined {
+  if (values === undefined) return undefined;
+  if (!Array.isArray(values))
+    throw new MicropubValidationError(
+      'post-status must be an array of one status.'
+    );
+  if (!values.length) return undefined;
+  if (
+    values.length !== 1 ||
+    !['draft', 'published'].includes(String(values[0]))
+  ) {
+    throw new MicropubValidationError(
+      'post-status must be draft or published.'
+    );
+  }
+  return values[0] as 'draft' | 'published';
 }
 
 function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {

@@ -58,7 +58,6 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       '.site-footer__brand > p'
     );
     const extraProfiles = footer.querySelectorAll<HTMLElement>('[data-extra]');
-    const status = footer.querySelector<HTMLElement>('[data-footer-status]');
     const name = footer.querySelector<HTMLElement>('[data-footer-name]');
     const compact = window.matchMedia(COMPACT);
     const reduce = window.matchMedia(REDUCE);
@@ -108,7 +107,6 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       if (pages) pages.inert = p < 0.9;
       if (feedButton) feedButton.inert = p < 0.6;
       if (tagline) tagline.inert = p < 0.9;
-      if (status) status.inert = p < 0.9;
       if (contact) contact.inert = compact.matches && p < 0.08;
       extraProfiles.forEach((profile) => {
         profile.inert = !compact.matches && p < 0.5;
@@ -160,7 +158,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', remeasure);
       compact.removeEventListener('change', remeasure);
-      [pages, feedButton, tagline, status, contact, ...extraProfiles].forEach(
+      [pages, feedButton, tagline, contact, ...extraProfiles].forEach(
         (element) => {
           if (element) element.inert = false;
         }

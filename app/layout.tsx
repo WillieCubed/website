@@ -8,7 +8,6 @@ import PaletteProvider from '@/components/palette/PaletteProvider';
 import Fragmention from '@/components/site/Fragmention';
 import SiteFooter from '@/components/site/SiteFooter';
 import SkipLink from '@/components/site/SkipLink';
-import { StatusProvider } from '@/components/status/StatusProvider';
 
 import { PUBLICATION_URI } from '@/lib/atproto/config';
 import { ENDPOINT_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
@@ -149,32 +148,30 @@ export default async function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col bg-ground text-ink font-sans antialiased">
-        <StatusProvider>
-          <PaletteProvider>
-            <SkipLink />
-            {process.env.NODE_ENV === 'production' &&
-              process.env.NEXT_PUBLIC_GTAG_ID && (
-                <>
-                  <Script
-                    src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GTAG_ID}`}
-                    strategy="afterInteractive"
-                  />
-                  <Script id="google-analytics" strategy="afterInteractive">
-                    {`
+        <PaletteProvider>
+          <SkipLink />
+          {process.env.NODE_ENV === 'production' &&
+            process.env.NEXT_PUBLIC_GTAG_ID && (
+              <>
+                <Script
+                  src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GTAG_ID}`}
+                  strategy="afterInteractive"
+                />
+                <Script id="google-analytics" strategy="afterInteractive">
+                  {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag() { dataLayer.push(arguments); }
                 gtag('js', new Date());
                 gtag('config', '${process.env.NEXT_PUBLIC_GTAG_ID}');
               `}
-                  </Script>
-                </>
-              )}
-            {/* Grows to fill a short page so the footer rests on the bottom of
+                </Script>
+              </>
+            )}
+          {/* Grows to fill a short page so the footer rests on the bottom of
             the window instead of riding up under the content. */}
-            <div className="grow">{children}</div>
-            <SiteFooter />
-          </PaletteProvider>
-        </StatusProvider>
+          <div className="grow">{children}</div>
+          <SiteFooter />
+        </PaletteProvider>
         <Fragmention />
         <Analytics />
         <SpeedInsights />

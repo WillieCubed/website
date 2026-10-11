@@ -70,6 +70,9 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## Plans and specs
 
+- [Website issue plan](./plans/2026-10-11-website-issues.md): the Music gallery,
+  private curation, and gated About release. Research is deferred.
+
 - [Site-wide search and metadata](./superpowers/specs/2026-09-18-static-search-and-metadata-design.md):
   the design, implemented, for ⌘K search and structured data, with its executed
   [plan](./superpowers/plans/2026-09-19-static-search-and-metadata.md).

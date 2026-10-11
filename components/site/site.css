@@ -17,20 +17,35 @@
   display: grid;
   gap: 24px 40px;
 }
+.site-footer__pages {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+}
+.site-footer__pages ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* The homepage dock uses flex for the old single list. Keep both groups
+   aligned at their first link when the dock opens. */
+.site-footer[data-dock] .site-footer__top .site-footer__pages {
+  display: grid;
+  align-items: start;
+}
 @media (min-width: 840px) {
   /* Proportional columns: an auto right column would take the whole
      row's width and squeeze the tagline into four lines. */
   .site-footer__top {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   }
-  .site-footer__pages ul {
-    justify-content: flex-end;
-  }
-}
-@media (max-width: 599px) {
-  .site-footer__pages ul {
-    flex-direction: column;
-    align-items: flex-start;
+  .site-footer__pages {
+    grid-template-columns: repeat(2, max-content);
+    justify-content: end;
+    gap: 40px;
   }
 }
 /* The bottom row is its own container and never wraps. Below a width
@@ -106,12 +121,11 @@ body:has(header[data-column='reading'])
   .site-footer__top {
   grid-template-columns: minmax(0, 1fr);
 }
-.site-footer[data-column='reading'] .site-footer__pages ul,
+.site-footer[data-column='reading'] .site-footer__pages,
 body:has(header[data-column='reading'])
   .site-footer:not([data-column])
-  .site-footer__pages
-  ul {
-  justify-content: flex-start;
+  .site-footer__pages {
+  justify-content: start;
 }
 @media (min-width: 1200px) {
   .site-footer[data-column='reading'] .site-footer__inner,

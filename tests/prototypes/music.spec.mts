@@ -530,6 +530,24 @@ test('the first screen shows a collection preview or a working scroll cue', asyn
         })
       )
       .toBe(true);
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const cue = document.querySelector('.mp-scroll-cue');
+          if (!cue) return true;
+          const box = cue.getBoundingClientRect();
+          const caption = document
+            .querySelector('.mp-card-lead .mp-card-caption')!
+            .getBoundingClientRect();
+          return (
+            box.right <= caption.left ||
+            box.left >= caption.right ||
+            box.bottom <= caption.top ||
+            box.top >= caption.bottom
+          );
+        })
+      )
+      .toBe(true);
   }
   const cue = page.getByRole('button', { name: 'Scroll to more playlists' });
   await expect(cue).toBeVisible();

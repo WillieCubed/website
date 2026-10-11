@@ -12,6 +12,8 @@ export default function MusicScrollCue({
   collection: string;
 }) {
   const [visible, setVisible] = useState(false);
+  const [bottom, setBottom] = useState(20);
+  const [left, setLeft] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -24,6 +26,15 @@ export default function MusicScrollCue({
       if (!next || explored) return setVisible(false);
       const box = next.getBoundingClientRect();
       const height = window.visualViewport?.height ?? innerHeight;
+      const cover = gallery.current
+        ?.querySelector<HTMLElement>('.mp-card-lead .mp-art-frame')
+        ?.getBoundingClientRect();
+      setLeft(cover ? cover.left + cover.width / 2 : null);
+      setBottom(
+        cover && innerWidth < 600
+          ? Math.max(20, height - cover.bottom + 12)
+          : 20
+      );
       setVisible(box.top + 56 > height);
     };
     const scroll = () => {
@@ -50,6 +61,10 @@ export default function MusicScrollCue({
   return (
     <button
       className="mp-scroll-cue"
+      style={{
+        bottom: `max(${bottom}px, env(safe-area-inset-bottom))`,
+        left: left ?? '50%',
+      }}
       aria-label="Scroll to more playlists"
       onClick={() => {
         const next = gallery.current?.querySelector<HTMLElement>(

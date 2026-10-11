@@ -81,7 +81,7 @@ html[data-music-motion] {
 .mp-shell {
   display: grid;
   grid-template-columns: 184px minmax(0, 1fr);
-  gap: 64px;
+  gap: 32px;
   max-width: var(--mp-page-width);
   margin: 48px auto 0;
   padding: 0 var(--mp-page-gutter);
@@ -92,7 +92,7 @@ html[data-music-motion] {
   top: 32px;
 }
 .mp-heading h1 {
-  margin: -6px 0 42px -4px;
+  margin: -6px 0 0 -4px;
   font-size: 80px;
   font-weight: 500;
   letter-spacing: -0.055em;
@@ -973,10 +973,11 @@ html[data-music-motion]::view-transition-new(root) {
 @media (max-width: 1199px) {
   .mp-shell {
     grid-template-columns: 160px minmax(0, 1fr);
-    gap: 40px;
+    gap: 24px;
   }
   .mp-heading h1 {
     font-size: 64px;
+    margin-bottom: 16px;
   }
   .mp-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

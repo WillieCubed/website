@@ -92,7 +92,7 @@ html[data-music-motion] {
   top: 32px;
 }
 .mp-heading h1 {
-  margin: -6px 0 0 -4px;
+  margin: -6px 0 24px -4px;
   font-size: 80px;
   font-weight: 500;
   letter-spacing: -0.055em;
@@ -311,12 +311,12 @@ html[data-music-motion] {
 .mp-card-lead .mp-card-open {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: center;
+  align-items: start;
   gap: 32px;
 }
 .mp-card-lead .mp-card-caption {
   display: block;
-  padding: 0 24px;
+  padding: 0;
 }
 .mp-card-lead .mp-card-caption h3 {
   max-width: 13ch;
@@ -977,7 +977,6 @@ html[data-music-motion]::view-transition-new(root) {
   }
   .mp-heading h1 {
     font-size: 64px;
-    margin-bottom: 16px;
   }
   .mp-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1144,14 +1143,15 @@ html[data-music-motion]::view-transition-new(root) {
   }
   .mp-card-lead .mp-card-open {
     display: block;
+    width: min(100%, 420px);
+    margin-inline: auto;
   }
   .mp-card-lead .mp-art-frame {
-    width: 84%;
-    max-width: 420px;
+    width: 100%;
   }
   .mp-card-lead .mp-card-caption {
     display: flex;
-    align-items: center;
+    align-items: start;
     gap: 20px;
     padding-top: 18px;
   }

@@ -183,14 +183,14 @@ export const sitePages: SitePage[] = [
     path: '/about',
     label: 'About',
     description: 'Who Willie is, what he has done, and where he is going.',
-    routed: true,
+    routed: false,
   },
   {
     path: '/research',
     label: 'Research',
     description:
       'Questions about intelligence, software, and the systems people use.',
-    routed: true,
+    routed: false,
   },
   {
     path: '/colophon',

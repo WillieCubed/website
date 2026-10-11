@@ -17,7 +17,7 @@ export interface HeaderRule {
  */
 export const PAGE_SOURCES = [
   '/',
-  '/:page(about|research|projects|brand|search|writings|initiatives|media|sitemap|500)',
+  '/:page(projects|brand|search|writings|initiatives|media|sitemap|500)',
   '/:section(writings|initiatives|projects)/:slug((?!opengraph-image$)[^/.]+)',
   '/initiatives/:slug([^/.]+)/:part(part-\\d+)',
   '/writings/tags/:tag([^/.]+)',

@@ -13,8 +13,8 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## Content
 
-- [Public profile](./public-profile.md): About, Research, their public sources,
-  and the boundary that keeps research detail drafts private.
+- [Profile proposals](./public-profile.md): unrouted About and Research sources
+  and the explicit approval required before public release.
 
 - [Sitemap](./sitemap.md): the human directory, XML sitemap, and shared
   programmatic resource catalog.

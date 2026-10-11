@@ -303,6 +303,7 @@ export default function MusicPrototype() {
       <article
         key={playlist.id}
         className={`mp-card${playlist.id === lead ? ' mp-card-lead' : ''}${editing && !selected ? ' mp-card-unselected' : ''}`}
+        aria-label={playlist.id === lead ? 'Featured playlist' : undefined}
         data-playlist={playlist.id}
         draggable={editing && !search}
         onDragStart={() => {

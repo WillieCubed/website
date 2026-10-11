@@ -26,14 +26,19 @@ media interaction. The public site therefore uses one `/music` route.
 
 - Let headings stand on their own. Do not add decorative overlines or eyebrow
   text. Put track counts and series positions below playlist titles.
-- Use text navigation for series and keep counts quiet. Present the optional
-  lead as a square cover beside its title and authored notes. This gives it
-  prominence while keeping more of the collection visible on phones.
+- Use text navigation for series and keep counts quiet. Distinguish the optional
+  featured playlist through cover size, title size, authored notes, and space.
+  Do not add a decorative badge or eyebrow. Expose its status to screen readers.
+- Let the Music page, its top bar, and its prototype controls share a 1600px
+  maximum width. This page needs room for artwork and collection browsing.
+  Keep other pages at their existing widths.
 - Keep the phone focus view's cover and title beside one another. Put editing
   controls and the track sequence across the full width below them. Preserve
   the larger cover and adjacent context on desktop.
 - Show an optional lead playlist once, followed by the selected collection in
-  Willie's order. Keep complete artwork square and intact.
+  Willie's order. Featuring is an explicit editorial choice, independent of
+  listening activity or recency. All selected playlists remain public; unselected
+  playlists stay private. Keep complete artwork square and intact.
 - Give series visible navigation. Selecting a series changes the gallery in
   place, shows its notes, and uses the series' explicit playlist order.
 - Open a playlist into a focused view with its cover, title, notes, ordered
@@ -45,6 +50,22 @@ media interaction. The public site therefore uses one `/music` route.
   songs and unavailable positions in the track list.
 - Search within the selected collection. Keep actions available on touch and
   keyboard input, with reduced-motion fallbacks.
+
+The gallery uses these layouts. Series and search results use equal cards in
+their own order without promoting the featured playlist.
+
+| Width            | Featured playlist                                                        | Remaining collection |
+| ---------------- | ------------------------------------------------------------------------ | -------------------- |
+| Below 600px      | Larger square cover with title and notes below it                        | Two columns          |
+| 600–839px        | Larger cover beside the title and notes                                  | Three columns below  |
+| 840–1199px       | Larger cover beside the title and notes; series rail at left             | Three columns below  |
+| 1200px and above | Cover spans two collection columns; title and notes occupy the other two | Four columns below   |
+
+The previous horizontal phone composition made the featured cover nearly the
+same size as a regular cover. Moving its caption below the artwork restores a
+visible distinction without using a full-screen cover. The featured cover stays
+larger through each breakpoint. No feature selection means an equal card grid;
+the site must not silently promote the first playlist.
 
 ## Private curation and publication
 
@@ -139,10 +160,15 @@ Verify the prototype at 1440px and 390px in both themes, plus 320px reflow.
 Exercise touch, keyboard, Back and Forward, direct links, unavailable tracks,
 draft recovery, and review/application separation. Capture screenshots.
 
-The prototype passed 38 browser checks across desktop and touch-emulated phone
+The prototype passed 42 browser checks across desktop and touch-emulated phone
 layouts in both themes. The two phone projects skip native mouse dragging;
-their earlier and later buttons pass. All 880 repository tests, lint,
-type checking, and the production build pass. Production HTTP checks confirm
+their earlier and later buttons pass. The October 11 layout pass also checked
+11 widths from 320px to 2560px in both themes. The featured cover remains at least
+1.5 times as wide as regular covers, with no horizontal overflow. Lint, the five
+theme contract tests, and type checking pass for this revision.
+
+The preceding delivery check passed all 880 repository tests and the production
+build. Its production HTTP checks confirmed
 that the prototype, About, and Research return 404 and stay out of the sitemap
 and search index. These checks do not verify Spotify or hosted publication.
 

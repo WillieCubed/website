@@ -15,6 +15,9 @@ test('the gallery shows its lead once and preserves the selected series order', 
   page,
 }) => {
   await expect(
+    page.getByRole('article', { name: 'Featured playlist' })
+  ).toHaveCount(1);
+  await expect(
     page.getByRole('button', {
       name: 'Open Fall Tour 2026, Part 1',
       exact: true,
@@ -34,7 +37,102 @@ test('the gallery shows its lead once and preserves the selected series order', 
         cards.map((card) => card.getAttribute('data-playlist'))
       )
   ).toEqual(['fall-1', 'fall-2', 'fall-3']);
+  await expect(
+    page.getByRole('article', { name: 'Featured playlist' })
+  ).toHaveCount(0);
   await expect(page).toHaveURL(/series=fall-tour/);
+});
+
+test('featuring is optional, explicit, and independent of series or search order', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Curate music', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Open Fall Tour 2026, Part 3', exact: true })
+    .click();
+  await page
+    .getByRole('checkbox', { name: 'Feature in the gallery', exact: true })
+    .check();
+  await page
+    .getByRole('button', { name: 'Close playlist', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Review changes', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Apply to prototype', exact: true })
+    .click();
+  await expect(
+    page.getByRole('article', { name: 'Featured playlist' })
+  ).toHaveAttribute('data-playlist', 'fall-3');
+  await expect(page.locator('.mp-card').first()).toHaveAttribute(
+    'data-playlist',
+    'fall-3'
+  );
+  await expect(
+    page.getByRole('button', {
+      name: 'Open Fall Tour 2026, Part 3',
+      exact: true,
+    })
+  ).toHaveCount(1);
+
+  await page
+    .getByRole('textbox', { name: 'Find a playlist' })
+    .fill('Fall Tour');
+  await expect(
+    page.getByRole('article', { name: 'Featured playlist' })
+  ).toHaveCount(0);
+  expect(
+    await page
+      .locator('.mp-card')
+      .evaluateAll((cards) =>
+        cards.map((card) => card.getAttribute('data-playlist'))
+      )
+  ).toEqual(['fall-1', 'fall-2', 'fall-3']);
+  await page.getByRole('textbox', { name: 'Find a playlist' }).fill('');
+  await page
+    .getByRole('navigation', { name: 'Playlist series' })
+    .getByRole('button', { name: 'Fall Tour' })
+    .click();
+  await expect(
+    page.getByRole('article', { name: 'Featured playlist' })
+  ).toHaveCount(0);
+  expect(
+    await page
+      .locator('.mp-card')
+      .evaluateAll((cards) =>
+        cards.map((card) => card.getAttribute('data-playlist'))
+      )
+  ).toEqual(['fall-1', 'fall-2', 'fall-3']);
+
+  await page
+    .getByRole('navigation', { name: 'Playlist series' })
+    .getByRole('button', { name: 'All playlists' })
+    .click();
+  await page.getByRole('button', { name: 'Curate music', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Open Fall Tour 2026, Part 3', exact: true })
+    .click();
+  await page
+    .getByRole('checkbox', { name: 'Feature in the gallery', exact: true })
+    .uncheck();
+  await page
+    .getByRole('button', { name: 'Close playlist', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Review changes', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Apply to prototype', exact: true })
+    .click();
+  await expect(
+    page.getByRole('article', { name: 'Featured playlist' })
+  ).toHaveCount(0);
+  await expect(page.locator('.mp-card').first()).toHaveAttribute(
+    'data-playlist',
+    'fall-1'
+  );
+  await expect(page.locator('.mp-card')).toHaveCount(7);
 });
 
 test('focus views retain repeated tracks, unavailable positions, and browser history', async ({

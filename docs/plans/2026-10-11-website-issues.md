@@ -33,9 +33,14 @@ media interaction. The public site therefore uses one `/music` route.
   maximum width. This page needs room for artwork and collection browsing.
   Keep other pages at their existing widths.
 - Keep the series rail 32px from the gallery on large screens and 24px away
-  at 840–1199px. Align its first button with the featured cover. These gaps match
-  the cover grid so the controls and collection read as one layout. Stack
-  the series controls above the gallery below 840px.
+  at 840–1199px. Give the title 24px of space before the filters when the rail
+  sits beside the gallery. The horizontal gaps match the cover grid so the
+  controls and collection read as one layout. Stack the series controls above
+  the gallery below 840px.
+- Align the featured title and details with the top of the cover on wider
+  layouts. On phones, center the cover and caption as one block, using the
+  available content width up to 420px. Give both sides equal outer space and
+  align the caption with the cover's left edge.
 - Keep the phone focus view's cover and title beside one another. Put editing
   controls and the track sequence across the full width below them. Preserve
   the larger cover and adjacent context on desktop.

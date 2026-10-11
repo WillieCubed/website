@@ -1,6 +1,9 @@
 import type { SVGProps } from 'react';
 
 const STROKE = {
+  cloud:
+    'M20 16a4 4 0 0 0-.9-7.9A7 7 0 0 0 5.2 10 3 3 0 0 0 1 13a3 3 0 0 0 3 3z',
+  rain: 'M20 14a4 4 0 0 0-.9-7.9A7 7 0 0 0 5.2 8 3 3 0 0 0 1 11a3 3 0 0 0 3 3m4 3-1 4m6-4-1 4m6-4-1 4',
   'more-horizontal':
     'M6 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0',
   'chevron-down': 'm6 9 6 6 6-6',

@@ -4,8 +4,6 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
-import { isPlainClick } from '@/lib/dom/click';
-
 import { usePalette } from './PaletteProvider';
 import './palette.css';
 
@@ -46,7 +44,7 @@ export default function PaletteTrigger({
   glass = false,
 }: PaletteTriggerProps) {
   const { open, register } = usePalette();
-  const ref = useRef<HTMLAnchorElement>(null);
+  const ref = useRef<HTMLButtonElement>(null);
   const shortcut = useShortcutLabel();
 
   useEffect(() => {
@@ -55,30 +53,31 @@ export default function PaletteTrigger({
   }, [register]);
 
   return (
-    // A link to /search until scripts run, so the trigger still leads
-    // somewhere for a visitor without them; once hydrated it opens the
-    // palette instead.
-    <a
-      ref={ref}
-      // eslint-disable-next-line site/no-raw-internal-anchor -- the no-script fallback for a control that opens the palette; the palette morphs from this element by ref, which SiteLink does not forward
-      href="/search"
-      className={`palette-trigger palette-trigger--${size}${glass ? ' site-glass' : ''}`}
-      aria-haspopup="dialog"
-      aria-keyshortcuts="Meta+K Control+K"
-      onClick={(event) => {
-        if (!isPlainClick(event)) return;
+    // A native submission keeps search usable before hydration and without JS.
+    <form
+      action="/search"
+      className="palette-trigger-form"
+      onSubmit={(event) => {
         event.preventDefault();
-        open(event.currentTarget);
+        open(ref.current);
       }}
     >
-      <Icon name="search" size={size === 'rail' ? 20 : 18} />
-      <span className="palette-trigger__label">
-        {size === 'rail' ? 'Search or jump to…' : 'Search'}
-      </span>
-      {/* Hidden from the accessible name, which aria-keyshortcuts covers. */}
-      <kbd className="palette-trigger__key" aria-hidden="true">
-        {shortcut}
-      </kbd>
-    </a>
+      <button
+        ref={ref}
+        type="submit"
+        className={`palette-trigger palette-trigger--${size}${glass ? ' site-glass' : ''}`}
+        aria-haspopup="dialog"
+        aria-keyshortcuts="Meta+K Control+K"
+      >
+        <Icon name="search" size={size === 'rail' ? 20 : 18} />
+        <span className="palette-trigger__label">
+          {size === 'rail' ? 'Search or jump to…' : 'Search'}
+        </span>
+        {/* Hidden from the accessible name, which aria-keyshortcuts covers. */}
+        <kbd className="palette-trigger__key" aria-hidden="true">
+          {shortcut}
+        </kbd>
+      </button>
+    </form>
   );
 }

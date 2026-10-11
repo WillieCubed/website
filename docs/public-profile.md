@@ -5,6 +5,12 @@ Neither page is approved for publication. Keep both in `app/_proposals`
 and leave them out of `sitePages` until Willie approves their content
 and public release.
 
+On October 11, 2026, Willie deferred Research while academia is on the
+backburner. Do not resume its implementation or publication without a new
+request. The intended About release focuses on his current work and omits a
+research section. The [website issue plan](plans/2026-10-11-website-issues.md)
+records the active Music and About work.
+
 The October 10, 2026 release published both pages without explicit content
 approval. The correction removes their routes and discovery entries while
 retaining the source for review. Implementation approval does not grant

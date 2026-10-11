@@ -28,6 +28,10 @@ scanned a flyer, a legislative staffer, a recruiter, and someone who found one o
 Willie's apps. Use plain words and legible type, and never put information
 only behind a hover.
 
+Headings stand on their own. Do not add decorative overline or eyebrow text
+above them. Put useful metadata, such as a playlist's position or track count,
+below its title. Keep labels where someone needs them to use a control or field.
+
 **Interactive.** The content responds to the visitor. Hover reveals context
 that fits the thing under the pointer, such as a one-line hint about what opening
 it shows or the other work a word connects to. Focus and selection answer with

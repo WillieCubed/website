@@ -77,7 +77,6 @@
 }
 .projects-card-text .projects-card-copy {
   display: flex;
-  min-height: 18rem;
   flex: 1;
   flex-direction: column;
   justify-content: center;
@@ -126,6 +125,9 @@
   translate: 2px 0;
 }
 @media (min-width: 600px) {
+  .projects-card-text .projects-card-copy {
+    min-height: 18rem;
+  }
   .projects-index {
     padding-top: 2rem;
   }

@@ -147,6 +147,13 @@ export interface SitePage {
  */
 export const sitePages: SitePage[] = [
   {
+    path: '/status',
+    label: 'Status',
+    description:
+      'A little of life lately: local conditions, current work, and recent writing.',
+    routed: true,
+  },
+  {
     path: '/writings',
     label: 'Writings',
     description:

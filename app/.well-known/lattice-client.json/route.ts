@@ -1,4 +1,6 @@
-/** Public OAuth identity only; no credentials or private writing. */
+/** Public OAuth identity only; no credentials or private writing.
+ * The author chooses an owned personal runtime inside authenticated preview.
+ */
 export async function GET() {
   if (process.env.SITE_MODE === "preview")
     return new Response("Not found", {

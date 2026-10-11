@@ -9,6 +9,7 @@ import { ENDPOINT_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
 import { siteHeaders } from '@/lib/response-headers';
 
 const CLACKS = { key: 'X-Clacks-Overhead', value: 'GNU Terry Pratchett' };
+const DEVELOPMENT_ONLY_PAGES = new Set(['/prototypes/music']);
 
 /**
  * The headers a path gets, matched with the options Next's router uses for
@@ -80,8 +81,10 @@ test('every path carries the Clacks overhead', () => {
   );
 });
 
-test('every page advertises the discovery endpoints in a Link header', () => {
-  const pages = appRoutes().filter((route) => route.kind === 'page');
+test('every public page advertises the discovery endpoints in a Link header', () => {
+  const pages = appRoutes().filter(
+    (route) => route.kind === 'page' && !DEVELOPMENT_ONLY_PAGES.has(route.path)
+  );
   assert.ok(pages.length >= 8, 'found the pages under app/');
 
   for (const { path } of pages) {
@@ -90,6 +93,17 @@ test('every page advertises the discovery endpoints in a Link header', () => {
     for (const { rel, href } of ENDPOINT_DISCOVERY_LINKS) {
       assert.ok(link.includes(`<${href}>; rel="${rel}"`), `${path} ${rel}`);
     }
+  }
+});
+
+test('development-only prototypes do not advertise public discovery endpoints', () => {
+  const routes = new Set(appRoutes().map((route) => route.path));
+  for (const path of DEVELOPMENT_ONLY_PAGES) {
+    assert.ok(routes.has(path), `${path} is a known development route`);
+    assert.ok(
+      !headersFor(path).has('Link'),
+      `${path} has no public Link header`
+    );
   }
 });
 

@@ -1,0 +1,811 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+
+import Icon from '@/components/icons/Icon';
+import TopBar from '@/components/site/TopBar';
+import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
+
+import {
+  type Catalog,
+  type SamplePlaylist,
+  initialCatalog,
+  moveItem,
+  playlists,
+  sampleTracks,
+  validCatalog,
+} from '@/lib/prototypes/music';
+
+import SampleCover from './SampleCover';
+import './music-prototype.css';
+
+const STORAGE_KEY = 'willie-music-prototype-v1';
+
+function readLocation() {
+  const params = new URLSearchParams(location.search);
+  return { series: params.get('series'), detail: params.get('detail') };
+}
+
+function morph(
+  update: () => void,
+  before: HTMLElement | null,
+  after: () => HTMLElement | null
+) {
+  const animate =
+    typeof document.startViewTransition === 'function' &&
+    !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (animate && before)
+    before.style.viewTransitionName = 'music-prototype-cover';
+  let destination: HTMLElement | null = null;
+  const change = () => {
+    if (before) before.style.viewTransitionName = '';
+    update();
+    destination = after();
+    if (animate && destination)
+      destination.style.viewTransitionName = 'music-prototype-cover';
+  };
+  if (!animate) {
+    change();
+    return;
+  }
+  const transition = document.startViewTransition(change);
+  transition.ready.catch(() => undefined);
+  void transition.finished
+    .catch(() => undefined)
+    .finally(() => {
+      if (before) before.style.viewTransitionName = '';
+      if (destination) destination.style.viewTransitionName = '';
+    });
+}
+
+export default function MusicPrototype() {
+  const [live, setLive] = useState<Catalog>(initialCatalog);
+  const [draft, setDraft] = useState<Catalog>(initialCatalog);
+  const [editing, setEditing] = useState(false);
+  const [review, setReview] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [storageError, setStorageError] = useState('');
+  const [seriesId, setSeriesId] = useState<string | null>(null);
+  const [focused, setFocused] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [newSeries, setNewSeries] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState('');
+  const dialog = useRef<HTMLDialogElement>(null);
+  const reviewDialog = useRef<HTMLDialogElement>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
+  const ownDetailEntry = useRef(false);
+  const dragId = useRef<string | null>(null);
+  const catalog = editing ? draft : live;
+  const series = catalog.series.find((item) => item.id === seriesId);
+  const order = series?.playlistIds ?? catalog.order;
+  const visibleIds = order.filter(
+    (id) => editing || catalog.selected.includes(id)
+  );
+  const matching = visibleIds.filter((id) =>
+    playlists
+      .find((item) => item.id === id)
+      ?.title.toLowerCase()
+      .includes(search.toLowerCase())
+  );
+  const lead =
+    !series &&
+    !editing &&
+    !search &&
+    catalog.lead &&
+    matching.includes(catalog.lead)
+      ? catalog.lead
+      : null;
+  const displayed = lead
+    ? [lead, ...matching.filter((id) => id !== lead)]
+    : matching;
+  const current = playlists.find((item) => item.id === focused);
+  const currentIndex = focused ? displayed.indexOf(focused) : -1;
+  const changed = JSON.stringify(live) !== JSON.stringify(draft);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
+      if (saved && validCatalog(saved.live) && validCatalog(saved.draft)) {
+        setLive(saved.live);
+        setDraft(saved.draft);
+      }
+    } catch {
+      setStorageError(
+        'The local draft could not be restored. This session uses the sample collection.'
+      );
+    }
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ live, draft }));
+    } catch {
+      setStorageError(
+        'Browser storage is unavailable. Keep this tab open to retain your changes.'
+      );
+    }
+  }, [live, draft, ready]);
+
+  useEffect(() => {
+    const sync = (external = false) => {
+      const state = readLocation();
+      setSeriesId(
+        catalog.series.some((item) => item.id === state.series)
+          ? state.series
+          : null
+      );
+      const allowed =
+        playlists.some((item) => item.id === state.detail) &&
+        (editing || catalog.selected.includes(state.detail!));
+      setFocused(allowed ? state.detail : null);
+      if (external) ownDetailEntry.current = false;
+      if (allowed && !dialog.current?.open) dialog.current?.showModal();
+      else if (!allowed) dialog.current?.close();
+    };
+    sync();
+    const pop = () => sync(true);
+    window.addEventListener('popstate', pop);
+    return () => window.removeEventListener('popstate', pop);
+  }, [catalog, editing]);
+
+  useEffect(() => {
+    if (review && !reviewDialog.current?.open) {
+      reviewDialog.current?.showModal();
+      reviewDialog.current
+        ?.querySelector<HTMLElement>('#mp-review-title')
+        ?.focus({ preventScroll: true });
+      if (reviewDialog.current) reviewDialog.current.scrollTop = 0;
+    }
+  }, [review]);
+
+  function href(nextSeries: string | null, detail: string | null) {
+    const params = new URLSearchParams();
+    if (nextSeries) params.set('series', nextSeries);
+    if (detail) params.set('detail', detail);
+    return `${location.pathname}${params.size ? `?${params}` : ''}`;
+  }
+
+  function chooseSeries(id: string | null) {
+    setSeriesId(id);
+    setSearch('');
+    history.pushState(null, '', href(id, null));
+  }
+
+  function openPlaylist(id: string, source?: HTMLElement) {
+    if (source) returnFocus.current = source;
+    const before = dialog.current?.open
+      ? dialog.current.querySelector<HTMLElement>('[data-focus-cover]')
+      : (source?.querySelector<HTMLElement>('[data-card-cover]') ?? null);
+    const alreadyOpen = !!dialog.current?.open;
+    morph(
+      () => {
+        flushSync(() => setFocused(id));
+        if (!dialog.current?.open) dialog.current?.showModal();
+        const scroller =
+          dialog.current?.querySelector<HTMLElement>('.mp-detail-scroll');
+        if (scroller) scroller.scrollTop = 0;
+      },
+      before,
+      () =>
+        dialog.current?.querySelector<HTMLElement>('[data-focus-cover]') ?? null
+    );
+    if (alreadyOpen) history.replaceState(null, '', href(seriesId, id));
+    else {
+      history.pushState(null, '', href(seriesId, id));
+      ownDetailEntry.current = true;
+    }
+  }
+
+  function closePlaylist() {
+    const before =
+      dialog.current?.querySelector<HTMLElement>('[data-focus-cover]') ?? null;
+    const target = returnFocus.current;
+    morph(
+      () => {
+        dialog.current?.close();
+        flushSync(() => setFocused(null));
+        if (target?.isConnected) target.focus({ preventScroll: true });
+      },
+      before,
+      () => target?.querySelector<HTMLElement>('[data-card-cover]') ?? null
+    );
+    if (ownDetailEntry.current) history.back();
+    else history.replaceState(null, '', href(seriesId, null));
+    ownDetailEntry.current = false;
+  }
+
+  const backdrop = useBackdropDismiss(closePlaylist);
+
+  function change(next: Catalog) {
+    setDraft(next);
+    setAnnouncement('Draft saved in this browser.');
+  }
+
+  function select(id: string) {
+    const selected = draft.selected.includes(id)
+      ? draft.selected.filter((item) => item !== id)
+      : [...draft.selected, id];
+    change({
+      ...draft,
+      selected,
+      lead: selected.includes(draft.lead ?? '') ? draft.lead : null,
+    });
+  }
+
+  function reorder(id: string, step: number) {
+    if (series)
+      change({
+        ...draft,
+        series: draft.series.map((item) =>
+          item.id === series.id
+            ? { ...item, playlistIds: moveItem(item.playlistIds, id, step) }
+            : item
+        ),
+      });
+    else change({ ...draft, order: moveItem(draft.order, id, step) });
+    setAnnouncement(
+      `${playlists.find((item) => item.id === id)?.title} moved ${step < 0 ? 'earlier' : 'later'}.`
+    );
+  }
+
+  function dropOn(id: string) {
+    const from = dragId.current;
+    dragId.current = null;
+    if (!from || from === id) return;
+    const next = [...order];
+    next.splice(next.indexOf(from), 1);
+    next.splice(next.indexOf(id), 0, from);
+    if (series)
+      change({
+        ...draft,
+        series: draft.series.map((item) =>
+          item.id === series.id ? { ...item, playlistIds: next } : item
+        ),
+      });
+    else change({ ...draft, order: next });
+  }
+
+  function addSeries(event: React.FormEvent) {
+    event.preventDefault();
+    const title = newSeries?.trim();
+    if (!title) return;
+    const id = `series-${crypto.randomUUID()}`;
+    change({
+      ...draft,
+      series: [...draft.series, { id, title, playlistIds: [] }],
+    });
+    setNewSeries(null);
+    chooseSeries(id);
+  }
+
+  function membership(id: string, member: string) {
+    change({
+      ...draft,
+      series: draft.series.map((item) =>
+        item.id !== id
+          ? item
+          : {
+              ...item,
+              playlistIds: item.playlistIds.includes(member)
+                ? item.playlistIds.filter((value) => value !== member)
+                : [...item.playlistIds, member],
+            }
+      ),
+    });
+  }
+
+  function renderCard(playlist: SamplePlaylist, index: number) {
+    const selected = catalog.selected.includes(playlist.id);
+    return (
+      <article
+        key={playlist.id}
+        className={`mp-card${playlist.id === lead ? ' mp-card-lead' : ''}${editing && !selected ? ' mp-card-unselected' : ''}`}
+        data-playlist={playlist.id}
+        draggable={editing && !search}
+        onDragStart={() => {
+          dragId.current = playlist.id;
+        }}
+        onDragOver={(event) => {
+          if (editing && !search) event.preventDefault();
+        }}
+        onDrop={() => dropOn(playlist.id)}
+      >
+        <button
+          className="mp-card-open"
+          onClick={(event) => openPlaylist(playlist.id, event.currentTarget)}
+          aria-label={`Open ${playlist.title}`}
+        >
+          <div
+            className="mp-art"
+            data-card-cover=""
+            style={{ background: playlist.color }}
+          >
+            <SampleCover playlist={playlist} />
+          </div>
+          <div className="mp-card-caption">
+            <div>
+              <h3>{playlist.title}</h3>
+              <p className="mp-small">
+                {series ? `${index + 1} of ${matching.length} · ` : ''}6 tracks
+              </p>
+            </div>
+            <span className="mp-open-icon">
+              <Icon name="arrow-right" size={20} />
+            </span>
+          </div>
+        </button>
+        {editing && (
+          <div className="mp-card-controls">
+            <label className="mp-check">
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={() => select(playlist.id)}
+                aria-label={`Include ${playlist.title}`}
+              />
+              Include
+            </label>
+            <div className="mp-order-buttons">
+              <button
+                className="mp-icon-button"
+                disabled={index === 0 || !!search}
+                onClick={() => reorder(playlist.id, -1)}
+                aria-label={`Move ${playlist.title} earlier`}
+              >
+                <Icon name="arrow-left" />
+              </button>
+              <button
+                className="mp-icon-button"
+                disabled={index === matching.length - 1 || !!search}
+                onClick={() => reorder(playlist.id, 1)}
+                aria-label={`Move ${playlist.title} later`}
+              >
+                <Icon name="arrow-right" />
+              </button>
+            </div>
+          </div>
+        )}
+      </article>
+    );
+  }
+
+  return (
+    <div className="music-prototype">
+      <div className="mp-prototype-bar">
+        <span>Local prototype · Sample content</span>
+        <button
+          className="mp-text-button"
+          onClick={() => {
+            setEditing(!editing);
+            setReview(false);
+            setSearch('');
+          }}
+        >
+          {editing ? 'View gallery' : 'Curate music'}
+          <Icon name={editing ? 'arrow-right' : 'file'} />
+        </button>
+      </div>
+      <TopBar
+        column="wide"
+        crumbs={[{ label: 'Music', href: '/prototypes/music' }]}
+      />
+      <main id="main" className="mp-shell">
+        <aside className="mp-rail">
+          <div className="mp-heading">
+            <h1>Music</h1>
+          </div>
+          <nav className="mp-series-nav" aria-label="Playlist series">
+            <button
+              aria-current={!series ? 'true' : undefined}
+              onClick={() => chooseSeries(null)}
+            >
+              <span>All playlists</span>
+              <span>
+                {editing ? playlists.length : catalog.selected.length}
+              </span>
+            </button>
+            {catalog.series.map((item) => (
+              <button
+                key={item.id}
+                aria-current={series?.id === item.id ? 'true' : undefined}
+                onClick={() => chooseSeries(item.id)}
+              >
+                <span>{item.title}</span>
+                <span>
+                  {
+                    item.playlistIds.filter(
+                      (id) => editing || catalog.selected.includes(id)
+                    ).length
+                  }
+                </span>
+              </button>
+            ))}
+            {editing && (
+              <button
+                className="mp-new-series"
+                onClick={() => setNewSeries('')}
+              >
+                Create a series<span aria-hidden="true">+</span>
+              </button>
+            )}
+          </nav>
+          {newSeries !== null && (
+            <form className="mp-new-series-form" onSubmit={addSeries}>
+              <label htmlFor="mp-series-title">Series name</label>
+              <input
+                id="mp-series-title"
+                autoFocus
+                value={newSeries}
+                onChange={(event) => setNewSeries(event.target.value)}
+              />
+              <div>
+                <button className="mp-button" type="submit">
+                  Create series
+                </button>
+                <button
+                  className="mp-text-button"
+                  type="button"
+                  onClick={() => setNewSeries(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+          <div className="mp-rail-note">
+            <Icon name="music" size={18} />
+            <p>Playlists follow their original track order.</p>
+          </div>
+          {editing && (
+            <div className="mp-draft-note">
+              <span className="mp-status-dot" />
+              <span>
+                {changed ? 'Unapplied changes' : 'No unapplied changes'}
+              </span>
+              <small>
+                {storageError ? 'This tab only' : 'Saved in this browser'}
+              </small>
+              <button
+                className="mp-button mp-primary"
+                disabled={!changed}
+                onClick={() => setReview(true)}
+              >
+                Review changes
+                <Icon name="arrow-right" />
+              </button>
+            </div>
+          )}
+        </aside>
+        <section
+          className="mp-collection"
+          aria-labelledby="mp-collection-title"
+        >
+          <header className="mp-collection-header">
+            <div>
+              <h2 id="mp-collection-title">
+                {series?.title ??
+                  (editing ? 'Your playlists' : 'Selected playlists')}
+              </h2>
+              <p className="mp-small">
+                {series
+                  ? `${matching.length} playlists · In sequence`
+                  : `${matching.length} playlists`}
+              </p>
+            </div>
+            <label className="mp-search">
+              <Icon name="search" size={18} />
+              <input
+                aria-label="Find a playlist"
+                placeholder="Find a playlist"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
+          </header>
+          {editing && (
+            <p className="mp-edit-hint">
+              Include the playlists you want to share. Open one to edit its
+              notes, feature it, or add it to a series.
+            </p>
+          )}
+          {storageError && (
+            <p className="mp-notice" role="status">
+              {storageError}
+            </p>
+          )}
+          <div className={`mp-grid${editing ? ' mp-grid-editing' : ''}`}>
+            {displayed.map((id, index) =>
+              renderCard(playlists.find((item) => item.id === id)!, index)
+            )}
+          </div>
+          {!matching.length && (
+            <div className="mp-empty">
+              <Icon name="music" size={32} />
+              <h3>
+                {search
+                  ? 'No matching playlists'
+                  : 'This series is still empty'}
+              </h3>
+              <p>
+                {search
+                  ? 'Try another title.'
+                  : 'Open a playlist from All playlists to add it to this series.'}
+              </p>
+              {!search && (
+                <button
+                  className="mp-button"
+                  onClick={() => chooseSeries(null)}
+                >
+                  Browse all playlists
+                </button>
+              )}
+            </div>
+          )}
+          <p className="mp-sample-note">
+            These covers and tracks are illustrative fixtures for design review.
+          </p>
+        </section>
+      </main>
+      <p className="mp-announcement" role="status" aria-live="polite">
+        {announcement}
+      </p>
+      <dialog
+        ref={dialog}
+        className="mp-detail"
+        aria-labelledby="mp-detail-title"
+        onCancel={(event) => {
+          event.preventDefault();
+          closePlaylist();
+        }}
+        {...backdrop}
+      >
+        {current && (
+          <>
+            <div className="mp-detail-bar">
+              <span>
+                {series
+                  ? `${series.title} / ${String(currentIndex + 1).padStart(2, '0')}`
+                  : `${currentIndex + 1} of ${displayed.length}`}
+              </span>
+              <div>
+                <button
+                  className="mp-icon-button"
+                  disabled={currentIndex <= 0}
+                  onClick={() => openPlaylist(displayed[currentIndex - 1])}
+                  aria-label="Previous playlist"
+                >
+                  <Icon name="arrow-left" size={20} />
+                </button>
+                <button
+                  className="mp-icon-button"
+                  disabled={
+                    currentIndex < 0 || currentIndex >= displayed.length - 1
+                  }
+                  onClick={() => openPlaylist(displayed[currentIndex + 1])}
+                  aria-label="Next playlist"
+                >
+                  <Icon name="arrow-right" size={20} />
+                </button>
+                <button
+                  className="mp-icon-button"
+                  onClick={closePlaylist}
+                  aria-label="Close playlist"
+                >
+                  <Icon name="x" size={22} />
+                </button>
+              </div>
+            </div>
+            <div
+              className="mp-detail-scroll"
+              role="region"
+              aria-label="Playlist details"
+              tabIndex={0}
+            >
+              <div className="mp-detail-art-column">
+                <div className="mp-detail-art" data-focus-cover="">
+                  <SampleCover playlist={current} />
+                </div>
+                {catalog.series
+                  .filter((item) => item.playlistIds.includes(current.id))
+                  .map((item) => (
+                    <p key={item.id} className="mp-detail-series">
+                      <span>{item.title}</span>
+                      <span>
+                        {String(
+                          item.playlistIds.indexOf(current.id) + 1
+                        ).padStart(2, '0')}{' '}
+                        / {String(item.playlistIds.length).padStart(2, '0')}
+                      </span>
+                    </p>
+                  ))}
+              </div>
+              <div className="mp-detail-body">
+                <h2 id="mp-detail-title">{current.title}</h2>
+                <p className="mp-detail-meta">6 tracks · Sample sequence</p>
+                {editing ? (
+                  <div className="mp-context-editor">
+                    <label htmlFor="mp-playlist-note">Your notes</label>
+                    <textarea
+                      id="mp-playlist-note"
+                      rows={3}
+                      placeholder="What should someone know before listening?"
+                      value={draft.notes[current.id] ?? ''}
+                      onChange={(event) =>
+                        change({
+                          ...draft,
+                          notes: {
+                            ...draft.notes,
+                            [current.id]: event.target.value,
+                          },
+                        })
+                      }
+                    />
+                    <label className="mp-check">
+                      <input
+                        type="checkbox"
+                        checked={draft.lead === current.id}
+                        onChange={() =>
+                          change({
+                            ...draft,
+                            lead: draft.lead === current.id ? null : current.id,
+                            selected: draft.selected.includes(current.id)
+                              ? draft.selected
+                              : [...draft.selected, current.id],
+                          })
+                        }
+                      />
+                      Feature in the gallery
+                    </label>
+                    <fieldset>
+                      <legend>Series</legend>
+                      {draft.series.map((item) => (
+                        <label className="mp-check" key={item.id}>
+                          <input
+                            type="checkbox"
+                            checked={item.playlistIds.includes(current.id)}
+                            onChange={() => membership(item.id, current.id)}
+                          />
+                          {item.title}
+                        </label>
+                      ))}
+                    </fieldset>
+                  </div>
+                ) : (
+                  catalog.notes[current.id] && (
+                    <p className="mp-playlist-note">
+                      {catalog.notes[current.id]}
+                    </p>
+                  )
+                )}
+                <button className="mp-button mp-spotify" disabled>
+                  Open in Spotify
+                  <Icon name="external" />
+                </button>
+                <p className="mp-spotify-note">
+                  Sample playlist · No Spotify link
+                </p>
+                <div className="mp-track-heading">
+                  <h3>Track list</h3>
+                  <span>Original order</span>
+                </div>
+                <ol className="mp-track-list">
+                  {sampleTracks.map((track, index) => (
+                    <li
+                      key={index}
+                      className={
+                        track.unavailable ? 'mp-track-unavailable' : undefined
+                      }
+                    >
+                      <span className="mp-track-number">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span>
+                        <span className="mp-track-title">{track.title}</span>
+                        <span className="mp-track-artist">{track.artist}</span>
+                      </span>
+                      <span className="mp-track-duration">
+                        {track.duration}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </>
+        )}
+      </dialog>
+      {review && (
+        <dialog
+          ref={reviewDialog}
+          className="mp-review"
+          aria-labelledby="mp-review-title"
+          onCancel={(event) => {
+            event.preventDefault();
+            setReview(false);
+          }}
+        >
+          <h2 id="mp-review-title" tabIndex={-1}>
+            Review your collection
+          </h2>
+          <p>
+            Apply this selection, order, and context to the prototype gallery.
+          </p>
+          <dl>
+            <div>
+              <dt>Selected playlists</dt>
+              <dd>{draft.selected.length}</dd>
+            </div>
+            <div>
+              <dt>Series</dt>
+              <dd>{draft.series.length}</dd>
+            </div>
+            <div>
+              <dt>Featured playlist</dt>
+              <dd>
+                {playlists.find((item) => item.id === draft.lead)?.title ??
+                  'None'}
+              </dd>
+            </div>
+          </dl>
+          <h3>Gallery order</h3>
+          <ol>
+            {draft.order
+              .filter((id) => draft.selected.includes(id))
+              .map((id) => (
+                <li key={id}>
+                  {playlists.find((item) => item.id === id)?.title}
+                  {draft.notes[id] && (
+                    <p className="mp-review-note">{draft.notes[id]}</p>
+                  )}
+                </li>
+              ))}
+          </ol>
+          {draft.series.map((item) => (
+            <section key={item.id} className="mp-review-series">
+              <h3>{item.title}</h3>
+              {item.playlistIds.some((id) => draft.selected.includes(id)) ? (
+                <ol>
+                  {item.playlistIds
+                    .filter((id) => draft.selected.includes(id))
+                    .map((id) => (
+                      <li key={id}>
+                        {
+                          playlists.find((playlist) => playlist.id === id)
+                            ?.title
+                        }
+                      </li>
+                    ))}
+                </ol>
+              ) : (
+                <p>No selected playlists.</p>
+              )}
+            </section>
+          ))}
+          <p className="mp-small">
+            This action stays in this browser. It publishes nothing.
+          </p>
+          <div className="mp-review-actions">
+            <button className="mp-button" onClick={() => setReview(false)}>
+              Back to editing
+            </button>
+            <button
+              className="mp-button mp-primary"
+              onClick={() => {
+                setLive(structuredClone(draft));
+                setReview(false);
+                setEditing(false);
+                setAnnouncement('Changes applied to this prototype.');
+              }}
+            >
+              Apply to prototype
+              <Icon name="check" />
+            </button>
+          </div>
+        </dialog>
+      )}
+    </div>
+  );
+}

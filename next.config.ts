@@ -10,7 +10,19 @@ const nextConfig: NextConfig = {
   // building, so a request long after still reads the build's own time.
   env: { SITE_BUILT_AT: new Date().toISOString() },
   async headers() {
-    return siteHeaders;
+    return siteHeaders.map((rule) => ({
+      ...rule,
+      headers:
+        process.env.SITE_MODE === 'preview'
+          ? rule.headers
+              .filter((header) => header.key !== 'Link')
+              .map((header) =>
+                header.key === 'Referrer-Policy'
+                  ? { ...header, value: 'no-referrer' }
+                  : header
+              )
+          : rule.headers,
+    }));
   },
   /**
    * Host redirects live here rather than in a dashboard so they are
@@ -55,7 +67,18 @@ const nextConfig: NextConfig = {
   // @atcute/tid reads the clock through @atcute/time-ms, which loads a native
   // addon from a computed path. Turbopack cannot bundle that, so Node loads
   // the package, and with it time-ms, from node_modules instead.
-  serverExternalPackages: ['@atcute/tid'],
+  serverExternalPackages: ['@atcute/tid', 'esbuild'],
+  // The widget compiler resolves these at request time rather than through
+  // Next's module graph. Keep the browser runtime in private function bundles.
+  outputFileTracingIncludes: {
+    '/api/studio/**': [
+      './node_modules/react/**/*',
+      './node_modules/react-dom/**/*',
+      './node_modules/.pnpm/react@*/node_modules/react/**/*',
+      './node_modules/.pnpm/react-dom@*/node_modules/react-dom/**/*',
+      './node_modules/.pnpm/scheduler@*/node_modules/scheduler/**/*',
+    ],
+  },
   allowedDevOrigins: ['williecubed.localhost'],
   images: {
     // Bound Cloudflare Images transformations. Current content image sizes

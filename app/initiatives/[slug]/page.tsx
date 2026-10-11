@@ -30,6 +30,7 @@ import {
   websiteLd,
 } from '@/lib/seo/jsonld';
 import { absoluteUrl, pageMetadata } from '@/lib/site';
+import { isPrivatePreview } from '@/lib/studio/config';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix
@@ -143,6 +144,9 @@ export default async function InitiativePage(props: {
       <TopBar crumbs={crumbs} column="content" />
       <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
         <header className="mx-auto max-w-[840px]">
+          {isPrivatePreview() && initiative.draft && (
+            <p className="text-label-medium text-muted">Draft</p>
+          )}
           <h1 className="mt-2 text-display-medium text-ink">
             <SharedTitle id={`initiative-${initiative.slug}`} size="large">
               <span className="inline-block">{initiative.title}</span>

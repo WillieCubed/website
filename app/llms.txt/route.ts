@@ -2,9 +2,8 @@ import { buildLlmsSummary } from '@/lib/indieweb/discovery';
 import { getAllWritings } from '@/lib/writings';
 
 export async function GET() {
-  // getAllWritings leaves drafts out in production, so an unpublished
-  // writing never appears in this file.
-  const writings = await getAllWritings();
+  // Public discovery excludes drafts regardless of deployment mode.
+  const writings = await getAllWritings(false);
 
   return new Response(buildLlmsSummary(writings), {
     headers: {

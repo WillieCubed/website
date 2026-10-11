@@ -11,6 +11,7 @@ import LiveStatus from '@/components/status/LiveStatus';
 
 import { randomlyChooseTagline, taglineHref } from '@/lib/enhancements';
 import { routedPages, site } from '@/lib/site';
+import { isPrivatePreview } from '@/lib/studio/config';
 
 import FeedsButton from './FeedsButton';
 import FooterFrame from './FooterFrame';
@@ -186,10 +187,14 @@ export default function SiteFooter() {
               </li>
             ))}
           </ul>
-          <Suspense fallback={null}>
-            <LiveStatus />
-          </Suspense>
-          <FeedsButton />
+          {!isPrivatePreview() && (
+            <>
+              <Suspense fallback={null}>
+                <LiveStatus />
+              </Suspense>
+              <FeedsButton />
+            </>
+          )}
         </div>
       </div>
     </FooterFrame>

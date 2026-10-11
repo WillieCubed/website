@@ -63,6 +63,8 @@ how its content is modeled, and the conventions that govern changes to it.
 
 - [Status data and admin](./status.md): manual city source, owner sign-in,
   caching, and the future Docket boundary.
+- [Private writing preview](./private-writing.md): deployment, private storage,
+  Lattice, draft migration, and publication acceptance.
 
 ## Conventions
 

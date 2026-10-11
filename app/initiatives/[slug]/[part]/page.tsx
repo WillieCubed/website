@@ -36,6 +36,7 @@ import {
   websiteLd,
 } from '@/lib/seo/jsonld';
 import { absoluteUrl, canonicalUrl, pageMetadata } from '@/lib/site';
+import { isPrivatePreview } from '@/lib/studio/config';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix
@@ -170,6 +171,9 @@ export default async function PartPage(props: {
       <JsonLd data={partGraph} />
       <TopBar crumbs={crumbs} />
       <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
+        {isPrivatePreview() && (initiative.draft || part.draft) && (
+          <p className="mb-4 text-label-medium text-muted">Draft</p>
+        )}
         <header className="relative overflow-hidden rounded-3xl bg-ink text-ground">
           {cover && (
             <Image

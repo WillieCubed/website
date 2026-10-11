@@ -2,6 +2,7 @@ import { STATIC_PAGES } from '@/lib/entities/pages';
 import { tagCards } from '@/lib/entities/tags';
 import type { EntityCard } from '@/lib/entities/types';
 import { detailHref } from '@/lib/entities/ventures';
+import { decodePortableMarkdown } from '@/lib/feeds/html';
 import { type Entry, entries } from '@/lib/home/ventures';
 import {
   type Initiative,
@@ -27,7 +28,13 @@ export function writingToItem(
     path: `/writings/${writing.slug}`,
     title: writing.title,
     description: writing.description,
-    content: writingText(content, writing),
+    content: writingText(
+      content.replace(
+        /<(?:StudioBlock|PortableBlock)\b[^>]*\bportable="([A-Za-z0-9_-]+)"[^>]*\/?>/g,
+        (_match, encoded: string) => decodePortableMarkdown(encoded) ?? ''
+      ),
+      writing
+    ),
     tags: writing.tags,
     published: new Date(writing.published).toISOString(),
     type: 'writing',

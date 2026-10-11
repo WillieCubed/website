@@ -334,7 +334,7 @@ export async function getPublishedWriting(slug: string) {
     throw new Error(`No writing "${slug}"`);
   }
   const data = await getWriting(slug);
-  if (data.writing.draft && !showDrafts) {
+  if (data.writing.draft) {
     throw new Error(`Writing "${slug}" is a draft`);
   }
   return data;

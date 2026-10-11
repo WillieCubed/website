@@ -7,7 +7,7 @@ Commits use [Conventional Commits](https://www.conventionalcommits.org/) format 
 Use one of these scopes. Omit the scope only for repository-wide changes.
 
 - **`landing`** — the `/` route
-- **`pages`** — the routes under `app/_(pages)`
+- **`pages`** — public profile and standalone pages, including `/about` and `/research`
 - **`projects`** — the project content model, `lib/projects`, `components/projects`, and the `/projects` routes
 - **`writings`** — the writing system: `lib/writings`, `components/writings`, and page routes
 - **`content`** — data and content files under `content/` and `data/` directories

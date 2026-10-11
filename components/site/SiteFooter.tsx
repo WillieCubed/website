@@ -19,9 +19,8 @@ import './site.css';
 
 /**
  * Brand stays available by direct link without promotion in the footer.
- * Search lives in the command
- * palette; visitors whose scripts never ran find /search through the top
- * bar's <noscript> link instead.
+ * Search opens the command palette. Its trigger submits to /search when
+ * scripts cannot run.
  */
 const PAGES = routedPages
   .filter((page) => page.path !== '/brand')

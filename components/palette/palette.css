@@ -6,6 +6,12 @@
 
 /* Triggers */
 
+.palette-trigger-form {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+}
+
 .palette-trigger {
   display: inline-flex;
   align-items: center;

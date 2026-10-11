@@ -1,4 +1,3 @@
-import SiteLink from '@/components/link/SiteLink';
 import PaletteTrigger from '@/components/palette/PaletteTrigger';
 
 import type { PageColumn } from '@/lib/footer/column';
@@ -52,6 +51,8 @@ interface TopBarProps {
   floating?: boolean;
   /** Which content column the bar should line up with. */
   column?: Column;
+  /** Pages with a dedicated search field can omit the site search trigger. */
+  showSearch?: boolean;
   /**
    * Prefetch the homepage from the name link. The prefetch carries the
    * homepage's image preloads, so a page that never shows those images, such
@@ -70,6 +71,7 @@ export default function TopBar({
   floating = false,
   column = 'wide',
   prefetchHome = true,
+  showSearch = true,
 }: TopBarProps) {
   return (
     // Each page renders its own bar, so navigation pairs the old and new bars.
@@ -147,18 +149,11 @@ export default function TopBar({
             </div>
           ))}
         </nav>
-        <div className="ml-auto flex shrink-0 items-center">
-          <PaletteTrigger size="compact" glass={floating} />
-          <noscript>
-            <SiteLink
-              preview={false}
-              href="/search"
-              className="site-breadcrumb"
-            >
-              Search
-            </SiteLink>
-          </noscript>
-        </div>
+        {showSearch && (
+          <div className="ml-auto flex shrink-0 items-center">
+            <PaletteTrigger size="compact" glass={floating} />
+          </div>
+        )}
       </TopBarFrame>
     </ViewTransition>
   );

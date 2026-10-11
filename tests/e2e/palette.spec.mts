@@ -60,6 +60,40 @@ function combobox(page: Page) {
   return palette(page).getByRole('combobox');
 }
 
+test('the search button opens with Space without navigating', async ({
+  page,
+}) => {
+  await page.goto('/writings');
+  const trigger = page.getByRole('button', { name: 'Search', exact: true });
+  await trigger.focus();
+  await page.keyboard.press('Space');
+  await expect(combobox(page)).toBeFocused();
+  await expect(page).toHaveURL(/\/writings$/);
+  await settled(page);
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+});
+
+test('the search button still navigates when JavaScript is unavailable', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL: test.info().project.use.baseURL,
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto('/writings');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect(page).toHaveURL(/\/search\??$/);
+    await expect(
+      page.getByRole('heading', { name: 'Search', exact: true })
+    ).toBeVisible();
+  } finally {
+    await context.close();
+  }
+});
+
 for (const path of ['/', '/writings']) {
   test(`⌘K opens the palette on ${path}`, async ({ page }) => {
     await page.goto(path);

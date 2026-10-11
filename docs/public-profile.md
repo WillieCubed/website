@@ -15,8 +15,10 @@ lists and dated model commentary do not describe the current public work.
 The implementation follows three steps. Build the two route pages with the
 existing metadata, links, and shared titles. Read public venture records without
 rewriting their descriptions. Route only these two pages through `sitePages`.
-Build and visual verification happen after integration with the shared site
-changes. Check desktop and 390px renders in both themes, including the footer.
+The integrated production build, lint, types, and 879 unit checks passed.
+Visual review covered 320, 390, 600, 768, 1024, and 1440px in both themes.
+Accessibility checks at 390 and 1440px found no violations. The footer uses
+compact public-work and profile columns, including on the homepage dock.
 
 ## Sources and privacy
 
@@ -47,3 +49,18 @@ Neither route loads projects, writings, or initiatives. Neither changes a draft 
 No `/research/[projectId]` page moves out of the parked folder. Draft detail
 pages stay private. A future research bibliography needs public, verified
 records before adding entries.
+
+## Component diagram
+
+The route modules read the public sources and shared registry. The work-list
+module renders the public venture descriptions.
+
+```mermaid
+flowchart LR
+  About[About route] --> Work[Profile work list]
+  Research[Research route] --> Work
+  Work --> Ventures[Public homepage records]
+  About --> Registry[Site page registry]
+  Research --> Registry
+  Research --> Media[Published media loader]
+```

@@ -29,6 +29,27 @@ const PAGES = routedPages
     href: page.path,
   }));
 
+const WORK_PATHS = ['/writings', '/projects', '/initiatives', '/media'];
+const PROFILE_PATHS = ['/about', '/research', '/sitemap'];
+
+function pagesAt(paths: string[]) {
+  return paths.flatMap((path) => PAGES.filter((page) => page.href === path));
+}
+
+const PAGE_GROUPS = [
+  { label: 'Public work', pages: pagesAt(WORK_PATHS) },
+  {
+    label: 'Profile',
+    pages: [
+      ...pagesAt(PROFILE_PATHS),
+      // Newly routed pages remain reachable before they receive a group.
+      ...PAGES.filter(
+        (page) => ![...WORK_PATHS, ...PROFILE_PATHS].includes(page.href)
+      ),
+    ],
+  },
+];
+
 const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
   {
     label: 'Email',
@@ -110,15 +131,23 @@ export default function SiteFooter() {
             </Suspense>
           </div>
           <nav aria-label="Pages" className="site-footer__pages">
-            <ul className="flex flex-wrap gap-x-5 gap-y-1">
-              {PAGES.map((page) => (
-                <li key={page.href}>
-                  <SiteLink preview={false} href={page.href} className={LINK}>
-                    {page.label}
-                  </SiteLink>
-                </li>
-              ))}
-            </ul>
+            {PAGE_GROUPS.filter((group) => group.pages.length > 0).map(
+              (group) => (
+                <ul key={group.label} aria-label={group.label}>
+                  {group.pages.map((page) => (
+                    <li key={page.href}>
+                      <SiteLink
+                        preview={false}
+                        href={page.href}
+                        className={LINK}
+                      >
+                        {page.label}
+                      </SiteLink>
+                    </li>
+                  ))}
+                </ul>
+              )
+            )}
           </nav>
         </div>
         {/* This row never wraps. When the column gets narrow the labels

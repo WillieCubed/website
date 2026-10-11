@@ -118,6 +118,7 @@ export default function PostActions({
   return (
     <>
       <div className={styles.actions} role="group" aria-label="Writing actions">
+        <div className={styles.recommendation}>{recommendation}</div>
         <div
           ref={replyTrigger}
           className={styles.reply}
@@ -193,7 +194,6 @@ export default function PostActions({
             </Popover>
           )}
         </div>
-        <div className={styles.recommendation}>{recommendation}</div>
         <div
           className={styles.share}
           role="group"

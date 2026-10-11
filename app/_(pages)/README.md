@@ -1,9 +1,10 @@
 # Parked pages
 
 Next.js never routes a folder whose name starts with an underscore, so
-every page in here returns a 404. These are the pages from the old site
-that have not been rebuilt in the new design yet. Landing, writings,
-initiatives, projects, and brand have been rebuilt and routed.
+the files here do not create routes. These are retained source pages from
+the old site. Landing, About, Research, writings, initiatives, projects,
+media, and brand have public replacements outside this folder. The old
+research detail pages remain private.
 
 To bring a page back, rebuild it, move its folder to `app/<route>`, and
 set its `routed` flag to true in `sitePages` in `lib/site.ts`. The footer
@@ -12,9 +13,9 @@ rebuilt" note all read that list.
 
 A page that passes an image to `pageMetadata()` must pass a 1200×630
 card, because the helper declares every custom social image as
-1200×630. The parked About and Contact pages pass
-`/assets/headshot.jpg`, which is 1157×1157, so fix the image or add an
-image-size option to `pageMetadata` when they are routed again.
+1200×630. The old About and Contact sources pass `/assets/headshot.jpg`, which is
+1157×1157. The public About replacement uses the shared social card. Fix
+Contact's image before restoring that source.
 
 The project index and detail routes live at `app/projects`. Public project
 files also enter search, hover cards, the sitemap, and the three site feeds.

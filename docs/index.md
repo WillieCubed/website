@@ -13,6 +13,9 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## Content
 
+- [Public profile](./public-profile.md): About, Research, their public sources,
+  and the boundary that keeps research detail drafts private.
+
 - [Sitemap](./sitemap.md): the human directory, XML sitemap, and shared
   programmatic resource catalog.
 
@@ -24,8 +27,6 @@ how its content is modeled, and the conventions that govern changes to it.
   the rule that every word is Willie's.
 
 ## IndieWeb
-
-- [Publishing conformance](./publishing-conformance.md): pinned standards, schema CIDs, supported behavior and separate external release gates.
 
 - [IndieWeb](./indieweb/README.md): every protocol route, the environment
   variables that switch each on, the scripts that run after a build, and the
@@ -74,12 +75,13 @@ how its content is modeled, and the conventions that govern changes to it.
 - [Adaptive theme](./plans/2026-09-19-adaptive-theme.md): the plan, executed,
   that made every surface follow the visitor's light or dark preference.
 - [willie.page in the Atmosphere](./superpowers/specs/2026-10-02-atmosphere-design.md):
-  the design, proposed, for standard.site publishing and AT Protocol interop.
+  the original design for standard.site publishing and AT Protocol interop.
+  The conformance guide records current behavior and external verification.
   Its plans cover [standard.site](./superpowers/plans/2026-10-02-standard-site.md)
   and [Bluesky posting and responses](./superpowers/plans/2026-10-02-bluesky-posse.md).
 - [Project model and pages](./superpowers/plans/2026-09-28-project-model-and-pages.md):
   the plan, executed, for one validated file per project and a page
-  for every project, with the `/projects` list left parked until Willie
-  picks a layout.
+  for every project. The public index uses already-public homepage work and
+  excludes draft project files.
 
 [website]: https://willie.page

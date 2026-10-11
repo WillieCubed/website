@@ -173,7 +173,10 @@ test('the site name links home and the Writings crumb opens its menu', async ({
   expect(await writingLinks.count()).toBeGreaterThan(1);
   await expect(writingsMenu.getByRole('heading')).toHaveCount(0);
   if (await writingsMenu.getByRole('link', { name: 'Brand' }).count()) {
-    await expect(writingLinks).toHaveCount(5);
+    const hrefs = await writingLinks.evaluateAll((links) =>
+      links.map((link) => link.getAttribute('href'))
+    );
+    expect(new Set(hrefs).size).toBe(hrefs.length);
     await expect(
       writingsMenu.getByRole('link', { name: 'Initiatives' })
     ).toHaveCount(1);

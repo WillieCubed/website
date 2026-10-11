@@ -49,7 +49,7 @@ export default function SampleCover({
       )}
       {cover === 'summer' && (
         <g fill="none" stroke={ink}>
-          <circle cx="270" cy="152" r="91" strokeWidth="23" />
+          <circle cx="270" cy="202" r="76" strokeWidth="21" />
           <path
             d="M-10 308q95-75 190 0t230 0M-10 342q95-75 190 0t230 0M-10 376q95-75 190 0t230 0"
             strokeWidth="3"
@@ -57,7 +57,7 @@ export default function SampleCover({
         </g>
       )}
       {cover === 'spring' && (
-        <g fill={ink}>
+        <g fill={ink} transform="translate(0 24)">
           <ellipse
             cx="268"
             cy="164"
@@ -105,10 +105,10 @@ export default function SampleCover({
       )}
       {cover === 'night' && (
         <g fill="none" stroke={ink}>
-          <path d="M192 400V180a72 72 0 0 1 144 0v220" strokeWidth="3" />
-          <path d="M264 108v292M192 230h144" strokeWidth="2" />
-          <circle cx="291" cy="177" r="24" fill={ink} stroke="none" />
-          <path d="M218 316h94m-94 18h94m-94 18h94" opacity=".5" />
+          <path d="M192 400V240a72 72 0 0 1 144 0v160" strokeWidth="3" />
+          <path d="M264 168v232M192 290h144" strokeWidth="2" />
+          <circle cx="291" cy="237" r="24" fill={ink} stroke="none" />
+          <path d="M218 340h94m-94 18h94m-94 18h94" opacity=".5" />
         </g>
       )}
       {cover === 'loose' && (

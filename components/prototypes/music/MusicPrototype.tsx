@@ -331,6 +331,9 @@ export default function MusicPrototype() {
               <p className="mp-small">
                 {series ? `${index + 1} of ${matching.length} · ` : ''}6 tracks
               </p>
+              {playlist.id === lead && catalog.notes[playlist.id] && (
+                <p className="mp-card-note">{catalog.notes[playlist.id]}</p>
+              )}
             </div>
             <span className="mp-open-icon">
               <Icon name="arrow-right" size={20} />
@@ -455,10 +458,6 @@ export default function MusicPrototype() {
               </div>
             </form>
           )}
-          <div className="mp-rail-note">
-            <Icon name="music" size={18} />
-            <p>Playlists follow their original track order.</p>
-          </div>
           {editing && (
             <div className="mp-draft-note">
               <span className="mp-status-dot" />
@@ -484,7 +483,9 @@ export default function MusicPrototype() {
           aria-labelledby="mp-collection-title"
         >
           <header className="mp-collection-header">
-            <div>
+            <div
+              className={!series && !editing ? 'mp-visually-hidden' : undefined}
+            >
               <h2 id="mp-collection-title">
                 {series?.title ??
                   (editing ? 'Your playlists' : 'Selected playlists')}
@@ -625,60 +626,10 @@ export default function MusicPrototype() {
               <div className="mp-detail-body">
                 <h2 id="mp-detail-title">{current.title}</h2>
                 <p className="mp-detail-meta">6 tracks · Sample sequence</p>
-                {editing ? (
-                  <div className="mp-context-editor">
-                    <label htmlFor="mp-playlist-note">Your notes</label>
-                    <textarea
-                      id="mp-playlist-note"
-                      rows={3}
-                      placeholder="What should someone know before listening?"
-                      value={draft.notes[current.id] ?? ''}
-                      onChange={(event) =>
-                        change({
-                          ...draft,
-                          notes: {
-                            ...draft.notes,
-                            [current.id]: event.target.value,
-                          },
-                        })
-                      }
-                    />
-                    <label className="mp-check">
-                      <input
-                        type="checkbox"
-                        checked={draft.lead === current.id}
-                        onChange={() =>
-                          change({
-                            ...draft,
-                            lead: draft.lead === current.id ? null : current.id,
-                            selected: draft.selected.includes(current.id)
-                              ? draft.selected
-                              : [...draft.selected, current.id],
-                          })
-                        }
-                      />
-                      Feature in the gallery
-                    </label>
-                    <fieldset>
-                      <legend>Series</legend>
-                      {draft.series.map((item) => (
-                        <label className="mp-check" key={item.id}>
-                          <input
-                            type="checkbox"
-                            checked={item.playlistIds.includes(current.id)}
-                            onChange={() => membership(item.id, current.id)}
-                          />
-                          {item.title}
-                        </label>
-                      ))}
-                    </fieldset>
-                  </div>
-                ) : (
-                  catalog.notes[current.id] && (
-                    <p className="mp-playlist-note">
-                      {catalog.notes[current.id]}
-                    </p>
-                  )
+                {!editing && catalog.notes[current.id] && (
+                  <p className="mp-playlist-note">
+                    {catalog.notes[current.id]}
+                  </p>
                 )}
                 <button className="mp-button mp-spotify" disabled>
                   Open in Spotify
@@ -687,6 +638,57 @@ export default function MusicPrototype() {
                 <p className="mp-spotify-note">
                   Sample playlist · No Spotify link
                 </p>
+              </div>
+              {editing && (
+                <div className="mp-context-editor">
+                  <label htmlFor="mp-playlist-note">Your notes</label>
+                  <textarea
+                    id="mp-playlist-note"
+                    rows={3}
+                    placeholder="What should someone know before listening?"
+                    value={draft.notes[current.id] ?? ''}
+                    onChange={(event) =>
+                      change({
+                        ...draft,
+                        notes: {
+                          ...draft.notes,
+                          [current.id]: event.target.value,
+                        },
+                      })
+                    }
+                  />
+                  <label className="mp-check">
+                    <input
+                      type="checkbox"
+                      checked={draft.lead === current.id}
+                      onChange={() =>
+                        change({
+                          ...draft,
+                          lead: draft.lead === current.id ? null : current.id,
+                          selected: draft.selected.includes(current.id)
+                            ? draft.selected
+                            : [...draft.selected, current.id],
+                        })
+                      }
+                    />
+                    Feature in the gallery
+                  </label>
+                  <fieldset>
+                    <legend>Series</legend>
+                    {draft.series.map((item) => (
+                      <label className="mp-check" key={item.id}>
+                        <input
+                          type="checkbox"
+                          checked={item.playlistIds.includes(current.id)}
+                          onChange={() => membership(item.id, current.id)}
+                        />
+                        {item.title}
+                      </label>
+                    ))}
+                  </fieldset>
+                </div>
+              )}
+              <div className="mp-detail-tracks">
                 <div className="mp-track-heading">
                   <h3>Track list</h3>
                   <span>Original order</span>

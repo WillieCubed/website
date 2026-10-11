@@ -1,6 +1,7 @@
 import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import type { ActivityFeedItem, WebmentionAuthor } from '@/lib/indieweb/types';
 import type { Initiative } from '@/lib/initiatives';
+import type { Project } from '@/lib/projects';
 import { site } from '@/lib/site';
 import { siteRoute } from '@/lib/url-utils';
 import type { WritingData } from '@/lib/writings';
@@ -140,6 +141,25 @@ export function initiativeToFeedItem(
     url: siteRoute`${initiative.href}`,
     published,
     updated: initiative.updated,
+  };
+}
+
+/** A public project with a real date; drafts never become feed entries. */
+export function projectToFeedItem(
+  project: Project,
+  content?: string
+): FeedItem | null {
+  const published = project.starts ?? project.updated;
+  if (project.draft || project.visibility === 'hidden' || !published)
+    return null;
+  return {
+    title: project.title,
+    description: project.line ?? '',
+    content: project.visibility === 'public' ? content : undefined,
+    url: siteRoute`${project.href}`,
+    published,
+    updated: project.updated,
+    categories: project.roles,
   };
 }
 

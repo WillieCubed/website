@@ -32,6 +32,10 @@ media interaction. The public site therefore uses one `/music` route.
 - Let the Music page, its top bar, and its prototype controls share a 1600px
   maximum width. This page needs room for artwork and collection browsing.
   Keep other pages at their existing widths.
+- Keep the series rail 32px from the gallery on large screens and 24px away
+  at 840–1199px. Align its first button with the featured cover. These gaps match
+  the cover grid so the controls and collection read as one layout. Stack
+  the series controls above the gallery below 840px.
 - Keep the phone focus view's cover and title beside one another. Put editing
   controls and the track sequence across the full width below them. Preserve
   the larger cover and adjacent context on desktop.
@@ -62,7 +66,9 @@ media interaction. The public site therefore uses one `/music` route.
 - Show part of the next collection row on initial load. If the viewport cannot
   reveal at least 56px of its first cover, show a More playlists button that
   scrolls there and moves keyboard focus to that playlist. Recheck after fonts
-  load and the viewport changes. Hide the cue after the visitor scrolls.
+  load and the viewport changes. Center the cue under the featured artwork
+  and keep it clear of the caption.
+  Hide the cue after the visitor scrolls.
 
 The gallery uses these layouts. Series and search results use equal cards in
 their own order without promoting the featured playlist.
@@ -179,11 +185,13 @@ their earlier and later buttons pass. The checks include native surface and
 cover transitions, staggered content, interrupted motion, missing transition
 support, keyboard focus, and scroll affordances in short viewports. The layout
 pass checked 11 widths from 320px to 2560px in both themes on October 11.
-The featured cover remains at least
-1.5 times as wide as regular covers, with no horizontal overflow.
+The featured cover remains at least 1.5 times as wide as regular covers, with
+no horizontal overflow. The sidebar spacing pass captured 320×740, 390×844,
+768×1024, 1024×768, 1440×1000, and 1920×1080 viewports in both themes.
 
-This revision passed all 880 repository tests, lint, type checking, and the
-production build. The build retains warnings in unchanged highlight CSS,
+The preceding interaction pass passed all 880 repository tests, lint, type
+checking, and the production build. The build retains warnings in unchanged
+highlight CSS,
 font fallback generation, and filesystem tracing. All 9 command palette checks
 passed against the production build, including Space activation and search
 navigation without JavaScript. Its production HTTP checks confirmed

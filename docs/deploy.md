@@ -77,7 +77,7 @@ Do not start on vinext until its own skills confirm `cacheComponents` and
 
 ## Patched dependencies
 
-`patches/next@16.3.5.patch` (applied by pnpm through `patchedDependencies` in
+`patches/next@16.3.8.patch` (applied by pnpm through `patchedDependencies` in
 `pnpm-workspace.yaml`) removes one line from Next's `fetchInternalImage`.
 
 - **The bug.** Next optimizes a local image by fetching it through a mock
@@ -101,6 +101,22 @@ Do not start on vinext until its own skills confirm `cacheComponents` and
 
   `pnpm install` fails when a patch no longer applies, so a forgotten patch
   surfaces immediately.
+
+`patches/gray-matter@4.0.3.patch` moves the YAML engine to `load` and
+`dump` from js-yaml 4. The scoped override removes js-yaml 3 and its
+`argparse` / `sprintf-js` dependency chain. js-yaml 4 uses the same safe
+default schema; no JavaScript YAML types are enabled. The patch must stay
+paired with the `gray-matter>js-yaml` override. Remove both when
+gray-matter supports js-yaml 4 upstream.
+
+The typography plugin also pins an affected selector parser. Its scoped
+override selects 7.1.6 until the plugin updates that dependency. A global
+sharp override keeps Next's optional image dependency on the patched 0.35.5.
+
+The development-only Next ESLint plugin still depends on braces 3.0.3
+through fast-glob. GHSA-vfj7-8cjw-p6xm has no published fix as of October 10, 2026. The plugin reads repository-controlled root-directory patterns; the
+site does not expose that parser to visitors. Production dependency audits
+pass, but a full audit must continue to report this upstream advisory.
 
 ## Open questions
 

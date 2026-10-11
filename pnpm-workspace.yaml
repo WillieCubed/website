@@ -15,6 +15,10 @@ peerDependencyRules:
 overrides:
   '@types/react': 19.2.16
   '@types/react-dom': 19.2.3
+  sharp: 0.35.5
+  'gray-matter>js-yaml': 4.3.2
+  '@tailwindcss/typography>postcss-selector-parser': 7.1.6
 
 patchedDependencies:
-  next@16.3.5: patches/next@16.3.5.patch
+  gray-matter@4.0.3: patches/gray-matter@4.0.3.patch
+  next@16.3.8: patches/next@16.3.8.patch

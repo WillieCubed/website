@@ -55,7 +55,7 @@ export function createAdminHandler({
     'Referrer-Policy': 'same-origin',
     'X-Robots-Tag': 'noindex, nofollow',
     'Content-Security-Policy':
-      "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+      "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'unsafe-inline'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
   };
   const enabled = configured && owner !== null;
   const render = (options: Parameters<typeof adminView>[0], status = 200) =>
@@ -199,7 +199,24 @@ export function createAdminHandler({
           headers,
         });
       }
-      await store.save(city);
+      const previous = await resolveLocation(store);
+      try {
+        await store.save(city);
+      } catch {
+        return render(
+          {
+            configured: true,
+            signedIn: true,
+            csrf: csrfFor(token!),
+            snapshot: previous,
+            editing: true,
+            query: city.city,
+            results: [city],
+            message: 'Could not save. Try again.',
+          },
+          503
+        );
+      }
       invalidate();
       return redirect(request, { saved: true });
     } catch (error) {

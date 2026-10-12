@@ -68,7 +68,19 @@ test(
         fileSha: string | undefined,
         writeCount = 0,
         source = '',
-        marker = { revisionId: 'other', commit: 'other' };
+        marker = { revisionId: 'other', commit: 'other', sourceSha: 'other' };
+      const branches = new Map<string, string>();
+      const pulls = new Map<number, Record<string, unknown>>();
+      let checksReady = false,
+        prCount = 0,
+        mergeCount = 0,
+        failCreateResponse = false,
+        failBranchResponse = false,
+        failMergeResponse = false,
+        failRebaseResponse = false,
+        failedChecks = false,
+        rebaseCount = 0,
+        paginateChecks = false;
       const history: { sha: string; commit: { message: string } }[] = [];
       globalThis.fetch = async (input, init) => {
         const endpoint = new URL(String(input)),
@@ -76,13 +88,79 @@ test(
         if (endpoint.origin === 'https://public.example')
           return Response.json(marker);
         assert.equal(endpoint.origin, 'https://api.github.com');
+        if (endpoint.pathname === '/graphql') {
+          const body = JSON.parse(String(init?.body));
+          const update = body.variables.input.refUpdates[0];
+          assert.equal(update.force, true);
+          assert.match(update.name, /^refs\/heads\/codex\/studio-publish-/);
+          const branch = update.name.replace('refs/heads/', '');
+          assert.equal(branches.get(branch), update.beforeOid);
+          branches.set(branch, update.afterOid);
+          const pr = [...pulls.values()].find(
+            (pr) => (pr.head as { ref: string }).ref === branch
+          )!;
+          Object.assign(pr, {
+            head: { ref: branch, sha: update.afterOid },
+            base: { sha: head },
+          });
+          rebaseCount++;
+          if (failRebaseResponse) {
+            failRebaseResponse = false;
+            throw new Error('Connection lost after CAS rebase');
+          }
+          return Response.json({
+            data: { updateRefs: { clientMutationId: 'test' } },
+          });
+        }
+        if (path === '') return Response.json({ node_id: 'repository-node' });
         if (path === 'git/ref/heads/main')
           return Response.json({ object: { sha: head } });
+        if (path.startsWith('git/ref/heads/codex')) {
+          const sha = branches.get(
+            decodeURIComponent(path.replace('git/ref/heads/', ''))
+          );
+          return sha
+            ? Response.json({ object: { sha } })
+            : Response.json({}, { status: 404 });
+        }
+        if (path === 'pulls' && !init?.body) {
+          const branch = endpoint.searchParams.get('head')!.split(':')[1];
+          return Response.json(
+            [...pulls.values()].filter(
+              (pr) => (pr.head as { ref: string }).ref === branch
+            )
+          );
+        }
+        if (/^pulls\/\d+$/.test(path))
+          return Response.json(pulls.get(Number(path.split('/')[1])));
+        if (path.endsWith('/check-runs')) {
+          const firstPage = endpoint.searchParams.get('page') === '1';
+          return Response.json({
+            total_count: paginateChecks ? 101 : 1,
+            check_runs: Array.from(
+              { length: paginateChecks && firstPage ? 100 : 1 },
+              () => ({
+                status: checksReady ? 'completed' : 'in_progress',
+                conclusion: checksReady
+                  ? failedChecks && (!paginateChecks || !firstPage)
+                    ? 'failure'
+                    : 'success'
+                  : null,
+              })
+            ),
+          });
+        }
+        if (path.endsWith('/status'))
+          return Response.json({ state: 'pending', statuses: [] });
         if (path === 'commits') return Response.json(history);
         if (path.startsWith('compare/'))
           return Response.json({ status: 'ahead' });
         if (path.startsWith('git/commits/') && !init?.body)
-          return Response.json({ tree: { sha: 'tree-base' } });
+          return Response.json({
+            tree: { sha: 'tree-base' },
+            message: history.find((commit) => path.endsWith(commit.sha))?.commit
+              .message,
+          });
         if (path.startsWith('git/trees/') && !init?.body)
           return Response.json({
             truncated: false,
@@ -102,7 +180,7 @@ test(
               entry.path === 'content/writings/selected-revision.mdx'
           );
           assert.ok(writing);
-          source = writing.content;
+          if (writing.content !== undefined) source = writing.content;
           for (const entry of body.tree.filter(
             (entry: { path: string }) =>
               entry.path !== 'content/writings/selected-revision.mdx'
@@ -114,6 +192,16 @@ test(
           return Response.json({ sha: 'tree-new' });
         }
         if (path === 'git/commits') {
+          assert.equal(
+            body.author.name,
+            process.env.STUDIO_GITHUB_AUTHOR_NAME || 'WillieChalmers'
+          );
+          assert.equal(
+            body.author.email,
+            process.env.STUDIO_GITHUB_AUTHOR_EMAIL ||
+              '16641570+WillieCubed@users.noreply.github.com'
+          );
+          assert.deepEqual(body.author, body.committer);
           writeCount++;
           history.unshift({
             sha: String(writeCount).repeat(40),
@@ -121,19 +209,70 @@ test(
           });
           return Response.json({ sha: history[0].sha });
         }
-        if (path === 'git/refs/heads/main') {
-          assert.equal(body.force, false);
-          head = body.sha;
+        if (path === 'git/refs') {
+          assert.match(body.ref, /^refs\/heads\/codex\/studio-publish-/);
+          branches.set(body.ref.replace('refs/heads/', ''), body.sha);
+          if (failBranchResponse) {
+            failBranchResponse = false;
+            throw new Error('Connection lost after branch creation');
+          }
+          return Response.json({ object: { sha: body.sha } });
+        }
+        if (path === 'pulls') {
+          prCount++;
+          assert.match(
+            body.body,
+            /## TL;DR[\s\S]*## Changes[\s\S]*## Verification[\s\S]*## Follow-ups and Next Work/
+          );
+          assert.doesNotMatch(body.body, /<!--/);
+          const pr = {
+            number: prCount,
+            html_url: `https://github.com/owner/site/pull/${prCount}`,
+            head: { sha: branches.get(body.head), ref: body.head },
+            base: { sha: head },
+            state: 'open',
+            mergeable: true,
+            mergeable_state: 'clean',
+          };
+          pulls.set(prCount, pr);
+          if (failCreateResponse) {
+            failCreateResponse = false;
+            throw new Error('Connection lost after PR created');
+          }
+          return Response.json(pr);
+        }
+        if (/^pulls\/\d+\/merge$/.test(path)) {
+          assert.equal(body.merge_method, 'rebase');
+          const pr = pulls.get(Number(path.split('/')[1]))!;
+          assert.equal(body.sha, (pr.head as { sha: string }).sha);
+          mergeCount++;
+          head = (mergeCount + 5).toString(16).repeat(40);
+          Object.assign(pr, {
+            merged: true,
+            merge_commit_sha: head,
+            state: 'closed',
+          });
           fileSha = createHash('sha1')
             .update(`blob ${Buffer.byteLength(source)}\0`)
             .update(source)
             .digest('hex');
-          return Response.json({ object: { sha: head } });
+          if (failMergeResponse) {
+            failMergeResponse = false;
+            throw new Error('Connection lost after merge');
+          }
+          return Response.json({ merged: true, sha: head });
         }
         throw new Error(`Unexpected request: ${path}`);
       };
       const published = await publishRevision(draft.id, draft.head.id);
-      assert.equal(published.status, 'deploying');
+      assert.equal(published.status, 'publishing');
+      assert.equal(published.commit, null);
+      assert.ok(published.proposalCommit);
+      assert.equal(mergeCount, 0);
+      checksReady = true;
+      const merged = await publicationStatus(published.id);
+      assert.equal(merged.status, 'deploying');
+      assert.notEqual(merged.commit, merged.proposalCommit);
       assert.match(source, /Selected title/);
       assert.doesNotMatch(source, /Newer private title/);
       assert.match(source, new RegExp(draft.head.id));
@@ -144,9 +283,23 @@ test(
       );
       assert.equal(writeCount, 1);
       assert.equal((await publicationStatus(published.id)).status, 'deploying');
-      marker = { revisionId: draft.head.id, commit: published.commit! };
+      marker = {
+        revisionId: draft.head.id,
+        commit: merged.commit!,
+        sourceSha: 'wrong-source-hash',
+      };
+      assert.equal((await publicationStatus(published.id)).status, 'deploying');
+      marker.commit = 'e'.repeat(40); // A later deployment descended from the merged commit.
+      assert.equal((await publicationStatus(published.id)).status, 'deploying');
+      marker.sourceSha = merged.publishedFileSha!;
       assert.equal((await publicationStatus(published.id)).status, 'live');
+      failCreateResponse = true;
+      const interrupted = await publishRevision(draft.id, newer.head.id);
+      assert.equal(interrupted.status, 'failed');
+      assert.ok(interrupted.id);
+      assert.equal(prCount, 2);
       const second = await publishRevision(draft.id, newer.head.id);
+      assert.equal(prCount, 2);
       assert.equal(second.status, 'deploying');
       assert.match(source, /Newer private title/);
       assert.equal(writeCount, 2);
@@ -156,8 +309,8 @@ test(
       });
       const ownedSha = fileSha;
       fileSha = 'external-edit';
-      await assert.rejects(
-        publishRevision(draft.id, third.head.id),
+      assert.match(
+        (await publishRevision(draft.id, third.head.id)).error!,
         /published source changed/
       );
       assert.equal(writeCount, 2);
@@ -197,8 +350,8 @@ test(
           ],
         },
       });
-      await assert.rejects(
-        publishRevision(draft.id, blockDraft.head.id),
+      assert.match(
+        (await publishRevision(draft.id, blockDraft.head.id)).error!,
         /explicitly approved/
       );
       assert.equal(writeCount, 2);
@@ -280,16 +433,114 @@ test(
       marker = {
         revisionId: mediaDraft.head.id,
         commit: mediaPublication.commit!,
+        sourceSha: mediaPublication.publishedFileSha!,
       };
       assert.equal(
         (await publicationStatus(mediaPublication.id)).status,
         'live'
       );
-      await assert.rejects(
-        publishRevision(draft.id, third.head.id),
+      assert.match(
+        (await publishRevision(draft.id, third.head.id)).error!,
         /Restore this earlier revision/
       );
       assert.equal(writeCount, 4);
+      const conflictDraft = await store.save(draft.id, mediaDraft.head.id, {
+        ...draft.head.body,
+        title: 'Concurrent source test',
+      });
+      checksReady = false;
+      const waiting = await publishRevision(draft.id, conflictDraft.head.id);
+      assert.equal(waiting.status, 'publishing');
+      const beforeConflict = fileSha;
+      fileSha = 'external-change-after-proposal';
+      checksReady = true;
+      const conflict = await publicationStatus(waiting.id);
+      assert.equal(conflict.status, 'failed');
+      assert.match(conflict.error!, /published source changed/);
+      assert.equal(mergeCount, 4);
+      fileSha = beforeConflict;
+      failMergeResponse = true;
+      const lostMergeResponse = await publishRevision(
+        draft.id,
+        conflictDraft.head.id
+      );
+      assert.equal(lostMergeResponse.status, 'failed');
+      const recoveredMerge = await publishRevision(
+        draft.id,
+        conflictDraft.head.id
+      );
+      assert.equal(recoveredMerge.status, 'deploying');
+      assert.equal(mergeCount, 5);
+      assert.equal(prCount, 5);
+      const afterMerge = await store.save(draft.id, conflictDraft.head.id, {
+        ...draft.head.body,
+        title: 'Branch retry test',
+      });
+      failBranchResponse = true;
+      const interruptedBranch = await publishRevision(
+        draft.id,
+        afterMerge.head.id
+      );
+      assert.equal(interruptedBranch.status, 'failed');
+      assert.ok(interruptedBranch.proposalCommit);
+      assert.equal(writeCount, 6);
+      const recoveredBranch = await publishRevision(
+        draft.id,
+        afterMerge.head.id
+      );
+      assert.equal(recoveredBranch.status, 'deploying');
+      assert.equal(writeCount, 6);
+      assert.equal(prCount, 6);
+      const rebaseDraft = await store.save(draft.id, afterMerge.head.id, {
+        ...draft.head.body,
+        title: 'Same artifacts after unrelated main update',
+      });
+      checksReady = false;
+      const beforeRebase = await publishRevision(draft.id, rebaseDraft.head.id);
+      assert.equal(beforeRebase.status, 'publishing');
+      const reviewedSha = beforeRebase.proposalCommit;
+      head = 'f'.repeat(40); // Another post changed; this source blob is unchanged.
+      failRebaseResponse = true;
+      const interruptedRebase = await publicationStatus(beforeRebase.id);
+      assert.equal(interruptedRebase.status, 'failed');
+      assert.equal(rebaseCount, 1);
+      const afterRebase = await publishRevision(draft.id, rebaseDraft.head.id);
+      assert.equal(afterRebase.status, 'publishing');
+      assert.notEqual(afterRebase.proposalCommit, reviewedSha);
+      assert.deepEqual(
+        afterRebase.artifactManifest,
+        beforeRebase.artifactManifest
+      );
+      assert.equal(
+        afterRebase.pullRequestNumber,
+        beforeRebase.pullRequestNumber
+      );
+      assert.equal(rebaseCount, 1);
+      assert.equal(writeCount, 8);
+      checksReady = true;
+      assert.equal(
+        (await publicationStatus(beforeRebase.id)).status,
+        'deploying'
+      );
+      assert.equal(prCount, 7);
+      const failedDraft = await store.save(draft.id, rebaseDraft.head.id, {
+        ...draft.head.body,
+        title: 'Terminal checks test',
+      });
+      failedChecks = true;
+      paginateChecks = true; // Failure is on page 2; never merge after reading only page 1.
+      const failed = await publishRevision(draft.id, failedDraft.head.id);
+      assert.equal(failed.status, 'failed');
+      assert.match(
+        failed.error!,
+        /Review and rerun.*github.com\/owner\/site\/pull\/8/
+      );
+      failedChecks = false; // Maintainer reran the checks on GitHub.
+      assert.equal(
+        (await publishRevision(draft.id, failedDraft.head.id)).status,
+        'deploying'
+      );
+      assert.equal(prCount, 8);
     } finally {
       globalThis.fetch = original;
       await pool.end();

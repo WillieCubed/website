@@ -50,6 +50,13 @@ export interface Publication {
   sourceFileSha?: string | null;
   sourcePath?: string;
   proposalInput?: { tree: string; parent: string };
+  artifactManifest?: { path: string; sha: string; baseSha: string | null }[];
+  rebaseInput?: {
+    before: string;
+    after?: string;
+    tree: string;
+    parent: string;
+  } | null;
   error: string | null;
   createdAt: string;
 }

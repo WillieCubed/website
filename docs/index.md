@@ -63,6 +63,9 @@ how its content is modeled, and the conventions that govern changes to it.
 - [Titles and social previews](./metadata.md): `og:site_name` carries the
   name, so no social title repeats it, and every title reads on its own.
 
+- [Status data and admin](./status.md): manual city source, owner sign-in,
+  caching, and the future Docket boundary.
+
 ## Conventions
 
 - [Commits](./commits.md): Conventional Commit types and scopes.

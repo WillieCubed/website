@@ -10,9 +10,12 @@ export const MIGRATIONS = [
   'lib/db/migrations/007_micropub_deleted_archives.sql',
   'lib/db/migrations/008_atproto_response_observations.sql',
   'lib/db/migrations/009_indieauth_code_replay.sql',
+  'lib/db/migrations/010_status.sql',
 ];
 
 export const SCHEMA_QUERY = `SELECT (
+  to_regclass('public.status_location') IS NOT NULL AND
+  to_regclass('public.status_admin_sessions') IS NOT NULL AND
   to_regclass('public.webmentions') IS NOT NULL AND
   to_regclass('public.outgoing_webmentions') IS NOT NULL AND
   to_regclass('public.reply_context_cache') IS NOT NULL AND

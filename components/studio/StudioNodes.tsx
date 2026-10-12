@@ -1,17 +1,46 @@
 'use client';
-import { Node } from '@tiptap/core';
+import { Extension, Node } from '@tiptap/core';
+import { Plugin } from '@tiptap/pm/state';
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import {
   type NodeViewProps,
   NodeViewWrapper,
   ReactNodeViewRenderer,
 } from '@tiptap/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+
+import Icon from '@/components/icons/Icon';
 
 import type { CatalogEntry } from '@/lib/studio/catalog';
 
 import { studioRequest } from './api';
 
 export type { CatalogEntry } from '@/lib/studio/catalog';
+// Decorations are editor-only: the active block never changes the saved document.
+export const ActiveWritingBlock = Extension.create({
+  name: 'activeWritingBlock',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          decorations(state) {
+            const { $from, from } = state.selection;
+            // Follow the text block even inside a long list or quotation.
+            const start = $from.depth ? $from.before($from.depth) : from;
+            const node = state.doc.nodeAt(start);
+            return node?.isBlock
+              ? DecorationSet.create(state.doc, [
+                  Decoration.node(start, start + node.nodeSize, {
+                    class: 'studio-active-block',
+                  }),
+                ])
+              : DecorationSet.empty;
+          },
+        },
+      }),
+    ];
+  },
+});
 function BlockPreview({ attrs }: { attrs: Record<string, unknown> }) {
   const [html, setHtml] = useState('');
   const [error, setError] = useState('');
@@ -109,10 +138,31 @@ export function makeCatalogBlock(
       (item) => item.id === node.attrs.id && item.version === node.attrs.version
     );
     const props = node.attrs.props as Record<string, unknown>;
+    const [editing, setEditing] = useState(false);
+    const fieldsId = useId();
+    const editButton = useRef<HTMLButtonElement>(null);
+    const fields = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+      if (editing)
+        fields.current?.querySelector<HTMLElement>('input, textarea')?.focus();
+    }, [editing]);
+    function finishEditing() {
+      setEditing(false);
+      editButton.current?.focus({ preventScroll: true });
+    }
     return (
       <NodeViewWrapper className="studio-catalog-block" contentEditable={false}>
         <div className="studio-block-heading">
           <strong>{entry?.name || String(node.attrs.id)}</strong>
+          <button
+            ref={editButton}
+            className="feeds-button"
+            aria-expanded={editing}
+            aria-controls={fieldsId}
+            onClick={() => (editing ? finishEditing() : setEditing(true))}
+          >
+            <Icon name="pen-line" /> {editing ? 'Done' : 'Edit block'}
+          </button>
           <button
             className="feeds-button"
             onClick={deleteNode}
@@ -122,8 +172,18 @@ export function makeCatalogBlock(
           </button>
         </div>
         <BlockPreview attrs={node.attrs} />
-        <details className="studio-block-details">
-          <summary>Edit block</summary>
+        <div
+          ref={fields}
+          id={fieldsId}
+          className="studio-block-details"
+          hidden={!editing}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.stopPropagation();
+              finishEditing();
+            }
+          }}
+        >
           <p>
             {entry?.description ||
               'This saved block is preserved. Its catalog entry is unavailable.'}
@@ -175,7 +235,7 @@ export function makeCatalogBlock(
             </label>
           )}
           <small>{entry?.accessibility}</small>
-        </details>
+        </div>
       </NodeViewWrapper>
     );
   }

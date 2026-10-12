@@ -1,5 +1,7 @@
 import { build } from 'esbuild';
 import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import sanitizeHtml from 'sanitize-html';
 
 import { StudioError } from './errors';
@@ -89,6 +91,16 @@ export async function compileSandbox(
   proposal: ComponentProposal,
   props: Record<string, unknown> = proposal.example
 ): Promise<string> {
+  const runtime = await readFile(
+    join(process.cwd(), '.studio', 'browser-runtime.js'),
+    'utf8'
+  );
+  const runtimeModules: Record<string, string> = {
+    react: '__studioReact',
+    'react/jsx-runtime': '__studioJSXRuntime',
+    'react-dom': '__studioReactDOM',
+    'react-dom/client': '__studioReactDOMClient',
+  };
   const result = await build({
     stdin: {
       contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import Component from 'studio-component'; createRoot(document.getElementById('root')).render(React.createElement(Component,${JSON.stringify(props)}));`,
@@ -107,6 +119,18 @@ export async function compileSandbox(
       {
         name: 'isolated-component',
         setup(plugin) {
+          plugin.onResolve({ filter: /^react(?:-dom)?(?:\/.*)?$/ }, (args) =>
+            runtimeModules[args.path]
+              ? { path: args.path, namespace: 'studio-runtime' }
+              : { errors: [{ text: 'Unsupported React import.' }] }
+          );
+          plugin.onLoad(
+            { filter: /.*/, namespace: 'studio-runtime' },
+            (args) => ({
+              contents: `module.exports = globalThis.${runtimeModules[args.path]};`,
+              loader: 'js',
+            })
+          );
           plugin.onResolve({ filter: /^studio-component$/ }, () => ({
             path: 'component.tsx',
             namespace: 'studio',
@@ -130,7 +154,7 @@ export async function compileSandbox(
       },
     ],
   });
-  const script = result.outputFiles[0].text.replace(
+  const script = (runtime + '\n' + result.outputFiles[0].text).replace(
     /<\/script/gi,
     '<\\/script'
   );

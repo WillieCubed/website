@@ -14,7 +14,7 @@ export default function StudioPreview({
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = useState(240);
-  const [documentHtml, setDocumentHtml] = useState('');
+  const [documentHtml, setDocumentHtml] = useState<string | null>(null);
   useEffect(() => {
     const theme = getComputedStyle(document.documentElement);
     const font = getComputedStyle(document.body).fontFamily;
@@ -27,6 +27,7 @@ export default function StudioPreview({
     const scheme = theme.colorScheme;
     const styles = `<style>:root{${values}color-scheme:${scheme}}body{font-family:${font};color:var(--color-ink);background:var(--color-ground);margin:0;padding:0}a{color:var(--color-accent)}pre,.callout{background:var(--color-tray)}.callout{border-color:var(--color-accent)}figcaption,.fallback{color:var(--color-muted)}td,th,.fallback{border-color:var(--color-line)}.generated{background:var(--color-ground);border:0}</style>`;
     const measure = `<script>new ResizeObserver(()=>parent.postMessage({type:'studio-preview-height',height:document.body.getBoundingClientRect().height},'*')).observe(document.body);</script>`;
+    setHeight(240);
     setDocumentHtml(html + styles + measure);
     function resized(event: MessageEvent) {
       if (
@@ -41,8 +42,11 @@ export default function StudioPreview({
     window.addEventListener('message', resized);
     return () => window.removeEventListener('message', resized);
   }, [html]);
-  return (
+  // Publish a complete document on first mount; a source change replaces the
+  // opaque frame rather than navigating an existing empty document.
+  return documentHtml === null ? null : (
     <iframe
+      key={documentHtml}
       ref={frame}
       title={title}
       sandbox="allow-scripts"

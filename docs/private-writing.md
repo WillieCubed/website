@@ -72,7 +72,7 @@ The preview project requires these server-only variables:
 | `STUDIO_LATTICE_RUNTIME_ID`           | Optional initial device ID; normally choose a named device in the editor |
 | `STUDIO_GITHUB_REPOSITORY`            | `owner/repository` for the website                                       |
 | `STUDIO_GITHUB_BRANCH`                | `main`                                                                   |
-| `STUDIO_GITHUB_TOKEN`                 | Repository-scoped credential with contents write                         |
+| `STUDIO_GITHUB_TOKEN`                 | Website-only Contents and Pull requests read/write; Commit statuses read |
 | `STUDIO_PUBLIC_ORIGIN`                | `https://willie.page`                                                    |
 
 The public client metadata declares the sole OAuth redirect
@@ -124,10 +124,13 @@ Git history remains public. No draft files were removed during local setup.
 Save, inspect website and portable previews, and publish the reviewed saved
 revision. New edits invalidate the review. Publication validates titles,
 image descriptions, portable blocks and safe MDX; promotes only referenced
-assets; bundles only approved component versions; then creates one Git commit
-and advances the configured branch without force. Intervening external edits
-conflict. Retrying recovers the existing publication/commit. Publishing moves
-to Deploying, then Live only when the public marker and deployed Git ancestry
+assets; bundles only approved component versions; then creates a durable
+publication branch and pull request. Required checks and existing branch rules
+remain authoritative; publication uses rebase merging without bypass. Unrelated
+main updates rebase the exact artifact hashes through compare-and-swap on the
+private branch. Conflicting artifact edits stop publication. Retrying recovers
+the same proposal and pull request. Publishing moves to Deploying, then Live
+only when the public revision marker, MDX blob hash, and deployed Git ancestry
 prove the selected revision is served. Later edits preserve the live revision.
 
 Imported MDX stays byte-preserved in source blocks. Unfamiliar imports,
@@ -163,11 +166,10 @@ articles use their opening sentence in the library; notes keep prose-first
 identities. Returning to a cached editor recreates Tiptap from the current
 working document, and New writing becomes available again on return.
 
-Lattice connection returns to the same writing task. The composed request,
-kind and selected passage remain in tab-local recovery storage; a changed
-source revision invalidates the retained selection. Starting a fresh request
-without a selection clears the earlier passage. Generation uses readable
-progress labels and offers retry for waiting or failed requests.
+Lattice connection returns to the same writing task. The widget specification
+remains in tab-local recovery storage. Generation receives no selected passage
+or surrounding prose. It uses readable progress labels and offers retry for
+waiting or failed requests.
 
 ## Validation and remaining hosted acceptance
 

@@ -1,0 +1,61 @@
+# Status data and admin
+
+This guide is for the site maintainer configuring the status source or adding
+Docket sync. The public UI remains an isolated prototype. These routes provide
+the data and owner controls without restoring that UI integration.
+
+`GET /api/status` returns city, region, country, IANA timezone, location update
+time, and current weather. It never returns coordinates. Las Vegas is the
+server default until the owner saves a manual city. A configured database error
+returns 503 instead of silently publishing the default city.
+
+`/admin/status` uses the existing `INDIEAUTH_TOTP_SECRET` owner authenticator.
+It shares the existing replay protection and failed-attempt limit. Sign-in
+creates an eight-hour session stored by SHA-256 digest in Postgres. The browser
+cookie is HttpOnly and SameSite Strict, with Secure enabled in production.
+Every write checks the request origin. Saving and signing out also require a
+session-bound CSRF token. Admin responses disable caching and framing.
+
+Set `POSTGRES_URL` and `INDIEAUTH_TOTP_SECRET` using the existing environment
+setup. Apply `lib/db/migrations/010_status.sql` before using the editor. The
+bootstrap migration list and readiness check include both new tables. Sign-in
+stays disabled when either setting is absent. No default password or test
+session exists in the application.
+
+Search for a city, review its region and timezone, and select “Use this city.”
+Search uses [Open-Meteo geocoding](https://open-meteo.com/en/docs/geocoding-api).
+The stored coordinates describe the selected city center. They are for weather
+lookup and are not a device location. The editor does not request browser
+geolocation. Search failure preserves the saved city.
+
+The server caches the location for three hours before revalidation. Reads can
+serve the previous snapshot during revalidation, with a six-hour maximum cache
+lifetime. Saving manually invalidates the location tag immediately. Weather
+fetches revalidate after 15 minutes and observations older than one hour are
+omitted. HTTP responses use no-store so a browser or CDN cannot retain a city
+after an admin edit. The UI should calculate local time from the IANA timezone
+rather than caching a clock string.
+
+The component diagram shows the current data boundary:
+
+```mermaid
+flowchart LR
+  Admin[Owner editor] --> Manual[Manual city source]
+  Search[City search provider] --> Admin
+  Default[Server default] --> Reader[Cached location reader]
+  Manual --> Reader
+  Reader --> Public[Public status response]
+  Weather[Weather provider] --> Public
+```
+
+`LocationSource.read()` is the adapter contract for a city snapshot. Docket
+sync is not implemented. A future adapter must convert private beacon positions
+to a city before this boundary. It must define authentication, stale-beacon
+handling, and an explicit source selection policy. It must not overwrite a
+manual choice implicitly. Exact-location storage belongs to Docket rather than
+these public-site tables.
+
+Run `pnpm exec tsx --test tests/unit/status.test.mts` for authentication, session,
+CSRF, city validation, and source fallback checks. The standard test command
+includes these checks. Use a separate database for local integration checks.
+Do not use production credentials for test city changes.

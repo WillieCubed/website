@@ -17,10 +17,11 @@ export interface HeaderRule {
  */
 export const PAGE_SOURCES = [
   '/',
-  '/:page(projects|brand|search|writings|initiatives|media|sitemap|500)',
+  '/:page(projects|brand|search|writings|initiatives|media|sitemap|status|500)',
   '/:section(writings|initiatives|projects)/:slug((?!opengraph-image$)[^/.]+)',
   '/initiatives/:slug([^/.]+)/:part(part-\\d+)',
   '/writings/tags/:tag([^/.]+)',
+  '/admin/status',
 ];
 
 /**
@@ -66,6 +67,14 @@ export const siteHeaders: HeaderRule[] = [
         value: "sandbox allow-scripts; frame-ancestors 'self'",
       },
       { key: 'Referrer-Policy', value: 'no-referrer' },
+    ],
+  },
+  {
+    source: '/admin/:path*',
+    headers: [
+      { key: 'Cache-Control', value: 'private, no-store' },
+      { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'Referrer-Policy', value: 'same-origin' },
     ],
   },
   ...PAGE_SOURCES.map((source) => ({

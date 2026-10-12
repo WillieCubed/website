@@ -2,11 +2,12 @@ import { revalidateTag } from 'next/cache';
 
 import { ownerAuthenticatorFromEnvironment } from '@/lib/indieweb/indieauth-owner';
 import { ownerSignInStore } from '@/lib/indieweb/indieauth-storage';
-import { createAdminHandler } from '@/lib/status/admin';
-import { STATUS_LOCATION_TAG } from '@/lib/status/reader';
-import { statusStore } from '@/lib/status/storage';
 
-function handle(request: Request) {
+import { createAdminHandler } from './admin';
+import { STATUS_LOCATION_TAG } from './reader';
+import { statusStore } from './storage';
+
+export function statusAdmin(request: Request) {
   return createAdminHandler({
     store: statusStore,
     owner: ownerAuthenticatorFromEnvironment(process.env, ownerSignInStore),
@@ -15,5 +16,3 @@ function handle(request: Request) {
     invalidate: () => revalidateTag(STATUS_LOCATION_TAG, { expire: 0 }),
   })(request);
 }
-export const GET = handle;
-export const POST = handle;

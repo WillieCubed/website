@@ -62,7 +62,7 @@ function setup() {
     origin = 'https://willie.page'
   ) =>
     new Request(
-      'https://willie.page/admin/status',
+      'https://willie.page/api/admin/status',
       fields
         ? {
             method: 'POST',
@@ -125,10 +125,7 @@ test('owner TOTP creates an opaque expiring session and replay cannot create ano
   const app = setup();
   const signInPage = await app.handle(app.request());
   assert.equal(signInPage.headers.get('referrer-policy'), 'same-origin');
-  assert.match(
-    await signInPage.text(),
-    /name="referrer" content="same-origin"/
-  );
+  assert.equal((await signInPage.json()).signedIn, undefined);
   const response = await app.signin();
   assert.equal(response.status, 303);
   const cookie = response.headers.get('set-cookie')!;
@@ -138,9 +135,9 @@ test('owner TOTP creates an opaque expiring session and replay cannot create ano
   assert.equal(app.sessions.has(tokenHash(token)), true);
   assert.equal((await app.signin()).status, 401);
   app.sessions.set(tokenHash(token), new Date(0));
-  assert.match(
-    await (await app.handle(app.request(undefined, cookie))).text(),
-    /Authenticator code/
+  assert.equal(
+    (await (await app.handle(app.request(undefined, cookie))).json()).signedIn,
+    undefined
   );
 });
 
@@ -168,8 +165,9 @@ test('unauthenticated, cross-origin, malformed and CSRF writes cannot update loc
     ).status,
     403
   );
-  const html = await (await app.handle(app.request(undefined, cookie))).text();
-  const csrf = html.match(/name="csrf" value="([a-f0-9]+)"/)![1];
+  const { csrf } = await (
+    await app.handle(app.request(undefined, cookie))
+  ).json();
   assert.equal(
     (
       await app.handle(
@@ -185,8 +183,9 @@ test('unauthenticated, cross-origin, malformed and CSRF writes cannot update loc
 test('saving a city persists the manual source, invalidates public cache and logout revokes access', async () => {
   const app = setup();
   const cookie = (await app.signin()).headers.get('set-cookie')!.split(';')[0];
-  const html = await (await app.handle(app.request(undefined, cookie))).text();
-  const csrf = html.match(/name="csrf" value="([a-f0-9]+)"/)![1];
+  const { csrf } = await (
+    await app.handle(app.request(undefined, cookie))
+  ).json();
   const city = {
     ...defaultLocation.location,
     city: 'Seattle',
@@ -275,8 +274,7 @@ test('a failed save preserves the previous city and lets the owner retry', async
       assert.fail('A failed write must not invalidate the location cache');
     },
   });
-  const html = await (await handle(app.request(undefined, cookie))).text();
-  const csrf = html.match(/name="csrf" value="([a-f0-9]+)"/)![1];
+  const { csrf } = await (await handle(app.request(undefined, cookie))).json();
   const city = {
     ...defaultLocation.location,
     city: 'Seattle',
@@ -288,9 +286,10 @@ test('a failed save preserves the previous city and lets the owner retry', async
     app.request({ action: 'save', csrf, city: JSON.stringify(city) }, cookie)
   );
   assert.equal(response.status, 503);
-  const failure = await response.text();
-  assert.match(failure, /Could not save. Try again./);
-  assert.match(failure, /data-location-editor/);
-  assert.match(failure, /data-city-display hidden>Las Vegas/);
+  const failure = await response.json();
+  assert.equal(failure.message, 'Could not save. Try again.');
+  assert.equal(failure.signedIn, true);
+  assert.equal(failure.snapshot.location.city, 'Las Vegas');
+  assert.equal(failure.results[0].city, 'Seattle');
   assert.equal((await app.store.read())?.location.city, 'Las Vegas');
 });

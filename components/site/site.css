@@ -81,6 +81,11 @@
     gap: 16px;
   }
 }
+@container (max-width: 320px) {
+  .site-footer__profiles {
+    gap: 8px;
+  }
+}
 /* The footer carries the column its page's top bar registered
    (lib/footer/column.ts). The :has() rules are only the first paint's
    fallback, before any script has run: the document then holds one page,

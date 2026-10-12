@@ -5,6 +5,7 @@ import BlueskyIcon from '@/components/icons/BlueskyIcon';
 import Icon, { type IconName } from '@/components/icons/Icon';
 import InstagramIcon from '@/components/icons/InstagramIcon';
 import LinkedinIcon from '@/components/icons/LinkedinIcon';
+import SpotifyIcon from '@/components/icons/SpotifyIcon';
 import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import SiteLink from '@/components/link/SiteLink';
 import LiveStatus from '@/components/status/LiveStatus';
@@ -51,11 +52,20 @@ const PAGE_GROUPS = [
   },
 ];
 
-const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
+const ELSEWHERE: {
+  label: string;
+  href: string;
+  icon: IconName | 'spotify';
+}[] = [
   {
     label: 'Email',
     href: `mailto:${site.author.email}?subject=Hello%20Willie!`,
     icon: 'mail',
+  },
+  {
+    label: 'Spotify',
+    href: 'https://open.spotify.com/user/pkj37ts4e7ip19j0msai6lahf?si=03c8cb2eae944363',
+    icon: 'spotify',
   },
 ];
 
@@ -159,10 +169,14 @@ export default function SiteFooter() {
           <ul className="site-footer__profiles" data-footer-contact>
             {ELSEWHERE.map((place) => (
               <li key={place.href}>
-                <a href={place.href} className={LINK}>
-                  <Icon name={place.icon} size={16} />
+                <SiteLink href={place.href} className={LINK}>
+                  {place.icon === 'spotify' ? (
+                    <SpotifyIcon className="size-4" />
+                  ) : (
+                    <Icon name={place.icon} size={16} />
+                  )}
                   <span className="site-footer__label">{place.label}</span>
-                </a>
+                </SiteLink>
               </li>
             ))}
             {site.social.map((profile, index) => (

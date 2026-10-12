@@ -8,6 +8,7 @@ import { ViewTransition } from '@/components/site/view-transition';
 
 import type { PublicStatus } from '@/lib/status/types';
 
+import TimeZoneChooser from './TimeZoneChooser';
 import WeatherPicture, { weatherLabel } from './WeatherPicture';
 import './status.css';
 
@@ -22,6 +23,8 @@ export default function Status({
   const [data, setData] = useState(initial);
   const [celsius, setCelsius] = useState(false);
   const [now, setNow] = useState<Date>();
+  const [selectedTimezone, setSelectedTimezone] = useState('local');
+  const [deviceTimezone, setDeviceTimezone] = useState('UTC');
   const weatherGroup = useRef<HTMLDivElement>(null);
   const reaction = useRef<Animation | null>(null);
   const toggleTemperature = () => {
@@ -42,6 +45,7 @@ export default function Status({
     );
   };
   useEffect(() => {
+    setDeviceTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const tick = () => setNow(new Date());
     tick();
     const clock = setInterval(tick, 30000);
@@ -77,16 +81,22 @@ export default function Status({
       Math.abs(now.getTime() - Date.parse(data.weather.observedAt)) < 3600000)
       ? data.weather
       : null;
+  const timezone =
+    !expanded || selectedTimezone === 'local'
+      ? location.timezone
+      : selectedTimezone === 'device'
+        ? deviceTimezone
+        : selectedTimezone;
   const time = now
     ? new Intl.DateTimeFormat('en-US', {
-        timeZone: location.timezone,
+        timeZone: timezone,
         hour: 'numeric',
         minute: '2-digit',
       }).format(now)
     : '—';
   const zone = now
     ? new Intl.DateTimeFormat('en-US', {
-        timeZone: location.timezone,
+        timeZone: timezone,
         timeZoneName: 'short',
       })
         .formatToParts(now)
@@ -142,14 +152,22 @@ export default function Status({
     <>
       <section
         className="status-composition"
-        aria-label="Willie's local time and weather"
+        aria-label="Willie's location, time, and weather"
       >
         <div className="status-place">
           <h1 className="status-heading">Willie is currently in {city}.</h1>
-          <p className="clock">
+          <div className="clock">
             {clock}
-            <span className="zone">{zone}</span>
-          </p>
+            <TimeZoneChooser
+              current={selectedTimezone}
+              localTimezone={location.timezone}
+              deviceTimezone={deviceTimezone}
+              city={location.city}
+              zone={zone || ''}
+              now={now}
+              onChange={setSelectedTimezone}
+            />
+          </div>
         </div>
         <div ref={weatherGroup} className="status-weather-group">
           {picture}

@@ -1,15 +1,19 @@
 # Status data and admin
 
 This guide is for the site maintainer configuring the status source or adding
-Docket sync. The public UI remains an isolated prototype. These routes provide
-the data and owner controls without restoring that UI integration.
+Docket sync. The footer links to `/status`. Both use the same status component
+and cached city and weather reader. The public page uses the shared top bar
+and animated footer. The component pairs city, clock, weather graphic, and
+temperature during navigation, with a reduced-motion fallback.
 
 `GET /api/status` returns city, region, country, IANA timezone, location update
 time, and current weather. It never returns coordinates. Las Vegas is the
 server default until the owner saves a manual city. A configured database error
 returns 503 instead of silently publishing the default city.
 
-`/admin/status` uses the existing `INDIEAUTH_TOTP_SECRET` owner authenticator.
+`/admin/status` renders through the shared App Router layout, top bar, footer,
+and theme controls. Its React editor reads and writes JSON through
+`/api/admin/status`. The API uses the existing `INDIEAUTH_TOTP_SECRET` owner authenticator.
 It shares the existing replay protection and failed-attempt limit. Sign-in
 creates an eight-hour session stored by SHA-256 digest in Postgres. The browser
 cookie is HttpOnly and SameSite Strict, with Secure enabled in production.
@@ -41,12 +45,14 @@ The component diagram shows the current data boundary:
 
 ```mermaid
 flowchart LR
-  Admin[Owner editor] --> Manual[Manual city source]
+  Page[Admin page] --> Admin[Owner JSON API]
+  Admin --> Manual[Manual city source]
   Search[City search provider] --> Admin
   Default[Server default] --> Reader[Cached location reader]
   Manual --> Reader
   Reader --> Public[Public status response]
   Weather[Weather provider] --> Public
+  Reader --> UI[Footer and status page]
 ```
 
 `LocationSource.read()` is the adapter contract for a city snapshot. Docket

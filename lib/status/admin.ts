@@ -7,7 +7,7 @@ import {
 
 import type { OwnerAuthenticator } from '@/lib/indieweb/types';
 
-import { adminView } from './admin-view';
+import type { AdminState } from './admin-state';
 import { citySchema, resolveLocation, searchCities } from './location';
 import type { StatusStore } from './store';
 
@@ -50,7 +50,7 @@ export function createAdminHandler({
   search?: typeof searchCities;
 }) {
   const headers = {
-    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
     'Referrer-Policy': 'same-origin',
     'X-Robots-Tag': 'noindex, nofollow',
@@ -58,8 +58,8 @@ export function createAdminHandler({
       "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'unsafe-inline'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
   };
   const enabled = configured && owner !== null;
-  const render = (options: Parameters<typeof adminView>[0], status = 200) =>
-    new Response(adminView(options), { status, headers });
+  const render = (options: AdminState, status = 200) =>
+    Response.json(options, { status, headers });
   const redirect = (
     request: Request,
     {
@@ -81,8 +81,14 @@ export function createAdminHandler({
     if (token || clear)
       response.headers.set(
         'Set-Cookie',
-        `${COOKIE}=${token ?? ''}; Path=/admin/status; HttpOnly; SameSite=Strict; Max-Age=${clear ? 0 : SESSION_SECONDS}${secure ? '; Secure' : ''}`
+        `${COOKIE}=${token ?? ''}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${clear ? 0 : SESSION_SECONDS}${secure ? '; Secure' : ''}`
       );
+    if (request.headers.get('accept')?.includes('application/json')) {
+      return Response.json(
+        { redirect: response.headers.get('location') },
+        { headers: response.headers }
+      );
+    }
     return response;
   };
   return async (request: Request): Promise<Response> => {

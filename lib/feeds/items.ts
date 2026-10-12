@@ -40,7 +40,7 @@ export async function getWritingContentHtml(slug: string): Promise<string> {
   const body =
     writing.contentFormat === 'text'
       ? plainTextHtml(content)
-      : await renderFeedHtml(content);
+      : await renderFeedHtml(content, `/writings/${slug}`);
   return body + writingMediaHtml(writing, url);
 }
 
@@ -83,20 +83,27 @@ async function writingFeedItems(writings: WritingData[]) {
 
 /** Every published writing with its full body, newest first. */
 export async function getWritingFeedItems(): Promise<FeedItem[]> {
-  return writingFeedItems(await getAllWritings());
+  return writingFeedItems(await getAllWritings(false));
 }
 
 /** Every published writing carrying the tag, with its full body. */
 export async function getTagFeedItems(tag: string): Promise<FeedItem[]> {
-  return writingFeedItems(await getWritingsByTag(tag));
+  return writingFeedItems(
+    (await getWritingsByTag(tag)).filter((writing) => !writing.draft)
+  );
 }
 
 /** Every published, dated initiative with its full body, newest first. */
 export async function getInitiativeFeedItems(): Promise<FeedItem[]> {
-  const initiatives = await getInitiatives();
+  const initiatives = (await getInitiatives()).filter(
+    (initiative) => !initiative.draft
+  );
   const items = await Promise.all(
     initiatives.map(async (initiative) =>
-      initiativeToFeedItem(initiative, await renderFeedHtml(initiative.content))
+      initiativeToFeedItem(
+        initiative,
+        await renderFeedHtml(initiative.content, initiative.href)
+      )
     )
   );
   return newestFirst(items.filter((item) => item !== null));

@@ -11,6 +11,7 @@ import Callout from './Callout';
 import ImageWithCaption from './ImageWithCaption';
 import SoundCloudEmbed from './SoundCloudEmbed';
 import SpotifyEmbed from './SpotifyEmbed';
+import StudioBlock from './StudioBlock';
 import YouTubeEmbed from './YouTubeEmbed';
 
 export {
@@ -19,6 +20,7 @@ export {
   SoundCloudEmbed,
   Callout,
   ImageWithCaption,
+  StudioBlock,
 };
 
 export const mdxComponents = {
@@ -114,6 +116,7 @@ export const mdxComponents = {
   Callout,
   Figure: ImageWithCaption,
   ImageWithCaption,
+  StudioBlock,
   // Reference marks: RefMark comes from the remark plugin, Ref from authors.
   RefMark,
   FootnoteRef: RefMark,

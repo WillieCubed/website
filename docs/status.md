@@ -22,7 +22,7 @@ bootstrap migration list and readiness check include both new tables. Sign-in
 stays disabled when either setting is absent. No default password or test
 session exists in the application.
 
-Search for a city, review its region and timezone, and select “Set city.”
+Choose “Edit,” search for a city, review its region, and select “Set city.”
 Search uses [Open-Meteo geocoding](https://open-meteo.com/en/docs/geocoding-api).
 The stored coordinates describe the selected city center. They are for weather
 lookup and are not a device location. The editor does not request browser

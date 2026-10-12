@@ -253,3 +253,44 @@ test('missing owner configuration disables admin and provider search filters inc
   assert.equal((await searchCities('x', fetcher)).length, 0);
   assert.equal(calls, 1);
 });
+
+test('a failed save preserves the previous city and lets the owner retry', async () => {
+  const app = setup();
+  await app.store.save(defaultLocation.location);
+  const cookie = (await app.signin()).headers.get('set-cookie')!.split(';')[0];
+  const handle = createAdminHandler({
+    store: {
+      ...app.store,
+      async save() {
+        throw new Error('write unavailable');
+      },
+    },
+    owner: {
+      prompt: 'code',
+      async verify() {
+        return { ok: true };
+      },
+    },
+    invalidate() {
+      assert.fail('A failed write must not invalidate the location cache');
+    },
+  });
+  const html = await (await handle(app.request(undefined, cookie))).text();
+  const csrf = html.match(/name="csrf" value="([a-f0-9]+)"/)![1];
+  const city = {
+    ...defaultLocation.location,
+    city: 'Seattle',
+    region: 'Washington',
+    latitude: 47.61,
+    longitude: -122.33,
+  };
+  const response = await handle(
+    app.request({ action: 'save', csrf, city: JSON.stringify(city) }, cookie)
+  );
+  assert.equal(response.status, 503);
+  const failure = await response.text();
+  assert.match(failure, /Could not save. Try again./);
+  assert.match(failure, /data-location-editor/);
+  assert.match(failure, /data-city-display hidden>Las Vegas/);
+  assert.equal((await app.store.read())?.location.city, 'Las Vegas');
+});

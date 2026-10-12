@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 import { ViewTransition } from '@/components/site/view-transition';
@@ -22,6 +22,25 @@ export default function Status({
   const [data, setData] = useState(initial);
   const [celsius, setCelsius] = useState(false);
   const [now, setNow] = useState<Date>();
+  const weatherGroup = useRef<HTMLDivElement>(null);
+  const reaction = useRef<Animation | null>(null);
+  const toggleTemperature = () => {
+    setCelsius((value) => !value);
+    reaction.current?.cancel();
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const graphic = weatherGroup.current?.querySelector('.sky-glyph');
+    if (!graphic) return;
+    reaction.current = graphic.animate(
+      [
+        { translate: '0 0', scale: '1' },
+        { translate: '0 2px', scale: '1.04 0.96', offset: 0.18 },
+        { translate: '0 -10px', scale: '0.98 1.02', offset: 0.46 },
+        { translate: '0 1px', scale: '1.02 0.98', offset: 0.78 },
+        { translate: '0 0', scale: '1' },
+      ],
+      { duration: 460, easing: 'ease-in-out' }
+    );
+  };
   useEffect(() => {
     const tick = () => setNow(new Date());
     tick();
@@ -43,6 +62,7 @@ export default function Status({
     const interval = setInterval(refresh, 900000);
     document.addEventListener('visibilitychange', refresh);
     return () => {
+      reaction.current?.cancel();
       clearInterval(clock);
       clearInterval(interval);
       abort.abort();
@@ -131,13 +151,13 @@ export default function Status({
             <span className="zone">{zone}</span>
           </p>
         </div>
-        <div className="status-weather-group">
+        <div ref={weatherGroup} className="status-weather-group">
           {picture}
           {weather ? (
             <button
               type="button"
               className="weather-reading"
-              onClick={() => setCelsius((value) => !value)}
+              onClick={toggleTemperature}
               aria-label={`Show temperature in degrees ${celsius ? 'Fahrenheit' : 'Celsius'}`}
               title={`Switch to °${celsius ? 'F' : 'C'}`}
             >

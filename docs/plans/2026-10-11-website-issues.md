@@ -44,6 +44,20 @@ media interaction. The public site therefore uses one `/music` route.
   with the button's bottom aligned to the cover. On phones, center the cover,
   title, and metadata as one block up to 420px wide. The cover remains the
   opening control, so omit the duplicate action on phones.
+- Give the featured title up to 72px type on large screens and keep its listening
+  details at 16px. Show track count and computed runtime beneath the title.
+  Mark a runtime with missing durations as a lower bound, such as `18+ min`.
+  Keep authored notes optional and display them at 20–24px on large screens.
+  When a note is absent, preview the first three tracks in their original order
+  at 1200px and wider. Preserve unavailable positions and repeated tracks.
+- Show the featured playlist's position in each published series. On gallery
+  surfaces at least 1000px wide, add cover buttons for up to two other published
+  installments. Each cover expands into its own focus view and receives focus
+  again on dismissal. Hide unselected installments from this context. Keep the
+  mobile feature concise with its title, listening details, series position,
+  and optional note; put its track preview in the focused view.
+  Use a 52px Music heading and tighter header spacing on phones so the new
+  context does not push the scroll cue onto the artwork at 390×844.
 - Keep the phone focus view's cover and title beside one another. Put editing
   controls and the track sequence across the full width below them. Preserve
   the larger cover and adjacent context on desktop.

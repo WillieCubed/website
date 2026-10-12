@@ -30,7 +30,7 @@ export default function MusicScrollCue({
         ?.querySelector<HTMLElement>('.mp-card-lead .mp-art-frame')
         ?.getBoundingClientRect();
       const text = gallery.current?.querySelectorAll<HTMLElement>(
-        '.mp-card-lead .mp-card-caption, .mp-card-lead .mp-card-note'
+        '.mp-card-lead .mp-feature-details'
       );
       const overlapsText = Array.from(text ?? []).some((element) => {
         const box = element.getBoundingClientRect();

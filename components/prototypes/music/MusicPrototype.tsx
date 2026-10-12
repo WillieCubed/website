@@ -11,6 +11,7 @@ import {
   type Catalog,
   type SamplePlaylist,
   initialCatalog,
+  listeningTime,
   moveItem,
   playlists,
   sampleTracks,
@@ -26,6 +27,7 @@ import SampleCover from './SampleCover';
 import './music-prototype.css';
 
 const STORAGE_KEY = 'willie-music-prototype-v1';
+const runtime = listeningTime(sampleTracks);
 
 function readLocation() {
   const params = new URLSearchParams(location.search);
@@ -205,7 +207,9 @@ export default function MusicPrototype() {
   }
 
   function cardParts(source?: HTMLElement | null): PlaylistMotionParts {
-    const card = source?.closest<HTMLElement>('.mp-card') ?? source;
+    const card = source?.querySelector('[data-card-cover]')
+      ? source
+      : (source?.closest<HTMLElement>('.mp-card') ?? source);
     return {
       surface: card?.querySelector<HTMLElement>('[data-card-surface]'),
       cover: card?.querySelector<HTMLElement>('[data-card-cover]'),
@@ -228,17 +232,26 @@ export default function MusicPrototype() {
 
   function closePlaylist() {
     cancelMotion.current?.();
-    const target = gallery.current?.querySelector<HTMLElement>(
-      `[data-playlist="${focused}"] .mp-card-open`
-    );
-    const box = target?.getBoundingClientRect();
+    const originId =
+      returnFocus.current?.dataset.playlistOrigin ??
+      returnFocus.current?.closest<HTMLElement>('.mp-card')?.dataset.playlist;
+    const originVisible =
+      returnFocus.current?.isConnected &&
+      returnFocus.current.getClientRects().length > 0;
+    const target =
+      originVisible && originId === focused
+        ? returnFocus.current
+        : gallery.current?.querySelector<HTMLElement>(
+            `[data-playlist="${focused}"] .mp-card-open`
+          );
+    const box = cardParts(target).cover?.getBoundingClientRect();
     const visibleTarget =
       box && box.bottom > 0 && box.top < innerHeight ? target : null;
     cancelMotion.current = playlistMotion(
       () => {
         dialog.current?.close();
         flushSync(() => setFocused(null));
-        const restore = returnFocus.current ?? target;
+        const restore = originVisible ? returnFocus.current : target;
         if (restore?.isConnected) restore.focus({ preventScroll: true });
         if (ownDetailEntry.current) {
           ownPop.current = true;
@@ -335,6 +348,17 @@ export default function MusicPrototype() {
   function renderCard(playlist: SamplePlaylist, index: number) {
     const selected = catalog.selected.includes(playlist.id);
     const featured = playlist.id === lead;
+    const note = catalog.notes[playlist.id]?.trim();
+    const memberships = featured
+      ? catalog.series
+          .map((item) => ({
+            ...item,
+            playlistIds: item.playlistIds.filter((id) =>
+              catalog.selected.includes(id)
+            ),
+          }))
+          .filter((item) => item.playlistIds.includes(playlist.id))
+      : [];
     return (
       <article
         key={playlist.id}
@@ -370,8 +394,8 @@ export default function MusicPrototype() {
               <div>
                 <h3>{playlist.title}</h3>
                 <p className="mp-small">
-                  {series ? `${index + 1} of ${matching.length} · ` : ''}6
-                  tracks
+                  {series ? `${index + 1} of ${matching.length} · ` : ''}
+                  {sampleTracks.length} tracks
                 </p>
               </div>
               <span className="mp-open-icon">
@@ -385,10 +409,81 @@ export default function MusicPrototype() {
             <div className="mp-card-caption">
               <h3>{playlist.title}</h3>
             </div>
-            <p className="mp-small">6 tracks</p>
-            {catalog.notes[playlist.id] && (
-              <p className="mp-card-note">{catalog.notes[playlist.id]}</p>
+            <p className="mp-small mp-feature-meta">
+              {sampleTracks.length} tracks
+              {runtime && ` · ${runtime}`}
+            </p>
+            {note ? (
+              <p className="mp-card-note">{note}</p>
+            ) : (
+              <ol className="mp-feature-tracks" aria-label="Opening tracks">
+                {sampleTracks.slice(0, 3).map((track, index) => (
+                  <li
+                    key={index}
+                    className={
+                      track.unavailable ? 'mp-track-unavailable' : undefined
+                    }
+                  >
+                    <span className="mp-feature-track-number">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="mp-feature-track-info">
+                      <span>{track.title}</span>
+                      <span>{track.artist}</span>
+                    </span>
+                    <span className="mp-feature-track-duration">
+                      {track.duration}
+                    </span>
+                  </li>
+                ))}
+              </ol>
             )}
+            {memberships.map((item) => (
+              <div className="mp-feature-series" key={item.id}>
+                <p className="mp-feature-series-context">
+                  <span>{item.title}</span>
+                  <span>
+                    Part {item.playlistIds.indexOf(playlist.id) + 1} of{' '}
+                    {item.playlistIds.length}
+                  </span>
+                </p>
+                <div
+                  className="mp-feature-series-covers"
+                  role="group"
+                  aria-label={`Other playlists in ${item.title}`}
+                >
+                  {item.playlistIds
+                    .filter((id) => id !== playlist.id)
+                    .slice(0, 2)
+                    .map((id) => {
+                      const related = playlists.find(
+                        (candidate) => candidate.id === id
+                      )!;
+                      return (
+                        <button
+                          className="mp-series-cover"
+                          key={id}
+                          data-playlist-origin={id}
+                          aria-label={`Open ${related.title} from ${item.title}`}
+                          title={related.title}
+                          onClick={(event) =>
+                            openPlaylist(id, event.currentTarget)
+                          }
+                        >
+                          <span
+                            className="mp-series-cover-frame"
+                            data-card-surface=""
+                          >
+                            <span data-card-cover="">
+                              <SampleCover playlist={related} />
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+            ))}
             <button
               className="mp-button mp-tonal mp-feature-action"
               onClick={(event) =>
@@ -738,7 +833,9 @@ export default function MusicPrototype() {
                 <h2 id="mp-detail-title" tabIndex={-1} aria-live="polite">
                   {current.title}
                 </h2>
-                <p className="mp-detail-meta">6 tracks · Sample sequence</p>
+                <p className="mp-detail-meta">
+                  {sampleTracks.length} tracks · {runtime} · Sample sequence
+                </p>
                 {!editing && catalog.notes[current.id] && (
                   <p className="mp-playlist-note">
                     {catalog.notes[current.id]}

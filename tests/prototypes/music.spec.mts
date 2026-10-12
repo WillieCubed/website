@@ -63,6 +63,57 @@ test('the gallery shows its lead once and preserves the selected series order', 
   ).toBeVisible();
 });
 
+test('the feature introduces the actual sequence and keeps series controls local', async ({
+  page,
+  isMobile,
+}) => {
+  const feature = page.getByRole('article', { name: 'Featured playlist' });
+  await expect(feature.locator('.mp-feature-meta')).toHaveText(
+    '6 tracks · 18+ min'
+  );
+  await expect(feature.locator('.mp-feature-series-context')).toContainText(
+    'Fall Tour'
+  );
+  await expect(feature.locator('.mp-feature-series-context')).toContainText(
+    'Part 1 of 3'
+  );
+  const preview = feature.getByRole('list', { name: 'Opening tracks' });
+  if (isMobile) {
+    await expect(preview).not.toBeVisible();
+  } else {
+    await expect(preview.getByRole('listitem')).toHaveCount(3);
+    await expect(preview.getByRole('listitem').nth(0)).toContainText(
+      'Opening track'
+    );
+    await expect(preview.getByRole('listitem').nth(1)).toContainText(
+      'Second track'
+    );
+    await expect(preview.getByRole('listitem').nth(2)).toContainText(
+      'Unavailable track'
+    );
+    const nextPart = feature.getByRole('button', {
+      name: 'Open Fall Tour 2026, Part 2 from Fall Tour',
+      exact: true,
+    });
+    await nextPart.click();
+    await expect(
+      page.getByRole('dialog', { name: 'Fall Tour 2026, Part 2', exact: true })
+    ).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(nextPart).toBeFocused();
+    await nextPart.click();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.keyboard.press('Escape');
+    await expect(
+      page.getByRole('button', {
+        name: 'Open Fall Tour 2026, Part 2',
+        exact: true,
+      })
+    ).toBeFocused({ timeout: 5000 });
+  }
+  await expect(feature.locator('.mp-card-note')).toHaveCount(0);
+});
+
 test('featuring is optional, explicit, and independent of series or search order', async ({
   page,
 }) => {
@@ -153,6 +204,65 @@ test('featuring is optional, explicit, and independent of series or search order
     'fall-1'
   );
   await expect(page.locator('.mp-card')).toHaveCount(7);
+});
+
+test('authored notes replace the feature preview after review and apply', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Curate music', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Open Fall Tour 2026, Part 1', exact: true })
+    .click();
+  await page
+    .getByRole('textbox', { name: 'Your notes', exact: true })
+    .fill('The reviewer chose these tracks in this order.');
+  await page
+    .getByRole('button', { name: 'Close playlist', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Review changes', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Apply to prototype', exact: true })
+    .click();
+  const feature = page.getByRole('article', { name: 'Featured playlist' });
+  await expect(feature.locator('.mp-card-note')).toHaveText(
+    'The reviewer chose these tracks in this order.'
+  );
+  await expect(
+    feature.getByRole('list', { name: 'Opening tracks' })
+  ).toHaveCount(0);
+  await expect(feature.locator('.mp-feature-meta')).toHaveText(
+    '6 tracks · 18+ min'
+  );
+});
+
+test('featured series context excludes unselected playlists', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Curate music', exact: true }).click();
+  await page
+    .getByRole('checkbox', {
+      name: 'Include Fall Tour 2026, Part 2',
+      exact: true,
+    })
+    .uncheck();
+  await page
+    .getByRole('button', { name: 'Review changes', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Apply to prototype', exact: true })
+    .click();
+  const feature = page.getByRole('article', { name: 'Featured playlist' });
+  await expect(feature.locator('.mp-feature-series-context')).toContainText(
+    'Part 1 of 2'
+  );
+  await expect(
+    feature.getByRole('button', {
+      name: 'Open Fall Tour 2026, Part 2 from Fall Tour',
+      exact: true,
+    })
+  ).toHaveCount(0);
 });
 
 test('focus views retain repeated tracks, unavailable positions, and browser history', async ({
@@ -582,7 +692,7 @@ test('opening, advancing, and closing work with full motion enabled', async ({
     exact: true,
   });
   const coverWidth = await feature
-    .locator('[data-card-cover]')
+    .locator('.mp-card-open [data-card-cover]')
     .evaluate((cover) => cover.getBoundingClientRect().width);
   const previousRecords = (await readAudit()).records.length;
   await action.click();

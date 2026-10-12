@@ -369,3 +369,9 @@
   text-shadow: 0 0.039em 0.9px
     color-mix(in srgb, var(--color-ink) 42%, transparent);
 }
+
+/* A docked footer follows the registered page column, just like a plain footer. */
+.site-footer[data-dock][data-column='content'] {
+  --shell-max: 800px;
+  --rail-w: 360px;
+}

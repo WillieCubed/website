@@ -20,6 +20,7 @@ export default function Status({
 }) {
   const pathname = usePathname();
   const [data, setData] = useState(initial);
+  const [celsius, setCelsius] = useState(false);
   const [now, setNow] = useState<Date>();
   useEffect(() => {
     const tick = () => setNow(new Date());
@@ -93,7 +94,12 @@ export default function Status({
       default="none"
     >
       <span className="temperature">
-        {Math.round(weather.temperature)}°<span className="unit">F</span>
+        {Math.round(
+          expanded && celsius
+            ? ((weather.temperature - 32) * 5) / 9
+            : weather.temperature
+        )}
+        °<span className="unit">{expanded && celsius ? 'C' : 'F'}</span>
       </span>
     </ViewTransition>
   );
@@ -125,15 +131,29 @@ export default function Status({
             <span className="zone">{zone}</span>
           </p>
         </div>
-        {picture}
-        <div className="weather-reading">
-          {temperature}
-          <span className="condition">{weatherLabel(weather)}</span>
+        <div className="status-weather-group">
+          {picture}
+          {weather ? (
+            <button
+              type="button"
+              className="weather-reading"
+              onClick={() => setCelsius((value) => !value)}
+              aria-label={`Show temperature in degrees ${celsius ? 'Fahrenheit' : 'Celsius'}`}
+              title={`Switch to °${celsius ? 'F' : 'C'}`}
+            >
+              {temperature}
+              <span className="condition">{weatherLabel(weather)}</span>
+            </button>
+          ) : (
+            <div className="weather-reading">
+              <span className="condition">{weatherLabel(weather)}</span>
+            </div>
+          )}
+          <small className="attribution">
+            <a href="https://open-meteo.com/">Weather by Open-Meteo</a>
+          </small>
         </div>
       </section>
-      <small className="attribution">
-        <a href="https://open-meteo.com/">Weather by Open-Meteo</a>
-      </small>
     </>
   );
 }

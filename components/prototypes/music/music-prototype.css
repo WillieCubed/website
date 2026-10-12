@@ -308,15 +308,13 @@ html[data-music-motion] {
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 32px;
+  gap: 32px;
+  align-items: end;
   margin-bottom: 24px;
 }
 .mp-card-lead .mp-card-open {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: end;
-  gap: 32px;
+  grid-column: 1;
+  grid-row: 1;
 }
 .mp-card-lead .mp-card-caption {
   display: block;
@@ -335,12 +333,14 @@ html[data-music-motion] {
 }
 .mp-feature-details {
   grid-column: 2;
+  grid-row: 1;
   min-width: 0;
 }
-.mp-feature-meta {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+.mp-feature-details > .mp-small {
+  margin-top: 12px;
+}
+.mp-feature-action {
+  margin-top: 24px;
 }
 .mp-card-note {
   display: -webkit-box;
@@ -1102,10 +1102,6 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     column-gap: 28px;
     margin-bottom: 20px;
   }
-  .mp-card-lead .mp-card-open {
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-    gap: 28px;
-  }
   .mp-card-lead .mp-card-caption {
     padding: 0;
   }
@@ -1269,7 +1265,6 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   }
   .mp-card-lead .mp-card-caption {
     display: block;
-    padding-top: 18px;
   }
   .mp-card-lead .mp-card-caption h3 {
     max-width: 19ch;
@@ -1280,6 +1275,9 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     font-size: 12px;
   }
   .mp-feature-details {
+    margin-top: 18px;
+  }
+  .mp-feature-details > .mp-small {
     margin-top: 8px;
   }
   .mp-feature-action {

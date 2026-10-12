@@ -365,39 +365,38 @@ export default function MusicPrototype() {
               <SampleCover playlist={playlist} />
             </div>
           </div>
-          <div className="mp-card-caption">
-            <div>
-              <h3>{playlist.title}</h3>
-              {!featured && (
+          {!featured && (
+            <div className="mp-card-caption">
+              <div>
+                <h3>{playlist.title}</h3>
                 <p className="mp-small">
                   {series ? `${index + 1} of ${matching.length} · ` : ''}6
                   tracks
                 </p>
-              )}
-            </div>
-            {!featured && (
+              </div>
               <span className="mp-open-icon">
                 <Icon name="arrow-right" size={20} />
               </span>
-            )}
-          </div>
+            </div>
+          )}
         </button>
         {featured && (
           <div className="mp-feature-details">
-            <div className="mp-feature-meta">
-              <p className="mp-small">6 tracks</p>
-              <button
-                className="mp-button mp-tonal mp-feature-action"
-                onClick={(event) =>
-                  openPlaylist(playlist.id, event.currentTarget)
-                }
-              >
-                Open playlist
-              </button>
+            <div className="mp-card-caption">
+              <h3>{playlist.title}</h3>
             </div>
+            <p className="mp-small">6 tracks</p>
             {catalog.notes[playlist.id] && (
               <p className="mp-card-note">{catalog.notes[playlist.id]}</p>
             )}
+            <button
+              className="mp-button mp-tonal mp-feature-action"
+              onClick={(event) =>
+                openPlaylist(playlist.id, event.currentTarget)
+              }
+            >
+              Open playlist
+            </button>
           </div>
         )}
         {editing && (

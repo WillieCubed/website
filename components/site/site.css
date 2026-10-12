@@ -735,3 +735,28 @@ header[data-column] .site-breadcrumb:focus-visible::before {
     border: 1px solid CanvasText;
   }
 }
+.site-footer__pages a,
+.site-footer__profiles a {
+  border-radius: 8px;
+  padding-inline: 8px;
+  margin-inline: -8px;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    translate 180ms ease;
+}
+.site-footer__pages a:is(:hover, :focus-visible),
+.site-footer__profiles a:is(:hover, :focus-visible) {
+  background: var(--color-surface-container-highest);
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  translate: 0 -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-footer__pages a,
+  .site-footer__profiles a {
+    transition: none;
+    translate: none;
+  }
+}

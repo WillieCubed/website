@@ -106,6 +106,8 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       // A clipped or transparent control cannot receive keyboard focus.
       if (pages) pages.inert = p < 0.9;
       if (feedButton) feedButton.inert = p < 0.6;
+      const status = footer.querySelector<HTMLElement>('.microstatus');
+      if (status) status.inert = p < 0.9;
       if (tagline) tagline.inert = p < 0.9;
       if (contact) contact.inert = compact.matches && p < 0.08;
       extraProfiles.forEach((profile) => {
@@ -158,11 +160,16 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', remeasure);
       compact.removeEventListener('change', remeasure);
-      [pages, feedButton, tagline, contact, ...extraProfiles].forEach(
-        (element) => {
-          if (element) element.inert = false;
-        }
-      );
+      [
+        pages,
+        feedButton,
+        footer.querySelector<HTMLElement>('.microstatus'),
+        tagline,
+        contact,
+        ...extraProfiles,
+      ].forEach((element) => {
+        if (element) element.inert = false;
+      });
       reveal?.destroy();
       headlineReveal?.destroy();
       footer.removeAttribute('style');

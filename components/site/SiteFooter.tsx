@@ -7,6 +7,7 @@ import InstagramIcon from '@/components/icons/InstagramIcon';
 import LinkedinIcon from '@/components/icons/LinkedinIcon';
 import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import SiteLink from '@/components/link/SiteLink';
+import LiveStatus from '@/components/status/LiveStatus';
 
 import { randomlyChooseTagline, taglineHref } from '@/lib/enhancements';
 import { routedPages, site } from '@/lib/site';
@@ -179,6 +180,9 @@ export default function SiteFooter() {
               </li>
             ))}
           </ul>
+          <Suspense fallback={null}>
+            <LiveStatus />
+          </Suspense>
           <FeedsButton />
         </div>
       </div>

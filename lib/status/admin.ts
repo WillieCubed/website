@@ -60,12 +60,22 @@ export function createAdminHandler({
   const enabled = configured && owner !== null;
   const render = (options: Parameters<typeof adminView>[0], status = 200) =>
     new Response(adminView(options), { status, headers });
-  const redirect = (request: Request, token?: string, clear = false) => {
+  const redirect = (
+    request: Request,
+    {
+      token,
+      clear = false,
+      saved = false,
+    }: { token?: string; clear?: boolean; saved?: boolean } = {}
+  ) => {
     const response = new Response(null, {
       status: 303,
       headers: {
         ...headers,
-        Location: new URL('/admin/status', request.url).href,
+        Location: new URL(
+          saved ? '/admin/status?saved=1' : '/admin/status',
+          request.url
+        ).href,
       },
     });
     if (token || clear)
@@ -84,12 +94,14 @@ export function createAdminHandler({
         if (!signedIn) return render({ configured: true });
         const query = new URL(request.url).searchParams.get('q') ?? '';
         let results: Awaited<ReturnType<typeof search>> = [];
-        let message = '';
+        let message =
+          new URL(request.url).searchParams.get('saved') === '1'
+            ? 'City updated.'
+            : '';
         try {
           if (query) results = await search(query);
         } catch {
-          message =
-            'City search is unavailable. Your saved city has not changed.';
+          message = 'Search is unavailable. Try again.';
         }
         return render({
           configured: true,
@@ -158,7 +170,7 @@ export function createAdminHandler({
           tokenHash(next),
           new Date(Date.now() + SESSION_SECONDS * 1000)
         );
-        return redirect(request, next);
+        return redirect(request, { token: next });
       }
       if (!signedIn)
         return render(
@@ -172,7 +184,7 @@ export function createAdminHandler({
         });
       if (form.get('action') === 'signout') {
         await store.deleteSession(tokenHash(token!));
-        return redirect(request, undefined, true);
+        return redirect(request, { clear: true });
       }
       if (form.get('action') !== 'save')
         return new Response('Unknown action.', { status: 400, headers });
@@ -187,7 +199,7 @@ export function createAdminHandler({
       }
       await store.save(city);
       invalidate();
-      return redirect(request);
+      return redirect(request, { saved: true });
     } catch (error) {
       console.error(
         'Status admin request failed',

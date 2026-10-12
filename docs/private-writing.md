@@ -226,21 +226,25 @@ A DNS-01 challenge issued the missing certificate while Access and strict TLS
 remained enabled. Direct origin TLS verifies and returns 401 anonymously;
 the custom hostname redirects anonymous requests to Access.
 
-Hosted creation, autosave, library reopening and full reload passed with a
-clearly labeled acceptance writing. Website and portable text review matched
-saved revision 3. After the refined editor deployed, another autosave and
-immediate library reopening retained the added paragraph without a page reload.
-Lattice authorization initially returned invalid_client while its
-public metadata endpoint was absent on main. Publication failed with GitHub
-422; the main ruleset requires a PR and CI with no bypass actors. No content
-reached main. Do not relax those protections. The public OAuth metadata and
-revision proof endpoints were released separately in PR #202 with author
-approval, CI and browser smoke checks. Production commit
-`01c944581d0d726c50fb2b3e274b465e4a82a0f5` serves the metadata and rejects the
-unpublished acceptance writing at the proof endpoint. Lovelace now proceeds
-to the author's passkey sign-in instead of rejecting the client. Real
-personal-runtime generation and a completed Live publication remain
-acceptance gates.
+Hosted saving and reopening preserve the reviewed widget and author-owned
+metadata. Real widget generation ran on the selected Mac Studio. The deployed
+isolated sandbox supports mouse and keyboard interaction; approval, insertion,
+reload recovery, portable HTML, plain text, and canonical links were verified.
+The acceptance revision is a widget-only note with no generated article title,
+description, or prose. All 45 desktop, phone, and dark browser checks pass.
+
+Public OAuth metadata and revision proof shipped through PR #202. Public
+widget rendering and exact deployed-source proof shipped through PR #203;
+direct-visit response sandboxing shipped through PR #204. All used protected
+rebase merging with required checks. The main ruleset remains unchanged and
+has no bypass actors. PR #201 remains draft and unmerged.
+
+The hosted protected publication attempt saved its immutable artifact proposal
+but stopped at GitHub 403 before opening a pull request. Its website-only
+publishing credential still needs Pull requests read/write and Commit statuses
+read-only. Credential regeneration and provider replacement are pending; the
+local publishing-token copy was removed. Retry the retained publication after
+configuration, then verify the exact deployed source hash before claiming Live.
 
 Until the studio PR #201 lands, the private project's production branch is
 temporarily `codex/private-writing-preview`. Leaving it on `main` replaced

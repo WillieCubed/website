@@ -580,3 +580,62 @@ button.weather-reading:active {
 .status-page-sheet > header {
   width: 100%;
 }
+.status-expanded button.zone {
+  border: 0;
+  cursor: pointer;
+  min-height: 36px;
+  padding-inline: 10px;
+  transition:
+    background-color 160ms ease,
+    border-radius 160ms ease;
+}
+.status-expanded button.zone:is(:hover, [aria-expanded='true']) {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  border-radius: 12px;
+}
+.status-expanded button.zone:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.status-timezones {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.status-timezones__options {
+  display: grid;
+  gap: 2px;
+}
+.status-timezones__options button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-ink);
+  font: 500 14px/1.4 var(--font-sans);
+  min-height: 44px;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.status-timezones__options button:is(:hover, [aria-pressed='true']) {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+.status-timezones__options button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+.status-timezones__time {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-expanded button.zone {
+    transition: none;
+  }
+}

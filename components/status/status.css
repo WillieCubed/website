@@ -527,3 +527,8 @@
 .status-heading {
   overflow-wrap: anywhere;
 }
+/* The hidden status must not make the collapsed contact row taller than the rail reserves. */
+.site-footer[data-dock] .microstatus {
+  min-height: var(--footer-row-h);
+  padding-block: 4px;
+}

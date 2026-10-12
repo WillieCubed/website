@@ -11,7 +11,7 @@ import SiteLink from '@/components/link/SiteLink';
 import Popover from '@/components/site/Popover';
 import TopBar from '@/components/site/TopBar';
 
-import { formatDate } from '@/lib/site';
+import { formatDate, site } from '@/lib/site';
 import type {
   Draft,
   DraftContent,
@@ -904,9 +904,6 @@ function Writing({
                       panelClassName="studio-action-menu"
                       width={280}
                     >
-                      <p className="text-label-medium text-muted px-3 py-2">
-                        At your cursor
-                      </p>
                       <button
                         aria-pressed={
                           editor?.isActive('heading', { level: 2 }) || false
@@ -1471,6 +1468,11 @@ function Writing({
                     ? 'The published revision is available on your site.'
                     : 'You can keep writing while this revision publishes.')}
               </p>
+              {publication.pullRequestUrl && publication.status !== 'live' && (
+                <SiteLink href={publication.pullRequestUrl}>
+                  View publication checks
+                </SiteLink>
+              )}
               {publication.status === 'failed' && (
                 <button
                   className={control}
@@ -1481,7 +1483,7 @@ function Writing({
                 </button>
               )}
               {publication.status === 'live' && (
-                <SiteLink href={`/writings/${draft.slug}`}>
+                <SiteLink href={`${site.origin}/writings/${draft.slug}`}>
                   Read published writing →
                 </SiteLink>
               )}

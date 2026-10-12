@@ -57,13 +57,74 @@ function figure(node: MdastLike): MdastLike[] {
   ];
 }
 
-/**
- * The plain HTML a feed reader gets in place of each MDX component. Embeds
- * become links to what they embed, and components that only work on the
- * page, such as a route map or a gallery built from an expression, are
- * dropped. Anything not listed keeps its children and loses its wrapper.
- */
-function replaceComponent(node: MdastLike, inline: boolean): MdastLike[] {
+/** Decode only an explicit, plain-Markdown portable alternative; never evaluate MDX. */
+export function decodePortableMarkdown(
+  encoded: string | undefined
+): string | null {
+  if (!encoded || !/^[A-Za-z0-9_-]+$/.test(encoded)) return null;
+  const bytes = Buffer.from(encoded, 'base64url');
+  if (bytes.toString('base64url') !== encoded) return null;
+  const source = bytes.toString('utf8');
+  if (!source.trim() || source.includes('\uFFFD')) return null;
+  try {
+    const tree = unified()
+      .use(remarkParse)
+      .use(remarkMdx)
+      .use(remarkGfm)
+      .parse(source);
+    let executable = false;
+    let readable = false;
+    visit(tree, (child) => {
+      if (child.type.startsWith('mdx')) executable = true;
+      if (
+        (child.type === 'text' || child.type === 'code') &&
+        child.value.trim()
+      )
+        readable = true;
+      if (child.type === 'image' && child.alt?.trim()) readable = true;
+    });
+    if (executable || !readable) return null;
+    return source;
+  } catch {
+    return null;
+  }
+}
+
+function portableMarkdown(node: MdastLike): MdastLike[] | null {
+  const source = decodePortableMarkdown(attr(node, 'portable'));
+  if (!source) return null;
+  return unified().use(remarkParse).use(remarkGfm).parse(source)
+    .children as unknown as MdastLike[];
+}
+
+/** Publication gate for catalog blocks: a feed must retain useful content. */
+export function auditPortableContent(source: string): string[] {
+  const issues: string[] = [];
+  try {
+    const tree = unified().use(remarkParse).use(remarkMdx).parse(source);
+    visit(tree, (child) => {
+      const node = child as unknown as MdastLike;
+      if (
+        (node.name === 'StudioBlock' || node.name === 'PortableBlock') &&
+        !portableMarkdown(node)
+      ) {
+        issues.push(
+          `${node.name} requires nonblank portable Markdown without executable MDX.`
+        );
+      }
+    });
+  } catch {
+    issues.push('Content must parse as valid MDX before publication.');
+  }
+  return issues;
+}
+
+/** Embeds become links; interactive components retain a portable alternative. */
+function replaceComponent(
+  node: MdastLike,
+  inline: boolean,
+  originalUrl?: string
+): MdastLike[] {
   const embed = (url: string | undefined, label: string) => {
     if (!url) return [];
     const anchor = link(url, label);
@@ -107,29 +168,72 @@ function replaceComponent(node: MdastLike, inline: boolean): MdastLike[] {
         attr(node, 'title') ?? 'Watch on YouTube'
       );
     }
+    case 'StudioBlock':
+    case 'PortableBlock': {
+      const portable = portableMarkdown(node);
+      if (!portable)
+        throw new Error(`${node.name} is missing valid portable Markdown`);
+      return [
+        ...portable,
+        ...(node.name === 'StudioBlock' && originalUrl
+          ? [
+              block('p', [
+                link(
+                  originalUrl,
+                  'Open interactive version on the original page'
+                ),
+              ]),
+            ]
+          : []),
+      ];
+    }
     case 'Gallery':
-    case 'RouteMap':
-      return [];
+    case 'RouteMap': {
+      const label =
+        attr(node, 'title') ||
+        (node.name === 'Gallery' ? 'Photo gallery' : 'Route map');
+      return [
+        block('p', [
+          ...(originalUrl
+            ? [link(originalUrl, `${label}: view on the original page`)]
+            : [
+                text(
+                  `${label}. View this interactive content on the original page.`
+                ),
+              ]),
+        ]),
+        ...(node.children ?? []),
+      ];
+    }
     default:
       return node.children ?? [];
   }
 }
 
 /** Replaces MDX components, imports, and expressions with plain markdown. */
-function remarkPlainMdx() {
+function remarkPlainMdx(options: { originalUrl?: string } = {}) {
   const walk = (parent: MdastLike) => {
     if (!parent.children) return;
     parent.children = parent.children.flatMap((child): MdastLike[] => {
       switch (child.type) {
         case 'mdxjsEsm':
-        case 'mdxFlowExpression':
-        case 'mdxTextExpression':
           return [];
+        case 'mdxFlowExpression':
+          return [
+            block('p', [
+              text('Interactive content is available on the original page.'),
+            ]),
+          ];
+        case 'mdxTextExpression':
+          return [
+            text('[Interactive content is available on the original page.]'),
+          ];
         case 'mdxJsxFlowElement':
         case 'mdxJsxTextElement': {
           const replaced = replaceComponent(
             child,
-            child.type === 'mdxJsxTextElement'
+            child.type === 'mdxJsxTextElement',
+            options.originalUrl
           );
           replaced.forEach(walk);
           return replaced;
@@ -162,12 +266,15 @@ function rehypeAbsoluteUrls() {
  * Feed readers run no scripts and load no site styles, so components become
  * plain HTML and every site-relative URL becomes absolute.
  */
-export async function renderFeedHtml(source: string): Promise<string> {
+export async function renderFeedHtml(
+  source: string,
+  originalUrl?: string
+): Promise<string> {
   const file = await unified()
     .use(remarkParse)
     .use(remarkMdx)
     .use(remarkGfm)
-    .use(remarkPlainMdx)
+    .use(remarkPlainMdx, { originalUrl })
     .use(remarkMentions)
     .use(remarkRehype)
     .use(rehypeAbsoluteUrls)

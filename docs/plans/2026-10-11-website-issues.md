@@ -38,11 +38,12 @@ media interaction. The public site therefore uses one `/music` route.
   sits beside the gallery. The horizontal gaps match the cover grid so the
   controls and collection read as one layout. Stack the series controls above
   the gallery below 840px.
-- Align the featured title with the bottom of the cover on wider layouts.
-  Put the track count and a labeled Open playlist button in a compact row
-  below that edge. Put authored notes below the row. On phones, center the
-  cover, title, and metadata as one block up to 420px wide. The cover and title
-  remain the opening control, so omit the duplicate action on phones.
+- Align the complete featured information block with the cover's bottom edge
+  on wider layouts. Keep the track count directly below the title and authored
+  notes below the count. Give Open playlist its own space beneath the metadata,
+  with the button's bottom aligned to the cover. On phones, center the cover,
+  title, and metadata as one block up to 420px wide. The cover remains the
+  opening control, so omit the duplicate action on phones.
 - Keep the phone focus view's cover and title beside one another. Put editing
   controls and the track sequence across the full width below them. Preserve
   the larger cover and adjacent context on desktop.

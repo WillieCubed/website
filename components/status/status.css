@@ -221,10 +221,11 @@
   margin: 0 auto;
   flex: 1;
   display: grid;
-  align-content: center;
-  padding: 24px 20px 72px;
+  grid-template-rows: minmax(0, 9fr) auto minmax(0, 11fr);
+  padding: 24px 20px;
 }
 .status-composition {
+  grid-row: 2;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
   grid-template-rows: 1fr;
@@ -344,9 +345,6 @@
   .site-footer .site-footer__profiles {
     gap: 16px;
   }
-  .status-expanded {
-    padding-block: 16px 48px;
-  }
   .status-composition {
     column-gap: 24px;
     grid-template-columns: minmax(0, 1fr) 280px;
@@ -377,9 +375,6 @@
   }
 }
 @media (max-width: 599px) {
-  .status-expanded {
-    padding: 24px 20px 64px;
-  }
   .status-composition {
     display: flex;
     flex-direction: column;

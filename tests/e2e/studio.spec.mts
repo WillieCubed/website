@@ -138,6 +138,16 @@ test('the signed owner can edit, save, reload and review a private writing', asy
   await page
     .getByRole('button', { name: 'Portable preview', exact: true })
     .click();
+  const portableFrame = page.frameLocator(
+    'iframe[title="Portable writing preview"]'
+  );
+  await expect(portableFrame.locator('body')).toContainText(
+    'And a second sentence.'
+  );
+  await expect(page.getByTitle('Portable writing preview')).not.toHaveAttribute(
+    'srcdoc',
+    ''
+  );
   await settledScreenshot(page, {
     path: testInfo.outputPath('studio-review-portable.png'),
     fullPage: true,
@@ -361,6 +371,19 @@ test('catalog blocks retain their editable properties and imported MDX on reload
     .getByRole('button', { name: 'Portable preview', exact: true })
     .click();
   await expect(page.getByTitle('Portable writing preview')).toBeVisible();
+  const portable = page.frameLocator(
+    'iframe[title="Portable writing preview"]'
+  );
+  await expect(portable.locator('body')).toContainText(
+    'This deserves a little room.'
+  );
+  await page.getByRole('button', { name: 'Read', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Portable preview', exact: true })
+    .click();
+  await expect(portable.locator('body')).toContainText(
+    'This deserves a little room.'
+  );
   await page.getByText('Plain text version', { exact: true }).click();
   await expect(page.locator('.studio-review-screen pre')).toContainText(
     'This deserves a little room.'

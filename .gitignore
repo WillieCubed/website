@@ -62,3 +62,6 @@ yarn-error.log*
 
 # Brainstorming companion mockups
 /.superpowers/
+
+# Private widget compiler browser runtime
+/.studio/

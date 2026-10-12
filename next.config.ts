@@ -68,15 +68,11 @@ const nextConfig: NextConfig = {
   // addon from a computed path. Turbopack cannot bundle that, so Node loads
   // the package, and with it time-ms, from node_modules instead.
   serverExternalPackages: ['@atcute/tid', 'esbuild'],
-  // The widget compiler resolves these at request time rather than through
-  // Next's module graph. Keep the browser runtime in private function bundles.
+  // The compiler uses one build-time browser runtime, kept in private functions.
   outputFileTracingIncludes: {
     '/api/studio/**': [
-      './node_modules/react/**/*',
-      './node_modules/react-dom/**/*',
-      './node_modules/.pnpm/react@*/node_modules/react/**/*',
-      './node_modules/.pnpm/react-dom@*/node_modules/react-dom/**/*',
-      './node_modules/.pnpm/scheduler@*/node_modules/scheduler/**/*',
+      './.studio/browser-runtime.js',
+      './.github/pull_request_template.md',
     ],
   },
   allowedDevOrigins: ['williecubed.localhost'],

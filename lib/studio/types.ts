@@ -40,7 +40,16 @@ export interface Publication {
   documentId: string;
   revisionId: string;
   status: 'publishing' | 'deploying' | 'live' | 'failed';
+  /** Commit on the protected branch after GitHub merges the proposal. */
   commit: string | null;
+  proposalCommit?: string;
+  publicationBranch?: string;
+  pullRequestNumber?: number;
+  pullRequestUrl?: string;
+  publishedFileSha?: string;
+  sourceFileSha?: string | null;
+  sourcePath?: string;
+  proposalInput?: { tree: string; parent: string };
   error: string | null;
   createdAt: string;
 }

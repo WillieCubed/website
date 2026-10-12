@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "PORTLESS_PORT=1355 portless",
     "dev:app": "next dev",
-    "predev:app": "tsx scripts/generate-search-index.ts && node scripts/cloudflare/generate-content-manifest.mjs",
-    "prebuild": "pnpm content:check && tsx scripts/generate-search-index.ts && node scripts/cloudflare/generate-content-manifest.mjs",
+    "predev:app": "tsx scripts/studio/build-runtime.mts && tsx scripts/generate-search-index.ts && node scripts/cloudflare/generate-content-manifest.mjs",
+    "prebuild": "tsx scripts/studio/build-runtime.mts && pnpm content:check && tsx scripts/generate-search-index.ts && node scripts/cloudflare/generate-content-manifest.mjs",
     "build": "next build",
     "build:cloudflare": "node scripts/cloudflare/build.mjs",
     "build:cloudflare:preview": "node scripts/cloudflare/build.mjs preview",
@@ -39,7 +39,8 @@
     "media:discover": "tsx scripts/fetch-media.mts discover",
     "studio:migrate": "tsx scripts/studio/migrate.mts",
     "studio:import": "tsx scripts/studio/import-drafts.mts",
-    "test:studio": "node scripts/studio-e2e.mjs"
+    "test:studio": "tsx scripts/studio/build-runtime.mts && node scripts/studio-e2e.mjs",
+    "pretest": "tsx scripts/studio/build-runtime.mts"
   },
   "dependencies": {
     "@atcute/atproto": "^4.0.4",

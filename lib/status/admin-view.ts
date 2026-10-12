@@ -35,7 +35,7 @@ export function adminView(options: {
     ? '<p>Sign-in is unavailable.</p>'
     : !signedIn
       ? `<form method="post" class="signin"><input type="hidden" name="action" value="signin"><label for="code">Authenticator code</label><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required><button>Sign in</button></form>`
-      : `<section class="location" aria-label="Current city"><h2>${e(snapshot?.location.city ?? '')}</h2><p>${e([snapshot?.location.region, snapshot?.location.country].filter(Boolean).join(', '))}</p></section><section class="editor" aria-label="Change city"><form method="get"><label for="q">Change city</label><div class="search"><input id="q" name="q" value="${e(query)}" minlength="2" maxlength="100" required placeholder="Search cities"><button>Search</button></div></form>${query && !results.length && !message ? '<p class="empty">No cities found.</p>' : ''}<div class="results">${results.map((city) => `<form method="post">${guard}<input type="hidden" name="action" value="save"><input type="hidden" name="city" value="${e(JSON.stringify(city))}"><div><strong>${e(city.city)}</strong><span>${e([city.region, city.country].filter(Boolean).join(', '))}</span></div><button>Set city</button></form>`).join('')}</div><a class="credit" href="https://open-meteo.com/">Open-Meteo</a></section>`;
+      : `<section class="editor" aria-labelledby="location-title"><h2 id="location-title">Location</h2><div class="location" role="region" aria-label="Current city"><div><p class="city">${e(snapshot?.location.city ?? '')}</p><p class="region">${e([snapshot?.location.region, snapshot?.location.country].filter(Boolean).join(', '))}</p></div>${message === 'City updated.' ? '<p class="message saved" role="status">Saved</p>' : ''}</div><form method="get"><label for="q">Change city</label><div class="search"><input id="q" name="q" value="${e(query)}" minlength="2" maxlength="100" required placeholder="Search cities"><button>Search</button></div></form>${message && message !== 'City updated.' ? `<p class="message" role="status">${e(message)}</p>` : ''}${query && !results.length && !message ? '<p class="empty">No cities found.</p>' : ''}<div class="results">${results.map((city) => `<form method="post">${guard}<input type="hidden" name="action" value="save"><input type="hidden" name="city" value="${e(JSON.stringify(city))}"><div><strong>${e(city.city)}</strong><span>${e([city.region, city.country].filter(Boolean).join(', '))}</span></div><button>Set city</button></form>`).join('')}</div><a class="credit" href="https://open-meteo.com/">Open-Meteo</a></section>`;
   const light = themeSchemes.light;
   const dark = themeSchemes.dark;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="same-origin"><title>Status admin · Willie</title><style>
@@ -48,11 +48,13 @@ main{width:min(100% - 40px,560px);margin:48px auto 80px}
 nav{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:48px}
 a{color:var(--primary);text-underline-offset:3px}
 h1{font-size:32px;letter-spacing:-.025em;font-weight:600;margin:36px 0 32px}
-.location{margin-bottom:32px}
-.location h2{font-size:clamp(32px,7vw,40px);letter-spacing:-.025em;line-height:1.2;font-weight:500;margin:0}
-.location p{color:var(--muted);margin:8px 0 0}
+.editor h2{font-size:20px;line-height:1.3;font-weight:600;margin:0 0 20px}
+.location{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:28px}
+.location>div{min-width:0}
+.city{font-size:24px;line-height:1.3;font-weight:500;margin:0;overflow-wrap:anywhere}
+.region{color:var(--muted);font-size:14px;margin:4px 0 0;overflow-wrap:anywhere}
 .editor{padding:24px;border-radius:24px;background:var(--container)}
-label{display:block;font-weight:600;margin-bottom:12px}
+label{display:block;font-size:14px;font-weight:500;margin-bottom:8px}
 input{width:100%;min-width:0;min-height:52px;border:0;border-radius:12px;background:var(--field);color:var(--text);padding:12px 16px;font:inherit}
 button{min-height:48px;border:0;border-radius:24px;background:var(--primary);color:var(--on-primary);padding:12px 20px;font:600 16px/1.3 Atkinson,system-ui;cursor:pointer}
 button:hover{filter:brightness(.95)}
@@ -65,10 +67,11 @@ button:hover{filter:brightness(.95)}
 .results span{display:block;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
 .logout button{background:transparent;color:var(--muted);padding:8px 0;min-height:44px;font-weight:500}
 .credit{display:block;width:fit-content;margin-top:20px;color:var(--muted);font-size:12px}
-.message{margin:0 0 24px;color:var(--primary)}
+.message{margin:16px 0 0;font-size:14px;color:var(--primary)}
+.saved{margin:0;flex-shrink:0}
 .empty{margin:20px 0 0;color:var(--muted)}
 .signin>button{margin-top:16px}
 :focus-visible{outline:3px solid var(--primary);outline-offset:3px}
 @media(max-width:440px){main{margin-top:20px}.editor{padding:20px}.results form{align-items:stretch;flex-direction:column}.results button{align-self:start}}
-</style></head><body><main><nav aria-label="Admin"><a href="/">Willie</a>${signedIn ? `<form method="post" class="logout">${guard}<button name="action" value="signout">Sign out</button></form>` : ''}</nav><h1>Status</h1>${message ? `<p class="message" role="status">${e(message)}</p>` : ''}${content}</main></body></html>`;
+</style></head><body><main><nav aria-label="Admin"><a href="/">Willie</a>${signedIn ? `<form method="post" class="logout">${guard}<button name="action" value="signout">Sign out</button></form>` : ''}</nav><h1>Status</h1>${message && !signedIn ? `<p class="message" role="status">${e(message)}</p>` : ''}${content}</main></body></html>`;
 }

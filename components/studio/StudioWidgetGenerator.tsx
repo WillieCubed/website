@@ -176,9 +176,7 @@ export default function StudioWidgetGenerator({
         }
       );
       setProposal(approved);
-      setMessage(
-        'Component approved. You can insert it at your writing cursor.'
-      );
+      setMessage('Widget approved. Ready to insert.');
     } catch (error) {
       setMessage((error as Error).message);
     } finally {

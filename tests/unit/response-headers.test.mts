@@ -175,3 +175,28 @@ test('next.config.ts serves the site headers', async () => {
 
   assert.deepEqual(await config.headers?.(), siteHeaders);
 });
+
+test('public widget documents stay sandboxed when opened directly and reveal no referrer', () => {
+  for (const path of [
+    '/generated-blocks/12345678-1234-1234-1234-123456789abc/1.0.0-aaaaaaaaaaaaaaaaaaaa.html',
+    '/generated-blocks/another/nested/bundle.html',
+  ]) {
+    const headers = headersFor(path);
+    const policy = headers.get('Content-Security-Policy') ?? '';
+    assert.equal(policy, "sandbox allow-scripts; frame-ancestors 'self'", path);
+    assert.doesNotMatch(
+      policy,
+      /allow-same-origin|allow-top-navigation|allow-popups|allow-forms/
+    );
+    assert.equal(headers.get('Referrer-Policy'), 'no-referrer', path);
+    assert.equal(headers.get('X-Content-Type-Options'), 'nosniff', path);
+    assert.ok(!headers.has('Link'), path);
+  }
+  for (const path of [
+    '/',
+    '/writings/a-slug',
+    '/generated-blocks-other/bundle.html',
+  ]) {
+    assert.ok(!headersFor(path).has('Content-Security-Policy'), path);
+  }
+});

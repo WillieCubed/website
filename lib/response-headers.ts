@@ -34,7 +34,8 @@ export const PAGE_SOURCES = [
  * it. The permissions policy denies the camera, the microphone, location,
  * and interest-based ad cohorts (FLoC's interest-cohort and the Topics API
  * that replaced it) to every page and every embed on it; nothing asks for
- * them. There is no Content-Security-Policy (docs/protocols.md says why).
+ * them. Pages have no Content-Security-Policy (docs/protocols.md says why);
+ * generated widget documents are sandboxed even when opened directly.
  */
 export const siteHeaders: HeaderRule[] = [
   {
@@ -55,6 +56,16 @@ export const siteHeaders: HeaderRule[] = [
     source: '/:path((?!indieauth/|atproto/|api/atproto/).*)',
     headers: [
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+    ],
+  },
+  {
+    source: '/generated-blocks/:path*',
+    headers: [
+      {
+        key: 'Content-Security-Policy',
+        value: "sandbox allow-scripts; frame-ancestors 'self'",
+      },
+      { key: 'Referrer-Policy', value: 'no-referrer' },
     ],
   },
   ...PAGE_SOURCES.map((source) => ({

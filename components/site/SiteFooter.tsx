@@ -56,6 +56,11 @@ const ELSEWHERE: { label: string; href: string; icon: IconName }[] = [
     href: `mailto:${site.author.email}?subject=Hello%20Willie!`,
     icon: 'mail',
   },
+  {
+    label: 'Spotify',
+    href: 'https://open.spotify.com/user/pkj37ts4e7ip19j0msai6lahf?si=03c8cb2eae944363',
+    icon: 'music',
+  },
 ];
 
 function SocialIcon({ label }: { label: string }) {
@@ -158,10 +163,10 @@ export default function SiteFooter() {
           <ul className="site-footer__profiles" data-footer-contact>
             {ELSEWHERE.map((place) => (
               <li key={place.href}>
-                <a href={place.href} className={LINK}>
+                <SiteLink href={place.href} className={LINK}>
                   <Icon name={place.icon} size={16} />
                   <span className="site-footer__label">{place.label}</span>
-                </a>
+                </SiteLink>
               </li>
             ))}
             {site.social.map((profile, index) => (

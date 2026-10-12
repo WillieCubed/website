@@ -55,7 +55,7 @@ export function createAdminHandler({
     'Referrer-Policy': 'same-origin',
     'X-Robots-Tag': 'noindex, nofollow',
     'Content-Security-Policy':
-      "default-src 'none'; style-src 'unsafe-inline'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+      "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
   };
   const enabled = configured && owner !== null;
   const render = (options: Parameters<typeof adminView>[0], status = 200) =>
@@ -110,6 +110,8 @@ export function createAdminHandler({
           snapshot: await resolveLocation(store),
           results,
           query,
+          editing:
+            new URL(request.url).searchParams.get('edit') === '1' || !!query,
           message,
         });
       }

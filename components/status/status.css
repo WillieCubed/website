@@ -222,7 +222,7 @@
   flex: 1;
   display: grid;
   align-content: center;
-  padding: 48px 20px;
+  padding: 24px 20px 72px;
 }
 .status-composition {
   display: grid;
@@ -345,7 +345,7 @@
     gap: 16px;
   }
   .status-expanded {
-    padding-block: 32px;
+    padding-block: 16px 48px;
   }
   .status-composition {
     column-gap: 24px;
@@ -378,7 +378,7 @@
 }
 @media (max-width: 599px) {
   .status-expanded {
-    padding: 24px 20px 40px;
+    padding: 24px 20px 64px;
   }
   .status-composition {
     display: flex;

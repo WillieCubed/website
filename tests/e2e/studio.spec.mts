@@ -272,10 +272,14 @@ test('edits made during an in-flight save are saved in the next revision', async
   await expect(
     page.getByRole('status').filter({ hasText: 'All changes saved' })
   ).toBeVisible();
-  const saved = await (
-    await request.get(`/api/studio/documents/${draft.id}`)
-  ).json();
-  expect(saved.head.body.title).toBe('The second change');
+  await expect
+    .poll(async () => {
+      const saved = await (
+        await request.get(`/api/studio/documents/${draft.id}`)
+      ).json();
+      return saved.head.body.title;
+    })
+    .toBe('The second change');
 });
 
 test('a preview response for an older draft cannot enable publication', async ({
@@ -870,7 +874,7 @@ test('native writing fields wrap and contextual tasks preserve the reading posit
   expect(results.violations).toEqual([]);
 });
 
-test('an approved generated component is immediately named and editable at the writing cursor', async ({
+test('an approved generated component is editable beside its paragraph', async ({
   page,
   request,
 }, testInfo) => {
@@ -903,11 +907,11 @@ test('an approved generated component is immediately named and editable at the w
       status: 'ready',
       error: null,
       result: JSON.stringify({
-        name: 'PersonalAside',
+        name: 'InteractiveSidebarWithAnAccessibleStaticAlternative',
         description: 'A small personal aside.',
         version: '1.0.0',
         source:
-          "import React from 'react';export default function PersonalAside({label}){return <p>{label}</p>}",
+          "import React from 'react';export default function InteractiveSidebarWithAnAccessibleStaticAlternative({label}){return <p>{label}</p>}",
         portableHtml: '<p>A small thought.</p>',
         portableText: 'A small thought.',
         properties: {
@@ -937,9 +941,6 @@ test('an approved generated component is immediately named and editable at the w
   const editor = page.getByRole('textbox', { name: 'Writing content' });
   await editor.click();
   await page.keyboard.press('ControlOrMeta+End');
-  const insertionOffset = await editor.evaluate(
-    () => window.getSelection()!.anchorOffset
-  );
   await writingAction(page, 'Create widget');
   await page
     .getByLabel('Describe the widget', { exact: true })
@@ -951,12 +952,17 @@ test('an approved generated component is immediately named and editable at the w
     .getByRole('button', { name: 'Build isolated preview', exact: true })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'PersonalAside', exact: true })
+    page.getByRole('heading', {
+      name: 'InteractiveSidebarWithAnAccessibleStaticAlternative',
+      exact: true,
+    })
   ).toBeVisible();
   await expect(
     page
       .frameLocator('iframe[title="Proposed component sandbox"]')
-      .frameLocator('iframe[title="PersonalAside"]')
+      .frameLocator(
+        'iframe[title="InteractiveSidebarWithAnAccessibleStaticAlternative"]'
+      )
       .getByText('A small thought.', { exact: true })
   ).toBeVisible();
   await page
@@ -966,25 +972,32 @@ test('an approved generated component is immediately named and editable at the w
     .getByRole('button', { name: 'Insert approved component', exact: true })
     .click();
   const block = page.locator('.studio-catalog-block');
-  await expect(block.locator('strong')).toHaveText('PersonalAside');
+  await expect(block.locator('strong')).toHaveText(
+    'InteractiveSidebarWithAnAccessibleStaticAlternative'
+  );
   await block.getByText('Edit block', { exact: true }).click();
   const property = block.getByRole('textbox', { name: /^label/ });
   await expect(property).toHaveValue('A small thought.');
+  expect(
+    await block.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth + 1
+    )
+  ).toBeTruthy();
   await property.fill('Another useful thought.');
   await expect(
     page.getByRole('status').filter({ hasText: 'All changes saved' })
   ).toBeVisible();
   const paragraphs = await editor.locator(':scope > p').allTextContents();
   expect(paragraphs.join('')).toBe('This private writing belongs here.');
-  expect(paragraphs[0]).toBe(
-    'This private writing belongs here.'.slice(0, insertionOffset)
-  );
+  expect(paragraphs[0]).toBe('This private writing belongs here.');
   await settledScreenshot(page, {
     path: testInfo.outputPath('studio-approved-component.png'),
     fullPage: true,
   });
   await page.reload();
-  await expect(block.locator('strong')).toHaveText('PersonalAside');
+  await expect(block.locator('strong')).toHaveText(
+    'InteractiveSidebarWithAnAccessibleStaticAlternative'
+  );
   await block.getByText('Edit block', { exact: true }).click();
   await expect(property).toHaveValue('Another useful thought.');
 });
@@ -1044,4 +1057,140 @@ test('a composed widget request survives connection navigation and returns to it
   await expect(
     page.getByRole('combobox', { name: 'Work on', exact: true })
   ).toHaveCount(0);
+});
+
+test('inline controls follow a middle paragraph and preserve selected prose', async ({
+  page,
+  request,
+}, testInfo) => {
+  const draft = await createWriting(request, 'Inline editing');
+  const paragraphs = Array.from({ length: 18 }, (_, index) => ({
+    type: 'paragraph',
+    content: [
+      {
+        type: 'text',
+        text: `Paragraph ${index + 1}. A sentence that stays where its author put it.`,
+      },
+    ],
+  }));
+  const saved = await request.put(`/api/studio/documents/${draft.id}`, {
+    headers: { Origin: process.env.STUDIO_TEST_ORIGIN! },
+    data: {
+      expectedRevisionId: draft.head.id,
+      body: {
+        ...draft.head.body,
+        document: {
+          type: 'doc',
+          content: [
+            ...paragraphs,
+            {
+              type: 'bulletList',
+              content: Array.from({ length: 20 }, (_, index) => ({
+                type: 'listItem',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [
+                      {
+                        type: 'text',
+                        text: `List item ${index + 1}. Kept in place.`,
+                      },
+                    ],
+                  },
+                ],
+              })),
+            },
+          ],
+        },
+      },
+    },
+  });
+  expect(saved.ok()).toBeTruthy();
+  await page.goto(`/studio/${draft.id}`);
+  const paragraph = page.locator('.studio-prose > p').nth(8);
+  await paragraph.scrollIntoViewIfNeeded();
+  await paragraph.click();
+  const add = page.getByRole('button', {
+    name: 'Insert into writing',
+    exact: true,
+  });
+  await expect(async () => {
+    const block = await paragraph.boundingBox();
+    const button = await add.boundingBox();
+    expect(block).not.toBeNull();
+    expect(button).not.toBeNull();
+    if (testInfo.project.name === 'studio-phone') {
+      expect(button!.y).toBeGreaterThanOrEqual(block!.y + block!.height);
+      expect(button!.y - block!.y - block!.height).toBeLessThan(20);
+    } else {
+      expect(Math.abs(button!.y - block!.y)).toBeLessThan(5);
+      expect(button!.x + button!.width).toBeLessThanOrEqual(block!.x);
+    }
+  }).toPass();
+  await paragraph.evaluate((element) => {
+    const range = document.createRange();
+    range.setStart(element.firstChild!, 0);
+    range.setEnd(element.firstChild!, 11);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.dispatchEvent(new Event('selectionchange'));
+  });
+  await page.getByRole('button', { name: 'Bold', exact: true }).click();
+  await expect(paragraph.locator('strong')).toHaveText('Paragraph 9');
+  await page.getByRole('button', { name: 'Link', exact: true }).click();
+  const linkAddress = page.getByRole('textbox', { name: 'Link address' });
+  await expect(linkAddress).toBeFocused();
+  const mediaBounds = await page.locator('.studio-inline-media').boundingBox();
+  const sourceBounds = await paragraph.boundingBox();
+  expect(
+    Math.abs(mediaBounds!.y - sourceBounds!.y - sourceBounds!.height)
+  ).toBeLessThan(20);
+  await linkAddress.fill('https://example.com/');
+  await page.getByRole('button', { name: 'Add link', exact: true }).click();
+  await expect(paragraph.locator('a')).toHaveText('Paragraph 9');
+  await add.click();
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('textbox', { name: 'Writing content' })
+  ).toBeFocused();
+  await add.click();
+  await page.getByRole('button', { name: 'Callout', exact: true }).click();
+  const block = page.locator('.studio-catalog-block');
+  await expect(block).toBeVisible();
+  await expect(paragraph).toHaveText(
+    'Paragraph 9. A sentence that stays where its author put it.'
+  );
+  await expect(page.locator('.studio-prose > p').nth(9)).toHaveText(
+    'Paragraph 10. A sentence that stays where its author put it.'
+  );
+  await block.getByRole('button', { name: 'Edit block', exact: true }).click();
+  const title = block.getByRole('textbox', { name: /^title/ });
+  await expect(title).toBeFocused();
+  await title.fill('A local aside');
+  await title.press('Escape');
+  await expect(
+    block.getByRole('button', { name: 'Edit block', exact: true })
+  ).toBeFocused();
+  await settledScreenshot(page, {
+    path: `/tmp/studio-inline-${testInfo.project.name}.png`,
+  });
+  await expect(
+    page.getByRole('status').filter({ hasText: 'All changes saved' })
+  ).toBeVisible();
+  await page.reload();
+  await block.getByRole('button', { name: 'Edit block', exact: true }).click();
+  await expect(title).toHaveValue('A local aside');
+  const listParagraph = page.locator('.studio-prose li p').nth(9);
+  await listParagraph.scrollIntoViewIfNeeded();
+  await listParagraph.click();
+  await expect(async () => {
+    const itemBounds = await listParagraph.boundingBox();
+    const addBounds = await add.boundingBox();
+    const expectedTop =
+      testInfo.project.name === 'studio-phone'
+        ? itemBounds!.y + itemBounds!.height + 8
+        : itemBounds!.y;
+    expect(Math.abs(addBounds!.y - expectedTop)).toBeLessThan(5);
+  }).toPass();
 });

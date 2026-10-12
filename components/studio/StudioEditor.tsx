@@ -20,7 +20,12 @@ import type {
   Revision,
 } from '@/lib/studio/types';
 
-import { type CatalogEntry, MdxSource, makeCatalogBlock } from './StudioNodes';
+import {
+  ActiveWritingBlock,
+  type CatalogEntry,
+  MdxSource,
+  makeCatalogBlock,
+} from './StudioNodes';
 import StudioPreview from './StudioPreview';
 import StudioWidgetGenerator from './StudioWidgetGenerator';
 import { studioRequest } from './api';
@@ -126,10 +131,18 @@ function Writing({
     window.history.replaceState(window.history.state, '', address);
   }, []);
   const [media, setMedia] = useState<'link' | 'image' | null>(null);
+  const mediaPanel = useRef<HTMLFormElement>(null);
+  const [mediaHeight, setMediaHeight] = useState(0);
   const [url, setUrl] = useState('');
   const [alt, setAlt] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const cursor = useRef(1);
+  const writingSpace = useRef<HTMLDivElement>(null);
+  const [activePosition, setActivePosition] = useState(1);
+  const [insertionPosition, setInsertionPosition] = useState({
+    top: 0,
+    bottom: 0,
+  });
   const insertAnchor = useRef<Pick<
     DOMRect,
     'left' | 'right' | 'top' | 'bottom'
@@ -201,6 +214,7 @@ function Writing({
       TableKit,
       Markdown,
       MdxSource,
+      ActiveWritingBlock,
       makeCatalogBlock(() => catalogRef.current),
     ],
     // Activity may recreate Tiptap when returning to a cached route.
@@ -231,6 +245,7 @@ function Writing({
     onSelectionUpdate: ({ editor }) => {
       const { from, to, $from, $to } = editor.state.selection;
       cursor.current = from;
+      setActivePosition(from);
       let textOnly = true;
       $from.parent.forEach((node) => {
         if (!node.isText) textOnly = false;
@@ -257,6 +272,43 @@ function Writing({
     window.history.replaceState(window.history.state, '', address);
     editor.commands.focus('end', { scrollIntoView: false });
   }, [editor]);
+  useEffect(() => {
+    if (!editor || task !== 'write' || mode !== 'write') return;
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const block = editor.view.dom.querySelector('.studio-active-block');
+        const space = writingSpace.current;
+        if (!block || !space) return;
+        const bounds = block.getBoundingClientRect();
+        const origin = space.getBoundingClientRect();
+        setInsertionPosition({
+          top: bounds.top - origin.top,
+          bottom: bounds.bottom - origin.top + 8,
+        });
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(editor.view.dom);
+    window.addEventListener('resize', measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [editor, activePosition, body.document, task, mode]);
+  useEffect(() => {
+    const panel = mediaPanel.current;
+    if (!media || !panel) return;
+    const observer = new ResizeObserver(() =>
+      setMediaHeight(panel.getBoundingClientRect().height)
+    );
+    observer.observe(panel);
+    setMediaHeight(panel.getBoundingClientRect().height);
+    return () => observer.disconnect();
+  }, [media]);
   const previousMode = useRef(mode);
   useEffect(() => {
     if (previousMode.current === 'write' && mode !== 'write')
@@ -609,10 +661,12 @@ function Writing({
     }
   }
   function insert(entry: CatalogEntry) {
-    editor?.commands.setTextSelection(
+    if (!editor) return;
+    const at = editor.state.doc.resolve(
       Math.min(cursor.current, editor.state.doc.content.size)
     );
-    editor?.commands.insertContent({
+    const boundary = at.depth ? at.after(1) : at.pos;
+    editor.commands.insertContentAt(boundary, {
       type: 'catalogBlock',
       attrs: {
         id: entry.id,
@@ -880,123 +934,6 @@ function Writing({
                       </button>
                     </Popover>
                   </div>
-                  <div
-                    className="studio-insertion-row"
-                    onKeyDownCapture={(event) => {
-                      if (event.key === 'Escape' && insertAnchor.current) {
-                        insertAnchor.current = null;
-                        requestAnimationFrame(() =>
-                          editor?.commands.focus(null, {
-                            scrollIntoView: false,
-                          })
-                        );
-                      }
-                    }}
-                    onPointerDownCapture={() => {
-                      insertAnchor.current = null;
-                    }}
-                  >
-                    <Popover
-                      anchorRect={insertionRect}
-                      label="Insert into writing"
-                      trigger="Add"
-                      triggerClassName={control}
-                      panelClassName="studio-action-menu"
-                      width={280}
-                    >
-                      <button
-                        aria-pressed={
-                          editor?.isActive('heading', { level: 2 }) || false
-                        }
-                        onClick={(event) => {
-                          closePopover(event);
-                          editor
-                            ?.chain()
-                            .focus()
-                            .toggleHeading({ level: 2 })
-                            .run();
-                        }}
-                      >
-                        Heading
-                      </button>
-                      <button
-                        aria-pressed={editor?.isActive('bulletList') || false}
-                        onClick={(event) => {
-                          closePopover(event);
-                          editor?.chain().focus().toggleBulletList().run();
-                        }}
-                      >
-                        List
-                      </button>
-                      <button
-                        aria-pressed={editor?.isActive('blockquote') || false}
-                        onClick={(event) => {
-                          closePopover(event);
-                          editor?.chain().focus().toggleBlockquote().run();
-                        }}
-                      >
-                        Quote
-                      </button>
-                      <button
-                        aria-pressed={editor?.isActive('codeBlock') || false}
-                        onClick={(event) => {
-                          closePopover(event);
-                          editor?.chain().focus().toggleCodeBlock().run();
-                        }}
-                      >
-                        Code
-                      </button>
-                      <button
-                        onClick={(event) => {
-                          closePopover(event);
-                          editor
-                            ?.chain()
-                            .focus()
-                            .insertTable({
-                              rows: 3,
-                              cols: 3,
-                              withHeaderRow: true,
-                            })
-                            .run();
-                        }}
-                      >
-                        Table
-                      </button>
-                      <button
-                        onClick={(event) => {
-                          closePopover(event);
-                          setMedia('image');
-                        }}
-                      >
-                        Image
-                      </button>
-                      {catalog.map((entry) => (
-                        <button
-                          key={`${entry.id}:${entry.version}`}
-                          title={entry.description}
-                          aria-label={entry.name}
-                          aria-description={entry.description}
-                          onClick={(event) => {
-                            closePopover(event);
-                            insert(entry);
-                          }}
-                        >
-                          <span>{entry.name}</span>
-                          <span className="block text-body-small text-muted">
-                            {entry.description}
-                          </span>
-                        </button>
-                      ))}
-                      <button
-                        onClick={(event) => {
-                          closePopover(event);
-                          openTask('components');
-                        }}
-                      >
-                        Create widget…
-                      </button>
-                    </Popover>
-                  </div>
                 </div>
               </header>
               {task !== 'write' && (
@@ -1154,37 +1091,50 @@ function Writing({
                       role="toolbar"
                       aria-label="Selection tools"
                     >
-                      <Popover
-                        label="Format selected text"
-                        trigger="Format"
-                        triggerClassName={control}
-                        panelClassName="studio-format-menu"
-                        width={280}
-                      >
-                        {(['bold', 'italic'] as const).map((mark) => (
-                          <button
-                            key={mark}
-                            aria-pressed={editor?.isActive(mark) || false}
-                            onClick={() =>
-                              editor?.chain().focus().toggleMark(mark).run()
-                            }
-                          >
-                            {mark === 'bold' ? 'Bold' : 'Italic'}
-                          </button>
-                        ))}
+                      {(['bold', 'italic'] as const).map((mark) => (
                         <button
-                          onClick={(event) => {
-                            closePopover(event);
-                            rememberRange();
-                            setMedia('link');
-                          }}
+                          key={mark}
+                          className={control}
+                          aria-pressed={editor?.isActive(mark) || false}
+                          onPointerDown={(event) => event.preventDefault()}
+                          onClick={() =>
+                            editor
+                              ?.chain()
+                              .focus()
+                              .setTextSelection({
+                                from: selection.from,
+                                to: selection.to,
+                              })
+                              .toggleMark(mark)
+                              .run()
+                          }
                         >
-                          Link
+                          {mark === 'bold' ? (
+                            <strong>Bold</strong>
+                          ) : (
+                            <em>Italic</em>
+                          )}
                         </button>
-                      </Popover>
+                      ))}
+                      <button
+                        className={control}
+                        onPointerDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          rememberRange();
+                          setMedia('link');
+                        }}
+                      >
+                        Link
+                      </button>
                     </div>
                   )}
                   <div
+                    ref={writingSpace}
+                    style={
+                      {
+                        '--inline-panel-height': `${mediaHeight}px`,
+                      } as React.CSSProperties
+                    }
                     data-empty={editor?.isEmpty ? 'true' : 'false'}
                     className="studio-writing-space"
                     onPointerDown={(event) => {
@@ -1199,84 +1149,227 @@ function Writing({
                     }}
                   >
                     <EditorContent editor={editor} />
-                  </div>
-                  {media && (
-                    <form
-                      className="studio-task studio-task-form"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        if (media === 'image') void upload();
-                        else if (/^(https?:\/\/|\/|#|mailto:)/i.test(url)) {
-                          editor
-                            ?.chain()
-                            .focus()
-                            .setTextSelection({
-                              from: taskRange.current.from,
-                              to: taskRange.current.to,
+                    <div
+                      className="studio-insertion-row"
+                      style={
+                        {
+                          '--block-top': `${insertionPosition.top}px`,
+                          '--block-bottom': `${insertionPosition.bottom}px`,
+                        } as React.CSSProperties
+                      }
+                      onKeyDownCapture={(event) => {
+                        if (event.key === 'Escape') {
+                          insertAnchor.current = null;
+                          requestAnimationFrame(() =>
+                            editor?.commands.focus(null, {
+                              scrollIntoView: false,
                             })
-                            .setLink({ href: url })
-                            .run();
-                          setMedia(null);
-                          setUrl('');
+                          );
                         }
                       }}
+                      onPointerDownCapture={(event) => {
+                        event.stopPropagation();
+                        insertAnchor.current = null;
+                      }}
                     >
-                      <h2 className="text-title-large">
-                        {media === 'image'
-                          ? 'Add an image'
-                          : 'Link selected text'}
-                      </h2>
-                      {media === 'image' ? (
-                        <>
-                          <label>
-                            Image file
-                            <input
-                              type="file"
-                              accept="image/*"
-                              required
-                              onChange={(event) =>
-                                setImageFile(event.target.files?.[0] || null)
-                              }
-                            />
-                          </label>
-                          <label>
-                            Image description
-                            <textarea
-                              autoFocus
-                              value={alt}
-                              required
-                              onChange={(event) => setAlt(event.target.value)}
-                              placeholder="What does this image add to the writing?"
-                            />
-                          </label>
-                        </>
-                      ) : (
-                        <label>
-                          Link address
-                          <input
-                            autoFocus
-                            required
-                            value={url}
-                            onChange={(event) => setUrl(event.target.value)}
-                            placeholder="https://"
-                          />
-                        </label>
-                      )}
-                      <button className={control} type="submit">
-                        {media === 'image' ? 'Insert image' : 'Add link'}
-                      </button>
-                      <button
-                        className={control}
-                        type="button"
-                        onClick={() => {
-                          setMedia(null);
-                          returnToWriting();
+                      <Popover
+                        anchorRect={insertionRect}
+                        label="Insert into writing"
+                        trigger={
+                          <>
+                            <span
+                              aria-hidden="true"
+                              className="studio-add-symbol"
+                            >
+                              +
+                            </span>
+                            <span className="studio-add-label">Add</span>
+                          </>
+                        }
+                        triggerClassName={control}
+                        panelClassName="studio-action-menu"
+                        width={280}
+                      >
+                        <button
+                          aria-pressed={
+                            editor?.isActive('heading', { level: 2 }) || false
+                          }
+                          onClick={(event) => {
+                            closePopover(event);
+                            editor
+                              ?.chain()
+                              .focus()
+                              .toggleHeading({ level: 2 })
+                              .run();
+                          }}
+                        >
+                          Heading
+                        </button>
+                        <button
+                          aria-pressed={editor?.isActive('bulletList') || false}
+                          onClick={(event) => {
+                            closePopover(event);
+                            editor?.chain().focus().toggleBulletList().run();
+                          }}
+                        >
+                          List
+                        </button>
+                        <button
+                          aria-pressed={editor?.isActive('blockquote') || false}
+                          onClick={(event) => {
+                            closePopover(event);
+                            editor?.chain().focus().toggleBlockquote().run();
+                          }}
+                        >
+                          Quote
+                        </button>
+                        <button
+                          aria-pressed={editor?.isActive('codeBlock') || false}
+                          onClick={(event) => {
+                            closePopover(event);
+                            editor?.chain().focus().toggleCodeBlock().run();
+                          }}
+                        >
+                          Code
+                        </button>
+                        <button
+                          onClick={(event) => {
+                            closePopover(event);
+                            editor
+                              ?.chain()
+                              .focus()
+                              .insertTable({
+                                rows: 3,
+                                cols: 3,
+                                withHeaderRow: true,
+                              })
+                              .run();
+                          }}
+                        >
+                          Table
+                        </button>
+                        <button
+                          onClick={(event) => {
+                            closePopover(event);
+                            setMedia('image');
+                          }}
+                        >
+                          Image
+                        </button>
+                        {catalog.map((entry) => (
+                          <button
+                            key={`${entry.id}:${entry.version}`}
+                            title={entry.description}
+                            aria-label={entry.name}
+                            aria-description={entry.description}
+                            onClick={(event) => {
+                              closePopover(event);
+                              insert(entry);
+                            }}
+                          >
+                            <span>{entry.name}</span>
+                            <span className="block text-body-small text-muted">
+                              {entry.description}
+                            </span>
+                          </button>
+                        ))}
+                        <button
+                          onClick={(event) => {
+                            closePopover(event);
+                            openTask('components');
+                          }}
+                        >
+                          Create widget…
+                        </button>
+                      </Popover>
+                    </div>
+                    {media && (
+                      <form
+                        ref={mediaPanel}
+                        className="studio-task studio-task-form studio-inline-media"
+                        style={{ top: insertionPosition.bottom }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Escape') {
+                            event.stopPropagation();
+                            setMedia(null);
+                            returnToWriting();
+                          }
+                        }}
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          if (media === 'image') void upload();
+                          else if (/^(https?:\/\/|\/|#|mailto:)/i.test(url)) {
+                            editor
+                              ?.chain()
+                              .focus()
+                              .setTextSelection({
+                                from: taskRange.current.from,
+                                to: taskRange.current.to,
+                              })
+                              .setLink({ href: url })
+                              .run();
+                            setMedia(null);
+                            setUrl('');
+                          }
                         }}
                       >
-                        Cancel
-                      </button>
-                    </form>
-                  )}
+                        <h2 className="text-title-large">
+                          {media === 'image'
+                            ? 'Add an image'
+                            : 'Link selected text'}
+                        </h2>
+                        {media === 'image' ? (
+                          <>
+                            <label>
+                              Image file
+                              <input
+                                type="file"
+                                accept="image/*"
+                                required
+                                onChange={(event) =>
+                                  setImageFile(event.target.files?.[0] || null)
+                                }
+                              />
+                            </label>
+                            <label>
+                              Image description
+                              <textarea
+                                autoFocus
+                                value={alt}
+                                required
+                                onChange={(event) => setAlt(event.target.value)}
+                                placeholder="What does this image add to the writing?"
+                              />
+                            </label>
+                          </>
+                        ) : (
+                          <label>
+                            Link address
+                            <input
+                              autoFocus
+                              required
+                              value={url}
+                              onChange={(event) => setUrl(event.target.value)}
+                              placeholder="https://"
+                            />
+                          </label>
+                        )}
+                        <button className={control} type="submit">
+                          {media === 'image' ? 'Insert image' : 'Add link'}
+                        </button>
+                        <button
+                          className={control}
+                          type="button"
+                          onClick={() => {
+                            setMedia(null);
+                            returnToWriting();
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </form>
+                    )}
+                  </div>
                   <div className="studio-tags mt-4">
                     <Popover
                       label="Edit tags"

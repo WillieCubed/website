@@ -109,9 +109,6 @@ export default function Status({
         {clock}
         {picture}
         {temperature}
-        <span className="status-arrow" aria-hidden="true">
-          ↗
-        </span>
       </SiteLink>
     );
   return (

@@ -76,13 +76,7 @@
 .microstatus:is(:hover, :focus-visible) .weather-picture {
   transform: translateY(-2px) rotate(-5deg) scale(1.04, 0.96);
 }
-.status-arrow {
-  transition: transform 220ms ease;
-}
-.microstatus:hover .status-arrow {
-  transform: translate(2px, -2px);
-}
-.site-footer .temperature {
+.microstatus:hover .site-footer .temperature {
   font-size: 14px;
 }
 .weather-picture::before {
@@ -351,7 +345,7 @@
     font-size: 44px;
   }
 }
-@media (max-width: 599px) {
+@container footer (max-width: 599px) {
   .site-footer .site-footer__row:has(.microstatus) {
     grid-template-columns: minmax(0, 1fr) auto;
     row-gap: 14px;
@@ -359,7 +353,7 @@
   .site-footer .microstatus {
     grid-row: 2;
     grid-column: 1/-1;
-    justify-self: stretch;
+    justify-self: end;
     justify-content: flex-end;
     gap: 12px;
   }
@@ -367,6 +361,8 @@
     grid-row: 1;
     grid-column: 2;
   }
+}
+@media (max-width: 599px) {
   .status-expanded {
     padding: 28px 24px 48px;
   }
@@ -492,4 +488,42 @@
     translate: none;
     transition: none;
   }
+}
+
+.site-footer__inner {
+  container-name: footer;
+  container-type: inline-size;
+}
+.microstatus {
+  min-width: 0;
+  max-width: 100%;
+}
+.microstatus .status-city {
+  min-width: 0;
+  max-inline-size: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.microstatus .weather-picture {
+  flex: 0 0 32px;
+}
+.microstatus .temperature,
+.microstatus time {
+  flex-shrink: 0;
+}
+@container footer (max-width:480px) {
+  .microstatus time {
+    display: none;
+  }
+  .site-footer .microstatus {
+    gap: 8px;
+  }
+}
+.status-expanded .status-city {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.status-heading {
+  overflow-wrap: anywhere;
 }

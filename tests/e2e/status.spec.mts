@@ -236,7 +236,7 @@ test('footer status adapts within one row even with a long city name', async ({
     } else {
       await expect(status.locator('.microstatus-place > svg')).toBeVisible();
     }
-    if (width > 320) {
+    if (width > 390) {
       await expect(status.locator('.weather-picture')).toBeVisible();
       const weatherGap = await status
         .locator('.microstatus-weather')
@@ -248,6 +248,8 @@ test('footer status adapts within one row even with a long city name', async ({
           return temperature.left - icon.right;
         });
       expect(weatherGap).toBeGreaterThanOrEqual(4);
+    } else {
+      await expect(status.locator('.weather-picture')).toBeHidden();
     }
     if (width >= 840) {
       await expect(status.locator('.microstatus-clock')).toBeVisible();

@@ -573,6 +573,9 @@ button.weather-reading:active {
     padding-inline: 0;
     gap: 4px;
   }
+  .microstatus .weather-picture {
+    display: none;
+  }
 }
 
 @container footer (max-width: 320px) {

@@ -79,8 +79,7 @@ test(
         failMergeResponse = false,
         failRebaseResponse = false,
         failedChecks = false,
-        rebaseCount = 0,
-        paginateChecks = false;
+        rebaseCount = 0;
       const history: { sha: string; commit: { message: string } }[] = [];
       globalThis.fetch = async (input, init) => {
         const endpoint = new URL(String(input)),
@@ -131,27 +130,17 @@ test(
             )
           );
         }
-        if (/^pulls\/\d+$/.test(path))
-          return Response.json(pulls.get(Number(path.split('/')[1])));
-        if (path.endsWith('/check-runs')) {
-          const firstPage = endpoint.searchParams.get('page') === '1';
+        if (/^pulls\/\d+$/.test(path)) {
+          const pr = pulls.get(Number(path.split('/')[1]))!;
           return Response.json({
-            total_count: paginateChecks ? 101 : 1,
-            check_runs: Array.from(
-              { length: paginateChecks && firstPage ? 100 : 1 },
-              () => ({
-                status: checksReady ? 'completed' : 'in_progress',
-                conclusion: checksReady
-                  ? failedChecks && (!paginateChecks || !firstPage)
-                    ? 'failure'
-                    : 'success'
-                  : null,
-              })
-            ),
+            ...pr,
+            mergeable_state: failedChecks
+              ? 'unstable'
+              : checksReady
+                ? 'clean'
+                : 'blocked',
           });
         }
-        if (path.endsWith('/status'))
-          return Response.json({ state: 'pending', statuses: [] });
         if (path === 'commits') return Response.json(history);
         if (path.startsWith('compare/'))
           return Response.json({ status: 'ahead' });
@@ -528,12 +517,12 @@ test(
         title: 'Terminal checks test',
       });
       failedChecks = true;
-      paginateChecks = true; // Failure is on page 2; never merge after reading only page 1.
       const failed = await publishRevision(draft.id, failedDraft.head.id);
-      assert.equal(failed.status, 'failed');
-      assert.match(
-        failed.error!,
-        /Review and rerun.*github.com\/owner\/site\/pull\/8/
+      assert.equal(failed.status, 'publishing');
+      assert.equal(mergeCount, 7);
+      assert.equal(
+        failed.pullRequestUrl,
+        'https://github.com/owner/site/pull/8'
       );
       failedChecks = false; // Maintainer reran the checks on GitHub.
       assert.equal(

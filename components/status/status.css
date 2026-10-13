@@ -343,7 +343,8 @@
 }
 
 .microstatus .unit {
-  display: none;
+  margin-inline-start: 1px;
+  font-size: 0.85em;
 }
 .status-expanded time,
 .microstatus time {
@@ -569,6 +570,18 @@ button.weather-reading:active {
 }
 @container footer (max-width: 280px) {
   .microstatus .weather-picture--compact {
+    display: none;
+  }
+}
+
+.microstatus-weather {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+@container footer (max-width: 280px) {
+  .microstatus-weather {
     display: none;
   }
 }

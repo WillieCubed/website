@@ -160,8 +160,12 @@ export default function Status({
           <Icon name="clock" />
           {clock}
         </span>
-        {picture}
-        {temperature}
+        {weather && (
+          <span className="microstatus-weather">
+            {picture}
+            {temperature}
+          </span>
+        )}
       </SiteLink>
     );
   return (

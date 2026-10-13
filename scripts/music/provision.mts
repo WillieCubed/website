@@ -1,6 +1,8 @@
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { parseEnv } from 'node:util';
 import { Pool } from 'pg';
 
@@ -88,67 +90,49 @@ try {
   } finally {
     await reader.end();
   }
-  console.log('Step 4: Configure each deployment with its required values.');
-  const settings: Record<string, Record<string, string>> = {
-    'willie-page-preview': {
-      SPOTIFY_CLIENT_ID: 'e454b680b63243c9940fe1173214d8da',
-      MUSIC_PUBLIC_DATABASE_URL: state.readerURL,
-      MUSIC_CACHE_WRITE_DATABASE_URL: databaseURL,
-      MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey,
-    },
-  };
-  for (const [project, values] of Object.entries(settings))
-    for (const [name, value] of Object.entries(values)) {
-      if (!value) throw new Error(`${name} is missing.`);
-      const result = spawnSync(
-        'vercel',
-        [
-          'env',
-          'add',
-          name,
-          'production',
-          '--project',
-          project,
-          '--scope',
-          'williecubed-projects',
-          '--force',
-          '--yes',
-          name === 'SPOTIFY_CLIENT_ID' ? '--no-sensitive' : '--sensitive',
-        ],
-        { input: value, encoding: 'utf8' }
-      );
-      if (result.status !== 0)
-        throw new Error(`Could not configure ${name} on ${project}.`);
-      console.log(`${project}: ${name} configured.`);
-    }
-  for (const [name, value] of Object.entries({
+  console.log('Step 4: Configure the production Cloudflare Worker.');
+  const workerSecrets = {
     MUSIC_PUBLIC_DATABASE_URL: state.readerURL,
     MUSIC_CACHE_WRITE_DATABASE_URL: state.refreshURL,
     MUSIC_PRIVATE_DATABASE_URL: state.refreshURL,
     MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey,
     MUSIC_REFRESH_SECRET: state.secret,
-  })) {
-    const result = spawnSync(
-      'pnpm',
-      [
-        'exec',
-        'wrangler',
-        'secret',
-        'put',
-        name,
-        '--name',
-        'willie-page',
-        '--config',
-        'wrangler.jsonc',
-        ...(process.env.CLOUDFLARE_PROFILE
-          ? ['--profile', process.env.CLOUDFLARE_PROFILE]
-          : []),
-      ],
-      { input: `${value}\n`, encoding: 'utf8' }
+  };
+  const temporary = await mkdtemp(join(tmpdir(), 'willie-music-secrets-'));
+  try {
+    const file = join(temporary, 'patch.json');
+    await writeFile(
+      file,
+      JSON.stringify({
+        secrets: Object.fromEntries(
+          Object.entries(workerSecrets).map(([name, text]) => [
+            name,
+            { name, type: 'secret_text', text },
+          ])
+        ),
+      }),
+      { mode: 0o600, flag: 'wx' }
     );
+    const result = spawnSync('pnpm', [
+      'exec',
+      'cf',
+      'workers',
+      'secrets',
+      'bulk',
+      '--worker',
+      'willie-page',
+      '--file',
+      file,
+      '--profile',
+      process.env.CLOUDFLARE_PROFILE || 'williecubed',
+    ]);
     if (result.status !== 0)
-      throw new Error(`Could not configure ${name} on the Cloudflare Worker.`);
-    console.log(`willie-page Worker: ${name} configured.`);
+      throw new Error(
+        'Could not configure Music secrets on the Cloudflare Worker.'
+      );
+    console.log('willie-page Worker: Music secrets configured.');
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
   }
   console.log(
     'Step 5: Store the scheduler secret and leave scheduling disabled until the live endpoint passes.'

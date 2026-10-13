@@ -101,10 +101,13 @@ signs existing Standard.site subscribers out; they must authorize again.
 
 The three old Vercel website projects (`website`, `willie-page-preview`, and
 `indieweb-acceptance`) were disconnected from Git on October 13 so a push no
-longer starts three duplicate Vercel builds. Their existing deployments and
-data remain until protected publication passes hosted checks; delete the
-projects after that acceptance. `cf` is the deployment CLI. Wrangler prepares
-the OpenNext bundle but cannot deploy the provisioned Durable Object exports
+longer starts three duplicate Vercel builds. Their existing deployments remain
+while protected publication and the isolated IndieWeb acceptance environment
+are still being verified. The preview's original Lattice encryption key was
+recovered and installed on Cloudflare, but its OAuth refresh authorization
+requires owner reconnection. Delete the Vercel projects only after those
+acceptance paths no longer depend on them. `cf` is the deployment CLI. Wrangler
+prepares the OpenNext bundle but cannot deploy the provisioned Durable Object exports
 in this project; a failed `cf` upload must fail the build instead of silently
 switching tools.
 

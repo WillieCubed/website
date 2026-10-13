@@ -21,7 +21,7 @@ refresh.
 
 ```mermaid
 flowchart LR
-  Admin[Private Vercel studio] --> Database[PostgreSQL service]
+  Admin[Private Cloudflare studio] --> Database[PostgreSQL service]
   Admin --> GitHub[GitHub repository and CI]
   GitHub --> Public[Public Cloudflare Worker]
   Public --> Database
@@ -52,14 +52,15 @@ cannot be reused across Worker requests.
 
 ## Provision and verify
 
-Pull the private project's production environment into a temporary file with
-mode 0600. Run `pnpm exec tsx scripts/music/provision.mts PRIVATE_ENV
-PRIVATE_STATE_JSON`. Keep the state file private during retries. This script
-applies idempotent migrations, configures the private Vercel project and the
-public Cloudflare Worker, checks database isolation, and stores the scheduler
-secret without printing it. Authenticate Wrangler to the personal Cloudflare
-account before running it. The script never copies `SITE_MODE` to the public
-deployment.
+Prepare a private mode-0600 environment file containing
+`STUDIO_DATABASE_URL` and the existing `STUDIO_TOKEN_ENCRYPTION_KEY`. Run
+`pnpm exec tsx scripts/music/provision.mts PRIVATE_ENV PRIVATE_STATE_JSON`.
+Keep the state file private during retries. The script applies idempotent
+migrations, verifies database isolation, configures the production Cloudflare
+Worker through the named `williecubed` `cf` profile, and stores the scheduler
+secret without printing it. The private Studio uses its existing Cloudflare
+Hyperdrive and encryption-key bindings; this script does not deploy that Worker
+or copy `SITE_MODE` to production.
 
 The hourly GitHub workflow remains disabled until repository variable
 `MUSIC_REFRESH_ENABLED` is `true`. Verify an authenticated POST to

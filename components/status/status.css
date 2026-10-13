@@ -579,6 +579,12 @@ button.weather-reading:active {
   }
 }
 
+@container footer (max-width: 320px) {
+  .microstatus-place > svg {
+    display: none;
+  }
+}
+
 @container footer (max-width: 400px) {
   .site-footer .microstatus {
     padding-inline: 8px;

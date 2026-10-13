@@ -279,26 +279,6 @@ async function proposalBody(publication: Publication): Promise<string> {
   );
 }
 
-async function publicationChecks(commit: string) {
-  const runs: { status: string; conclusion: string }[] = [];
-  for (let page = 1; page <= 10; page++) {
-    const result = await github(
-      `commits/${commit}/check-runs?per_page=100&page=${page}`
-    );
-    const entries = result.check_runs as {
-      status: string;
-      conclusion: string;
-    }[];
-    runs.push(...entries);
-    if (runs.length >= Number(result.total_count)) return runs;
-    if (!entries.length) break;
-  }
-  throw new StudioError(
-    502,
-    'Publication checks could not be fully inspected. Review the pull request and retry.'
-  );
-}
-
 async function reconcilePullRequest(
   publication: Publication,
   branch: string
@@ -363,36 +343,14 @@ async function reconcilePullRequest(
     await rebaseArtifacts(publication, base, branch);
     return; // The same PR now reruns required checks on its new head.
   }
-  const [runs, statuses] = await Promise.all([
-    publicationChecks(publication.proposalCommit!),
-    github(`commits/${publication.proposalCommit}/status?per_page=100`),
-  ]);
-  if (
-    runs.some(
-      (run) =>
-        run.status === 'completed' &&
-        !['success', 'neutral', 'skipped'].includes(run.conclusion)
-    ) ||
-    ['failure', 'error'].includes(String(statuses.state))
-  )
-    throw new StudioError(
-      409,
-      `Publication checks failed. Review and rerun the failed checks in ${publication.pullRequestUrl ?? String(pr.html_url)}, then retry publication.`
-    );
-  // GitHub remains authoritative for required contexts, reviews, rulesets and
-  // permissions. An unknown/blocked/behind state never initiates a merge.
+  // GitHub's protected merge is authoritative for required checks, reviews,
+  // rulesets and permissions. Fine-grained repository tokens cannot call the
+  // Checks API, so never make a separate check-run request here. An
+  // unknown/blocked/behind state never initiates a merge.
   if (
     pr.mergeable !== true ||
     pr.mergeable_state !== 'clean' ||
-    (pr.base as { sha: string }).sha !== base ||
-    runs.some(
-      (run) =>
-        run.status !== 'completed' ||
-        !['success', 'neutral', 'skipped'].includes(run.conclusion)
-    ) ||
-    !['success', 'pending'].includes(String(statuses.state)) ||
-    ((statuses.statuses as unknown[]).length > 0 &&
-      statuses.state !== 'success')
+    (pr.base as { sha: string }).sha !== base
   )
     return;
   // Re-read after polling checks: they can take time, and publication must stop

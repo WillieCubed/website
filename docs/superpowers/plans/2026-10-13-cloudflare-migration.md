@@ -89,8 +89,9 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
 
 **Interfaces:** All revision consumers read one baked SHA; deploy produces an immutable candidate and promotion references that SHA.
 
-- [ ] Test the exact-SHA notification gate and preview/production environment separation.
-- [ ] Implement the build revision and connect Cloudflare Workers Builds to the scoped repository. Keep GitHub Actions for exact-revision publish notification only.
+- [x] Test the exact-SHA notification gate and preview/production environment separation. The notification unit test rejects a mismatched SHA, and separately built production and preview bundles pass isolated `cf` dry runs. A local preview Worker advertises the preview origin and exact build SHA.
+- [x] Bake the Git revision into both builds and expose it at `/api/indieweb/revision`.
+- [ ] Connect Cloudflare Workers Builds to the scoped repository. Keep GitHub Actions for exact-revision publish notification only.
 - [ ] Deploy candidate, verify full route matrix and publishing on isolated data, and retain diagnostic receipts.
 - [ ] Promote the verified artifact to canonical and alias hosts; check public routes, writes, DNS, analytics, and logs.
 

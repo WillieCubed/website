@@ -5,6 +5,8 @@ import { type ComponentType } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
+import { usePalette } from '@/components/palette/PaletteProvider';
+import PaletteTrigger from '@/components/palette/PaletteTrigger';
 
 import {
   type Catalog,
@@ -48,7 +50,7 @@ export default function MusicSetup({
   const [lead, setLead] = useState<string | null>(
     mode === 'admin' ? catalog.lead : null
   );
-  const [search, setSearch] = useState('');
+  const { close: closePalette, registerCommands } = usePalette();
   const title = useRef<HTMLHeadingElement>(null);
   const collection = catalog.order.flatMap((id) => {
     const playlist = playlists.find((item) => item.id === id);
@@ -65,8 +67,42 @@ export default function MusicSetup({
     setSelected((ids) =>
       ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]
     );
-    if (lead === id) setLead(null);
+    setLead((current) => (current === id ? null : current));
   }
+
+  useEffect(() => {
+    if (step !== 1) return;
+    return registerCommands(
+      playlists
+        .filter((playlist) => playlist.eligible)
+        .map((playlist) => ({
+          id: `music:select:${playlist.id}`,
+          title: playlist.title,
+          detail: selected.includes(playlist.id)
+            ? 'Remove from your collection'
+            : 'Add to your collection',
+          group: 'Playlists' as const,
+          keywords: ['playlist', 'music', 'select'],
+          kind: 'music' as const,
+          run: async () => {
+            await closePalette({ animate: false, restoreFocus: false });
+            toggle(playlist.id);
+            const row = [
+              ...document.querySelectorAll<HTMLElement>('.ms-playlist'),
+            ].find((item) => item.dataset.playlist === playlist.id);
+            row
+              ?.querySelector<HTMLInputElement>('input')
+              ?.focus({ preventScroll: true });
+            row?.scrollIntoView({
+              behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
+                ? 'instant'
+                : 'smooth',
+              block: 'center',
+            });
+          },
+        }))
+    );
+  }, [step, playlists, selected, registerCommands, closePalette]);
 
   return (
     <>
@@ -78,14 +114,17 @@ export default function MusicSetup({
       <div className="ms-shell">
         <header className="ms-header">
           <span className="ms-wordmark">Music</span>
-          <button
-            className="ms-button ms-tonal ms-exit"
-            onClick={onCancel}
-            aria-label="Exit setup"
-          >
-            <span>Exit setup</span>
-            <Icon name="x" />
-          </button>
+          <div className="ms-header-actions">
+            <PaletteTrigger size="compact" />
+            <button
+              className="ms-button ms-tonal ms-exit"
+              onClick={onCancel}
+              aria-label="Exit setup"
+            >
+              <span>Exit setup</span>
+              <Icon name="x" />
+            </button>
+          </div>
         </header>
         <ol className="ms-steps" aria-label="Setup progress">
           {steps.map((label, index) => (
@@ -189,16 +228,6 @@ export default function MusicSetup({
                     change this later.
                   </p>
                 </div>
-                <label className="ms-search">
-                  <Icon name="search" />
-                  <input
-                    type="search"
-                    aria-label="Search available playlists"
-                    placeholder="Find a playlist"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                </label>
               </div>
               <div className="ms-source">
                 <SpotifyIcon />
@@ -211,45 +240,37 @@ export default function MusicSetup({
               </div>
               <fieldset className="ms-playlists">
                 <legend className="sr-only">Choose playlists</legend>
-                {playlists
-                  .filter((playlist) =>
-                    playlist.title.toLowerCase().includes(search.toLowerCase())
-                  )
-                  .map((playlist) => (
-                    <label
-                      className="ms-playlist"
-                      key={playlist.id}
-                      data-selected={
-                        selected.includes(playlist.id) || undefined
-                      }
-                    >
-                      <div className="ms-playlist-art">
-                        <Cover playlist={playlist} />
-                      </div>
-                      <span className="ms-playlist-copy">
-                        <span className="ms-playlist-title">
-                          {playlist.title}
-                        </span>
-                        <span className="ms-playlist-meta">
-                          {playlist.trackCount} tracks ·{' '}
-                          {listeningTime(playlist.tracks)}
-                        </span>
+                {playlists.map((playlist) => (
+                  <label
+                    className="ms-playlist"
+                    key={playlist.id}
+                    data-playlist={playlist.id}
+                    data-selected={selected.includes(playlist.id) || undefined}
+                  >
+                    <div className="ms-playlist-art">
+                      <Cover playlist={playlist} />
+                    </div>
+                    <span className="ms-playlist-copy">
+                      <span className="ms-playlist-title">
+                        {playlist.title}
                       </span>
-                      <MusicSelectionControl
-                        aria-label={`Select ${playlist.title}`}
-                        checked={selected.includes(playlist.id)}
-                        onChange={() => toggle(playlist.id)}
-                      />
-                    </label>
-                  ))}
+                      <span className="ms-playlist-meta">
+                        {playlist.trackCount} tracks ·{' '}
+                        {listeningTime(playlist.tracks)}
+                      </span>
+                    </span>
+                    <MusicSelectionControl
+                      aria-label={`Select ${playlist.title}`}
+                      checked={selected.includes(playlist.id)}
+                      onChange={() => toggle(playlist.id)}
+                    />
+                  </label>
+                ))}
               </fieldset>
-              {!playlists.some((playlist) =>
-                playlist.title.toLowerCase().includes(search.toLowerCase())
-              ) && (
+              {playlists.length === 0 && (
                 <p className="ms-empty">
-                  {search
-                    ? `No playlists match “${search}”. Try another name.`
-                    : 'No owned public playlists are available. Make a playlist public on Spotify, then refresh your library.'}
+                  No owned public playlists are available. Make a playlist
+                  public on Spotify, then refresh your library.
                 </p>
               )}
             </section>

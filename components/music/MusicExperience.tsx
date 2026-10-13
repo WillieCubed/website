@@ -5,6 +5,7 @@ import { flushSync } from 'react-dom';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
+import { usePalette } from '@/components/palette/PaletteProvider';
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import TopBar from '@/components/site/TopBar';
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
@@ -71,7 +72,7 @@ export default function MusicExperience({
   const [storageError, setStorageError] = useState('');
   const [seriesId, setSeriesId] = useState<string | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
+  const { close: closePalette, registerCommands } = usePalette();
   const [libraryFilter, setLibraryFilter] = useState<
     'all' | 'selected' | 'unselected'
   >('all');
@@ -97,20 +98,12 @@ export default function MusicExperience({
   );
   const matching = visibleIds.filter(
     (id) =>
-      (!editing ||
-        libraryFilter === 'all' ||
-        catalog.selected.includes(id) === (libraryFilter === 'selected')) &&
-      playlists
-        .find((item) => item.id === id)
-        ?.title.toLowerCase()
-        .includes(search.toLowerCase())
+      !editing ||
+      libraryFilter === 'all' ||
+      catalog.selected.includes(id) === (libraryFilter === 'selected')
   );
   const lead =
-    !series &&
-    !editing &&
-    !search &&
-    catalog.lead &&
-    matching.includes(catalog.lead)
+    !series && !editing && catalog.lead && matching.includes(catalog.lead)
       ? catalog.lead
       : null;
   const displayed = lead
@@ -210,7 +203,6 @@ export default function MusicExperience({
 
   function chooseSeries(id: string | null) {
     setSeriesId(id);
-    setSearch('');
     history.pushState(null, '', href(id, null));
   }
 
@@ -255,6 +247,52 @@ export default function MusicExperience({
       alreadyOpen ? 'swap' : 'open'
     );
   }
+
+  useEffect(() => {
+    if (setup) return;
+    const ids = catalog.order.filter(
+      (id) => editing || catalog.selected.includes(id)
+    );
+    return registerCommands(
+      ids.flatMap((id) => {
+        const playlist = playlists.find((item) => item.id === id);
+        if (!playlist) return [];
+        return [
+          {
+            id: `music:open:${id}`,
+            title: playlist.title,
+            detail: 'Open playlist',
+            group: 'Playlists' as const,
+            keywords: ['music', 'playlist'],
+            kind: 'music' as const,
+            run: async () => {
+              await closePalette({ animate: false, restoreFocus: false });
+              if (!displayed.includes(id)) {
+                flushSync(() => {
+                  setSeriesId(null);
+                  setLibraryFilter('all');
+                });
+                history.pushState(null, '', href(null, null));
+              }
+              const card = [
+                ...document.querySelectorAll<HTMLElement>('.mp-card'),
+              ].find((item) => item.dataset.playlist === id);
+              card?.scrollIntoView({ behavior: 'instant', block: 'center' });
+              card?.querySelector<HTMLButtonElement>('.mp-card-open')?.click();
+            },
+          },
+        ];
+      })
+    );
+  }, [
+    setup,
+    catalog,
+    editing,
+    playlists,
+    displayed.join(','),
+    registerCommands,
+    closePalette,
+  ]);
 
   function cardParts(source?: HTMLElement | null): PlaylistMotionParts {
     const card = source?.querySelector('[data-card-cover]')
@@ -356,7 +394,7 @@ export default function MusicExperience({
   }
 
   function dropOn(id: string) {
-    if (!editing || search || libraryFilter !== 'all') return;
+    if (!editing || libraryFilter !== 'all') return;
     const from = dragId.current;
     dragId.current = null;
     if (!from || from === id) return;
@@ -425,13 +463,12 @@ export default function MusicExperience({
         aria-label={featured ? 'Featured playlist' : undefined}
         data-playlist={playlist.id}
         data-focused={playlist.id === focused || undefined}
-        draggable={editing && !search && libraryFilter === 'all'}
+        draggable={editing && libraryFilter === 'all'}
         onDragStart={() => {
           dragId.current = playlist.id;
         }}
         onDragOver={(event) => {
-          if (editing && !search && libraryFilter === 'all')
-            event.preventDefault();
+          if (editing && libraryFilter === 'all') event.preventDefault();
         }}
         onDrop={() => dropOn(playlist.id)}
       >
@@ -573,7 +610,7 @@ export default function MusicExperience({
               <span className="mp-order-label">Order</span>
               <button
                 className="mp-icon-button"
-                disabled={index === 0 || !!search || libraryFilter !== 'all'}
+                disabled={index === 0 || libraryFilter !== 'all'}
                 onClick={() => reorder(playlist.id, -1)}
                 aria-label={`Move ${playlist.title} earlier`}
               >
@@ -582,9 +619,7 @@ export default function MusicExperience({
               <button
                 className="mp-icon-button"
                 disabled={
-                  index === matching.length - 1 ||
-                  !!search ||
-                  libraryFilter !== 'all'
+                  index === matching.length - 1 || libraryFilter !== 'all'
                 }
                 onClick={() => reorder(playlist.id, 1)}
                 aria-label={`Move ${playlist.title} later`}
@@ -608,7 +643,6 @@ export default function MusicExperience({
         onChange?.(next);
         setEditing(true);
         setSeriesId(null);
-        setSearch('');
         setLibraryFilter('all');
       }
       setSetup(false);
@@ -686,7 +720,6 @@ export default function MusicExperience({
               onClick={() => {
                 setEditing(!editing);
                 setReview(false);
-                setSearch('');
                 setLibraryFilter('all');
               }}
             >
@@ -698,7 +731,6 @@ export default function MusicExperience({
       )}
       <TopBar
         column="wide"
-        showSearch={false}
         crumbs={[
           {
             label: 'Music',
@@ -710,7 +742,6 @@ export default function MusicExperience({
                       onSelect: () => {
                         setEditing(!editing);
                         setReview(false);
-                        setSearch('');
                         setLibraryFilter('all');
                       },
                     },
@@ -853,15 +884,6 @@ export default function MusicExperience({
                   : `${matching.length} playlists`}
               </p>
             </div>
-            <label className="mp-search">
-              <Icon name="search" size={18} />
-              <input
-                aria-label="Find a playlist"
-                placeholder="Find a playlist"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </label>
           </header>
           {editing && (
             <>
@@ -918,38 +940,32 @@ export default function MusicExperience({
           </div>
           <MusicScrollCue
             gallery={gallery}
-            collection={`${seriesId}:${search}:${editing}:${displayed.join(',')}`}
+            collection={`${seriesId}:${editing}:${displayed.join(',')}`}
           />
           {!matching.length && (
             <div className="mp-empty">
               <Icon name="music" size={32} />
               <h3>
-                {search
-                  ? 'No matching playlists'
-                  : editing && libraryFilter === 'unselected'
-                    ? 'Every playlist is included.'
-                    : editing && libraryFilter === 'selected'
-                      ? 'No playlists included yet'
-                      : 'This series is still empty'}
+                {editing && libraryFilter === 'unselected'
+                  ? 'Every playlist is included.'
+                  : editing && libraryFilter === 'selected'
+                    ? 'No playlists included yet'
+                    : 'This series is still empty'}
               </h3>
               <p>
-                {search
-                  ? 'Try another title.'
-                  : editing && libraryFilter !== 'all'
-                    ? 'Choose All to see the rest of your library.'
-                    : 'Open a playlist from All playlists to add it to this series.'}
+                {editing && libraryFilter !== 'all'
+                  ? 'Choose All to see the rest of your library.'
+                  : 'Open a playlist from All playlists to add it to this series.'}
               </p>
-              {!search && (
-                <button
-                  className="mp-button"
-                  onClick={() => {
-                    setLibraryFilter('all');
-                    chooseSeries(null);
-                  }}
-                >
-                  Browse all playlists
-                </button>
-              )}
+              <button
+                className="mp-button"
+                onClick={() => {
+                  setLibraryFilter('all');
+                  chooseSeries(null);
+                }}
+              >
+                Browse all playlists
+              </button>
             </div>
           )}
           <p className="mp-sample-note">
@@ -1290,7 +1306,6 @@ export default function MusicExperience({
                   className="mp-text-button"
                   onClick={() => {
                     setLibraryFilter('all');
-                    setSearch('');
                     chooseSeries(null);
                     closeReview();
                     gallery.current

@@ -67,6 +67,7 @@ export default function PaletteTrigger({
         type="submit"
         className={`palette-trigger palette-trigger--${size}${glass ? ' site-glass' : ''}`}
         aria-haspopup="dialog"
+        aria-label={size === 'compact' ? 'Search' : 'Search or jump to'}
         aria-keyshortcuts="Meta+K Control+K"
       >
         <Icon name="search" size={size === 'rail' ? 20 : 18} />

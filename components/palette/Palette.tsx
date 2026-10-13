@@ -38,6 +38,7 @@ const ICONS: Record<CommandKind | SearchKind, IconName> = {
   initiative: 'calendar',
   project: 'compass',
   venture: 'compass',
+  music: 'music',
   copy: 'copy',
   mail: 'mail',
   feed: 'rss',
@@ -175,6 +176,7 @@ function Excerpt({ parts }: { parts: ExcerptPart[] }) {
 
 interface PaletteBodyProps {
   data: PaletteData;
+  contextCommands: Command[];
   open: boolean;
   onClose: (options?: CloseOptions) => void;
 }
@@ -183,7 +185,12 @@ interface PaletteBodyProps {
  * The palette's contents: the combobox, the result groups, and an egg's
  * readout. Remounted for each opening, so every session starts empty.
  */
-function PaletteBody({ data, open, onClose }: PaletteBodyProps) {
+function PaletteBody({
+  data,
+  contextCommands,
+  open,
+  onClose,
+}: PaletteBodyProps) {
   const router = useRouter();
   const id = useId();
   const listboxId = `${id}-listbox`;
@@ -199,7 +206,10 @@ function PaletteBody({ data, open, onClose }: PaletteBodyProps) {
   const [active, setActive] = useState(0);
   const placeholder = usePlaceholder(open && query === '');
 
-  const commands = useMemo(() => buildCommands(data), [data]);
+  const commands = useMemo(
+    () => [...contextCommands, ...buildCommands(data)],
+    [contextCommands, data]
+  );
   const typed = normalizeQuery(query);
   const egg = findEgg(commands, query);
   // The theme commands read the page's scheme, so the list is worked out
@@ -473,6 +483,7 @@ function PaletteBody({ data, open, onClose }: PaletteBodyProps) {
 interface PaletteProps {
   ref: React.Ref<HTMLDialogElement>;
   data: PaletteData;
+  contextCommands: Command[];
   open: boolean;
   /** Changes on each opening, which resets the contents. */
   session: number;
@@ -488,6 +499,7 @@ interface PaletteProps {
 export default function Palette({
   ref,
   data,
+  contextCommands,
   open,
   session,
   onClose,
@@ -510,7 +522,13 @@ export default function Palette({
       {/* Mounted from the first opening on, so the card keeps its contents
           while it morphs or fades away on close. */}
       {session > 0 && (
-        <PaletteBody key={session} data={data} open={open} onClose={onClose} />
+        <PaletteBody
+          key={session}
+          data={data}
+          contextCommands={contextCommands}
+          open={open}
+          onClose={onClose}
+        />
       )}
     </dialog>
   );

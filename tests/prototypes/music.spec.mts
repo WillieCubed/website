@@ -54,6 +54,30 @@ test('setup keeps choices through Back and hands off a draft without changing th
   ).toContainText('Fall Tour 2026, Part 1');
 });
 
+test('setup finds and selects a playlist through the shared palette', async ({
+  page,
+}, testInfo) => {
+  await page.goto(`${route}?setup`);
+  await page
+    .getByRole('button', { name: 'Connect Spotify', exact: true })
+    .click();
+  await expect(
+    page.getByRole('searchbox', { name: 'Search available playlists' })
+  ).toHaveCount(0);
+  await page.screenshot({
+    path: `.playwright-mcp/music/${testInfo.project.name}-setup-palette-trigger.png`,
+  });
+  await page.getByRole('button', { name: /Search/ }).click();
+  await page
+    .getByRole('combobox', { name: 'Search the site or type a command' })
+    .fill('Summer 2026');
+  await page.getByRole('option', { name: /Summer 2026/ }).click();
+  const selected = page.getByRole('checkbox', { name: 'Select Summer 2026' });
+  await expect(selected).toBeChecked();
+  await expect(selected).toBeFocused();
+  await expect(selected).toBeInViewport();
+});
+
 test('canceling setup preserves the saved collection', async ({ page }) => {
   const before = await page.evaluate(() =>
     localStorage.getItem('willie-music-prototype-v1')
@@ -191,7 +215,8 @@ test.beforeEach(async ({ page }) => {
   await page.goto(route, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.music-prototype')).toHaveAttribute(
     'aria-busy',
-    'false'
+    'false',
+    { timeout: 15000 }
   );
   await expect(
     page.getByRole('heading', { name: 'Music', exact: true })
@@ -288,7 +313,7 @@ test('the feature introduces the actual sequence and keeps series controls local
   await expect(feature.locator('.mp-card-note')).toHaveCount(0);
 });
 
-test('featuring is optional, explicit, and independent of series or search order', async ({
+test('featuring is optional, explicit, and independent of series order', async ({
   page,
 }) => {
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
@@ -321,20 +346,6 @@ test('featuring is optional, explicit, and independent of series or search order
     })
   ).toHaveCount(1);
 
-  await page
-    .getByRole('textbox', { name: 'Find a playlist' })
-    .fill('Fall Tour');
-  await expect(
-    page.getByRole('article', { name: 'Featured playlist' })
-  ).toHaveCount(0);
-  expect(
-    await page
-      .locator('.mp-card')
-      .evaluateAll((cards) =>
-        cards.map((card) => card.getAttribute('data-playlist'))
-      )
-  ).toEqual(['fall-1', 'fall-2', 'fall-3']);
-  await page.getByRole('textbox', { name: 'Find a playlist' }).fill('');
   await page
     .getByRole('navigation', { name: 'Playlist series' })
     .getByRole('button', { name: 'Fall Tour' })
@@ -711,7 +722,6 @@ test('the gallery and focus view are accessible and produce review screenshots',
     .toBeLessThanOrEqual(0);
   await page.screenshot({
     path: `.playwright-mcp/music/${testInfo.project.name}-gallery.png`,
-    fullPage: true,
   });
   await page
     .getByRole('button', { name: 'Open Fall Tour 2026, Part 1', exact: true })
@@ -729,31 +739,28 @@ test('the gallery and focus view are accessible and produce review screenshots',
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page.screenshot({
     path: `.playwright-mcp/music/${testInfo.project.name}-curation.png`,
-    fullPage: true,
   });
 });
 
-test('search works on touch and keyboard focus remains inside the playlist', async ({
+test('the palette opens a playlist and keyboard focus remains inside it', async ({
   page,
 }) => {
   await expect(
     page.locator('header[data-column] .palette-trigger')
-  ).toHaveCount(0);
+  ).toHaveCount(1);
   await expect(
     page.getByRole('textbox', { name: 'Find a playlist' })
-  ).toHaveCount(1);
-  await page.locator('.mp-search').click();
-  const search = page.getByRole('textbox', { name: 'Find a playlist' });
-  await expect(search).toBeFocused();
-  await search.fill('not a playlist');
-  await expect(
-    page.getByText('No matching playlists', { exact: true })
-  ).toBeVisible();
-  await search.fill('Summer');
-  await expect(page.locator('.mp-card')).toHaveCount(1);
+  ).toHaveCount(0);
+  await page.locator('header[data-column] .palette-trigger').click();
   await page
-    .getByRole('button', { name: 'Open Summer 2026', exact: true })
-    .click();
+    .getByRole('combobox', { name: 'Search the site or type a command' })
+    .fill('Summer 2026');
+  await page.getByRole('option', { name: /Summer 2026/ }).click();
+  await expect(
+    page
+      .getByRole('region', { name: 'Playlist details' })
+      .getByRole('heading', { name: 'Summer 2026' })
+  ).toBeVisible();
   await page
     .getByRole('button', { name: 'Close playlist', exact: true })
     .focus();

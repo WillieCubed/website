@@ -74,7 +74,7 @@
   transition: transform 220ms ease;
 }
 .microstatus:is(:hover, :focus-visible) .weather-picture {
-  transform: translateY(-2px) rotate(-5deg) scale(1.04, 0.96);
+  transform: translateY(-2px) scale(1.04, 0.96);
 }
 .microstatus:hover .site-footer .temperature {
   font-size: 14px;
@@ -294,6 +294,9 @@
   .microstatus * {
     transition: none !important;
   }
+  .microstatus .weather-picture {
+    transform: none !important;
+  }
 }
 
 .status-page-sheet {
@@ -338,7 +341,7 @@
 }
 .site-footer .microstatus {
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: 22px;
   background: color-mix(
     in srgb,
     var(--color-surface-container-highest) 45%,
@@ -348,7 +351,8 @@
   transition:
     background-color 180ms ease,
     color 180ms ease,
-    translate 180ms ease;
+    translate 180ms ease,
+    border-radius 180ms ease;
 }
 .site-footer .microstatus:is(:hover, :focus-visible) {
   background: var(--color-surface-container-highest);

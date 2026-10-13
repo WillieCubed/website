@@ -80,12 +80,24 @@ assert.equal(
   'IndieAuth advertises the wrong origin'
 );
 
-const admin = await get('/api/admin/status', 200, 'application/json');
-assert.deepEqual(
-  await admin.json(),
-  { configured: true },
-  'Unauthenticated admin status exposed unexpected fields'
+const admin = await get(
+  '/api/admin/status',
+  origin === CANONICAL_ORIGIN ? 302 : 401,
+  origin === CANONICAL_ORIGIN ? 'text/html' : 'application/json'
 );
+if (origin === CANONICAL_ORIGIN) {
+  const location = new URL(admin.headers.get('location') ?? '', origin);
+  assert.equal(
+    location.hostname,
+    'williecubed.cloudflareaccess.com',
+    'Unauthenticated admin status did not redirect to Cloudflare Access'
+  );
+  assert(
+    location.pathname.startsWith('/cdn-cgi/access/login/'),
+    'Unauthenticated admin status did not redirect to an Access login'
+  );
+}
+await admin.body?.cancel();
 
 const routes: Array<[string, number, string?]> = [
   ['/', 200, 'text/html'],

@@ -307,24 +307,28 @@ Capture the full desktop and mobile viewports in both themes with
 `pnpm music:shots .playwright-mcp/music/iterations/2026-10-12-setup --setup`.
 Long-page companions show the rest of the selection and feature controls.
 
-The 12 setup browser checks passed across both themes and device classes.
+The 16 setup browser checks passed across both themes and device classes.
 They cover Back, cancel, draft separation, accessibility, and 320px reflow.
 The final layout checks also verify that captions do not overlap and the phone
 preview title clears the fixed actions. Type checking and scoped lint passed.
 
-Setup uses plus/check icons for inclusion and outlined/filled stars for
-featuring. Selection also changes the row's shape and tone. Focus outlines
+Setup uses plus/check icons for inclusion. The feature chooser shows one
+trailing check on the selected option and leaves the other playlists unmarked.
+We rejected stars because they suggested independent favorite toggles.
+Selection also changes the row's shape and tone. Focus outlines
 the selected object, and press feedback applies to the whole row. We rejected
 repeated Include and Feature labels because the icons and selected surfaces
 already express those states. Native inputs remain underneath each surface
 for Space and radio arrow-key behavior. The entire label is the input target.
 
-No featured playlist is a smaller 52px row separated by 16px from the playlist
-choices. The playlist rows share a 4px gap and 8px inner corners. The outer
+No featured playlist is a smaller 52px tonal row with a visible icon container.
+It stays visible as an option before selection. A 16px gap separates it from
+the playlist choices. The playlist rows share a 4px gap and 8px inner corners. The outer
 corners are 20px at the ends of the group. This distinguishes the absence of
 a feature without giving it the same visual weight as a playlist.
 
-All 24 targeted browser checks passed after this pass, along with type
-checking and scoped lint. Full desktop and phone captures in both themes are
-in `.playwright-mcp/music/iterations/2026-10-12-icon-selection` and
-`.playwright-mcp/music/iterations/2026-10-12-icon-selection-curation`.
+All 16 setup browser checks passed after this pass, along with type checking
+and scoped lint. Pointer and keyboard checks confirm exactly one option stays
+selected, including the no-feature choice. Full desktop and phone captures in
+both themes are in `.playwright-mcp/music/iterations/2026-10-12-single-feature`.
+They show both a featured playlist and the selected no-feature option.

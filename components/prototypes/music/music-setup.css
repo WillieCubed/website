@@ -418,7 +418,7 @@
   margin-bottom: 16px;
   border-radius: 16px;
   font-size: 14px;
-  background: var(--color-surface-container-low);
+  background: var(--color-surface-container-high);
 }
 .ms-feature-none .mp-selection-control,
 .ms-feature-none .mp-selection-state {
@@ -427,7 +427,7 @@
 }
 .ms-feature-none .mp-selection-state {
   border-radius: 10px;
-  background: transparent;
+  background: var(--color-surface-container-highest);
 }
 .ms-feature-none .mp-selection-state svg {
   width: 18px;

@@ -8,7 +8,33 @@ import test from 'node:test';
 import { promisify } from 'node:util';
 import { gzipSync } from 'node:zlib';
 
-import { isPublicAddress } from '@/lib/indieweb/public-fetch';
+import {
+  isFetchableUrl,
+  isPublicAddress,
+  systemResolver,
+} from '@/lib/indieweb/public-fetch';
+
+test('Workers accept public hostnames without the unsupported dns.lookup preflight', async () => {
+  assert.equal(
+    await isFetchableUrl(new URL('https://example.com/'), systemResolver, true),
+    true
+  );
+  for (const address of [
+    'http://127.0.0.1/',
+    'http://169.254.169.254/',
+    'http://[::1]/',
+    'http://localhost/',
+    'https://sub.localhost./',
+    'file:///etc/passwd',
+    'https://user:pass@example.com/',
+  ]) {
+    assert.equal(
+      await isFetchableUrl(new URL(address), systemResolver, true),
+      false,
+      address
+    );
+  }
+});
 
 /** Run `check` with the given environment variables, then restore them. */
 function withEnv(env: Record<string, string | undefined>, check: () => void) {

@@ -1,0 +1,696 @@
+.ms-shell {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 40px;
+}
+.ms-shell .mp-cover {
+  height: auto;
+  aspect-ratio: 1;
+}
+.ms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0;
+}
+.ms-wordmark {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.ms-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 14px 22px;
+  border-radius: 18px;
+  font-weight: 600;
+  transition:
+    border-radius 220ms var(--mp-effects),
+    background 180ms var(--mp-effects),
+    scale 220ms var(--mp-spatial);
+}
+.ms-button svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.ms-primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.ms-tonal {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+.ms-button:active {
+  scale: 0.97;
+  border-radius: 12px;
+}
+.ms-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 52px;
+}
+.ms-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--color-surface-container);
+  color: var(--color-muted);
+}
+.ms-steps li[aria-current] {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  font-weight: 600;
+}
+.ms-step-number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-surface-container-highest);
+  font-size: 14px;
+}
+.ms-step-number svg {
+  width: 18px;
+  height: 18px;
+}
+.ms-steps li[aria-current] .ms-step-number,
+.ms-steps li[data-complete] .ms-step-number {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.ms-main h1 {
+  margin: 0;
+  font-size: clamp(38px, 4.5vw, 60px);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  font-weight: 500;
+  outline: none;
+}
+.ms-intro {
+  max-width: 610px;
+  margin: 18px 0 0;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--color-muted);
+  text-wrap: pretty;
+}
+.ms-connect {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px 40px;
+  align-items: center;
+}
+.ms-connect-copy {
+  padding: 24px 0;
+}
+.ms-connect h1 {
+  font-size: clamp(48px, 5.6vw, 76px);
+}
+.ms-connect-button {
+  margin-top: 32px;
+  min-height: 60px;
+  padding: 18px 24px;
+  border-radius: 22px;
+  font-size: 18px;
+}
+.ms-permission {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-muted);
+  margin: 18px 0 0;
+}
+.ms-cover-arrangement {
+  position: relative;
+  height: 430px;
+  margin: 0 10px;
+}
+.ms-art {
+  position: absolute;
+  width: 66%;
+  aspect-ratio: 1;
+  box-shadow: 0 16px 28px #0002;
+  overflow: hidden;
+  border-radius: 5px;
+}
+.ms-art-back {
+  top: 2%;
+  right: 1%;
+  rotate: 10deg;
+}
+.ms-art-middle {
+  top: 18%;
+  left: 0;
+  rotate: -12deg;
+}
+.ms-art-front {
+  bottom: 0;
+  right: 2%;
+  rotate: 3deg;
+}
+.ms-connect-details {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  padding: 28px;
+  border-radius: 28px;
+  background: var(--color-surface-container);
+}
+.ms-connect-details > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.ms-connect-details svg {
+  flex-shrink: 0;
+  width: 24px;
+  color: var(--color-primary);
+  margin-top: 3px;
+}
+.ms-connect-details p {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.ms-connect-details span {
+  display: block;
+  font-size: 14px;
+  color: var(--color-muted);
+  font-weight: 400;
+  margin-top: 4px;
+}
+.ms-selection-heading {
+  display: flex;
+  align-items: flex-end;
+  gap: 36px;
+  justify-content: space-between;
+}
+.ms-selection-heading .ms-intro {
+  max-width: 580px;
+}
+.ms-search {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
+  background: var(--color-surface-container-high);
+  border-radius: 18px;
+  padding: 16px;
+}
+.ms-search svg {
+  width: 22px;
+}
+.ms-search input {
+  min-width: 0;
+  width: 190px;
+  background: transparent;
+  outline-offset: 8px;
+}
+.ms-source {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 28px 0 18px;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+.ms-source > span:last-child {
+  margin-left: auto;
+}
+.ms-source svg {
+  width: 20px;
+  height: 20px;
+}
+.ms-playlists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  border: 0;
+  padding: 0;
+  margin: 0 0 32px;
+}
+.ms-playlist {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 12px;
+  gap: 20px;
+  min-width: 0;
+  border-radius: 22px;
+  cursor: pointer;
+  background: var(--color-surface-container);
+  transition:
+    background 180ms var(--mp-effects),
+    border-radius 220ms var(--mp-effects);
+}
+.ms-playlist[data-selected] {
+  background: var(--color-secondary-container);
+}
+.ms-playlist-art {
+  width: 104px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.ms-playlist-copy {
+  flex: 1;
+  min-width: 0;
+}
+.ms-playlist-title {
+  display: block;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 500;
+  text-wrap: balance;
+}
+.ms-playlist-meta {
+  display: block;
+  color: var(--color-muted);
+  font-size: 13px;
+  margin-top: 8px;
+}
+.ms-playlist input {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  right: 20px;
+  opacity: 0;
+}
+.ms-check {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  margin-right: 8px;
+  border: 2px solid var(--color-muted);
+  border-radius: 10px;
+}
+.ms-check svg {
+  display: none;
+  width: 20px;
+  height: 20px;
+}
+.ms-playlist[data-selected] .ms-check {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: 50%;
+}
+.ms-playlist[data-selected] .ms-check svg {
+  display: block;
+}
+.ms-playlist:has(input:focus-visible),
+.ms-feature-option:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+.ms-empty {
+  padding: 32px;
+  background: var(--color-surface-container);
+  border-radius: 24px;
+}
+.ms-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: fixed;
+  z-index: 5;
+  left: 50%;
+  translate: -50% 0;
+  width: min(1120px, calc(100% - 80px));
+  bottom: 16px;
+  margin-top: 32px;
+  padding: 16px;
+  border-radius: 26px;
+  background: var(--color-surface-container-high);
+  box-shadow: 0 6px 32px #0001;
+}
+.ms-shell:has(.ms-actions) {
+  padding-bottom: 136px;
+}
+.ms-actions p {
+  flex: 1;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+.ms-preview-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 32px;
+  align-items: start;
+  margin: 32px 0;
+}
+.ms-gallery-preview {
+  padding: 28px;
+  border-radius: 28px;
+  background: var(--color-surface-container);
+}
+.ms-gallery-preview h2 {
+  font-size: 32px;
+  letter-spacing: -0.04em;
+  margin: 0 0 24px;
+  line-height: 1;
+}
+.ms-feature-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 24px;
+}
+.ms-feature-preview h3 {
+  font-size: 28px;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 0;
+  font-weight: 500;
+}
+.ms-feature-preview p {
+  font-size: 13px;
+  color: var(--color-muted);
+  margin: 12px 0 0;
+}
+.ms-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.ms-preview-grid h3 {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25;
+  margin: 10px 0 0;
+}
+.ms-preview-caption {
+  font-size: 13px;
+  color: var(--color-muted);
+  margin: 28px 0 0;
+}
+.ms-feature-options {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.ms-feature-options legend {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.ms-feature-options > p {
+  color: var(--color-muted);
+  font-size: 14px;
+  margin: 8px 0 20px;
+}
+.ms-feature-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  min-height: 76px;
+  border-radius: 18px;
+  margin-bottom: 8px;
+  background: var(--color-surface-container);
+  cursor: pointer;
+  line-height: 1.2;
+}
+.ms-feature-option[data-selected] {
+  background: var(--color-secondary-container);
+}
+.ms-feature-option input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+}
+.ms-feature-option > svg {
+  width: 48px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+.ms-feature-option small {
+  display: block;
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-top: 6px;
+}
+@media (hover: hover) {
+  .ms-button:hover {
+    border-radius: 28px;
+    filter: brightness(0.94);
+  }
+  .ms-playlist:hover,
+  .ms-feature-option:hover {
+    background: var(--color-surface-container-highest);
+  }
+  .ms-playlist[data-selected]:hover,
+  .ms-feature-option[data-selected]:hover {
+    background: var(--color-primary-container);
+  }
+}
+@media (max-width: 839px) {
+  .ms-shell {
+    padding: 0 24px;
+  }
+  .ms-steps {
+    margin-bottom: 32px;
+  }
+  .ms-connect {
+    gap: 32px;
+  }
+  .ms-cover-arrangement {
+    height: 330px;
+  }
+  .ms-connect-details {
+    gap: 24px;
+    padding: 24px;
+    grid-template-columns: 1fr;
+  }
+  .ms-selection-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .ms-search input {
+    width: 100%;
+  }
+  .ms-playlist {
+    gap: 12px;
+  }
+  .ms-playlist-art {
+    width: 80px;
+  }
+  .ms-playlist-title {
+    font-size: 17px;
+  }
+  .ms-check {
+    width: 26px;
+    height: 26px;
+    margin: 0;
+  }
+  .ms-preview-layout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .ms-actions {
+    gap: 12px;
+  }
+  .ms-actions p {
+    font-size: 12px;
+  }
+}
+@media (max-width: 599px) {
+  .ms-shell {
+    padding: 0 20px;
+  }
+  .ms-header {
+    padding: 18px 0;
+  }
+  .ms-wordmark {
+    font-size: 22px;
+  }
+  .ms-exit {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .ms-exit svg {
+    width: 18px;
+    height: 18px;
+  }
+  .ms-steps {
+    gap: 6px;
+    margin: 8px 0 32px;
+  }
+  .ms-steps li {
+    padding: 12px 10px;
+    gap: 6px;
+    border-radius: 14px;
+    font-size: 13px;
+  }
+  .ms-step-number {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .ms-main h1 {
+    font-size: 38px;
+  }
+  .ms-intro {
+    font-size: 16px;
+    margin-top: 14px;
+  }
+  .ms-connect {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 28px;
+  }
+  .ms-cover-arrangement {
+    height: 192px;
+    width: 290px;
+    max-width: 100%;
+    margin: 0 auto;
+    order: -1;
+  }
+  .ms-art {
+    width: 49%;
+  }
+  .ms-art-back {
+    right: 0;
+    top: 12%;
+  }
+  .ms-art-middle {
+    left: 0;
+    top: 10%;
+  }
+  .ms-art-front {
+    right: 23%;
+    bottom: 0;
+  }
+  .ms-connect-copy {
+    padding: 0;
+  }
+  .ms-connect h1 {
+    font-size: 48px;
+  }
+  .ms-connect-button {
+    width: 100%;
+    margin-top: 24px;
+    min-height: 56px;
+  }
+  .ms-permission {
+    text-align: center;
+    font-size: 12px;
+    margin-top: 14px;
+  }
+  .ms-connect-details {
+    padding: 22px;
+    gap: 22px;
+    border-radius: 24px;
+  }
+  .ms-selection-heading {
+    gap: 20px;
+  }
+  .ms-source {
+    font-size: 12px;
+    margin: 24px 0 14px;
+  }
+  .ms-playlists {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .ms-playlist {
+    padding: 10px;
+    border-radius: 18px;
+    gap: 14px;
+  }
+  .ms-playlist-art {
+    width: 72px;
+  }
+  .ms-playlist-title {
+    font-size: 18px;
+  }
+  .ms-playlist-meta {
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .ms-check {
+    margin-right: 4px;
+  }
+  .ms-actions {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    padding: 12px;
+    width: calc(100% - 24px);
+    margin: 0;
+    bottom: 10px;
+    border-radius: 24px;
+  }
+  .ms-actions p {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    text-align: center;
+  }
+  .ms-actions .ms-button {
+    min-height: 48px;
+    padding: 12px;
+    gap: 8px;
+    font-size: 14px;
+    border-radius: 16px;
+  }
+  .ms-actions .ms-button svg {
+    width: 18px;
+    height: 18px;
+  }
+  .ms-gallery-preview {
+    padding: 20px;
+    border-radius: 24px;
+  }
+  .ms-gallery-preview h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+  .ms-preview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+  .ms-feature-preview {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .ms-feature-preview > .mp-cover {
+    width: min(100%, 220px);
+    margin-inline: auto;
+  }
+  .ms-feature-preview h3 {
+    font-size: 24px;
+  }
+  .ms-feature-preview p {
+    margin-top: 8px;
+  }
+  .ms-preview-caption {
+    margin-top: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ms-button,
+  .ms-playlist {
+    transition: none;
+  }
+}

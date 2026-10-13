@@ -65,6 +65,27 @@ test('a delayed status refresh preserves the content on a narrow screen', async 
   await expect(reading.locator('.unit')).toHaveText('C');
   await expect
     .poll(() =>
+      page.locator('.status-expanded .weather-picture').evaluate((picture) => {
+        const background = picture
+          .querySelector('.sky-glyph > polygon')!
+          .getBoundingClientRect();
+        const face = picture
+          .querySelector('.weather-face')!
+          .getBoundingClientRect();
+        return Math.max(
+          Math.abs(
+            face.x + face.width / 2 - background.x - background.width / 2
+          ),
+          Math.abs(
+            face.y + face.height / 2 - background.y - background.height / 2
+          )
+        );
+      })
+    )
+    .toBeLessThan(1);
+
+  await expect
+    .poll(() =>
       page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)
     )
     .toBe(true);

@@ -7,10 +7,10 @@ import { Agent, buildConnector, fetch as undiciFetch } from 'undici';
  * Several requests this server makes are on a stranger's say-so: an IndieAuth
  * client's metadata, a webmention's source, the author page a source names,
  * and a vouch. Each one must never reach the server's own network: cloud
- * metadata at 169.254.169.254, private ranges, or loopback. A name is checked
- * when it is resolved for the connection itself, not only beforehand, so a
- * name that answers with a public address first and a private one second
- * (DNS rebinding) still cannot connect anywhere private.
+ * metadata at 169.254.169.254, private ranges, or loopback. On Node, a name
+ * is checked when it is resolved for the connection itself, not only
+ * beforehand, so DNS rebinding cannot connect anywhere private. In Workers,
+ * Cloudflare's public-only fetch proxy enforces the connection boundary.
  */
 
 /** How long a connection may take to open before it is given up. */
@@ -249,17 +249,25 @@ function publicOnlyFetch(resolve: AddressResolver): DocumentFetch {
 }
 
 /**
- * Whether a URL may be fetched at all: http(s), no credentials, and a host
- * whose every address is public right now. The connection checks again.
+ * Whether a URL may be fetched at all: http(s), no credentials, and a public
+ * destination. Node checks DNS here and again during connection. Workers do
+ * not implement dns.lookup; their fetch proxy restricts outbound requests to
+ * the public internet, and we still reject nonpublic IP literals and local
+ * hostnames before making a request.
  */
-async function isFetchableUrl(
+export async function isFetchableUrl(
   url: URL,
-  resolve: AddressResolver
+  resolve: AddressResolver,
+  cloudflareRuntime = isCloudflareRuntime()
 ): Promise<boolean> {
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
   if (url.username || url.password) return false;
   const hostname = url.hostname.replace(/^\[|\]$/g, '');
   if (isIP(hostname)) return isPublicAddress(hostname);
+  if (resolve === systemResolver && cloudflareRuntime) {
+    const name = hostname.replace(/\.+$/, '');
+    return name !== 'localhost' && !name.endsWith('.localhost');
+  }
   try {
     await resolvePublicAddresses(hostname, resolve);
     return true;

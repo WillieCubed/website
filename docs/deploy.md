@@ -9,14 +9,15 @@ The Next.js app is the whole site. The static Cloudflare Worker that served
 the homepage prototype on willie.page is retired; the homepage is now the
 `/` route.
 
-| Host                  | Role                                 | Where it is configured               |
-| --------------------- | ------------------------------------ | ------------------------------------ |
-| `willie.page`         | canonical origin                     | `lib/site.ts` (`site.origin`)        |
-| `www.willie.page`     | 308 to the apex, path for path       | `site.legacyHosts`, `next.config.ts` |
-| `williecubed.me`      | 308 to willie.page, path for path    | `site.legacyHosts`, `next.config.ts` |
-| `www.williecubed.me`  | 308 to willie.page, path for path    | `site.legacyHosts`, `next.config.ts` |
-| `tour.willie.page`    | 307 to `/initiatives/fall-tour-2026` | `site.aliasHosts`, `next.config.ts`  |
-| `diaries.willie.page` | 307 to `/initiatives/twd`            | `site.aliasHosts`, `next.config.ts`  |
+| Host                  | Role                                  | Where it is configured               |
+| --------------------- | ------------------------------------- | ------------------------------------ |
+| `willie.page`         | canonical origin                      | `lib/site.ts` (`site.origin`)        |
+| `preview.willie.page` | private writing preview behind Access | `cloudflare.config.ts`               |
+| `www.willie.page`     | 308 to the apex, path for path        | `site.legacyHosts`, `next.config.ts` |
+| `williecubed.me`      | 308 to willie.page, path for path     | `site.legacyHosts`, `next.config.ts` |
+| `www.williecubed.me`  | 308 to willie.page, path for path     | `site.legacyHosts`, `next.config.ts` |
+| `tour.willie.page`    | 307 to `/initiatives/fall-tour-2026`  | `site.aliasHosts`, `next.config.ts`  |
+| `diaries.willie.page` | 307 to `/initiatives/twd`             | `site.aliasHosts`, `next.config.ts`  |
 
 Alias hosts are temporary redirects on purpose: `tour.willie.page` points at
 whichever tour is current, and next year that path changes.
@@ -46,15 +47,16 @@ After a hosted deployment, run the read-only route gate with the exact full
 commit SHA:
 
 ```sh
-pnpm exec tsx scripts/cloudflare/verify-public-routes.mts --sha "$(git rev-parse HEAD)"
 pnpm exec tsx scripts/cloudflare/verify-public-routes.mts --origin https://willie.page --sha "$(git rev-parse HEAD)"
 ```
 
-The first command checks the isolated preview. The second is for the canonical
-host after cutover. Each checks the deployed revision, Worker binding marker, Cloudflare server,
+The command checks the public host's deployed revision, Worker binding marker, Cloudflare server,
 IndieAuth issuer, public route matrix, redirects, and unauthenticated admin
 response. Use `--output <private-path>` to save a receipt. Passing this gate
 does not prove authenticated writes, media upload, or database usage.
+The preview Worker is private: check anonymous redirects to Access on
+`preview.willie.page`, direct `workers.dev` denial, and signed owner read/write
+through the custom domain. The public route gate does not apply to it.
 
 Create the named WillieCubed profile with `pnpm exec cf auth create williecubed`
 after approving its OAuth permissions. `cf auth login` only updates the default
@@ -98,14 +100,11 @@ signs existing Standard.site subscribers out; they must authorize again.
 The three old Vercel website projects (`website`, `willie-page-preview`, and
 `indieweb-acceptance`) were disconnected from Git on October 13 so a push no
 longer starts three duplicate Vercel builds. Their existing deployments and
-data remain until the Cloudflare preview is accepted; delete the projects only
-after the protected preview and publication paths pass hosted checks.
-
-The deploy wrapper uses `cf` first. If Cloudflare's `sqc-config` service returns
-HTTP 503 while validating the existing Hyperdrive binding, it retries the
-same built artifact with the matching `wrangler.jsonc` or
-`wrangler.preview.jsonc`. Keep those configs' routes and bindings in sync with
-`cloudflare.config.ts` until the `cf` upload path succeeds reliably.
+data remain until protected publication passes hosted checks; delete the
+projects after that acceptance. `cf` is the deployment CLI. Wrangler prepares
+the OpenNext bundle but cannot deploy the provisioned Durable Object exports
+in this project; a failed `cf` upload must fail the build instead of silently
+switching tools.
 
 Cloudflare Workers Builds should connect `WillieCubed/website` to the
 production Worker on `main`. Its build command is `pnpm build:cloudflare` and

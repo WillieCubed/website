@@ -57,7 +57,15 @@ export default function TimeZoneChooser({
                 ?.hidePopover();
             }}
           >
-            <span>{option.label}</span>
+            <span
+              className={
+                option.value === 'device'
+                  ? 'status-timezones__visitor'
+                  : undefined
+              }
+            >
+              {option.label}
+            </span>
             <span className="status-timezones__time">
               {now
                 ? new Intl.DateTimeFormat('en-US', {

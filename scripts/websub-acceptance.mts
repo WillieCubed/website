@@ -16,11 +16,14 @@ import { type DefaultTreeAdapterTypes, parse } from 'parse5';
 import { createPool } from '../lib/db/postgres';
 import { pingWebSubHub } from '../lib/indieweb/websub-publisher';
 
+const PREVIEW_ORIGIN =
+  'https://willie-page-preview.willieechalmers-18f.workers.dev';
+
 const { values } = parseArgs({
   options: {
     topic: {
       type: 'string',
-      default: 'https://indieweb-acceptance.vercel.app/writings/feed.xml',
+      default: `${PREVIEW_ORIGIN}/writings/feed.xml`,
     },
     expect: { type: 'string' },
     output: { type: 'string', default: '.playwright-mcp/websub-receipt.json' },
@@ -31,7 +34,7 @@ const { values } = parseArgs({
 });
 const topicUrl = new URL(values.topic);
 if (
-  topicUrl.origin !== 'https://indieweb-acceptance.vercel.app' ||
+  topicUrl.origin !== PREVIEW_ORIGIN ||
   topicUrl.username ||
   topicUrl.password ||
   topicUrl.hash ||

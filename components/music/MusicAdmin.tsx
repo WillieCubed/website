@@ -204,6 +204,7 @@ export default function MusicAdmin() {
     }
   }
   function change(catalog: MusicCatalog) {
+    if (busy) return;
     pending.current = catalog;
     setStatus('Saving…');
     setSaving(true);
@@ -303,14 +304,21 @@ export default function MusicAdmin() {
       setBusy(false);
     }
   }
-  async function publish() {
+  async function publish(reviewed: MusicCatalog) {
     if (
       !base.current ||
       savingRef.current ||
       pending.current ||
-      blocked.current
+      blocked.current ||
+      busy
     )
       return;
+    if (JSON.stringify(reviewed) !== JSON.stringify(saved.current)) {
+      setError(
+        'Your draft changed after review. Review the saved version again.'
+      );
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -351,6 +359,10 @@ export default function MusicAdmin() {
     return () => clearTimeout(timer);
   }, [publication]);
   async function restore(revisionId: string) {
+    if (savingRef.current || pending.current || blocked.current) {
+      setError('Wait for your draft to save before restoring history.');
+      return;
+    }
     setBusy(true);
     try {
       await request('/history', {
@@ -458,7 +470,10 @@ export default function MusicAdmin() {
                     : (publication.error ?? 'Publication failed.')}
             </p>
             {publication.status === 'failed' && (
-              <button className="mp-button" onClick={() => void publish()}>
+              <button
+                className="mp-button"
+                onClick={() => void publish(saved.current)}
+              >
                 Retry publication
               </button>
             )}
@@ -487,6 +502,7 @@ export default function MusicAdmin() {
           initialCatalog={initial}
           onChange={change}
           onPublish={publish}
+          interactionLocked={busy}
           canReview={
             !saving && !busy && !blocked.current && Boolean(base.current)
           }

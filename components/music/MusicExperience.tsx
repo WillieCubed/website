@@ -38,9 +38,10 @@ export interface MusicExperienceProps {
   validCatalog?: (value: unknown) => value is Catalog;
   Cover?: ComponentType<{ playlist: PlaylistView }>;
   onChange?: (catalog: Catalog) => void;
-  onPublish?: () => Promise<void>;
+  onPublish?: (reviewed: Catalog) => Promise<void>;
   saveStatus?: string;
   canReview?: boolean;
+  interactionLocked?: boolean;
   connected?: boolean;
   onConnect?: () => Promise<void>;
   onRefresh?: () => Promise<void>;
@@ -57,6 +58,7 @@ export default function MusicExperience({
   onPublish,
   saveStatus,
   canReview = true,
+  interactionLocked = false,
   connected = false,
   onConnect,
   onRefresh,
@@ -654,7 +656,12 @@ export default function MusicExperience({
 
   if (setup) {
     return (
-      <div className="music-prototype" aria-busy={!ready}>
+      <div
+        className="music-prototype"
+        aria-busy={!ready || interactionLocked}
+        aria-disabled={interactionLocked || undefined}
+        inert={interactionLocked}
+      >
         <MusicSetup
           playlists={
             mode === 'admin' ? playlists.filter((p) => p.eligible) : playlists
@@ -675,7 +682,9 @@ export default function MusicExperience({
     <div
       className="music-prototype"
       data-editing={editing || undefined}
-      aria-busy={!ready}
+      aria-busy={!ready || interactionLocked}
+      aria-disabled={interactionLocked || undefined}
+      inert={interactionLocked}
     >
       {mode === 'prototype' && (
         <div className="mp-prototype-bar">
@@ -1409,7 +1418,7 @@ export default function MusicExperience({
               onClick={async () => {
                 if (mode !== 'prototype') {
                   closeReview();
-                  await onPublish?.();
+                  await onPublish?.(draft);
                   return;
                 }
                 flushSync(() => {

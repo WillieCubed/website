@@ -2023,6 +2023,20 @@ img.mp-cover {
 .music-admin-notices p {
   margin: 0 0 12px;
 }
+.music-admin-notices > p[role='status'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.music-prototype[aria-disabled='true'] :is(.mp-card-controls, .mp-new-series) {
+  opacity: 0.5;
+}
 .music-admin-notices button {
   margin: 0 12px 0 0;
 }

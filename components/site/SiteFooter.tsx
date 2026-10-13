@@ -99,7 +99,7 @@ async function Tagline() {
         // router can render, so it takes a full navigation.
         <a
           href={href}
-          className="underline-offset-4 hover:text-accent hover:underline"
+          className="site-footer__tagline-link transition-colors hover:text-accent"
         >
           {tagline}
         </a>

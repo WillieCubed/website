@@ -129,8 +129,13 @@ test('Escape during the opening morph closes once it ends', async ({
 }) => {
   await page.goto('/');
   await hydrated(page);
-  await page.locator('#transitmapper a.cover').click();
+  await page.addStyleTag({
+    content:
+      '::view-transition-group(card), ::view-transition-group(media) { animation-duration: 1800ms !important; }',
+  });
+  const opening = page.locator('#transitmapper a.cover').click();
   await escapeMidMorph(page, 'dialog.detail');
+  await opening;
   await settled(page);
   await expect(detail(page)).toBeHidden();
   await page.waitForTimeout(500);

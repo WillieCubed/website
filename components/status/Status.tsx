@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import { ViewTransition } from '@/components/site/view-transition';
 
@@ -123,7 +124,7 @@ export default function Status({
   );
   const picture = (
     <ViewTransition name="status-weather" share="status-detail" default="none">
-      <WeatherPicture weather={weather} />
+      <WeatherPicture weather={weather} compact={!expanded} />
     </ViewTransition>
   );
   const temperature = weather && (
@@ -151,8 +152,14 @@ export default function Status({
         className="microstatus"
         aria-label={`Willie's status in ${location.city}${weather ? `, ${Math.round(weather.temperature)} degrees Fahrenheit, ${weatherLabel(weather)}` : ''}`}
       >
-        {city}
-        {clock}
+        <span className="microstatus-place">
+          <Icon name="map-pin" />
+          {city}
+        </span>
+        <span className="microstatus-clock">
+          <Icon name="clock" />
+          {clock}
+        </span>
         {picture}
         {temperature}
       </SiteLink>

@@ -5,18 +5,44 @@ import { GitHubError, github } from '../studio/github';
 import { required } from '../studio/oauth';
 import { approvedManifest, cacheApproved, suppressApproved } from './public';
 import { matchesMusicProof, musicArtifact } from './publication-artifact';
+import { musicPublicationMessage } from './publication-message';
+import { parseCatalog } from './schema';
 import { SpotifyClient } from './spotify/client';
 import { importPlaylist } from './spotify/import';
 import { accessToken } from './spotify/tokens';
 import { musicStore } from './store';
 import type { MusicPublication } from './types';
+import { emptyCatalog } from './types';
 
 type Publication = MusicPublication & {
   source?: string;
+  message?: string;
   tree?: string;
   rebase?: { before: string; after: string; parent: string } | null;
 };
 const path = 'content/music/catalog.json';
+async function githubCatalog(ref: string) {
+  const file = await optional(
+    `contents/${path}?ref=${encodeURIComponent(ref)}`
+  );
+  if (!file) return { sha: null, catalog: emptyCatalog };
+  if (file.encoding !== 'base64' || typeof file.content !== 'string')
+    throw new StudioError(
+      502,
+      'GitHub did not return the published collection.'
+    );
+  try {
+    const source = JSON.parse(
+      Buffer.from(file.content, 'base64').toString('utf8')
+    );
+    return { sha: file.sha as string, catalog: parseCatalog(source.catalog) };
+  } catch {
+    throw new StudioError(
+      502,
+      'GitHub returned an invalid published collection.'
+    );
+  }
+}
 async function get(id: string): Promise<Publication> {
   const row = (
     await musicStore().pool.query(
@@ -49,7 +75,7 @@ async function fileSha(ref: string) {
   return file?.sha ?? null;
 }
 const message = (p: Publication) =>
-  `feat(music): Publish collection ${p.revisionId}`;
+  p.message ?? `feat(music): Publish collection ${p.revisionId}`;
 async function makeCommit(p: Publication, base: string) {
   const parent = await github(`git/commits/${base}`);
   const tree = await github('git/trees', 'POST', {
@@ -196,10 +222,10 @@ async function advance(p: Publication): Promise<Publication> {
     const pr =
       matches[0] ??
       (await github('pulls', 'POST', {
-        title: message(p),
+        title: message(p).split('\n')[0],
         head: p.branch,
         base: branch,
-        body: `## TL;DR\n\nPublish the reviewed Music collection revision ${p.revisionId}.\n\n## Changes\n\nThe owner approved the selected playlists, sequence, feature, notes, and series.\n\n## Verification\n\nMusic validated the immutable revision and rechecked each selected playlist with Spotify. Required repository checks must pass before rebase merge.\n\n## Follow-ups and Next Work\n\nMusic verifies the deployed revision and source hash before reporting Live.`,
+        body: `## TL;DR\n\nPublish the reviewed Music collection.\n\n## Changes\n\n${message(p).split('\n\n').slice(1).join('\n\n')}\n\n## Verification\n\nMusic validated the immutable revision and rechecked each selected playlist with Spotify. Required repository checks must pass before rebase merge.\n\n## Follow-ups and Next Work\n\nMusic verifies the deployed revision and source hash before reporting Live.`,
       }));
     p = await patch(p.id, {
       pullRequestNumber: Number(pr.number),
@@ -365,7 +391,8 @@ export async function publishMusic(
       const artifact = musicArtifact(revisionId, revision.body),
         branch = required('STUDIO_GITHUB_BRANCH'),
         base = await github(`git/ref/heads/${encodeURIComponent(branch)}`),
-        baseSha = await fileSha((base.object as any).sha);
+        published = await githubCatalog((base.object as any).sha),
+        baseSha = published.sha;
       const manifest = await approvedManifest();
       if (baseSha !== manifest.sourceSha) {
         const known = (
@@ -391,6 +418,12 @@ export async function publishMusic(
         baseFileSha: baseSha,
         sourceSha: artifact.sha,
         source: artifact.content,
+        message: musicPublicationMessage(
+          published.catalog,
+          revision.body,
+          [...cached, ...fresh],
+          revisionId
+        ).message,
       };
       await store.pool.query(
         'INSERT INTO music_publications(id,revision_id,body) VALUES($1,$2,$3)',

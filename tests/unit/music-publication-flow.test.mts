@@ -100,12 +100,21 @@ test(
             parents: [],
           }
         );
-      if (path.startsWith('contents/')) return ok({ sha: mainFile });
+      if (path.startsWith('contents/'))
+        return ok({
+          sha: mainFile,
+          encoding: 'base64',
+          content: Buffer.from(
+            JSON.stringify({ revisionId: null, catalog: emptyCatalog })
+          ).toString('base64'),
+        });
       if (path === 'pulls' && method === 'GET') return ok(pr ? [pr] : []);
       if (path === 'pulls' && method === 'POST') {
         pr = {
           number: 1,
           html_url: 'https://github.com/owner/site/pull/1',
+          title: body.title,
+          body: body.body,
           state: 'open',
           head: { sha: refs.get(body.head) },
           base: { sha: main },
@@ -155,6 +164,12 @@ test(
       const first = await publishMusic(revision.id);
       assert.equal(first.status, 'failed');
       assert.ok(pr);
+      assert.equal(
+        commits.get(first.proposalCommit!)?.message.split('\n')[0],
+        'chore(music): Republish the music collection'
+      );
+      assert.match(pr.title, /^chore\(music\):/);
+      assert.match(pr.body, new RegExp(`Music-Revision: ${revision.id}`));
       const recovered = await publishMusic(revision.id);
       assert.equal(recovered.id, first.id);
       assert.equal(recovered.status, 'publishing');

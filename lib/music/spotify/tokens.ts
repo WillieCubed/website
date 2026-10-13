@@ -65,7 +65,8 @@ export async function accessToken(): Promise<{
       throw new StudioError(401, 'Connect Spotify to import your playlists.');
     let grant = unseal<SpotifyGrant>(
       row.encrypted_grant,
-      process.env.MUSIC_TOKEN_ENCRYPTION_KEY
+      process.env.MUSIC_TOKEN_ENCRYPTION_KEY,
+      'The saved Spotify connection could not be read. Your playlist choices are safe.'
     );
     if (grant.expiresAt < Date.now() + 60000) {
       try {

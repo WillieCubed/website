@@ -29,7 +29,7 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                               | Postgres (optional)                                          |
 | `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                               | Postgres (optional)                                          |
 | `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, `?q=source`; `POST` creates, updates, deletes and restores writings | IndieAuth token; see Micropub                                |
-| `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one image, audio, video or PDF file and answers 201 with its `Location`         | IndieAuth token, Vercel Blob connection                      |
+| `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one image, audio, video or PDF file and answers 201 with its `Location`         | IndieAuth token, Cloudflare R2 media binding                 |
 | `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                           | nothing                                                      |
 | `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL        | Postgres                                                     |
 | `/indieauth/consent`                                               | The owner's consent page; approving needs a code from the authenticator app                                            | Postgres, `INDIEAUTH_TOTP_SECRET`                            |
@@ -51,9 +51,10 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/writings/tags/[tag]`                                             | One published tag's h-feed; `/writings?tag=` redirects here with a 308                                                 | nothing                                                      |
 | `/writings/tags/[tag]/feed.xml`, `/feed/atom`, `/feed/json`        | The same three formats scoped to one tag, advertised from its page                                                     | nothing                                                      |
 
-Every route that says "Postgres" reads `POSTGRES_URL` through
-`@vercel/postgres`. Without it the webmention routes return errors and the
-activity feeds return empty documents; nothing else on the site notices.
+Every route that says "Postgres" uses `lib/db/postgres.ts`: a direct
+`POSTGRES_URL` locally and the `HYPERDRIVE` binding on Cloudflare Workers.
+Without a database the webmention routes return errors and the activity feeds
+return empty documents; the rest of the public site still renders.
 
 ## Current release contract
 
@@ -365,7 +366,7 @@ committed through GitHub's Contents API on `MICROPUB_GITHUB_BRANCH` (default
 `main`) so the post deploys like any hand-written one. Without those variables
 the route writes into the local checkout. On a read-only deploy that write
 fails with a 500 whose `error_description` names the reason, which is the
-correct outcome on Vercel and Workers: set the GitHub variables there.
+correct outcome on Workers: set the GitHub variables there.
 
 ### Source queries
 
@@ -426,8 +427,8 @@ Without GitHub the route unlinks the file in the local checkout. After the
 deploy the permalink answers 404, and the post leaves the lists, feeds,
 sitemap, and search index, which the build makes from the files. With
 `SEARCH_BACKEND=postgres` the search table keeps the post until
-`/api/search/reindex` runs. Photos the post cited stay in Blob storage, and
-webmentions stored for its URL stay in Postgres.
+`/api/search/reindex` runs. Photos the post cited stay in R2 or at their
+original external URLs, and webmentions stored for its URL stay in Postgres.
 
 The private `micropub_deleted_writings` archive stores the exact source and permalink before removing the published file. `action=undelete` requires the `undelete` scope and restores that source at the original permalink. A conflicting file rejects restoration with 409. Transaction advisory locks serialize lifecycle operations across instances. The archive commits separately before an external file mutation; a failed operation may leave a recoverable archive. Deleted posts notify previous Webmention targets after deployment.
 
@@ -438,14 +439,14 @@ The private `micropub_deleted_writings` archive stores the exact source and perm
 ### Media
 
 `?q=config` advertises `/micropub/media` as the `media-endpoint` only when
-the Vercel Blob connection supplies OIDC credentials or a legacy
-`BLOB_READ_WRITE_TOKEN` configures storage. A client such as Quill uploads
+the Worker has its `MEDIA_BUCKET` R2 binding. A client such as Quill uploads
 each media file there first. The upload is the multipart
-`file` part, and the token needs the `media` or the `create` scope. Supported images, audio, video and PDF files pass signature and 4MiB size checks. SVG receives 400. The
-file is stored as a public blob in Vercel Blob under
-`media/<year>/<month>/<name>-<random>.<ext>`, and the endpoint answers 201
-with the blob's URL in `Location` (and as `url` in the JSON body). Without
-either credential it answers 503.
+`file` part, and the token needs the `media`, `create`, or `draft` scope. Supported images, audio, video and PDF files pass signature and 4MiB size checks. SVG receives 400. The
+file is stored in a private R2 bucket under
+`media/<year>/<month>/<name>-<random>.<ext>`. The public `/media/*` route
+serves validated keys from that bucket on the site's own origin. The endpoint
+answers 201 with that URL in `Location` (and as `url` in the JSON body). Without
+the binding it answers 503.
 
 The client then cites that URL in a JSON `photo` property. Each photo must be
 `{ "value": url, "alt": text }` with nonblank alt text. Form `photo` and
@@ -459,10 +460,9 @@ gets a 400 `invalid_request`. Multipart photo files sent directly to
 `/micropub` receive 400 before any upload. Send files to `/micropub/media` first.
 The build and pre-push checks apply the same nonblank alt rule to authored content.
 
-Storage sits behind the `MediaStore` interface in `lib/indieweb/media.ts`. To
-move uploads to Cloudflare R2, add an R2 implementation there and return it
-from `getMediaStore()`; the route and the posts do not change, though photos
-already published keep their Vercel Blob URLs.
+Storage sits behind the `MediaStore` interface in `lib/indieweb/media.ts`.
+`getMediaStore()` uses the R2 binding in Workers. Existing external photo URLs
+in older posts remain as authored; new uploads receive a URL on this site.
 
 ## IndieAuth
 
@@ -564,14 +564,13 @@ Clients call `/indieauth/auth`, `/indieauth/token`, `/indieauth/introspect`,
 So do the standard.site readers and validators that fetch
 `/.well-known/site.standard.publication` and `/.well-known/atproto-did`,
 and the post-deploy sync, which fetches `/writings/*/opengraph-image` and
-`/brand/social/*` from the live site for the images on its records. If
-Vercel's Bot Protection, Attack Challenge Mode, or a Firewall rule that
-challenges is on, add a Firewall custom rule with the Bypass action, above
-the challenging one, for requests whose path starts with `/indieauth/`,
+`/brand/social/*` from the live site for the images on its records. Before
+enabling a Cloudflare WAF or bot challenge, exempt these machine endpoints
+from the challenge and verify their external clients can reach them. Cover
+requests whose path starts with `/indieauth/`,
 `/micropub`, or `/brand/social/`, matches `/writings/*/opengraph-image`, or
 equals `/.well-known/oauth-authorization-server`,
-`/.well-known/site.standard.publication`, or `/.well-known/atproto-did`. The
-same goes for any challenge Cloudflare puts in front of the site.
+`/.well-known/site.standard.publication`, or `/.well-known/atproto-did`.
 
 ## Scripts
 
@@ -587,7 +586,7 @@ same goes for any challenge Cloudflare puts in front of the site.
 | `.github/workflows/indieweb-publish.yml` | Waits for the public alias to serve a pushed revision, then calls the authenticated notification endpoint.                                                                                                                                                                                                        |
 | `pnpm test`                              | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                                                                                |
 
-## Environment variables
+## Environment variables and bindings
 
 | Variable                                                                                           | Used by                                                                                                                                                                                     | Default                                 |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
@@ -597,12 +596,12 @@ same goes for any challenge Cloudflare puts in front of the site.
 | `INDIEAUTH_TOTP_SECRET`                                                                            | owner sign-in on `/indieauth/consent`                                                                                                                                                       | unset, sign-in answers 503              |
 | `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                                                                                                                                                     | unset, route answers 503                |
 | `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                                                                                                                                                            | local write, `main`, `content/writings` |
-| `BLOB_STORE_ID` with Vercel OIDC, or `BLOB_READ_WRITE_TOKEN`                                       | `/micropub/media` image, audio, video and PDF storage in Vercel Blob                                                                                                                        | unset, route answers 503                |
+| `MEDIA_BUCKET` R2 binding                                                                          | `/micropub/media` image, audio, video and PDF storage; `/media/*` delivery                                                                                                                  | absent, upload route answers 503        |
 | `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                                                                                                                                                      | JSON index                              |
 | `SEARCH_REINDEX_SECRET`                                                                            | `/api/search/reindex` in production                                                                                                                                                         | unset                                   |
 | `INDIEWEB_NOTIFY_SECRET`                                                                           | authenticates the post-deployment notification endpoint                                                                                                                                     | unset, endpoint refuses                 |
 | `SKIP_WEBMENTIONS`                                                                                 | `true` skips `webmentions:send`                                                                                                                                                             | unset                                   |
-| `INDIEWEB_TEST_ALLOW_LOOPBACK`                                                                     | the local write test only: lets the public-only fetch reach loopback; ignored on Vercel                                                                                                     | unset                                   |
+| `INDIEWEB_TEST_ALLOW_LOOPBACK`                                                                     | the local write test only: lets the public-only fetch reach loopback; ignored on Cloudflare                                                                                                 | unset                                   |
 | `NEXT_PUBLIC_ATPROTO_DID`                                                                          | `/.well-known/atproto-did`, the Bluesky profile link and syndication target, and (with `ATPROTO_PUBLICATION_RKEY`) the `/.well-known/site.standard.publication` route and its `<link>` tags | unset, all off                          |
 | `NEXT_PUBLIC_BLUESKY_HANDLE`                                                                       | the Bluesky account's displayed handle                                                                                                                                                      | unset, the DID is shown                 |
 | `ATPROTO_PUBLICATION_RKEY`                                                                         | the standard.site publication: its record, `<link>` tags, and well-known route                                                                                                              | unset, all off                          |

@@ -25,8 +25,8 @@ terminal arguments, Git history, and logs.
 
 `pnpm build:cloudflare` builds the production origin. Run
 `pnpm build:cloudflare:preview` for the isolated preview origin. Then deploy
-with `pnpm exec wrangler deploy` or
-`pnpm exec wrangler deploy --config wrangler.preview.jsonc`, respectively.
+with `pnpm deploy:cloudflare` or
+`pnpm deploy:cloudflare:preview`, respectively.
 Read [Deploying willie.page](deploy.md) for the current host list, build
 connection, cutover order, and public acceptance checks.
 

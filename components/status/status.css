@@ -72,10 +72,6 @@
 .microstatus .weather-picture {
   width: 32px;
   height: 28px;
-  transition: transform 220ms ease;
-}
-.microstatus:is(:hover, :focus-visible) .weather-picture {
-  transform: translateY(-2px) scale(1.04, 0.96);
 }
 .microstatus:hover .site-footer .temperature {
   font-size: 14px;
@@ -367,32 +363,22 @@
   }
 }
 .site-footer .microstatus {
-  padding: 6px 12px;
-  border-radius: 22px;
-  background: color-mix(
-    in srgb,
-    var(--color-surface-container-highest) 45%,
-    transparent
-  );
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    translate 180ms ease,
-    border-radius 180ms ease;
+  transition: color 180ms ease;
 }
 .site-footer .microstatus:is(:hover, :focus-visible) {
-  background: var(--color-surface-container-highest);
   color: var(--color-ink);
-  translate: 0 -2px;
 }
-.site-footer .microstatus:is(:hover, :focus-visible) .status-city {
+.site-footer .microstatus .status-city {
   text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
   text-underline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
   .site-footer .microstatus {
-    translate: none;
     transition: none;
   }
 }
@@ -425,7 +411,7 @@
 /* The hidden status must not make the collapsed contact row taller than the rail reserves. */
 .site-footer[data-dock] .microstatus {
   min-height: var(--footer-row-h);
-  padding-block: 4px;
+  padding-block: 0;
 }
 
 button.weather-reading {

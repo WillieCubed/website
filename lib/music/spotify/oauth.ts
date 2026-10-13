@@ -108,6 +108,6 @@ export async function completeSpotify(
     await db.query('ROLLBACK');
     throw error;
   } finally {
-    db.release();
+    await db.release();
   }
 }

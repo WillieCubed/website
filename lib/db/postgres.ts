@@ -28,9 +28,10 @@ interface PoolFacade {
 
 const localPools = new Map<string, Pool>();
 
-function hyperdriveConnectionString(): string | null {
+function workerConnectionString(override?: string): string | null {
   try {
-    return getCloudflareContext().env.HYPERDRIVE?.connectionString ?? null;
+    const context = getCloudflareContext();
+    return override ?? context.env.HYPERDRIVE?.connectionString ?? null;
   } catch {
     return null;
   }
@@ -38,7 +39,7 @@ function hyperdriveConnectionString(): string | null {
 
 export function hasDatabase(): boolean {
   if (process.env.POSTGRES_URL || process.env.DATABASE_URL) return true;
-  return Boolean(hyperdriveConnectionString());
+  return Boolean(workerConnectionString());
 }
 
 function localConnectionString(): string {
@@ -75,8 +76,7 @@ function queryTag(
 export function createPool(
   config: { max?: number; connectionString?: string } = {}
 ): PoolFacade {
-  const workerUrl = () =>
-    config.connectionString ? null : hyperdriveConnectionString();
+  const workerUrl = () => workerConnectionString(config.connectionString);
   const query = async (text: string, values?: unknown[]) => {
     const url = workerUrl();
     if (!url)

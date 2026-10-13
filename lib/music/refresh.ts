@@ -34,7 +34,7 @@ export async function refreshApproved() {
     )
   ).rows[0].locked;
   if (!locked) {
-    db.release();
+    await db.release();
     throw new StudioError(409, 'Refresh is already running.');
   }
   try {
@@ -73,6 +73,6 @@ export async function refreshApproved() {
     return { checked, failed, suppressed };
   } finally {
     await db.query("SELECT pg_advisory_unlock(hashtext('music-refresh'))");
-    db.release();
+    await db.release();
   }
 }

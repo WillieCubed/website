@@ -66,7 +66,7 @@ export async function importLibrary() {
     )
   ).rows[0].locked;
   if (!locked) {
-    db.release();
+    await db.release();
     throw new StudioError(409, 'A library refresh is already running.');
   }
   const progress = {
@@ -147,7 +147,7 @@ export async function importLibrary() {
       await saveProgress();
     } finally {
       await db.query("SELECT pg_advisory_unlock(hashtext('music-import'))");
-      db.release();
+      await db.release();
     }
   }
 }

@@ -76,6 +76,14 @@ export default defineConfig((context) => {
               OWNER_ACCESS_ISSUER: bindings.secret(),
               OWNER_ACCESS_AUDIENCE: bindings.secret(),
               OWNER_ACCESS_EMAIL: bindings.secret(),
+              SPOTIFY_CLIENT_ID: bindings.text(
+                'e454b680b63243c9940fe1173214d8da'
+              ),
+              MUSIC_PUBLIC_DATABASE_URL: bindings.secret(),
+              MUSIC_CACHE_WRITE_DATABASE_URL: bindings.secret(),
+              MUSIC_PRIVATE_DATABASE_URL: bindings.secret(),
+              MUSIC_TOKEN_ENCRYPTION_KEY: bindings.secret(),
+              MUSIC_REFRESH_SECRET: bindings.secret(),
             }),
         MICROPUB_GITHUB_TOKEN: bindings.secret(),
         ATPROTO_APP_PASSWORD: bindings.secret(),

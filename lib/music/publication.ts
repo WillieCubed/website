@@ -458,7 +458,7 @@ export async function publishMusic(
     });
   } finally {
     await db.query("SELECT pg_advisory_unlock(hashtext('music-publication'))");
-    db.release();
+    await db.release();
   }
 }
 export async function musicPublicationStatus(

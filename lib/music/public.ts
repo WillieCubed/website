@@ -9,17 +9,20 @@ import type { MusicPlaylist } from './types';
 
 let pool: ReturnType<typeof createPool> | undefined;
 let writer: ReturnType<typeof createPool> | undefined;
+function musicDatabaseUrl(name: string) {
+  const url = process.env[name];
+  if (!url) throw new Error(`${name} is not configured.`);
+  return url;
+}
 function cacheWriter() {
   return (writer ??= createPool({
-    connectionString:
-      process.env.MUSIC_CACHE_WRITE_DATABASE_URL ??
-      process.env.MUSIC_PUBLIC_DATABASE_URL,
+    connectionString: musicDatabaseUrl('MUSIC_CACHE_WRITE_DATABASE_URL'),
     max: 2,
   }));
 }
 export function publicMusicPool() {
   return (pool ??= createPool({
-    connectionString: process.env.MUSIC_PUBLIC_DATABASE_URL,
+    connectionString: musicDatabaseUrl('MUSIC_PUBLIC_DATABASE_URL'),
     max: 2,
   }));
 }

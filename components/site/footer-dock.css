@@ -377,8 +377,8 @@
 }
 
 @container footer (max-width: 400px) {
-  .site-footer[data-dock] .site-footer__profiles li[data-extra] {
-    display: none;
+  .site-footer[data-dock] .site-footer__profiles {
+    --profile-gap: 16px;
   }
 }
 
@@ -387,6 +387,9 @@
 }
 
 @container footer (max-width: 520px) {
+  .site-footer[data-dock] .site-footer__profiles li[data-extra] {
+    display: none;
+  }
   .site-footer .feeds-button {
     inline-size: 40px;
     block-size: 40px;

@@ -261,12 +261,6 @@
     flex-basis: 20px;
   }
 }
-@container footer (max-width: 400px) {
-  .site-footer .microstatus {
-    padding-inline: 8px;
-    gap: 4px;
-  }
-}
 @container footer (max-width: 280px) {
   .microstatus .temperature,
   .microstatus .weather-picture {
@@ -582,5 +576,12 @@ button.weather-reading:active {
 @container footer (max-width: 280px) {
   .microstatus-weather {
     display: none;
+  }
+}
+
+@container footer (max-width: 400px) {
+  .site-footer .microstatus {
+    padding-inline: 8px;
+    gap: 4px;
   }
 }

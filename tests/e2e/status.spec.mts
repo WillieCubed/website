@@ -255,3 +255,42 @@ test('footer status adapts within one row even with a long city name', async ({
     ).toBeVisible();
   }
 });
+
+test('the footer preserves a normal city name across compact breakpoints', async ({
+  page,
+}) => {
+  await page.route('**/api/status', (route) =>
+    route.fulfill({
+      json: {
+        location: {
+          city: 'Las Vegas',
+          region: 'Nevada',
+          country: 'United States',
+          timezone: 'America/Los_Angeles',
+          updatedAt: null,
+        },
+        weather: {
+          temperature: 102,
+          unit: 'F',
+          code: 0,
+          isDay: true,
+          observedAt: new Date().toISOString(),
+        },
+      },
+    })
+  );
+  await page.goto('/');
+  const city = page.locator('.microstatus .status-city');
+  await expect(page.locator('.microstatus .temperature')).toContainText('102');
+  for (const width of [320, 390, 440, 441, 520, 559, 560, 561, 600, 840]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    );
+    await expect
+      .poll(() =>
+        city.evaluate((element) => element.scrollWidth <= element.clientWidth)
+      )
+      .toBe(true);
+  }
+});

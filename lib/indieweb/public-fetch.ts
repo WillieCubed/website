@@ -1,3 +1,4 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { BlockList, type LookupFunction, isIP } from 'node:net';
 import { Agent, buildConnector, fetch as undiciFetch } from 'undici';
@@ -66,12 +67,13 @@ loopback.addAddress('::1', 'ipv6');
  * The local write test (docs/indieweb/testing.md) serves its webmention
  * source from 127.0.0.1, which this guard exists to refuse. It sets
  * `INDIEWEB_TEST_ALLOW_LOOPBACK=true` to let loopback through, and only
- * loopback: private ranges and cloud metadata stay refused. A Vercel
- * deployment ignores the variable, so it cannot open the hole there.
+ * loopback: private ranges and cloud metadata stay refused. Production
+ * ignores the variable, so it cannot open the hole there.
  */
 function loopbackAllowed(): boolean {
   return (
-    process.env.INDIEWEB_TEST_ALLOW_LOOPBACK === 'true' && !process.env.VERCEL
+    process.env.INDIEWEB_TEST_ALLOW_LOOPBACK === 'true' &&
+    process.env.NODE_ENV !== 'production'
   );
 }
 
@@ -220,13 +222,30 @@ export type DocumentFetch = (
 
 let sharedAgent: Agent | undefined;
 
+export function isCloudflareRuntime(): boolean {
+  try {
+    return Boolean(getCloudflareContext().env.HYPERDRIVE);
+  } catch {
+    return false;
+  }
+}
+
 function publicOnlyFetch(resolve: AddressResolver): DocumentFetch {
-  const dispatcher =
-    resolve === systemResolver
-      ? (sharedAgent ??= createPublicOnlyAgent())
-      : createPublicOnlyAgent(resolve);
-  return async (url, init) =>
-    (await undiciFetch(url, { ...init, dispatcher })) as unknown as Response;
+  return async (url, init) => {
+    if (isCloudflareRuntime()) {
+      // Workers' fetch is routed through Cloudflare's public network. Undici's
+      // socket options are unavailable there; URL and redirect guards remain.
+      return fetch(url, init);
+    }
+    const dispatcher =
+      resolve === systemResolver
+        ? (sharedAgent ??= createPublicOnlyAgent())
+        : createPublicOnlyAgent(resolve);
+    return (await undiciFetch(url, {
+      ...init,
+      dispatcher,
+    })) as unknown as Response;
+  };
 }
 
 /**

@@ -1,0 +1,28 @@
+import { execFileSync, spawnSync } from 'node:child_process';
+
+const target = process.argv[2] || 'production';
+if (target !== 'production' && target !== 'preview') {
+  throw new Error('Build target must be production or preview.');
+}
+const origin =
+  target === 'preview'
+    ? 'https://willie-page-preview.willieechalmers-18f.workers.dev'
+    : 'https://willie.page';
+const revision = execFileSync('git', ['rev-parse', 'HEAD'], {
+  encoding: 'utf8',
+}).trim();
+const build = spawnSync('pnpm', ['exec', 'opennextjs-cloudflare', 'build'], {
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    NEXT_PUBLIC_SITE_REVISION: revision,
+    NEXT_PUBLIC_SITE_ORIGIN: origin,
+    NEXT_PUBLIC_ATPROTO_DID: 'did:plc:iyn6nc3ffqm2e3555exyrgvv',
+    NEXT_PUBLIC_BLUESKY_HANDLE: 'williecubed.me',
+  },
+});
+if (build.error) throw build.error;
+if (build.status !== 0) process.exit(build.status ?? 1);
+execFileSync(process.execPath, ['scripts/cloudflare/package-runtime.mjs'], {
+  stdio: 'inherit',
+});

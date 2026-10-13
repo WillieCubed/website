@@ -1,12 +1,7 @@
-import { cacheLife } from 'next/cache';
-
 import { generateWritingsRssFeed } from '@/lib/feeds';
 import { getWritingFeedItems } from '@/lib/feeds/items';
 
 async function buildWritingsFeed() {
-  'use cache';
-  cacheLife('hours');
-
   return generateWritingsRssFeed(await getWritingFeedItems());
 }
 

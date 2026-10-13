@@ -1,4 +1,3 @@
-import { cacheLife, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
@@ -32,9 +31,6 @@ import { getAllWritings } from '@/lib/writings';
  * writings. Cached for an hour like the loaders it reads from.
  */
 async function existingPages(): Promise<string[]> {
-  'use cache';
-  cacheLife('hours');
-
   const [initiatives, writings] = await Promise.all([
     getInitiatives(),
     getAllWritings(),
@@ -171,7 +167,6 @@ export async function POST(request: NextRequest) {
           console.info(`Vouch for ${source}: ${outcome}`);
           vouched = outcome === 'approved';
         }
-        if (result.success) revalidateTag('webmentions', { expire: 0 });
         // A vouch approves without a moderator, so it notifies upstream here.
         if (vouched) {
           const salmention = await sendSalmention(id, defaultSalmentionDeps());

@@ -65,7 +65,7 @@ let loading: Promise<PagefindApi> | null = null;
 export function loadPagefind(): Promise<PagefindApi> {
   loading ??= (async () => {
     const pagefind = (await import(
-      /* webpackIgnore: true */ PAGEFIND_URL
+      /* webpackIgnore: true */ new URL(PAGEFIND_URL, window.location.href).href
     )) as PagefindApi;
     await pagefind.options({ excerptLength: 16 });
     await pagefind.init();

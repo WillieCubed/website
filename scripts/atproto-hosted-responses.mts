@@ -775,7 +775,7 @@ async function main() {
         ),
         'A foreign document changed.'
       );
-    const { createPool } = await import('@vercel/postgres');
+    const { createPool } = await import('../lib/db/postgres');
     const db = createPool({ max: 1 });
     try {
       for (const entry of receipt.owned.filter(

@@ -1,14 +1,9 @@
-import { cacheLife } from 'next/cache';
-
 import { generateWritingsJsonFeed } from '@/lib/feeds';
 import { getWritingFeedItems } from '@/lib/feeds/items';
 import { webSubLinkHeader } from '@/lib/indieweb/websub-discovery';
 import { absoluteRoute } from '@/lib/site';
 
 async function buildWritingsFeed() {
-  'use cache';
-  cacheLife('hours');
-
   return generateWritingsJsonFeed(await getWritingFeedItems());
 }
 

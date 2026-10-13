@@ -1,5 +1,3 @@
-import { cacheLife } from 'next/cache';
-
 import { generateTagJsonFeed } from '@/lib/feeds';
 import { getTagFeedItems } from '@/lib/feeds/items';
 import { webSubLinkHeader } from '@/lib/indieweb/websub-discovery';
@@ -12,9 +10,6 @@ export async function generateStaticParams() {
 }
 
 async function buildTagFeed(tag: string) {
-  'use cache';
-  cacheLife('hours');
-
   const items = await getTagFeedItems(tag);
   return items.length > 0 ? generateTagJsonFeed(tag, items) : null;
 }

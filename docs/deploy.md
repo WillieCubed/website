@@ -1,9 +1,7 @@
 # Deploying willie.page
 
-This page is for whoever deploys the site or changes a domain, Willie or an
-agent. Read it before touching DNS, the hosting project, or the redirect
-table in `next.config.ts`. When you finish a change here, run
-`sh scripts/cutover-willie-page.sh` and make every check pass.
+This page is for whoever deploys the site or changes a domain. Read it before
+touching DNS, the Worker, or the redirect table in `next.config.ts`.
 
 ## Where things run
 
@@ -31,49 +29,62 @@ nothing.
 The same table sends `/apps` to `/projects` with a 307 while `/projects`
 is rebuilt. `/media` is a page that lists media mentions and appearances.
 
-## Hosting today: Vercel
+## Hosting: Cloudflare Workers
 
-The app deploys to Vercel from the GitHub repository. Vercel-specific
-dependencies are `@vercel/postgres`, `@vercel/analytics`, and
-`@vercel/speed-insights`. Postgres holds webmentions and their rate limits
-(`lib/indieweb/webmention-storage.ts`), outgoing webmention hashes and reply
-contexts, and the optional search backend (`lib/search/postgres.ts`); the two
-webmention scripts under `scripts/` read it too. Nothing else assumes Vercel.
+OpenNext packages the Next.js app for the `willie-page` Worker. The source of
+truth is `wrangler.jsonc`; `wrangler.preview.jsonc` deploys an isolated
+`willie-page-preview` Worker. Build with `pnpm build:cloudflare`, deploy with
+`pnpm exec wrangler deploy` (or `--config wrangler.preview.jsonc`), and verify
+the baked commit SHA at `/api/indieweb/revision`. Do not build once and deploy
+the same `.open-next` directory to both environments: the public origin and
+revision are compiled into the build.
 
-DNS for both zones is at Cloudflare. Records that point at Vercel must be
-DNS-only (grey cloud); proxying them through Cloudflare puts two TLS
-terminators in front of one origin and breaks Vercel's certificate issuance.
+Cloudflare owns DNS, Worker delivery, R2 media, cache storage, and Web
+Analytics. The production Neon project remains owned in Willie's Neon
+organization; Workers reach it through the production Hyperdrive binding.
+Preview has its own Neon project, Hyperdrive, cache bucket, media bucket,
+Durable Objects, secrets, and public origin. Build it with
+`pnpm build:cloudflare:preview` before deploying with the preview config.
+Local development uses a direct `POSTGRES_URL`.
+The public media store is R2 and `/media/*` serves validated immutable keys.
 
-`scripts/cutover-willie-page.sh` walks the domain attachment and DNS steps in
-order, prints each one, and verifies with `dig` and `curl` at the end.
+The Worker needs these secrets: `ATPROTO_OAUTH_JWK`,
+`ATPROTO_OAUTH_STORAGE_KEY`, `WEBMENTION_SECRET`,
+`WEBMENTION_MODERATION_SECRET`, `INDIEAUTH_INTROSPECTION_SECRET`,
+`INDIEWEB_NOTIFY_SECRET`, `SEARCH_REINDEX_SECRET`,
+`INDIEAUTH_TOTP_SECRET`, `MICROPUB_GITHUB_TOKEN`, and
+`ATPROTO_APP_PASSWORD`. Set them with `wrangler secret put` or a private JSON
+file and `wrangler secret bulk`; never put values in the repository or command
+arguments. `INDIEWEB_NOTIFY_SECRET_PRODUCTION` in GitHub Actions must match the
+production Worker secret. Rotating the OAuth storage key signs existing
+Standard.site subscribers out; they must authorize again.
 
-## The Cloudflare question
+Cloudflare Workers Builds should connect `WillieCubed/website` to the
+production Worker on `main`. Its build command is `pnpm build:cloudflare` and
+deploy command is `pnpm exec wrangler deploy`. Set `PNPM_VERSION` to the
+`packageManager` version in `package.json`. Connect the preview Worker with
+deploy command `pnpm exec wrangler deploy --config wrangler.preview.jsonc` and
+build command `pnpm build:cloudflare:preview`. The IndieWeb notification GitHub Action polls the
+canonical revision after each `main` push and invokes the production Worker
+only when the exact SHA is live. Check the Cloudflare build and the GitHub
+Action on a real publish; a successful build alone is not publication proof.
 
-Willie is considering moving the whole site to Cloudflare Workers. The code
-is kept host-agnostic so that move is a spike, not a rewrite. What it would
-take, as of September 2026:
+On the current Worker architecture, Workers Free's 10 ms CPU limit is too
+small for some dynamic requests. Workers Paid includes 10 million requests and
+30 million CPU milliseconds per month. Static asset requests are free. The
+account has a $25 usage alert, which is a notification rather than a hard
+limit. Watch Worker CPU, R2 operations and storage, Hyperdrive, and any other
+paid services in the Cloudflare billing dashboard after cutover.
 
-| Concern       | Vercel (now)               | Cloudflare via OpenNext                                                                                                 | Cloudflare via vinext                                                                 |
-| ------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Runtime       | Next 16, `cacheComponents` | Next 16 supported; PPR and `use cache` listed as supported; Node middleware (`proxy.ts`) not yet, and the site has none | A Vite reimplementation of Next; `cacheComponents`, `next/og`, `next/font` unverified |
-| Postgres      | Vercel Postgres            | Hyperdrive to the same Postgres, or D1; every module that imports `@vercel/postgres` changes                            | same                                                                                  |
-| Analytics     | Vercel Analytics           | Cloudflare Web Analytics beacon                                                                                         | same                                                                                  |
-| Redirects     | `next.config.ts`           | same file                                                                                                               | same file, if supported                                                               |
-| Social images | `next/og`                  | documented as working on workerd; verify                                                                                | unverified                                                                            |
-| Deploy        | git integration            | `wrangler deploy` with `@opennextjs/cloudflare`                                                                         | `create-vinext` / `migrate-to-vinext`                                                 |
-
-The spike, in order:
-
-1. In a fresh worktree, run the OpenNext Cloudflare adapter's build and note
-   every warning.
-2. Point the modules that import `@vercel/postgres` at Hyperdrive with the
-   `postgres` driver and run the webmention and search tests.
-3. Render one `opengraph-image` route on workerd and compare it with the
-   Vercel output.
-4. Preview on a `*.workers.dev` hostname before touching DNS.
-
-Do not start on vinext until its own skills confirm `cacheComponents` and
-`next/og` support.
+To cut over a verified candidate, add Custom Domains for `willie.page`,
+`www.willie.page`, `tour.willie.page`, and `diaries.willie.page` to the
+production Worker. Add both `williecubed.me` hosts only after confirming that
+zone is in the same account. Custom Domains replace the old Vercel DNS target
+and provision certificates. Keep `workers_dev` enabled for diagnostics. Check
+the canonical homepage, feeds, search, image optimization, social images,
+IndieAuth, media delivery, Webmention writes, and host redirects through each
+public hostname. Then check Cloudflare logs and billing, and remove the old
+Vercel project and tokens only after retained data and writes are proven.
 
 ## Patched dependencies
 

@@ -1,5 +1,6 @@
-import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+
+import { readFileSync, readdirSync } from '@/lib/runtime-files';
 
 import { getPublishedWriting, getWritingSlugs } from './index';
 

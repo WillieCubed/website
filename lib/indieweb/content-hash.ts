@@ -1,6 +1,6 @@
-import { sql } from '@vercel/postgres';
 import { createHash } from 'crypto';
 
+import { sql } from '@/lib/db/postgres';
 import type {
   OutgoingWebmentionRecord,
   PendingOutgoingWebmention,

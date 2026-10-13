@@ -1,6 +1,7 @@
 import type { Did } from '@atcute/lexicons';
 import * as TID from '@atcute/tid';
 
+import { hasDatabase } from '../db/postgres';
 import { site } from '../site';
 
 /**
@@ -64,12 +65,7 @@ export function blueskyAppview(): string {
 export function socialSettings() {
   const signingKey = process.env.ATPROTO_OAUTH_JWK;
   const storageKey = process.env.ATPROTO_OAUTH_STORAGE_KEY;
-  if (
-    !PUBLICATION_URI ||
-    !signingKey ||
-    !storageKey ||
-    !process.env.POSTGRES_URL
-  )
+  if (!PUBLICATION_URI || !signingKey || !storageKey || !hasDatabase())
     return undefined;
   if (Buffer.from(storageKey, 'base64').length !== 32)
     throw new Error('ATPROTO_OAUTH_STORAGE_KEY must encode 32 bytes.');

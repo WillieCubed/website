@@ -1,5 +1,3 @@
-import { cacheLife } from 'next/cache';
-
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
 import { type Initiative, getInitiatives } from '@/lib/initiatives';
 import { type Project, getPublishedProjects } from '@/lib/projects';
@@ -39,9 +37,6 @@ function writingCover(writing: WritingData) {
  * images. Cached for an hour like the loaders it reads from.
  */
 export async function getEntityRegistry(): Promise<EntityCard[]> {
-  'use cache';
-  cacheLife('hours');
-
   const [writings, initiatives, projects] = await Promise.all([
     getAllWritings(false),
     getInitiatives(),

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { cacheLife } from 'next/cache';
 
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
@@ -23,8 +22,6 @@ export const metadata: Metadata = {
  * page prerenders like the loaders it reads from.
  */
 async function routedPaths(): Promise<string[]> {
-  'use cache';
-  cacheLife('hours');
   const [writings, initiatives] = await Promise.all([
     getAllWritings(),
     getInitiatives(),

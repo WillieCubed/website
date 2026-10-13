@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql } from '@/lib/db/postgres';
 
 import { createStatusStore } from './store';
 

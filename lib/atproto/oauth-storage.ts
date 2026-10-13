@@ -4,17 +4,19 @@ import type {
   StoredSession,
   StoredState,
 } from '@atcute/oauth-node-client';
-import { type VercelPoolClient, sql } from '@vercel/postgres';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { randomBytes } from 'node:crypto';
+
+import { type PostgresPoolClient, sql } from '@/lib/db/postgres';
 
 import { digest } from './oauth-binding';
 import { decryptOAuthValue, encryptOAuthValue } from './oauth-crypto';
 import type { BrowserSession } from './social-http';
 
-const transaction = new AsyncLocalStorage<VercelPoolClient>();
+const transaction = new AsyncLocalStorage<PostgresPoolClient>();
 function query(text: string, values?: unknown[]) {
-  return (transaction.getStore() ?? sql).query(text, values);
+  const client = transaction.getStore();
+  return client ? client.query(text, values) : sql.query(text, values);
 }
 
 function encryptedStore<T>(
@@ -100,7 +102,7 @@ export async function withOAuthLock<T>(
       .catch(() => client.query('ROLLBACK').catch(() => {}));
     throw error;
   } finally {
-    client.release();
+    await client.release();
   }
 }
 

@@ -1,4 +1,3 @@
-import { cacheLife } from 'next/cache';
 import { Suspense } from 'react';
 
 import BlueskyIcon from '@/components/icons/BlueskyIcon';
@@ -86,19 +85,12 @@ function SocialIcon({ label }: { label: string }) {
   }
 }
 
-/**
- * The tagline changes once an hour rather than on every render, so the
- * page and its hydration agree on it. Only the text is cached, so a style
- * change never waits on the cache.
- */
-async function hourlyTagline(): Promise<string> {
-  'use cache';
-  cacheLife('hours');
+async function currentTagline(): Promise<string> {
   return randomlyChooseTagline();
 }
 
 async function Tagline() {
-  const tagline = await hourlyTagline();
+  const tagline = await currentTagline();
   const href = taglineHref(tagline);
   return (
     <p className="text-body-medium text-muted text-balance">

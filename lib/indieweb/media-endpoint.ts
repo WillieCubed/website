@@ -39,7 +39,7 @@ async function upload(
     return jsonError(
       'temporarily_unavailable',
       503,
-      'Media uploads are not configured: connect a Vercel Blob store or set BLOB_READ_WRITE_TOKEN.'
+      'Media uploads are not configured: connect the Cloudflare R2 media bucket.'
     );
   try {
     // Check a header credential before reading file bytes. Form credentials

@@ -5,8 +5,9 @@
  * For example, series are in content/series/, reading lists in content/reading-lists/, etc.
  */
 import matter from 'gray-matter';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+
+import { existsSync, readFileSync, readdirSync } from '@/lib/runtime-files';
 
 // =============================================================================
 // Series-specific helpers (for backward compatibility and convenience)

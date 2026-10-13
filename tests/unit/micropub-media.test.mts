@@ -8,6 +8,7 @@ import {
   getMediaStore,
   mediaPathname,
   parseMediaUpload,
+  r2MediaStore,
   storeMedia,
 } from '@/lib/indieweb/media';
 import { handleMediaPost } from '@/lib/indieweb/media-endpoint';
@@ -28,18 +29,33 @@ const jpeg = () =>
     type: 'image/jpeg',
   });
 
-test('getMediaStore requires a Blob token or a configured OIDC store', () => {
-  assert.equal(getMediaStore({}), null);
-  assert.equal(getMediaStore({ BLOB_READ_WRITE_TOKEN: '  ' }), null);
-  assert.ok(getMediaStore({ BLOB_READ_WRITE_TOKEN: 'vercel_blob_rw_x' }));
-  assert.ok(
-    getMediaStore({
-      BLOB_STORE_ID: 'store_test',
-      VERCEL_OIDC_TOKEN: 'oidc-test',
-    })
+test('getMediaStore requires a Cloudflare R2 binding', () => {
+  assert.equal(getMediaStore(), null);
+});
+
+test('R2 media storage writes immutable keys under the site origin', async () => {
+  const writes: { key: string; bytes: ArrayBuffer; type: string }[] = [];
+  const bucket = {
+    async put(
+      key: string,
+      bytes: ArrayBuffer,
+      options: { httpMetadata: { contentType: string } }
+    ) {
+      writes.push({ key, bytes, type: options.httpMetadata.contentType });
+    },
+  } as unknown as Parameters<typeof r2MediaStore>[0];
+  const store = r2MediaStore(bucket, 'https://willie.page');
+  const url = await storeMedia(jpeg(), store, new Date('2026-09-22T12:00:00Z'));
+  assert.match(
+    url,
+    /^https:\/\/willie\.page\/media\/2026\/09\/img-0042-[a-f0-9-]{36}\.jpg$/
   );
-  assert.equal(getMediaStore({ BLOB_STORE_ID: 'store_test' }), null);
-  assert.ok(getMediaStore({ BLOB_STORE_ID: 'store_test', VERCEL: '1' }));
+  assert.equal(writes[0].key, new URL(url).pathname.slice(1));
+  assert.equal(writes[0].type, 'image/jpeg');
+  assert.deepEqual(
+    new Uint8Array(writes[0].bytes),
+    new Uint8Array([0xff, 0xd8, 0xff])
+  );
 });
 
 test('parseMediaUpload returns the multipart file part', async () => {
@@ -92,21 +108,10 @@ test('storeMedia hands the store the pathname and type, and returns its URL', as
 });
 
 test('POST /micropub/media answers 503 until storage is configured', async () => {
-  const saved = process.env.BLOB_READ_WRITE_TOKEN;
   const { POST } = await import('@/app/micropub/media/route');
-  try {
-    delete process.env.BLOB_READ_WRITE_TOKEN;
-    const off = await POST(upload(jpeg(), { Authorization: 'Bearer token' }));
-    assert.equal(off.status, 503);
-    assert.match((await off.json()).error_description, /BLOB_READ_WRITE_TOKEN/);
-
-    process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_test';
-    const anonymous = await POST(upload(jpeg()));
-    assert.equal(anonymous.status, 401);
-  } finally {
-    if (saved === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
-    else process.env.BLOB_READ_WRITE_TOKEN = saved;
-  }
+  const off = await POST(upload(jpeg(), { Authorization: 'Bearer token' }));
+  assert.equal(off.status, 503);
+  assert.match((await off.json()).error_description, /Cloudflare R2/);
 });
 
 test('media uploads accept signed audio, video, and PDF bytes and reject MIME spoofing', async () => {

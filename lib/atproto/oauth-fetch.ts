@@ -1,24 +1,37 @@
+import { isIP } from 'node:net';
 import { fetch as undiciFetch } from 'undici';
 
 import {
   createPublicOnlyAgent,
+  isCloudflareRuntime,
+  isPublicAddress,
   readCappedText,
 } from '@/lib/indieweb/public-fetch';
 
-const dispatcher = createPublicOnlyAgent();
+let dispatcher: ReturnType<typeof createPublicOnlyAgent> | undefined;
 type Transport = (
   url: URL,
-  init: RequestInit & { dispatcher: typeof dispatcher; duplex: 'half' }
+  init: RequestInit & { dispatcher?: typeof dispatcher; duplex: 'half' }
 ) => Promise<{
   status: number;
   headers: HeadersInit;
   body: ReadableStream<Uint8Array> | null;
 }>;
-const transport: Transport = async (url, init) =>
-  undiciFetch(
+const transport: Transport = async (url, init) => {
+  if (isCloudflareRuntime()) {
+    return fetch(url, {
+      method: init.method,
+      headers: init.headers,
+      body: init.body,
+      signal: init.signal,
+      redirect: 'manual',
+    });
+  }
+  return undiciFetch(
     url,
     init as Parameters<typeof undiciFetch>[1]
   ) as unknown as ReturnType<Transport>;
+};
 
 export function createOAuthFetch(
   fetcher: Transport = transport
@@ -28,6 +41,9 @@ export function createOAuthFetch(
     const url = new URL(input instanceof Request ? input.url : String(input));
     if (url.protocol !== 'https:' || url.username || url.password)
       throw new Error('OAuth endpoints must use public HTTPS.');
+    const host = url.hostname.replace(/^\[|\]$/g, '');
+    if (isIP(host) && !isPublicAddress(host))
+      throw new Error('OAuth endpoints must use public HTTPS.');
     const request = new Request(input, init);
     const response = await fetcher(url, {
       method: request.method,
@@ -36,8 +52,12 @@ export function createOAuthFetch(
       duplex: 'half',
       signal: AbortSignal.any([AbortSignal.timeout(15000), request.signal]),
       redirect: 'error',
-      dispatcher,
+      dispatcher: isCloudflareRuntime()
+        ? undefined
+        : (dispatcher ??= createPublicOnlyAgent()),
     });
+    if (response.status >= 300 && response.status < 400)
+      throw new Error('OAuth endpoints may not redirect.');
     const text = await readCappedText(response.body, 2 * 1024 * 1024);
     if (text === null)
       throw new Error('The OAuth provider response is too large.');

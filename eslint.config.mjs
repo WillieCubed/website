@@ -15,10 +15,13 @@ const eslintConfig = [
     ignores: [
       'node_modules/**',
       '.next/**',
+      '.open-next/**',
+      '.wrangler/**',
       '.vercel/**',
       'out/**',
       'build/**',
       'public/pagefind/**',
+      'lib/generated-content.ts',
       'test-results/**',
       'playwright-report/**',
       'next-env.d.ts',

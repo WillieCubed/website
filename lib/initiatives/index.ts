@@ -1,10 +1,9 @@
 import matter from 'gray-matter';
-import { cacheLife } from 'next/cache';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { type BrandSeed, brandSeeds } from '@/lib/brand/scheme';
 import { showDrafts } from '@/lib/drafts';
+import { existsSync, readFileSync, readdirSync } from '@/lib/runtime-files';
 
 import {
   type Initiative,
@@ -210,8 +209,6 @@ export function loadAllInitiatives(
  * drafts excluded in production.
  */
 export async function getInitiativeSlugs(): Promise<string[]> {
-  'use cache';
-  cacheLife('hours');
   const now = new Date();
   return listInitiativeSlugs().filter(
     (slug) => showDrafts || !loadInitiative(slug, now).draft
@@ -226,8 +223,6 @@ export async function getInitiativeSlugs(): Promise<string[]> {
 async function findPublishedInitiative(
   slug: string
 ): Promise<Initiative | null> {
-  'use cache';
-  cacheLife('hours');
   if (!listInitiativeSlugs().includes(slug)) return null;
   const initiative = loadInitiative(slug, new Date());
   return initiative.draft && !showDrafts ? null : initiative;
@@ -249,8 +244,6 @@ export async function getInitiative(slug: string): Promise<Initiative> {
  * All initiatives, drafts excluded in production, most recent start first.
  */
 export async function getInitiatives(): Promise<Initiative[]> {
-  'use cache';
-  cacheLife('hours');
   const now = new Date();
   return listInitiativeSlugs()
     .map((slug) => loadInitiative(slug, now))

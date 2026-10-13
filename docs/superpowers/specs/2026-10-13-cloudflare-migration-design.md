@@ -2,7 +2,7 @@
 
 ## Goal and acceptance
 
-Move the current personal website off Vercel hosting and Vercel Blob without losing the live Next.js, IndieWeb, AT Protocol, writing, search, status, or protocol behavior. `willie.page` remains the canonical origin. Success requires a deployed Cloudflare Worker serving the full application, working writes against retained Postgres data, working media uploads to R2, verified release notifications, host redirects, social images, and a tested rollback route. A local build alone is insufficient.
+Move the current personal website off Vercel hosting and Vercel Blob without losing the live Next.js, IndieWeb, AT Protocol, writing, search, status, or protocol behavior. `willie.page` remains the canonical origin. Success requires a deployed Cloudflare Worker serving the full application, working writes against retained Postgres data, working media uploads to R2, verified release notifications, host redirects, and social images. A local build alone is insufficient.
 
 ## Recovered context
 
@@ -10,17 +10,17 @@ The September 14 Claude conversation on WillieMac (`72d2d6cf-f0d5-4ec6-a610-d3d4
 
 ## Runtime and data boundaries
 
-- Build the unchanged Next.js app with `@opennextjs/cloudflare`. Package its static assets with the Worker. Keep local `next dev`, `next build`, and the existing CI checks usable.
+- Build the Next.js app with `@opennextjs/cloudflare` and package its static assets with the Worker. Cache Components must be disabled for the current adapter; keep user-facing routes and local `next dev`, `next build`, and CI checks usable.
 - Put mutable Next.js cache data in Cloudflare R2, with revalidation behavior tested on the Worker runtime. Keep previews isolated from production bindings and data.
-- Replace runtime `@vercel/postgres` access with `pg` through one application database module. Workers connect through a Hyperdrive binding; local and maintenance scripts use a direct Postgres URL. Preserve connection-pinned transactions, advisory locks, SQL parameterization, and typed results. Keep the existing Postgres data and schema through the first hosting cutover. Later detach the database's account ownership from Vercel or restore it to an independently owned Postgres instance; do not substitute D1 for Postgres-specific behavior.
-- Store new Micropub uploads in a private R2 bucket and serve them through an explicit public media path on `willie.page`, with type, size, cache, and key validation. Existing public Vercel Blob URLs remain reachable during a verified copy and URL migration; do not delete the old store first.
+- Replace runtime `@vercel/postgres` access with `pg` through one application database module. Workers connect through Hyperdrive with request-scoped clients; local scripts use a direct Postgres URL. Preserve connection-pinned transactions, advisory locks, SQL parameterization, and typed results. The retained production Neon project is owned directly in Willie's Neon organization, separate from Vercel. Do not substitute D1 for Postgres-specific behavior.
+- Store new Micropub uploads in a private R2 bucket and serve them through an explicit public media path on `willie.page`, with type, size, cache, and key validation. The current public Vercel Blob store is empty; check stored references before removing its token and integration.
 - Replace Vercel Analytics and Speed Insights with Cloudflare Web Analytics. Retain Google Analytics only when explicitly configured.
 - Embed the release commit in the Worker build and use it for `/api/indieweb/revision`, notify authorization, and preview-to-production matching. Publishing continues only after the exact deployed revision is observed.
 
 ## Release and recovery
 
-Publish a candidate Worker on a noncanonical hostname with separate secrets, R2, cache, and database access. Verify homepage, search, feeds, IndieAuth, Webmention, Micropub, AT Protocol, MCP, metadata, social images, redirects, 404s, and mutation paths with safe test identities. Check logs, latency, and retained data. Then attach and verify `willie.page` and alias hosts, run public smoke checks and a controlled publishing action, and keep Vercel as a temporary rollback. Remove Vercel billing/storage/deployment dependencies only after the retained database and blob migration are verified and the rollback window closes.
+Publish a candidate Worker on a noncanonical hostname with separate secrets, R2, cache, and database access. Verify homepage, search, feeds, IndieAuth, Webmention, Micropub, AT Protocol, MCP, metadata, social images, redirects, 404s, and mutation paths with safe test identities. Check logs, latency, and retained data. Then attach and verify `willie.page` and alias hosts, run public smoke checks and a controlled publishing action. Cloudflare is the sole deployment target. Retire Vercel hosting, Blob writes, and billable resources after proving the migrated data and public routes.
 
 ## Constraints and open provider facts
 
-The current Wrangler OAuth session exposes only the LVBT account; it must not be used to deploy the personal site. Resolve an authorized personal Cloudflare account identity before provisioning or DNS cutover. Confirm the existing Postgres provider, backup/export path, Blob inventory, Cloudflare zone access, and personal-domain email routing from provider state. Do not copy credentials from another host or browser session into a shell. Preserve unrelated changes in both main checkouts and all Claude worktrees.
+The personal Cloudflare account is WillieCubed (`18f90fa11cf0a87145be4a1517e41217`) and has Workers Paid. The $25 alert is informational, not a hard spending cap. Production Neon is `icy-sound-09771903` and acceptance is `shiny-scene-02090850`; each has its own Hyperdrive and R2 bindings. The public Vercel Blob store has no objects. Vercel Secret variables cannot be read back through its CLI; first-party keys need rotation, and GitHub and Bluesky credentials need owner replacement. Verify these before DNS cutover. Preserve unrelated changes in both main checkouts and all Claude worktrees.

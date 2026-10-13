@@ -1,5 +1,3 @@
-import { cacheLife } from 'next/cache';
-
 import { detailHref } from '@/lib/entities/ventures';
 import { entries, products } from '@/lib/home/ventures';
 import {
@@ -18,9 +16,6 @@ import type { PaletteData, PaletteLink } from './types';
  * without touching the file system on each request.
  */
 export async function getPaletteData(): Promise<PaletteData> {
-  'use cache';
-  cacheLife('hours');
-
   // The loaders hide drafts in production and show them in development,
   // so the palette offers the same pages the site itself links to.
   const [writings, initiatives] = await Promise.all([

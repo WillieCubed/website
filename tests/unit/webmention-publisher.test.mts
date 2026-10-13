@@ -1,6 +1,6 @@
-import { VercelPool } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, mock, test } from 'node:test';
+import { Pool } from 'pg';
 
 import { sendWebmention } from '@/lib/indieweb/send-webmention';
 import {
@@ -49,10 +49,10 @@ beforeEach(() => {
   published = true;
   answer = { targetUrl: target, success: false, statusCode: 400 };
   mock.method(
-    VercelPool.prototype,
-    'sql',
-    async (strings: TemplateStringsArray, ...values: unknown[]) => {
-      const query = strings.join('?');
+    Pool.prototype,
+    'query',
+    async (text: string, values: unknown[] = []) => {
+      const query = text.replace(/\$\d+/g, '?');
       if (query.includes('SELECT')) {
         return {
           rows: query.includes('WHERE post_slug')

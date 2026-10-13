@@ -2,11 +2,12 @@ packages:
   - .
 
 allowBuilds:
-  '@vercel/speed-insights': true
   bufferutil: false
   esbuild: true
+  rclone.js: false
   sharp: true
   unrs-resolver: true
+  workerd: true
 
 peerDependencyRules:
   allowedVersions:

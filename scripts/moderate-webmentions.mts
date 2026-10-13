@@ -39,7 +39,7 @@ if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
 }
 
 // Imported after the guards so a usage error never loads the driver.
-const { sql } = await import('@vercel/postgres');
+const { sql } = await import('../lib/db/postgres');
 const { webmentionModerationStore: store } =
   await import('../lib/indieweb/webmention-storage');
 

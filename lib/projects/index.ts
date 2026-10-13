@@ -1,5 +1,3 @@
-import { cacheLife } from 'next/cache';
-
 import { showDrafts } from '@/lib/drafts';
 
 import { loadAllProjects } from './load';
@@ -11,15 +9,11 @@ export * from './schema';
 
 /** Every visible project, drafts included only in development. */
 export async function getProjects(): Promise<Project[]> {
-  'use cache';
-  cacheLife('hours');
   return loadAllProjects({ includeDrafts: showDrafts });
 }
 
 /** Public discovery never includes drafts, including on a development server. */
 export async function getPublishedProjects(): Promise<Project[]> {
-  'use cache';
-  cacheLife('hours');
   return loadAllProjects({ includeDrafts: false });
 }
 

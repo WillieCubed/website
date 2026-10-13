@@ -1,6 +1,6 @@
-import { VercelPool } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, mock, test } from 'node:test';
+import { Pool } from 'pg';
 
 import {
   getOutgoingWebmentions,
@@ -27,10 +27,10 @@ beforeEach(() => {
   queries = [];
   respond = () => ({ rows: [], rowCount: 0 });
   mock.method(
-    VercelPool.prototype,
-    'sql',
-    async (strings: TemplateStringsArray, ...values: unknown[]) => {
-      const query = { text: strings.join('?'), values };
+    Pool.prototype,
+    'query',
+    async (text: string, values: unknown[] = []) => {
+      const query = { text: text.replace(/\$\d+/g, '?'), values };
       queries.push(query);
       return respond(query);
     }

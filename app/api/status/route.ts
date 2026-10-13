@@ -7,7 +7,8 @@ export async function GET(request: Request) {
     return Response.json(await readPublicStatus(), {
       headers: { 'Cache-Control': 'no-store' },
     });
-  } catch {
+  } catch (error) {
+    console.error('Status read failed:', error);
     return Response.json(
       { error: 'Status unavailable' },
       { status: 503, headers: { 'Cache-Control': 'no-store' } }

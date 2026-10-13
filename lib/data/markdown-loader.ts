@@ -1,8 +1,9 @@
 // utils/markdown.ts
-import { readFileSync, readdirSync } from 'fs';
 import { serialize } from 'next-mdx-remote/serialize';
 import { join } from 'path';
 import rehypeSlug from 'rehype-slug';
+
+import { readFileSync, readdirSync } from '@/lib/runtime-files';
 
 export const CONTENT_DIRECTORY = join(process.cwd(), 'content');
 

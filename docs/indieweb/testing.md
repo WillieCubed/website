@@ -42,15 +42,14 @@ its SQL requests to the local PostgreSQL URL above. The write test serves its
 reply from a self-signed HTTPS server on 127.0.0.1. The verifier fetches
 sources from public addresses only, so the command below sets
 `INDIEWEB_TEST_ALLOW_LOOPBACK=true` to let loopback through, and disables
-certificate verification. A Vercel deployment ignores the loopback
+certificate verification. A Cloudflare deployment ignores the loopback
 allowance, but keep both variables out of any hosted server's environment
 and out of a production check.
 
 ```sh
 INDIEWEB_TEST_POST_PATH=/writings/indieweb-acceptance \
-POSTGRES_URL='postgresql://test:pass@ep-local-pooler.us-east-1.aws.neon.tech/test?sslmode=require' \
+POSTGRES_URL='<isolated Neon connection URL>' \
 WEBMENTION_MODERATION_SECRET=local-test-secret \
-NODE_OPTIONS='--import=./tests/support/neon-local-postgres.mjs' \
 INDIEWEB_TEST_ALLOW_LOOPBACK=true \
 NODE_TLS_REJECT_UNAUTHORIZED=0 \
 pnpm exec playwright test tests/e2e/indieweb-write.spec.mts --project=desktop --workers=1

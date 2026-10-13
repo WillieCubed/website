@@ -1,7 +1,8 @@
 import matter from 'gray-matter';
-import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
+
+import { readFileSync, readdirSync } from '@/lib/runtime-files';
 
 import { showDrafts } from './drafts';
 

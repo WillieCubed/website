@@ -1,6 +1,7 @@
-import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { hasDatabase } from '../db/postgres';
+import { readFileSync } from '../runtime-files';
 import { generateSearchIndex } from './index';
 import { rankItems, tokenize } from './rank';
 import type {
@@ -19,10 +20,7 @@ const INDEX_PATH = join(process.cwd(), 'public', 'search-index.json');
  * deploy with no database still answers /search from its own domain.
  */
 export function usePostgresSearch(): boolean {
-  return (
-    process.env.SEARCH_BACKEND === 'postgres' &&
-    Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL)
-  );
+  return process.env.SEARCH_BACKEND === 'postgres' && hasDatabase();
 }
 
 let indexPromise: Promise<SearchableItem[]> | null = null;
@@ -35,7 +33,8 @@ let indexPromise: Promise<SearchableItem[]> | null = null;
  */
 export async function loadSearchIndex(): Promise<SearchableItem[]> {
   if (!indexPromise) {
-    indexPromise = readFile(INDEX_PATH, 'utf8')
+    indexPromise = Promise.resolve()
+      .then(() => readFileSync(INDEX_PATH, 'utf8'))
       .then((raw) => {
         const items = JSON.parse(raw) as SearchableItem[];
         if (items.some((item) => typeof item.path !== 'string')) {

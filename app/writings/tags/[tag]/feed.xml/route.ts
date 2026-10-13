@@ -1,5 +1,3 @@
-import { cacheLife } from 'next/cache';
-
 import { generateTagRssFeed } from '@/lib/feeds';
 import { getTagFeedItems } from '@/lib/feeds/items';
 import { getTagParams } from '@/lib/writings';
@@ -10,9 +8,6 @@ export async function generateStaticParams() {
 }
 
 async function buildTagFeed(tag: string) {
-  'use cache';
-  cacheLife('hours');
-
   const items = await getTagFeedItems(tag);
   return items.length > 0 ? generateTagRssFeed(tag, items) : null;
 }

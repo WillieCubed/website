@@ -1,6 +1,6 @@
-import { createPool } from '@vercel/postgres';
 import { posix, resolve } from 'node:path';
 
+import { createPool } from '@/lib/db/postgres';
 import {
   MicropubConflictError,
   type StoredWriting,
@@ -73,7 +73,7 @@ export const micropubArchiveStore: MicropubArchiveStore = {
       }
       throw error;
     } finally {
-      client.release(destroy);
+      await client.release(destroy);
     }
   },
   async save(key, url, writing) {

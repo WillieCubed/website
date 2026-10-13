@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - main
-      - codex/indieweb-test-publish-20260923
-      - codex/publishing-compatibility-acceptance
-      - codex/publishing-compatibility-acceptance-20261008
 
 permissions:
   contents: read
@@ -22,22 +19,14 @@ jobs:
     timeout-minutes: 15
     env:
       PRODUCTION_SECRET: ${{ secrets.INDIEWEB_NOTIFY_SECRET_PRODUCTION }}
-      ACCEPTANCE_SECRET: ${{ secrets.INDIEWEB_NOTIFY_SECRET_ACCEPTANCE }}
     steps:
-      - name: Wait for the public deployment and notify subscribers
+      - name: Wait for Cloudflare to serve this revision and notify subscribers
         env:
           REVISION: ${{ github.sha }}
-          BRANCH: ${{ github.ref_name }}
         run: |
-          if [ "$BRANCH" = main ]; then
-            origin=https://willie.page
-            secret=$PRODUCTION_SECRET
-            atproto_required=true
-          else
-            origin=https://indieweb-acceptance.vercel.app
-            secret=$ACCEPTANCE_SECRET
-            atproto_required=true
-          fi
+          origin=https://willie.page
+          secret=$PRODUCTION_SECRET
+          atproto_required=true
           if [ -z "$secret" ]; then
             echo "Notifications are disabled for $origin until its secret is configured."
             exit 1

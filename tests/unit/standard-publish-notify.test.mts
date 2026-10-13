@@ -6,18 +6,18 @@ import { publishNotification } from '@/lib/indieweb/notify';
 test('production notifications fail when required publishing was skipped', async (context) => {
   const previous = {
     secret: process.env.INDIEWEB_NOTIFY_SECRET,
-    revision: process.env.VERCEL_GIT_COMMIT_SHA,
+    revision: process.env.NEXT_PUBLIC_SITE_REVISION,
   };
   context.after(() => {
     if (previous.secret === undefined)
       delete process.env.INDIEWEB_NOTIFY_SECRET;
     else process.env.INDIEWEB_NOTIFY_SECRET = previous.secret;
     if (previous.revision === undefined)
-      delete process.env.VERCEL_GIT_COMMIT_SHA;
-    else process.env.VERCEL_GIT_COMMIT_SHA = previous.revision;
+      delete process.env.NEXT_PUBLIC_SITE_REVISION;
+    else process.env.NEXT_PUBLIC_SITE_REVISION = previous.revision;
   });
   process.env.INDIEWEB_NOTIFY_SECRET = 'notify-test';
-  process.env.VERCEL_GIT_COMMIT_SHA = 'revision';
+  process.env.NEXT_PUBLIC_SITE_REVISION = 'revision';
   for (const required of [true, false]) {
     const response = await publishNotification(
       new Request('https://willie.page/api/indieweb/notify', {

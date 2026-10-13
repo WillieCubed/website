@@ -6,10 +6,8 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## Operations
 
-- [Bootstrap](./bootstrap.md): local setup, read-only preflight, and linked
-  deployment readiness.
-- [Deploying](./deploy.md): hosts, the redirect table, the DNS cutover script,
-  and the Vercel versus Cloudflare analysis.
+- [Bootstrap](./bootstrap.md): local setup and Cloudflare deployment prerequisites.
+- [Deploying](./deploy.md): hosts, redirects, Cloudflare resources, and cutover checks.
 
 ## Content
 

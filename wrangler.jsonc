@@ -16,7 +16,7 @@
     "MICROPUB_GITHUB_BRANCH": "main"
   },
   "routes": [
-    { "pattern": "williecubed.me", "custom_domain": true },
+    { "pattern": "williecubed.me/*", "zone_name": "williecubed.me" },
     { "pattern": "www.williecubed.me", "custom_domain": true }
   ],
   "workers_dev": true,

@@ -1,8 +1,7 @@
 import { revalidateTag } from 'next/cache';
 
 import { hasDatabase } from '@/lib/db/postgres';
-import { ownerAuthenticatorFromEnvironment } from '@/lib/indieweb/indieauth-owner';
-import { ownerSignInStore } from '@/lib/indieweb/indieauth-storage';
+import { ownerAccessAuthenticatorFromEnvironment } from '@/lib/owner/access';
 
 import { createAdminHandler } from './admin';
 import { statusStore } from './storage';
@@ -10,9 +9,8 @@ import { statusStore } from './storage';
 export function statusAdmin(request: Request) {
   return createAdminHandler({
     store: statusStore,
-    owner: ownerAuthenticatorFromEnvironment(process.env, ownerSignInStore),
+    owner: ownerAccessAuthenticatorFromEnvironment(process.env),
     configured: hasDatabase(),
-    secure: process.env.NODE_ENV === 'production',
     invalidate: () => revalidateTag('public-status-location', { expire: 0 }),
   })(request);
 }

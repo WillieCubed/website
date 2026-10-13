@@ -1,6 +1,5 @@
 import { sql } from '@/lib/db/postgres';
 import { fetchIndieAuthClient } from '@/lib/indieweb/indieauth-client';
-import { ownerAuthenticatorFromEnvironment } from '@/lib/indieweb/indieauth-owner';
 import type {
   IndieAuthCodeRecord,
   IndieAuthEndpointOptions,
@@ -8,6 +7,7 @@ import type {
   IndieAuthTokenRecord,
   OwnerSignInStore,
 } from '@/lib/indieweb/types';
+import { ownerAccessAuthenticatorFromEnvironment } from '@/lib/owner/access';
 
 /**
  * Postgres storage for the IndieAuth server. The tables are created by
@@ -183,7 +183,7 @@ export const ownerSignInStore: OwnerSignInStore = {
 export function indieAuthEndpointOptions(): IndieAuthEndpointOptions {
   return {
     store: indieAuthStore,
-    owner: ownerAuthenticatorFromEnvironment(process.env, ownerSignInStore),
+    owner: ownerAccessAuthenticatorFromEnvironment(process.env),
     fetchClient: fetchIndieAuthClient,
     introspectionSecret: process.env.INDIEAUTH_INTROSPECTION_SECRET,
   };

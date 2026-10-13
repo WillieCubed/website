@@ -1,13 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  createTotpOwnerAuthenticator,
-  decodeBase32,
-  totpCode,
-  totpStep,
-} from '../../lib/indieweb/indieauth-owner';
-import { createAdminHandler, tokenHash } from '../../lib/status/admin';
+import { createAdminHandler } from '../../lib/status/admin';
 import {
   citySchema,
   defaultLocation,
@@ -16,78 +10,6 @@ import {
   searchCities,
 } from '../../lib/status/location';
 import type { StatusStore } from '../../lib/status/store';
-import { memoryOwnerSignInStore } from './indieauth-memory-store.mts';
-
-function setup() {
-  let snapshot: Awaited<ReturnType<StatusStore['read']>> = null;
-  const sessions = new Map<string, Date>();
-  let invalidations = 0;
-  const store: StatusStore = {
-    async read() {
-      return snapshot;
-    },
-    async save(location) {
-      snapshot = {
-        location,
-        source: 'manual',
-        updatedAt: new Date().toISOString(),
-      };
-    },
-    async createSession(hash, expires) {
-      sessions.set(hash, expires);
-    },
-    async hasSession(hash) {
-      return (sessions.get(hash)?.getTime() ?? 0) > Date.now();
-    },
-    async deleteSession(hash) {
-      sessions.delete(hash);
-    },
-  };
-  const secret = decodeBase32('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ')!;
-  const now = new Date();
-  const owner = createTotpOwnerAuthenticator({
-    secret,
-    store: memoryOwnerSignInStore().store,
-    now: () => now,
-  });
-  const handle = createAdminHandler({
-    store,
-    owner,
-    invalidate: () => invalidations++,
-    search: async () => [defaultLocation.location],
-  });
-  const request = (
-    fields?: Record<string, string>,
-    cookie?: string,
-    origin = 'https://willie.page'
-  ) =>
-    new Request(
-      'https://willie.page/api/admin/status',
-      fields
-        ? {
-            method: 'POST',
-            headers: {
-              Origin: origin,
-              'Content-Type': 'application/x-www-form-urlencoded',
-              ...(cookie ? { Cookie: cookie } : {}),
-            },
-            body: new URLSearchParams(fields),
-          }
-        : { headers: cookie ? { Cookie: cookie } : {} }
-    );
-  const signin = () =>
-    handle(
-      request({ action: 'signin', code: totpCode(secret, totpStep(now)) })
-    );
-  return {
-    store,
-    sessions,
-    handle,
-    request,
-    signin,
-    invalidations: () => invalidations,
-  };
-}
 
 test('only city-level fields cross the public boundary and corrupt sources fail closed', async () => {
   assert.deepEqual(
@@ -121,117 +43,7 @@ test('only city-level fields cross the public boundary and corrupt sources fail 
   );
 });
 
-test('owner TOTP creates an opaque expiring session and replay cannot create another', async () => {
-  const app = setup();
-  const signInPage = await app.handle(app.request());
-  assert.equal(signInPage.headers.get('referrer-policy'), 'same-origin');
-  assert.equal((await signInPage.json()).signedIn, undefined);
-  const response = await app.signin();
-  assert.equal(response.status, 303);
-  const cookie = response.headers.get('set-cookie')!;
-  assert.match(cookie, /HttpOnly; SameSite=Strict; Max-Age=28800; Secure/);
-  const token = cookie.split(';')[0].split('=')[1];
-  assert.equal(app.sessions.has(token), false);
-  assert.equal(app.sessions.has(tokenHash(token)), true);
-  assert.equal((await app.signin()).status, 401);
-  app.sessions.set(tokenHash(token), new Date(0));
-  assert.equal(
-    (await (await app.handle(app.request(undefined, cookie))).json()).signedIn,
-    undefined
-  );
-});
-
-test('unauthenticated, cross-origin, malformed and CSRF writes cannot update location', async () => {
-  const app = setup();
-  assert.equal((await app.handle(app.request({ action: 'save' }))).status, 401);
-  assert.equal(
-    (
-      await app.handle(
-        app.request({ action: 'signin' }, undefined, 'https://evil.test')
-      )
-    ).status,
-    403
-  );
-  const response = await app.signin();
-  const cookie = response.headers.get('set-cookie')!.split(';')[0];
-  assert.equal(
-    (
-      await app.handle(
-        app.request(
-          { action: 'save', city: JSON.stringify(defaultLocation.location) },
-          cookie
-        )
-      )
-    ).status,
-    403
-  );
-  const { csrf } = await (
-    await app.handle(app.request(undefined, cookie))
-  ).json();
-  assert.equal(
-    (
-      await app.handle(
-        app.request({ action: 'save', csrf, city: '{oops' }, cookie)
-      )
-    ).status,
-    400
-  );
-  assert.equal(await app.store.read(), null);
-  assert.equal(app.invalidations(), 0);
-});
-
-test('saving a city persists the manual source, invalidates public cache and logout revokes access', async () => {
-  const app = setup();
-  const cookie = (await app.signin()).headers.get('set-cookie')!.split(';')[0];
-  const { csrf } = await (
-    await app.handle(app.request(undefined, cookie))
-  ).json();
-  const city = {
-    ...defaultLocation.location,
-    city: 'Seattle',
-    timezone: 'America/Los_Angeles',
-    latitude: 47.61,
-    longitude: -122.33,
-  };
-  assert.equal(
-    (
-      await app.handle(
-        app.request(
-          { action: 'save', csrf, city: JSON.stringify(city) },
-          cookie
-        )
-      )
-    ).status,
-    303
-  );
-  assert.equal((await app.store.read())?.location.city, 'Seattle');
-  assert.equal((await app.store.read())?.source, 'manual');
-  assert.equal(app.invalidations(), 1);
-  assert.equal(
-    (await app.handle(app.request({ action: 'signout', csrf }, cookie))).status,
-    303
-  );
-  assert.equal(
-    (
-      await app.handle(
-        app.request(
-          { action: 'save', csrf, city: JSON.stringify(city) },
-          cookie
-        )
-      )
-    ).status,
-    401
-  );
-});
-
-test('missing owner configuration disables admin and provider search filters incomplete cities', async () => {
-  const app = setup();
-  const disabled = createAdminHandler({
-    store: app.store,
-    owner: null,
-    invalidate() {},
-  });
-  assert.equal((await disabled(app.request())).status, 503);
+test('provider search filters incomplete cities', async () => {
   let calls = 0;
   const fetcher = (async () => {
     calls++;
@@ -253,28 +65,22 @@ test('missing owner configuration disables admin and provider search filters inc
   assert.equal(calls, 1);
 });
 
-test('a failed save preserves the previous city and lets the owner retry', async () => {
-  const app = setup();
-  await app.store.save(defaultLocation.location);
-  const cookie = (await app.signin()).headers.get('set-cookie')!.split(';')[0];
+test('failed save preserves the previous city for the owner to retry', async () => {
+  const store: StatusStore = {
+    read: async () => ({
+      ...defaultLocation,
+      source: 'manual',
+    }),
+    save: async () => {
+      throw new Error('write unavailable');
+    },
+  };
   const handle = createAdminHandler({
-    store: {
-      ...app.store,
-      async save() {
-        throw new Error('write unavailable');
-      },
-    },
-    owner: {
-      prompt: 'code',
-      async verify() {
-        return { ok: true };
-      },
-    },
-    invalidate() {
-      assert.fail('A failed write must not invalidate the location cache');
-    },
+    store,
+    owner: { prompt: 'none', verify: async () => ({ ok: true }) },
+    invalidate: () =>
+      assert.fail('Failed writes must not invalidate the public cache'),
   });
-  const { csrf } = await (await handle(app.request(undefined, cookie))).json();
   const city = {
     ...defaultLocation.location,
     city: 'Seattle',
@@ -283,7 +89,14 @@ test('a failed save preserves the previous city and lets the owner retry', async
     longitude: -122.33,
   };
   const response = await handle(
-    app.request({ action: 'save', csrf, city: JSON.stringify(city) }, cookie)
+    new Request('https://willie.page/api/admin/status', {
+      method: 'POST',
+      headers: {
+        Origin: 'https://willie.page',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ action: 'save', city: JSON.stringify(city) }),
+    })
   );
   assert.equal(response.status, 503);
   const failure = await response.json();
@@ -291,5 +104,4 @@ test('a failed save preserves the previous city and lets the owner retry', async
   assert.equal(failure.signedIn, true);
   assert.equal(failure.snapshot.location.city, 'Las Vegas');
   assert.equal(failure.results[0].city, 'Seattle');
-  assert.equal((await app.store.read())?.location.city, 'Las Vegas');
 });

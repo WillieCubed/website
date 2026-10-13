@@ -15,7 +15,13 @@ import { indieAuthEndpointOptions } from '@/lib/indieweb/indieauth-storage';
  */
 export async function GET(request: Request) {
   try {
-    return await handleConsentPage(request, indieAuthEndpointOptions());
+    const options = indieAuthEndpointOptions();
+    if (
+      !options.owner ||
+      !(await options.owner.verify(request, new FormData())).ok
+    )
+      return denied();
+    return await handleConsentPage(request, options);
   } catch (error) {
     console.error('IndieAuth consent page failed:', error);
     return failed();
@@ -24,11 +30,24 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    return await handleConsentDecision(request, indieAuthEndpointOptions());
+    const options = indieAuthEndpointOptions();
+    if (
+      !options.owner ||
+      !(await options.owner.verify(request, new FormData())).ok
+    )
+      return denied();
+    return await handleConsentDecision(request, options);
   } catch (error) {
     console.error('IndieAuth consent failed:', error);
     return failed();
   }
+}
+
+function denied() {
+  return htmlResponse(
+    renderSignInMessage('Access denied', 'Sign in through Cloudflare Access.'),
+    403
+  );
 }
 
 function failed() {

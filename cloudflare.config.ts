@@ -70,7 +70,13 @@ export default defineConfig((context) => {
         INDIEAUTH_INTROSPECTION_SECRET: bindings.secret(),
         INDIEWEB_NOTIFY_SECRET: bindings.secret(),
         SEARCH_REINDEX_SECRET: bindings.secret(),
-        INDIEAUTH_TOTP_SECRET: bindings.secret(),
+        ...(preview
+          ? {}
+          : {
+              OWNER_ACCESS_ISSUER: bindings.secret(),
+              OWNER_ACCESS_AUDIENCE: bindings.secret(),
+              OWNER_ACCESS_EMAIL: bindings.secret(),
+            }),
         MICROPUB_GITHUB_TOKEN: bindings.secret(),
         ATPROTO_APP_PASSWORD: bindings.secret(),
       },

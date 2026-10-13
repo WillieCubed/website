@@ -13,18 +13,20 @@ returns 503 instead of silently publishing the default city.
 
 `/admin/status` renders through the shared App Router layout, top bar, footer,
 and theme controls. Its React editor reads and writes JSON through
-`/api/admin/status`. The API uses the existing `INDIEAUTH_TOTP_SECRET` owner authenticator.
-It shares the existing replay protection and failed-attempt limit. Sign-in
-creates an eight-hour session stored by SHA-256 digest in Postgres. The browser
-cookie is HttpOnly and SameSite Strict, with Secure enabled in production.
-Every write checks the request origin. Saving and signing out also require a
-session-bound CSRF token. Admin responses disable caching and framing.
+`/api/admin/status`. Both paths are protected by the same Cloudflare Access
+application as the private writing preview. The Worker independently verifies
+the signed Access JWT, issuer, audience, expiry, and owner email on every read
+and write, so a direct `workers.dev` request cannot bypass the edge policy.
+Every write also checks the request origin. Admin responses disable caching
+and framing. There is no separate site code or database login session.
 
-Set `POSTGRES_URL` and `INDIEAUTH_TOTP_SECRET` using the existing environment
-setup. Apply `lib/db/migrations/010_status.sql` before using the editor. The
-bootstrap migration list and readiness check include both new tables. Sign-in
-stays disabled when either setting is absent. No default password or test
-session exists in the application.
+Set `OWNER_ACCESS_ISSUER`, `OWNER_ACCESS_AUDIENCE`, and `OWNER_ACCESS_EMAIL` as
+production Worker secrets, and configure Access destinations for
+`willie.page/admin`, `willie.page/admin/*`, and
+`willie.page/api/admin/*`. The first two protect the page, while the third
+protects API calls. `OWNER_ACCESS_AUDIENCE` is the Access application's AUD
+tag. Apply `lib/db/migrations/010_status.sql` before using the editor. The
+owner API stays disabled when its Access configuration or database is absent.
 
 Choose “Edit” and type a city. Suggestions appear as you type. Selecting a
 result updates the city and region. Cancel or Escape restores the saved city.
@@ -76,7 +78,7 @@ handling, and an explicit source selection policy. It must not overwrite a
 manual choice implicitly. Exact-location storage belongs to Docket rather than
 these public-site tables.
 
-Run `pnpm exec tsx --test tests/unit/status.test.mts` for authentication, session,
-CSRF, city validation, and source fallback checks. The standard test command
+Run `pnpm exec tsx --test tests/unit/status*.test.mts tests/unit/owner-access.test.mts`
+for signed identity, origin, city validation, and source fallback checks. The standard test command
 includes these checks. Use a separate database for local integration checks.
 Do not use production credentials for test city changes.

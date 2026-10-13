@@ -83,7 +83,8 @@ The Worker needs these secrets: `ATPROTO_OAUTH_JWK`,
 `ATPROTO_OAUTH_STORAGE_KEY`, `WEBMENTION_SECRET`,
 `WEBMENTION_MODERATION_SECRET`, `INDIEAUTH_INTROSPECTION_SECRET`,
 `INDIEWEB_NOTIFY_SECRET`, `SEARCH_REINDEX_SECRET`,
-`INDIEAUTH_TOTP_SECRET`, `MICROPUB_GITHUB_TOKEN`, and
+`OWNER_ACCESS_ISSUER`, `OWNER_ACCESS_AUDIENCE`, `OWNER_ACCESS_EMAIL`,
+`MICROPUB_GITHUB_TOKEN`, and
 `ATPROTO_APP_PASSWORD`. `cf` cannot set one secret in the current beta; use
 `wrangler secret put` with the explicit Worker name, or supply a private
 `--secrets-file` to `cf deploy`. Never put values in the repository or command

@@ -23,3 +23,10 @@ overrides:
 patchedDependencies:
   gray-matter@4.0.3: patches/gray-matter@4.0.3.patch
   next@16.3.8: patches/next@16.3.8.patch
+
+minimumReleaseAgeExclude:
+  - '@cloudflare/build-output-utils@0.9.1'
+  - '@cloudflare/config@0.25.0'
+  - '@cloudflare/runtime-types@0.1.10'
+  - cf@1.0.0-beta.15
+  - miniflare@5.20261006.2-beta

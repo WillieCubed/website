@@ -31,13 +31,28 @@ is rebuilt. `/media` is a page that lists media mentions and appearances.
 
 ## Hosting: Cloudflare Workers
 
-OpenNext packages the Next.js app for the `willie-page` Worker. The source of
-truth is `wrangler.jsonc`; `wrangler.preview.jsonc` deploys an isolated
-`willie-page-preview` Worker. Build with `pnpm build:cloudflare`, deploy with
+OpenNext packages the Next.js app for the `willie-page` Worker. The deployment
+source of truth is `cloudflare.config.ts`; its `preview` mode selects the
+isolated `willie-page-preview` Worker. `wrangler.config.ts` holds bundler
+settings for the beta `cf` CLI, while `wrangler.jsonc` and
+`wrangler.preview.jsonc` remain for OpenNext's adapter build. Build with
+`pnpm build:cloudflare`, deploy with
 `pnpm deploy:cloudflare` (or `pnpm deploy:cloudflare:preview`), and verify
 the baked commit SHA at `/api/indieweb/revision`. Do not build once and deploy
 the same `.open-next` directory to both environments: the public origin and
 revision are compiled into the build.
+
+Use a WillieCubed `cf` CLI profile for local deployments and verify its
+account ID is `18f90fa11cf0a87145be4a1517e41217` with
+`pnpm exec cf auth whoami --profile williecubed`. Set
+`CLOUDFLARE_PROFILE=williecubed` when running the deploy script locally. The
+config also pins that account ID, so a login from another Cloudflare account cannot
+silently deploy the personal site there. The `cf` CLI has separate credentials
+from Wrangler. The OpenNext adapter still requires Wrangler to produce its
+bundle, and `cf` uses the Wrangler bundler. Do not run `cf init .` here; this
+project was converted with `cf migrate` and its Durable Object exports were
+reviewed. `cf` is currently beta, so validate both modes with a dry run and
+hosted checks after each CLI update.
 
 Cloudflare owns DNS, Worker delivery, R2 media, cache storage, and Web
 Analytics. The production Neon project remains owned in Willie's Neon
@@ -53,8 +68,9 @@ The Worker needs these secrets: `ATPROTO_OAUTH_JWK`,
 `WEBMENTION_MODERATION_SECRET`, `INDIEAUTH_INTROSPECTION_SECRET`,
 `INDIEWEB_NOTIFY_SECRET`, `SEARCH_REINDEX_SECRET`,
 `INDIEAUTH_TOTP_SECRET`, `MICROPUB_GITHUB_TOKEN`, and
-`ATPROTO_APP_PASSWORD`. Set them with `wrangler secret put` or a private JSON
-file and `wrangler secret bulk`; never put values in the repository or command
+`ATPROTO_APP_PASSWORD`. `cf` cannot set one secret in the current beta; use
+`wrangler secret put` with the explicit Worker name, or supply a private
+`--secrets-file` to `cf deploy`. Never put values in the repository or command
 arguments. `INDIEWEB_NOTIFY_SECRET_PRODUCTION` in GitHub Actions must match the
 production Worker secret. Rotating the OAuth storage key signs existing
 Standard.site subscribers out; they must authorize again.
@@ -71,8 +87,8 @@ Action on a real publish; a successful build alone is not publication proof.
 
 The deploy scripts supply a placeholder loopback Postgres URL only to the
 local Wrangler proxy that OpenNext starts while preparing a remote upload.
-The deployed Workers use the Hyperdrive IDs in their Wrangler configs; the
-placeholder is never a production database credential. Bare `wrangler deploy`
+The deployed Workers use the Hyperdrive IDs in `cloudflare.config.ts`; the
+placeholder is never a production database credential. Bare `cf deploy`
 fails at that local proxy preflight when no local connection string is set.
 
 On the current Worker architecture, Workers Free's 10 ms CPU limit is too
@@ -88,7 +104,10 @@ production project had used 6,519 compute seconds (1.81 CU-hours) and 32.6 MB
 of storage; the acceptance project had used 9,845 compute seconds (2.74
 CU-hours) and 33.2 MB; the private-writing project had used 1,899 compute
 seconds (0.53 CU-hours) and no storage. These are pre-cutover figures. The
-production compute is fixed at 0.25 CU and was idle when checked. A 0.25 CU
+production compute is fixed at 0.25 CU and was idle when checked. The isolated
+preview compute was capped at 0.25 CU on October 13; all three computes were
+idle and had scale to zero enabled when checked. Neon's API value
+`suspend_timeout_seconds: 0` uses the plan default idle timeout. A 0.25 CU
 compute kept awake all month would consume roughly 186 CU-hours, exceeding
 the Free allowance. Avoid frequent database polling and keep scale to zero
 enabled. The public footer's location read uses the shared Next data cache

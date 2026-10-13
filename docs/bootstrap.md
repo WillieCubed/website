@@ -14,9 +14,10 @@ Fill only the local variables you need in `.env.local`; never commit the file.
 `POSTGRES_URL` is a direct Neon URL for local development. Cloudflare Workers
 use Hyperdrive and separate runtime secrets instead.
 
-For Cloudflare deployment, sign in with the current Wrangler CLI and verify the
-account is WillieCubed. The Worker configs in the repository name the exact
-production and preview Hyperdrive, R2, and Durable Object bindings. Provision
+For Cloudflare deployment, sign in with the current `cf` CLI and verify the
+account is WillieCubed. `cf` keeps its own login, separate from Wrangler. The
+Worker configs in the repository name the exact production and preview
+Hyperdrive, R2, and Durable Object bindings. Provision
 missing resources before deploying, then set secrets in each Worker. The
 production and preview environments must have distinct OAuth keys, TOTP
 secrets, cache buckets, media buckets, and databases. Use the production

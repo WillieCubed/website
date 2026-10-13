@@ -16,6 +16,7 @@ const eslintConfig = [
       'node_modules/**',
       '.next/**',
       '.open-next/**',
+      '.cloudflare/**',
       '.wrangler/**',
       '.vercel/**',
       'out/**',

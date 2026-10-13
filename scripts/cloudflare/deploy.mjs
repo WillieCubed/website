@@ -5,12 +5,15 @@ if (target !== 'production' && target !== 'preview') {
   throw new Error('Deploy target must be production or preview.');
 }
 
-// OpenNext initializes Wrangler's local platform proxy while preparing a
-// remote deploy. That proxy requires a local Hyperdrive URL even though the
-// deployed Worker uses the Hyperdrive ID in its Wrangler configuration.
+// The Wrangler bundler that cf uses needs a local Hyperdrive URL while
+// preparing the upload. The deployed Worker uses the Hyperdrive ID in
+// cloudflare.config.ts instead of this placeholder.
 const localHyperdriveUrl = 'postgres://unused:unused@127.0.0.1:5432/unused';
-const args = ['exec', 'wrangler', 'deploy'];
-if (target === 'preview') args.push('--config', 'wrangler.preview.jsonc');
+const args = ['exec', 'cf', 'deploy'];
+if (target === 'preview') args.push('--mode', 'preview');
+if (process.env.CLOUDFLARE_PROFILE) {
+  args.push('--profile', process.env.CLOUDFLARE_PROFILE);
+}
 
 const deploy = spawnSync('pnpm', args, {
   stdio: 'inherit',

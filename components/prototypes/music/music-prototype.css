@@ -1524,3 +1524,514 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     animation: none;
   }
 }
+
+/* Curation gives decisions their own surfaces without changing the public gallery. */
+.music-prototype[data-editing] {
+  padding-bottom: 110px;
+}
+.music-prototype[data-editing] .mp-collection-header h2 {
+  font-size: 38px;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+.music-prototype[data-editing] .mp-collection-header .mp-small {
+  font-size: 15px;
+  margin-top: 10px;
+}
+.music-prototype[data-editing] .mp-collection-header {
+  margin-bottom: 24px;
+}
+.mp-library-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.mp-library-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--color-surface-container);
+  border-radius: 16px;
+  font-size: 14px;
+  transition:
+    background 160ms var(--mp-effects),
+    border-radius 250ms var(--mp-spatial);
+}
+.mp-library-filters button[aria-pressed='true'] {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  font-weight: 600;
+  border-radius: 24px;
+}
+.mp-library-filters button:hover {
+  background: var(--color-surface-container-high);
+}
+.mp-library-filters button[aria-pressed='true']:hover {
+  background: var(--color-primary-container);
+}
+.mp-library-filters button span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.music-prototype[data-editing] .mp-edit-hint {
+  font-size: 15px;
+  line-height: 24px;
+  max-width: 48ch;
+  margin-bottom: 28px;
+}
+.mp-grid-editing {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px 24px;
+}
+.mp-grid-editing .mp-card {
+  padding: 12px;
+  border-radius: 20px;
+  background: var(--color-surface-container);
+}
+.mp-grid-editing .mp-card-open {
+  border-radius: 10px;
+}
+.mp-grid-editing .mp-art-frame {
+  border-radius: 10px;
+}
+.mp-grid-editing .mp-card-caption {
+  min-height: 76px;
+  gap: 8px;
+}
+.mp-grid-editing .mp-card-caption h3 {
+  font-size: 18px;
+  line-height: 24px;
+}
+.mp-grid-editing .mp-open-icon {
+  width: 32px;
+  height: 32px;
+}
+.mp-grid-editing .mp-card-controls {
+  margin-top: 12px;
+  gap: 12px;
+}
+.mp-grid-editing .mp-check {
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--color-surface-container-high);
+  font-size: 14px;
+}
+.mp-grid-editing .mp-check:has(input:checked) {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+}
+.mp-grid-editing .mp-check input {
+  width: 18px;
+  height: 18px;
+}
+.mp-grid-editing .mp-order-buttons {
+  gap: 4px;
+  align-items: center;
+}
+.mp-grid-editing .mp-order-buttons .mp-icon-button {
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-surface-container-high);
+}
+.mp-order-label {
+  display: none;
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-right: auto;
+}
+.mp-grid-editing .mp-card-unselected .mp-art {
+  opacity: 0.55;
+}
+.music-prototype[data-editing] .mp-draft-note {
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--color-surface-container);
+  gap: 6px 10px;
+  font-size: 14px;
+}
+.music-prototype[data-editing] .mp-draft-note .mp-button {
+  justify-self: stretch;
+}
+dialog.mp-detail[data-editing] .mp-detail-scroll {
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: 24px 40px;
+}
+dialog.mp-detail[data-editing] .mp-detail-body .mp-spotify,
+dialog.mp-detail[data-editing] .mp-detail-body .mp-spotify-note {
+  display: none;
+}
+dialog.mp-detail[data-editing] .mp-detail-meta {
+  font-size: 15px;
+  line-height: 24px;
+}
+.mp-context-editor {
+  gap: 24px;
+}
+.mp-context-editor > label:first-child,
+.mp-context-editor legend {
+  font-size: 16px;
+  line-height: 24px;
+}
+.mp-context-editor > label:first-child {
+  margin-bottom: -14px;
+}
+.mp-context-editor textarea {
+  min-height: 124px;
+  padding: 16px;
+  border-radius: 16px;
+  border-color: var(--color-outline-variant);
+  background: var(--color-surface-container);
+  font-size: 16px;
+  line-height: 25px;
+}
+.mp-context-editor fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mp-context-editor legend {
+  margin-bottom: 12px;
+}
+.mp-context-editor .mp-check {
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--color-surface-container);
+  font-size: 15px;
+}
+.mp-context-editor .mp-check:has(input:checked) {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+}
+.mp-context-editor .mp-check input {
+  width: 18px;
+  height: 18px;
+}
+.mp-context-editor .mp-visibility-editor {
+  flex-direction: column;
+}
+dialog.mp-review {
+  width: min(1080px, calc(100vw - 64px));
+  max-width: none;
+  height: min(860px, calc(100svh - 64px));
+  max-height: none;
+  padding: 0;
+  border-radius: 24px;
+  overflow: hidden;
+}
+dialog.mp-review[open] {
+  display: flex;
+  flex-direction: column;
+}
+.mp-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 24px;
+  padding: 28px 40px 24px;
+}
+.mp-review-header h2 {
+  margin: 0 0 8px;
+  font-size: 38px;
+  line-height: 1.12;
+}
+.mp-review-header p {
+  max-width: 45ch;
+}
+.mp-review-header .mp-icon-button {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  border-radius: 16px;
+}
+#mp-review-title:focus,
+.mp-review-body:focus {
+  outline: none;
+}
+.mp-review-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 28px 40px;
+  padding: 0 40px 32px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.mp-review .mp-review-summary {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.mp-review .mp-review-summary > div {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: start;
+  gap: 8px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: var(--color-surface-container);
+}
+.mp-review-summary dd {
+  font-size: 32px;
+  line-height: 36px;
+}
+.mp-review-summary dt {
+  font-size: 14px;
+}
+.mp-review h3 {
+  font-size: 18px;
+  line-height: 26px;
+  margin-bottom: 16px;
+}
+.mp-review .mp-review-order > ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 18px;
+}
+.mp-review-order > ol > li {
+  display: grid;
+  grid-template-columns: 20px 56px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.mp-review-number {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+  padding-top: 2px;
+}
+.mp-review-cover {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border-radius: 8px;
+}
+.mp-review-playlist-title {
+  display: block;
+  font-size: 17px;
+  line-height: 23px;
+}
+.mp-review-feature-label {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-primary);
+  font-size: 13px;
+  line-height: 20px;
+}
+.mp-review .mp-review-note {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.mp-review-context {
+  padding: 24px;
+  border-radius: 24px;
+  background: var(--color-surface-container);
+}
+.mp-review-feature-cover {
+  width: min(100%, 240px);
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.mp-review-feature > p {
+  font-size: 16px;
+  line-height: 23px;
+  color: var(--color-ink);
+}
+.mp-review-series {
+  margin-top: 28px;
+}
+.mp-review-series ol {
+  padding-left: 20px;
+  margin-bottom: 0;
+}
+.mp-review .mp-review-actions {
+  display: flex;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 20px 40px;
+  gap: 12px;
+  background: var(--color-surface-container);
+  align-items: center;
+}
+.mp-review-actions > p {
+  margin-right: auto;
+  font-size: 13px;
+}
+@media (max-width: 1199px) {
+  .mp-grid-editing {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 839px) {
+  dialog.mp-detail[data-editing] .mp-detail-scroll {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 24px;
+  }
+  .music-prototype[data-editing] .mp-draft-note {
+    position: fixed;
+    z-index: 25;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+    margin: 0;
+    grid-template-columns: 6px minmax(0, 1fr) auto;
+    padding: 12px 16px;
+    box-shadow: 0 6px 30px
+      color-mix(in srgb, var(--color-scrim) 18%, transparent);
+  }
+  .music-prototype[data-editing] .mp-draft-note .mp-button {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    margin: 0;
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+  dialog.mp-review {
+    width: 100vw;
+    height: 100svh;
+    border-radius: 0;
+  }
+  .mp-review-header {
+    padding: 20px;
+    gap: 16px;
+  }
+  .mp-review-header h2 {
+    font-size: 28px;
+  }
+  .mp-review-header p {
+    font-size: 14px;
+    line-height: 21px;
+  }
+  .mp-review-body {
+    padding: 0 20px 28px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+  .mp-review .mp-review-summary {
+    gap: 8px;
+  }
+  .mp-review .mp-review-summary > div {
+    padding: 14px 12px;
+    gap: 6px;
+  }
+  .mp-review-summary dd {
+    font-size: 28px;
+  }
+  .mp-review-summary dt {
+    font-size: 12px;
+    flex-shrink: 1;
+  }
+  .mp-review .mp-review-actions {
+    padding: 16px 20px max(16px, env(safe-area-inset-bottom));
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .mp-review-actions > p {
+    flex-basis: 100%;
+    font-size: 12px;
+  }
+  .mp-review .mp-review-actions .mp-button {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 13px;
+    gap: 8px;
+  }
+  .mp-review .mp-review-actions .mp-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+@media (max-width: 599px) {
+  .music-prototype[data-editing] .mp-collection-header h2 {
+    font-size: 28px;
+  }
+  .mp-library-filters {
+    gap: 6px;
+  }
+  .mp-library-filters button {
+    padding: 10px 12px;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .mp-grid-editing {
+    gap: 20px 14px;
+  }
+  .mp-grid-editing .mp-card {
+    padding: 9px;
+    border-radius: 16px;
+  }
+  .mp-grid-editing .mp-card-caption h3 {
+    font-size: 15px;
+    line-height: 21px;
+  }
+  .mp-grid-editing .mp-open-icon {
+    display: none;
+  }
+  .mp-grid-editing .mp-card-controls {
+    display: grid;
+    gap: 8px;
+  }
+  .mp-grid-editing .mp-order-buttons {
+    margin: 0;
+  }
+  .mp-order-label {
+    display: inline;
+  }
+  dialog.mp-detail[data-editing] .mp-detail-scroll {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 24px 20px;
+    padding-inline: 20px;
+  }
+  dialog.mp-detail[data-editing] .mp-detail-body h2 {
+    font-size: 28px;
+  }
+  dialog.mp-detail[data-editing] .mp-detail-meta {
+    font-size: 13px;
+    line-height: 20px;
+  }
+  .mp-context-editor {
+    grid-column: 1 / -1;
+    gap: 22px;
+  }
+  .mp-context-editor textarea {
+    min-height: 110px;
+  }
+}
+.mp-review-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.mp-review-section-heading h3 {
+  margin: 0;
+}
+.mp-review-section-heading .mp-text-button {
+  min-height: 40px;
+  font-size: 13px;
+  padding-inline: 14px;
+}
+@media (max-width: 359px) {
+  .mp-order-label {
+    display: none;
+  }
+  .mp-review .mp-review-actions .mp-button {
+    flex-basis: 100%;
+  }
+}

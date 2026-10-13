@@ -30,6 +30,7 @@
     "test": "tsx --env-file=tests/unit/test.env --test --test-concurrency=2 tests/unit/*.test.mts",
     "test:e2e": "playwright test",
     "search:index": "tsx scripts/generate-search-index.ts",
+    "music:shots": "node scripts/capture-music-prototype.mjs",
     "websub:ping": "tsx scripts/websub-ping.mts",
     "webmentions:send": "tsx scripts/send-webmentions.mts",
     "webmentions:moderate": "tsx scripts/moderate-webmentions.mts",

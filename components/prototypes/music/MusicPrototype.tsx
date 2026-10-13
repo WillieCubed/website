@@ -44,12 +44,18 @@ export default function MusicPrototype() {
   const [seriesId, setSeriesId] = useState<string | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [libraryFilter, setLibraryFilter] = useState<
+    'all' | 'selected' | 'unselected'
+  >('all');
   const [newSeries, setNewSeries] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
   const gallery = useRef<HTMLDivElement>(null);
   const cancelMotion = useRef<(() => void) | null>(null);
   const reviewDialog = useRef<HTMLDialogElement>(null);
+  const reviewTrigger = useRef<HTMLButtonElement>(null);
+  const curateToggle = useRef<HTMLButtonElement>(null);
+  const focusSequence = useRef<string[]>([]);
   const returnFocus = useRef<HTMLElement | null>(null);
   const ownDetailEntry = useRef(false);
   const ownPop = useRef(false);
@@ -60,11 +66,15 @@ export default function MusicPrototype() {
   const visibleIds = order.filter(
     (id) => editing || catalog.selected.includes(id)
   );
-  const matching = visibleIds.filter((id) =>
-    playlists
-      .find((item) => item.id === id)
-      ?.title.toLowerCase()
-      .includes(search.toLowerCase())
+  const matching = visibleIds.filter(
+    (id) =>
+      (!editing ||
+        libraryFilter === 'all' ||
+        catalog.selected.includes(id) === (libraryFilter === 'selected')) &&
+      playlists
+        .find((item) => item.id === id)
+        ?.title.toLowerCase()
+        .includes(search.toLowerCase())
   );
   const lead =
     !series &&
@@ -78,7 +88,9 @@ export default function MusicPrototype() {
     ? [lead, ...matching.filter((id) => id !== lead)]
     : matching;
   const current = playlists.find((item) => item.id === focused);
-  const currentIndex = focused ? displayed.indexOf(focused) : -1;
+  const focusIds =
+    focused && focusSequence.current.length ? focusSequence.current : displayed;
+  const currentIndex = focused ? focusIds.indexOf(focused) : -1;
   const changed = JSON.stringify(live) !== JSON.stringify(draft);
 
   useEffect(() => () => cancelMotion.current?.(), []);
@@ -111,6 +123,7 @@ export default function MusicPrototype() {
 
   useEffect(() => {
     const sync = (external = false) => {
+      if (external) focusSequence.current = [];
       const state = readLocation();
       setSeriesId(
         catalog.series.some((item) => item.id === state.series)
@@ -169,6 +182,7 @@ export default function MusicPrototype() {
     cancelMotion.current?.();
     if (source) returnFocus.current = source;
     const alreadyOpen = !!dialog.current?.open;
+    if (!alreadyOpen) focusSequence.current = [...displayed];
     const before = alreadyOpen ? focusParts() : cardParts(source);
     cancelMotion.current = playlistMotion(
       () => {
@@ -272,6 +286,11 @@ export default function MusicPrototype() {
     setAnnouncement('Draft saved in this browser.');
   }
 
+  function closeReview() {
+    flushSync(() => setReview(false));
+    reviewTrigger.current?.focus({ preventScroll: true });
+  }
+
   function select(id: string) {
     const selected = draft.selected.includes(id)
       ? draft.selected.filter((item) => item !== id)
@@ -300,6 +319,7 @@ export default function MusicPrototype() {
   }
 
   function dropOn(id: string) {
+    if (!editing || search || libraryFilter !== 'all') return;
     const from = dragId.current;
     dragId.current = null;
     if (!from || from === id) return;
@@ -366,12 +386,13 @@ export default function MusicPrototype() {
         aria-label={featured ? 'Featured playlist' : undefined}
         data-playlist={playlist.id}
         data-focused={playlist.id === focused || undefined}
-        draggable={editing && !search}
+        draggable={editing && !search && libraryFilter === 'all'}
         onDragStart={() => {
           dragId.current = playlist.id;
         }}
         onDragOver={(event) => {
-          if (editing && !search) event.preventDefault();
+          if (editing && !search && libraryFilter === 'all')
+            event.preventDefault();
         }}
         onDrop={() => dropOn(playlist.id)}
       >
@@ -503,12 +524,13 @@ export default function MusicPrototype() {
                 onChange={() => select(playlist.id)}
                 aria-label={`Include ${playlist.title}`}
               />
-              Include
+              {selected ? 'Included' : 'Include'}
             </label>
             <div className="mp-order-buttons">
+              <span className="mp-order-label">Order</span>
               <button
                 className="mp-icon-button"
-                disabled={index === 0 || !!search}
+                disabled={index === 0 || !!search || libraryFilter !== 'all'}
                 onClick={() => reorder(playlist.id, -1)}
                 aria-label={`Move ${playlist.title} earlier`}
               >
@@ -516,7 +538,11 @@ export default function MusicPrototype() {
               </button>
               <button
                 className="mp-icon-button"
-                disabled={index === matching.length - 1 || !!search}
+                disabled={
+                  index === matching.length - 1 ||
+                  !!search ||
+                  libraryFilter !== 'all'
+                }
                 onClick={() => reorder(playlist.id, 1)}
                 aria-label={`Move ${playlist.title} later`}
               >
@@ -530,15 +556,21 @@ export default function MusicPrototype() {
   }
 
   return (
-    <div className="music-prototype" aria-busy={!ready}>
+    <div
+      className="music-prototype"
+      data-editing={editing || undefined}
+      aria-busy={!ready}
+    >
       <div className="mp-prototype-bar">
         <span>Local prototype · Sample content</span>
         <button
+          ref={curateToggle}
           className="mp-text-button"
           onClick={() => {
             setEditing(!editing);
             setReview(false);
             setSearch('');
+            setLibraryFilter('all');
           }}
         >
           {editing ? 'View gallery' : 'Curate music'}
@@ -621,6 +653,7 @@ export default function MusicPrototype() {
               </small>
               <button
                 className="mp-button mp-primary"
+                ref={reviewTrigger}
                 disabled={!changed}
                 onClick={() => setReview(true)}
               >
@@ -659,10 +692,44 @@ export default function MusicPrototype() {
             </label>
           </header>
           {editing && (
-            <p className="mp-edit-hint">
-              Include the playlists you want to share. Open one to edit its
-              notes, feature it, or add it to a series.
-            </p>
+            <>
+              <div
+                className="mp-library-filters"
+                role="group"
+                aria-label="Library filter"
+              >
+                {(
+                  [
+                    ['all', 'All', visibleIds.length],
+                    [
+                      'selected',
+                      'In gallery',
+                      visibleIds.filter((id) => catalog.selected.includes(id))
+                        .length,
+                    ],
+                    [
+                      'unselected',
+                      'Not included',
+                      visibleIds.filter((id) => !catalog.selected.includes(id))
+                        .length,
+                    ],
+                  ] as const
+                ).map(([value, label, count]) => (
+                  <button
+                    key={value}
+                    aria-pressed={libraryFilter === value}
+                    onClick={() => setLibraryFilter(value)}
+                  >
+                    {label}
+                    <span aria-hidden="true">{count}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="mp-edit-hint">
+                Choose what appears in your gallery. Open a playlist to add
+                notes or arrange its place in a series.
+              </p>
+            </>
           )}
           {storageError && (
             <p className="mp-notice" role="status">
@@ -687,17 +754,26 @@ export default function MusicPrototype() {
               <h3>
                 {search
                   ? 'No matching playlists'
-                  : 'This series is still empty'}
+                  : editing && libraryFilter === 'unselected'
+                    ? 'Every playlist is included.'
+                    : editing && libraryFilter === 'selected'
+                      ? 'No playlists included yet'
+                      : 'This series is still empty'}
               </h3>
               <p>
                 {search
                   ? 'Try another title.'
-                  : 'Open a playlist from All playlists to add it to this series.'}
+                  : editing && libraryFilter !== 'all'
+                    ? 'Choose All to see the rest of your library.'
+                    : 'Open a playlist from All playlists to add it to this series.'}
               </p>
               {!search && (
                 <button
                   className="mp-button"
-                  onClick={() => chooseSeries(null)}
+                  onClick={() => {
+                    setLibraryFilter('all');
+                    chooseSeries(null);
+                  }}
                 >
                   Browse all playlists
                 </button>
@@ -715,6 +791,7 @@ export default function MusicPrototype() {
       <dialog
         ref={dialog}
         className="mp-detail"
+        data-editing={editing || undefined}
         aria-labelledby="mp-detail-title"
         onKeyDown={(event) => {
           if (event.key === 'Tab') {
@@ -767,7 +844,7 @@ export default function MusicPrototype() {
               <span>
                 {series
                   ? `${series.title} / ${String(currentIndex + 1).padStart(2, '0')}`
-                  : `${currentIndex + 1} of ${displayed.length}`}
+                  : `${currentIndex + 1} of ${focusIds.length}`}
               </span>
               <div className="mp-detail-actions">
                 <div
@@ -778,7 +855,7 @@ export default function MusicPrototype() {
                   <button
                     className="mp-icon-button mp-icon-button--tonal"
                     disabled={currentIndex <= 0}
-                    onClick={() => openPlaylist(displayed[currentIndex - 1])}
+                    onClick={() => openPlaylist(focusIds[currentIndex - 1])}
                     aria-label="Previous playlist"
                   >
                     <Icon name="arrow-left" size={24} />
@@ -786,9 +863,9 @@ export default function MusicPrototype() {
                   <button
                     className="mp-icon-button mp-icon-button--filled"
                     disabled={
-                      currentIndex < 0 || currentIndex >= displayed.length - 1
+                      currentIndex < 0 || currentIndex >= focusIds.length - 1
                     }
-                    onClick={() => openPlaylist(displayed[currentIndex + 1])}
+                    onClick={() => openPlaylist(focusIds[currentIndex + 1])}
                     aria-label="Next playlist"
                   >
                     <Icon name="arrow-right" size={24} />
@@ -867,22 +944,34 @@ export default function MusicPrototype() {
                       })
                     }
                   />
-                  <label className="mp-check">
-                    <input
-                      type="checkbox"
-                      checked={draft.lead === current.id}
-                      onChange={() =>
-                        change({
-                          ...draft,
-                          lead: draft.lead === current.id ? null : current.id,
-                          selected: draft.selected.includes(current.id)
-                            ? draft.selected
-                            : [...draft.selected, current.id],
-                        })
-                      }
-                    />
-                    Feature in the gallery
-                  </label>
+                  <fieldset className="mp-visibility-editor">
+                    <legend>In your gallery</legend>
+                    <label className="mp-check">
+                      <input
+                        type="checkbox"
+                        aria-label="Include in gallery"
+                        checked={draft.selected.includes(current.id)}
+                        onChange={() => select(current.id)}
+                      />
+                      Include in gallery
+                    </label>
+                    <label className="mp-check">
+                      <input
+                        type="checkbox"
+                        checked={draft.lead === current.id}
+                        onChange={() =>
+                          change({
+                            ...draft,
+                            lead: draft.lead === current.id ? null : current.id,
+                            selected: draft.selected.includes(current.id)
+                              ? draft.selected
+                              : [...draft.selected, current.id],
+                          })
+                        }
+                      />
+                      Feature in the gallery
+                    </label>
+                  </fieldset>
                   <fieldset>
                     <legend>Series</legend>
                     {draft.series.map((item) => (
@@ -936,86 +1025,190 @@ export default function MusicPrototype() {
           aria-labelledby="mp-review-title"
           onCancel={(event) => {
             event.preventDefault();
-            setReview(false);
+            closeReview();
+          }}
+          onKeyDown={(event) => {
+            const scroller =
+              reviewDialog.current?.querySelector<HTMLElement>(
+                '.mp-review-body'
+              );
+            if (
+              !scroller ||
+              scroller.contains(event.target as Node) ||
+              event.altKey ||
+              event.ctrlKey ||
+              event.metaKey
+            )
+              return;
+            const distances: Record<string, number> = {
+              ArrowDown: 40,
+              ArrowUp: -40,
+              PageDown: scroller.clientHeight * 0.85,
+              PageUp: -scroller.clientHeight * 0.85,
+              Home: -scroller.scrollHeight,
+              End: scroller.scrollHeight,
+            };
+            if (!(event.key in distances)) return;
+            event.preventDefault();
+            scroller.scrollBy({
+              top: distances[event.key],
+              behavior: 'instant',
+            });
           }}
         >
-          <h2 id="mp-review-title" tabIndex={-1}>
-            Review your collection
-          </h2>
-          <p>
-            Apply this selection, order, and context to the prototype gallery.
-          </p>
-          <dl>
+          <header className="mp-review-header">
             <div>
-              <dt>Selected playlists</dt>
-              <dd>{draft.selected.length}</dd>
+              <h2 id="mp-review-title" tabIndex={-1}>
+                Review your collection
+              </h2>
+              <p>Check the order and context before applying your changes.</p>
             </div>
-            <div>
-              <dt>Series</dt>
-              <dd>{draft.series.length}</dd>
-            </div>
-            <div>
-              <dt>Featured playlist</dt>
-              <dd>
-                {playlists.find((item) => item.id === draft.lead)?.title ??
-                  'None'}
-              </dd>
-            </div>
-          </dl>
-          <h3>Gallery order</h3>
-          <ol>
-            {draft.order
-              .filter((id) => draft.selected.includes(id))
-              .map((id) => (
-                <li key={id}>
-                  {playlists.find((item) => item.id === id)?.title}
-                  {draft.notes[id] && (
-                    <p className="mp-review-note">{draft.notes[id]}</p>
-                  )}
-                </li>
-              ))}
-          </ol>
-          {draft.series.map((item) => (
-            <section key={item.id} className="mp-review-series">
-              <h3>{item.title}</h3>
-              {item.playlistIds.some((id) => draft.selected.includes(id)) ? (
-                <ol>
-                  {item.playlistIds
-                    .filter((id) => draft.selected.includes(id))
-                    .map((id) => (
+            <button
+              className="mp-icon-button mp-icon-button--tonal"
+              aria-label="Close review"
+              onClick={closeReview}
+            >
+              <Icon name="x" size={24} />
+            </button>
+          </header>
+          <div
+            className="mp-review-body"
+            role="region"
+            aria-label="Collection review"
+            tabIndex={-1}
+          >
+            <dl className="mp-review-summary">
+              <div>
+                <dt>In gallery</dt>
+                <dd>{draft.selected.length}</dd>
+              </div>
+              <div>
+                <dt>Not included</dt>
+                <dd>{playlists.length - draft.selected.length}</dd>
+              </div>
+              <div>
+                <dt>Series</dt>
+                <dd>{draft.series.length}</dd>
+              </div>
+            </dl>
+            <section className="mp-review-order">
+              <div className="mp-review-section-heading">
+                <h3>Gallery order</h3>
+                <button
+                  className="mp-text-button"
+                  onClick={() => {
+                    setLibraryFilter('all');
+                    setSearch('');
+                    chooseSeries(null);
+                    closeReview();
+                    gallery.current
+                      ?.querySelector<HTMLButtonElement>(
+                        '.mp-order-buttons button:not(:disabled)'
+                      )
+                      ?.focus();
+                  }}
+                >
+                  Edit order
+                </button>
+              </div>
+              <ol>
+                {draft.order
+                  .filter((id) => draft.selected.includes(id))
+                  .map((id, index) => {
+                    const playlist = playlists.find((item) => item.id === id)!;
+                    return (
                       <li key={id}>
-                        {
-                          playlists.find((playlist) => playlist.id === id)
-                            ?.title
-                        }
+                        <span className="mp-review-number">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <span className="mp-review-cover">
+                          <SampleCover playlist={playlist} />
+                        </span>
+                        <div>
+                          <span className="mp-review-playlist-title">
+                            {playlist.title}
+                          </span>
+                          {id === draft.lead && (
+                            <span className="mp-review-feature-label">
+                              Featured in your gallery
+                            </span>
+                          )}
+                          {draft.notes[id] && (
+                            <p className="mp-review-note">{draft.notes[id]}</p>
+                          )}
+                        </div>
                       </li>
-                    ))}
-                </ol>
-              ) : (
-                <p>No selected playlists.</p>
-              )}
+                    );
+                  })}
+              </ol>
             </section>
-          ))}
-          <p className="mp-small">
-            This action stays in this browser. It publishes nothing.
-          </p>
-          <div className="mp-review-actions">
-            <button className="mp-button" onClick={() => setReview(false)}>
+            <aside className="mp-review-context">
+              <section className="mp-review-feature">
+                <h3>Featured playlist</h3>
+                {draft.lead ? (
+                  <>
+                    <div className="mp-review-feature-cover">
+                      <SampleCover
+                        playlist={
+                          playlists.find((item) => item.id === draft.lead)!
+                        }
+                      />
+                    </div>
+                    <p>
+                      {playlists.find((item) => item.id === draft.lead)?.title}
+                    </p>
+                  </>
+                ) : (
+                  <p>No featured playlist.</p>
+                )}
+              </section>
+              {draft.series.map((item) => (
+                <section key={item.id} className="mp-review-series">
+                  <h3>{item.title}</h3>
+                  {item.playlistIds.some((id) =>
+                    draft.selected.includes(id)
+                  ) ? (
+                    <ol>
+                      {item.playlistIds
+                        .filter((id) => draft.selected.includes(id))
+                        .map((id) => (
+                          <li key={id}>
+                            {
+                              playlists.find((playlist) => playlist.id === id)
+                                ?.title
+                            }
+                          </li>
+                        ))}
+                    </ol>
+                  ) : (
+                    <p>No selected playlists.</p>
+                  )}
+                </section>
+              ))}
+            </aside>
+          </div>
+          <footer className="mp-review-actions">
+            <p>This action stays in this browser.</p>
+            <button className="mp-button mp-tonal" onClick={closeReview}>
               Back to editing
             </button>
             <button
               className="mp-button mp-primary"
               onClick={() => {
-                setLive(structuredClone(draft));
-                setReview(false);
-                setEditing(false);
+                flushSync(() => {
+                  setLive(structuredClone(draft));
+                  setReview(false);
+                  setEditing(false);
+                  setLibraryFilter('all');
+                });
                 setAnnouncement('Changes applied to this prototype.');
+                curateToggle.current?.focus({ preventScroll: true });
               }}
             >
               Apply to prototype
               <Icon name="check" />
             </button>
-          </div>
+          </footer>
         </dialog>
       )}
     </div>

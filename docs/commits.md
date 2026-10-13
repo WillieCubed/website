@@ -4,10 +4,15 @@ Commits use [Conventional Commits](https://www.conventionalcommits.org/) format 
 
 ## Scopes
 
-Use one of these scopes. Omit the scope only for repository-wide changes.
+Scopes identify the domain a reader looks for in the changelog. Follow that
+domain across its public UI, admin UI, APIs, storage, and shared components.
+Do not choose a scope from the route type, file location, or implementation
+layer. Add a missing domain to this list instead of putting it under a broad
+category. Omit the scope only for repository-wide changes.
 
 - **`landing`** — the `/` route
-- **`pages`** — public profile and standalone pages, including `/about` and `/research`
+- **`profile`** — Willie's background, biography, and research, including `/about` and `/research`
+- **`status`** — current location, local time, and weather; includes `/status`, footer microstatus, status data sources, caching, and the admin status editor
 - **`projects`** — the project content model, `lib/projects`, `components/projects`, and the `/projects` routes
 - **`writings`** — the writing system: `lib/writings`, `components/writings`, and page routes
 - **`content`** — data and content files under `content/` and `data/` directories

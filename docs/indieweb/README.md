@@ -32,7 +32,7 @@ for an isolated deployment. Do not write the hostname anywhere else.
 | `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one image, audio, video or PDF file and answers 201 with its `Location`         | IndieAuth token, Cloudflare R2 media binding                 |
 | `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                           | nothing                                                      |
 | `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL        | Postgres                                                     |
-| `/indieauth/consent`                                               | The owner's consent page; approving needs a code from the authenticator app                                            | Postgres, `INDIEAUTH_TOTP_SECRET`                            |
+| `/indieauth/consent`                                               | The owner's consent page; approving needs a signed Cloudflare Access identity                                          | Postgres, owner Access configuration                         |
 | `/indieauth/token`                                                 | Token endpoint; `POST` exchanges a code or rotates a refresh grant, `GET` with a bearer token verifies one             | Postgres                                                     |
 | `/indieauth/userinfo`                                              | Permitted profile information for an active bearer token                                                               | Postgres                                                     |
 | `/indieauth/introspect`, `/indieauth/revoke`                       | Token introspection (RFC 7662) and revocation (RFC 7009); see IndieAuth                                                | Postgres; `INDIEAUTH_INTROSPECTION_SECRET` for introspection |
@@ -494,8 +494,8 @@ A sign-in runs like this:
    also stops DNS rebinding, redirects are followed by hand (three at most)
    and each hop is checked again, and the body is cut off at 1 MB. A
    `localhost` client is never fetched and gets the defaults.
-3. The consent page lists the requested scopes as checkboxes and asks for the
-   current code from the owner's authenticator app. Approving sends the
+3. The consent page lists the requested scopes as checkboxes after Cloudflare
+   Access verifies the owner's identity. Approving sends the
    client a code, with `state` and `iss`, for the scopes left checked.
    Denying sends `error=access_denied`.
 4. The client redeems the code with its `code_verifier`, at
@@ -532,29 +532,16 @@ in `lib/indieweb/indieauth-server.ts`, the HTTP handlers in
 
 ### Owner sign-in
 
-Approving a sign-in needs a six-digit TOTP code (RFC 6238). Run
-`pnpm indieauth:totp` once: it prints a new secret and an `otpauth://` URI.
-Add the URI to an authenticator app, set the secret as
-`INDIEAUTH_TOTP_SECRET` in the deployment's environment, and redeploy. The
-secret is never committed; without it the consent page answers 503. A code
-works once, so a second sign-in within the same 30 seconds waits for the next
-code. After ten wrong codes in a rolling 24 hours, sign-in pauses until the
-oldest one ages out, even for the right code, while tokens already issued
-keep working. That caps an attacker at ten guesses a day.
-
-The consent flow only sees the `OwnerAuthenticator` interface in
-`lib/indieweb/types.ts`. `lib/indieweb/indieauth-owner.ts` implements it
-with TOTP, and `indieAuthEndpointOptions()` in
-`lib/indieweb/indieauth-storage.ts` picks it. To move owner sign-in to
-Cloudflare Access, put `/indieauth/consent`, and only that path, behind an
-Access application. Then write an `OwnerAuthenticator` whose `verify` checks
-the `Cf-Access-Jwt-Assertion` header against the team's signing keys and the
-application's audience, with `prompt: 'none'` so the form stops asking for a
-code, and return it from `indieAuthEndpointOptions()`. The other IndieAuth
-endpoints are called by clients rather than the owner's browser, so they
-must stay outside Access. The consent `POST` already refuses cross-site
-submissions (`Sec-Fetch-Site`, then `Origin`, and neither is refused),
-which matters once the owner check rides on a browser session.
+Cloudflare Access protects `/indieauth/consent` on the canonical hostname.
+The Worker also validates the signed `Cf-Access-Jwt-Assertion` against the
+team's signing keys, issuer, audience, expiry, and owner email. This protects
+the approval step even on the direct Worker URL. Configure
+`OWNER_ACCESS_ISSUER`, `OWNER_ACCESS_AUDIENCE`, and `OWNER_ACCESS_EMAIL` in the
+production Worker. `lib/owner/access.ts` implements the shared owner check
+with `prompt: 'none'`, so the consent form asks only whether to approve the
+client and which scopes to grant. The other IndieAuth endpoints are called
+by external clients and remain public. The consent `POST` also refuses
+cross-site submissions (`Sec-Fetch-Site`, then `Origin`, with neither refused).
 
 ### Bot challenges
 
@@ -582,7 +569,6 @@ equals `/.well-known/oauth-authorization-server`,
 | `pnpm webmentions:moderate`              | Lists pending webmentions, or approves or rejects them by id; see Moderation. Approving a reply also sends its salmention; see Salmention. Needs `POSTGRES_URL`.                                                                                                                                                  |
 | `pnpm webmentions:backfill-authors`      | One-off repair for webmentions verified before the verifier read a `u-photo` with alt text: fills each missing author photo from the h-entry stored with the mention, through `extractAuthor`. It writes only rows with no photo, so a second run changes nothing. Without `POSTGRES_URL` it says so and exits 0. |
 | `pnpm atproto:sync`                      | Prints the standard.site writes a sync would make; `--write` makes them. Needs `ATPROTO_APP_PASSWORD`; see [atproto.md](../atproto.md).                                                                                                                                                                           |
-| `pnpm indieauth:totp`                    | Prints a new secret for `INDIEAUTH_TOTP_SECRET` and the `otpauth://` URI to add to an authenticator app; see IndieAuth.                                                                                                                                                                                           |
 | `.github/workflows/indieweb-publish.yml` | Waits for the public alias to serve a pushed revision, then calls the authenticated notification endpoint.                                                                                                                                                                                                        |
 | `pnpm test`                              | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                                                                                |
 
@@ -593,7 +579,7 @@ equals `/.well-known/oauth-authorization-server`,
 | `POSTGRES_URL` / `DATABASE_URL`                                                                    | webmentions, reply context, activity feeds, Postgres search                                                                                                                                 | unset, features degrade                 |
 | `WEBMENTION_SECRET`                                                                                | `/api/webmention/send*`                                                                                                                                                                     | unset, routes refuse                    |
 | `WEBMENTION_MODERATION_SECRET`                                                                     | `/api/webmention/moderate`                                                                                                                                                                  | unset, route refuses                    |
-| `INDIEAUTH_TOTP_SECRET`                                                                            | owner sign-in on `/indieauth/consent`                                                                                                                                                       | unset, sign-in answers 503              |
+| `OWNER_ACCESS_ISSUER`, `OWNER_ACCESS_AUDIENCE`, `OWNER_ACCESS_EMAIL`                               | owner identity on `/indieauth/consent` and `/admin/*`                                                                                                                                       | unset, owner routes refuse access       |
 | `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                                                                                                                                                     | unset, route answers 503                |
 | `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                                                                                                                                                            | local write, `main`, `content/writings` |
 | `MEDIA_BUCKET` R2 binding                                                                          | `/micropub/media` image, audio, video and PDF storage; `/media/*` delivery                                                                                                                  | absent, upload route answers 503        |

@@ -13,6 +13,7 @@ category. Omit the scope only for repository-wide changes.
 - **`landing`** — the `/` route
 - **`profile`** — Willie's background, biography, and research, including `/about` and `/research`
 - **`status`** — current location, local time, and weather; includes `/status`, footer microstatus, status data sources, caching, and the admin status editor
+- **`admin`** — shared owner identity and controls across status editing, IndieAuth approval, and the private writing studio
 - **`projects`** — the project content model, `lib/projects`, `components/projects`, and the `/projects` routes
 - **`writings`** — the writing system: `lib/writings`, `components/writings`, and page routes
 - **`content`** — data and content files under `content/` and `data/` directories

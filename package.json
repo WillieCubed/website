@@ -64,6 +64,7 @@
     "gray-matter": "^4.0.3",
     "hls.js": "^1.7.3",
     "image-size": "^2.0.4",
+    "jose": "^6.2.12",
     "mcp-handler": "^2.1.1",
     "microformats-parser": "^2.0.6",
     "next": "16.3.8",

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import SiteLink from '@/components/link/SiteLink';
+
 import type { AdminState } from '@/lib/status/admin-state';
 import type { City } from '@/lib/status/location';
 
@@ -141,10 +143,7 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
   }
 
   function save(city: City) {
-    return submit(
-      { action: 'save', csrf: state.csrf || '', city: JSON.stringify(city) },
-      city
-    );
+    return submit({ action: 'save', city: JSON.stringify(city) }, city);
   }
   const region =
     chosen ||
@@ -156,22 +155,6 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
     <>
       <div className="admin-heading">
         <h1>Status</h1>
-        {state.signedIn && (
-          <form
-            action={endpoint}
-            method="post"
-            className="logout"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void submit({ action: 'signout', csrf: state.csrf || '' });
-            }}
-          >
-            <input type="hidden" name="csrf" value={state.csrf || ''} />
-            <button name="action" value="signout" disabled={pending}>
-              Sign out
-            </button>
-          </form>
-        )}
       </div>
       {!state.configured ? (
         <p>Sign-in is unavailable.</p>
@@ -182,30 +165,11 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
               {message}
             </p>
           )}
-          <form
-            action={endpoint}
-            method="post"
-            className="signin"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const data = new FormData(event.currentTarget);
-              void submit({ action: 'signin', code: String(data.get('code')) });
-            }}
-          >
-            <input type="hidden" name="action" value="signin" />
-            <label htmlFor="code">Authenticator code</label>
-            <input
-              id="code"
-              name="code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              pattern="[0-9]{6}"
-              maxLength={6}
-              required
-              disabled={pending}
-            />
-            <button disabled={pending}>Sign in</button>
-          </form>
+          <p>
+            <SiteLink href="https://willie.page/admin/status" preview={false}>
+              Sign in through Cloudflare Access
+            </SiteLink>
+          </p>
         </>
       ) : (
         <section

@@ -21,7 +21,10 @@ async function Editor() {
   const incoming = await headers();
   const response = await statusAdmin(
     new Request(new URL('/api/admin/status', site.origin), {
-      headers: { cookie: incoming.get('cookie') || '' },
+      headers: {
+        'Cf-Access-Jwt-Assertion':
+          incoming.get('cf-access-jwt-assertion') || '',
+      },
     })
   );
   const state: AdminState = await response.json();

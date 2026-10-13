@@ -287,10 +287,47 @@ test('the footer preserves a normal city name across compact breakpoints', async
     await page.evaluate(() =>
       window.scrollTo(0, document.documentElement.scrollHeight)
     );
-    await expect
-      .poll(() =>
-        city.evaluate((element) => element.scrollWidth <= element.clientWidth)
-      )
-      .toBe(true);
+    const measureCity = () =>
+      city.evaluate((element) => {
+        const status = element.closest('.microstatus')!;
+        const row = status.closest('.site-footer__row')!;
+        return {
+          viewport: innerWidth,
+          cityWidth: element.clientWidth,
+          cityContentWidth: element.scrollWidth,
+          controls: [
+            ...row.querySelectorAll(
+              '.site-footer__profiles, .microstatus, .microstatus-place, .microstatus-weather, .feeds-button'
+            ),
+          ].map((control) => {
+            const rect = control.getBoundingClientRect();
+            const style = getComputedStyle(control);
+            return {
+              className: control.className,
+              width: rect.width,
+              padding: style.padding,
+              gap: style.gap,
+              display: style.display,
+            };
+          }),
+        };
+      });
+    try {
+      await expect
+        .poll(
+          async () => {
+            const metrics = await measureCity();
+            return metrics.cityContentWidth <= metrics.cityWidth;
+          },
+          { message: `City should fit at ${width}px` }
+        )
+        .toBe(true);
+    } catch (error) {
+      console.log(
+        'Footer city measurements:',
+        JSON.stringify(await measureCity())
+      );
+      throw error;
+    }
   }
 });

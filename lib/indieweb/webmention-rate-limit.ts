@@ -11,11 +11,13 @@ export const WEBMENTION_RATE_LIMIT = 10; // requests per window
 export const WEBMENTION_RATE_WINDOW_MS = 60 * 1000; // 1 minute
 
 /**
- * The key a request is counted under: the first `X-Forwarded-For` address,
- * then `X-Real-IP`, then one shared bucket for requests carrying neither.
+ * Cloudflare supplies the visitor IP in `CF-Connecting-IP`; clients can
+ * prepend their own address to `X-Forwarded-For`. Local and non-Cloudflare
+ * requests retain the old forwarded-address fallback.
  */
 export function webmentionRateLimitKey(headers: Headers): string {
   return (
+    headers.get('cf-connecting-ip')?.trim() ||
     headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     headers.get('x-real-ip')?.trim() ||
     'unknown'

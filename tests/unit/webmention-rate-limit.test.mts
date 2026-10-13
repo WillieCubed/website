@@ -30,7 +30,16 @@ function memoryStore() {
   return { store, windows };
 }
 
-test('the rate limit key is the first forwarded address', () => {
+test('the rate limit key prefers Cloudflare client IP over forwarded addresses', () => {
+  assert.equal(
+    webmentionRateLimitKey(
+      new Headers({
+        'cf-connecting-ip': '203.0.113.7',
+        'x-forwarded-for': '198.51.100.2, 203.0.113.7',
+      })
+    ),
+    '203.0.113.7'
+  );
   assert.equal(
     webmentionRateLimitKey(
       new Headers({ 'x-forwarded-for': '203.0.113.7, 10.0.0.1' })

@@ -124,6 +124,30 @@ the site must not silently promote the first playlist.
 
 ## Private curation and publication
 
+### Screen iteration on October 12, 2026
+
+Build the private library, playlist editor, and collection review as one usable
+flow. Keep the current browser-local storage boundary explicit while the provider
+and protected publication adapters remain unfinished.
+
+- Let the owner filter all, included, and excluded playlists without changing
+  the reviewed gallery. Keep ordering controls inactive while a filter hides
+  items. Preserve the playlist navigation sequence while its editor is open.
+- Give the note field and visibility choices priority in the playlist editor.
+  Keep series membership beside those choices and retain the original tracks
+  beneath them. Use the cover as context rather than consuming half the editor.
+- Review the complete selected order, optional notes, feature, and published
+  series before applying a draft. Keep the review actions visible while the
+  owner scrolls. Return keyboard focus to the action that opened the review.
+- Capture the entire 1440×1000 desktop viewport and 390×844 phone viewport for
+  every screen iteration. Inspect light and dark themes and capture full-page
+  companions for long screens. Keep component crops supplemental.
+
+Run `pnpm music:shots <output-directory>` against the local development server
+to capture the gallery, library, excluded selection, playlist editor, lower
+editor, empty search, and collection review in both themes. The command writes
+28 full-viewport screenshots and full-page companions where the page scrolls.
+
 Extend the authentication, revision storage, recovery, and publication review
 from [PR #201](https://github.com/WillieCubed/website/pull/201). The live
 `preview.willie.page` library and editor were inspected. The PR remains a draft;

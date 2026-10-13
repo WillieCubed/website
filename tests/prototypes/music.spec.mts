@@ -392,6 +392,91 @@ test('local drafts survive reload and affect the gallery only after review and a
   ).toContainText('An authored note from the prototype reviewer.');
 });
 
+test('library filters preserve the reviewed selection and the open playlist context', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Curate music', exact: true }).click();
+  const filters = page.getByRole('group', { name: 'Library filter' });
+  await filters
+    .getByRole('button', { name: 'Not included', exact: true })
+    .click();
+  await expect(page.locator('.mp-card')).toHaveCount(1);
+  await page
+    .getByRole('button', { name: 'Open Loose ends', exact: true })
+    .click();
+  const dialog = page.getByRole('dialog', { name: 'Loose ends', exact: true });
+  await dialog
+    .getByRole('checkbox', { name: 'Include in gallery', exact: true })
+    .check();
+  await expect(dialog.locator('.mp-detail-bar > span')).toHaveText('1 of 1');
+  await page
+    .getByRole('button', { name: 'Close playlist', exact: true })
+    .click();
+  await expect(
+    page.getByText('Every playlist is included.', { exact: true })
+  ).toBeVisible();
+  await filters
+    .getByRole('button', { name: 'In gallery', exact: true })
+    .click();
+  await expect(page.locator('.mp-card')).toHaveCount(8);
+  await expect(
+    page.getByRole('button', { name: 'Move Summer 2026 earlier', exact: true })
+  ).toBeDisabled();
+  await page.getByRole('button', { name: 'View gallery', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Open Loose ends', exact: true })
+  ).toHaveCount(0);
+});
+
+test('collection review keeps its actions visible and restores editing focus', async ({
+  page,
+}) => {
+  await page.setViewportSize({
+    width: page.viewportSize()!.width,
+    height: 600,
+  });
+  await page.getByRole('button', { name: 'Curate music', exact: true }).click();
+  await page
+    .getByRole('checkbox', { name: 'Include Loose ends', exact: true })
+    .check();
+  const launch = page.getByRole('button', {
+    name: 'Review changes',
+    exact: true,
+  });
+  await launch.click();
+  const review = page.getByRole('dialog', {
+    name: 'Review your collection',
+    exact: true,
+  });
+  const apply = review.getByRole('button', {
+    name: 'Apply to prototype',
+    exact: true,
+  });
+  await expect(apply).toBeInViewport();
+  await review
+    .getByRole('button', { name: 'Close review', exact: true })
+    .focus();
+  await page.keyboard.press('PageDown');
+  await expect
+    .poll(() =>
+      review.locator('.mp-review-body').evaluate((element) => element.scrollTop)
+    )
+    .toBeGreaterThan(0);
+  await expect(apply).toBeInViewport();
+  await page.keyboard.press('Escape');
+  await expect(review).toHaveCount(0);
+  await expect(launch).toBeFocused();
+  await launch.click();
+  await review.getByRole('button', { name: 'Edit order', exact: true }).click();
+  await expect(review).toHaveCount(0);
+  await expect(
+    page.getByRole('button', {
+      name: 'Move Fall Tour 2026, Part 1 later',
+      exact: true,
+    })
+  ).toBeFocused();
+});
+
 test('the owner can create a series, assign a playlist, and reorder with buttons', async ({
   page,
 }) => {

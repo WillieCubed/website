@@ -287,14 +287,14 @@ always returns the canonical redirect, so no request reaches the placeholder.
 The old zone-wide `https://www.*` Redirect Rule is disabled because it
 incorrectly included the old hostname in the destination path.
 
-To cut over a verified candidate, add Custom Domains for `willie.page`,
-`www.willie.page`, `tour.willie.page`, and `diaries.willie.page` to the
-production Worker. Custom Domains replace the old Vercel DNS target
-and provision certificates. Keep `workers_dev` enabled for diagnostics. Check
-the canonical homepage, feeds, search, image optimization, social images,
-IndieAuth, media delivery, Webmention writes, and host redirects through each
-public hostname. Then check Cloudflare logs and billing, and remove the old
-Vercel project and tokens only after retained data and writes are proven.
+The production Worker now owns Custom Domains for `willie.page`,
+`www.willie.page`, `tour.willie.page`, and `diaries.willie.page`. The private
+preview Worker owns `preview.willie.page`; its old Vercel CNAME was replaced
+by a Worker-managed DNS record. Keep `workers_dev` enabled for diagnostics.
+After each production deploy, check the canonical homepage, feeds, search,
+image optimization, social images, IndieAuth, media delivery, Webmention
+writes, and host redirects. Check Cloudflare logs and billing, then retire
+Vercel projects only after protected publishing and retained data pass.
 
 ## Patched dependencies
 

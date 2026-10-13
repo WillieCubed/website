@@ -69,7 +69,7 @@ test('public Music refuses unscoped read and write connections', async () => {
     );
     await assert.rejects(
       cacheApproved([make(a)]),
-      /MUSIC_CACHE_WRITE_DATABASE_URL is not configured/
+      /Music publication storage is not configured/
     );
   } finally {
     if (previous) process.env.MUSIC_PUBLIC_DATABASE_URL = previous;

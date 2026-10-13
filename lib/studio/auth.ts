@@ -47,7 +47,8 @@ export function checkMutationOrigin(
 
 export async function studioRoute(
   request: Request,
-  work: () => Promise<Response>
+  work: () => Promise<Response>,
+  unavailableMessage = 'The private writing service is unavailable.'
 ): Promise<Response> {
   try {
     await authorizeStudio(request);
@@ -60,9 +61,7 @@ export async function studioRoute(
     const known = error instanceof StudioError;
     return Response.json(
       {
-        error: known
-          ? error.message
-          : 'The private writing service is unavailable.',
+        error: known ? error.message : unavailableMessage,
         ...(known && error.details ? { details: error.details } : {}),
       },
       { status: known ? error.status : 503, headers: privateHeaders }

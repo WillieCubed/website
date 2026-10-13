@@ -91,6 +91,9 @@ The Worker needs these secrets: `ATPROTO_OAUTH_JWK`,
 `MUSIC_PRIVATE_DATABASE_URL`, `MUSIC_TOKEN_ENCRYPTION_KEY`, and
 `MUSIC_REFRESH_SECRET`. Set individual secrets with `cf workers secrets update`
 for the named Worker, or supply a private `--secrets-file` to `cf deploy`.
+The three Music database URL secrets and refresh secret belong only on the
+public Worker. Preview publishes through its existing `STUDIO_HYPERDRIVE`
+connection to the private Music database and needs the Music encryption key.
 The scoped GitHub token needs Contents and Pull requests read/write on only
 `WillieCubed/website`. It is shared by Micropub and Studio publishing and must
 be present on both Workers. GitHub's protected merge enforces the required

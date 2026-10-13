@@ -51,6 +51,9 @@ the private preview and public Workers need this same Music key. The public Work
 uses `MUSIC_PUBLIC_DATABASE_URL` with a read-only role for gallery requests.
 Its bearer-authenticated refresh route uses `MUSIC_PRIVATE_DATABASE_URL` and
 `MUSIC_CACHE_WRITE_DATABASE_URL` with a role limited to Music provider data.
+The owner preview writes approved rows through its existing private Music
+database connection during publication. It does not need a second Music
+database credential; the public Worker continues to use its restricted roles.
 The Worker opens a database connection per request because a PostgreSQL socket
 cannot be reused across Worker requests.
 

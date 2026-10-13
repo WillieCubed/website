@@ -72,9 +72,9 @@ export function micropubEnvironment(
   env: NodeJS.ProcessEnv = process.env
 ): MicropubRouteEnvironment {
   return {
-    githubRepository: env.MICROPUB_GITHUB_REPO,
-    githubToken: env.MICROPUB_GITHUB_TOKEN,
-    defaultBranch: env.MICROPUB_GITHUB_BRANCH ?? 'main',
+    githubRepository: env.STUDIO_GITHUB_REPOSITORY,
+    githubToken: env.STUDIO_GITHUB_TOKEN,
+    defaultBranch: env.STUDIO_GITHUB_BRANCH ?? 'main',
     contentPath: env.MICROPUB_CONTENT_PATH ?? 'content/writings',
   };
 }
@@ -159,8 +159,16 @@ async function micropubPost(
     const environment = options.environment ?? micropubEnvironment();
     // Studio revisions already use transactional compare-and-swap. Private
     // source never enters the public Micropub archive database.
-    if (privateMicropubStore(options) && action.action === 'update')
-      return update(permalink, action.update, options);
+    if (privateMicropubStore(options) && action.action === 'update') {
+      const stored = await findStoredWriting(
+        permalink,
+        environment,
+        options.fetch,
+        options
+      );
+      if (stored?.privateDocumentId)
+        return update(permalink, action.update, options);
+    }
     if (privateMicropubStore(options) && action.action === 'delete') {
       const stored = await findStoredWriting(
         permalink,
@@ -299,7 +307,7 @@ async function create(
   }
   entry.slug = micropubWritingPath(entry, environment.contentPath).slug;
   const permalink = absoluteRoute`/writings/${entry.slug}`;
-  if (entry.postStatus === 'draft' || privateMicropubStore(options)) {
+  if (entry.postStatus === 'draft') {
     const { slug, path } = micropubWritingPath(entry, environment.contentPath);
     const { draft, commit } = await createPrivateMicropubWriting(
       slug,

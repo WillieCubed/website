@@ -87,9 +87,9 @@ test('preview search authenticates before processing any query and never publicl
   try {
     Object.assign(process.env, {
       SITE_MODE: 'preview',
-      STUDIO_ACCESS_ISSUER: 'https://access.example.com',
-      STUDIO_ACCESS_AUDIENCE: 'preview-audience',
-      STUDIO_OWNER_EMAIL: 'owner@example.com',
+      OWNER_ACCESS_ISSUER: 'https://access.example.com',
+      OWNER_ACCESS_AUDIENCE: 'preview-audience',
+      OWNER_ACCESS_EMAIL: 'owner@example.com',
     });
     const response = await searchApi(
       new NextRequest('https://preview.willie.page/api/search?q=private-secret')
@@ -105,9 +105,9 @@ test('preview search authenticates before processing any query and never publicl
   } finally {
     for (const key of [
       'SITE_MODE',
-      'STUDIO_ACCESS_ISSUER',
-      'STUDIO_ACCESS_AUDIENCE',
-      'STUDIO_OWNER_EMAIL',
+      'OWNER_ACCESS_ISSUER',
+      'OWNER_ACCESS_AUDIENCE',
+      'OWNER_ACCESS_EMAIL',
     ]) {
       if (saved[key] === undefined) delete process.env[key];
       else process.env[key] = saved[key];

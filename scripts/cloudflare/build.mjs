@@ -5,9 +5,7 @@ if (target !== 'production' && target !== 'preview') {
   throw new Error('Build target must be production or preview.');
 }
 const origin =
-  target === 'preview'
-    ? 'https://willie-page-preview.willieechalmers-18f.workers.dev'
-    : 'https://willie.page';
+  target === 'preview' ? 'https://preview.willie.page' : 'https://willie.page';
 const revision = execFileSync('git', ['rev-parse', 'HEAD'], {
   encoding: 'utf8',
 }).trim();
@@ -17,6 +15,7 @@ const build = spawnSync('pnpm', ['exec', 'opennextjs-cloudflare', 'build'], {
     ...process.env,
     NEXT_PUBLIC_SITE_REVISION: revision,
     NEXT_PUBLIC_SITE_ORIGIN: origin,
+    SITE_MODE: target,
     NEXT_PUBLIC_ATPROTO_DID: 'did:plc:iyn6nc3ffqm2e3555exyrgvv',
     NEXT_PUBLIC_BLUESKY_HANDLE: 'williecubed.me',
   },

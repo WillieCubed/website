@@ -9,11 +9,11 @@ passage. The API rejects prose generation, rewriting, and acceptance of legacy
 prose proposals. Widget implementations require isolated preview and explicit
 approval before insertion. Static equivalents keep them accessible and portable.
 
-`preview.willie.page` runs the same website from `main` as a separate Vercel
-project with `SITE_MODE=preview`. Cloudflare is used only for DNS and Access on
-the Zero Trust Free plan. Do not enable paid Workers, AI, storage, or Zero Trust
-add-ons. Access Free supports this single-author use case; see
-[Cloudflare's plan](https://www.cloudflare.com/plans/).
+`preview.willie.page` uses the `willie-page-preview` Cloudflare Worker with
+`SITE_MODE=preview`. The owner signs in through the same Cloudflare Access
+application as the live admin. Signed Access identity is checked again inside
+the Worker, including on its direct `workers.dev` address. The full Next.js
+Worker needs Workers Paid: its hosted build exceeded Free's 10 ms CPU limit.
 
 Production continues to render published repository MDX. It does not load
 private revisions. Preview overlays private working revisions at request time,
@@ -44,9 +44,11 @@ screen-reader and hosted acceptance.
 
 ## Provider setup
 
-Use a dedicated private Postgres database, a private Vercel Blob store for
-working assets, and the existing public Blob store for promoted media. Never
-use the public search/IndieWeb database for private writing. Apply migrations:
+Use the dedicated private Neon Postgres database through `STUDIO_HYPERDRIVE`,
+the private `willie-page-studio-private` R2 bucket for working assets, and the
+existing `willie-page-media` R2 bucket for promoted media. The private bucket
+has no public domain. Never use the public search/IndieWeb database for private
+writing. Apply migrations directly to the private database:
 
 ```sh
 STUDIO_DATABASE_URL=... pnpm studio:migrate
@@ -55,25 +57,25 @@ STUDIO_DATABASE_URL=... pnpm studio:migrate
 Secrets belong in provider environment settings or an ignored local env file.
 The preview project requires these server-only variables:
 
-| Variable                              | Meaning                                                                  |
-| ------------------------------------- | ------------------------------------------------------------------------ |
-| `SITE_MODE`                           | `preview`; omit on production                                            |
-| `STUDIO_ORIGIN`                       | `https://preview.willie.page`                                            |
-| `STUDIO_ACCESS_ISSUER`                | Existing personal Zero Trust team issuer, exact signed-token `iss`       |
-| `STUDIO_ACCESS_AUDIENCE`              | Audience of the preview Access application                               |
-| `STUDIO_OWNER_EMAIL`                  | Willie's identity from the existing allow policy                         |
-| `STUDIO_DATABASE_URL`                 | Dedicated private Postgres connection                                    |
-| `STUDIO_BLOB_READ_WRITE_TOKEN`        | Dedicated **private** Blob store token                                   |
-| `STUDIO_PUBLIC_BLOB_READ_WRITE_TOKEN` | Published media Blob token                                               |
-| `STUDIO_TOKEN_ENCRYPTION_KEY`         | 32 random bytes encoded as base64, retained across deployments           |
-| `STUDIO_LATTICE_ISSUER`               | Lovelace OAuth issuer                                                    |
-| `STUDIO_LATTICE_CLIENT_ID`            | `https://willie.page/.well-known/lattice-client.json`                    |
-| `STUDIO_LATTICE_GATEWAY`              | Supported Lattice gateway/resource URL                                   |
-| `STUDIO_LATTICE_RUNTIME_ID`           | Optional initial device ID; normally choose a named device in the editor |
-| `STUDIO_GITHUB_REPOSITORY`            | `owner/repository` for the website                                       |
-| `STUDIO_GITHUB_BRANCH`                | `main`                                                                   |
-| `STUDIO_GITHUB_TOKEN`                 | Website-only Contents and Pull requests read/write; Commit statuses read |
-| `STUDIO_PUBLIC_ORIGIN`                | `https://willie.page`                                                    |
+| Variable                      | Meaning                                                                             |
+| ----------------------------- | ----------------------------------------------------------------------------------- |
+| `SITE_MODE`                   | `preview` on preview; `production` on production                                    |
+| `STUDIO_ORIGIN`               | `https://preview.willie.page`                                                       |
+| `OWNER_ACCESS_ISSUER`         | Existing Owner access issuer                                                        |
+| `OWNER_ACCESS_AUDIENCE`       | Existing Owner access application audience                                          |
+| `OWNER_ACCESS_EMAIL`          | Willie's identity from the existing allow policy                                    |
+| `STUDIO_HYPERDRIVE`           | Dedicated private Neon Postgres binding                                             |
+| `STUDIO_PRIVATE_BUCKET`       | Private R2 bucket for working images                                                |
+| `STUDIO_PUBLIC_MEDIA_BUCKET`  | Preview-only binding to production R2 media for approved promotion                  |
+| `STUDIO_TOKEN_ENCRYPTION_KEY` | 32 random bytes encoded as base64, retained across deployments                      |
+| `STUDIO_LATTICE_ISSUER`       | Lovelace OAuth issuer                                                               |
+| `STUDIO_LATTICE_CLIENT_ID`    | `https://willie.page/.well-known/lattice-client.json`                               |
+| `STUDIO_LATTICE_GATEWAY`      | Supported Lattice gateway/resource URL                                              |
+| `STUDIO_LATTICE_RUNTIME_ID`   | Optional initial device ID; normally choose a named device in the editor            |
+| `STUDIO_GITHUB_REPOSITORY`    | `owner/repository` for the website                                                  |
+| `STUDIO_GITHUB_BRANCH`        | `main`                                                                              |
+| `STUDIO_GITHUB_TOKEN`         | Website-only Contents and Pull requests read/write; Checks and Commit statuses read |
+| `STUDIO_PUBLIC_ORIGIN`        | `https://willie.page`                                                               |
 
 The public client metadata declares the sole OAuth redirect
 `https://preview.willie.page/api/studio/lattice/callback`. Deploy the metadata
@@ -83,15 +85,13 @@ Choose an owned personal device by name in the editor. Credentials are
 stored encrypted in private Postgres. The author connects Lattice from the
 editor. An unavailable personal runtime retains the request and offers retry.
 
-Create a separate preview Vercel project connected to the website repository,
-following `main`. Configure `SITE_MODE=preview` in every environment of that
-project before its first deployment. Attach the preview domain. Create an
-Access self-hosted application for the entire hostname using the existing
-personal identity allow policy, without bypass rules. Use proxied DNS and the
-Zero Trust **Free** plan. Configure issuer, application audience, and owner at
-the Vercel origin. The origin independently validates RS256 signatures,
-issuer, audience, expiry and owner; a direct `.vercel.app` URL cannot bypass
-Access. Public `/studio` and `/api/studio` paths return 404.
+Deploy the preview Worker with the preview bindings in `cloudflare.config.ts`
+and `wrangler.preview.jsonc`. Attach `preview.willie.page` only after the
+direct Worker has passed signed Access, private database, and media checks.
+The existing Owner access application covers the entire preview hostname.
+The Worker independently validates RS256 signatures, issuer, audience, expiry,
+and owner; a direct `workers.dev` URL cannot bypass Access. Production
+`/studio` and `/api/studio` paths return 404.
 
 For authenticated Micropub clients, also provide the private database and
 publication/media variables on production. Existing IndieAuth scope checks
@@ -100,8 +100,11 @@ exports a selected immutable revision. A draft request fails closed when
 private storage is unavailable. Deleting a private working document retains
 its history and any already published public file.
 
-Do not copy preview environment variables indiscriminately into production.
-In particular, production must not have `SITE_MODE=preview`.
+Production shares the private database and bucket with preview for authenticated
+Micropub drafts. It uses its existing `MEDIA_BUCKET` binding when a private
+revision promotes an image. `SITE_MODE=production` keeps private revisions out
+of public pages and the Studio UI. Ordinary public Micropub posts continue to
+use the existing GitHub Contents publication path.
 
 ## Import existing drafts
 

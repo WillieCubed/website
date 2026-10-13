@@ -23,6 +23,34 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
 - Preserve unrelated worktree changes; use the repository's atomic index-reset staging chain and commit message file.
 - Verify runtime, provider, and public behavior separately.
 
+## Resource consolidation for the private preview
+
+- Keep one Cloudflare Access application, **Owner access**, for the private
+  preview and production owner routes. Both Workers verify its signed identity
+  at the origin. IndieAuth remains the public protocol used to sign into other
+  sites.
+- Store working images in `willie-page-studio-private` R2 with no public
+  domain. Promote approved images into the existing `willie-page-media` bucket;
+  `/media/writings/...` is the only new public delivery path. These are distinct
+  trust levels, not two copies of each image after publication. The private
+  original remains available for revision history.
+- Keep private writing in its dedicated Neon project and Hyperdrive. Public
+  site data and isolated protocol acceptance data remain separate so preview
+  writes cannot alter production. Neon Free includes an independent 100 CU-hour
+  monthly allowance per project; its `suspend_timeout_seconds=0` means the plan
+  default, not always-on. Verify usage after preview cutover.
+- The existing Vercel preview has five persisted writing documents and zero
+  studio assets or promotions. Those documents stay in Neon; there are no
+  private Blob objects to copy. Its two encrypted Lattice connection rows use
+  a Vercel-held key that cannot be retrieved through the provider CLI. The
+  Cloudflare preview must offer reconnect and device reselection unless the
+  original key is recovered; do not claim widget generation works before that
+  owner action is verified.
+- Retire Vercel preview hosting, Blob credentials, and obsolete acceptance
+  resources only after `preview.willie.page` and protected publishing work on
+  the Cloudflare Worker. R2 bills aggregate storage and operations rather than
+  a flat fee for each bucket.
+
 ## Review focus
 
 1. An aborted media upload must leave no public incomplete object: test bounded upload failure and R2 store behavior.

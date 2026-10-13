@@ -46,3 +46,10 @@ Cutover still requires owner-created GitHub and Bluesky credentials, production
 TOTP enrollment, the GitHub App build connection, exact-revision production
 redeployment, custom domains, and public route/write checks. This preview
 receipt is not production acceptance.
+
+Cloudflare dashboard check on October 13: Web Analytics for `willie.page` had
+automatic setup and showed 7 visits in the preceding 24 hours. The account's
+Images Transformations dashboard showed 2 unique image transformations for
+the current month. The production candidate Worker had 59 invocations, 6
+asset requests, and 0 Worker errors in the preceding 24 hours. These counts
+are from pre-cutover testing; they do not predict usage after public DNS moves.

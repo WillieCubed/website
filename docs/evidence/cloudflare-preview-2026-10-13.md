@@ -283,3 +283,31 @@ sandbox test also passed interactive mounting and blocked external script,
 fetch, image, and navigation attempts. Fresh personal-runtime generation,
 proposal approval, and GitHub publication remain separate hosted acceptance
 checks.
+
+## Recovered encryption key and secret cleanup
+
+Later on October 13, the Vercel CLI exported the preview production environment
+to a mode-0600 temporary file. Its `STUDIO_TOKEN_ENCRYPTION_KEY` decrypted both
+retained `studio_connections` rows (`lattice` and `lattice-runtime`) without
+printing their contents. `cf workers secrets bulk` installed that key on
+`willie-page-preview`; Cloudflare deployed version
+`dc1e2d09-39fb-4ae5-a775-efdc39c6854a` at 100%. The temporary export and
+secret patch were removed.
+
+The hosted Studio still reported that its private writing service was
+unavailable when loading devices. A local read of the same retained connection
+using the recovered key reached Lattice, which rejected the saved refresh
+authorization. This narrows the remaining generation blocker to a fresh owner
+Lattice sign-in and a hosted device check. Chrome blocked an attempted visit to
+the preview's connect route with `ERR_BLOCKED_BY_CLIENT`; no OAuth grant was
+completed in this check.
+
+The private test draft titled "Temporary Cloudflare publication check" was
+soft-deleted by exact document ID, title, and body marker in private Postgres.
+The three unused production Worker secrets `INDIEAUTH_TOTP_SECRET`,
+`MICROPUB_GITHUB_TOKEN`, and `SEARCH_REINDEX_SECRET` were removed in one `cf`
+bulk patch; `STUDIO_GITHUB_TOKEN` remains. Cloudflare deployed production
+version `0c14e6c5-03ba-4420-9d4b-955f6da11e04` at 100%. The read-only
+canonical route matrix passed at source SHA
+`54bd1f32b0d41b7be0f5471e60cfac59723c1728` after that change. Protected
+GitHub publication still needs a real approved revision and exact live proof.

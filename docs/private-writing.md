@@ -255,9 +255,13 @@ API, assets, and revision endpoint redirect to Access; direct `workers.dev`
 requests receive 401 from the Worker. A signed owner browser session loaded
 all five retained drafts through the new hostname. A scratch draft saved,
 survived a reload, and was then soft-deleted from private Postgres; the library
-returned to five drafts. The old Vercel encryption key for the two Lattice
-connection rows remains unavailable, so the owner must reconnect and select
-the personal runtime before hosted widget generation can pass.
+returned to five drafts. Later on October 13, a private Vercel environment
+export returned the old encryption key. Both Lattice connection rows decrypted
+successfully, and the key was installed on the preview Worker with
+`cf workers secrets bulk`. The exported file was removed. Lattice rejected the
+saved refresh authorization during a hosted device lookup, so the owner still
+needs to reconnect before widget generation can pass. The prior personal-runtime
+selection remains stored and can be checked after reconnection.
 
 The retained ToggleWidget initially fell back on the Cloudflare preview:
 request-time native esbuild could not run from the Worker bundle. The component

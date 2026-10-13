@@ -39,13 +39,13 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
   writes cannot alter production. Neon Free includes an independent 100 CU-hour
   monthly allowance per project; its `suspend_timeout_seconds=0` means the plan
   default, not always-on. Verify usage after preview cutover.
-- The existing Vercel preview has five persisted writing documents and zero
+- The existing Vercel preview had five persisted writing documents and zero
   studio assets or promotions. Those documents stay in Neon; there are no
-  private Blob objects to copy. Its two encrypted Lattice connection rows use
-  a Vercel-held key that cannot be retrieved through the provider CLI. The
-  Cloudflare preview must offer reconnect and device reselection unless the
-  original key is recovered; do not claim widget generation works before that
-  owner action is verified.
+  private Blob objects to copy. On October 13, a private Vercel environment
+  export recovered the original key; it decrypted both Lattice connection rows
+  and was installed on the preview Worker. The saved refresh authorization is
+  rejected by Lattice, so the owner still needs to reconnect before hosted
+  widget generation can be verified. The prior device selection remains stored.
 - Retire Vercel preview hosting, Blob credentials, and obsolete acceptance
   resources only after `preview.willie.page` and protected publishing work on
   the Cloudflare Worker. Git connections on the three website Vercel projects

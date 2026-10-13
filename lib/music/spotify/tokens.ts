@@ -1,7 +1,7 @@
 import { StudioError } from '../../studio/errors';
-import { required, seal, unseal } from '../../studio/oauth';
 import { musicStore } from '../store';
 import { SpotifyError } from './client';
+import { sealMusic, spotifyClientId, unsealMusic } from './credentials';
 
 export interface SpotifyGrant {
   accessToken: string;
@@ -19,7 +19,7 @@ export async function exchangeToken(
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       ...fields,
-      client_id: required('SPOTIFY_CLIENT_ID'),
+      client_id: spotifyClientId(),
     }),
     cache: 'no-store',
     signal: AbortSignal.timeout(20000),
@@ -63,10 +63,7 @@ export async function accessToken(): Promise<{
     ).rows[0];
     if (!row || row.reconnect)
       throw new StudioError(401, 'Connect Spotify to import your playlists.');
-    let grant = unseal<SpotifyGrant>(
-      row.encrypted_grant,
-      process.env.MUSIC_TOKEN_ENCRYPTION_KEY
-    );
+    let grant = unsealMusic<SpotifyGrant>(row.encrypted_grant);
     if (grant.expiresAt < Date.now() + 60000) {
       try {
         grant = await exchangeToken(
@@ -84,7 +81,7 @@ export async function accessToken(): Promise<{
       }
       await client.query(
         'UPDATE music_connections SET encrypted_grant=$1,updated_at=now() WHERE singleton=true',
-        [seal(grant, process.env.MUSIC_TOKEN_ENCRYPTION_KEY)]
+        [sealMusic(grant)]
       );
     }
     await client.query('COMMIT');

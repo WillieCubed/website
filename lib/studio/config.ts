@@ -1,3 +1,11 @@
+import { StudioError } from './errors';
+
+export function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new StudioError(503, `${name} is not configured.`);
+  return value;
+}
+
 export function isPrivatePreview(
   env: NodeJS.ProcessEnv = process.env
 ): boolean {

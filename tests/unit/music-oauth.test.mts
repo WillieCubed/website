@@ -4,10 +4,38 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { Pool } from 'pg';
 
+import { sealMusic, unsealMusic } from '../../lib/music/spotify/credentials';
 import { beginSpotify, completeSpotify } from '../../lib/music/spotify/oauth';
 import { accessToken } from '../../lib/music/spotify/tokens';
-import { seal, unseal } from '../../lib/studio/oauth';
 import { getStudioPool } from '../../lib/studio/store';
+
+test('Music credentials never fall back to the writing encryption key', () => {
+  const previousMusic = process.env.MUSIC_TOKEN_ENCRYPTION_KEY;
+  const previousStudio = process.env.STUDIO_TOKEN_ENCRYPTION_KEY;
+  try {
+    process.env.STUDIO_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 1).toString(
+      'base64'
+    );
+    process.env.MUSIC_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 2).toString(
+      'base64'
+    );
+    const sealed = sealMusic({ refreshToken: 'private' });
+    assert.deepEqual(unsealMusic(sealed), { refreshToken: 'private' });
+    delete process.env.MUSIC_TOKEN_ENCRYPTION_KEY;
+    assert.throws(() => sealMusic({}), /Music token encryption/);
+    assert.throws(() => unsealMusic(sealed), /Music token encryption/);
+    process.env.MUSIC_TOKEN_ENCRYPTION_KEY =
+      process.env.STUDIO_TOKEN_ENCRYPTION_KEY;
+    assert.throws(() => unsealMusic(sealed), /Reconnect Spotify/);
+  } finally {
+    if (previousMusic === undefined)
+      delete process.env.MUSIC_TOKEN_ENCRYPTION_KEY;
+    else process.env.MUSIC_TOKEN_ENCRYPTION_KEY = previousMusic;
+    if (previousStudio === undefined)
+      delete process.env.STUDIO_TOKEN_ENCRYPTION_KEY;
+    else process.env.STUDIO_TOKEN_ENCRYPTION_KEY = previousStudio;
+  }
+});
 
 test(
   'OAuth binds one-use state to the owner, preserves cancellation, and serializes refresh',
@@ -23,6 +51,9 @@ test(
     process.env.STUDIO_DATABASE_URL = url.href;
     process.env.SPOTIFY_CLIENT_ID = 'test-app';
     process.env.STUDIO_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 1).toString(
+      'base64'
+    );
+    process.env.MUSIC_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 2).toString(
       'base64'
     );
     process.env.STUDIO_ORIGIN = 'https://preview.willie.page';
@@ -88,19 +119,19 @@ test(
           .rows[0].encrypted_grant,
         sealed
       );
-      const grant = unseal<{
+      const grant = unsealMusic<{
         accessToken: string;
         refreshToken: string;
         expiresAt: number;
         authorizedAt: number;
       }>(sealed);
       await pool.query('UPDATE music_connections SET encrypted_grant=$1', [
-        seal({ ...grant, expiresAt: 0 }),
+        sealMusic({ ...grant, expiresAt: 0 }),
       ]);
       await Promise.all([accessToken(), accessToken()]);
       assert.equal(exchanges, 2);
       await pool.query('UPDATE music_connections SET encrypted_grant=$1', [
-        seal({ ...grant, expiresAt: 0 }),
+        sealMusic({ ...grant, expiresAt: 0 }),
       ]);
       globalThis.fetch = (async () =>
         Response.json(

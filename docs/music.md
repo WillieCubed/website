@@ -42,8 +42,12 @@ connects through PKCE with playlist read access. The service encrypts tokens
 and retains refresh replacements. Spotify revocation requires reconnecting;
 curation remains saved.
 
-`SPOTIFY_CLIENT_ID`, `MUSIC_TOKEN_ENCRYPTION_KEY`, and the private database
-connection stay server-side. The key must remain stable. The public Worker
+`SPOTIFY_CLIENT_ID`, the Music-only `MUSIC_TOKEN_ENCRYPTION_KEY`, and the private
+database connection stay server-side. The Music key is separate from the
+writing/Lattice key and must remain stable. It is backed up in the maintainer's
+macOS Keychain as the `music-token-encryption` service for account
+`willie-page`; do not copy it into the repository or command arguments. Both
+the private preview and public Workers need this same Music key. The public Worker
 uses `MUSIC_PUBLIC_DATABASE_URL` with a read-only role for gallery requests.
 Its bearer-authenticated refresh route uses `MUSIC_PRIVATE_DATABASE_URL` and
 `MUSIC_CACHE_WRITE_DATABASE_URL` with a role limited to Music provider data.
@@ -53,14 +57,17 @@ cannot be reused across Worker requests.
 ## Provision and verify
 
 Prepare a private mode-0600 environment file containing
-`STUDIO_DATABASE_URL` and the existing `STUDIO_TOKEN_ENCRYPTION_KEY`. Run
+`STUDIO_DATABASE_URL` and the existing Music key from Keychain as
+`MUSIC_TOKEN_ENCRYPTION_KEY`. Run
 `pnpm exec tsx scripts/music/provision.mts PRIVATE_ENV PRIVATE_STATE_JSON`.
 Keep the state file private during retries. The script applies idempotent
-migrations, verifies database isolation, configures the production Cloudflare
-Worker through the named `williecubed` `cf` profile, and stores the scheduler
+migrations, verifies database isolation, configures both Cloudflare
+Workers through the named `williecubed` `cf` profile, and stores the scheduler
 secret without printing it. The private Studio uses its existing Cloudflare
-Hyperdrive and encryption-key bindings; this script does not deploy that Worker
-or copy `SITE_MODE` to production.
+Hyperdrive binding; this script sets only its Music encryption secret and does
+not copy `SITE_MODE` to production. A Music key rotation must re-encrypt the
+saved Spotify grant and update both Workers together; do not replace the secret
+alone.
 
 The hourly GitHub workflow remains disabled until repository variable
 `MUSIC_REFRESH_ENABLED` is `true`. Verify an authenticated POST to

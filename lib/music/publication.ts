@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 
+import { required } from '../studio/config';
 import { StudioError } from '../studio/errors';
 import { GitHubError, github } from '../studio/github';
-import { required } from '../studio/oauth';
 import { approvedManifest, cacheApproved, suppressApproved } from './public';
 import { matchesMusicProof, musicArtifact } from './publication-artifact';
 import { musicPublicationMessage } from './publication-message';

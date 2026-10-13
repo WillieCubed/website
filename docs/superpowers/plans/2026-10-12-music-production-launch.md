@@ -110,7 +110,7 @@ Create `lib/music/spotify/oauth.ts`, `tokens.ts`, and `client.ts`, plus
 `app/api/studio/music/spotify/connect/route.ts`, `callback/route.ts`, and a
 connection-status endpoint. Test OAuth and token behavior independently.
 
-- [ ] Configure the existing app keys on the private deployment as server-only secrets. Reuse `STUDIO_TOKEN_ENCRYPTION_KEY`; retain it across deployments.
+- [ ] Configure the existing app keys on the private deployment as server-only secrets. Use a separate `MUSIC_TOKEN_ENCRYPTION_KEY`; retain it across deployments.
 - [ ] Register and verify the exact callback `https://preview.willie.page/api/studio/music/spotify/callback`. An unauthenticated redirect to Spotify login is not proof of callback registration.
 - [ ] Verify the developer app's permitted owner account and current Spotify access requirements through a real user grant. Client-token success alone does not establish Development Mode eligibility or playlist access.
 - [ ] Implement authorization code flow with PKCE, one-use owner-bound state, expiry, and a same-site callback cookie. Reject missing/replayed state, wrong-owner callbacks, and cancelled consent without destroying a working connection.

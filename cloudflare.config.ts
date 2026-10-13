@@ -65,6 +65,7 @@ export default defineConfig((context) => {
                 'https://lattice.uselovelace.com'
               ),
               STUDIO_TOKEN_ENCRYPTION_KEY: bindings.secret(),
+              MUSIC_TOKEN_ENCRYPTION_KEY: bindings.secret(),
             }
           : {}),
         ATPROTO_PUBLICATION_RKEY: bindings.text('3mwxne5td6lid'),

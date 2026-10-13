@@ -10,10 +10,10 @@ import { Pool } from 'pg';
 const source = process.argv[2];
 if (!source) throw new Error('Pass the private production env file.');
 const env = parseEnv(await readFile(source, 'utf8'));
-if (!env.STUDIO_DATABASE_URL || !env.STUDIO_TOKEN_ENCRYPTION_KEY)
-  throw new Error('Private database and encryption key are required.');
+if (!env.STUDIO_DATABASE_URL || !env.MUSIC_TOKEN_ENCRYPTION_KEY)
+  throw new Error('Private database and Music encryption key are required.');
 const databaseURL = env.STUDIO_DATABASE_URL,
-  encryptionKey = env.STUDIO_TOKEN_ENCRYPTION_KEY;
+  encryptionKey = env.MUSIC_TOKEN_ENCRYPTION_KEY;
 const statePath = process.argv[3];
 if (!statePath)
   throw new Error(
@@ -90,7 +90,7 @@ try {
   } finally {
     await reader.end();
   }
-  console.log('Step 4: Configure the production Cloudflare Worker.');
+  console.log('Step 4: Configure the Cloudflare Workers.');
   const workerSecrets = {
     MUSIC_PUBLIC_DATABASE_URL: state.readerURL,
     MUSIC_CACHE_WRITE_DATABASE_URL: state.refreshURL,
@@ -100,37 +100,40 @@ try {
   };
   const temporary = await mkdtemp(join(tmpdir(), 'willie-music-secrets-'));
   try {
-    const file = join(temporary, 'patch.json');
-    await writeFile(
-      file,
-      JSON.stringify({
-        secrets: Object.fromEntries(
-          Object.entries(workerSecrets).map(([name, text]) => [
-            name,
-            { name, type: 'secret_text', text },
-          ])
-        ),
-      }),
-      { mode: 0o600, flag: 'wx' }
-    );
-    const result = spawnSync('pnpm', [
-      'exec',
-      'cf',
-      'workers',
-      'secrets',
-      'bulk',
-      '--worker',
-      'willie-page',
-      '--file',
-      file,
-      '--profile',
-      process.env.CLOUDFLARE_PROFILE || 'williecubed',
-    ]);
-    if (result.status !== 0)
-      throw new Error(
-        'Could not configure Music secrets on the Cloudflare Worker.'
+    for (const [worker, values] of Object.entries({
+      'willie-page-preview': { MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey },
+      'willie-page': workerSecrets,
+    })) {
+      const file = join(temporary, `${worker}.json`);
+      await writeFile(
+        file,
+        JSON.stringify({
+          secrets: Object.fromEntries(
+            Object.entries(values).map(([name, text]) => [
+              name,
+              { name, type: 'secret_text', text },
+            ])
+          ),
+        }),
+        { mode: 0o600, flag: 'wx' }
       );
-    console.log('willie-page Worker: Music secrets configured.');
+      const result = spawnSync('pnpm', [
+        'exec',
+        'cf',
+        'workers',
+        'secrets',
+        'bulk',
+        '--worker',
+        worker,
+        '--file',
+        file,
+        '--profile',
+        process.env.CLOUDFLARE_PROFILE || 'williecubed',
+      ]);
+      if (result.status !== 0)
+        throw new Error(`Could not configure Music secrets on ${worker}.`);
+      console.log(`${worker}: Music secrets configured.`);
+    }
   } finally {
     await rm(temporary, { recursive: true, force: true });
   }

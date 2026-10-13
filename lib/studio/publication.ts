@@ -5,10 +5,10 @@ import { join } from 'node:path';
 import { promoteAssets } from './assets';
 import { catalogEntry } from './catalog';
 import { compileSandbox } from './components';
+import { required } from './config';
 import { exportMdx, validatePublication } from './document';
 import { StudioError } from './errors';
 import { GitHubError, github } from './github';
-import { required } from './oauth';
 import { getStudioPool, getStudioStore } from './store';
 import type { DraftContent, EditorNode, Publication } from './types';
 

@@ -64,6 +64,34 @@ existing mail MX records and the AT Protocol identity TXT record were still
 present. The old zone-wide `https://www.*` Redirect Rule was disabled after
 it incorrectly generated `/williecubed.me/...` in the destination path.
 
+Production Postgres recovery check on October 13: `pg_dump` from the
+independently owned Neon production project produced a 45,713-byte custom
+archive. `pg_restore --exit-on-error` loaded it into a fresh, temporary local
+PostgreSQL 18 database. All 20 public tables and their row counts matched the
+live source (8 rows total, 0 differing tables). The local database, dump, and
+connection string were removed when the check ended. This verifies a usable
+logical backup path; it is not a retained off-site backup or a point-in-time
+recovery test.
+
+Free-tier pressure and status freshness check on October 13: the Neon Free
+production project used 1.81 of 100 monthly CU-hours and 32.6 MB of its 1 GB
+storage allowance. Its 0.25 CU compute was idle during the check; continuously
+running it for a 31-day month would consume about 186 CU-hours. The footer's
+location reader was missing its documented cache and the admin invalidation
+was a no-op. On the old preview Worker, two `/api/status` requests 75 seconds
+apart caused two origin `status_location` reads, measured with
+`pg_stat_statements` in the isolated preview Neon database. After adding a
+three-hour Next data cache, the same requests caused one origin read. A
+separate authenticated preview owner save initially returned the old city
+because Hyperdrive had cached its SELECT. Making this specific query
+uncacheable with a volatile PostgreSQL timestamp fixed that: the public API
+returned Henderson immediately after a save and Las Vegas immediately after
+the restore save. Preview version `a183addf-b715-4ff8-aa7b-2918e798df04`
+served the passing check. The temporary TOTP test secret was removed from the
+local machine; the preview Worker retains its isolated test secret. The
+synthetic status row and temporary `pg_stat_statements` extension were removed
+from the isolated preview database after verification.
+
 Cloudflare dashboard check on October 13: Web Analytics for `willie.page` had
 automatic setup and showed 7 visits in the preceding 24 hours. The account's
 Images Transformations dashboard showed 2 unique image transformations for

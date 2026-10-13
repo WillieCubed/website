@@ -82,6 +82,29 @@ account has a $25 usage alert, which is a notification rather than a hard
 limit. Watch Worker CPU, R2 operations and storage, Hyperdrive, and any other
 paid services in the Cloudflare billing dashboard after cutover.
 
+Neon is a separate Free account. Its October 2026 allowance is 100 compute
+unit hours and 1 GB of storage **per project** each month. On October 13 the
+production project had used 6,519 compute seconds (1.81 CU-hours) and 32.6 MB
+of storage; the acceptance project had used 9,845 compute seconds (2.74
+CU-hours) and 33.2 MB; the private-writing project had used 1,899 compute
+seconds (0.53 CU-hours) and no storage. These are pre-cutover figures. The
+production compute is fixed at 0.25 CU and was idle when checked. A 0.25 CU
+compute kept awake all month would consume roughly 186 CU-hours, exceeding
+the Free allowance. Avoid frequent database polling and keep scale to zero
+enabled. The public footer's location read uses the shared Next data cache
+for three hours; an owner city save invalidates its tag. Verify the hosted
+cache and fresh city update before canonical DNS moves. After cutover, inspect
+each Neon project's compute and storage at least daily for the first week;
+investigate if production projects toward 80 CU-hours or 800 MB. Cloudflare's
+$25 alert does not cover Neon.
+
+The production database has a tested logical backup path: on October 13 a
+`pg_dump` custom archive restored successfully into temporary local
+PostgreSQL 18, with all 20 public tables and 8 rows matching. The temporary
+archive was deleted. Neon Free offers a six-hour point-in-time restore
+window, so a retained off-site backup remains necessary for longer recovery
+and before destructive schema changes.
+
 Images is a [separate free plan](https://developers.cloudflare.com/images/pricing/)
 on this account. It permits 5,000 unique transformations per month; once
 exhausted, new variants fail instead of incurring automatic overage charges.
@@ -94,6 +117,14 @@ At the current 12 widths and 2 qualities, one original image can create up to
 24 variants; review this limit as content grows. Do not send authenticated or
 mutable responses through a shared edge cache to reduce
 a bill.
+There were 112 raster files under `public/` on October 13, so even if every
+one were requested in all 24 allowed width/quality combinations, those files
+would use at most 2,688 monthly unique transformations. R2 uploads and remote
+YouTube images add to that count; the dashboard, not this upper bound, is the
+source of actual usage. If the month approaches 4,000 transformations, reduce
+new variants or make an explicit Images plan decision before publishing more
+images. Images Free serves existing variants but returns error 9422 for new
+ones after 5,000, so this is a broken-image risk, not an automatic charge.
 
 Cloudflare Web Analytics already has automatic setup enabled for `willie.page`
 in the WillieCubed account and was recording visits before cutover. It does not

@@ -101,7 +101,10 @@ The WillieCubed Cloudflare account has Workers Paid, with a $25 usage alert that
 **Interfaces:** The runbook states current provider ownership, recovery commands, and retained-data locations.
 
 - [x] Confirm independent Neon ownership of production and acceptance projects.
-- [ ] Restore a representative production backup into isolation.
+- [x] Restore a representative production backup into isolation. On October 13,
+      `pg_dump` and `pg_restore` succeeded in a temporary local PostgreSQL 18
+      database; 20 public tables and all 8 rows matched. See the preview
+      acceptance receipt for scope and cleanup.
 - [ ] Verify all legacy blob URLs or migrated replacements and stop Vercel Blob writes.
 - [ ] Remove Vercel project integration, stale configuration, and billable resources after production and retained data are verified.
 - [ ] Run `pnpm check`, browser smoke, provider checks, and `scripts/hypertext-gate.py` if installed; record exact remaining limitations.

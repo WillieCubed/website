@@ -98,11 +98,15 @@ small for some dynamic requests. WillieCubed billing confirmed Workers Paid
 subscribed on October 13. It includes 10 million requests and 30 million CPU
 milliseconds per month; static asset requests are free. The billing dashboard
 showed two $10 budget alerts, both notifications rather than hard limits.
-R2 Paid and Images Stream Basic were also listed as subscriptions. Watch Worker
-CPU, R2 operations and storage, Images, Hyperdrive, and other billable usage
-after cutover. The owner's $25 monthly ceiling cannot be enforced by a budget
-alert; pause new billable use or change the architecture before projected
-charges approach it. [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+R2 Paid and Images Stream Basic were also listed as subscriptions. Hyperdrive
+queries and connection pooling have no separate charge on Workers Paid. The
+SQLite Durable Objects used by the Next cache have their own included monthly
+allowance: one million requests and 400,000 GB-seconds of duration. Watch
+Worker requests and CPU, Durable Object requests and duration, R2 operations
+and storage, and Images transformations after cutover. The owner's $25 monthly
+ceiling cannot be enforced by a budget alert; pause new billable use or change
+the architecture before projected charges approach it.
+[Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
 charges $0.30 per million requests beyond the included 10 million and $0.02
 per million CPU milliseconds beyond the included 30 million. The recent 2.1
 million Vercel function invocations are only a rough traffic reference, not a
@@ -110,6 +114,9 @@ Worker usage forecast. Measure the account-wide request and CPU totals after
 cutover; other Workers share the paid allowance. [R2 Standard's free
 allowance](https://developers.cloudflare.com/r2/pricing/) is 10 GB-month,
 one million Class A operations, and ten million Class B operations monthly.
+[Hyperdrive pricing](https://developers.cloudflare.com/hyperdrive/platform/pricing/)
+and [Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/)
+document the included usage and possible overages.
 
 Neon is a separate Free account. Its October 2026 allowance is 100 compute
 unit hours and 1 GB of storage **per project** each month. At 13:06 UTC on

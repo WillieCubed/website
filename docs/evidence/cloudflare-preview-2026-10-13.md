@@ -249,3 +249,14 @@ by exact ID and body match with the approved Neon CLI; the private library
 again showed only the five original drafts. Preview still needs Lattice
 reconnection and a successful GitHub publication. Production is missing the
 new `STUDIO_GITHUB_TOKEN` secret name, so publishing cannot yet be accepted.
+
+The next preview Git build for `91c3d9f` passed after its remote configuration
+was reconciled and the invalid Wrangler fallback was removed. The obsolete
+`INDIEAUTH_TOTP_SECRET`, `MICROPUB_GITHUB_TOKEN`, and `SEARCH_REINDEX_SECRET`
+were deleted from the preview Worker. The current private library still loads
+the five retained drafts after the secret cleanup. Workers Metrics for the
+preceding 24 hours reported 419 invocations, 62 asset requests, median CPU
+103 ms, and 90th-percentile CPU 459 ms. Seven CPU-limit errors belonged to
+earlier Free-tier Worker versions; the current hosted preview owner flow
+passed on Workers Paid. These testing-heavy preview metrics are not a
+production cost forecast.

@@ -16,8 +16,7 @@ const CONTENT_TYPES: SearchContentType[] = [
 /**
  * GET /api/search
  *
- * JSON search over the site's own content. Answers from the build-time index
- * by default and from Postgres when SEARCH_BACKEND=postgres.
+ * JSON search over the site's own content from the build-time index.
  *
  * Query parameters:
  * - q: Search query (required)

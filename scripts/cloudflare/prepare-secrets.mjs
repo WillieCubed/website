@@ -23,7 +23,6 @@ const secrets = {
   WEBMENTION_MODERATION_SECRET: hex(),
   INDIEAUTH_INTROSPECTION_SECRET: hex(),
   INDIEWEB_NOTIFY_SECRET: hex(),
-  SEARCH_REINDEX_SECRET: hex(),
 };
 
 writeFileSync(output, JSON.stringify(secrets), { flag: 'wx', mode: 0o600 });

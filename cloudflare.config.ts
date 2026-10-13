@@ -100,7 +100,6 @@ export default defineConfig((context) => {
         WEBMENTION_MODERATION_SECRET: bindings.secret(),
         INDIEAUTH_INTROSPECTION_SECRET: bindings.secret(),
         INDIEWEB_NOTIFY_SECRET: bindings.secret(),
-        SEARCH_REINDEX_SECRET: bindings.secret(),
         OWNER_ACCESS_ISSUER: bindings.secret(),
         OWNER_ACCESS_AUDIENCE: bindings.secret(),
         OWNER_ACCESS_EMAIL: bindings.secret(),

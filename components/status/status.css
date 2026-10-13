@@ -370,10 +370,6 @@
   }
 }
 
-.site-footer__inner {
-  container-name: footer;
-  container-type: inline-size;
-}
 .microstatus {
   min-width: 0;
   max-width: 100%;

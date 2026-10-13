@@ -7,6 +7,8 @@
   background: var(--color-tray);
 }
 .site-footer__inner {
+  container-name: footer;
+  container-type: inline-size;
   max-width: 1200px;
   margin: 0 auto;
   padding: 48px 20px;

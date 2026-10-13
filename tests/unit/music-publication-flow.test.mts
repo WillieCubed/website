@@ -131,20 +131,33 @@ test(
           ...pr,
           base: { sha: main },
           mergeable: ready,
-          mergeable_state: ready ? 'clean' : 'unknown',
+          mergeable_state: ready ? 'unstable' : 'unknown',
         });
       if (path.endsWith('/check-runs'))
+        if (init.headers?.Authorization)
+          return Response.json({}, { status: 403 });
+      if (path.endsWith('/check-runs'))
         return ok({
-          total_count: 1,
+          total_count: 2,
           check_runs: [
             {
+              name: 'ci',
+              app: { id: 15368 },
               status: ready ? 'completed' : 'in_progress',
               conclusion: ready ? 'success' : null,
+            },
+            {
+              name: 'Vercel – website',
+              status: 'completed',
+              conclusion: 'failure',
             },
           ],
         });
       if (path.endsWith('/status'))
-        return ok({ state: 'success', statuses: [] });
+        return ok({
+          state: 'failure',
+          statuses: [{ context: 'Vercel – website', state: 'failure' }],
+        });
       if (path === 'pulls/1/merge') {
         assert.equal(body.merge_method, 'rebase');
         assert.equal(body.sha, pr.head.sha);

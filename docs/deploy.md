@@ -105,14 +105,24 @@ alert; pause new billable use or change the architecture before projected
 charges approach it.
 
 Neon is a separate Free account. Its October 2026 allowance is 100 compute
-unit hours and 1 GB of storage **per project** each month. On October 13 the
-production project had used 6,519 compute seconds (1.81 CU-hours) and 32.6 MB
-of storage; the acceptance project had used 9,845 compute seconds (2.74
-CU-hours) and 33.2 MB; the private-writing project had used 1,899 compute
-seconds (0.53 CU-hours) and no storage. These are pre-cutover figures. The
-production compute is fixed at 0.25 CU and was idle when checked. The isolated
-preview compute was capped at 0.25 CU on October 13; all three computes were
-idle and had scale to zero enabled when checked. Neon's API value
+unit hours and 1 GB of storage **per project** each month. At 13:06 UTC on
+October 13, the Neon API reported production 9,974 compute seconds (2.77
+CU-hours) and 32.6 MB of storage; acceptance 11,116 compute seconds (3.09
+CU-hours) and 33.2 MB; private writing 1,899 compute seconds (0.53 CU-hours)
+and no storage. These are pre-cutover figures. Read `compute_time_seconds`,
+the CU-weighted usage field, rather than `active_time_seconds`, which is
+unweighted uptime. Check each project without waking its compute, for example:
+
+```sh
+npx -y neonctl@latest projects get icy-sound-09771903 --output json |
+  jq '{name, compute_time_seconds, synthetic_storage_size, consumption_period_end}'
+```
+
+Divide `compute_time_seconds` by 3,600 for CU-hours and compare each project
+to its own 100 CU-hour allowance. The production compute is fixed at 0.25 CU
+and was idle when checked. The isolated preview compute was capped at 0.25 CU
+on October 13; all three computes were idle and had scale to zero enabled
+when checked. Neon's API value
 `suspend_timeout_seconds: 0` uses the plan default idle timeout. A 0.25 CU
 compute kept awake all month would consume roughly 186 CU-hours, exceeding
 the Free allowance after roughly 400 active hours, or about 17 continuously
@@ -120,7 +130,8 @@ active days. Avoid frequent database polling and keep scale to zero enabled.
 The public footer's location read uses the shared Next data cache for three
 hours; an owner city save invalidates its tag. Verify the hosted cache and
 fresh city update before canonical DNS moves. Writing detail pages still
-revalidate every minute, but approved Webmentions for all public pages and
+revalidate every minute, while the reply-context database read has a separate
+three-hour data cache. Approved Webmentions for all public pages and
 feeds share a one-hour snapshot in the private R2 cache bucket. A verified
 public change or API moderation rotates its generation and invalidates the
 affected page. The snapshot's Postgres query bypasses Hyperdrive's separate

@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next/types';
 
@@ -43,6 +44,22 @@ import { getBacklinksForPost } from '@/lib/writings/backlinks';
 // cache window. Without this, the status fetch in the root layout makes the
 // entire writing page eligible for a 15-minute static snapshot.
 export const revalidate = 60;
+
+// An interaction target's metadata changes slowly. Cache this public read
+// separately from the page so each one-minute page refresh does not query
+// Postgres and keep the Neon compute awake under routine traffic.
+const cachedReplyContext = unstable_cache(
+  async (url: string) => {
+    const context = await getReplyContext(url);
+    return {
+      ...context,
+      publishedAt: context.publishedAt?.toISOString(),
+      fetchedAt: context.fetchedAt.toISOString(),
+    };
+  },
+  ['public-reply-context'],
+  { revalidate: 3 * 60 * 60 }
+);
 
 function generateCanonicalUrl(slug: string) {
   return absoluteRoute`/writings/${slug}`;
@@ -158,7 +175,17 @@ async function loadReplyContexts(
   return Promise.all(
     urls.map(async (url): Promise<[string, ReplyContext]> => {
       try {
-        return [url, await getReplyContext(url)];
+        const context = await cachedReplyContext(url);
+        return [
+          url,
+          {
+            ...context,
+            publishedAt: context.publishedAt
+              ? new Date(context.publishedAt)
+              : undefined,
+            fetchedAt: new Date(context.fetchedAt),
+          },
+        ];
       } catch (error) {
         console.error(`Failed to fetch context for ${url}:`, error);
         return [url, { url, fetchedAt: new Date() }];

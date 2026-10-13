@@ -59,17 +59,15 @@ const nextConfig: NextConfig = {
     return [...legacy, ...aliases, ...retired, ...feedGuesses];
   },
   cacheComponents: false,
-  outputFileTracingIncludes: {
-    '/*': [
-      './node_modules/.pnpm/pg-cloudflare@*/node_modules/pg-cloudflare/dist/index.js',
-    ],
-  },
   // @atcute/tid reads the clock through @atcute/time-ms, which loads a native
   // addon from a computed path. Turbopack cannot bundle that, so Node loads
   // the package, and with it time-ms, from node_modules instead.
   serverExternalPackages: ['@atcute/tid', 'esbuild'],
   // The compiler uses one build-time browser runtime, kept in private functions.
   outputFileTracingIncludes: {
+    '/*': [
+      './node_modules/.pnpm/pg-cloudflare@*/node_modules/pg-cloudflare/dist/index.js',
+    ],
     '/music': ['./content/music/catalog.json'],
     '/api/music/**': ['./content/music/catalog.json'],
     '/api/studio/**': [

@@ -3,8 +3,9 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 20px;
-  color: inherit;
+  width: 36px;
+  height: 36px;
+  color: var(--color-muted);
 }
 .music-prototype .mp-selection-control > input {
   position: absolute;
@@ -20,45 +21,56 @@
   outline: none;
 }
 .mp-selection-state {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-.mp-selection-state svg {
-  width: 20px;
-  height: 20px;
-  opacity: 0;
-  scale: 0.6;
-  transition:
-    opacity 120ms var(--mp-effects),
-    scale 320ms var(--mp-spatial);
-}
-.mp-selection-control:has(input:checked) .mp-selection-state svg {
-  opacity: 1;
-  scale: 1;
-}
-.mp-selection-control[data-labeled] {
-  width: auto;
-  min-width: 76px;
-}
-.mp-selection-control[data-labeled] .mp-selection-state {
-  min-height: 36px;
-  padding: 8px 12px;
-  background: var(--color-surface-container-highest);
-  color: var(--color-muted);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  background: var(--color-surface-container-highest);
+  pointer-events: none;
   transition:
     background 160ms var(--mp-effects),
     color 160ms var(--mp-effects),
     border-radius 320ms var(--mp-spatial);
 }
-.mp-selection-control[data-labeled]:has(input:checked) .mp-selection-state {
+.mp-selection-state svg {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  transition:
+    opacity 120ms var(--mp-effects),
+    scale 320ms var(--mp-spatial),
+    rotate 320ms var(--mp-spatial);
+}
+.mp-choice-off {
+  opacity: 1;
+  scale: 1;
+  rotate: 0deg;
+}
+.mp-choice-on {
+  opacity: 0;
+  scale: 0.5;
+  rotate: -20deg;
+}
+.mp-selection-control:has(input:checked) .mp-choice-off {
+  opacity: 0;
+  scale: 0.5;
+  rotate: 20deg;
+}
+.mp-selection-control:has(input:checked) .mp-choice-on {
+  opacity: 1;
+  scale: 1;
+  rotate: 0deg;
+}
+.mp-selection-control:has(input:checked) .mp-selection-state {
   background: var(--color-primary);
   color: var(--color-on-primary);
-  border-radius: 20px;
+  border-radius: 50%;
+}
+.mp-selection-control[data-indicator='feature']:has(input:checked)
+  .mp-selection-state {
+  border-radius: 10px;
 }
 .music-prototype
   :is(.ms-playlist, .ms-feature-option, .mp-check):has(.mp-selection-control) {
@@ -104,7 +116,6 @@
 @media (prefers-reduced-motion: reduce) {
   .mp-selection-state,
   .mp-selection-state svg,
-  .mp-selection-control[data-labeled] .mp-selection-state,
   .music-prototype
     :is(.ms-playlist, .ms-feature-option, .mp-check):has(
       .mp-selection-control
@@ -119,7 +130,7 @@
     ) {
     outline: 2px solid Highlight;
   }
-  .mp-selection-control[data-labeled]:has(input:checked) .mp-selection-state {
+  .mp-selection-control:has(input:checked) .mp-selection-state {
     forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;

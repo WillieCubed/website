@@ -4,38 +4,52 @@ import './music-selection-control.css';
 
 export default function MusicSelectionControl({
   type = 'checkbox',
-  selectedLabel,
-  unselectedLabel,
+  indicator = 'include',
   ...props
 }: Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'className'> & {
   type?: 'checkbox' | 'radio';
-  selectedLabel?: string;
-  unselectedLabel?: string;
+  indicator?: 'include' | 'feature' | 'equal';
 }) {
   return (
-    <span
-      className="mp-selection-control"
-      data-labeled={!!selectedLabel || undefined}
-    >
+    <span className="mp-selection-control" data-indicator={indicator}>
       <input {...props} type={type} />
       <span className="mp-selection-state" aria-hidden="true">
-        {selectedLabel ? (
-          props.checked ? (
-            selectedLabel
-          ) : (
-            unselectedLabel
-          )
-        ) : (
-          <svg viewBox="0 0 18 18" fill="none">
-            <path
-              d="m3 9 4 4 8-8"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mp-choice-off"
+        >
+          <path
+            d={
+              indicator === 'include'
+                ? 'M12 5v14M5 12h14'
+                : indicator === 'feature'
+                  ? 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z'
+                  : 'M4 4h6v6H4ZM14 4h6v6h-6ZM4 14h6v6H4ZM14 14h6v6h-6Z'
+            }
+          />
+        </svg>
+        <svg
+          viewBox="0 0 24 24"
+          fill={indicator === 'feature' ? 'currentColor' : 'none'}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mp-choice-on"
+        >
+          <path
+            d={
+              indicator === 'feature'
+                ? 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z'
+                : 'm5 12 4 4L19 6'
+            }
+          />
+        </svg>
       </span>
     </span>
   );

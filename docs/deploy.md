@@ -42,8 +42,10 @@ the baked commit SHA at `/api/indieweb/revision`. Do not build once and deploy
 the same `.open-next` directory to both environments: the public origin and
 revision are compiled into the build.
 
-Use a WillieCubed `cf` CLI profile for local deployments and verify its
-account ID is `18f90fa11cf0a87145be4a1517e41217` with
+Create the named WillieCubed profile with `pnpm exec cf auth create williecubed`
+after approving its OAuth permissions. `cf auth login` only updates the default
+profile; `--profile` does not turn it into a named-profile login. Verify the
+new profile's account ID is `18f90fa11cf0a87145be4a1517e41217` with
 `pnpm exec cf auth whoami --profile williecubed`. Set
 `CLOUDFLARE_PROFILE=williecubed` when running the deploy script locally. The
 config also pins that account ID, so a login from another Cloudflare account cannot

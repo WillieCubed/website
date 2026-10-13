@@ -39,3 +39,14 @@ spoofed `x-vercel-ip-city` header.
 Before changing DNS, deploy the same reviewed branch through the WillieCubed
 `cf` profile, verify the exact hosted revision and owner publishing flows,
 then repeat this route matrix and compare retained production data counts.
+
+Direct Worker URL audit later on October 13: unauthenticated GETs to both
+production and preview Worker origins returned only `configured` from
+`/api/admin/status`; `/admin/status` rendered its sign-in UI, while
+`/indieauth/userinfo` returned 401 and `/indieauth/consent` returned 400
+without a valid request. The known draft writing
+`/writings/testing-independent-publishing` and its
+`/api/studio-publication/testing-independent-publishing` proof route both
+returned 404 on both Worker origins. This covers those owner and draft paths
+on the already deployed Workers. Repeat the check at the exact release SHA
+before concluding that the direct Worker URLs are safe after cutover.

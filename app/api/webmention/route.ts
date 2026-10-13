@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
+import { invalidatePublicWebmentions } from '@/lib/indieweb/public-webmention-reads';
 import {
   defaultSalmentionDeps,
   sendSalmention,
@@ -12,6 +13,7 @@ import {
   webmentionRateLimitKey,
 } from '@/lib/indieweb/webmention-rate-limit';
 import {
+  getWebmentionBySourceTarget,
   storeWebmention,
   webmentionRateLimitStore,
   webmentionVouchStore,
@@ -166,6 +168,20 @@ export async function POST(request: NextRequest) {
           );
           console.info(`Vouch for ${source}: ${outcome}`);
           vouched = outcome === 'approved';
+        }
+        // Finish any vouch approval before clearing the public snapshot.
+        // Unapproved submissions do not need to wake Neon on the next read.
+        if (result.success) {
+          const current = result.isDeleted
+            ? null
+            : await getWebmentionBySourceTarget(source, canonicalTarget);
+          if (result.isDeleted || current?.isApproved) {
+            try {
+              await invalidatePublicWebmentions(canonicalTarget);
+            } catch (error) {
+              console.error('Invalidating public Webmentions failed:', error);
+            }
+          }
         }
         // A vouch approves without a moderator, so it notifies upstream here.
         if (vouched) {

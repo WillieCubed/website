@@ -98,3 +98,14 @@ Images Transformations dashboard showed 2 unique image transformations for
 the current month. The production candidate Worker had 59 invocations, 6
 asset requests, and 0 Worker errors in the preceding 24 hours. These counts
 are from pre-cutover testing; they do not predict usage after public DNS moves.
+
+Local cost-cache acceptance on October 13, after the later Webmention snapshot
+change: a disposable PostgreSQL 18 database and local OpenNext Worker with
+simulated R2 served two separate `/webmentions` requests for an approved reply.
+Both returned 200 and the reply. PostgreSQL statement logging showed one
+approved-mention snapshot SELECT before the second request and still one
+afterward. A bearer-authenticated moderation POST then rejected the reply
+and returned 200. The next public GET hid it, and the origin SELECT count rose
+to two. This verifies local R2 snapshot reuse and post-moderation invalidation
+across Worker requests; it does not prove hosted R2 or Hyperdrive behavior.
+The temporary database and R2 state were deleted after the check.

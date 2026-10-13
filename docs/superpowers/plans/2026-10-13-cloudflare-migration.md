@@ -29,7 +29,7 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
 2. A concurrent Micropub delete and restore must retain the transaction lock: rerun the Postgres concurrency acceptance cases.
 3. A changed deployment between revision discovery and notification must return 409: test with differing SHAs and verify the hosted workflow.
 4. A direct Worker URL must not expose any protected preview or owner route: inspect access control on both hostnames.
-5. A stale cache after publication must not hide a writing or reply: test tag revalidation across two Worker requests.
+5. A stale cache after publication must not hide a writing or reply: test the Webmention snapshot generation and page revalidation across two Worker requests.
 
 ---
 

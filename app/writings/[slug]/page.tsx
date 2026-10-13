@@ -13,12 +13,12 @@ import { documentUri } from '@/lib/atproto/keys';
 import { documentPath } from '@/lib/atproto/records';
 import { loadBlueskyResponses, mergeResponses } from '@/lib/atproto/responses';
 import { OEMBED_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
+import { publicWebmentionsForPost } from '@/lib/indieweb/public-webmention-reads';
 import {
   type ReplyContext,
   getReplyContext,
 } from '@/lib/indieweb/reply-context';
 import type { WebmentionGroup } from '@/lib/indieweb/types';
-import { getWebmentionsForPost } from '@/lib/indieweb/webmention-storage';
 import {
   breadcrumbLd,
   graph,
@@ -132,7 +132,7 @@ async function fetchInteractions(slug: string) {
 /** A missing database leaves the interaction area empty, not the page broken. */
 async function loadWebmentions(slug: string): Promise<WebmentionGroup | null> {
   try {
-    return await getWebmentionsForPost(slug);
+    return await publicWebmentionsForPost(slug);
   } catch {
     return null;
   }

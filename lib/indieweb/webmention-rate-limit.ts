@@ -1,3 +1,5 @@
+import type { RateLimit } from '@cloudflare/workers-types';
+
 import type { WebmentionRateLimitStore } from '@/lib/indieweb/types';
 
 /**
@@ -22,6 +24,24 @@ export function webmentionRateLimitKey(headers: Headers): string {
     headers.get('x-real-ip')?.trim() ||
     'unknown'
   );
+}
+
+/**
+ * A fast, location-local guard before the Postgres counter. The Postgres
+ * counter remains authoritative because Cloudflare's edge counter is
+ * eventually consistent and does not share counts between locations.
+ */
+export async function isWithinEdgeWebmentionRateLimit(
+  limiter: Pick<RateLimit, 'limit'> | undefined,
+  key: string
+): Promise<boolean> {
+  if (!limiter) return true;
+  try {
+    return (await limiter.limit({ key })).success;
+  } catch (error) {
+    console.error('Cloudflare Webmention rate limit check failed:', error);
+    return true;
+  }
 }
 
 /**

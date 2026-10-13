@@ -1,3 +1,4 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
@@ -9,6 +10,7 @@ import {
 import { applyVouch, readVouchParameter } from '@/lib/indieweb/vouch';
 import {
   WEBMENTION_RATE_WINDOW_MS,
+  isWithinEdgeWebmentionRateLimit,
   isWithinWebmentionRateLimit,
   webmentionRateLimitKey,
 } from '@/lib/indieweb/webmention-rate-limit';
@@ -38,6 +40,15 @@ async function existingPages(): Promise<string[]> {
     getAllWritings(),
   ]);
   return buildSitemap({ initiatives, writings }).map((entry) => entry.url);
+}
+
+function edgeRateLimiter() {
+  try {
+    return getCloudflareContext().env.WEBMENTION_EDGE_LIMIT;
+  } catch {
+    // The route also runs locally without Cloudflare bindings.
+    return undefined;
+  }
 }
 
 /**
@@ -138,10 +149,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Rejected payloads must not wake Neon. Count only submissions that could
-    // be stored; Postgres keeps the limit shared across Worker instances.
+    // be stored. Cloudflare sheds bursts before Postgres; the database counter
+    // remains authoritative across Worker locations and local development.
+    const rateLimitKey = webmentionRateLimitKey(request.headers);
+    const edgeAllowed = await isWithinEdgeWebmentionRateLimit(
+      edgeRateLimiter(),
+      rateLimitKey
+    );
+    if (!edgeAllowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
     const allowed = await isWithinWebmentionRateLimit(
       webmentionRateLimitStore,
-      webmentionRateLimitKey(request.headers)
+      rateLimitKey
     );
     if (!allowed) {
       return NextResponse.json(

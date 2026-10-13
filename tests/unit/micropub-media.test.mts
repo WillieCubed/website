@@ -56,6 +56,13 @@ test('R2 media storage writes immutable keys under the site origin', async () =>
     new Uint8Array(writes[0].bytes),
     new Uint8Array([0xff, 0xd8, 0xff])
   );
+  const second = await storeMedia(
+    jpeg(),
+    store,
+    new Date('2026-09-22T12:00:00Z')
+  );
+  assert.notEqual(second, url);
+  assert.notEqual(writes[1].key, writes[0].key);
 });
 
 test('parseMediaUpload returns the multipart file part', async () => {
@@ -219,4 +226,19 @@ test('the media endpoint checks bearer scopes, size, and signatures before stori
   assert.equal(accepted.headers.get('location'), (await accepted.json()).url);
   assert.equal(accepted.headers.get('access-control-allow-origin'), '*');
   assert.equal(stored.length, 1);
+
+  const failed = await handleMediaPost(
+    upload(jpeg(), await credential('media')),
+    {
+      ...options,
+      mediaStore: {
+        async put() {
+          throw new Error('R2 write failed');
+        },
+      },
+    }
+  );
+  assert.equal(failed.status, 500);
+  assert.equal(failed.headers.get('location'), null);
+  assert.equal((await failed.json()).error, 'server_error');
 });

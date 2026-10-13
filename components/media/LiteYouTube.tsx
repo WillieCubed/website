@@ -70,7 +70,9 @@ export default function LiteYouTube({
         sizes="(min-width: 840px) 840px, 100vw"
         className="object-cover transition-transform duration-700 ease-site group-hover:scale-[1.02]"
         priority={false}
-        unoptimized={posterSrc.endsWith('.svg')}
+        unoptimized={
+          posterSrc.startsWith('https://') || posterSrc.endsWith('.svg')
+        }
       />
       <a
         href={`https://www.youtube.com/watch?v=${videoId}`}

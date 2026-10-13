@@ -48,6 +48,15 @@ production Worker still lacks `MICROPUB_GITHUB_TOKEN` and
 `ATPROTO_APP_PASSWORD`; Vercel marks those values as non-readable Secrets, so
 they require replacement before a production deployment and DNS cutover.
 
+Cloudflare Workers Builds was connected on October 13 to the GitHub App's
+`WillieCubed/website` repository for the `willie-page-preview` Worker. The
+production branch for this isolated Worker is `codex/cloudflare-migration`;
+builds for other branches are disabled. The build runs
+`pnpm build:cloudflare:preview`, then `pnpm deploy:cloudflare:preview`, with
+`PNPM_VERSION=11.5.1` and build caching enabled. Cloudflare created the
+approved account-scoped `WillieCubed website Workers Builds` API token. A
+repository push after this connection will exercise the first hosted Git build.
+
 At `4918e2e3e6a6ef65108ab7289561ae51b0c396ce`, the preview build and
 `pnpm deploy:cloudflare:preview` completed through `cf`, producing Worker
 version `924dd895-8522-432f-bddb-4d0f6468a42d`. The hosted route gate passed

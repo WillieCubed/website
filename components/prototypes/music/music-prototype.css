@@ -78,6 +78,22 @@ html[data-music-motion] {
   font-size: 14px;
   font-weight: 600;
 }
+.mp-prototype-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 599px) {
+  .mp-prototype-bar {
+    flex-wrap: wrap;
+  }
+  .mp-prototype-actions {
+    margin-left: auto;
+  }
+  .mp-prototype-sample-label {
+    display: none;
+  }
+}
 .mp-shell {
   display: grid;
   grid-template-columns: 256px minmax(0, 1fr);

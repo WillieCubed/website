@@ -270,3 +270,44 @@ publication, CI failures, deployment receipts, and draft exclusion from every
 public discovery path. Run the repository's required checks with bounded
 concurrency. Local tests, hosted editor checks, real provider checks, and public
 deployment checks are separate evidence.
+
+## Music setup walkthrough
+
+Willie can open **Show setup** or `/prototypes/music?setup` to review the
+connection, selection, and preview screens. The October 12, 2026 walkthrough
+uses the existing sample library. It makes no Spotify request.
+
+The collection starts with no playlists selected and no featured playlist.
+Back retains choices. The preview uses the chosen feature and collection
+order. Continue to curation replaces only the local draft selection and feature.
+It preserves notes and series. Exit setup leaves the saved collection intact.
+The existing review and apply controls remain the final local gate.
+
+We chose a short setup flow instead of requiring notes and series on first
+use. Those decisions need the full curation view. Real OAuth consent, loading,
+provider failure, eligibility checks, and hosted save conflicts remain outside
+this walkthrough.
+
+The state diagram shows the setup states and the draft handoff.
+
+```mermaid
+stateDiagram-v2
+  Gallery --> Connect: Show setup
+  Connect --> Choose: Simulate connection
+  Choose --> Connect: Back
+  Choose --> Preview: Select at least one playlist
+  Preview --> Choose: Back
+  Preview --> Curation: Save draft
+  Connect --> Gallery: Exit
+  Choose --> Gallery: Exit
+  Preview --> Gallery: Exit
+```
+
+Capture the full desktop and mobile viewports in both themes with
+`pnpm music:shots .playwright-mcp/music/iterations/2026-10-12-setup --setup`.
+Long-page companions show the rest of the selection and feature controls.
+
+The 12 setup browser checks passed across both themes and device classes.
+They cover Back, cancel, draft separation, accessibility, and 320px reflow.
+The final layout checks also verify that captions do not overlap and the phone
+preview title clears the fixed actions. Type checking and scoped lint passed.

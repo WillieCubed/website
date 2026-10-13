@@ -1,4 +1,4 @@
-/* global document, innerWidth */
+/* global document, innerWidth, scrollTo */
 import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 
@@ -48,6 +48,45 @@ try {
         records.push({ device, name, colorScheme, width, height, file });
       };
       await capture('gallery');
+      if (process.argv[3] === '--setup') {
+        await page
+          .getByRole('button', { name: 'Show setup', exact: true })
+          .click();
+        await capture('setup-connect');
+        await page
+          .getByRole('button', { name: 'Connect Spotify', exact: true })
+          .click();
+        for (const name of [
+          'Fall Tour 2026, Part 1',
+          'Summer 2026',
+          'Late hours',
+        ]) {
+          await page
+            .getByRole('checkbox', { name: `Select ${name}`, exact: true })
+            .check();
+        }
+        await page.evaluate(() => scrollTo(0, 0));
+        await capture('setup-choose');
+        await page
+          .getByRole('button', { name: 'Preview collection', exact: true })
+          .click();
+        await page
+          .getByRole('radio', {
+            name: 'Feature Fall Tour 2026, Part 1',
+            exact: true,
+          })
+          .check();
+        await page.evaluate(() => scrollTo(0, 0));
+        await capture('setup-preview');
+        if (device === 'mobile') {
+          await page
+            .getByRole('radio', { name: 'No featured playlist', exact: true })
+            .scrollIntoViewIfNeeded();
+          await capture('setup-preview-options');
+        }
+        await context.close();
+        continue;
+      }
       await page
         .getByRole('button', { name: 'Curate music', exact: true })
         .click();

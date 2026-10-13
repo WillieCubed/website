@@ -23,6 +23,7 @@ import {
 } from '@/lib/prototypes/music-motion';
 
 import MusicScrollCue from './MusicScrollCue';
+import MusicSetupPrototype from './MusicSetupPrototype';
 import SampleCover from './SampleCover';
 import './music-prototype.css';
 
@@ -38,6 +39,7 @@ export default function MusicPrototype() {
   const [live, setLive] = useState<Catalog>(initialCatalog);
   const [draft, setDraft] = useState<Catalog>(initialCatalog);
   const [editing, setEditing] = useState(false);
+  const [setup, setSetup] = useState(false);
   const [review, setReview] = useState(false);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState('');
@@ -55,6 +57,7 @@ export default function MusicPrototype() {
   const reviewDialog = useRef<HTMLDialogElement>(null);
   const reviewTrigger = useRef<HTMLButtonElement>(null);
   const curateToggle = useRef<HTMLButtonElement>(null);
+  const setupToggle = useRef<HTMLButtonElement>(null);
   const focusSequence = useRef<string[]>([]);
   const returnFocus = useRef<HTMLElement | null>(null);
   const ownDetailEntry = useRef(false);
@@ -108,6 +111,7 @@ export default function MusicPrototype() {
       );
     }
     setReady(true);
+    setSetup(new URLSearchParams(location.search).has('setup'));
   }, []);
 
   useEffect(() => {
@@ -555,6 +559,37 @@ export default function MusicPrototype() {
     );
   }
 
+  function exitSetup(next?: Catalog) {
+    const url = new URL(location.href);
+    url.searchParams.delete('setup');
+    history.replaceState(null, '', url);
+    flushSync(() => {
+      if (next) {
+        setDraft(next);
+        setEditing(true);
+        setSeriesId(null);
+        setSearch('');
+        setLibraryFilter('all');
+      }
+      setSetup(false);
+    });
+    if (next) curateToggle.current?.focus({ preventScroll: true });
+    else setupToggle.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  if (setup) {
+    return (
+      <div className="music-prototype" aria-busy={!ready}>
+        <MusicSetupPrototype
+          catalog={draft}
+          onCancel={() => exitSetup()}
+          onComplete={exitSetup}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className="music-prototype"
@@ -562,20 +597,38 @@ export default function MusicPrototype() {
       aria-busy={!ready}
     >
       <div className="mp-prototype-bar">
-        <span>Local prototype · Sample content</span>
-        <button
-          ref={curateToggle}
-          className="mp-text-button"
-          onClick={() => {
-            setEditing(!editing);
-            setReview(false);
-            setSearch('');
-            setLibraryFilter('all');
-          }}
-        >
-          {editing ? 'View gallery' : 'Curate music'}
-          <Icon name={editing ? 'arrow-right' : 'file'} />
-        </button>
+        <span>
+          Local prototype
+          <span className="mp-prototype-sample-label"> · Sample content</span>
+        </span>
+        <div className="mp-prototype-actions">
+          <button
+            ref={setupToggle}
+            className="mp-text-button"
+            onClick={() => {
+              const url = new URL(location.href);
+              url.search = '?setup';
+              history.replaceState(null, '', url);
+              setSetup(true);
+              setReview(false);
+            }}
+          >
+            Show setup
+          </button>
+          <button
+            ref={curateToggle}
+            className="mp-text-button"
+            onClick={() => {
+              setEditing(!editing);
+              setReview(false);
+              setSearch('');
+              setLibraryFilter('all');
+            }}
+          >
+            {editing ? 'View gallery' : 'Curate music'}
+            <Icon name={editing ? 'arrow-right' : 'file'} />
+          </button>
+        </div>
       </div>
       <TopBar
         column="wide"

@@ -3,6 +3,129 @@ import { expect, test } from '@playwright/test';
 
 const route = '/prototypes/music';
 
+test('setup keeps choices through Back and hands off a draft without changing the gallery', async ({
+  page,
+}) => {
+  await page.goto(`${route}?setup`);
+  await page
+    .getByRole('button', { name: 'Connect Spotify', exact: true })
+    .click();
+  const next = page.getByRole('button', {
+    name: 'Preview collection',
+    exact: true,
+  });
+  await expect(next).toBeDisabled();
+  await page
+    .getByRole('checkbox', { name: 'Select Summer 2026', exact: true })
+    .check();
+  await page
+    .getByRole('checkbox', { name: 'Select Late hours', exact: true })
+    .check();
+  await next.click();
+  await page
+    .getByRole('radio', { name: 'Feature Summer 2026', exact: true })
+    .check();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(
+    page.getByRole('checkbox', { name: 'Select Summer 2026', exact: true })
+  ).toBeChecked();
+  await next.click();
+  await expect(
+    page.getByRole('radio', { name: 'Feature Summer 2026', exact: true })
+  ).toBeChecked();
+  await page
+    .getByRole('button', { name: 'Continue to curation', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Your playlists', exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('checkbox', { name: 'Include Summer 2026', exact: true })
+  ).toBeChecked();
+  await expect(
+    page.getByRole('checkbox', {
+      name: 'Include Fall Tour 2026, Part 1',
+      exact: true,
+    })
+  ).not.toBeChecked();
+  await page.getByRole('button', { name: 'View gallery', exact: true }).click();
+  await expect(
+    page.getByRole('article', { name: 'Featured playlist' })
+  ).toContainText('Fall Tour 2026, Part 1');
+});
+
+test('canceling setup preserves the saved collection', async ({ page }) => {
+  const before = await page.evaluate(() =>
+    localStorage.getItem('willie-music-prototype-v1')
+  );
+  await page.getByRole('button', { name: 'Show setup', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Connect Spotify', exact: true })
+    .click();
+  await page
+    .getByRole('checkbox', { name: 'Select Loose ends', exact: true })
+    .check();
+  await page.getByRole('button', { name: 'Exit setup', exact: true }).click();
+  expect(
+    await page.evaluate(() => localStorage.getItem('willie-music-prototype-v1'))
+  ).toBe(before);
+  await expect(
+    page.getByRole('button', { name: 'Show setup', exact: true })
+  ).toBeFocused();
+});
+
+test('setup steps are accessible and reflow down to 320px', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Show setup', exact: true }).click();
+  for (let step = 0; step < 3; step++) {
+    expect(
+      (await new AxeBuilder({ page }).include('.music-prototype').analyze())
+        .violations
+    ).toEqual([]);
+    const viewport = page.viewportSize()!;
+    await page.setViewportSize({ width: 320, height: 740 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth - innerWidth
+      )
+    ).toBeLessThanOrEqual(0);
+    await page.setViewportSize(viewport);
+    if (step === 0)
+      await page
+        .getByRole('button', { name: 'Connect Spotify', exact: true })
+        .click();
+    if (step === 1) {
+      await page
+        .getByRole('checkbox', { name: 'Select Summer 2026', exact: true })
+        .check();
+      await page
+        .getByRole('button', { name: 'Preview collection', exact: true })
+        .click();
+    }
+  }
+  await expect(
+    page.getByRole('radio', { name: 'No featured playlist', exact: true })
+  ).toBeChecked();
+  const caption = await page.locator('.ms-preview-caption').boundingBox();
+  const playlistTitle = await page
+    .locator('.ms-preview-grid h3')
+    .first()
+    .boundingBox();
+  expect(caption!.y).toBeGreaterThanOrEqual(
+    playlistTitle!.y + playlistTitle!.height
+  );
+  await page
+    .getByRole('radio', { name: 'Feature Summer 2026', exact: true })
+    .check();
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const featureTitle = await page
+    .locator('.ms-feature-preview h3')
+    .boundingBox();
+  const actions = await page.locator('.ms-actions').boundingBox();
+  expect(featureTitle!.y + featureTitle!.height).toBeLessThan(actions!.y);
+});
+
 type MotionRecord = {
   surface: number[];
   cover: number[];

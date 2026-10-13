@@ -34,7 +34,7 @@ is rebuilt. `/media` is a page that lists media mentions and appearances.
 OpenNext packages the Next.js app for the `willie-page` Worker. The source of
 truth is `wrangler.jsonc`; `wrangler.preview.jsonc` deploys an isolated
 `willie-page-preview` Worker. Build with `pnpm build:cloudflare`, deploy with
-`pnpm exec wrangler deploy` (or `--config wrangler.preview.jsonc`), and verify
+`pnpm deploy:cloudflare` (or `pnpm deploy:cloudflare:preview`), and verify
 the baked commit SHA at `/api/indieweb/revision`. Do not build once and deploy
 the same `.open-next` directory to both environments: the public origin and
 revision are compiled into the build.
@@ -61,13 +61,19 @@ Standard.site subscribers out; they must authorize again.
 
 Cloudflare Workers Builds should connect `WillieCubed/website` to the
 production Worker on `main`. Its build command is `pnpm build:cloudflare` and
-deploy command is `pnpm exec wrangler deploy`. Set `PNPM_VERSION` to the
+deploy command is `pnpm deploy:cloudflare`. Set `PNPM_VERSION` to the
 `packageManager` version in `package.json`. Connect the preview Worker with
-deploy command `pnpm exec wrangler deploy --config wrangler.preview.jsonc` and
+deploy command `pnpm deploy:cloudflare:preview` and
 build command `pnpm build:cloudflare:preview`. The IndieWeb notification GitHub Action polls the
 canonical revision after each `main` push and invokes the production Worker
 only when the exact SHA is live. Check the Cloudflare build and the GitHub
 Action on a real publish; a successful build alone is not publication proof.
+
+The deploy scripts supply a placeholder loopback Postgres URL only to the
+local Wrangler proxy that OpenNext starts while preparing a remote upload.
+The deployed Workers use the Hyperdrive IDs in their Wrangler configs; the
+placeholder is never a production database credential. Bare `wrangler deploy`
+fails at that local proxy preflight when no local connection string is set.
 
 On the current Worker architecture, Workers Free's 10 ms CPU limit is too
 small for some dynamic requests. Workers Paid includes 10 million requests and

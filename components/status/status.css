@@ -562,7 +562,7 @@ button.weather-reading:active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-ink);
+  color: inherit;
 }
 .microstatus .weather-picture--compact > svg {
   width: 16px;

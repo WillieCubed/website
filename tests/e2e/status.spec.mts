@@ -24,7 +24,9 @@ test('a delayed status refresh preserves the content on a narrow screen', async 
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 640 });
+  const initialRefresh = page.waitForResponse('**/api/status');
   await page.goto('/status');
+  await initialRefresh;
   await expect(page.locator('.clock time')).not.toHaveText('—');
   const heading = await page.locator('h1').innerText();
   let release!: () => void;
@@ -97,4 +99,68 @@ test('a delayed status refresh preserves the content on a narrow screen', async 
       )
     )
     .toBe(0);
+});
+
+test('missing weather shows a pending state during refresh and an error only after failure', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const location = {
+    city: 'Las Vegas',
+    region: 'Nevada',
+    country: 'United States',
+    timezone: 'America/Los_Angeles',
+    updatedAt: null,
+  };
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let delayRefresh = false;
+  await page.route('**/api/status', async (route) => {
+    if (!delayRefresh) {
+      await route.fulfill({ json: { location, weather: null } });
+    } else {
+      await pending;
+      await route.fulfill({
+        json: {
+          location,
+          weather: {
+            temperature: 72,
+            unit: 'F',
+            code: 0,
+            isDay: true,
+            observedAt: new Date().toISOString(),
+          },
+        },
+      });
+    }
+  });
+  await page.goto('/status');
+  await expect(
+    page.getByText('Weather unavailable', { exact: true })
+  ).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath('weather-unavailable.png'),
+  });
+  delayRefresh = true;
+  const retry = page.waitForRequest('**/api/status');
+  await page.evaluate(() =>
+    document.dispatchEvent(new Event('visibilitychange'))
+  );
+  await retry;
+  await expect(
+    page.getByText('Loading weather…', { exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByText('Weather unavailable', { exact: true })
+  ).not.toBeVisible();
+  await expect(page.locator('h1')).toContainText('Las Vegas');
+  await page.screenshot({ path: testInfo.outputPath('weather-pending.png') });
+  release();
+  await expect(page.locator('button.weather-reading')).toContainText('72');
+  await expect(
+    page.getByText('Loading weather…', { exact: true })
+  ).not.toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('weather-loaded.png') });
 });

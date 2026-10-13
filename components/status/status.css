@@ -514,6 +514,9 @@ button.weather-reading:active {
 }
 
 @media (scripting: none) {
+  .weather-pending {
+    display: none;
+  }
   .status-expanded .clock {
     display: none;
   }

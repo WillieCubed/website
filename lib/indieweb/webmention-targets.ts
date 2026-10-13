@@ -1,4 +1,4 @@
-import { absoluteUrl, site } from '@/lib/site';
+import { canonicalUrl, site } from '@/lib/site';
 
 const CANONICAL = new URL(site.origin);
 /** Hosts that redirect to the canonical origin path for path. */
@@ -44,7 +44,7 @@ export function canonicalWebmentionTarget(
   if (!URL.canParse(target)) return null;
   const path = sitePath(target);
   if (path === null) return null;
-  const canonical = absoluteUrl(path || '/');
+  const canonical = canonicalUrl(path || '/');
   return new Set(pages).has(canonical) ? canonical : null;
 }
 

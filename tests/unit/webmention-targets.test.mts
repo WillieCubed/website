@@ -8,14 +8,14 @@ import {
 import { absoluteUrl, site } from '@/lib/site';
 
 const canonicalHost = new URL(site.origin).host;
-const home = `${site.origin}/`;
+const home = site.origin;
 const initiative = `${site.origin}/initiatives/fall-tour-2026`;
 const writing = `${site.origin}/writings/indiemark-level-3`;
 const pages = [home, initiative, `${initiative}/part-1`, writing];
 
 test('the homepage and initiative pages are accepted targets', () => {
   assert.equal(canonicalWebmentionTarget(site.origin, pages), home);
-  assert.equal(canonicalWebmentionTarget(home, pages), home);
+  assert.equal(canonicalWebmentionTarget(`${home}/`, pages), home);
   assert.equal(canonicalWebmentionTarget(initiative, pages), initiative);
   assert.equal(
     canonicalWebmentionTarget(`${initiative}/part-1`, pages),

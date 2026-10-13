@@ -17,6 +17,27 @@ AT Protocol DID, OAuth client metadata, writing and initiative social images,
 unpublished writing returned 404. GET `/micropub/media` returned 405, as it
 is a POST-only endpoint.
 
+On October 13, the exact migration head `874f78190552d4fe41b8f772643e828196a207cd`
+was deployed to this isolated preview as Worker version
+`c115b35a-ef6b-496e-8b3e-afce2ea1ff42`. The hosted release gate checked the
+revision's `cloudflare-workers` runtime marker and all public routes and passed.
+A new isolated preview TOTP secret then passed the live authorization-code,
+UserInfo, 230,008-byte R2 media upload/delivery, token revocation, and R2
+cleanup gate. The temporary local secret file was removed after the test.
+The preview's GitHub and Bluesky publishing secrets are deliberately disabled;
+no outbound publishing was claimed from this receipt.
+
+The new `cf` CLI was authorized for the WillieCubed account with 24 selected
+permissions, down from its default 474. It passed a production dry run but
+twice failed the preview upload while Cloudflare's Hyperdrive binding service
+returned `sqc-config` HTTP 503 (`10021`). Deploying the same built artifact
+with the repository's Wrangler preview configuration succeeded. This is a
+deployment-tool/provider failure, not evidence that the Worker runtime failed.
+The production build and `cf` dry run passed at the same Git revision. The
+production Worker still lacks `MICROPUB_GITHUB_TOKEN` and
+`ATPROTO_APP_PASSWORD`; Vercel marks those values as non-readable Secrets, so
+they require replacement before a production deployment and DNS cutover.
+
 Hosted write checks:
 
 - A Webmention rate-limit write reached the isolated Neon database through

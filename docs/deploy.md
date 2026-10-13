@@ -102,7 +102,14 @@ R2 Paid and Images Stream Basic were also listed as subscriptions. Watch Worker
 CPU, R2 operations and storage, Images, Hyperdrive, and other billable usage
 after cutover. The owner's $25 monthly ceiling cannot be enforced by a budget
 alert; pause new billable use or change the architecture before projected
-charges approach it.
+charges approach it. [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+charges $0.30 per million requests beyond the included 10 million and $0.02
+per million CPU milliseconds beyond the included 30 million. The recent 2.1
+million Vercel function invocations are only a rough traffic reference, not a
+Worker usage forecast. Measure the account-wide request and CPU totals after
+cutover; other Workers share the paid allowance. [R2 Standard's free
+allowance](https://developers.cloudflare.com/r2/pricing/) is 10 GB-month,
+one million Class A operations, and ten million Class B operations monthly.
 
 Neon is a separate Free account. Its October 2026 allowance is 100 compute
 unit hours and 1 GB of storage **per project** each month. At 13:06 UTC on
@@ -142,9 +149,11 @@ data cache keyed by the post and observed actor set; a newly discovered actor
 set records receipts on its first read. Hosted proof of both caches and
 invalidation is required before cutover. Other authenticated operations can
 still wake Neon. After cutover, inspect each Neon project's compute and
-storage at least daily for the first week; if
-production projects toward 80 CU-hours or 800 MB, reduce read frequency or
-move that workload to a budgeted paid service before Free is exhausted.
+storage at least daily for the first week. Project the current CU-hour rate
+through the end of the billing period; if the projection reaches 80 CU-hours
+or storage reaches 800 MB, find the hot read before the Free limit interrupts
+database-backed features. Reduce its refresh frequency or move that workload
+to a budgeted paid service before Free is exhausted.
 Cloudflare budget alerts do not cover Neon.
 
 The production database has a tested logical backup path: on October 13 a

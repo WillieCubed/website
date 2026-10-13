@@ -19,7 +19,10 @@ export function createStatusStore(query: Query): StatusStore {
   return {
     async read() {
       const { rows } = await query(
-        'SELECT location, updated_at FROM status_location WHERE singleton = true'
+        // Hyperdrive does not invalidate cached SELECTs after a write. The
+        // volatile timestamp keeps this read fresh for owner edits; the
+        // public reader has its own three-hour Next data cache.
+        'SELECT location, updated_at, clock_timestamp() AS origin_read_at FROM status_location WHERE singleton = true'
       );
       if (!rows[0]) return null;
       return {

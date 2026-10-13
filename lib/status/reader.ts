@@ -1,11 +1,21 @@
+import { unstable_cache } from 'next/cache';
+
 import { hasDatabase } from '@/lib/db/postgres';
 
 import { defaultLocation, publicLocation, resolveLocation } from './location';
 import { statusStore } from './storage';
 
+// Cache Components is disabled for this app, so use Next's Data Cache for
+// this shared footer read. Without it, routine traffic keeps Neon awake.
+const cachedLocation = unstable_cache(
+  () => resolveLocation(statusStore),
+  ['public-status-location'],
+  { tags: ['public-status-location'], revalidate: 3 * 60 * 60 }
+);
+
 export async function readLocation() {
   if (!hasDatabase()) return defaultLocation;
-  return resolveLocation(statusStore);
+  return cachedLocation();
 }
 export async function readPublicStatus() {
   // Include the snapshot in the static shell; provider revalidation must not

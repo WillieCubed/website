@@ -33,21 +33,23 @@ The stored coordinates describe the selected city center. They are for weather
 lookup and are not a device location. The editor does not request browser
 geolocation. Search failure preserves the saved city.
 
-The server caches the location for three hours before revalidation. Reads can
-serve the previous snapshot during revalidation, with a six-hour maximum cache
-lifetime. Saving manually invalidates the location tag immediately. Weather
-fetches revalidate after 15 minutes and observations older than one hour are
-omitted. The public snapshot is also cached for 15 minutes and included in the
-prerendered page. Background revalidation preserves the composition instead of
-showing a page-wide loading screen. The location tag invalidates both caches
-when the owner saves a city. Server HTML includes the city and weather without
-JavaScript; hydration adds the ticking clock, timezone choices, and temperature
+The server caches the location in Next's shared data cache for three hours.
+Saving manually invalidates the location tag immediately. The location query
+includes a volatile PostgreSQL timestamp so Hyperdrive does not return a
+pre-save value from its separate query cache. This matters because Hyperdrive
+does not invalidate cached reads after writes. Weather fetches revalidate after
+15 minutes and observations older than one hour are omitted. The `/status`
+page is prerendered with a 15-minute revalidation interval. Background
+revalidation preserves the composition instead of showing a page-wide loading
+screen. Server HTML includes the city and weather without JavaScript;
+hydration adds the ticking clock, timezone choices, and temperature
 conversion. The client refreshes the snapshot every 15 minutes and when the
 visitor returns to the tab while keeping the last usable content on failure.
 The page can be prefetched for five minutes; hydration also refreshes the
-snapshot so returning to a prefetched page does not retain an old city. API responses use no-store so the browser does not add another cache
-on top of the tagged server snapshot. The UI should calculate local time from the IANA timezone
-rather than caching a clock string. When no usable weather is present, a
+snapshot so returning to a prefetched page does not retain an old city. API
+responses use no-store so the browser does not add another cache on top of the
+tagged server snapshot. The UI should calculate local time from the IANA
+timezone rather than caching a clock string. When no usable weather is present, a
 refresh shows a local pending label until the request settles. Existing weather
 stays visible during refreshes. Only a completed unsuccessful read shows the
 unavailable label. Without JavaScript, the missing-weather fallback remains

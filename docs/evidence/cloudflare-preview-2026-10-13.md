@@ -109,3 +109,15 @@ and returned 200. The next public GET hid it, and the origin SELECT count rose
 to two. This verifies local R2 snapshot reuse and post-moderation invalidation
 across Worker requests; it does not prove hosted R2 or Hyperdrive behavior.
 The temporary database and R2 state were deleted after the check.
+
+At branch head `5940eeb`, a separate `pnpm build:cloudflare:preview` completed,
+followed by `cf deploy --mode preview --dry-run --profile williecubed`. The dry
+run named the preview Worker, preview Hyperdrive, preview cache and media R2
+buckets, and preview Durable Objects. A local Worker started from that bundle
+returned `5940eeb6a4b863d2cede6046dccbf568dbdf5a92` from
+`/api/indieweb/revision`; its IndieAuth server metadata advertised
+`https://willie-page-preview.willieechalmers-18f.workers.dev/` as issuer and
+preview-host authorization and token endpoints. Local OAuth client metadata
+reported sign-in unavailable because no OAuth secrets were supplied to the
+disposable local Worker. This verifies the preview build configuration and
+packaging, not a hosted deployment or owner sign-in.

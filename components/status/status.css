@@ -579,15 +579,18 @@ button.weather-reading:active {
   }
 }
 
-@container footer (max-width: 320px) {
-  .microstatus-place > svg {
-    display: none;
-  }
-}
-
 @container footer (max-width: 400px) {
   .site-footer .microstatus {
     padding-inline: 8px;
     gap: 4px;
+  }
+}
+
+@container footer (max-width: 320px) {
+  .site-footer .site-footer__row:has(.microstatus) {
+    gap: 8px;
+  }
+  .site-footer .microstatus {
+    padding-inline: 0;
   }
 }

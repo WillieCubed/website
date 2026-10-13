@@ -11,7 +11,7 @@ export function sealJson(value: unknown, encodedKey: string): string {
   const iv = randomBytes(12),
     cipher = createCipheriv('aes-256-gcm', decodedKey(encodedKey), iv);
   const data = Buffer.concat([
-    cipher.update(JSON.stringify(value)),
+    cipher.update(Buffer.from(JSON.stringify(value), 'utf8')),
     cipher.final(),
   ]);
   return Buffer.concat([iv, cipher.getAuthTag(), data]).toString('base64url');

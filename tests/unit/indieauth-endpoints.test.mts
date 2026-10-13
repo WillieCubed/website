@@ -210,7 +210,7 @@ test('sign-in is off until an owner check is configured', async () => {
     options
   );
   assert.equal(page.status, 503);
-  assert.match(await page.text(), /INDIEAUTH_TOTP_SECRET/);
+  assert.match(await page.text(), /Owner access check/);
   const post = await handleConsentDecision(consentPost({}), options);
   assert.equal(post.status, 503);
 });

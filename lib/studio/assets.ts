@@ -1,4 +1,5 @@
-import { get, put } from '@vercel/blob';
+import type { R2Bucket } from '@cloudflare/workers-types';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { randomUUID } from 'node:crypto';
 
 import { MEDIA_TYPES } from '@/lib/indieweb/media';
@@ -7,10 +8,26 @@ import { StudioError } from './errors';
 import { getStudioPool } from './store';
 import type { DraftContent } from './types';
 
-function privateToken() {
-  if (!process.env.STUDIO_BLOB_READ_WRITE_TOKEN)
-    throw new StudioError(503, 'Private media storage is not configured.');
-  return process.env.STUDIO_BLOB_READ_WRITE_TOKEN;
+function privateBucket(): R2Bucket {
+  try {
+    const bucket = getCloudflareContext().env.STUDIO_PRIVATE_BUCKET;
+    if (bucket) return bucket;
+  } catch {
+    // Local development has no R2 bindings.
+  }
+  throw new StudioError(503, 'Private media storage is not configured.');
+}
+
+function publishedBucket(): R2Bucket {
+  try {
+    const { STUDIO_PUBLIC_MEDIA_BUCKET, MEDIA_BUCKET } =
+      getCloudflareContext().env;
+    const bucket = STUDIO_PUBLIC_MEDIA_BUCKET ?? MEDIA_BUCKET;
+    if (bucket) return bucket;
+  } catch {
+    // Local development has no R2 bindings.
+  }
+  throw new StudioError(503, 'Published media storage is not configured.');
 }
 
 export async function uploadAsset(
@@ -20,16 +37,19 @@ export async function uploadAsset(
     throw new StudioError(400, 'Choose an image smaller than 4 MB.');
   const id = randomUUID();
   const pathname = `studio/${id}.${MEDIA_TYPES[file.type]}`;
-  const value = await put(pathname, file, {
-    token: privateToken(),
-    access: 'private',
-    addRandomSuffix: false,
-    contentType: file.type,
+  const bucket = privateBucket();
+  await bucket.put(pathname, await file.arrayBuffer(), {
+    httpMetadata: { contentType: file.type },
   });
-  await getStudioPool().query(
-    'INSERT INTO studio_assets(id,pathname,content_type,original_name) VALUES($1,$2,$3,$4)',
-    [id, value.pathname, file.type, file.name]
-  );
+  try {
+    await getStudioPool().query(
+      'INSERT INTO studio_assets(id,pathname,content_type,original_name) VALUES($1,$2,$3,$4)',
+      [id, pathname, file.type, file.name]
+    );
+  } catch (error) {
+    await bucket.delete(pathname);
+    throw error;
+  }
   return { id, url: `/api/studio/assets/${id}` };
 }
 
@@ -40,14 +60,12 @@ export async function readAsset(id: string) {
     await getStudioPool().query('SELECT * FROM studio_assets WHERE id=$1', [id])
   ).rows[0];
   if (!record) throw new StudioError(404, 'Image not found.');
-  const value = await get(record.pathname, {
-    token: privateToken(),
-    access: 'private',
-    useCache: false,
-  });
-  if (!value || value.statusCode !== 200)
-    throw new StudioError(404, 'Image not found.');
-  return { stream: value.stream, contentType: record.content_type as string };
+  const value = await privateBucket().get(record.pathname);
+  if (!value) throw new StudioError(404, 'Image not found.');
+  return {
+    bytes: await value.arrayBuffer(),
+    contentType: record.content_type as string,
+  };
 }
 
 export async function promoteAssets(
@@ -70,32 +88,24 @@ export async function promoteAssets(
         [publicationId, id]
       )
     ).rows[0];
-    let url = existing?.public_url;
+    let url = existing?.public_url as string | undefined;
     if (!url) {
-      if (!process.env.STUDIO_PUBLIC_BLOB_READ_WRITE_TOKEN)
-        throw new StudioError(
-          503,
-          'Published media storage is not configured.'
-        );
       const asset = await readAsset(id);
-      const value = await put(
-        `writings/${publicationId}/${id}.${MEDIA_TYPES[asset.contentType]}`,
-        asset.stream,
-        {
-          token: process.env.STUDIO_PUBLIC_BLOB_READ_WRITE_TOKEN,
-          access: 'public',
-          addRandomSuffix: false,
-          allowOverwrite: true,
-          contentType: asset.contentType,
-        }
-      );
-      url = value.url;
+      const extension = MEDIA_TYPES[asset.contentType];
+      if (!extension) throw new StudioError(400, 'Unsupported image type.');
+      const key = `media/writings/${publicationId}/${id}.${extension}`;
+      await publishedBucket().put(key, asset.bytes, {
+        httpMetadata: { contentType: asset.contentType },
+      });
+      url = new URL(
+        `/${key}`,
+        process.env.STUDIO_PUBLIC_ORIGIN || 'https://willie.page'
+      ).href;
       await getStudioPool().query(
         'INSERT INTO studio_asset_promotions(publication_id,asset_id,public_url) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',
         [publicationId, id, url]
       );
     }
-    // Match the optional preview origin too; the final source has public URLs only.
     serialized = serialized.replace(
       new RegExp(`(?:https?:[^"\\s]+)?/api/studio/assets/${id}`, 'g'),
       url

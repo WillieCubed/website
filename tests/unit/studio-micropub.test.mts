@@ -220,6 +220,56 @@ test('draft create and source use private revisions without a Git request or pub
   assert.equal(denied.status, 401);
 });
 
+test('public Micropub writes keep their GitHub path when private storage is bound', async () => {
+  const { options, studio, request } = await setup();
+  let content: string | null = null;
+  let archiveLocks = 0;
+  let gitWrites = 0;
+  options.archives = {
+    runExclusive: async (_key, operation) => {
+      archiveLocks++;
+      return operation();
+    },
+    save: async () => {},
+    find: async () => null,
+    mark: async () => {},
+  };
+  options.fetch = async (input, init) => {
+    const githubRequest = new Request(input, init);
+    if (githubRequest.method === 'GET')
+      return content === null
+        ? new Response('Not Found', { status: 404 })
+        : Response.json({
+            content: Buffer.from(content).toString('base64'),
+            sha: 'blob-sha',
+          });
+    gitWrites++;
+    const body = await githubRequest.json();
+    content = Buffer.from(body.content, 'base64').toString('utf8');
+    return Response.json({ commit: { sha: `commit-${gitWrites}` } });
+  };
+
+  const created = await handleMicropubPost(
+    request(createBody('published')),
+    options
+  );
+  assert.equal(created.status, 202);
+  assert.equal((await created.json()).commit, 'commit-1');
+  const updated = await handleMicropubPost(
+    request({
+      action: 'update',
+      url: `${site.origin}/writings/private-transit`,
+      replace: { content: ['A published edit.'] },
+    }),
+    options
+  );
+  assert.equal(updated.status, 200);
+  assert.equal((await updated.json()).commit, 'commit-2');
+  assert.match(content ?? '', /A published edit/);
+  assert.equal(archiveLocks, 2);
+  assert.equal(studio.drafts.size, 0);
+});
+
 test('draft updates retain the prior revision and publish only the explicitly selected replacement', async () => {
   const { options, studio, published, request } = await setup();
   await handleMicropubPost(request(createBody('draft')), options);
@@ -297,23 +347,6 @@ test('a bad IndieAuth token cannot create or publish a private revision', async 
   assert.equal(response.status, 401);
   assert.equal(studio.history.length, 0);
   assert.equal(published.length, 0);
-});
-
-test('published creates save a revision first and publish that exact content', async () => {
-  const { options, studio, published, request } = await setup();
-  const response = await handleMicropubPost(
-    request(createBody('published')),
-    options
-  );
-  assert.equal(response.status, 202);
-  assert.equal(studio.history.length, 1);
-  assert.deepEqual(published, [
-    {
-      documentId: studio.history[0].documentId,
-      revisionId: studio.history[0].id,
-    },
-  ]);
-  assert.equal((await response.json()).commit, 'published-commit');
 });
 
 test('private source retains reply metadata and syndication intent', async () => {

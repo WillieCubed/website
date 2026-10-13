@@ -22,9 +22,10 @@ from Wrangler; `cf auth login` changes the default profile only. The
 Worker configs in the repository name the exact production and preview
 Hyperdrive, R2, and Durable Object bindings. Provision
 missing resources before deploying, then set secrets in each Worker. The
-production and preview environments must have distinct OAuth keys, TOTP
-secrets, cache buckets, media buckets, and databases. Use the production
-`MICROPUB_GITHUB_TOKEN` only in production. Keep every credential out of
+production and preview environments must have distinct OAuth keys, public
+cache buckets, media buckets, and public databases. They share the private
+writing database, private R2 bucket, Owner access identity, and one scoped
+`STUDIO_GITHUB_TOKEN` value for publishing. Keep every credential out of
 terminal arguments, Git history, and logs.
 
 `pnpm build:cloudflare` builds the production origin. Run

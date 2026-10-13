@@ -361,8 +361,8 @@ refused the same way, since a route already answers at each of them. Without
 lands on one of those names gets a timestamp suffix.
 
 A valid request becomes an MDX file under `content/writings`. When
-`MICROPUB_GITHUB_REPO` and `MICROPUB_GITHUB_TOKEN` are set the file is
-committed through GitHub's Contents API on `MICROPUB_GITHUB_BRANCH` (default
+`STUDIO_GITHUB_REPOSITORY` and `STUDIO_GITHUB_TOKEN` are set the file is
+committed through GitHub's Contents API on `STUDIO_GITHUB_BRANCH` (default
 `main`) so the post deploys like any hand-written one. Without those variables
 the route writes into the local checkout. On a read-only deploy that write
 fails with a 500 whose `error_description` names the reason, which is the
@@ -581,7 +581,7 @@ equals `/.well-known/oauth-authorization-server`,
 | `WEBMENTION_MODERATION_SECRET`                                                                     | `/api/webmention/moderate`                                                                                                                                                                  | unset, route refuses                    |
 | `OWNER_ACCESS_ISSUER`, `OWNER_ACCESS_AUDIENCE`, `OWNER_ACCESS_EMAIL`                               | owner identity on `/indieauth/consent` and `/admin/*`                                                                                                                                       | unset, owner routes refuse access       |
 | `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                                                                                                                                                     | unset, route answers 503                |
-| `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, `MICROPUB_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub storage                                                                                                                                                                            | local write, `main`, `content/writings` |
+| `STUDIO_GITHUB_REPOSITORY`, `STUDIO_GITHUB_TOKEN`, `STUDIO_GITHUB_BRANCH`, `MICROPUB_CONTENT_PATH` | Micropub and Studio publication                                                                                                                                                             | local write, `main`, `content/writings` |
 | `MEDIA_BUCKET` R2 binding                                                                          | `/micropub/media` image, audio, video and PDF storage; `/media/*` delivery                                                                                                                  | absent, upload route answers 503        |
 | `SEARCH_BACKEND`                                                                                   | `postgres` switches search to Postgres                                                                                                                                                      | JSON index                              |
 | `SEARCH_REINDEX_SECRET`                                                                            | `/api/search/reindex` in production                                                                                                                                                         | unset                                   |

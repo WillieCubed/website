@@ -1,5 +1,7 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { randomUUID } from 'node:crypto';
-import { Pool } from 'pg';
+
+import { createPool } from '@/lib/db/postgres';
 
 import { StudioError } from './errors';
 import type {
@@ -12,13 +14,23 @@ import type {
   StudioStore,
 } from './types';
 
-let pool: Pool | undefined;
-export function getStudioPool(): Pool {
-  if (!process.env.STUDIO_DATABASE_URL)
+type StudioPool = ReturnType<typeof createPool>;
+
+let pool: StudioPool | undefined;
+export function getStudioPool(): StudioPool {
+  if (pool) return pool;
+  const localUrl = process.env.STUDIO_DATABASE_URL;
+  let workerBinding = false;
+  try {
+    workerBinding = Boolean(getCloudflareContext().env.STUDIO_HYPERDRIVE);
+  } catch {
+    // Local development uses a direct database URL.
+  }
+  if (!workerBinding && !localUrl)
     throw new StudioError(503, 'Private writing storage is not configured.');
-  return (pool ??= new Pool({
-    connectionString: process.env.STUDIO_DATABASE_URL,
-    max: 5,
+  return (pool = createPool({
+    connectionString: workerBinding ? undefined : localUrl,
+    hyperdriveBinding: 'STUDIO_HYPERDRIVE',
   }));
 }
 
@@ -52,7 +64,7 @@ function draft(row: Record<string, any>): Draft {
 
 /** Every head transition is transactional; revisions are insert-only. */
 export class PostgresStudioStore implements StudioStore {
-  constructor(private pool: Pool) {}
+  constructor(private pool: StudioPool) {}
 
   async list() {
     return (

@@ -165,7 +165,13 @@ async function storedRuntime(): Promise<string | null> {
       "SELECT credential FROM studio_connections WHERE id='lattice-runtime'"
     )
   ).rows[0];
-  if (row) return unseal<{ runtimeId: string }>(row.credential).runtimeId;
+  if (row) {
+    try {
+      return unseal<{ runtimeId: string }>(row.credential).runtimeId;
+    } catch {
+      return null;
+    }
+  }
   return process.env.STUDIO_LATTICE_RUNTIME_ID || null;
 }
 async function personalDevices(
@@ -199,9 +205,20 @@ export async function runtimeSelection(): Promise<RuntimeSelection> {
   ).rowCount;
   if (!connected)
     return { connected: false, devices: [], selectedRuntimeId: null };
+  let token: string;
+  try {
+    token = await accessToken();
+  } catch (error) {
+    if (
+      error instanceof StudioError &&
+      error.message === 'Reconnect your Lattice account.'
+    )
+      return { connected: false, devices: [], selectedRuntimeId: null };
+    throw error;
+  }
   const client = new LatticeClient({
     baseUrl: required('STUDIO_LATTICE_GATEWAY'),
-    credential: { kind: 'oauth', accessToken: await accessToken() },
+    credential: { kind: 'oauth', accessToken: token },
     timeoutMs: 20_000,
   });
   const devices = await personalDevices(client),

@@ -9,7 +9,7 @@ export interface MediaBucket {
 }
 
 const MEDIA_KEY =
-  /^media\/\d{4}\/(?:0[1-9]|1[0-2])\/[a-z0-9-]+\.(?:jpg|png|gif|webp|avif|heic|heif|mp3|m4a|aac|ogg|wav|webm|flac|mp4|ogv|mov|pdf)$/;
+  /^media\/(?:\d{4}\/(?:0[1-9]|1[0-2])\/[a-z0-9-]+|writings\/[a-f0-9-]{36}\/[a-f0-9-]{36})\.(?:jpg|png|gif|webp|avif|heic|heif|mp3|m4a|aac|ogg|wav|webm|flac|mp4|ogv|mov|pdf)$/;
 
 export function mediaKey(segments: string[]): string | null {
   const key = `media/${segments.join('/')}`;

@@ -32,6 +32,18 @@ test('sealed credentials reject tampering', () => {
   bytes[bytes.length - 1] ^= 1;
   assert.throws(() => unseal(bytes.toString('base64url')));
 });
+test('a key change asks the owner to reconnect Lattice', () => {
+  const value = seal({ token: 'secret' });
+  const saved = process.env.STUDIO_TOKEN_ENCRYPTION_KEY;
+  try {
+    process.env.STUDIO_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 8).toString(
+      'base64'
+    );
+    assert.throws(() => unseal(value), /Reconnect your Lattice account/);
+  } finally {
+    process.env.STUDIO_TOKEN_ENCRYPTION_KEY = saved;
+  }
+});
 test('callback rejects state mismatch before any token exchange', async () => {
   const flow = beginOAuth('https://preview.example');
   await assert.rejects(

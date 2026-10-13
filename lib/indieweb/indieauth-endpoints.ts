@@ -166,7 +166,7 @@ function signInOff(): Response {
   return htmlResponse(
     renderSignInMessage(
       'Sign-in is not set up',
-      'This site has no owner check configured, so it cannot approve sign-ins. Set INDIEAUTH_TOTP_SECRET.'
+      'This site has no Owner access check configured, so it cannot approve sign-ins.'
     ),
     503
   );

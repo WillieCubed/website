@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { deliverMedia } from '@/lib/indieweb/media-delivery';
+
+test('R2 delivery rejects invalid keys before reading the bucket', async () => {
+  const keys: string[] = [];
+  const bucket = {
+    async get(key: string) {
+      keys.push(key);
+      return null;
+    },
+  };
+  const invalid = [
+    ['2026', '10', '..', 'private.txt'],
+    ['2026', '10', 'image.svg'],
+    ['2026', '10', 'image.jpg', 'extra'],
+    ['2026', '13', 'image.jpg'],
+  ];
+  for (const segments of invalid) {
+    assert.equal((await deliverMedia(segments, bucket)).status, 404);
+  }
+  assert.deepEqual(keys, []);
+});
+
+test('R2 delivery returns exact bytes with immutable cache and stored type', async () => {
+  const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
+  const key = 'media/2026/10/image-1234.jpg';
+  const response = await deliverMedia(['2026', '10', 'image-1234.jpg'], {
+    async get(requested: string) {
+      assert.equal(requested, key);
+      return {
+        httpEtag: '"r2-etag"',
+        httpMetadata: { contentType: 'image/jpeg' },
+        arrayBuffer: async () => bytes.buffer,
+      };
+    },
+  });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'image/jpeg');
+  assert.equal(response.headers.get('etag'), '"r2-etag"');
+  assert.equal(
+    response.headers.get('cache-control'),
+    'public, max-age=31536000, immutable'
+  );
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+  assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes);
+});
+
+test('R2 delivery distinguishes missing bindings and missing objects', async () => {
+  const segments = ['2026', '10', 'missing.jpg'];
+  assert.equal((await deliverMedia(segments, undefined)).status, 503);
+  assert.equal(
+    (
+      await deliverMedia(segments, {
+        async get() {
+          return null;
+        },
+      })
+    ).status,
+    404
+  );
+});

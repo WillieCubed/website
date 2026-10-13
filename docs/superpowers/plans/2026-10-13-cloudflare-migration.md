@@ -73,7 +73,7 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
 
 **Interfaces:** `getMediaStore()` returns R2 in Workers and a controlled local store for tests; public media URLs are under `willie.page`.
 
-- [ ] Test media key validation, MIME and cache headers, random collision resistance, upload failure, and delivery.
+- [x] Test media key validation, MIME and cache headers, random collision resistance, upload failure, and byte-identical delivery in the focused unit suites and the isolated hosted R2 preview.
 - [x] Implement R2 write/read and retain the existing 4 MiB and signature checks.
 - [x] Verify analytics migration: no Vercel Analytics or Speed Insights runtime
       component/package is present; Cloudflare Web Analytics automatic setup for

@@ -81,12 +81,8 @@ test('IndieAuth consent uses Access identity without asking for another code', a
     OWNER_ACCESS_AUDIENCE: config.audience,
     OWNER_ACCESS_EMAIL: config.email,
   });
-  assert.equal(owner?.prompt, 'none');
   assert.deepEqual(
-    await owner?.verify(
-      new Request('https://willie.page/indieauth/consent'),
-      new FormData()
-    ),
+    await owner?.verify(new Request('https://willie.page/indieauth/consent')),
     { ok: false, reason: 'invalid' }
   );
 });

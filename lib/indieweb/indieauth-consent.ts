@@ -82,12 +82,7 @@ input[type=checkbox]{width:18px;height:18px;flex:none;margin:0;accent-color:var(
 .verification{padding:24px 32px 32px;background:var(--container)}
 .identity{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
 .identity strong{color:var(--on-surface);font-weight:600}
-label.code{display:block;margin:20px 0 10px;font-size:16px;font-weight:600}
-input[type=text]{display:block;width:100%;min-height:60px;padding:12px 18px;border:2px solid transparent;border-radius:16px;background:var(--container-lowest);color:inherit;font:500 24px/1.2 AtkinsonMono,ui-monospace,monospace;letter-spacing:.18em;text-align:center;transition:border-color 180ms ease}
-input[type=text]::placeholder{color:var(--muted);opacity:.55}
-input[type=text]:focus{border-color:var(--primary);outline:none}
 .hint{margin:28px 32px;color:var(--muted)}
-.error{margin-top:16px;color:var(--on-surface);font-weight:600}
 .actions{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;margin-top:24px}
 button{display:flex;justify-content:center;align-items:center;gap:12px;min-height:52px;padding:12px 20px;border:0;border-radius:999px;background:var(--container-highest);color:inherit;font:600 16px/1.2 Atkinson,system-ui,sans-serif;cursor:pointer;transition:background-color 180ms ease,border-radius 180ms ease,transform 180ms ease}
 button[value=approve]{background:var(--primary);color:var(--on-primary)}
@@ -131,8 +126,6 @@ export interface ConsentPageOptions {
   request: IndieAuthAuthorizationRequest;
   client: IndieAuthClientInfo;
   me: string;
-  prompt: 'code' | 'none';
-  error?: string;
 }
 
 /**
@@ -144,8 +137,6 @@ export function renderConsentPage({
   request,
   client,
   me,
-  prompt,
-  error,
 }: ConsentPageOptions): string {
   const clientName = client.name ?? new URL(request.clientId).host;
   const scopes = request.scope.length
@@ -161,12 +152,6 @@ ${request.scope
 </div>
 </fieldset>`
     : '<p class="hint">This request only confirms who you are.</p>';
-  const code =
-    prompt === 'code'
-      ? `<label class="code" for="code">Code from your authenticator app</label>
-<input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" placeholder="000 000"${error ? ' aria-invalid="true" aria-describedby="code-error"' : ''} required autofocus>`
-      : '';
-
   return document(
     `Sign in to ${clientName}`,
     `<div class="consent">
@@ -185,8 +170,6 @@ ${hidden('scope', request.scope.join(' '))}
 ${scopes}
 <div class="verification">
 <p class="identity">Signing in as <strong title="${escapeHtml(me)}">${escapeHtml(me.replace(/^https?:\/\//, '').replace(/\/$/, ''))}</strong></p>
-${error ? `<p class="error" id="code-error" role="alert">${escapeHtml(error)}</p>` : ''}
-${code}
 <div class="actions">
 <button type="submit" name="decision" value="approve">Approve<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
 <button type="submit" name="decision" value="deny" formnovalidate>Deny</button>

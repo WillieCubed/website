@@ -450,38 +450,10 @@ export type IndieAuthClientFetcher = (
  * who sent it, as a Cloudflare Access JWT header would.
  */
 export interface OwnerAuthenticator {
-  prompt: 'code' | 'none';
-  verify: (request: Request, form: FormData) => Promise<OwnerCheck>;
+  verify: (request: Request) => Promise<OwnerCheck>;
 }
 
-export type OwnerCheck =
-  | { ok: true }
-  | { ok: false; reason: 'invalid' | 'locked' };
-
-/**
- * The storage the TOTP owner check needs: a record of attempts, so guessing
- * is capped, and of the time steps already used, so a code works once.
- */
-export interface OwnerSignInStore {
-  /**
-   * Records an attempt as a failure before its code is checked, then counts
-   * the attempts in the window, this one included. Recording first is what
-   * caps parallel guesses: each request's count includes every attempt
-   * recorded before it, so no more than the limit ever see a count within
-   * it. The count must be read after the insert, never before.
-   */
-  recordAttempt: (
-    windowMs: number,
-    now: Date
-  ) => Promise<{ id: string; attempts: number }>;
-  /**
-   * Forgets an attempt that turned out right, or that was refused without
-   * its code being checked, so neither counts against the limit.
-   */
-  forgetAttempt: (id: string) => Promise<void>;
-  /** Resolves false when the step was already claimed. */
-  claimTotpStep: (step: number, now: Date) => Promise<boolean>;
-}
+export type OwnerCheck = { ok: true } | { ok: false; reason: 'invalid' };
 
 export interface IndieAuthEndpointOptions {
   store: IndieAuthStore;

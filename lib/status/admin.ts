@@ -45,7 +45,7 @@ export function createAdminHandler({
   return async (request: Request): Promise<Response> => {
     if (!configured || !owner) return render({ configured: false }, 503);
     try {
-      const identity = await owner.verify(request, new FormData());
+      const identity = await owner.verify(request);
       if (!identity.ok)
         return render(
           { configured: true, message: 'Sign in with Cloudflare Access.' },

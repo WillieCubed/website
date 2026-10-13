@@ -192,9 +192,9 @@ curl -I https://willie.page/ | grep -i clacks
   app runs. RFC 2324 also allows `POST` for brewing, which is what `/tea` uses.
   Whether Vercel's edge passes `BREW` on is untested; try it on a preview
   deployment.
-- **`/whoami` differs by host.** Vercel provides the address, country, region,
-  city, and an edge id through headers. Cloudflare's `request.cf` adds the HTTP
-  version, TLS, colo, ASN, and round-trip time. `whoamiResponse` takes that
+- **`/whoami` uses Cloudflare request metadata.** Cloudflare's `request.cf`
+  provides the country, region, city, HTTP version, TLS, colo, ASN, and
+  round-trip time. `whoamiResponse` takes that
   object as its second argument; nothing passes it until the site moves to
   Cloudflare Workers.
 

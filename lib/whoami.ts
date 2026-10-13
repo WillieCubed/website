@@ -11,20 +11,9 @@ function text(value: unknown): string | undefined {
   return undefined;
 }
 
-// Vercel percent-encodes the city, so "Las Vegas" arrives as "Las%20Vegas".
-function decode(value: string | null): string | undefined {
-  if (!value) return undefined;
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-}
-
 /**
- * What the host says about the request, in the order it reads best. Vercel
- * says it through `x-vercel-*` headers and Cloudflare through `request.cf`;
- * a line the host does not provide is left out rather than guessed.
+ * What Cloudflare says about the request, in the order it reads best.
+ * A line the host does not provide is left out rather than guessed.
  */
 export function whoamiLines(
   headers: Headers,
@@ -40,10 +29,10 @@ export function whoamiLines(
   const candidates: Array<[string, string | undefined]> = [
     ['ip', headers.get('cf-connecting-ip') ?? forwarded ?? undefined],
     ['agent', headers.get('user-agent') ?? undefined],
-    ['country', headers.get('x-vercel-ip-country') ?? text(cf.country)],
-    ['region', headers.get('x-vercel-ip-country-region') ?? text(cf.region)],
-    ['city', decode(headers.get('x-vercel-ip-city')) ?? text(cf.city)],
-    ['edge', text(cf.colo) ?? headers.get('x-vercel-id') ?? undefined],
+    ['country', text(cf.country)],
+    ['region', text(cf.region)],
+    ['city', text(cf.city)],
+    ['edge', text(cf.colo)],
     ['ray', headers.get('cf-ray') ?? undefined],
     ['http', text(cf.httpProtocol)],
     ['tls', tls || undefined],

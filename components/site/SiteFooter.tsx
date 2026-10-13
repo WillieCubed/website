@@ -10,7 +10,7 @@ import SiteLink from '@/components/link/SiteLink';
 import LiveStatus from '@/components/status/LiveStatus';
 
 import { randomlyChooseTagline, taglineHref } from '@/lib/enhancements';
-import { routedPages, site } from '@/lib/site';
+import { routedPages, site, spotifyProfileUrl } from '@/lib/site';
 import { isPrivatePreview } from '@/lib/studio/config';
 
 import FeedsButton from './FeedsButton';
@@ -63,7 +63,7 @@ const ELSEWHERE: {
   },
   {
     label: 'Spotify',
-    href: 'https://open.spotify.com/user/pkj37ts4e7ip19j0msai6lahf?si=03c8cb2eae944363',
+    href: spotifyProfileUrl,
     icon: 'spotify',
   },
 ];

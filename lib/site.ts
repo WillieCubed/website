@@ -23,6 +23,8 @@ const emails = {
 };
 
 const THREADS_PROFILE = 'https://www.threads.com/@williecubed';
+export const spotifyProfileUrl =
+  'https://open.spotify.com/user/pkj37ts4e7ip19j0msai6lahf?si=03c8cb2eae944363';
 
 /**
  * The site owner's AT Protocol identity, from the environment. With no DID,

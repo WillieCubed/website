@@ -10,9 +10,12 @@
 
 **Tech stack:** Next.js 16, React 19, PostgreSQL, Spotify OAuth/Web API, Cloudflare Access, GitHub protected PRs, and Vercel.
 
-## Current answer
+## Audit baseline
 
-Music is **not deployable as a working feature** on October 12, 2026. The
+The October 12 audit found Music was **not deployable as a working feature**.
+The October 13 implementation now includes production routes, persistence,
+Spotify OAuth, the approved cache, and recoverable publication. Local checks
+have passed; hosted acceptance below remains required. The
 screens are a development-only prototype with fictional content, simulated
 connection, and browser-local drafts. Production `/music`, `/studio`, and
 `/admin` return 404. `/admin/status` is the existing production admin page.

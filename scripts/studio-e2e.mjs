@@ -55,6 +55,63 @@ try {
           'utf8'
         )
       );
+    if (process.env.MUSIC_E2E) {
+      for (const scope of ['private', 'public'])
+        await client.query(
+          await readFile(
+            new URL(`../lib/music/migrations/${scope}.sql`, import.meta.url),
+            'utf8'
+          )
+        );
+      for (const [index, title] of [
+        'A long playlist title that preserves the sequence across several evenings',
+        'Summer in the city',
+        'An empty collection',
+      ].entries()) {
+        const playlist = {
+          id: String(index + 1).repeat(22),
+          title,
+          description: '',
+          image: null,
+          url: `https://open.spotify.com/playlist/${String(index + 1).repeat(22)}`,
+          ownerId: 'music-test',
+          eligible: true,
+          snapshot: 'test',
+          tracks:
+            index === 2
+              ? []
+              : [
+                  {
+                    title: 'First track',
+                    artist: 'Test artist',
+                    duration: '3:12',
+                    durationMs: 192000,
+                    kind: 'track',
+                    url: null,
+                  },
+                  {
+                    title: 'Unavailable track',
+                    artist: '',
+                    duration: '–',
+                    durationMs: null,
+                    kind: 'unavailable',
+                    unavailable: true,
+                    url: null,
+                  },
+                ],
+          trackCount: index === 2 ? 0 : 2,
+          checkedAt: new Date().toISOString(),
+          error: null,
+        };
+        await client.query(
+          'INSERT INTO music_provider_cache(id,body,checked_at,eligible) VALUES($1,$2,now(),true)',
+          [playlist.id, JSON.stringify(playlist)]
+        );
+      }
+      await client.query(
+        "INSERT INTO music_connections(singleton,owner_id,encrypted_grant) VALUES(true,'music-test','not-used-for-provider-tests')"
+      );
+    }
     const id = randomUUID(),
       revision = randomUUID();
     await client.query('INSERT INTO studio_documents(id,slug) VALUES($1,$2)', [
@@ -169,7 +226,9 @@ try {
       'playwright',
       'test',
       '--config',
-      'tests/studio.config.mts',
+      process.env.MUSIC_E2E
+        ? 'tests/music-admin.config.mts'
+        : 'tests/studio.config.mts',
       ...process.argv.slice(2),
     ],
     { env, stdio: 'inherit', detached: true }

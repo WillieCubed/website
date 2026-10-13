@@ -73,6 +73,7 @@ how its content is modeled, and the conventions that govern changes to it.
 
 - [Website issue plan](./plans/2026-10-11-website-issues.md): the Music gallery,
   private curation, and gated About release. Research is deferred.
+- [Music operations](./music.md) documents storage, provider setup, and verification.
 - [Music production launch](./superpowers/plans/2026-10-12-music-production-launch.md):
   verified readiness, provider and admin integration, protected publication,
   and the full hosted acceptance sequence.

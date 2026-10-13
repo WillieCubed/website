@@ -104,6 +104,7 @@ export interface MusicSeries {
 }
 
 export interface Catalog {
+  version: 1;
   order: string[];
   selected: string[];
   lead: string | null;
@@ -112,6 +113,7 @@ export interface Catalog {
 }
 
 export const initialCatalog: Catalog = {
+  version: 1,
   order: playlists.map((playlist) => playlist.id),
   selected: playlists.slice(0, 7).map((playlist) => playlist.id),
   lead: 'fall-1',

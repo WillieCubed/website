@@ -70,12 +70,15 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@atcute/tid', 'esbuild'],
   // The compiler uses one build-time browser runtime, kept in private functions.
   outputFileTracingIncludes: {
+    '/music': ['./content/music/catalog.json'],
+    '/api/music/**': ['./content/music/catalog.json'],
     '/api/studio/**': [
       './.studio/browser-runtime.js',
       './.github/pull_request_template.md',
+      './content/music/catalog.json',
     ],
   },
-  allowedDevOrigins: ['williecubed.localhost'],
+  allowedDevOrigins: ['williecubed.localhost', '127.0.0.1'],
   images: {
     // Bound Cloudflare Images transformations. Current content image sizes
     // top out at 1200px, so 2400px preserves a 2x source; fewer widths leave

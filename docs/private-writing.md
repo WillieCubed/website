@@ -246,8 +246,8 @@ The hosted protected publication attempt saved its immutable artifact proposal
 but stopped at GitHub 403 before opening a pull request. The replacement
 website-only credential has Contents and Pull requests read/write; GitHub's
 protected merge enforces required checks. Its name is present on the preview
-Worker. Add the same secret to the production Worker, retry the retained
-publication, and verify the exact deployed source hash before claiming Live.
+Worker and on the production Worker. Retry the retained publication and verify
+the exact deployed source hash before claiming Live.
 
 On October 13, `preview.willie.page` moved from a Vercel CNAME to a
 Worker-managed Cloudflare custom domain. Anonymous requests to the Studio,
@@ -258,6 +258,14 @@ survived a reload, and was then soft-deleted from private Postgres; the library
 returned to five drafts. The old Vercel encryption key for the two Lattice
 connection rows remains unavailable, so the owner must reconnect and select
 the personal runtime before hosted widget generation can pass.
+
+The retained ToggleWidget initially fell back on the Cloudflare preview:
+request-time native esbuild could not run from the Worker bundle. The component
+compiler now statically imports its prebuilt React runtime and transforms TSX
+in JavaScript with React-only imports. The hosted retained widget rendered in
+the protected Studio, and clicking its control changed the checkbox from off
+to on. Generation and approval still need a fresh connected personal runtime
+and a hosted proposal acceptance check.
 
 The preview Worker Builds connection remains on
 `codex/private-writing-preview` until PR #201 merges. Then return it to

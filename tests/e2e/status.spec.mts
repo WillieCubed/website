@@ -234,6 +234,16 @@ test('footer status adapts within one row even with a long city name', async ({
     await expect(status.locator('.microstatus-place > svg')).toBeVisible();
     if (width > 320) {
       await expect(status.locator('.weather-picture')).toBeVisible();
+      const weatherGap = await status
+        .locator('.microstatus-weather')
+        .evaluate((group) => {
+          const icon = group.querySelector('svg')!.getBoundingClientRect();
+          const temperature = group
+            .querySelector('.temperature')!
+            .getBoundingClientRect();
+          return temperature.left - icon.right;
+        });
+      expect(weatherGap).toBeGreaterThanOrEqual(4);
     }
     if (width >= 840) {
       await expect(status.locator('.microstatus-clock')).toBeVisible();

@@ -73,8 +73,8 @@ empty. `.env.example` describes each one. They cover:
   switches for the postbuild pings.
 - **IndieAuth:** the owner's sign-in code secret and the introspection
   secret for the site's own IndieAuth server.
-- **Micropub:** where new posts are committed, and the Vercel Blob token that
-  stores uploaded photos.
+- **Micropub:** the GitHub repository and branch for new posts, and the R2
+  media bucket for uploaded photos and other attachments.
 - **Search:** the search backend and the reindex secret.
 - **Analytics:** the Google Analytics measurement ID.
 

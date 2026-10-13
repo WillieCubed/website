@@ -37,8 +37,8 @@ cp tests/fixtures/indieweb-acceptance.mdx content/writings/indieweb-acceptance.m
 pnpm build
 ```
 
-`@vercel/postgres` requires a Neon-shaped URL. The test-only fetch shim routes
-its SQL requests to the local PostgreSQL URL above. The write test serves its
+The SQL module uses the direct PostgreSQL URL above outside Cloudflare. The
+write test serves its
 reply from a self-signed HTTPS server on 127.0.0.1. The verifier fetches
 sources from public addresses only, so the command below sets
 `INDIEWEB_TEST_ALLOW_LOOPBACK=true` to let loopback through, and disables
@@ -66,8 +66,9 @@ branch configured with `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, and
 `MICROPUB_GITHUB_BRANCH`. Set `NEXT_PUBLIC_SITE_ORIGIN` to the test deployment
 origin at build time. Configure a repository-scoped token with only Contents
 write permission; never put a broad personal token in the public deployment.
-Connect the Vercel project to the publishing branch so a content commit
-automatically deploys. The publish workflow waits until the public alias
+Connect Cloudflare Workers Builds to the repository so a content commit
+automatically deploys the isolated Worker. The publish workflow waits until
+the public alias
 serves that commit before it sends Webmentions and pings the WebSub hub.
 Confirm the returned `Location`, branch commit, deployed permalink, feed
 entry, and notification result without manually rebuilding.
@@ -79,14 +80,14 @@ sequenceDiagram
     participant Client as Micropub client
     participant Site as Isolated site
     participant GitHub as Publishing branch
-    participant Vercel as Deployment
+    participant Cloudflare as Worker deployment
     participant Workflow as Publish workflow
     participant Hub as WebSub hub
     participant Target as Webmention target
     Client->>Site: POST /micropub
     Site->>GitHub: Commit published writing
     Site-->>Client: 202 and Location
-    GitHub->>Vercel: Deploy commit
+    GitHub->>Cloudflare: Build and deploy commit
     GitHub->>Workflow: Start notification job
     Workflow->>Site: Poll deployed revision
     Site-->>Workflow: Matching commit SHA
@@ -95,9 +96,7 @@ sequenceDiagram
     Site->>Target: Send Webmention from public post
 ```
 
-Use a separate public Blob store for acceptance photos. New Vercel Blob
-connections use `BLOB_STORE_ID` and short-lived OIDC credentials; a legacy
-`BLOB_READ_WRITE_TOKEN` also works. Upload a photo through `/micropub/media`,
+Use the isolated preview R2 media bucket for acceptance photos. Upload a photo through `/micropub/media`,
 then create a JSON photo post with its URL and nonblank alt text. Confirm that multipart creation preserves the uploaded media and its description. Validate images, audio, video, and PDF signatures under the 4MiB upload limit.
 
 Micropub Rocks requires a passkey or email sign-in before its server cases. Its current client supports PKCE. Complete its IndieAuth flow with S256 before running publishing cases. Do not weaken PKCE or substitute a manually issued token for authorization proof. Run

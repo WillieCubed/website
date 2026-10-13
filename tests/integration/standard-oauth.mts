@@ -8,7 +8,6 @@ import {
   type StoredSession,
   type StoredState,
 } from '@atcute/oauth-node-client';
-import { sql } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import test from 'node:test';
@@ -26,9 +25,11 @@ import {
 } from '@/lib/atproto/oauth-storage';
 import { setGraphState } from '@/lib/atproto/social';
 
+import { sql } from '../../lib/db/postgres';
+
 assert.equal(
   process.env.NEXT_PUBLIC_SITE_ORIGIN,
-  'https://indieweb-acceptance.vercel.app',
+  'https://willie-page-preview.willieechalmers-18f.workers.dev',
   'These fixture writes require the isolated acceptance origin.'
 );
 const key = process.env.ATPROTO_OAUTH_STORAGE_KEY!;

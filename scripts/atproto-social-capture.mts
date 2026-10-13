@@ -3,7 +3,6 @@ import { Client, ok } from '@atcute/client';
 import type { Did } from '@atcute/lexicons';
 import type { StoredSession, StoredState } from '@atcute/oauth-node-client';
 import { chromium } from '@playwright/test';
-import { createPool, sql } from '@vercel/postgres';
 import matter from 'gray-matter';
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
@@ -14,6 +13,7 @@ import { createInterface } from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs, parseEnv } from 'node:util';
 
+import { createPool, sql } from '../lib/db/postgres';
 import { loadOwnedAcceptanceIdentities } from './atproto-acceptance-identities.mts';
 import {
   type CapturedCallback,

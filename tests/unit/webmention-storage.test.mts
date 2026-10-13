@@ -1,6 +1,6 @@
-import { VercelPool } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, mock, test } from 'node:test';
+import { Pool } from 'pg';
 
 import { getWebmentionsForTarget } from '@/lib/indieweb/webmention-storage';
 import { site } from '@/lib/site';
@@ -35,7 +35,7 @@ function row(overrides: Record<string, unknown>) {
 let rows: Record<string, unknown>[] = [];
 
 beforeEach(() => {
-  mock.method(VercelPool.prototype, 'sql', async () => ({
+  mock.method(Pool.prototype, 'query', async () => ({
     rows,
     rowCount: rows.length,
   }));

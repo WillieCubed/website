@@ -8,35 +8,38 @@ The site publishes Standard.site publication and document records to the owner's
 
 Production uses the existing owner DID `did:plc:iyn6nc3ffqm2e3555exyrgvv` and publication key `3mwxne5td6lid`. Keep both stable. The publication URI and document-key algorithm remain unchanged.
 
-| Variable                       | Purpose                                                                                                                                                    |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_ORIGIN`      | Public origin; production defaults to `https://willie.page`. Isolated deployments must set their own origin.                                               |
-| `NEXT_PUBLIC_ATPROTO_DID`      | Publication owner and public DID discovery.                                                                                                                |
-| `NEXT_PUBLIC_BLUESKY_HANDLE`   | Display handle; profile links use the DID.                                                                                                                 |
-| `ATPROTO_PUBLICATION_RKEY`     | Publication TID generated once.                                                                                                                            |
-| `ATPROTO_PUBLICATION_SETTINGS` | JSON self-labels and `preferences.showInDiscover`; omitted values preserve existing records.                                                               |
-| `BLUESKY_APPVIEW_URL`          | Public AppView origin; defaults to `https://public.api.bsky.app`.                                                                                          |
-| `ATPROTO_APP_PASSWORD`         | Owner app password for publishing; sensitive and production-only.                                                                                          |
-| `ATPROTO_OAUTH_JWK`            | Private ES256 signing JWK with a unique `kid`; sensitive server variable.                                                                                  |
-| `ATPROTO_OAUTH_STORAGE_KEY`    | Base64 encoding of 32 random bytes for credential encryption; sensitive server variable.                                                                   |
-| `POSTGRES_URL`                 | Durable OAuth and browser sessions; migration `005_atproto_oauth.sql` is required; response receipts also require `008_atproto_response_observations.sql`. |
-| `INDIEWEB_NOTIFY_SECRET`       | Sensitive bearer secret shared with GitHub `INDIEWEB_NOTIFY_SECRET_PRODUCTION`.                                                                            |
+| Variable                       | Purpose                                                                                                                                                                                                         |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_ORIGIN`      | Public origin; production defaults to `https://willie.page`. Isolated deployments must set their own origin.                                                                                                    |
+| `NEXT_PUBLIC_ATPROTO_DID`      | Publication owner and public DID discovery.                                                                                                                                                                     |
+| `NEXT_PUBLIC_BLUESKY_HANDLE`   | Display handle; profile links use the DID.                                                                                                                                                                      |
+| `ATPROTO_PUBLICATION_RKEY`     | Publication TID generated once.                                                                                                                                                                                 |
+| `ATPROTO_PUBLICATION_SETTINGS` | JSON self-labels and `preferences.showInDiscover`; omitted values preserve existing records.                                                                                                                    |
+| `BLUESKY_APPVIEW_URL`          | Public AppView origin; defaults to `https://public.api.bsky.app`.                                                                                                                                               |
+| `ATPROTO_APP_PASSWORD`         | Owner app password for publishing; sensitive and production-only.                                                                                                                                               |
+| `ATPROTO_OAUTH_JWK`            | Private ES256 signing JWK with a unique `kid`; sensitive server variable.                                                                                                                                       |
+| `ATPROTO_OAUTH_STORAGE_KEY`    | Base64 encoding of 32 random bytes for credential encryption; sensitive server variable.                                                                                                                        |
+| `POSTGRES_URL`                 | Direct local Neon URL; Cloudflare Workers use Hyperdrive for durable OAuth and browser sessions. Migration `005_atproto_oauth.sql` and response migration `008_atproto_response_observations.sql` are required. |
+| `INDIEWEB_NOTIFY_SECRET`       | Sensitive bearer secret shared with GitHub `INDIEWEB_NOTIFY_SECRET_PRODUCTION`.                                                                                                                                 |
 
 OAuth signing and storage keys differ between production and acceptance. Never copy production credentials into a preview. Rotating the storage key invalidates encrypted sessions and authorization state. Rotate the signing key only with a planned overlap in public JWKS; the current single-key configuration does not retain old signing keys.
 
 Generate a signing JWK with `generateClientAssertionKey(kid, 'ES256')` from `@atcute/oauth-node-client`. Generate the storage key with `randomBytes(32).toString('base64')` from `node:crypto`. Keep their values off command lines and out of Git.
 
-Run `pnpm preflight --project website` to inspect database schema, publishing credentials, OAuth keys, and the production notification secret. If the app password needs setup, run this from the checkout:
+Create a Bluesky app password in the owner's account, then store it as a
+production Worker secret without putting it in a shell argument:
 
 ```sh
-pnpm exec tsx scripts/standard-site-setup.mts
+pnpm exec wrangler secret put ATPROTO_APP_PASSWORD
 ```
 
-The script prints numbered steps, opens the app-password settings, collects the password without echoing it, validates the owner, stores the sensitive Vercel variable, rebuilds production, runs the notification workflow, and verifies public discovery. `--credential-only` stops after storing the validated password so an implementing agent can finish deployment.
+Verify the DID and handle against the account, run a production deployment,
+trigger the IndieWeb notification workflow, and check the published record and
+public discovery endpoints. Never copy the production password to preview.
 
 ## Publishing
 
-After a push to `main`, the notification workflow waits for the exact deployed Git revision. It sends `atprotoRequired: true` to `/api/indieweb/notify`. A required sync returns HTTP 200 only when publishing reports `synced`. Missing credentials and skipped syncs fail the workflow. Acceptance also requires a successful sync and uses its own account, database and branch. It must never publish to the production account.
+After a push to `main`, the notification workflow waits for the exact Cloudflare Git revision. It sends `atprotoRequired: true` to `/api/indieweb/notify`. A required sync returns HTTP 200 only when publishing reports `synced`. Missing credentials and skipped syncs fail the workflow. The preview Worker uses isolated credentials and must never publish to the production account.
 
 The sync reads uncached published writings, builds and validates the publication and document records, preserves records from other publications, and applies changed records in batches of 200. Drafts never produce documents. Repeated syncs leave unchanged records alone. The record builders publish metadata and full plain text in `textContent`; they retain optional typed `content` and `links` supplied in frontmatter. Unknown valid union members preserve their payload. Omission preserves an existing extension; explicit `null` removes it.
 

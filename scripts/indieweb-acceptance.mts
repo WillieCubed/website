@@ -1,5 +1,4 @@
 import { BlobNotFoundError, del, head, list } from '@vercel/blob';
-import { createPool } from '@vercel/postgres';
 import matter from 'gray-matter';
 import { mf2 } from 'microformats-parser';
 import assert from 'node:assert/strict';
@@ -14,6 +13,7 @@ import { type DefaultTreeAdapterMap, parse } from 'parse5';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
+import { createPool } from '../lib/db/postgres';
 import {
   generateAtomFeed,
   generateRssFeed,

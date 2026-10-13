@@ -1,4 +1,4 @@
-import { createPool } from '@vercel/postgres';
+import { createPool } from '@/lib/db/postgres';
 
 export interface ResponseObservationStore {
   observe(copyUri: string, actorDids: string[]): Promise<Map<string, Date>>;

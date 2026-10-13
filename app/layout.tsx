@@ -1,5 +1,3 @@
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
@@ -173,8 +171,6 @@ export default async function RootLayout({
           <SiteFooter />
         </PaletteProvider>
         <Fragmention />
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

@@ -5,7 +5,6 @@ import type { Did, Nsid } from '@atcute/lexicons';
 import { PasswordSession } from '@atcute/password-session';
 import { now } from '@atcute/tid';
 import { chromium } from '@playwright/test';
-import { createPool } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
@@ -16,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs, parseEnv } from 'node:util';
 
 import type { RepoClient } from '../lib/atproto/types';
+import { createPool } from '../lib/db/postgres';
 import { fixtureSource } from './atproto-fixture-source.mts';
 
 const ORIGIN = 'https://indieweb-acceptance.vercel.app';

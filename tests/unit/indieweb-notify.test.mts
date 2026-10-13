@@ -4,7 +4,7 @@ import test from 'node:test';
 
 test('publish notification requires its secret and matching deployed revision', async () => {
   const oldSecret = process.env.INDIEWEB_NOTIFY_SECRET;
-  const oldSha = process.env.VERCEL_GIT_COMMIT_SHA;
+  const oldSha = process.env.NEXT_PUBLIC_SITE_REVISION;
   try {
     delete process.env.INDIEWEB_NOTIFY_SECRET;
     assert.equal(
@@ -18,7 +18,7 @@ test('publish notification requires its secret and matching deployed revision', 
       503
     );
     process.env.INDIEWEB_NOTIFY_SECRET = 'test-secret';
-    process.env.VERCEL_GIT_COMMIT_SHA = 'deployed-sha';
+    process.env.NEXT_PUBLIC_SITE_REVISION = 'deployed-sha';
     const post = (authorization: string, sha: string) =>
       POST(
         new Request('https://willie.page/api/indieweb/notify', {
@@ -32,7 +32,7 @@ test('publish notification requires its secret and matching deployed revision', 
   } finally {
     if (oldSecret === undefined) delete process.env.INDIEWEB_NOTIFY_SECRET;
     else process.env.INDIEWEB_NOTIFY_SECRET = oldSecret;
-    if (oldSha === undefined) delete process.env.VERCEL_GIT_COMMIT_SHA;
-    else process.env.VERCEL_GIT_COMMIT_SHA = oldSha;
+    if (oldSha === undefined) delete process.env.NEXT_PUBLIC_SITE_REVISION;
+    else process.env.NEXT_PUBLIC_SITE_REVISION = oldSha;
   }
 });

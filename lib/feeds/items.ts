@@ -1,5 +1,3 @@
-import { cacheLife } from 'next/cache';
-
 import { fetchPublicDocument } from '@/lib/indieweb/public-fetch';
 import { getInitiatives } from '@/lib/initiatives';
 import { getPublishedProjects } from '@/lib/projects';
@@ -31,8 +29,6 @@ function newestFirst(items: FeedItem[]): FeedItem[] {
  * body once for the index, the tag pages, and every feed.
  */
 export async function getWritingContentHtml(slug: string): Promise<string> {
-  'use cache';
-  cacheLife('hours');
   const { content, writing } = await getWriting(slug);
   const url = absoluteUrl(`/writings/${slug}`);
   if (writing.contentFormat === 'html')

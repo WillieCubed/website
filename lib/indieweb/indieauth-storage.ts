@@ -1,5 +1,4 @@
-import { sql } from '@vercel/postgres';
-
+import { sql } from '@/lib/db/postgres';
 import { fetchIndieAuthClient } from '@/lib/indieweb/indieauth-client';
 import { ownerAuthenticatorFromEnvironment } from '@/lib/indieweb/indieauth-owner';
 import type {

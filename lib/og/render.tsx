@@ -30,7 +30,17 @@ export async function publicImageDataUri(
     const data = await readFile(join(process.cwd(), 'public', src));
     return `data:${type};base64,${data.toString('base64')}`;
   } catch {
-    return undefined;
+    try {
+      const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+      const assets = getCloudflareContext().env.ASSETS;
+      if (!assets) return undefined;
+      const response = await assets.fetch(new URL(src, 'https://willie.page'));
+      if (!response.ok) return undefined;
+      const bytes = Buffer.from(await response.arrayBuffer());
+      return `data:${type};base64,${bytes.toString('base64')}`;
+    } catch {
+      return undefined;
+    }
   }
 }
 

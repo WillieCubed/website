@@ -181,8 +181,8 @@ export async function putGitHubFile(
 }
 
 /**
- * The storage error for a failed local write. A read-only deploy (Vercel,
- * Workers) fails here, and the message says how to fix that.
+ * The storage error for a failed local write. A read-only Worker fails here,
+ * and the message says how to fix that.
  */
 export function localWriteError(
   error: unknown,

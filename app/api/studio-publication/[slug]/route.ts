@@ -25,7 +25,7 @@ export async function GET(
           .update(`blob ${source.byteLength}\0`)
           .update(source)
           .digest('hex'),
-        commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
+        commit: process.env.NEXT_PUBLIC_SITE_REVISION ?? null,
       },
       { headers: { 'Cache-Control': 'no-store' } }
     );

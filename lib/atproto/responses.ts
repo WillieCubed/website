@@ -2,9 +2,9 @@ import { ComAtprotoRepoStrongRef } from '@atcute/atproto';
 import { AppBskyFeedPost } from '@atcute/bluesky';
 import type { Blob, LegacyBlob } from '@atcute/lexicons';
 import { safeParse } from '@atcute/lexicons';
-import { cacheLife, cacheTag } from 'next/cache';
 
 import { documentUri } from '@/lib/atproto/keys';
+import { hasDatabase } from '@/lib/db/postgres';
 import type {
   PublishingResponse,
   ResponseMedia,
@@ -397,7 +397,7 @@ export async function normalizeBlueskyReposts(
   );
   const store =
     options.observations === undefined
-      ? process.env.POSTGRES_URL
+      ? hasDatabase()
         ? responseObservationStore
         : null
       : options.observations;
@@ -471,9 +471,6 @@ export async function loadBlueskyResponses(writing: WritingData): Promise<{
   replyUrl?: string;
   incomplete?: boolean;
 }> {
-  'use cache';
-  cacheLife('minutes');
-  cacheTag('atproto-responses');
   return fetchBlueskyResponses(writing);
 }
 

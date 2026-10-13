@@ -38,7 +38,7 @@ export async function publishNotification(
     return Response.json({ error: 'unauthorized' }, { status: 401 });
   }
   const body = await request.json().catch(() => ({}));
-  const revision = process.env.VERCEL_GIT_COMMIT_SHA;
+  const revision = process.env.NEXT_PUBLIC_SITE_REVISION;
   if (!revision || body.sha !== revision) {
     return Response.json({ error: 'revision_mismatch' }, { status: 409 });
   }

@@ -1,4 +1,3 @@
-import { cacheLife, cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next/types';
 
@@ -39,6 +38,11 @@ import {
   getSeriesWithWritings,
 } from '@/lib/writings';
 import { getBacklinksForPost } from '@/lib/writings/backlinks';
+
+// Keep rendered replies and webmentions close to the previous one-minute
+// cache window. Without this, the status fetch in the root layout makes the
+// entire writing page eligible for a 15-minute static snapshot.
+export const revalidate = 60;
 
 function generateCanonicalUrl(slug: string) {
   return absoluteRoute`/writings/${slug}`;
@@ -125,17 +129,8 @@ async function fetchInteractions(slug: string) {
   return { backlinks, webmentions };
 }
 
-/**
- * Approved webmentions are cached for a minute rather than read on every
- * request. A request-time read would stream in after the page, outside the
- * post's h-entry, where a parser no longer sees the replies as its
- * comments. A throw inside the cache scope fails the build, so a missing
- * or unreachable database resolves to nothing instead.
- */
+/** A missing database leaves the interaction area empty, not the page broken. */
 async function loadWebmentions(slug: string): Promise<WebmentionGroup | null> {
-  'use cache';
-  cacheLife('minutes');
-  cacheTag('webmentions');
   try {
     return await getWebmentionsForPost(slug);
   } catch {
@@ -156,16 +151,10 @@ async function fetchReplyContexts(
   return new Map(await loadReplyContexts(urls));
 }
 
-/**
- * Remote pages are fetched inside a cache scope: it keeps a build from
- * hitting every target on each render, and it is the one place the
- * prerenderer lets a Server Component read the clock and the network.
- */
+/** Fetch remote reply context during rendering and tolerate source failures. */
 async function loadReplyContexts(
   urls: string[]
 ): Promise<Array<[string, ReplyContext]>> {
-  'use cache';
-  cacheLife('hours');
   return Promise.all(
     urls.map(async (url): Promise<[string, ReplyContext]> => {
       try {

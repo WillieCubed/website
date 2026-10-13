@@ -1,4 +1,3 @@
-import { type VercelPoolClient, createPool } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -6,6 +5,7 @@ import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs, promisify } from 'node:util';
 
+import { type PostgresPoolClient, createPool } from '../lib/db/postgres';
 import {
   MIGRATIONS,
   NEON_ORG_ID,
@@ -147,7 +147,7 @@ async function main() {
     }))
   );
   const pool = createPool({ connectionString: connection });
-  let client: VercelPoolClient | undefined;
+  let client: PostgresPoolClient | undefined;
   let transaction = false;
   let committed = false;
   let phase = 'snapshot';

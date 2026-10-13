@@ -2,7 +2,6 @@ import type { Did } from '@atcute/lexicons';
 import type { StoredSession } from '@atcute/oauth-node-client';
 import { now } from '@atcute/tid';
 import { chromium } from '@playwright/test';
-import { createPool } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -12,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs, parseEnv } from 'node:util';
 
 import type { RepoClient } from '../lib/atproto/types';
+import { createPool } from '../lib/db/postgres';
 import {
   type CapturedCallback,
   verifyCallbackSignature,

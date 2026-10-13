@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { createPool } from '@vercel/postgres';
 import { type ChildProcess, spawn } from 'node:child_process';
 import {
   createHash,
@@ -14,6 +13,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import { type DefaultTreeAdapterTypes, parse } from 'parse5';
 
+import { createPool } from '../lib/db/postgres';
 import { pingWebSubHub } from '../lib/indieweb/websub-publisher';
 
 const { values } = parseArgs({

@@ -1,4 +1,3 @@
-import { cacheLife } from 'next/cache';
 import type { Metadata } from 'next/types';
 
 import SiteLink from '@/components/link/SiteLink';
@@ -43,8 +42,6 @@ export const metadata: Metadata = pageMetadata({
  * and an hour of staleness is fine for a page about the current month.
  */
 async function loadNowSections() {
-  'use cache';
-  cacheLife('hours');
   const nowEntries = await getAllNowEntries();
   const now = new Date();
   const twoYearsAgo = new Date(now);

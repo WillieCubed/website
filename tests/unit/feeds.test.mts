@@ -194,7 +194,7 @@ test('no feed route writes its own XML or names the hub', async () => {
   }
 });
 
-test('the site, writings, and tag feeds come from lib/feeds and are cached', async () => {
+test('the site, writings, and tag feeds come from lib/feeds and set cache headers', async () => {
   // Activity feeds go through lib/indieweb/activity-feed-route.ts instead.
   const routes = (await feedRoutes()).filter(
     (route) => !route.includes(`${path.sep}activity${path.sep}`)
@@ -205,7 +205,7 @@ test('the site, writings, and tag feeds come from lib/feeds and are cached', asy
     const source = await readFile(route, 'utf8');
     assert.match(source, /from '@\/lib\/feeds'/, route);
     assert.match(source, /from '@\/lib\/feeds\/items'/, route);
-    assert.match(source, /'use cache';\s+cacheLife\('hours'\);/, route);
+    assert.match(source, /Cache-Control.*public.*s-maxage=3600/, route);
   }
 });
 

@@ -1,5 +1,3 @@
-import { cacheLife } from 'next/cache';
-
 import WebmentionSection, {
   hasVisibleWebmentions,
 } from '@/components/indieweb/WebmentionSection';
@@ -30,17 +28,10 @@ export default async function PageWebmentions({
   );
 }
 
-/**
- * Cached for a minute, as on writings, so an approval shows without a
- * deploy and the section renders with the page rather than streaming in
- * after it. A missing or unreachable database resolves to nothing, since a
- * throw inside the cache scope fails the build.
- */
+/** A missing or unreachable database leaves the section empty. */
 async function loadWebmentions(
   target: string
 ): Promise<WebmentionGroup | null> {
-  'use cache';
-  cacheLife('minutes');
   try {
     return await getWebmentionsForTarget(target);
   } catch {

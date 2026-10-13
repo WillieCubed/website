@@ -18,7 +18,7 @@ if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
 }
 
 // Imported after the guard so a run without a database never loads the driver.
-const { sql } = await import('@vercel/postgres');
+const { sql } = await import('../lib/db/postgres');
 const { webmentionAuthorBackfillStore: store } =
   await import('../lib/indieweb/webmention-storage');
 const { backfillWebmentionAuthorPhotos, formatAuthorBackfillResult } =

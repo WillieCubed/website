@@ -2,11 +2,12 @@ import type {} from '@atcute/atproto';
 import { Client, ok } from '@atcute/client';
 import type { Did } from '@atcute/lexicons';
 import type { StoredSession } from '@atcute/oauth-node-client';
-import { sql } from '@vercel/postgres';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { parseArgs, parseEnv } from 'node:util';
+
+import { sql } from '../lib/db/postgres';
 
 const { values } = parseArgs({
   options: {

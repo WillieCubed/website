@@ -1,4 +1,3 @@
-import { revalidateTag } from 'next/cache';
 import { after } from 'next/server';
 
 import { jsonError } from '@/lib/indieweb/responses';
@@ -40,7 +39,6 @@ export async function POST(request: Request) {
       // revalidation below, so the post can already show the reply.
       onApproved: (id) => after(() => notifyUpstream(id)),
     });
-    if (response.ok) revalidateTag('webmentions', { expire: 0 });
     return response;
   } catch (error) {
     console.error('Webmention moderation failed:', error);

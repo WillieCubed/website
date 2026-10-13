@@ -1,12 +1,7 @@
-import { cacheLife } from 'next/cache';
-
 import { generateAtomFeed } from '@/lib/feeds';
 import { getSiteFeedItems } from '@/lib/feeds/items';
 
 async function buildFeed() {
-  'use cache';
-  cacheLife('hours');
-
   return generateAtomFeed(await getSiteFeedItems());
 }
 

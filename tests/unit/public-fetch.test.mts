@@ -30,7 +30,7 @@ function withEnv(env: Record<string, string | undefined>, check: () => void) {
 }
 
 test('the local write test may reach loopback, and nothing else private', () => {
-  withEnv({ INDIEWEB_TEST_ALLOW_LOOPBACK: 'true', VERCEL: undefined }, () => {
+  withEnv({ INDIEWEB_TEST_ALLOW_LOOPBACK: 'true', NODE_ENV: 'test' }, () => {
     // An IPv4-mapped loopback address is the same host.
     for (const address of [
       '127.0.0.1',
@@ -53,10 +53,13 @@ test('the local write test may reach loopback, and nothing else private', () => 
   });
 });
 
-test('a Vercel deployment ignores the loopback allowance', () => {
-  withEnv({ INDIEWEB_TEST_ALLOW_LOOPBACK: 'true', VERCEL: '1' }, () => {
-    assert.equal(isPublicAddress('127.0.0.1'), false);
-  });
+test('a production deployment ignores the loopback allowance', () => {
+  withEnv(
+    { INDIEWEB_TEST_ALLOW_LOOPBACK: 'true', NODE_ENV: 'production' },
+    () => {
+      assert.equal(isPublicAddress('127.0.0.1'), false);
+    }
+  );
 });
 
 test('without the allowance loopback is refused', () => {

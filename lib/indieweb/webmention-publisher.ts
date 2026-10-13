@@ -1,6 +1,8 @@
 /** Send after the deployed writing is publicly readable, never during build. */
 import { createHash } from 'node:crypto';
 
+import { hasDatabase } from '@/lib/db/postgres';
+
 import { absoluteUrl } from '../site';
 import {
   sendWebmention,
@@ -52,10 +54,10 @@ export async function sendChangedWebmentions(
 }> {
   if (process.env.SKIP_WEBMENTIONS === 'true')
     return { sent: 0, failed: 0, unsupported: 0 };
-  if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
-    throw new Error('Webmention sending requires POSTGRES_URL.');
+  if (!hasDatabase()) {
+    throw new Error('Webmention sending requires Postgres.');
   }
-  const { sql } = await import('@vercel/postgres');
+  const { sql } = await import('@/lib/db/postgres');
   const { getWritingSlugs, loadWriting } =
     services ?? (await import('../writings'));
   const send = services?.send ?? sendWebmention;

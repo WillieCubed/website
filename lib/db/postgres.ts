@@ -1,0 +1,139 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { Client, Pool, type QueryResult, type QueryResultRow } from 'pg';
+
+type Value = string | number | boolean | null | undefined;
+type SqlTag = <T extends QueryResultRow = any>(
+  strings: TemplateStringsArray,
+  ...values: Value[]
+) => Promise<QueryResult<T>>;
+
+export interface PostgresPoolClient {
+  query<T extends QueryResultRow = any>(
+    text: string,
+    values?: unknown[]
+  ): Promise<QueryResult<T>>;
+  sql: SqlTag;
+  release(destroy?: boolean): void | Promise<void>;
+}
+
+interface PoolFacade {
+  sql: SqlTag;
+  query<T extends QueryResultRow = any>(
+    text: string,
+    values?: unknown[]
+  ): Promise<QueryResult<T>>;
+  connect(): Promise<PostgresPoolClient>;
+  end(): Promise<void>;
+}
+
+const localPools = new Map<string, Pool>();
+
+function hyperdriveConnectionString(): string | null {
+  try {
+    return getCloudflareContext().env.HYPERDRIVE?.connectionString ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function hasDatabase(): boolean {
+  if (process.env.POSTGRES_URL || process.env.DATABASE_URL) return true;
+  return Boolean(hyperdriveConnectionString());
+}
+
+function localConnectionString(): string {
+  const direct = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!direct)
+    throw new Error('A Postgres URL is required outside Cloudflare.');
+  return direct;
+}
+
+function localPool(max = 2, override?: string): Pool {
+  const url = override || localConnectionString();
+  const key = `${max}:${url}`;
+  let existing = localPools.get(key);
+  if (!existing) {
+    existing = new Pool({ connectionString: url, max });
+    localPools.set(key, existing);
+  }
+  return existing;
+}
+
+function queryTag(
+  query: (text: string, values: Value[]) => Promise<QueryResult>
+) {
+  const tag: SqlTag = (strings, ...values) => {
+    const text = strings.reduce(
+      (statement, part, index) => statement + (index ? `$${index}` : '') + part,
+      ''
+    );
+    return query(text, values);
+  };
+  return tag;
+}
+
+export function createPool(
+  config: { max?: number; connectionString?: string } = {}
+): PoolFacade {
+  const workerUrl = () =>
+    config.connectionString ? null : hyperdriveConnectionString();
+  const query = async (text: string, values?: unknown[]) => {
+    const url = workerUrl();
+    if (!url)
+      return localPool(config.max, config.connectionString).query(text, values);
+
+    // Worker I/O objects belong to one request. Hyperdrive pools at the edge;
+    // retaining a pg Pool across invocations can hang the next request.
+    const client = new Client({ connectionString: url });
+    try {
+      await client.connect();
+      return await client.query(text, values);
+    } finally {
+      await client.end();
+    }
+  };
+  return {
+    sql: queryTag((text, values) => query(text, values)),
+    query,
+    async connect() {
+      const url = workerUrl();
+      if (url) {
+        const client = new Client({ connectionString: url });
+        await client.connect();
+        return {
+          query: (text, values) => client.query(text, values),
+          sql: queryTag((text, values) => client.query(text, values)),
+          release: () => client.end(),
+        };
+      }
+      const client = await localPool(
+        config.max,
+        config.connectionString
+      ).connect();
+      return {
+        query: (text, values) => client.query(text, values),
+        sql: queryTag((text, values) => client.query(text, values)),
+        release: (destroy) => client.release(destroy),
+      };
+    },
+    async end() {
+      if (workerUrl()) return;
+      const url = config.connectionString || localConnectionString();
+      const key = `${config.max ?? 2}:${url}`;
+      const pool = localPools.get(key);
+      if (!pool) return;
+      localPools.delete(key);
+      await pool.end();
+    },
+  };
+}
+
+const defaultPool = createPool();
+export const sql = Object.assign(
+  queryTag((text, values) => defaultPool.query(text, values)),
+  {
+    query: defaultPool.query,
+    connect: defaultPool.connect,
+    end: defaultPool.end,
+  }
+);

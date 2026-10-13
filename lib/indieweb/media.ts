@@ -1,11 +1,10 @@
-import { put } from '@vercel/blob';
+import type { R2Bucket } from '@cloudflare/workers-types';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 /**
  * Where Micropub media uploads are kept.
  *
- * The media endpoint only talks to this interface, so moving uploads from
- * Vercel Blob to Cloudflare R2 means writing one more implementation and
- * returning it from {@link getMediaStore}.
+ * The media endpoint only talks to this interface.
  */
 export interface MediaStore {
   /** Store `file` under `pathname` and return its public URL. */
@@ -49,32 +48,33 @@ export const MEDIA_TYPES: Readonly<Record<string, string>> = {
   'application/pdf': 'pdf',
 };
 
-/** Public Vercel Blob storage, authorized by OIDC or a read-write token. */
-export function vercelBlobMediaStore(token?: string): MediaStore {
+/** Store media in R2 and return an immutable URL on the site origin. */
+export function r2MediaStore(bucket: R2Bucket, origin: string): MediaStore {
   return {
     async put(pathname, file, contentType) {
-      const blob = await put(pathname, file, {
-        access: 'public',
-        addRandomSuffix: true,
-        contentType,
-        ...(token ? { token } : {}),
+      const suffix = crypto.randomUUID();
+      const dot = pathname.lastIndexOf('.');
+      const key = `${pathname.slice(0, dot)}-${suffix}${pathname.slice(dot)}`;
+      await bucket.put(key, await file.arrayBuffer(), {
+        httpMetadata: { contentType },
       });
-      return blob.url;
+      return new URL(`/${key}`, origin).href;
     },
   };
 }
 
-/** The configured store; the Blob SDK obtains the Vercel OIDC token on demand. */
-export function getMediaStore(
-  environment: Record<string, string | undefined> = process.env
-): MediaStore | null {
-  const token = environment.BLOB_READ_WRITE_TOKEN?.trim();
-  if (token) return vercelBlobMediaStore(token);
-  const onVercel = environment.VERCEL === '1';
-  const hasOidcToken = Boolean(environment.VERCEL_OIDC_TOKEN?.trim());
-  return environment.BLOB_STORE_ID?.trim() && (onVercel || hasOidcToken)
-    ? vercelBlobMediaStore()
-    : null;
+/** Resolve the request's R2 binding. */
+export function getMediaStore(): MediaStore | null {
+  try {
+    const bucket = getCloudflareContext().env.MEDIA_BUCKET;
+    if (!bucket) return null;
+    return r2MediaStore(
+      bucket,
+      process.env.NEXT_PUBLIC_SITE_ORIGIN || 'https://willie.page'
+    );
+  } catch {
+    return null;
+  }
 }
 
 /**

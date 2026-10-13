@@ -1,6 +1,4 @@
 import matter from 'gray-matter';
-import { cacheLife } from 'next/cache';
-import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import readingTime from 'reading-time';
 
@@ -8,6 +6,7 @@ import { hasImageDescription } from '@/lib/accessibility/alt-policy';
 import { parseDocumentMetadata } from '@/lib/atproto/metadata';
 import { showDrafts } from '@/lib/drafts';
 import { RESERVED_WRITING_SLUGS } from '@/lib/indieweb/utils';
+import { readFileSync, readdirSync } from '@/lib/runtime-files';
 
 // =============================================================================
 // Series functions - delegating to collections module
@@ -161,8 +160,6 @@ export function extractHeadings(content: string): TOCHeading[] {
  * @returns The corresponding writing data and MDX source.
  */
 export async function getWriting(slug: string) {
-  'use cache';
-  cacheLife('hours');
   return loadWriting(slug);
 }
 

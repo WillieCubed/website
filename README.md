@@ -17,18 +17,14 @@ version on its own, so any recent pnpm install works:
 ```shell
 git clone git@github.com:WillieCubed/website.git
 cd website
-pnpm bootstrap --local-only
+pnpm install --frozen-lockfile
+cp .env.example .env.local
+pnpm check
 ```
 
-`pnpm bootstrap` follows the LVBT project convention: it checks tools, installs
-the locked dependencies, runs the repository checks, creates `.env.local` if
-needed, and sets up the isolated IndieWeb deployment. It never replaces
-an existing `.env.local`. Use `pnpm bootstrap --local-only` when you only need
-the local app. Use `pnpm preflight` for a provider read-only readiness report. See the
-[bootstrap reference](docs/bootstrap.md) for phases and deployment setup.
-
-Bootstrap also installs the Husky pre-commit hook, which runs ESLint and
-Prettier on staged files through lint-staged.
+Install runs the Husky setup hook. The pre-commit hook runs ESLint and
+Prettier on staged files through lint-staged. Cloudflare and Neon deployment
+setup is documented in [docs/deploy.md](docs/deploy.md).
 
 ## Development
 
@@ -49,8 +45,6 @@ Both commands regenerate the search index first.
 
 | Command                 | What it does                                                                         |
 | ----------------------- | ------------------------------------------------------------------------------------ |
-| `pnpm bootstrap`        | Sets up the checkout and checks the linked deployment                                |
-| `pnpm preflight`        | Reports setup gaps without changing the checkout                                     |
 | `pnpm dev`              | Starts the dev server behind portless                                                |
 | `pnpm dev:app`          | Starts `next dev` directly                                                           |
 | `pnpm build`            | Generates the search index, builds for production, and runs the postbuild scripts    |
@@ -116,7 +110,7 @@ are rebuilt.
 
 ## Deployment
 
-The site deploys to Vercel from this repository, and `willie.page` is the
+The site deploys to Cloudflare Workers from this repository, and `willie.page` is the
 canonical origin. The older `williecubed.me` domain redirects there path for
 path. Hosts, the redirect table, and the DNS steps are in
 [docs/deploy.md](docs/deploy.md).

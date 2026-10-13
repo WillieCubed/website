@@ -1,6 +1,7 @@
 import matter from 'gray-matter';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+
+import { existsSync, readFileSync, readdirSync } from '@/lib/runtime-files';
 
 import {
   type Project,

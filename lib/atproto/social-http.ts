@@ -118,7 +118,12 @@ export function createSocialHandlers(services: SocialServices) {
     } catch (error) {
       if (error instanceof SocialHttpError)
         return json({ error: error.message }, error.status);
-      console.error('Standard.site request failed.');
+      console.error(
+        'Standard.site request failed.',
+        error instanceof Error
+          ? `${error.name}: ${error.message}`
+          : 'unknown error'
+      );
       return json(
         {
           error:

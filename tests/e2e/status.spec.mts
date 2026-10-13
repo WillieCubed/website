@@ -231,7 +231,11 @@ test('footer status adapts within one row even with a long city name', async ({
         })
       )
       .toBe(true);
-    await expect(status.locator('.microstatus-place > svg')).toBeVisible();
+    if (width === 320) {
+      await expect(status.locator('.microstatus-place > svg')).toBeHidden();
+    } else {
+      await expect(status.locator('.microstatus-place > svg')).toBeVisible();
+    }
     if (width > 320) {
       await expect(status.locator('.weather-picture')).toBeVisible();
       const weatherGap = await status

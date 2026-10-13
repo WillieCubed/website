@@ -1,6 +1,5 @@
 import { join } from 'node:path';
 
-import { hasDatabase } from '../db/postgres';
 import { readFileSync } from '../runtime-files';
 import { generateSearchIndex } from './index';
 import { rankItems, tokenize } from './rank';
@@ -13,15 +12,6 @@ import type {
 } from './types';
 
 const INDEX_PATH = join(process.cwd(), 'public', 'search-index.json');
-
-/**
- * The JSON index is the default backend. Postgres full-text search only runs
- * when SEARCH_BACKEND=postgres is set and a database URL is present, so a
- * deploy with no database still answers /search from its own domain.
- */
-export function usePostgresSearch(): boolean {
-  return process.env.SEARCH_BACKEND === 'postgres' && hasDatabase();
-}
 
 let indexPromise: Promise<SearchableItem[]> | null = null;
 
@@ -65,21 +55,14 @@ export async function searchContent(
 ): Promise<SearchResponse> {
   const { limit = 20, offset = 0, type = 'all' } = options;
   const trimmed = query.trim();
-  const backend = usePostgresSearch() ? 'postgres' : 'index';
-
   if (!trimmed || tokenize(trimmed).length === 0) {
-    return { results: [], total: 0, query: trimmed, backend };
-  }
-
-  if (backend === 'postgres') {
-    const { searchPostgres } = await import('./postgres');
-    return searchPostgres(trimmed, { type, limit, offset });
+    return { results: [], total: 0, query: trimmed, backend: 'index' };
   }
 
   const items = await loadSearchIndex();
   const matches = rankItems(selectSearchable(items, type), trimmed);
   const results: SearchResult[] = matches.slice(offset, offset + limit);
-  return { results, total: matches.length, query: trimmed, backend };
+  return { results, total: matches.length, query: trimmed, backend: 'index' };
 }
 
 /** Site-relative URL for a search result. */

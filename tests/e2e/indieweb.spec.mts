@@ -268,10 +268,10 @@ test('the Webmention receiver rejects invalid input before storage', async ({
     form: { source: 'https://example.com/' },
   });
   expect(missing.status()).toBe(400);
-  const insecure = await request.post('/webmention', {
-    form: { source: 'http://example.com/', target: `${site.origin}/` },
+  const unsupported = await request.post('/webmention', {
+    form: { source: 'file:///etc/passwd', target: `${site.origin}/` },
   });
-  expect(insecure.status()).toBe(400);
+  expect(unsupported.status()).toBe(400);
 });
 
 const postPath = process.env.INDIEWEB_TEST_POST_PATH;

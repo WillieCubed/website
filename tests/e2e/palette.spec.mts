@@ -171,6 +171,10 @@ test('Escape during the opening morph closes once it ends', async ({
   page,
 }) => {
   await page.goto('/');
+  await page.addStyleTag({
+    content:
+      '::view-transition-group(palette) { animation-duration: 1800ms !important; }',
+  });
   await page.locator('.palette-trigger').first().click();
   await escapeMidMorph(page, 'dialog.palette');
   await settled(page);

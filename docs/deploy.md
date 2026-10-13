@@ -113,6 +113,12 @@ exhausted, new variants fail instead of incurring automatic overage charges.
 Worker, and check Images usage along with Worker CPU after cutover. On October
 13 the Images dashboard showed 2 unique transformations in the current month.
 This is an early candidate-only reading, not a production traffic estimate.
+
+Remote YouTube posters bypass optimization, and there is no remote image
+allowlist in the Next.js optimizer. Only local site images use the Images
+binding; this prevents arbitrary remote thumbnail URLs from consuming unique
+transformations.
+
 At the current 12 widths and 2 qualities, one original image can create up to
 24 variants; review this limit as content grows. Do not send authenticated or
 mutable responses through a shared edge cache to reduce

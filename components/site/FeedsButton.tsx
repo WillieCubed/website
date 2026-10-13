@@ -68,7 +68,7 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
         aria-controls={id}
       >
         <Icon name="rss" size={16} />
-        Feeds
+        <span className="feeds-button__label">Feeds</span>
       </button>
       <div
         ref={popover}

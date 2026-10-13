@@ -231,6 +231,15 @@ test('footer status adapts within one row even with a long city name', async ({
         })
       )
       .toBe(true);
+    await expect(status.locator('.microstatus-place > svg')).toBeVisible();
+    if (width > 320) {
+      await expect(status.locator('.weather-picture')).toBeVisible();
+    }
+    if (width >= 840) {
+      await expect(status.locator('.microstatus-clock')).toBeVisible();
+    } else {
+      await expect(status.locator('.microstatus-clock')).toBeHidden();
+    }
     await expect(
       page.getByRole('button', { name: 'Feeds', exact: true })
     ).toBeVisible();

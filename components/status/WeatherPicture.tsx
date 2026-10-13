@@ -1,3 +1,5 @@
+import Icon, { type IconName } from '@/components/icons/Icon';
+
 import type { PublicStatus } from '@/lib/status/types';
 
 export function weatherLabel(weather: PublicStatus['weather']) {
@@ -14,9 +16,39 @@ export function weatherLabel(weather: PublicStatus['weather']) {
 
 export default function WeatherPicture({
   weather,
+  compact = false,
 }: {
+  compact?: boolean;
   weather: PublicStatus['weather'];
 }) {
+  if (compact) {
+    if (!weather) return null;
+    const label = weatherLabel(weather);
+    const name: IconName =
+      label === 'Clear skies' || label === 'Mostly clear'
+        ? weather.isDay
+          ? 'sun'
+          : 'moon'
+        : label === 'Partly cloudy'
+          ? 'cloud-sun'
+          : label === 'Foggy'
+            ? 'fog'
+            : label === 'Snowy'
+              ? 'cloud-snow'
+              : label === 'Thunderstorms'
+                ? 'cloud-lightning'
+                : label === 'Rainy'
+                  ? 'cloud-rain'
+                  : 'cloud';
+    return (
+      <span
+        className="weather-picture weather-picture--compact"
+        aria-hidden="true"
+      >
+        <Icon name={name} size={24} />
+      </span>
+    );
+  }
   const clear = weather && weather.code <= 1;
   const night = weather && !weather.isDay;
   const overcast = !weather || [3, 45, 48].includes(weather.code);

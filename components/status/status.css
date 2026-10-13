@@ -207,6 +207,21 @@
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
 }
+
+.microstatus-place,
+.microstatus-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.microstatus-place {
+  min-width: 0;
+}
+.microstatus-clock,
+.microstatus-place > svg {
+  flex-shrink: 0;
+}
+
 @media (max-width: 839px) {
   .site-footer .site-footer__row:has(.microstatus) {
     column-gap: 16px;
@@ -230,7 +245,7 @@
   .site-footer .site-footer__row:has(.microstatus) {
     gap: 16px;
   }
-  .microstatus time {
+  .microstatus-clock {
     display: none;
   }
   .site-footer .microstatus {
@@ -242,7 +257,9 @@
     gap: 12px;
   }
   .microstatus .weather-picture {
-    display: none;
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
   }
 }
 @container footer (max-width: 400px) {
@@ -252,7 +269,8 @@
   }
 }
 @container footer (max-width: 280px) {
-  .microstatus .temperature {
+  .microstatus .temperature,
+  .microstatus .weather-picture {
     display: none;
   }
 }
@@ -534,4 +552,20 @@ button.weather-reading:active {
 
 .status-timezones__visitor {
   font-style: italic;
+}
+
+.microstatus .weather-picture--compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink);
+}
+.microstatus .weather-picture--compact > svg {
+  width: 100%;
+  height: 100%;
+}
+@container footer (max-width: 280px) {
+  .microstatus .weather-picture--compact {
+    display: none;
+  }
 }

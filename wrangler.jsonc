@@ -15,6 +15,10 @@
     "MICROPUB_GITHUB_REPO": "WillieCubed/website",
     "MICROPUB_GITHUB_BRANCH": "main"
   },
+  "routes": [
+    { "pattern": "williecubed.me", "custom_domain": true },
+    { "pattern": "www.williecubed.me", "custom_domain": true }
+  ],
   "workers_dev": true,
   "preview_urls": true,
   "assets": {

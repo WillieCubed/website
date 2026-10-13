@@ -114,10 +114,14 @@ enforces the destination boundary. Keep the `global_fetch_strictly_public`
 flag on both Workers so same-zone fetches also go through the public front
 door. A hosted Webmention fetch is part of preview acceptance.
 
+The `williecubed.me` and `www.williecubed.me` legacy redirect hosts are
+attached to the production Worker ahead of the canonical cutover. Their
+Cloudflare zone, mail MX records, and AT Protocol identity TXT record were
+checked first; neither host had working web DNS before attachment.
+
 To cut over a verified candidate, add Custom Domains for `willie.page`,
 `www.willie.page`, `tour.willie.page`, and `diaries.willie.page` to the
-production Worker. Add both `williecubed.me` hosts only after confirming that
-zone is in the same account. Custom Domains replace the old Vercel DNS target
+production Worker. Custom Domains replace the old Vercel DNS target
 and provision certificates. Keep `workers_dev` enabled for diagnostics. Check
 the canonical homepage, feeds, search, image optimization, social images,
 IndieAuth, media delivery, Webmention writes, and host redirects through each

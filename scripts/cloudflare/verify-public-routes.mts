@@ -7,7 +7,14 @@ import { parseArgs } from 'node:util';
 
 const PREVIEW_ORIGIN =
   'https://willie-page-preview.willieechalmers-18f.workers.dev';
-const ALLOWED_ORIGINS = new Set([PREVIEW_ORIGIN, 'https://willie.page']);
+const PRODUCTION_DIAGNOSTIC_ORIGIN =
+  'https://willie-page.willieechalmers-18f.workers.dev';
+const CANONICAL_ORIGIN = 'https://willie.page';
+const ALLOWED_ORIGINS = new Set([
+  PREVIEW_ORIGIN,
+  PRODUCTION_DIAGNOSTIC_ORIGIN,
+  CANONICAL_ORIGIN,
+]);
 
 const { values } = parseArgs({
   options: {
@@ -17,7 +24,10 @@ const { values } = parseArgs({
   },
 });
 const origin = values.origin!;
-assert(ALLOWED_ORIGINS.has(origin), 'Use the preview or canonical origin.');
+assert(
+  ALLOWED_ORIGINS.has(origin),
+  'Use the preview, production diagnostic, or canonical origin.'
+);
 assert(
   /^[a-f0-9]{40}$/.test(values.sha ?? ''),
   'Pass --sha with a full Git SHA.'
@@ -62,7 +72,13 @@ const metadata = await get(
   'application/json'
 );
 const issuer = (await metadata.json()).issuer;
-assert.equal(issuer, `${origin}/`, 'IndieAuth advertises the wrong origin');
+const expectedIssuer =
+  origin === PRODUCTION_DIAGNOSTIC_ORIGIN ? CANONICAL_ORIGIN : origin;
+assert.equal(
+  issuer,
+  `${expectedIssuer}/`,
+  'IndieAuth advertises the wrong origin'
+);
 
 const admin = await get('/api/admin/status', 200, 'application/json');
 assert.deepEqual(

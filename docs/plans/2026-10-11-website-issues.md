@@ -312,15 +312,19 @@ They cover Back, cancel, draft separation, accessibility, and 320px reflow.
 The final layout checks also verify that captions do not overlap and the phone
 preview title clears the fixed actions. Type checking and scoped lint passed.
 
-Setup uses selectable surfaces with filled Included and Featured status pills.
-Selection changes the row's shape and tone. Focus outlines the selected
-object, and press feedback applies to the whole row. Curation uses tonal
-selection chips with an unboxed check. We rejected conventional checkbox
-squares and radio rings because they weakened the requested expressive
-direction. Native inputs remain underneath each surface for Space and radio
-arrow-key behavior. The entire label is the input target.
+Setup uses plus/check icons for inclusion and outlined/filled stars for
+featuring. Selection also changes the row's shape and tone. Focus outlines
+the selected object, and press feedback applies to the whole row. We rejected
+repeated Include and Feature labels because the icons and selected surfaces
+already express those states. Native inputs remain underneath each surface
+for Space and radio arrow-key behavior. The entire label is the input target.
+
+No featured playlist is a smaller 52px row separated by 16px from the playlist
+choices. The playlist rows share a 4px gap and 8px inner corners. The outer
+corners are 20px at the ends of the group. This distinguishes the absence of
+a feature without giving it the same visual weight as a playlist.
 
 All 24 targeted browser checks passed after this pass, along with type
 checking and scoped lint. Full desktop and phone captures in both themes are
-in `.playwright-mcp/music/iterations/2026-10-12-selection-surfaces` and
-`.playwright-mcp/music/iterations/2026-10-12-selection-surfaces-curation`.
+in `.playwright-mcp/music/iterations/2026-10-12-icon-selection` and
+`.playwright-mcp/music/iterations/2026-10-12-icon-selection-curation`.

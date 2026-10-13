@@ -412,6 +412,57 @@
   flex: 1;
   min-width: 0;
 }
+.ms-feature-none {
+  min-height: 52px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  background: var(--color-surface-container-low);
+}
+.ms-feature-none .mp-selection-control,
+.ms-feature-none .mp-selection-state {
+  width: 28px;
+  height: 28px;
+}
+.ms-feature-none .mp-selection-state {
+  border-radius: 10px;
+  background: transparent;
+}
+.ms-feature-none .mp-selection-state svg {
+  width: 18px;
+  height: 18px;
+}
+.ms-feature-none[data-selected] {
+  background: var(--color-secondary-container);
+  border-radius: 16px;
+}
+.ms-feature-playlists {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ms-feature-playlists .ms-feature-option {
+  margin: 0;
+  border-radius: 8px;
+}
+.ms-feature-playlists .ms-feature-option:first-child {
+  border-start-start-radius: 20px;
+  border-start-end-radius: 20px;
+}
+.ms-feature-playlists .ms-feature-option:last-child {
+  border-end-start-radius: 20px;
+  border-end-end-radius: 20px;
+}
+.ms-feature-playlists .ms-feature-option[data-selected] {
+  border-radius: 14px;
+}
+.music-prototype
+  .ms-feature-playlists
+  .ms-feature-option:has(.mp-selection-control input:focus-visible) {
+  z-index: 2;
+  outline-offset: 2px;
+}
 .ms-feature-option small {
   display: block;
   font-size: 12px;

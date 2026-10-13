@@ -198,8 +198,6 @@ export default function MusicSetupPrototype({
                         </span>
                       </span>
                       <MusicSelectionControl
-                        selectedLabel="Included"
-                        unselectedLabel="Include"
                         aria-label={`Select ${playlist.title}`}
                         checked={selected.includes(playlist.id)}
                         onChange={() => toggle(playlist.id)}
@@ -261,44 +259,43 @@ export default function MusicSetupPrototype({
                   <legend>Featured playlist</legend>
                   <p>Give one cover more space in the gallery.</p>
                   <label
-                    className="ms-feature-option"
+                    className="ms-feature-option ms-feature-none"
                     data-selected={!lead || undefined}
                   >
                     <span className="ms-feature-option-copy">
                       No featured playlist
-                      <small>Give every playlist equal space.</small>
                     </span>
                     <MusicSelectionControl
                       type="radio"
                       name="setup-feature"
                       aria-label="No featured playlist"
-                      selectedLabel="Selected"
-                      unselectedLabel="Choose"
+                      indicator="equal"
                       checked={!lead}
                       onChange={() => setLead(null)}
                     />
                   </label>
-                  {collection.map((playlist) => (
-                    <label
-                      className="ms-feature-option"
-                      key={playlist.id}
-                      data-selected={lead === playlist.id || undefined}
-                    >
-                      <SampleCover playlist={playlist} />
-                      <span className="ms-feature-option-copy">
-                        {playlist.title}
-                      </span>
-                      <MusicSelectionControl
-                        type="radio"
-                        name="setup-feature"
-                        aria-label={`Feature ${playlist.title}`}
-                        selectedLabel="Featured"
-                        unselectedLabel="Feature"
-                        checked={lead === playlist.id}
-                        onChange={() => setLead(playlist.id)}
-                      />
-                    </label>
-                  ))}
+                  <div className="ms-feature-playlists">
+                    {collection.map((playlist) => (
+                      <label
+                        className="ms-feature-option"
+                        key={playlist.id}
+                        data-selected={lead === playlist.id || undefined}
+                      >
+                        <SampleCover playlist={playlist} />
+                        <span className="ms-feature-option-copy">
+                          {playlist.title}
+                        </span>
+                        <MusicSelectionControl
+                          type="radio"
+                          name="setup-feature"
+                          aria-label={`Feature ${playlist.title}`}
+                          indicator="feature"
+                          checked={lead === playlist.id}
+                          onChange={() => setLead(playlist.id)}
+                        />
+                      </label>
+                    ))}
+                  </div>
                 </fieldset>
               </div>
             </section>

@@ -179,7 +179,8 @@ async function advance(p: Publication): Promise<Publication> {
     if (existing) {
       const commit = await github(`git/commits/${existing.object.sha}`);
       if (
-        commit.message !== message(p) ||
+        String(commit.message).replace(/\n+$/, '') !==
+          message(p).replace(/\n+$/, '') ||
         (await fileSha(existing.object.sha)) !== p.sourceSha
       )
         throw new StudioError(

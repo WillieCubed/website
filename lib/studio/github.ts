@@ -30,6 +30,7 @@ export async function github(
           ? { Authorization: `Bearer ${required('STUDIO_GITHUB_TOKEN')}` }
           : {}),
         Accept: 'application/vnd.github+json',
+        'User-Agent': 'willie-page-studio',
         'X-GitHub-Api-Version': '2022-11-28',
         'Content-Type': 'application/json',
       },

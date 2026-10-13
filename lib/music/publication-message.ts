@@ -70,13 +70,16 @@ export function musicPublicationMessage(
     changes.push(`Updated notes: ${editedNotes.map(name).join(', ')}`);
 
   let subject: string;
-  if (added.length === 1) subject = `Add ${name(added[0])} to the collection`;
+  if (!before.selected.length && after.selected.length)
+    subject = `Publish ${after.selected.length} ${after.selected.length === 1 ? 'playlist' : 'playlists'} to the music gallery`;
+  else if (added.length === 1)
+    subject = `Add ${name(added[0])} to the music gallery`;
   else if (added.length)
-    subject = `Add ${added.length} playlists to the collection`;
+    subject = `Add ${added.length} playlists to the music gallery`;
   else if (removed.length === 1)
-    subject = `Remove ${name(removed[0])} from the collection`;
+    subject = `Remove ${name(removed[0])} from the music gallery`;
   else if (removed.length)
-    subject = `Remove ${removed.length} playlists from the collection`;
+    subject = `Remove ${removed.length} playlists from the music gallery`;
   else if (before.lead !== after.lead)
     subject = after.lead
       ? `Feature ${name(after.lead)}`
@@ -96,7 +99,7 @@ export function musicPublicationMessage(
     subject = `Update notes for ${editedNotes.length} playlists`;
   else subject = 'Republish the music collection';
 
-  const prefix = 'chore(music): ';
+  const prefix = 'feat(music): ';
   const max = 80 - prefix.length;
   if (subject.length > max) subject = `${subject.slice(0, max - 1).trimEnd()}…`;
   const title = `${prefix}${subject}`;

@@ -21,7 +21,7 @@ test('publication commits name the changed feature and keep recovery IDs in the 
     titles,
     revision
   );
-  assert.equal(result.title, 'chore(music): Feature Fall Tour 2026, Part 1');
+  assert.equal(result.title, 'feat(music): Feature Fall Tour 2026, Part 1');
   assert.match(result.message, /Featured playlist: Fall Tour 2026, Part 1/);
   assert.match(result.message, new RegExp(`Music-Revision: ${revision}`));
   assert.ok(!result.title.includes(revision));
@@ -46,7 +46,10 @@ test('publication summaries describe membership, sequence, notes, and series wit
     [...titles, { id: hidden, title: 'Private playlist' }],
     revision
   );
-  assert.equal(result.title, 'chore(music): Add Late hours to the collection');
+  assert.equal(
+    result.title,
+    'feat(music): Add Late hours to the music gallery'
+  );
   assert.match(result.message, /Added: Late hours/);
   assert.match(result.message, /notes: Fall Tour 2026, Part 1/);
   assert.match(result.message, /Added series: Fall Tour/);
@@ -56,7 +59,7 @@ test('publication summaries describe membership, sequence, notes, and series wit
 test('removing the feature and reordering a series produce distinct human titles', () => {
   assert.equal(
     musicPublicationMessage({ ...base, lead: a }, base, titles, revision).title,
-    'chore(music): Remove the featured playlist'
+    'feat(music): Remove the featured playlist'
   );
   const before = {
     ...base,
@@ -67,7 +70,7 @@ test('removing the feature and reordering a series produce distinct human titles
     series: [{ id: 'tour', title: 'Fall Tour', playlistIds: [b, a] }],
   };
   const result = musicPublicationMessage(before, after, titles, revision);
-  assert.equal(result.title, 'chore(music): Update the Fall Tour series');
+  assert.equal(result.title, 'feat(music): Update the Fall Tour series');
   assert.match(
     result.message,
     /Series order \(Fall Tour\): Late hours → Fall Tour 2026, Part 1/
@@ -84,4 +87,13 @@ test('provider titles cannot introduce extra commit headers and long titles stay
   assert.ok(result.title.length <= 80);
   assert.ok(!result.title.includes('\n'));
   assert.doesNotMatch(result.message, /\nFake-Trailer:/);
+});
+
+test('the first public selection names the gallery publication', () => {
+  const result = musicPublicationMessage(emptyCatalog, base, titles, revision);
+  assert.equal(
+    result.title,
+    'feat(music): Publish 2 playlists to the music gallery'
+  );
+  assert.match(result.message, /Added: Fall Tour 2026, Part 1, Late hours/);
 });

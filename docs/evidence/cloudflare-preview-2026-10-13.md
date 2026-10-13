@@ -311,3 +311,23 @@ version `0c14e6c5-03ba-4420-9d4b-955f6da11e04` at 100%. The read-only
 canonical route matrix passed at source SHA
 `54bd1f32b0d41b7be0f5471e60cfac59723c1728` after that change. Protected
 GitHub publication still needs a real approved revision and exact live proof.
+
+## Separate Music encryption key
+
+The Spotify grant in `music_connections` was healthy and decrypted with the
+old writing encryption key. The Music code also reused the writing decryption
+error, which made a transient Spotify failure say “Reconnect your Lattice
+account.” No Music request goes to Lattice. A new independent 32-byte Music key
+was saved and read back from the maintainer's macOS Keychain under
+`music-token-encryption` / `willie-page` without displaying its value.
+
+The new key was installed on `willie-page-preview` (version
+`6a5dd0c5-27a4-4c4d-9324-da3780d27635`) and `willie-page` (version
+`f4a16495-c8c0-48e5-aca8-b6711bc6de58`) with `cf workers secrets bulk`, each
+deployed at 100%. The saved Spotify grant was re-encrypted in one Postgres
+transaction by `scripts/music/migrate-shared-key.mts` and verified with the new
+key before commit; there were no pending
+Spotify OAuth states. A fresh signed Chrome tab loaded the preview Music editor
+after rotation with 520 playlists, 23 in the private gallery draft, a “Refresh
+Spotify” control, and no Lattice error. The public gallery selection remains
+unpublished and its empty state stays in place.

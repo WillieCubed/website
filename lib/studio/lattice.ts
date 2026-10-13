@@ -2,8 +2,9 @@ import { LatticeClient, LatticeError } from '@reasonabletech/lattice-client';
 import { randomUUID } from 'node:crypto';
 
 import { compileSandbox, parseComponent } from './components';
+import { required } from './config';
 import { StudioError } from './errors';
-import { accessToken, required, seal, unseal } from './oauth';
+import { accessToken, seal, unseal } from './oauth';
 import { getStudioPool, getStudioStore } from './store';
 import type { Generation } from './types';
 

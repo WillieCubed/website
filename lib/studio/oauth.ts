@@ -1,11 +1,7 @@
-import {
-  createCipheriv,
-  createDecipheriv,
-  createHash,
-  randomBytes,
-  timingSafeEqual,
-} from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
+import { sealJson, unsealJson } from '../crypto/sealed-json';
+import { required } from './config';
 import { StudioError } from './errors';
 import { STUDIO_LATTICE_SCOPE } from './lattice-client-metadata';
 import { getStudioPool } from './store';
@@ -15,44 +11,21 @@ interface Grant {
   refreshToken: string | null;
   expiresAt: number;
 }
-export function required(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new StudioError(503, `${name} is not configured.`);
-  return value;
-}
-function key(encoded = required('STUDIO_TOKEN_ENCRYPTION_KEY')): Buffer {
+function key(encoded = required('STUDIO_TOKEN_ENCRYPTION_KEY')): string {
   const result = Buffer.from(encoded, 'base64');
   if (result.length !== 32)
     throw new StudioError(
       503,
       'Token encryption requires a 32-byte base64 key.'
     );
-  return result;
+  return encoded;
 }
 export function seal(value: unknown, encryptionKey?: string): string {
-  const iv = randomBytes(12),
-    cipher = createCipheriv('aes-256-gcm', key(encryptionKey), iv);
-  const data = Buffer.concat([
-    cipher.update(JSON.stringify(value)),
-    cipher.final(),
-  ]);
-  return Buffer.concat([iv, cipher.getAuthTag(), data]).toString('base64url');
+  return sealJson(value, key(encryptionKey));
 }
 export function unseal<T>(value: string, encryptionKey?: string): T {
   try {
-    const bytes = Buffer.from(value, 'base64url');
-    const cipher = createDecipheriv(
-      'aes-256-gcm',
-      key(encryptionKey),
-      bytes.subarray(0, 12)
-    );
-    cipher.setAuthTag(bytes.subarray(12, 28));
-    return JSON.parse(
-      Buffer.concat([
-        cipher.update(bytes.subarray(28)),
-        cipher.final(),
-      ]).toString()
-    ) as T;
+    return unsealJson<T>(value, key(encryptionKey));
   } catch {
     throw new StudioError(503, 'Reconnect your Lattice account.');
   }

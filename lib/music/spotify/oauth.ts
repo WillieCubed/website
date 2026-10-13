@@ -2,9 +2,9 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 import { studioOrigin } from '../../studio/config';
 import { StudioError } from '../../studio/errors';
-import { required, seal, unseal } from '../../studio/oauth';
 import { musicStore } from '../store';
 import { SpotifyClient } from './client';
+import { sealMusic, spotifyClientId, unsealMusic } from './credentials';
 import { exchangeToken } from './tokens';
 
 export const callbackUrl = () =>
@@ -20,12 +20,12 @@ export async function beginSpotify(ownerEmail: string) {
     [
       createHash('sha256').update(state).digest('hex'),
       ownerEmail.toLowerCase(),
-      seal(verifier, process.env.MUSIC_TOKEN_ENCRYPTION_KEY),
+      sealMusic(verifier),
     ]
   );
   const url = new URL('https://accounts.spotify.com/authorize');
   Object.entries({
-    client_id: required('SPOTIFY_CLIENT_ID'),
+    client_id: spotifyClientId(),
     response_type: 'code',
     redirect_uri: callbackUrl(),
     scope: 'playlist-read-private',
@@ -74,10 +74,7 @@ export async function completeSpotify(
     grant_type: 'authorization_code',
     code,
     redirect_uri: callbackUrl(),
-    code_verifier: unseal<string>(
-      row.verifier,
-      process.env.MUSIC_TOKEN_ENCRYPTION_KEY
-    ),
+    code_verifier: unsealMusic<string>(row.verifier),
   });
   const me = await new SpotifyClient(grant.accessToken).get('me');
   if (typeof me.id !== 'string' || !me.id)
@@ -101,7 +98,7 @@ export async function completeSpotify(
       );
     await db.query(
       'INSERT INTO music_connections(singleton,owner_id,encrypted_grant) VALUES(true,$1,$2) ON CONFLICT(singleton) DO UPDATE SET encrypted_grant=excluded.encrypted_grant,reconnect=false,updated_at=now()',
-      [me.id, seal(grant, process.env.MUSIC_TOKEN_ENCRYPTION_KEY)]
+      [me.id, sealMusic(grant)]
     );
     await db.query('COMMIT');
   } catch (error) {

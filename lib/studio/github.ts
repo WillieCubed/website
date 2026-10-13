@@ -1,5 +1,5 @@
+import { required } from './config';
 import { StudioError } from './errors';
-import { required } from './oauth';
 
 export class GitHubError extends StudioError {
   constructor(readonly githubStatus: number) {

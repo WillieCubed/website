@@ -11,7 +11,7 @@ export async function GET(request: Request) {
       ).rows[0];
     return Response.json({
       configured: Boolean(
-        process.env.SPOTIFY_CLIENT_ID && process.env.STUDIO_TOKEN_ENCRYPTION_KEY
+        process.env.SPOTIFY_CLIENT_ID && process.env.MUSIC_TOKEN_ENCRYPTION_KEY
       ),
       connected: Boolean(row && !row.reconnect),
       reconnect: Boolean(row?.reconnect),

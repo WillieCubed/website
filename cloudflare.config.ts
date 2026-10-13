@@ -34,9 +34,40 @@ export default defineConfig((context) => {
             ],
           }),
       env: {
+        SITE_MODE: bindings.text(preview ? 'preview' : 'production'),
+        STUDIO_PUBLIC_ORIGIN: bindings.text('https://willie.page'),
+        STUDIO_GITHUB_REPOSITORY: bindings.text('WillieCubed/website'),
+        STUDIO_GITHUB_BRANCH: bindings.text('main'),
+        STUDIO_HYPERDRIVE: bindings.hyperdrive({
+          id: 'fdf7a90c3fbc4392b35d5fdaf29bce85',
+        }),
+        STUDIO_PRIVATE_BUCKET: bindings.r2({
+          name: 'willie-page-studio-private',
+        }),
+        ...(preview
+          ? {
+              STUDIO_PUBLIC_MEDIA_BUCKET: bindings.r2({
+                name: 'willie-page-media',
+              }),
+            }
+          : {}),
+        STUDIO_GITHUB_TOKEN: bindings.secret(),
+        ...(preview
+          ? {
+              STUDIO_ORIGIN: bindings.text('https://preview.willie.page'),
+              STUDIO_LATTICE_ISSUER: bindings.text(
+                'https://auth.uselovelace.com'
+              ),
+              STUDIO_LATTICE_CLIENT_ID: bindings.text(
+                'https://willie.page/.well-known/lattice-client.json'
+              ),
+              STUDIO_LATTICE_GATEWAY: bindings.text(
+                'https://lattice.uselovelace.com'
+              ),
+              STUDIO_TOKEN_ENCRYPTION_KEY: bindings.secret(),
+            }
+          : {}),
         ATPROTO_PUBLICATION_RKEY: bindings.text('3mwxne5td6lid'),
-        MICROPUB_GITHUB_REPO: bindings.text('WillieCubed/website'),
-        MICROPUB_GITHUB_BRANCH: bindings.text('main'),
         HYPERDRIVE: bindings.hyperdrive({
           id: preview
             ? '0b5d616d4c994fa5ac27afcea7ddfdaf'
@@ -70,14 +101,9 @@ export default defineConfig((context) => {
         INDIEAUTH_INTROSPECTION_SECRET: bindings.secret(),
         INDIEWEB_NOTIFY_SECRET: bindings.secret(),
         SEARCH_REINDEX_SECRET: bindings.secret(),
-        ...(preview
-          ? {}
-          : {
-              OWNER_ACCESS_ISSUER: bindings.secret(),
-              OWNER_ACCESS_AUDIENCE: bindings.secret(),
-              OWNER_ACCESS_EMAIL: bindings.secret(),
-            }),
-        MICROPUB_GITHUB_TOKEN: bindings.secret(),
+        OWNER_ACCESS_ISSUER: bindings.secret(),
+        OWNER_ACCESS_AUDIENCE: bindings.secret(),
+        OWNER_ACCESS_EMAIL: bindings.secret(),
         ATPROTO_APP_PASSWORD: bindings.secret(),
       },
       exports: {

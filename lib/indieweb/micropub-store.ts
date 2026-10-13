@@ -1,3 +1,4 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import matter from 'gray-matter';
 import { randomUUID } from 'node:crypto';
 import { link, readFile, rename, unlink, writeFile } from 'node:fs/promises';
@@ -25,7 +26,7 @@ import type { Draft, Publication, StudioStore } from '@/lib/studio/types';
  */
 
 export interface PrivateMicropubOptions {
-  /** Explicit dependency injection for tests; production requires STUDIO_DATABASE_URL. */
+  /** Explicit dependency injection for tests; Workers use private Hyperdrive. */
   studioStore?: StudioStore;
   publish?: (documentId: string, revisionId: string) => Promise<Publication>;
 }
@@ -33,10 +34,14 @@ export interface PrivateMicropubOptions {
 export function privateMicropubStore(
   options: PrivateMicropubOptions = {}
 ): StudioStore | null {
-  return (
-    options.studioStore ??
-    (process.env.STUDIO_DATABASE_URL ? getStudioStore() : null)
-  );
+  if (options.studioStore) return options.studioStore;
+  if (process.env.STUDIO_DATABASE_URL) return getStudioStore();
+  try {
+    if (getCloudflareContext().env.STUDIO_HYPERDRIVE) return getStudioStore();
+  } catch {
+    // Local runs without a private database keep their public file backend.
+  }
+  return null;
 }
 
 function privateSource(draft: Draft): string {
@@ -185,7 +190,7 @@ export async function saveStoredWriting(
 ): Promise<string> {
   const isDraft = Boolean(matter(source).data.draft);
   const store = privateMicropubStore(privateOptions);
-  if (isDraft || writing.privateDocumentId || store) {
+  if (isDraft || writing.privateDocumentId) {
     if (!store)
       throw new StudioError(503, 'Private draft storage is not configured.');
     const body = parseDraftContent(importMdx(source, writing.sha));
@@ -307,7 +312,7 @@ export function localWriteError(
     );
   if (code === 'EROFS' || code === 'EACCES' || code === 'EPERM') {
     return new MicropubStorageError(
-      `The content directory is read-only (${code}). Configure MICROPUB_GITHUB_REPO and MICROPUB_GITHUB_TOKEN so posts commit through GitHub instead.`
+      `The content directory is read-only (${code}). Configure STUDIO_GITHUB_REPOSITORY and STUDIO_GITHUB_TOKEN so posts commit through GitHub instead.`
     );
   }
   return new MicropubStorageError(

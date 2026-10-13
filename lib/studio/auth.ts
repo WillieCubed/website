@@ -1,9 +1,9 @@
-import { type JWTVerifyGetKey, createRemoteJWKSet, jwtVerify } from 'jose';
+import type { JWTVerifyGetKey } from 'jose';
+
+import { verifyOwnerAccess } from '@/lib/owner/access';
 
 import { isPrivatePreview, privateHeaders, studioOrigin } from './config';
 import { StudioError } from './errors';
-
-const keys = new Map<string, JWTVerifyGetKey>();
 
 /** No development bypass: the same signed Access identity gates every origin. */
 export async function authorizeStudio(
@@ -12,37 +12,22 @@ export async function authorizeStudio(
   verifyKey?: JWTVerifyGetKey
 ): Promise<{ email: string }> {
   if (!isPrivatePreview(env)) throw new StudioError(404, 'Not found');
-  const issuer = env.STUDIO_ACCESS_ISSUER;
-  const audience = env.STUDIO_ACCESS_AUDIENCE;
-  const owner = env.STUDIO_OWNER_EMAIL?.toLowerCase();
+  const issuer = env.OWNER_ACCESS_ISSUER;
+  const audience = env.OWNER_ACCESS_AUDIENCE;
+  const owner = env.OWNER_ACCESS_EMAIL;
   if (!issuer || !audience || !owner)
     throw new StudioError(503, 'Preview access is not configured.');
-  const token = request.headers.get('cf-access-jwt-assertion');
-  if (!token) throw new StudioError(401, 'Sign in to preview.');
-  if (!verifyKey) {
-    if (!keys.has(issuer))
-      keys.set(
-        issuer,
-        createRemoteJWKSet(new URL('/cdn-cgi/access/certs', issuer))
-      );
-    verifyKey = keys.get(issuer)!;
-  }
-  try {
-    const { payload } = await jwtVerify(token, verifyKey, {
-      issuer,
-      audience,
-      algorithms: ['RS256'],
-      requiredClaims: ['exp', 'iat'],
-    });
-    if (
-      typeof payload.email !== 'string' ||
-      payload.email.toLowerCase() !== owner
-    )
-      throw new Error('owner');
-    return { email: payload.email };
-  } catch {
+  if (!request.headers.get('cf-access-jwt-assertion'))
+    throw new StudioError(401, 'Sign in to preview.');
+  if (
+    !(await verifyOwnerAccess(
+      request,
+      { issuer, audience, email: owner },
+      verifyKey
+    ))
+  )
     throw new StudioError(403, 'Preview access denied.');
-  }
+  return { email: owner };
 }
 
 export function checkMutationOrigin(

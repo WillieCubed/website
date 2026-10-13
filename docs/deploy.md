@@ -84,10 +84,11 @@ The Worker needs these secrets: `ATPROTO_OAUTH_JWK`,
 `WEBMENTION_MODERATION_SECRET`, `INDIEAUTH_INTROSPECTION_SECRET`,
 `INDIEWEB_NOTIFY_SECRET`, `SEARCH_REINDEX_SECRET`,
 `OWNER_ACCESS_ISSUER`, `OWNER_ACCESS_AUDIENCE`, `OWNER_ACCESS_EMAIL`,
-`MICROPUB_GITHUB_TOKEN`, and
-`ATPROTO_APP_PASSWORD`. `cf` cannot set one secret in the current beta; use
-`wrangler secret put` with the explicit Worker name, or supply a private
-`--secrets-file` to `cf deploy`. Never put values in the repository or command
+`STUDIO_GITHUB_TOKEN`, and
+`ATPROTO_APP_PASSWORD`. Set individual secrets with `cf workers secrets update`
+for the named Worker, or supply a private `--secrets-file` to `cf deploy`.
+The scoped GitHub token is shared by Micropub and Studio publishing and must
+be present on both Workers. Never put values in the repository or command
 arguments. `INDIEWEB_NOTIFY_SECRET_PRODUCTION` in GitHub Actions must match the
 production Worker secret. Rotating the OAuth storage key signs existing
 Standard.site subscribers out; they must authorize again.

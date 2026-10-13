@@ -39,15 +39,24 @@ export function seal(value: unknown): string {
   return Buffer.concat([iv, cipher.getAuthTag(), data]).toString('base64url');
 }
 export function unseal<T>(value: string): T {
-  const bytes = Buffer.from(value, 'base64url');
-  const cipher = createDecipheriv('aes-256-gcm', key(), bytes.subarray(0, 12));
-  cipher.setAuthTag(bytes.subarray(12, 28));
-  return JSON.parse(
-    Buffer.concat([
-      cipher.update(bytes.subarray(28)),
-      cipher.final(),
-    ]).toString()
-  ) as T;
+  const encryptionKey = key();
+  try {
+    const bytes = Buffer.from(value, 'base64url');
+    const cipher = createDecipheriv(
+      'aes-256-gcm',
+      encryptionKey,
+      bytes.subarray(0, 12)
+    );
+    cipher.setAuthTag(bytes.subarray(12, 28));
+    return JSON.parse(
+      Buffer.concat([
+        cipher.update(bytes.subarray(28)),
+        cipher.final(),
+      ]).toString()
+    ) as T;
+  } catch {
+    throw new StudioError(503, 'Reconnect your Lattice account.');
+  }
 }
 export function oauthConfig(origin: string) {
   return {

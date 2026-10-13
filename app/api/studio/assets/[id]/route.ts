@@ -7,7 +7,7 @@ export async function GET(
 ) {
   return studioRoute(request, async () => {
     const asset = await readAsset((await context.params).id);
-    return new Response(asset.stream, {
+    return new Response(asset.bytes, {
       headers: {
         'Content-Type': asset.contentType,
         'Content-Disposition': 'inline',

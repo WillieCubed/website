@@ -7,9 +7,9 @@ import test from 'node:test';
 
 const envKeys = [
   'SITE_MODE',
-  'STUDIO_ACCESS_ISSUER',
-  'STUDIO_ACCESS_AUDIENCE',
-  'STUDIO_OWNER_EMAIL',
+  'OWNER_ACCESS_ISSUER',
+  'OWNER_ACCESS_AUDIENCE',
+  'OWNER_ACCESS_EMAIL',
 ] as const;
 
 function restoreEnv(saved: NodeJS.ProcessEnv) {
@@ -51,9 +51,9 @@ test('preview gates pages, static artifacts and discovery endpoints before routi
   try {
     Object.assign(process.env, {
       SITE_MODE: 'preview',
-      STUDIO_ACCESS_ISSUER: 'https://access.example.com',
-      STUDIO_ACCESS_AUDIENCE: 'preview',
-      STUDIO_OWNER_EMAIL: 'owner@example.com',
+      OWNER_ACCESS_ISSUER: 'https://access.example.com',
+      OWNER_ACCESS_AUDIENCE: 'preview',
+      OWNER_ACCESS_EMAIL: 'owner@example.com',
     });
     for (const path of [
       '/',
@@ -105,9 +105,9 @@ test('a verified preview owner sees request-time writing rewrites, while syndica
   try {
     Object.assign(process.env, {
       SITE_MODE: 'preview',
-      STUDIO_ACCESS_ISSUER: issuer,
-      STUDIO_ACCESS_AUDIENCE: 'preview',
-      STUDIO_OWNER_EMAIL: 'owner@example.com',
+      OWNER_ACCESS_ISSUER: issuer,
+      OWNER_ACCESS_AUDIENCE: 'preview',
+      OWNER_ACCESS_EMAIL: 'owner@example.com',
     });
     const jwt = await new SignJWT({ email: 'owner@example.com' })
       .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })

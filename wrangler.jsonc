@@ -20,9 +20,11 @@
   "compatibility_date": "2026-10-13",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "vars": {
+    "SITE_MODE": "production",
+    "STUDIO_PUBLIC_ORIGIN": "https://willie.page",
+    "STUDIO_GITHUB_REPOSITORY": "WillieCubed/website",
+    "STUDIO_GITHUB_BRANCH": "main",
     "ATPROTO_PUBLICATION_RKEY": "3mwxne5td6lid",
-    "MICROPUB_GITHUB_REPO": "WillieCubed/website",
-    "MICROPUB_GITHUB_BRANCH": "main",
   },
   "routes": [
     { "pattern": "williecubed.me/*", "zone_name": "williecubed.me" },
@@ -43,6 +45,10 @@
   ],
   "hyperdrive": [
     { "binding": "HYPERDRIVE", "id": "22d2802570684a09a567d3f41c3f5ff1" },
+    {
+      "binding": "STUDIO_HYPERDRIVE",
+      "id": "fdf7a90c3fbc4392b35d5fdaf29bce85",
+    },
   ],
   "r2_buckets": [
     {
@@ -50,6 +56,10 @@
       "bucket_name": "willie-page-cache",
     },
     { "binding": "MEDIA_BUCKET", "bucket_name": "willie-page-media" },
+    {
+      "binding": "STUDIO_PRIVATE_BUCKET",
+      "bucket_name": "willie-page-studio-private",
+    },
   ],
   "ratelimits": [
     {

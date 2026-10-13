@@ -62,10 +62,11 @@ Micropub `Location` and content file. It checks verification, approval, public
 JSON, page rendering, and deletion after the source link disappears.
 
 A hosted publishing check also needs a test database and a separate GitHub
-branch configured with `MICROPUB_GITHUB_REPO`, `MICROPUB_GITHUB_TOKEN`, and
-`MICROPUB_GITHUB_BRANCH`. Set `NEXT_PUBLIC_SITE_ORIGIN` to the test deployment
-origin at build time. Configure a repository-scoped token with only Contents
-write permission; never put a broad personal token in the public deployment.
+branch configured with `STUDIO_GITHUB_REPOSITORY`, `STUDIO_GITHUB_TOKEN`, and
+`STUDIO_GITHUB_BRANCH`. Set `NEXT_PUBLIC_SITE_ORIGIN` to the test deployment
+origin at build time. Configure a repository-scoped token with Contents and
+Pull requests read/write, plus Checks and Commit statuses read. Do not put a
+broad personal token in the public deployment.
 Connect Cloudflare Workers Builds to the repository so a content commit
 automatically deploys the isolated Worker. The publish workflow waits until
 the public alias

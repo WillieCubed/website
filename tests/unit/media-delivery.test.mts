@@ -16,11 +16,37 @@ test('R2 delivery rejects invalid keys before reading the bucket', async () => {
     ['2026', '10', 'image.svg'],
     ['2026', '10', 'image.jpg', 'extra'],
     ['2026', '13', 'image.jpg'],
+    ['writings', '123', 'image.jpg'],
+    ['writings', '12345678-1234-1234-1234-123456789abc', 'image.svg'],
   ];
   for (const segments of invalid) {
     assert.equal((await deliverMedia(segments, bucket)).status, 404);
   }
   assert.deepEqual(keys, []);
+});
+
+test('R2 serves promoted writing assets from the public media bucket', async () => {
+  const publication = '12345678-1234-1234-1234-123456789abc';
+  const asset = 'abcdef12-3456-7890-abcd-123456789abc';
+  const key = `media/writings/${publication}/${asset}.png`;
+  const response = await deliverMedia(
+    ['writings', publication, `${asset}.png`],
+    {
+      async get(requested) {
+        assert.equal(requested, key);
+        return {
+          httpEtag: '"image"',
+          httpMetadata: { contentType: 'image/png' },
+          arrayBuffer: async () => new Uint8Array([137, 80, 78, 71]).buffer,
+        };
+      },
+    }
+  );
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    new Uint8Array(await response.arrayBuffer()),
+    new Uint8Array([137, 80, 78, 71])
+  );
 });
 
 test('R2 delivery returns exact bytes with immutable cache and stored type', async () => {

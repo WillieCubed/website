@@ -19,6 +19,7 @@ const eslintConfig = [
       '.cloudflare/**',
       '.wrangler/**',
       '.vercel/**',
+      '.studio/**',
       'out/**',
       'build/**',
       'public/pagefind/**',

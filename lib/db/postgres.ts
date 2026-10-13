@@ -28,9 +28,13 @@ interface PoolFacade {
 
 const localPools = new Map<string, Pool>();
 
-function hyperdriveConnectionString(): string | null {
+export type DatabaseBinding = 'HYPERDRIVE' | 'STUDIO_HYPERDRIVE';
+
+function hyperdriveConnectionString(
+  binding: DatabaseBinding = 'HYPERDRIVE'
+): string | null {
   try {
-    return getCloudflareContext().env.HYPERDRIVE?.connectionString ?? null;
+    return getCloudflareContext().env[binding]?.connectionString ?? null;
   } catch {
     return null;
   }
@@ -73,10 +77,16 @@ function queryTag(
 }
 
 export function createPool(
-  config: { max?: number; connectionString?: string } = {}
+  config: {
+    max?: number;
+    connectionString?: string;
+    hyperdriveBinding?: DatabaseBinding;
+  } = {}
 ): PoolFacade {
   const workerUrl = () =>
-    config.connectionString ? null : hyperdriveConnectionString();
+    config.connectionString
+      ? null
+      : hyperdriveConnectionString(config.hyperdriveBinding);
   const query = async (text: string, values?: unknown[]) => {
     const url = workerUrl();
     if (!url)

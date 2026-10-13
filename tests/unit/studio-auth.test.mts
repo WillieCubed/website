@@ -19,14 +19,14 @@ test('Access validation rejects missing, wrong-audience and expired tokens', asy
   const key = createLocalJWKSet({ keys: [await exportJWK(publicKey)] });
   const env = {
     SITE_MODE: 'preview',
-    STUDIO_ACCESS_ISSUER: 'https://team.cloudflareaccess.com',
-    STUDIO_ACCESS_AUDIENCE: 'studio',
-    STUDIO_OWNER_EMAIL: 'owner@example.com',
+    OWNER_ACCESS_ISSUER: 'https://team.cloudflareaccess.com',
+    OWNER_ACCESS_AUDIENCE: 'studio',
+    OWNER_ACCESS_EMAIL: 'owner@example.com',
   };
   const signed = (aud: string, exp: number) =>
     new SignJWT({ email: 'owner@example.com' })
       .setProtectedHeader({ alg: 'RS256' })
-      .setIssuer(env.STUDIO_ACCESS_ISSUER)
+      .setIssuer(env.OWNER_ACCESS_ISSUER)
       .setAudience(aud)
       .setIssuedAt()
       .setExpirationTime(exp)

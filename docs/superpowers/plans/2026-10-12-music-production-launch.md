@@ -28,7 +28,7 @@ for the former PR head, but Vercel then refused private Production promotion
 because the account reached its 100-deployment daily limit. Do not retry a
 deployment until fresh quota evidence shows capacity.
 
-The Music branch is rebased onto `origin/main` at `69f2088`. Its new shared
+The Music branch is rebased onto `origin/main` at `ab02f13`. Its new shared
 palette and lost-import-response recovery are local, not hosted. PR
 [#221](https://github.com/WillieCubed/website/pull/221) still points to its
 older pushed head and needs new CI after the quota resets. Main now serves

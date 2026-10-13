@@ -21,6 +21,7 @@ export default function Status({
 }) {
   const pathname = usePathname();
   const [data, setData] = useState(initial);
+  const [refreshing, setRefreshing] = useState(true);
   const [celsius, setCelsius] = useState(false);
   const [now, setNow] = useState<Date>();
   const [selectedTimezone, setSelectedTimezone] = useState('local');
@@ -45,13 +46,17 @@ export default function Status({
     );
   };
   useEffect(() => {
+    if (!expanded && pathname === '/status') return;
     setDeviceTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const tick = () => setNow(new Date());
     tick();
     const clock = setInterval(tick, 30000);
     const abort = new AbortController();
+    let inFlight = false;
     const refresh = async () => {
-      if (document.hidden) return;
+      if (document.hidden || inFlight) return;
+      inFlight = true;
+      setRefreshing(true);
       try {
         const response = await fetch('/api/status', {
           cache: 'no-store',
@@ -60,6 +65,9 @@ export default function Status({
         if (response.ok) setData(await response.json());
       } catch {
         /* Keep the city available during a connection failure. */
+      } finally {
+        inFlight = false;
+        if (!abort.signal.aborted) setRefreshing(false);
       }
       tick();
     };
@@ -73,7 +81,7 @@ export default function Status({
       abort.abort();
       document.removeEventListener('visibilitychange', refresh);
     };
-  }, []);
+  }, [expanded, pathname]);
   if (!expanded && pathname === '/status') return null;
   const { location } = data;
   const weather =
@@ -185,7 +193,18 @@ export default function Status({
             </button>
           ) : (
             <div className="weather-reading">
-              <span className="condition">{weatherLabel(weather)}</span>
+              {refreshing ? (
+                <>
+                  <span className="condition weather-pending" role="status">
+                    Loading weather…
+                  </span>
+                  <noscript>
+                    <span className="condition">Weather unavailable</span>
+                  </noscript>
+                </>
+              ) : (
+                <span className="condition">{weatherLabel(weather)}</span>
+              )}
             </div>
           )}
           <small className="attribution">

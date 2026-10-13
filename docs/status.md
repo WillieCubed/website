@@ -47,7 +47,11 @@ visitor returns to the tab while keeping the last usable content on failure.
 The page can be prefetched for five minutes; hydration also refreshes the
 snapshot so returning to a prefetched page does not retain an old city. API responses use no-store so the browser does not add another cache
 on top of the tagged server snapshot. The UI should calculate local time from the IANA timezone
-rather than caching a clock string.
+rather than caching a clock string. When no usable weather is present, a
+refresh shows a local pending label until the request settles. Existing weather
+stays visible during refreshes. Only a completed unsuccessful read shows the
+unavailable label. Without JavaScript, the missing-weather fallback remains
+available instead of displaying an indefinite loading message.
 
 The component diagram shows the current data boundary:
 

@@ -89,7 +89,12 @@ A timed-out mutation may complete after its HTTP response is lost. Cleanup must 
 
 Acceptance and production have migrations 005–009. The [production migration receipt](evidence/production-publishing-migration-20261009.json) records atomic application of 006–009 and successful schema checks. The comparison preserved all seven fields of the one legacy access-token row, including its exact expiry. New grants use the new expiry rules.
 
-The [production migration helper](../scripts/production-publishing-migrate.mts) defaults to a read-only check. Its approved application used `--apply --acceptance-approved` and a fresh private output directory. Do not reapply completed migrations. It verifies the exact Neon project and host, locks the existing authorization tables, applies only 006–009 in one transaction and compares all seven original token fields before commit. Retain its private baseline and receipt. Follow any ambiguous commit with a fresh read-only check instead of assuming rollback.
+The one-time production migration used a guarded helper that locked the
+authorization tables, applied only 006–009 in one transaction, and compared
+all seven original token fields before commit. That helper was removed after
+completion; do not reapply these migrations. Retain its private baseline and
+receipt. Follow any ambiguous future migration with a fresh read-only check
+instead of assuming rollback.
 
 Run lint, TypeScript, the full unit suite and a bounded production build on the release revision. The amended implementation passed all 846 existing unit tests, full ESLint, TypeScript and a production build with two build workers on October 9. The response and content changes also passed all 21 applicable existing behavior tests. Acceptance verification remains separate from these local checks.
 

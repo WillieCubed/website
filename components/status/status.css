@@ -555,14 +555,17 @@ button.weather-reading:active {
 }
 
 .microstatus .weather-picture--compact {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--color-ink);
 }
 .microstatus .weather-picture--compact > svg {
-  width: 100%;
-  height: 100%;
+  width: 16px;
+  height: 16px;
 }
 @container footer (max-width: 280px) {
   .microstatus .weather-picture--compact {

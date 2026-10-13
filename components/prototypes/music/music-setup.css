@@ -408,6 +408,10 @@
   flex-shrink: 0;
   border-radius: 3px;
 }
+.ms-feature-option-copy {
+  flex: 1;
+  min-width: 0;
+}
 .ms-feature-option small {
   display: block;
   font-size: 12px;

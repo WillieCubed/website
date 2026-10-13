@@ -198,6 +198,8 @@ export default function MusicSetupPrototype({
                         </span>
                       </span>
                       <MusicSelectionControl
+                        selectedLabel="Included"
+                        unselectedLabel="Include"
                         aria-label={`Select ${playlist.title}`}
                         checked={selected.includes(playlist.id)}
                         onChange={() => toggle(playlist.id)}
@@ -262,17 +264,19 @@ export default function MusicSetupPrototype({
                     className="ms-feature-option"
                     data-selected={!lead || undefined}
                   >
+                    <span className="ms-feature-option-copy">
+                      No featured playlist
+                      <small>Give every playlist equal space.</small>
+                    </span>
                     <MusicSelectionControl
                       type="radio"
                       name="setup-feature"
                       aria-label="No featured playlist"
+                      selectedLabel="Selected"
+                      unselectedLabel="Choose"
                       checked={!lead}
                       onChange={() => setLead(null)}
                     />
-                    <span>
-                      No featured playlist
-                      <small>Give every playlist equal space.</small>
-                    </span>
                   </label>
                   {collection.map((playlist) => (
                     <label
@@ -280,15 +284,19 @@ export default function MusicSetupPrototype({
                       key={playlist.id}
                       data-selected={lead === playlist.id || undefined}
                     >
+                      <SampleCover playlist={playlist} />
+                      <span className="ms-feature-option-copy">
+                        {playlist.title}
+                      </span>
                       <MusicSelectionControl
                         type="radio"
                         name="setup-feature"
                         aria-label={`Feature ${playlist.title}`}
+                        selectedLabel="Featured"
+                        unselectedLabel="Feature"
                         checked={lead === playlist.id}
                         onChange={() => setLead(playlist.id)}
                       />
-                      <SampleCover playlist={playlist} />
-                      <span>{playlist.title}</span>
                     </label>
                   ))}
                 </fieldset>

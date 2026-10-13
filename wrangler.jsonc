@@ -27,6 +27,10 @@
   "routes": [
     { "pattern": "williecubed.me/*", "zone_name": "williecubed.me" },
     { "pattern": "www.williecubed.me", "custom_domain": true },
+    { "pattern": "willie.page", "custom_domain": true },
+    { "pattern": "www.willie.page", "custom_domain": true },
+    { "pattern": "tour.willie.page", "custom_domain": true },
+    { "pattern": "diaries.willie.page", "custom_domain": true },
   ],
   "workers_dev": true,
   "preview_urls": true,

@@ -19,7 +19,13 @@ export default defineConfig((context) => {
       ...(preview
         ? {}
         : {
-            domains: ['www.williecubed.me'],
+            domains: [
+              'willie.page',
+              'www.willie.page',
+              'tour.willie.page',
+              'diaries.willie.page',
+              'www.williecubed.me',
+            ],
             triggers: [
               triggers.fetch({
                 pattern: 'williecubed.me/*',

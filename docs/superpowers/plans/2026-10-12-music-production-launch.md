@@ -15,10 +15,19 @@
 The October 12 audit found Music was **not deployable as a working feature**.
 The October 13 implementation now includes production routes, persistence,
 Spotify OAuth, the approved cache, and recoverable publication. Local checks
-have passed; hosted acceptance below remains required. The
-screens are a development-only prototype with fictional content, simulated
-connection, and browser-local drafts. Production `/music`, `/studio`, and
-`/admin` return 404. `/admin/status` is the existing production admin page.
+have passed; hosted acceptance below remains required. The old prototype
+screens used fictional content, a simulated connection, and browser-local
+drafts. Those fixtures are not used by the production Music routes.
+
+At 01:29 PDT on October 13, the private `preview.willie.page` deployment was
+live with Music setup and editing. Anonymous requests redirect to Cloudflare
+Access. Direct Vercel-origin requests to the Music API return 401. The latest
+publication-check fix is committed in [PR #221](https://github.com/WillieCubed/website/pull/221),
+but Vercel refused the next deployment after the team reached its limit of 100
+deployments per day. The public `willie.page/music` route is still absent. The
+owner's Cloudflare biometric sign-in and actual Spotify consent have not been
+completed. Do not call the feature launched until the private fix, public
+deployment, and hosted acceptance below are verified.
 
 The Music branch was rebased onto `origin/main` at `42732cd`. The separate
 studio foundation [PR #201](https://github.com/WillieCubed/website/pull/201)

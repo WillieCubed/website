@@ -152,7 +152,10 @@ export default function Popover({
         popover="auto"
         className={`site-popover ${panelClassName}`}
         onClick={(event) => {
-          if (event.target instanceof Element && event.target.closest('a'))
+          if (
+            event.target instanceof Element &&
+            event.target.closest('a, [data-popover-dismiss]')
+          )
             panel.current?.hidePopover();
         }}
       >

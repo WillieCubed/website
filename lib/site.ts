@@ -147,6 +147,13 @@ export interface SitePage {
  */
 export const sitePages: SitePage[] = [
   {
+    path: '/music',
+    label: 'Music',
+    description:
+      'Playlists, compilations, and series selected by Willie Chalmers III.',
+    routed: true,
+  },
+  {
     path: '/writings',
     label: 'Writings',
     description:

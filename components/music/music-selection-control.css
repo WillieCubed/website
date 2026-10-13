@@ -1,0 +1,142 @@
+.mp-selection-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  color: var(--color-muted);
+}
+.music-prototype .mp-selection-control > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+.music-prototype .mp-selection-control > input:focus-visible {
+  outline: none;
+}
+.mp-selection-state {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--color-surface-container-highest);
+  pointer-events: none;
+  transition:
+    background 160ms var(--mp-effects),
+    color 160ms var(--mp-effects),
+    border-radius 320ms var(--mp-spatial);
+}
+.mp-selection-state svg {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  transition:
+    opacity 120ms var(--mp-effects),
+    scale 320ms var(--mp-spatial),
+    rotate 320ms var(--mp-spatial);
+}
+.mp-choice-off {
+  opacity: 1;
+  scale: 1;
+  rotate: 0deg;
+}
+.mp-choice-on {
+  opacity: 0;
+  scale: 0.5;
+  rotate: -20deg;
+}
+.mp-selection-control:has(input:checked) .mp-choice-off {
+  opacity: 0;
+  scale: 0.5;
+  rotate: 20deg;
+}
+.mp-selection-control:has(input:checked) .mp-choice-on {
+  opacity: 1;
+  scale: 1;
+  rotate: 0deg;
+}
+.mp-selection-control:has(input:checked) .mp-selection-state {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: 50%;
+}
+.mp-selection-control[data-indicator='feature']:has(input:checked)
+  .mp-selection-state {
+  border-radius: 10px;
+}
+.mp-selection-control[data-indicator='feature']:has(input:not(:checked))
+  .mp-selection-state {
+  background: transparent;
+}
+.music-prototype
+  :is(.ms-playlist, .ms-feature-option, .mp-check):has(.mp-selection-control) {
+  position: relative;
+  cursor: pointer;
+  transition:
+    background 160ms var(--mp-effects),
+    color 160ms var(--mp-effects),
+    border-radius 320ms var(--mp-spatial),
+    scale 320ms var(--mp-spatial);
+}
+.music-prototype
+  :is(.ms-playlist, .ms-feature-option, .mp-check):has(
+    .mp-selection-control input:focus-visible
+  ) {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 4px;
+}
+.music-prototype
+  :is(.ms-playlist, .ms-feature-option, .mp-check):has(
+    .mp-selection-control
+  ):active {
+  scale: 0.985;
+  border-radius: 10px;
+}
+.mp-check:has(.mp-selection-control input:checked) {
+  font-weight: 600;
+}
+.mp-selection-control:has(input:disabled) {
+  opacity: 0.38;
+}
+.music-prototype .mp-selection-control > input:disabled {
+  cursor: default;
+}
+@media (hover: hover) {
+  .mp-check:has(.mp-selection-control):hover {
+    background: var(--color-surface-container-highest);
+  }
+  .mp-check:has(.mp-selection-control input:checked):hover {
+    background: var(--color-secondary-container);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mp-selection-state,
+  .mp-selection-state svg,
+  .music-prototype
+    :is(.ms-playlist, .ms-feature-option, .mp-check):has(
+      .mp-selection-control
+    ) {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .music-prototype
+    :is(.ms-playlist, .ms-feature-option, .mp-check):has(
+      .mp-selection-control input:checked
+    ) {
+    outline: 2px solid Highlight;
+  }
+  .mp-selection-control:has(input:checked) .mp-selection-state {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+}

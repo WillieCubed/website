@@ -87,6 +87,14 @@ export default function StudioLibrary() {
             >
               Browse the website
             </SiteLink>
+            <span aria-hidden="true"> · </span>
+            <SiteLink
+              href="/studio/music"
+              preview={false}
+              className="link-animated text-ink"
+            >
+              Curate music
+            </SiteLink>
           </p>
         </section>
         <p

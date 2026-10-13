@@ -17,11 +17,12 @@ export interface HeaderRule {
  */
 export const PAGE_SOURCES = [
   '/',
-  '/:page(projects|brand|search|writings|initiatives|media|sitemap|status|500)',
+  '/:page(projects|brand|search|writings|initiatives|media|music|sitemap|status|500)',
   '/:section(writings|initiatives|projects)/:slug((?!opengraph-image$)[^/.]+)',
   '/initiatives/:slug([^/.]+)/:part(part-\\d+)',
   '/writings/tags/:tag([^/.]+)',
   '/admin/status',
+  '/admin',
 ];
 
 /**

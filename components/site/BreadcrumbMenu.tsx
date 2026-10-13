@@ -8,12 +8,14 @@ import SiteLink from '@/components/link/SiteLink';
 
 import Popover from './Popover';
 
-export interface BreadcrumbMenuItem {
+export type BreadcrumbMenuItem = {
   label: string;
-  href: string;
   /** The crumb this item stands in for inside the ellipsis crumb's menu. */
   depth?: number;
-}
+} & (
+  | { href: string; onSelect?: never }
+  | { href?: never; onSelect: () => void }
+);
 
 export default function BreadcrumbMenu({
   label,
@@ -73,25 +75,37 @@ export default function BreadcrumbMenu({
         className="site-breadcrumb-menu__items"
         aria-label={title ?? `${label} destinations`}
       >
-        {items.map((item) => (
-          <SiteLink
-            key={item.href}
-            href={item.href}
-            preview={false}
-            className="site-breadcrumb-menu__link"
-            data-depth={item.depth}
-            aria-current={item.href === pathname ? 'page' : undefined}
-            onClick={() => {
-              if (item.href.startsWith('#')) {
-                document
-                  .getElementById(item.href.slice(1))
-                  ?.focus({ preventScroll: true });
-              }
-            }}
-          >
-            {item.label}
-          </SiteLink>
-        ))}
+        {items.map((item) =>
+          item.onSelect ? (
+            <button
+              key={item.label}
+              type="button"
+              className="site-breadcrumb-menu__link text-left"
+              data-popover-dismiss
+              onClick={item.onSelect}
+            >
+              {item.label}
+            </button>
+          ) : (
+            <SiteLink
+              key={item.href}
+              href={item.href}
+              preview={false}
+              className="site-breadcrumb-menu__link"
+              data-depth={item.depth}
+              aria-current={item.href === pathname ? 'page' : undefined}
+              onClick={() => {
+                if (item.href.startsWith('#')) {
+                  document
+                    .getElementById(item.href.slice(1))
+                    ?.focus({ preventScroll: true });
+                }
+              }}
+            >
+              {item.label}
+            </SiteLink>
+          )
+        )}
       </nav>
     </Popover>
   );

@@ -7,49 +7,13 @@ import { catalogEntry } from './catalog';
 import { compileSandbox } from './components';
 import { exportMdx, validatePublication } from './document';
 import { StudioError } from './errors';
+import { GitHubError, github } from './github';
 import { required } from './oauth';
 import { getStudioPool, getStudioStore } from './store';
 import type { DraftContent, EditorNode, Publication } from './types';
 
-class GitHubError extends StudioError {
-  constructor(readonly githubStatus: number) {
-    super(
-      githubStatus === 409 || githubStatus === 422 ? 409 : 502,
-      `GitHub publication failed (${githubStatus}).`
-    );
-  }
-}
-
 const messageFor = (id: string) =>
   `feat(writings): publish studio revision ${id}`;
-async function github(
-  path: string,
-  method = 'GET',
-  body?: unknown
-): Promise<Record<string, unknown>> {
-  const repository = required('STUDIO_GITHUB_REPOSITORY');
-  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository))
-    throw new StudioError(503, 'Invalid publication repository.');
-  const response = await fetch(
-    path === '$graphql'
-      ? 'https://api.github.com/graphql'
-      : `https://api.github.com/repos/${repository}/${path}`,
-    {
-      method,
-      headers: {
-        Authorization: `Bearer ${required('STUDIO_GITHUB_TOKEN')}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'Content-Type': 'application/json',
-      },
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: AbortSignal.timeout(30_000),
-      cache: 'no-store',
-    }
-  );
-  if (!response.ok) throw new GitHubError(response.status);
-  return response.json();
-}
 async function artifacts(
   body: DraftContent,
   compileBundles = true,

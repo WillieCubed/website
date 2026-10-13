@@ -12,6 +12,7 @@ import React, {
 import { flushSync } from 'react-dom';
 
 import type { PaletteData } from '@/lib/palette/types';
+import type { Command } from '@/lib/palette/types';
 
 import Palette from './Palette';
 
@@ -28,9 +29,10 @@ export interface CloseOptions {
 interface PaletteApi {
   /** Opens the palette, morphing out of `from` when it is on screen. */
   open: (from?: HTMLElement | null) => void;
-  close: (options?: CloseOptions) => void;
+  close: (options?: CloseOptions) => Promise<void>;
   /** Lets a trigger offer itself as the morph source for ⌘K. */
   register: (trigger: HTMLElement) => () => void;
+  registerCommands: (commands: Command[]) => () => void;
 }
 
 const PaletteContext = createContext<PaletteApi | null>(null);
@@ -133,6 +135,8 @@ function loadPlaces(): Promise<PaletteData> {
 export default function PaletteProvider({ children }: React.PropsWithChildren) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggers = useRef(new Set<HTMLElement>());
+  const commandRegistry = useRef(new Map<symbol, Command[]>());
+  const [contextCommands, setContextCommands] = useState<Command[]>([]);
   // The element whose container became the card, hidden while it is open,
   // so the page never shows the trigger and the palette at once.
   const sourceRef = useRef<HTMLElement | null>(null);
@@ -255,6 +259,16 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
     };
   }, []);
 
+  const registerCommands = useCallback((commands: Command[]) => {
+    const key = Symbol('palette commands');
+    commandRegistry.current.set(key, commands);
+    setContextCommands([...commandRegistry.current.values()].flat());
+    return () => {
+      commandRegistry.current.delete(key);
+      setContextCommands([...commandRegistry.current.values()].flat());
+    };
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (!isPaletteShortcut(event)) return;
@@ -269,10 +283,11 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
   const api = useMemo<PaletteApi>(
     () => ({
       open: (from) => void openPalette(from),
-      close: (options) => void closePalette(options),
+      close: (options) => closePalette(options),
       register,
+      registerCommands,
     }),
-    [openPalette, closePalette, register]
+    [openPalette, closePalette, register, registerCommands]
   );
 
   return (
@@ -281,6 +296,7 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
       <Palette
         ref={dialogRef}
         data={data}
+        contextCommands={contextCommands}
         open={open}
         session={session}
         onClose={api.close}

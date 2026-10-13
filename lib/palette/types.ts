@@ -42,7 +42,7 @@ export interface Readout {
   failed?: boolean;
 }
 
-export type CommandGroup = 'Latest' | 'Go to' | 'Do';
+export type CommandGroup = 'Playlists' | 'Latest' | 'Go to' | 'Do';
 
 /** Picks the row's leading icon; the palette maps each kind to one. */
 export type CommandKind =
@@ -50,6 +50,7 @@ export type CommandKind =
   | 'writing'
   | 'initiative'
   | 'venture'
+  | 'music'
   | 'copy'
   | 'mail'
   | 'feed'

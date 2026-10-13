@@ -21,7 +21,12 @@ import type { Command, CommandGroup, PaletteData, Readout } from './types';
 export type { Command, CommandGroup, PaletteData, Readout };
 
 /** The order groups appear in, whatever order the matches came in. */
-export const GROUP_ORDER: CommandGroup[] = ['Latest', 'Go to', 'Do'];
+export const GROUP_ORDER: CommandGroup[] = [
+  'Playlists',
+  'Latest',
+  'Go to',
+  'Do',
+];
 
 /** The feeds, as FeedsButton offers them for the whole site. */
 const FEEDS = [

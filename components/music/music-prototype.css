@@ -191,46 +191,6 @@ html[data-music-motion] {
 .mp-collection-header .mp-small {
   margin-top: 4px;
 }
-.mp-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 220px;
-  margin-left: auto;
-  min-height: 44px;
-  padding: 10px 14px;
-  border: 2px solid transparent;
-  border-radius: 24px;
-  background: var(--color-surface-container);
-  color: var(--color-muted);
-  transition:
-    border-color 160ms var(--mp-effects),
-    background 160ms var(--mp-effects),
-    border-radius 350ms var(--mp-spatial);
-}
-.mp-search:focus-within {
-  border-color: var(--color-primary);
-  border-radius: 12px;
-  color: var(--color-primary);
-  background: var(--color-surface-container-high);
-}
-.mp-search svg {
-  flex-shrink: 0;
-}
-.mp-search input {
-  min-width: 0;
-  width: 100%;
-  background: transparent;
-  outline: 0;
-  font-size: 14px;
-  color: var(--color-ink);
-}
-.music-prototype .mp-search input:focus-visible {
-  outline: none;
-}
-.mp-search input::placeholder {
-  color: var(--color-muted);
-}
 .mp-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1222,9 +1182,6 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   .mp-text-button:hover {
     background: var(--color-surface-container-highest);
   }
-  .mp-search:hover {
-    background: var(--color-surface-container-high);
-  }
 }
 @media (max-width: 1199px) {
   .mp-shell {
@@ -1381,15 +1338,6 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   .mp-collection-header h2 {
     font-size: 20px;
     line-height: 26px;
-  }
-  .mp-search {
-    width: 100%;
-    min-width: 0;
-    min-height: 44px;
-    padding: 10px 14px;
-  }
-  .mp-search input {
-    width: 100%;
   }
   .mp-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

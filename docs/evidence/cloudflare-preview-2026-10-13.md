@@ -3,8 +3,9 @@
 Account: WillieCubed (`18f90fa11cf0a87145be4a1517e41217`). The production
 and preview Workers have separate Hyperdrive connections, R2 media/cache
 buckets, Durable Objects, and secrets. `willie.page` and `williecubed.me`
-are active zones in this account. Public DNS still points to Vercel at the
-time of this receipt.
+are active zones in this account. The canonical `willie.page` hosts still
+point to Vercel; the legacy `williecubed.me` redirect hosts moved to the
+production Worker on October 13.
 
 Preview: `https://willie-page-preview.willieechalmers-18f.workers.dev`.
 The Worker advertises its own preview origin in IndieAuth metadata, feeds, and
@@ -46,6 +47,22 @@ Cutover still requires owner-created GitHub and Bluesky credentials, production
 TOTP enrollment, the GitHub App build connection, exact-revision production
 redeployment, custom domains, and public route/write checks. This preview
 receipt is not production acceptance.
+
+Legacy-host cutover on October 13: production Worker version
+`4c85f2d2-914f-4d84-872d-e769f6be431e` was built from commit `c52be2f`.
+`www.williecubed.me` uses a Worker Custom Domain. The apex uses the
+`williecubed.me/*` Worker route and a proxied `AAAA 100::` DNS placeholder.
+Cloudflare's initial apex Custom Domain had created a managed DNS row but no
+public A or AAAA answer; detaching that domain and publishing the proxied
+placeholder resolved it. Authoritative Cloudflare DNS and public `1.1.1.1`
+then returned Cloudflare edge addresses. Both hosts returned `308` for
+`/test/path?source=codex` with a `Location` of
+`https://willie.page/test/path?source=codex`. The local system resolver still
+held a negative cache entry immediately after the change, so the apex HTTPS
+test used the authoritative edge address with `curl --resolve`. All three
+existing mail MX records and the AT Protocol identity TXT record were still
+present. The old zone-wide `https://www.*` Redirect Rule was disabled after
+it incorrectly generated `/williecubed.me/...` in the destination path.
 
 Cloudflare dashboard check on October 13: Web Analytics for `willie.page` had
 automatic setup and showed 7 visits in the preceding 24 hours. The account's

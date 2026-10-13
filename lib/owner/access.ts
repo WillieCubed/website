@@ -66,7 +66,6 @@ export function ownerAccessAuthenticatorFromEnvironment(
   const config = ownerAccessFromEnvironment(env);
   if (!config) return null;
   return {
-    prompt: 'none',
     async verify(request) {
       return (await verifyOwnerAccess(request, config))
         ? { ok: true }

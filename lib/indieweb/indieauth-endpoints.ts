@@ -212,7 +212,6 @@ export async function handleConsentPage(
       request: checked.request,
       client: checked.client,
       me: INDIEAUTH_ME,
-      prompt: options.owner.prompt,
     })
   );
 }
@@ -266,7 +265,7 @@ export async function handleConsentDecision(
   if (checked.kind === 'redirect') {
     return Response.redirect(checked.location, 303);
   }
-  const { request: authorization, client } = checked;
+  const { request: authorization } = checked;
 
   if (body.get('decision') !== 'approve') {
     return Response.redirect(
@@ -279,20 +278,14 @@ export async function handleConsentDecision(
     );
   }
 
-  const owner = await options.owner.verify(request, body);
+  const owner = await options.owner.verify(request);
   if (!owner.ok) {
-    const locked = owner.reason === 'locked';
     return htmlResponse(
-      renderConsentPage({
-        request: authorization,
-        client,
-        me: INDIEAUTH_ME,
-        prompt: options.owner.prompt,
-        error: locked
-          ? 'Too many wrong codes today. Sign-in is paused; try again tomorrow.'
-          : 'That code did not work. Wait for the next one and try again.',
-      }),
-      locked ? 429 : 401
+      renderSignInMessage(
+        'Access denied',
+        'Sign in through Cloudflare Access.'
+      ),
+      403
     );
   }
 

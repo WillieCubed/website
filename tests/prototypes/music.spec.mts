@@ -74,6 +74,40 @@ test('canceling setup preserves the saved collection', async ({ page }) => {
   ).toBeFocused();
 });
 
+test('setup selection controls retain Space and radio arrow navigation', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Show setup', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Connect Spotify', exact: true })
+    .click();
+  const summer = page.getByRole('checkbox', {
+    name: 'Select Summer 2026',
+    exact: true,
+  });
+  await summer.focus();
+  await page.keyboard.press('Space');
+  await expect(summer).toBeChecked();
+  await page
+    .getByRole('button', { name: 'Preview collection', exact: true })
+    .click();
+  const none = page.getByRole('radio', {
+    name: 'No featured playlist',
+    exact: true,
+  });
+  const feature = page.getByRole('radio', {
+    name: 'Feature Summer 2026',
+    exact: true,
+  });
+  await none.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(feature).toBeChecked();
+  await expect(feature).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(none).toBeChecked();
+  await expect(page.locator('.ms-feature-preview')).toHaveCount(0);
+});
+
 test('setup steps are accessible and reflow down to 320px', async ({
   page,
 }) => {

@@ -12,6 +12,7 @@ import {
   sampleTracks,
 } from '@/lib/prototypes/music';
 
+import MusicSelectionControl from './MusicSelectionControl';
 import SampleCover from './SampleCover';
 import './music-setup.css';
 
@@ -196,19 +197,11 @@ export default function MusicSetupPrototype({
                           {listeningTime(sampleTracks)}
                         </span>
                       </span>
-                      <input
-                        type="checkbox"
+                      <MusicSelectionControl
                         aria-label={`Select ${playlist.title}`}
                         checked={selected.includes(playlist.id)}
                         onChange={() => toggle(playlist.id)}
                       />
-                      <span className="ms-check" aria-hidden="true">
-                        <Icon
-                          name={
-                            selected.includes(playlist.id) ? 'check' : 'music'
-                          }
-                        />
-                      </span>
                     </label>
                   ))}
               </fieldset>
@@ -269,7 +262,7 @@ export default function MusicSetupPrototype({
                     className="ms-feature-option"
                     data-selected={!lead || undefined}
                   >
-                    <input
+                    <MusicSelectionControl
                       type="radio"
                       name="setup-feature"
                       aria-label="No featured playlist"
@@ -287,7 +280,7 @@ export default function MusicSetupPrototype({
                       key={playlist.id}
                       data-selected={lead === playlist.id || undefined}
                     >
-                      <input
+                      <MusicSelectionControl
                         type="radio"
                         name="setup-feature"
                         aria-label={`Feature ${playlist.title}`}

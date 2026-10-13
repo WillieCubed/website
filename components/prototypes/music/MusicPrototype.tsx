@@ -23,6 +23,7 @@ import {
 } from '@/lib/prototypes/music-motion';
 
 import MusicScrollCue from './MusicScrollCue';
+import MusicSelectionControl from './MusicSelectionControl';
 import MusicSetupPrototype from './MusicSetupPrototype';
 import SampleCover from './SampleCover';
 import './music-prototype.css';
@@ -522,8 +523,7 @@ export default function MusicPrototype() {
         {editing && (
           <div className="mp-card-controls">
             <label className="mp-check">
-              <input
-                type="checkbox"
+              <MusicSelectionControl
                 checked={selected}
                 onChange={() => select(playlist.id)}
                 aria-label={`Include ${playlist.title}`}
@@ -1000,8 +1000,7 @@ export default function MusicPrototype() {
                   <fieldset className="mp-visibility-editor">
                     <legend>In your gallery</legend>
                     <label className="mp-check">
-                      <input
-                        type="checkbox"
+                      <MusicSelectionControl
                         aria-label="Include in gallery"
                         checked={draft.selected.includes(current.id)}
                         onChange={() => select(current.id)}
@@ -1009,8 +1008,7 @@ export default function MusicPrototype() {
                       Include in gallery
                     </label>
                     <label className="mp-check">
-                      <input
-                        type="checkbox"
+                      <MusicSelectionControl
                         checked={draft.lead === current.id}
                         onChange={() =>
                           change({
@@ -1029,8 +1027,7 @@ export default function MusicPrototype() {
                     <legend>Series</legend>
                     {draft.series.map((item) => (
                       <label className="mp-check" key={item.id}>
-                        <input
-                          type="checkbox"
+                        <MusicSelectionControl
                           checked={item.playlistIds.includes(current.id)}
                           onChange={() => membership(item.id, current.id)}
                         />

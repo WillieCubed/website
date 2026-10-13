@@ -1,32 +1,31 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { Pool } from 'pg';
+import { join } from 'node:path';
 
+import { createPool } from '../db/postgres';
+import { readFileSync } from '../runtime-files';
 import { visibleCollection } from './public-projection';
 import { parseCatalog, publicCatalog } from './schema';
 import type { MusicPlaylist } from './types';
 
-let pool: Pool | undefined;
-let writer: Pool | undefined;
+let pool: ReturnType<typeof createPool> | undefined;
+let writer: ReturnType<typeof createPool> | undefined;
 function cacheWriter() {
-  return (writer ??= new Pool({
+  return (writer ??= createPool({
     connectionString:
       process.env.MUSIC_CACHE_WRITE_DATABASE_URL ??
-      process.env.MUSIC_PUBLIC_DATABASE_URL ??
-      process.env.POSTGRES_URL,
+      process.env.MUSIC_PUBLIC_DATABASE_URL,
     max: 2,
   }));
 }
 export function publicMusicPool() {
-  const connectionString =
-    process.env.MUSIC_PUBLIC_DATABASE_URL ?? process.env.POSTGRES_URL;
-  if (!connectionString)
-    throw new Error('Public music cache is not configured.');
-  return (pool ??= new Pool({ connectionString, max: 2 }));
+  return (pool ??= createPool({
+    connectionString: process.env.MUSIC_PUBLIC_DATABASE_URL,
+    max: 2,
+  }));
 }
 export async function approvedManifest() {
-  const source = await readFile(
-    new URL(`file://${process.cwd()}/content/music/catalog.json`),
+  const source = readFileSync(
+    join(process.cwd(), 'content/music/catalog.json'),
     'utf8'
   );
   const value = JSON.parse(source);
@@ -40,7 +39,10 @@ export async function approvedManifest() {
       .update(`blob ${Buffer.byteLength(source)}\0`)
       .update(source)
       .digest('hex'),
-    commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
+    commit:
+      process.env.NEXT_PUBLIC_SITE_REVISION ??
+      process.env.VERCEL_GIT_COMMIT_SHA ??
+      null,
   };
 }
 export async function publicCollection() {

@@ -36,6 +36,26 @@ test('component code cannot import server modules or arbitrary dependencies', as
     compileSandbox(component),
     /Components may only import React/
   );
+  for (const source of [
+    "export default function X(){return null}; export { default as Y } from 'node:fs'",
+    "export default function X(){ import('https://example.com/x.js'); return <p>X</p> }",
+    "export default function X(){ require('node:fs'); return <p>X</p> }",
+  ])
+    await assert.rejects(
+      compileSandbox(parseComponent(JSON.stringify({ ...payload(), source }))),
+      /Components may only import React/
+    );
+  await assert.rejects(
+    compileSandbox(
+      parseComponent(
+        JSON.stringify({
+          ...payload(),
+          source: 'export const X = () => <p>X</p>',
+        })
+      )
+    ),
+    /default export/
+  );
 });
 test('portable fallback strips executable HTML and unsafe links', () => {
   const component = parseComponent(

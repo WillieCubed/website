@@ -247,8 +247,9 @@ A new scratch draft accepted text, reported all changes saved, and returned
 the same text after a full page reload. The scratch document was soft-deleted
 by exact ID and body match with the approved Neon CLI; the private library
 again showed only the five original drafts. Preview still needs Lattice
-reconnection and a successful GitHub publication. Production is missing the
-new `STUDIO_GITHUB_TOKEN` secret name, so publishing cannot yet be accepted.
+reconnection and a successful GitHub publication. The owner saved
+`STUDIO_GITHUB_TOKEN` on both Workers; `cf workers secrets list` confirmed its
+name on production without exposing its value.
 
 The next preview Git build for `91c3d9f` passed after its remote configuration
 was reconciled and the invalid Wrangler fallback was removed. The obsolete
@@ -260,3 +261,25 @@ preceding 24 hours reported 419 invocations, 62 asset requests, median CPU
 earlier Free-tier Worker versions; the current hosted preview owner flow
 passed on Workers Paid. These testing-heavy preview metrics are not a
 production cost forecast.
+
+## Retained widget on the Cloudflare Worker
+
+After private DNS cutover, the saved October 11 ToggleWidget note showed the
+fallback instead of the interactive component. Wrangler tail identified two
+successive runtime failures: a read from nonexistent
+`/bundle/.studio/browser-runtime.js`, then the bundled native esbuild API's
+inability to locate and run its executable inside Workers. The final compiler
+imports the prebuilt React browser runtime as a static module and transforms
+validated TSX with a JavaScript-only compiler. It rejects non-React, dynamic,
+and CommonJS imports before approval. The native esbuild dependency now runs
+only at build time.
+
+The new preview Worker version `e42a40b0-6fff-495e-b7c8-2bb73e336639`
+uploaded at 41,716.77 KiB uncompressed. A signed owner Chrome session opened
+the retained private note on `preview.willie.page`; its ToggleWidget rendered
+inside the nested opaque sandbox. Clicking the displayed Toggle control
+changed its checkbox from unchecked to checked. The focused local browser
+sandbox test also passed interactive mounting and blocked external script,
+fetch, image, and navigation attempts. Fresh personal-runtime generation,
+proposal approval, and GitHub publication remain separate hosted acceptance
+checks.

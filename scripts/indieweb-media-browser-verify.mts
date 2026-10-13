@@ -13,6 +13,8 @@ interface Manifest {
   attachments: { url: string; mimeType: string }[];
 }
 
+const ORIGIN = 'https://willie-page-preview.willieechalmers-18f.workers.dev';
+
 async function main() {
   const { values } = parseArgs({
     options: { manifest: { type: 'string' }, output: { type: 'string' } },
@@ -22,7 +24,7 @@ async function main() {
     await readFile(values.manifest, 'utf8')
   );
   const item = new URL(manifest.itemUrl);
-  assert.equal(item.origin, 'https://indieweb-acceptance.vercel.app');
+  assert.equal(item.origin, ORIGIN);
   assert(/^\/writings\/indieweb-media-proof-[a-f0-9]{24}$/.test(item.pathname));
   const output = resolve(values.output);
   const inside = relative(resolve('.playwright-mcp'), output);
@@ -36,10 +38,8 @@ async function main() {
     assert.equal(matches.length, 1);
     const url = new URL(matches[0].url);
     assert.equal(url.protocol, 'https:');
-    assert.equal(
-      url.hostname,
-      'b0dgluyotqkpvpbg.public.blob.vercel-storage.com'
-    );
+    assert.equal(url.origin, ORIGIN);
+    assert(url.pathname.startsWith('/media/'));
     return url.href;
   };
   const imageUrl = media('image/');

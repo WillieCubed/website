@@ -26,7 +26,7 @@ interface Manifest {
   }[];
 }
 
-const ORIGIN = 'https://indieweb-acceptance.vercel.app';
+const ORIGIN = 'https://willie-page-preview.willieechalmers-18f.workers.dev';
 const MAX_BYTES = 4 * 1024 * 1024;
 const sha256 = (bytes: Uint8Array) =>
   createHash('sha256').update(bytes).digest('hex');
@@ -127,6 +127,8 @@ async function main() {
     const url = new URL(expected.url);
     assert.equal(url.protocol, 'https:');
     assert(!url.username && !url.password);
+    assert.equal(url.origin, ORIGIN);
+    assert(url.pathname.startsWith('/media/'));
     assert.equal(typeof expected.jsonAttachment, 'boolean');
     assert(expected.jsonAttachment || expected.mimeType.startsWith('image/'));
     const property = expected.mimeType.startsWith('image/')

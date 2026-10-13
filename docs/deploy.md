@@ -133,8 +133,8 @@ and [Durable Objects pricing](https://developers.cloudflare.com/durable-objects/
 document the included usage and possible overages.
 
 Neon is a separate Free account. Its October 2026 allowance is 100 compute
-unit hours and 1 GB of storage **per project** each month. At 13:06 UTC on
-October 13, the Neon API reported production 9,974 compute seconds (2.77
+unit hours and 1 GB of storage **per project** each month. On
+October 13, the Neon API reported production 10,951 compute seconds (3.04
 CU-hours) and 32.6 MB of storage; acceptance 11,116 compute seconds (3.09
 CU-hours) and 33.2 MB; private writing 1,899 compute seconds (0.53 CU-hours)
 and no storage. These are pre-cutover figures. Read `compute_time_seconds`,
@@ -186,6 +186,22 @@ or storage reaches 800 MB, find the hot read before the Free limit interrupts
 database-backed features. Reduce its refresh frequency or move that workload
 to a budgeted paid service before Free is exhausted.
 Cloudflare budget alerts do not cover Neon.
+
+The read-only budget check records both website projects without waking their
+computes. Save a fresh receipt daily and compare it with the previous receipt
+to project month-end usage:
+
+```sh
+pnpm exec tsx scripts/cloudflare/check-neon-free.mts \
+  --output /tmp/willie-neon-$(date -u +%Y%m%d).json \
+  --previous /tmp/willie-neon-YYYYMMDD.json
+```
+
+Omit `--previous` for the first check. The command exits 2 at 80 CU-hours,
+an 80 CU-hour month-end projection, or 800 MB in either project. Keep receipts
+outside the repository. A day between samples gives a useful rate; a near
+instant comparison reports current usage without a forecast; the script
+requires at least six hours between samples to project month-end usage.
 
 The production database has a tested logical backup path: on October 13 a
 `pg_dump` custom archive restored successfully into temporary local

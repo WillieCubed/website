@@ -217,5 +217,35 @@ initiative redirects. The two `williecubed.me` redirects continued to return
 path-preserving 308 responses.
 
 The production GitHub and Bluesky secret values have not been exercised by a
-real publish, and production owner TOTP sign-in is pending. Those are the
-remaining protected-write acceptance gates before Vercel retirement.
+real publish. Owner sign-in now uses one Cloudflare Access application; the
+website TOTP path was removed, and the owner confirmed the live status editor
+appeared after Access sign-in. Protected publishing remains an acceptance gate
+before Vercel retirement.
+
+## Private preview cutover, October 13
+
+The preview Worker received the `7e77b3c38fa2d99c4aad876f4a0c6354ecdc365c`
+source build with private Studio bindings. Its direct `workers.dev` address
+returned 401 to anonymous requests for `/`, `/studio`,
+`/api/studio/documents`, and the revision endpoint. `cf deploy` initially
+rejected remote configuration drift, so one local upload temporarily disabled
+its strict comparison; the installed CLI file was restored immediately. The
+next ordinary `cf deploy --mode preview` succeeded with strict comparison
+enabled. Wrangler's separate deploy path cannot express the provisioned
+Durable Object exports and is no longer a fallback.
+
+Cloudflare refused to attach `preview.willie.page` while its proxied Vercel
+CNAME existed. The exact CNAME was removed and `cf deploy` attached the Worker
+custom domain, version `26a4659b-d554-4f1b-8f45-82558c8d7b2a`. The DNS API
+then showed a Worker-managed, read-only AAAA record. A subsequent ordinary
+deploy created version `538025a0-595c-4379-a58e-c328c83a217b`. Anonymous
+requests to `/studio`, `/api/studio/documents`, static assets, and revision
+metadata on the custom hostname all redirected to the existing Access policy.
+In a signed Chrome session, the Studio loaded the five retained drafts.
+
+A new scratch draft accepted text, reported all changes saved, and returned
+the same text after a full page reload. The scratch document was soft-deleted
+by exact ID and body match with the approved Neon CLI; the private library
+again showed only the five original drafts. Preview still needs Lattice
+reconnection and a successful GitHub publication. Production is missing the
+new `STUDIO_GITHUB_TOKEN` secret name, so publishing cannot yet be accepted.

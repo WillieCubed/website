@@ -47,5 +47,5 @@ export interface SearchResponse {
   total: number;
   query: string;
   /** Which backend answered the query. */
-  backend: 'index' | 'postgres' | 'private';
+  backend: 'index' | 'private';
 }

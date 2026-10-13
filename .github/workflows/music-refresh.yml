@@ -17,6 +17,8 @@ jobs:
         env:
           MUSIC_REFRESH_SECRET: ${{ secrets.MUSIC_REFRESH_SECRET }}
         run: |
+          # The public zone challenges GitHub-hosted runners before the
+          # bearer-authenticated Worker can check their requests.
           curl --fail-with-body --silent --show-error --max-time 290 \
             --request POST --header "Authorization: Bearer $MUSIC_REFRESH_SECRET" \
-            https://willie.page/api/music/refresh
+            https://willie-page.willieechalmers-18f.workers.dev/api/music/refresh

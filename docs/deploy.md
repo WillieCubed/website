@@ -117,7 +117,13 @@ door. A hosted Webmention fetch is part of preview acceptance.
 The `williecubed.me` and `www.williecubed.me` legacy redirect hosts are
 attached to the production Worker ahead of the canonical cutover. Their
 Cloudflare zone, mail MX records, and AT Protocol identity TXT record were
-checked first; neither host had working web DNS before attachment.
+checked first; neither host had working web DNS before attachment. The `www`
+host uses a Custom Domain. The apex uses a Worker route with a proxied `AAAA`
+record pointing to the reserved `100::` placeholder: Cloudflare registered
+its Custom Domain but did not publish an apex A or AAAA answer. The Worker
+always returns the canonical redirect, so no request reaches the placeholder.
+The old zone-wide `https://www.*` Redirect Rule is disabled because it
+incorrectly included the old hostname in the destination path.
 
 To cut over a verified candidate, add Custom Domains for `willie.page`,
 `www.willie.page`, `tour.willie.page`, and `diaries.willie.page` to the

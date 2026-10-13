@@ -221,7 +221,8 @@ export async function getWebmentionBySourceTarget(
       received_at,
       verified_at,
       is_verified,
-      is_approved
+      is_approved,
+      clock_timestamp() AS origin_read_at
     FROM webmentions
     WHERE source_url = ${sourceUrl}
       AND target_url = ${targetUrl}
@@ -306,7 +307,10 @@ export async function getWebmentionsForTarget(
   `;
 
   const webmentions = rowsToWebmentions(result.rows);
+  return groupWebmentions(webmentions);
+}
 
+export function groupWebmentions(webmentions: Webmention[]): WebmentionGroup {
   return {
     likes: webmentions.filter((w) => w.type === 'like'),
     reposts: webmentions.filter((w) => w.type === 'repost'),
@@ -315,6 +319,38 @@ export async function getWebmentionsForTarget(
     bookmarks: webmentions.filter((w) => w.type === 'bookmark'),
     rsvps: webmentions.filter((w) => w.type === 'rsvp'),
   };
+}
+
+/** One public read fills the shared R2 snapshot across all target pages. */
+export async function listApprovedWebmentions(): Promise<Webmention[]> {
+  const result = await sql`
+    SELECT
+      id,
+      source_url,
+      target_url,
+      type,
+      author_name,
+      author_url,
+      author_photo,
+      rsvp,
+      raw_mf2_json #>> '{properties,name,0}' AS name,
+      content,
+      content_html,
+      published_at,
+      received_at,
+      verified_at,
+      is_verified,
+      is_approved,
+      clock_timestamp() AS origin_read_at
+    FROM webmentions
+    WHERE is_verified = TRUE
+      AND is_approved = TRUE
+      AND (is_deleted IS NULL OR is_deleted = FALSE)
+    ORDER BY published_at DESC NULLS LAST, received_at DESC
+  `;
+  // Hyperdrive does not invalidate cached SELECTs after moderation writes.
+  // The volatile timestamp bypasses its query cache; R2 is the public cache.
+  return rowsToWebmentions(result.rows);
 }
 
 /**
@@ -637,7 +673,7 @@ function toWebmentionActivity(webmention: Webmention): WebmentionActivity {
   };
 }
 
-function buildPublicWebmentionResponse(
+export function buildPublicWebmentionResponse(
   targetUrl: string,
   webmentions: Webmention[]
 ): PublicWebmentionResponse {

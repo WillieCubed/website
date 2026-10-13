@@ -117,10 +117,19 @@ the Free allowance after roughly 400 active hours, or about 17 continuously
 active days. Avoid frequent database polling and keep scale to zero enabled.
 The public footer's location read uses the shared Next data cache for three
 hours; an owner city save invalidates its tag. Verify the hosted cache and
-fresh city update before canonical DNS moves. Writing detail pages revalidate
-every minute and read interactions from Postgres, so sustained traffic to them
-could keep Neon awake despite the footer cache. After cutover, inspect each
-Neon project's compute and storage at least daily for the first week; if
+fresh city update before canonical DNS moves. Writing detail pages still
+revalidate every minute, but approved Webmentions for all public pages and
+feeds share a one-hour snapshot in the private R2 cache bucket. A verified
+public change or API moderation rotates its generation and invalidates the
+affected page. The snapshot's Postgres query bypasses Hyperdrive's separate
+SELECT cache so the first read after moderation sees the committed data. Direct
+database moderation from a local script may take up to one hour to appear.
+Native Bluesky repost receipt reads and writes use a separate one-hour Next
+data cache keyed by the post and observed actor set; a newly discovered actor
+set records receipts on its first read. Hosted proof of both caches and
+invalidation is required before cutover. Other authenticated operations can
+still wake Neon. After cutover, inspect each Neon project's compute and
+storage at least daily for the first week; if
 production projects toward 80 CU-hours or 800 MB, reduce read frequency or
 move that workload to a budgeted paid service before Free is exhausted.
 Cloudflare budget alerts do not cover Neon.

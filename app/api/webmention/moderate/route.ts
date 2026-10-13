@@ -1,5 +1,6 @@
 import { after } from 'next/server';
 
+import { invalidatePublicWebmentions } from '@/lib/indieweb/public-webmention-reads';
 import { jsonError } from '@/lib/indieweb/responses';
 import {
   defaultSalmentionDeps,
@@ -10,7 +11,10 @@ import {
   handleListPendingWebmentions,
   handleModerateWebmention,
 } from '@/lib/indieweb/webmention-moderation';
-import { webmentionModerationStore } from '@/lib/indieweb/webmention-storage';
+import {
+  getWebmentionTargetRequest,
+  webmentionModerationStore,
+} from '@/lib/indieweb/webmention-storage';
 
 /**
  * GET /api/webmention/moderate
@@ -39,6 +43,15 @@ export async function POST(request: Request) {
       // revalidation below, so the post can already show the reply.
       onApproved: (id) => after(() => notifyUpstream(id)),
     });
+    if (response.ok) {
+      try {
+        const { id } = await response.clone().json();
+        const target = await getWebmentionTargetRequest(id);
+        if (target) await invalidatePublicWebmentions(target.targetUrl);
+      } catch (error) {
+        console.error('Invalidating public Webmentions failed:', error);
+      }
+    }
     return response;
   } catch (error) {
     console.error('Webmention moderation failed:', error);

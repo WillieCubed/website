@@ -2,8 +2,8 @@ import WebmentionSection, {
   hasVisibleWebmentions,
 } from '@/components/indieweb/WebmentionSection';
 
+import { publicWebmentionsForTarget } from '@/lib/indieweb/public-webmention-reads';
 import type { WebmentionGroup } from '@/lib/indieweb/types';
-import { getWebmentionsForTarget } from '@/lib/indieweb/webmention-storage';
 
 interface PageWebmentionsProps {
   /** The page's canonical URL, the target its mentions were sent to. */
@@ -33,7 +33,7 @@ async function loadWebmentions(
   target: string
 ): Promise<WebmentionGroup | null> {
   try {
-    return await getWebmentionsForTarget(target);
+    return await publicWebmentionsForTarget(target);
   } catch {
     return null;
   }

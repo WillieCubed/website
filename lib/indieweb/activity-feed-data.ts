@@ -7,21 +7,28 @@ import {
   buildActivityFeedItems,
   extractWritingSlugFromTarget,
 } from '@/lib/indieweb/activity-feed';
-import type { ActivityFeedItem, ResponseActivity } from '@/lib/indieweb/types';
 import {
-  getAllWebmentionActivities,
-  getWebmentionActivitiesForPost,
-} from '@/lib/indieweb/webmention-storage';
+  allPublicWebmentionActivities,
+  publicWebmentionActivitiesForPost,
+} from '@/lib/indieweb/public-webmention-reads';
+import type {
+  ActivityFeedItem,
+  ResponseActivity,
+  WebmentionActivity,
+} from '@/lib/indieweb/types';
 import { getAllWritings, getPublishedWriting } from '@/lib/writings';
 
 const titleCache = new Map<string, string>();
 
 export async function getActivityFeedItemsForPost(
-  slug: string
+  slug: string,
+  verifiedForPost?: WebmentionActivity[]
 ): Promise<ActivityFeedItem[]> {
   const published = await getPublishedWriting(slug).catch(() => null);
   if (!published) return [];
-  const verified = await getWebmentionActivitiesForPost(slug).catch(() => []);
+  const verified =
+    verifiedForPost ??
+    (await publicWebmentionActivitiesForPost(slug).catch(() => []));
   const native = await loadBlueskyResponses(published.writing);
   const known = emptyResponses();
   for (const item of verified) {
@@ -59,7 +66,7 @@ export async function getActivityFeedItemsForPost(
 export async function getGlobalActivityFeedItems(
   limit = 100
 ): Promise<ActivityFeedItem[]> {
-  const verified = await getAllWebmentionActivities({ limit }).catch(() => []);
+  const verified = await allPublicWebmentionActivities(limit).catch(() => []);
   const published = await getAllWritings(false);
   const items = await activitiesToFeedItems(
     verified.filter(
@@ -68,7 +75,12 @@ export async function getGlobalActivityFeedItems(
   );
   // Keep AppView work bounded across writings; the importer caches each response set.
   for (const writing of published)
-    items.push(...(await getActivityFeedItemsForPost(writing.slug)));
+    items.push(
+      ...(await getActivityFeedItemsForPost(
+        writing.slug,
+        verified.filter((activity) => activity.targetSlug === writing.slug)
+      ))
+    );
   return items
     .sort((a, b) => b.published.getTime() - a.published.getTime())
     .slice(0, limit);

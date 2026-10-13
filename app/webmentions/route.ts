@@ -1,11 +1,11 @@
 import { SITE_URL } from '@/lib/indieweb/constants';
+import { publicWebmentionResponseForTarget } from '@/lib/indieweb/public-webmention-reads';
 import {
   jsonError,
   jsonResponse,
   noStoreJsonHeaders,
 } from '@/lib/indieweb/responses';
 import { sameOrigin } from '@/lib/indieweb/utils';
-import { getPublicWebmentionsForTarget } from '@/lib/indieweb/webmention-storage';
 
 /**
  * Public Webmention listing endpoint.
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   if (!sameOrigin(target, SITE_URL)) return jsonError('invalid_target', 400);
 
   try {
-    return jsonResponse(await getPublicWebmentionsForTarget(target), {
+    return jsonResponse(await publicWebmentionResponseForTarget(target), {
       headers: noStoreJsonHeaders(),
     });
   } catch (error) {

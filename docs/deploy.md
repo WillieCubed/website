@@ -42,6 +42,20 @@ the baked commit SHA at `/api/indieweb/revision`. Do not build once and deploy
 the same `.open-next` directory to both environments: the public origin and
 revision are compiled into the build.
 
+After a hosted deployment, run the read-only route gate with the exact full
+commit SHA:
+
+```sh
+pnpm exec tsx scripts/cloudflare/verify-public-routes.mts --sha "$(git rev-parse HEAD)"
+pnpm exec tsx scripts/cloudflare/verify-public-routes.mts --origin https://willie.page --sha "$(git rev-parse HEAD)"
+```
+
+The first command checks the isolated preview. The second is for the canonical
+host after cutover. Each checks the deployed revision, Cloudflare server,
+IndieAuth issuer, public route matrix, redirects, and unauthenticated admin
+response. Use `--output <private-path>` to save a receipt. Passing this gate
+does not prove authenticated writes, media upload, or database usage.
+
 Create the named WillieCubed profile with `pnpm exec cf auth create williecubed`
 after approving its OAuth permissions. `cf auth login` only updates the default
 profile; `--profile` does not turn it into a named-profile login. Verify the

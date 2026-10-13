@@ -12,7 +12,7 @@
 
 ## Current provider facts
 
-The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on October 13. The dashboard showed two $10 budget alerts, which do not enforce a cap; the owner's $25 monthly ceiling remains a manual release and operations constraint. The paid plan includes 10 million Worker requests and 30 million CPU milliseconds monthly; static asset requests are free. The first hosted preview exceeded the Free plan's 10 ms CPU limit, so the full Next.js Worker is not a reliable Free plan deployment. The live Vercel project recently used about 2.1 million function invocations per month; verify Cloudflare CPU and storage usage after cutover. The production Neon database belongs to Willie's Neon organization, with 20 public tables. The acceptance database had 18 and received the existing status migration to reach 20. The Vercel public Blob store is empty. Vercel Secret values cannot be pulled back, so owner credentials must be replaced before protected routes are accepted.
+The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on October 13. The dashboard initially showed two $10 budget alerts; the owner reports setting a $25 alert. Alerts do not enforce a cap, so the owner's $25 monthly ceiling remains a manual release and operations constraint. The paid plan includes 10 million Worker requests and 30 million CPU milliseconds monthly; static asset requests are free. The first hosted preview exceeded the Free plan's 10 ms CPU limit, so the full Next.js Worker is not a reliable Free plan deployment. The live Vercel project recently used about 2.1 million function invocations per month; verify Cloudflare CPU and storage usage after cutover. The production Neon database belongs to Willie's Neon organization, with 20 public tables. The acceptance database had 18 and received the existing status migration to reach 20. The Vercel public Blob store is empty. Vercel Secret values cannot be pulled back, so owner credentials must be replaced before protected routes are accepted.
 
 ## Global constraints
 
@@ -48,8 +48,10 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
   owner action is verified.
 - Retire Vercel preview hosting, Blob credentials, and obsolete acceptance
   resources only after `preview.willie.page` and protected publishing work on
-  the Cloudflare Worker. R2 bills aggregate storage and operations rather than
-  a flat fee for each bucket.
+  the Cloudflare Worker. Git connections on the three website Vercel projects
+  were disconnected on October 13 to stop duplicate builds on each push;
+  existing deployments remain available. R2 bills aggregate storage and
+  operations rather than a flat fee for each bucket.
 
 ## Review focus
 

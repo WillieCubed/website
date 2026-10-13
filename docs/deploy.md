@@ -94,6 +94,12 @@ arguments. `INDIEWEB_NOTIFY_SECRET_PRODUCTION` in GitHub Actions must match the
 production Worker secret. Rotating the OAuth storage key signs existing
 Standard.site subscribers out; they must authorize again.
 
+The three old Vercel website projects (`website`, `willie-page-preview`, and
+`indieweb-acceptance`) were disconnected from Git on October 13 so a push no
+longer starts three duplicate Vercel builds. Their existing deployments and
+data remain until the Cloudflare preview is accepted; delete the projects only
+after the protected preview and publication paths pass hosted checks.
+
 The deploy wrapper uses `cf` first. If Cloudflare's `sqc-config` service returns
 HTTP 503 while validating the existing Hyperdrive binding, it retries the
 same built artifact with the matching `wrangler.jsonc` or
@@ -120,7 +126,8 @@ On the current Worker architecture, Workers Free's 10 ms CPU limit is too
 small for some dynamic requests. WillieCubed billing confirmed Workers Paid
 subscribed on October 13. It includes 10 million requests and 30 million CPU
 milliseconds per month; static asset requests are free. The billing dashboard
-showed two $10 budget alerts, both notifications rather than hard limits.
+initially showed two $10 budget alerts; the owner reports replacing these with
+a $25 alert. Alerts are notifications rather than hard limits.
 R2 Paid and Images Stream Basic were also listed as subscriptions. Hyperdrive
 queries and connection pooling have no separate charge on Workers Paid. The
 SQLite Durable Objects used by the Next cache have their own included monthly

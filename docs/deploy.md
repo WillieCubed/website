@@ -91,6 +91,12 @@ arguments. `INDIEWEB_NOTIFY_SECRET_PRODUCTION` in GitHub Actions must match the
 production Worker secret. Rotating the OAuth storage key signs existing
 Standard.site subscribers out; they must authorize again.
 
+The deploy wrapper uses `cf` first. If Cloudflare's `sqc-config` service returns
+HTTP 503 while validating the existing Hyperdrive binding, it retries the
+same built artifact with the matching `wrangler.jsonc` or
+`wrangler.preview.jsonc`. Keep those configs' routes and bindings in sync with
+`cloudflare.config.ts` until the `cf` upload path succeeds reliably.
+
 Cloudflare Workers Builds should connect `WillieCubed/website` to the
 production Worker on `main`. Its build command is `pnpm build:cloudflare` and
 deploy command is `pnpm deploy:cloudflare`. Set `PNPM_VERSION` to the

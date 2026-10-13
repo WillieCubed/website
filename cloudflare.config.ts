@@ -42,6 +42,10 @@ export default defineConfig((context) => {
         MEDIA_BUCKET: bindings.r2({
           name: preview ? 'willie-page-preview-media' : 'willie-page-media',
         }),
+        WEBMENTION_EDGE_LIMIT: bindings.rateLimit({
+          namespace: preview ? '66131002' : '66131001',
+          simple: { limit: 10, period: 60 },
+        }),
         WORKER_SELF_REFERENCE: bindings.worker({ worker: name }),
         NEXT_CACHE_DO_QUEUE: bindings.durableObject({
           worker: name,

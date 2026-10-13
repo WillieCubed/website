@@ -5,6 +5,7 @@ import type { WebmentionRateLimitStore } from '@/lib/indieweb/types';
 import {
   WEBMENTION_RATE_LIMIT,
   WEBMENTION_RATE_WINDOW_MS,
+  isWithinEdgeWebmentionRateLimit,
   isWithinWebmentionRateLimit,
   webmentionRateLimitKey,
 } from '@/lib/indieweb/webmention-rate-limit';
@@ -51,6 +52,48 @@ test('the rate limit key prefers Cloudflare client IP over forwarded addresses',
     '198.51.100.2'
   );
   assert.equal(webmentionRateLimitKey(new Headers()), 'unknown');
+});
+
+test('the edge guard rejects excess requests before the database counter', async () => {
+  const keys: string[] = [];
+  const limiter = {
+    async limit({ key }: { key: string }) {
+      keys.push(key);
+      return { success: keys.length <= WEBMENTION_RATE_LIMIT };
+    },
+  };
+  for (let i = 0; i < WEBMENTION_RATE_LIMIT; i++) {
+    assert.equal(
+      await isWithinEdgeWebmentionRateLimit(limiter, '203.0.113.7'),
+      true
+    );
+  }
+  assert.equal(
+    await isWithinEdgeWebmentionRateLimit(limiter, '203.0.113.7'),
+    false
+  );
+  assert.equal(keys.length, WEBMENTION_RATE_LIMIT + 1);
+});
+
+test('a missing or failed edge binding falls back to the database counter', async () => {
+  assert.equal(await isWithinEdgeWebmentionRateLimit(undefined, 'ip'), true);
+  const error = mock.method(console, 'error', () => {});
+  try {
+    assert.equal(
+      await isWithinEdgeWebmentionRateLimit(
+        {
+          async limit() {
+            throw new Error('Rate limiter unavailable');
+          },
+        },
+        'ip'
+      ),
+      true
+    );
+    assert.equal(error.mock.callCount(), 1);
+  } finally {
+    error.mock.restore();
+  }
 });
 
 test('requests past the limit in one window are refused', async () => {

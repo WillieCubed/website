@@ -155,9 +155,14 @@ Native Bluesky repost receipt reads and writes use a separate one-hour Next
 data cache keyed by the post and observed actor set; a newly discovered actor
 set records receipts on its first read. Malformed Webmention POSTs are rejected
 before the database-backed rate counter; acceptable submissions still wake
-Neon. The counter keys Cloudflare traffic by `CF-Connecting-IP` instead of a
-client-supplied first `X-Forwarded-For` address. If submission traffic holds
-the compute active, enforce an edge rate limit before the Worker. Hosted proof
+Neon. A Cloudflare rate-limiting binding rejects bursts above ten acceptable
+submissions per minute per client IP before reaching Postgres. The database
+counter remains authoritative: Cloudflare's binding is approximate and local
+to each edge location. Both counters key Cloudflare traffic by
+`CF-Connecting-IP` instead of a client-supplied first `X-Forwarded-For`
+address. A steady low-rate sender can still keep Neon awake; if that happens,
+enforce a zone rule before the Worker or move incoming verification off the
+database path. Hosted proof
 of these caches, invalidation, and Webmention rejection is required before
 cutover. Other authenticated operations can still wake Neon. After cutover,
 inspect each Neon project's compute and

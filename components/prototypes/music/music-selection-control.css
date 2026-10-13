@@ -72,6 +72,10 @@
   .mp-selection-state {
   border-radius: 10px;
 }
+.mp-selection-control[data-indicator='feature']:has(input:not(:checked))
+  .mp-selection-state {
+  background: transparent;
+}
 .music-prototype
   :is(.ms-playlist, .ms-feature-option, .mp-check):has(.mp-selection-control) {
   position: relative;

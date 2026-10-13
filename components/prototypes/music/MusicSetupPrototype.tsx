@@ -257,7 +257,7 @@ export default function MusicSetupPrototype({
                 </div>
                 <fieldset className="ms-feature-options">
                   <legend>Featured playlist</legend>
-                  <p>Give one cover more space in the gallery.</p>
+                  <p>Choose one playlist, or give them equal space.</p>
                   <label
                     className="ms-feature-option ms-feature-none"
                     data-selected={!lead || undefined}

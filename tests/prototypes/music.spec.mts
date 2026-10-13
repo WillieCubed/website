@@ -89,6 +89,9 @@ test('setup selection controls retain Space and radio arrow navigation', async (
   await page.keyboard.press('Space');
   await expect(summer).toBeChecked();
   await page
+    .getByRole('checkbox', { name: 'Select Late hours', exact: true })
+    .check();
+  await page
     .getByRole('button', { name: 'Preview collection', exact: true })
     .click();
   const none = page.getByRole('radio', {
@@ -105,6 +108,20 @@ test('setup selection controls retain Space and radio arrow navigation', async (
   await expect(feature).toBeFocused();
   await page.keyboard.press('ArrowUp');
   await expect(none).toBeChecked();
+  await expect(page.locator('.ms-feature-preview')).toHaveCount(0);
+  await feature.check();
+  const lateHours = page.getByRole('radio', {
+    name: 'Feature Late hours',
+    exact: true,
+  });
+  await lateHours.check();
+  await expect(feature).not.toBeChecked();
+  await expect(none).not.toBeChecked();
+  await expect(page.getByRole('radio', { checked: true })).toHaveCount(1);
+  await page.locator('.ms-feature-none').click();
+  await expect(none).toBeChecked();
+  await expect(lateHours).not.toBeChecked();
+  await expect(page.getByRole('radio', { checked: true })).toHaveCount(1);
   await expect(page.locator('.ms-feature-preview')).toHaveCount(0);
 });
 

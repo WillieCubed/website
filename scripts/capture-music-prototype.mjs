@@ -86,6 +86,8 @@ try {
         await noFeature.focus();
         await page.keyboard.press('ArrowDown');
         await capture('setup-preview-options');
+        await page.keyboard.press('ArrowUp');
+        await capture('setup-no-feature');
         await context.close();
         continue;
       }

@@ -585,3 +585,12 @@ button.weather-reading:active {
     gap: 4px;
   }
 }
+
+@container footer (max-width: 280px) {
+  .site-footer .microstatus {
+    padding-inline: 4px;
+  }
+  .microstatus-place {
+    gap: 4px;
+  }
+}

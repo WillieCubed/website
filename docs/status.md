@@ -37,8 +37,16 @@ The server caches the location for three hours before revalidation. Reads can
 serve the previous snapshot during revalidation, with a six-hour maximum cache
 lifetime. Saving manually invalidates the location tag immediately. Weather
 fetches revalidate after 15 minutes and observations older than one hour are
-omitted. HTTP responses use no-store so a browser or CDN cannot retain a city
-after an admin edit. The UI should calculate local time from the IANA timezone
+omitted. The public snapshot is also cached for 15 minutes and included in the
+prerendered page. Background revalidation preserves the composition instead of
+showing a page-wide loading screen. The location tag invalidates both caches
+when the owner saves a city. Server HTML includes the city and weather without
+JavaScript; hydration adds the ticking clock, timezone choices, and temperature
+conversion. The client refreshes the snapshot every 15 minutes and when the
+visitor returns to the tab while keeping the last usable content on failure.
+The page can be prefetched for five minutes; hydration also refreshes the
+snapshot so returning to a prefetched page does not retain an old city. API responses use no-store so the browser does not add another cache
+on top of the tagged server snapshot. The UI should calculate local time from the IANA timezone
 rather than caching a clock string.
 
 The component diagram shows the current data boundary:

@@ -51,7 +51,15 @@ export default function WeatherPicture({
             />
           </>
         )}
-        <g transform={clear ? 'translate(58 48)' : 'translate(72 86)'}>
+        <g
+          transform={
+            clear
+              ? night
+                ? 'translate(64.5 51)'
+                : 'translate(64.5 48)'
+              : 'translate(82 86)'
+          }
+        >
           <circle r="2.2" fill="var(--sky-face)" />
           <circle cx="15" r="2.2" fill="var(--sky-face)" />
           <path

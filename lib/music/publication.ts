@@ -247,33 +247,45 @@ async function advance(p: Publication): Promise<Publication> {
     throw new StudioError(409, 'The publication pull request was closed.');
   const runs: any[] = [];
   for (let page = 1; page <= 10; page++) {
-    const checks = await github(
-      `commits/${p.proposalCommit}/check-runs?per_page=100&page=${page}`
-    );
+    const checkPath = `commits/${p.proposalCommit}/check-runs?per_page=100&page=${page}`;
+    let checks: Record<string, unknown>;
+    try {
+      checks = await github(checkPath);
+    } catch (error) {
+      // Public repositories expose check runs without a token even when the
+      // publisher token cannot request GitHub's separate Checks permission.
+      if (!(error instanceof GitHubError) || error.githubStatus !== 403)
+        throw error;
+      checks = await github(checkPath, 'GET', undefined, false);
+    }
     runs.push(...(checks.check_runs as any[]));
     if (runs.length >= Number(checks.total_count)) break;
     if (page === 10)
       throw new StudioError(502, 'GitHub returned too many checks to verify.');
   }
-  const statuses = await github(`commits/${p.proposalCommit}/status`);
+  // The default branch ruleset requires GitHub Actions' ci check. Other
+  // integrations may fail to make optional previews without blocking merge.
+  const requiredRuns = runs.filter(
+    (run) => run.name === 'ci' && run.app?.id === 15368
+  );
   if (
-    runs.some(
-      (r) =>
-        r.status === 'completed' &&
-        !['success', 'neutral', 'skipped'].includes(r.conclusion)
-    ) ||
-    ['failure', 'error'].includes(String(statuses.state))
+    requiredRuns.some(
+      (run) =>
+        run.status === 'completed' &&
+        !['success', 'neutral'].includes(run.conclusion)
+    )
   )
     throw new StudioError(
       409,
-      'Publication checks failed. Open the publication to inspect them, then retry.'
+      'The required CI check failed. Open the publication to inspect it, then retry.'
     );
   if (
     pr.mergeable !== true ||
-    pr.mergeable_state !== 'clean' ||
+    !['clean', 'unstable'].includes(String(pr.mergeable_state)) ||
     (pr.base as any).sha !== base ||
-    runs.some((r) => r.status !== 'completed') ||
-    ((statuses.statuses as any[]).length && statuses.state !== 'success')
+    !requiredRuns.some(
+      (run) => run.status === 'completed' && run.conclusion === 'success'
+    )
   )
     return p;
   const latest = await github(`git/ref/heads/${encodeURIComponent(branch)}`);

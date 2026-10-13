@@ -13,7 +13,8 @@ export class GitHubError extends StudioError {
 export async function github(
   path: string,
   method = 'GET',
-  body?: unknown
+  body?: unknown,
+  authenticated = true
 ): Promise<Record<string, unknown>> {
   const repository = required('STUDIO_GITHUB_REPOSITORY');
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository))
@@ -25,7 +26,9 @@ export async function github(
     {
       method,
       headers: {
-        Authorization: `Bearer ${required('STUDIO_GITHUB_TOKEN')}`,
+        ...(authenticated
+          ? { Authorization: `Bearer ${required('STUDIO_GITHUB_TOKEN')}` }
+          : {}),
         Accept: 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
         'Content-Type': 'application/json',

@@ -28,6 +28,7 @@
     "STUDIO_LATTICE_ISSUER": "https://auth.uselovelace.com",
     "STUDIO_LATTICE_CLIENT_ID": "https://willie.page/.well-known/lattice-client.json",
     "STUDIO_LATTICE_GATEWAY": "https://lattice.uselovelace.com",
+    "SPOTIFY_CLIENT_ID": "e454b680b63243c9940fe1173214d8da",
     "ATPROTO_PUBLICATION_RKEY": "3mwxne5td6lid",
   },
   "workers_dev": true,

@@ -103,12 +103,10 @@ export default defineConfig((context) => {
         OWNER_ACCESS_ISSUER: bindings.secret(),
         OWNER_ACCESS_AUDIENCE: bindings.secret(),
         OWNER_ACCESS_EMAIL: bindings.secret(),
+        SPOTIFY_CLIENT_ID: bindings.text('e454b680b63243c9940fe1173214d8da'),
         ...(preview
           ? {}
           : {
-              SPOTIFY_CLIENT_ID: bindings.text(
-                'e454b680b63243c9940fe1173214d8da'
-              ),
               MUSIC_PUBLIC_DATABASE_URL: bindings.secret(),
               MUSIC_CACHE_WRITE_DATABASE_URL: bindings.secret(),
               MUSIC_PRIVATE_DATABASE_URL: bindings.secret(),

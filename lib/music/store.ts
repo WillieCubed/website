@@ -3,6 +3,7 @@ import type { QueryResult, QueryResultRow } from 'pg';
 
 import { createPool } from '../db/postgres';
 import { StudioError } from '../studio/errors';
+import { getStudioPool } from '../studio/store';
 import { parseCatalog } from './schema';
 import type { MusicCatalog, MusicPlaylist, MusicRevision } from './types';
 
@@ -113,9 +114,15 @@ let musicPool: ReturnType<typeof createPool> | undefined;
 export function musicStore() {
   const url =
     process.env.MUSIC_PRIVATE_DATABASE_URL ?? process.env.STUDIO_DATABASE_URL;
-  if (!url)
-    throw new StudioError(503, 'Private Music storage is not configured.');
-  return new MusicStore(
-    (musicPool ??= createPool({ connectionString: url, max: 5 }))
-  );
+  if (url)
+    return new MusicStore(
+      (musicPool ??= createPool({ connectionString: url, max: 5 }))
+    );
+  try {
+    return new MusicStore(getStudioPool());
+  } catch (error) {
+    if (error instanceof StudioError && error.status === 503)
+      throw new StudioError(503, 'Private Music storage is not configured.');
+    throw error;
+  }
 }

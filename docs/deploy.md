@@ -81,9 +81,18 @@ on this account. It permits 5,000 unique transformations per month; once
 exhausted, new variants fail instead of incurring automatic overage charges.
 `next.config.ts` limits generated widths to twelve and allows only qualities
 75 and 90. Keep static assets on the Assets binding so they do not invoke the
-Worker, and check Images usage along with Worker CPU after cutover. Do not
-send authenticated or mutable responses through a shared edge cache to reduce
+Worker, and check Images usage along with Worker CPU after cutover. On October
+13 the Images dashboard showed 2 unique transformations in the current month.
+This is an early candidate-only reading, not a production traffic estimate.
+At the current 12 widths and 2 qualities, one original image can create up to
+24 variants; review this limit as content grows. Do not send authenticated or
+mutable responses through a shared edge cache to reduce
 a bill.
+
+Cloudflare Web Analytics already has automatic setup enabled for `willie.page`
+in the WillieCubed account and was recording visits before cutover. It does not
+need a new application script. Verify it continues to receive visits after the
+custom domain moves to the Worker.
 
 Do not enable Workers Caching for this whole Worker. Its default policy can
 cache responses without explicit headers, including account routes, and its

@@ -75,7 +75,12 @@ The WillieCubed Cloudflare account has Workers Paid, with a $25 usage alert that
 
 - [ ] Test media key validation, MIME and cache headers, random collision resistance, upload failure, and delivery.
 - [x] Implement R2 write/read and retain the existing 4 MiB and signature checks.
-- [ ] Remove Vercel analytics and Blob runtime dependencies; add Cloudflare analytics only on production.
+- [x] Verify analytics migration: no Vercel Analytics or Speed Insights runtime
+      component/package is present; Cloudflare Web Analytics automatic setup for
+      `willie.page` is active and receiving visits. The separate optional Google
+      Analytics script remains gated by its explicit measurement ID.
+- [ ] Remove the remaining historical `@vercel/blob` package and acceptance
+      script after the Vercel project is retired; production media already uses R2.
 - [x] Inventory the public Blob store: it has zero objects. Check database/content references before removing the old integration.
 
 ### Task 5: Revision, automation, and release controls

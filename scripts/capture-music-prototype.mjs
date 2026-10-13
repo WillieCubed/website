@@ -78,12 +78,14 @@ try {
           .check();
         await page.evaluate(() => scrollTo(0, 0));
         await capture('setup-preview');
-        if (device === 'mobile') {
-          await page
-            .getByRole('radio', { name: 'No featured playlist', exact: true })
-            .scrollIntoViewIfNeeded();
-          await capture('setup-preview-options');
-        }
+        const noFeature = page.getByRole('radio', {
+          name: 'No featured playlist',
+          exact: true,
+        });
+        await noFeature.scrollIntoViewIfNeeded();
+        await noFeature.focus();
+        await page.keyboard.press('ArrowDown');
+        await capture('setup-preview-options');
         await context.close();
         continue;
       }

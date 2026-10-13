@@ -1,0 +1,136 @@
+.mp-selection-control {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  color: var(--color-muted);
+}
+.music-prototype .mp-selection-control > input {
+  position: absolute;
+  inset: -4px;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+.music-prototype .mp-selection-control > input:focus-visible {
+  outline: none;
+}
+.mp-selection-state {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition:
+    background 160ms var(--mp-effects),
+    scale 240ms var(--mp-spatial);
+}
+.mp-selection-icon {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  transition:
+    background 140ms var(--mp-effects),
+    color 140ms var(--mp-effects),
+    border-color 140ms var(--mp-effects);
+}
+.mp-selection-icon svg {
+  width: 18px;
+  height: 18px;
+  scale: 0.75;
+  transition: scale 300ms var(--mp-spatial);
+}
+.mp-selection-icon path {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  transition: stroke-dashoffset 180ms var(--mp-effects);
+}
+.mp-selection-control:has(input:checked) {
+  color: var(--color-primary);
+}
+.mp-selection-control[data-kind='checkbox']:has(input:checked)
+  .mp-selection-icon {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.mp-selection-control:has(input:checked) .mp-selection-icon svg {
+  scale: 1;
+}
+.mp-selection-control:has(input:checked) .mp-selection-icon path {
+  stroke-dashoffset: 0;
+}
+.mp-selection-control[data-kind='radio'] .mp-selection-icon {
+  border-radius: 50%;
+}
+.mp-selection-control[data-kind='radio'] .mp-selection-icon::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  scale: 0;
+  transition: scale 300ms var(--mp-spatial);
+}
+.mp-selection-control[data-kind='radio']:has(input:checked)
+  .mp-selection-icon::after {
+  scale: 1;
+}
+.mp-selection-control:has(input:focus-visible) .mp-selection-state {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+label:active > .mp-selection-control .mp-selection-state {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  scale: 0.9;
+}
+.mp-selection-control:has(input:disabled) {
+  opacity: 0.38;
+}
+.music-prototype .mp-selection-control > input:disabled {
+  cursor: default;
+}
+@media (hover: hover) {
+  label:hover > .mp-selection-control .mp-selection-state {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mp-selection-state,
+  .mp-selection-icon,
+  .mp-selection-icon svg,
+  .mp-selection-icon path,
+  .mp-selection-control[data-kind='radio'] .mp-selection-icon::after {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .mp-selection-icon {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    color: CanvasText;
+  }
+  .mp-selection-control[data-kind='checkbox']:has(input:checked)
+    .mp-selection-icon {
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+  .mp-selection-control[data-kind='radio']:has(input:checked)
+    .mp-selection-icon {
+    border-color: Highlight;
+    color: Highlight;
+  }
+}

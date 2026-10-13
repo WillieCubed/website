@@ -311,3 +311,14 @@ The 12 setup browser checks passed across both themes and device classes.
 They cover Back, cancel, draft separation, accessibility, and 320px reflow.
 The final layout checks also verify that captions do not overlap and the phone
 preview title clears the fixed actions. Type checking and scoped lint passed.
+
+Setup and curation now share Material selection controls with 48px input
+targets, state layers, animated checks and radio dots, and keyboard focus
+rings. Native inputs retain Space and radio arrow-key behavior. The controls
+use the site's primary, on-primary, and surface-variant colors, following the
+[Material checkbox](https://github.com/material-components/material-web/blob/main/docs/components/checkbox.md)
+and [radio](https://github.com/material-components/material-web/blob/main/docs/components/radio.md)
+tokens. All 24 targeted browser checks passed after this pass, along with
+type checking and scoped lint. The new captures are in
+`.playwright-mcp/music/iterations/2026-10-12-material-controls` and
+`.playwright-mcp/music/iterations/2026-10-12-material-controls-curation`.

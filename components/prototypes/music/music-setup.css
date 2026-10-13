@@ -280,41 +280,8 @@
   font-size: 13px;
   margin-top: 8px;
 }
-.ms-playlist input {
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  right: 20px;
-  opacity: 0;
-}
-.ms-check {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  margin-right: 8px;
-  border: 2px solid var(--color-muted);
-  border-radius: 10px;
-}
-.ms-check svg {
-  display: none;
-  width: 20px;
-  height: 20px;
-}
-.ms-playlist[data-selected] .ms-check {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-on-primary);
-  border-radius: 50%;
-}
-.ms-playlist[data-selected] .ms-check svg {
-  display: block;
-}
-.ms-playlist:has(input:focus-visible),
-.ms-feature-option:has(input:focus-visible) {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 4px;
+.ms-playlist[data-selected] {
+  border-radius: 14px;
 }
 .ms-empty {
   padding: 32px;
@@ -429,12 +396,12 @@
 }
 .ms-feature-option[data-selected] {
   background: var(--color-secondary-container);
+  border-radius: 12px;
 }
-.ms-feature-option input {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  accent-color: var(--color-primary);
+.ms-feature-option {
+  transition:
+    background 160ms var(--mp-effects),
+    border-radius 300ms var(--mp-spatial);
 }
 .ms-feature-option > svg {
   width: 48px;
@@ -495,11 +462,6 @@
   }
   .ms-playlist-title {
     font-size: 17px;
-  }
-  .ms-check {
-    width: 26px;
-    height: 26px;
-    margin: 0;
   }
   .ms-preview-layout {
     grid-template-columns: 1fr;
@@ -629,9 +591,6 @@
     font-size: 12px;
     margin-top: 6px;
   }
-  .ms-check {
-    margin-right: 4px;
-  }
   .ms-actions {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -690,7 +649,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ms-button,
-  .ms-playlist {
+  .ms-playlist,
+  .ms-feature-option {
     transition: none;
   }
 }

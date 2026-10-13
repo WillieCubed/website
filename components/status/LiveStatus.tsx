@@ -1,18 +1,19 @@
-import { cache } from 'react';
+import { cacheLife, cacheTag } from 'next/cache';
 
-import { readPublicStatus } from '@/lib/status/reader';
+import { STATUS_LOCATION_TAG, readPublicStatus } from '@/lib/status/reader';
 
 import Status from './Status';
-
-const readStatus = cache(readPublicStatus);
 
 export default async function LiveStatus({
   expanded = false,
 }: {
   expanded?: boolean;
 }) {
+  'use cache';
+  cacheLife({ stale: 300, revalidate: 900, expire: 3600 });
+  cacheTag(STATUS_LOCATION_TAG);
   try {
-    return <Status initial={await readStatus()} expanded={expanded} />;
+    return <Status initial={await readPublicStatus()} expanded={expanded} />;
   } catch {
     return expanded ? (
       <p role="status">Status is unavailable right now.</p>

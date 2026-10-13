@@ -57,25 +57,25 @@ STUDIO_DATABASE_URL=... pnpm studio:migrate
 Secrets belong in provider environment settings or an ignored local env file.
 The preview project requires these server-only variables:
 
-| Variable                      | Meaning                                                                             |
-| ----------------------------- | ----------------------------------------------------------------------------------- |
-| `SITE_MODE`                   | `preview` on preview; `production` on production                                    |
-| `STUDIO_ORIGIN`               | `https://preview.willie.page`                                                       |
-| `OWNER_ACCESS_ISSUER`         | Existing Owner access issuer                                                        |
-| `OWNER_ACCESS_AUDIENCE`       | Existing Owner access application audience                                          |
-| `OWNER_ACCESS_EMAIL`          | Willie's identity from the existing allow policy                                    |
-| `STUDIO_HYPERDRIVE`           | Dedicated private Neon Postgres binding                                             |
-| `STUDIO_PRIVATE_BUCKET`       | Private R2 bucket for working images                                                |
-| `STUDIO_PUBLIC_MEDIA_BUCKET`  | Preview-only binding to production R2 media for approved promotion                  |
-| `STUDIO_TOKEN_ENCRYPTION_KEY` | 32 random bytes encoded as base64, retained across deployments                      |
-| `STUDIO_LATTICE_ISSUER`       | Lovelace OAuth issuer                                                               |
-| `STUDIO_LATTICE_CLIENT_ID`    | `https://willie.page/.well-known/lattice-client.json`                               |
-| `STUDIO_LATTICE_GATEWAY`      | Supported Lattice gateway/resource URL                                              |
-| `STUDIO_LATTICE_RUNTIME_ID`   | Optional initial device ID; normally choose a named device in the editor            |
-| `STUDIO_GITHUB_REPOSITORY`    | `owner/repository` for the website                                                  |
-| `STUDIO_GITHUB_BRANCH`        | `main`                                                                              |
-| `STUDIO_GITHUB_TOKEN`         | Website-only Contents and Pull requests read/write; Checks and Commit statuses read |
-| `STUDIO_PUBLIC_ORIGIN`        | `https://willie.page`                                                               |
+| Variable                      | Meaning                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `SITE_MODE`                   | `preview` on preview; `production` on production                         |
+| `STUDIO_ORIGIN`               | `https://preview.willie.page`                                            |
+| `OWNER_ACCESS_ISSUER`         | Existing Owner access issuer                                             |
+| `OWNER_ACCESS_AUDIENCE`       | Existing Owner access application audience                               |
+| `OWNER_ACCESS_EMAIL`          | Willie's identity from the existing allow policy                         |
+| `STUDIO_HYPERDRIVE`           | Dedicated private Neon Postgres binding                                  |
+| `STUDIO_PRIVATE_BUCKET`       | Private R2 bucket for working images                                     |
+| `STUDIO_PUBLIC_MEDIA_BUCKET`  | Preview-only binding to production R2 media for approved promotion       |
+| `STUDIO_TOKEN_ENCRYPTION_KEY` | 32 random bytes encoded as base64, retained across deployments           |
+| `STUDIO_LATTICE_ISSUER`       | Lovelace OAuth issuer                                                    |
+| `STUDIO_LATTICE_CLIENT_ID`    | `https://willie.page/.well-known/lattice-client.json`                    |
+| `STUDIO_LATTICE_GATEWAY`      | Supported Lattice gateway/resource URL                                   |
+| `STUDIO_LATTICE_RUNTIME_ID`   | Optional initial device ID; normally choose a named device in the editor |
+| `STUDIO_GITHUB_REPOSITORY`    | `owner/repository` for the website                                       |
+| `STUDIO_GITHUB_BRANCH`        | `main`                                                                   |
+| `STUDIO_GITHUB_TOKEN`         | Website-only Contents and Pull requests read/write                       |
+| `STUDIO_PUBLIC_ORIGIN`        | `https://willie.page`                                                    |
 
 The public client metadata declares the sole OAuth redirect
 `https://preview.willie.page/api/studio/lattice/callback`. Deploy the metadata
@@ -244,10 +244,12 @@ has no bypass actors. PR #201 remains draft and unmerged.
 
 The hosted protected publication attempt saved its immutable artifact proposal
 but stopped at GitHub 403 before opening a pull request. Its website-only
-publishing credential still needs Pull requests read/write and Commit statuses
-read-only. Credential regeneration and provider replacement are pending; the
-local publishing-token copy was removed. Retry the retained publication after
-configuration, then verify the exact deployed source hash before claiming Live.
+publishing credential needs Contents and Pull requests read/write. GitHub's
+protected merge enforces the required checks; fine-grained personal access
+tokens cannot call the Checks API. Credential regeneration and provider
+replacement are pending; the local publishing-token copy was removed. Retry
+the retained publication after configuration, then verify the exact deployed
+source hash before claiming Live.
 
 Until the studio PR #201 lands, the private project's production branch is
 temporarily `codex/private-writing-preview`. Leaving it on `main` replaced

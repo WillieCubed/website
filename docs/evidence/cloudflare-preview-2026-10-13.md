@@ -55,7 +55,20 @@ builds for other branches are disabled. The build runs
 `pnpm build:cloudflare:preview`, then `pnpm deploy:cloudflare:preview`, with
 `PNPM_VERSION=11.5.1` and build caching enabled. Cloudflare created the
 approved account-scoped `WillieCubed website Workers Builds` API token. A
-repository push after this connection will exercise the first hosted Git build.
+repository push after this connection exercised the first hosted Git build.
+Build `b8d8b439-9859-42be-8c2a-190a57137b6d` installed with pnpm 11.5.1,
+built the OpenNext Worker, and deployed version
+`60cb384e-d6f1-41de-ac77-7d982d6429ed` from exact commit
+`02285d611a92921c533d4c6c9ed129204a730fc3`. The hosted public route
+matrix passed after that version became active. GitHub's Cloudflare check,
+content check, CI, and smoke check passed; the old Vercel checks failed because
+Vercel rate-limited deployments for 24 hours.
+
+A production build of that commit succeeded locally. Its deploy stopped before
+activating a new production Worker version: Cloudflare rejected the missing
+required production secrets `MICROPUB_GITHUB_TOKEN` and
+`ATPROTO_APP_PASSWORD`. The owner must create and enter replacements directly
+before a production candidate can be deployed.
 
 At `4918e2e3e6a6ef65108ab7289561ae51b0c396ce`, the preview build and
 `pnpm deploy:cloudflare:preview` completed through `cf`, producing Worker

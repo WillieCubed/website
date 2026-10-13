@@ -91,7 +91,7 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
 
 - [x] Test the exact-SHA notification gate and preview/production environment separation. The notification unit test rejects a mismatched SHA, and separately built production and preview bundles pass isolated `cf` dry runs. A local preview Worker advertises the preview origin and exact build SHA.
 - [x] Bake the Git revision into both builds and expose it at `/api/indieweb/revision`.
-- [x] Connect Cloudflare Workers Builds to the scoped repository. Keep GitHub Actions for exact-revision publish notification only. The preview Worker watches `codex/cloudflare-migration` with other branch builds disabled; its first hosted Git build is pending verification.
+- [x] Connect Cloudflare Workers Builds to the scoped repository. Keep GitHub Actions for exact-revision publish notification only. The preview Worker watches `codex/cloudflare-migration` with other branch builds disabled; its first hosted Git build deployed the exact commit and passed the public route gate.
 - [ ] Deploy candidate, verify full route matrix and publishing on isolated data, and retain diagnostic receipts.
 - [ ] Promote the verified artifact to canonical and alias hosts; check public routes, writes, DNS, analytics, and logs.
 

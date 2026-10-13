@@ -76,6 +76,15 @@ account has a $25 usage alert, which is a notification rather than a hard
 limit. Watch Worker CPU, R2 operations and storage, Hyperdrive, and any other
 paid services in the Cloudflare billing dashboard after cutover.
 
+Images is a [separate free plan](https://developers.cloudflare.com/images/pricing/)
+on this account. It permits 5,000 unique transformations per month; once
+exhausted, new variants fail instead of incurring automatic overage charges.
+`next.config.ts` limits generated widths to twelve and allows only qualities
+75 and 90. Keep static assets on the Assets binding so they do not invoke the
+Worker, and check Images usage along with Worker CPU after cutover. Do not
+send authenticated or mutable responses through a shared edge cache to reduce
+a bill.
+
 To cut over a verified candidate, add Custom Domains for `willie.page`,
 `www.willie.page`, `tour.willie.page`, and `diaries.willie.page` to the
 production Worker. Add both `williecubed.me` hosts only after confirming that

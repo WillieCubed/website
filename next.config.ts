@@ -58,6 +58,11 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@atcute/tid'],
   allowedDevOrigins: ['williecubed.localhost'],
   images: {
+    // Bound Cloudflare Images transformations. Current content image sizes
+    // top out at 1200px, so 2400px preserves a 2x source; fewer widths leave
+    // room under Images Free's monthly allowance.
+    deviceSizes: [640, 828, 1080, 1200, 1920, 2400],
+    imageSizes: [32, 64, 96, 160, 256, 384],
     qualities: [75, 90],
     remotePatterns: [
       {

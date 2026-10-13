@@ -96,13 +96,6 @@ try {
       MUSIC_CACHE_WRITE_DATABASE_URL: databaseURL,
       MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey,
     },
-    website: {
-      MUSIC_PUBLIC_DATABASE_URL: state.readerURL,
-      MUSIC_CACHE_WRITE_DATABASE_URL: state.refreshURL,
-      MUSIC_PRIVATE_DATABASE_URL: state.refreshURL,
-      MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey,
-      MUSIC_REFRESH_SECRET: state.secret,
-    },
   };
   for (const [project, values] of Object.entries(settings))
     for (const [name, value] of Object.entries(values)) {
@@ -128,6 +121,35 @@ try {
         throw new Error(`Could not configure ${name} on ${project}.`);
       console.log(`${project}: ${name} configured.`);
     }
+  for (const [name, value] of Object.entries({
+    MUSIC_PUBLIC_DATABASE_URL: state.readerURL,
+    MUSIC_CACHE_WRITE_DATABASE_URL: state.refreshURL,
+    MUSIC_PRIVATE_DATABASE_URL: state.refreshURL,
+    MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey,
+    MUSIC_REFRESH_SECRET: state.secret,
+  })) {
+    const result = spawnSync(
+      'pnpm',
+      [
+        'exec',
+        'wrangler',
+        'secret',
+        'put',
+        name,
+        '--name',
+        'willie-page',
+        '--config',
+        'wrangler.jsonc',
+        ...(process.env.CLOUDFLARE_PROFILE
+          ? ['--profile', process.env.CLOUDFLARE_PROFILE]
+          : []),
+      ],
+      { input: `${value}\n`, encoding: 'utf8' }
+    );
+    if (result.status !== 0)
+      throw new Error(`Could not configure ${name} on the Cloudflare Worker.`);
+    console.log(`willie-page Worker: ${name} configured.`);
+  }
   console.log(
     'Step 5: Store the scheduler secret and leave scheduling disabled until the live endpoint passes.'
   );

@@ -16,14 +16,16 @@ approved provider cache. The public page intersects that cache with the
 committed `content/music/catalog.json` selection and excludes records older
 than 24 hours.
 
-The deployment diagram shows the four services involved in publication.
+The deployment diagram shows the applications involved in publication and
+refresh.
 
 ```mermaid
 flowchart LR
-  Admin[Private Vercel application] --> Database[PostgreSQL service]
+  Admin[Private Vercel studio] --> Database[PostgreSQL service]
   Admin --> GitHub[GitHub repository and CI]
-  GitHub --> Public[Public Vercel application]
+  GitHub --> Public[Public Cloudflare Worker]
   Public --> Database
+  Schedule[GitHub Actions scheduler] --> Public
 ```
 
 The publisher creates one recoverable PR per revision and respects repository
@@ -41,19 +43,23 @@ and retains refresh replacements. Spotify revocation requires reconnecting;
 curation remains saved.
 
 `SPOTIFY_CLIENT_ID`, `MUSIC_TOKEN_ENCRYPTION_KEY`, and the private database
-connection stay server-side. The key must remain stable. The public application
-uses `MUSIC_PUBLIC_DATABASE_URL` for cache reads. Its authenticated refresh
-function uses `MUSIC_PRIVATE_DATABASE_URL` and
+connection stay server-side. The key must remain stable. The public Worker
+uses `MUSIC_PUBLIC_DATABASE_URL` with a read-only role for gallery requests.
+Its bearer-authenticated refresh route uses `MUSIC_PRIVATE_DATABASE_URL` and
 `MUSIC_CACHE_WRITE_DATABASE_URL` with a role limited to Music provider data.
+The Worker opens a database connection per request because a PostgreSQL socket
+cannot be reused across Worker requests.
 
 ## Provision and verify
 
 Pull the private project's production environment into a temporary file with
 mode 0600. Run `pnpm exec tsx scripts/music/provision.mts PRIVATE_ENV
 PRIVATE_STATE_JSON`. Keep the state file private during retries. This script
-applies idempotent migrations, configures both Vercel projects, checks database
-isolation, and stores the scheduler secret without printing it. It never copies
-`SITE_MODE` to the public deployment.
+applies idempotent migrations, configures the private Vercel project and the
+public Cloudflare Worker, checks database isolation, and stores the scheduler
+secret without printing it. Authenticate Wrangler to the personal Cloudflare
+account before running it. The script never copies `SITE_MODE` to the public
+deployment.
 
 The hourly GitHub workflow remains disabled until repository variable
 `MUSIC_REFRESH_ENABLED` is `true`. Verify an authenticated POST to

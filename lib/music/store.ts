@@ -1,10 +1,26 @@
 import { randomUUID } from 'node:crypto';
-import { Pool } from 'pg';
+import type { QueryResult, QueryResultRow } from 'pg';
 
+import { createPool } from '../db/postgres';
 import { StudioError } from '../studio/errors';
-import { getStudioPool } from '../studio/store';
 import { parseCatalog } from './schema';
 import type { MusicCatalog, MusicPlaylist, MusicRevision } from './types';
+
+interface MusicClient {
+  query<T extends QueryResultRow = any>(
+    text: string,
+    values?: unknown[]
+  ): Promise<QueryResult<T>>;
+  release(): void | Promise<void>;
+}
+
+interface MusicPool {
+  query<T extends QueryResultRow = any>(
+    text: string,
+    values?: unknown[]
+  ): Promise<QueryResult<T>>;
+  connect(): Promise<MusicClient>;
+}
 
 function revision(row: Record<string, unknown>): MusicRevision {
   return {
@@ -15,7 +31,7 @@ function revision(row: Record<string, unknown>): MusicRevision {
   };
 }
 export class MusicStore {
-  constructor(readonly pool: Pool) {}
+  constructor(readonly pool: MusicPool) {}
   async head(): Promise<MusicRevision | null> {
     const result = await this.pool.query(
       'SELECT r.* FROM music_catalog_head h JOIN music_revisions r ON r.id=h.revision_id WHERE h.singleton=true'
@@ -64,7 +80,7 @@ export class MusicStore {
       await client.query('ROLLBACK');
       throw error;
     } finally {
-      client.release();
+      await client.release();
     }
     if (conflict)
       throw new StudioError(
@@ -93,14 +109,13 @@ export class MusicStore {
     );
   }
 }
-let musicPool: Pool | undefined;
+let musicPool: ReturnType<typeof createPool> | undefined;
 export function musicStore() {
+  const url =
+    process.env.MUSIC_PRIVATE_DATABASE_URL ?? process.env.STUDIO_DATABASE_URL;
+  if (!url)
+    throw new StudioError(503, 'Private Music storage is not configured.');
   return new MusicStore(
-    process.env.MUSIC_PRIVATE_DATABASE_URL
-      ? (musicPool ??= new Pool({
-          connectionString: process.env.MUSIC_PRIVATE_DATABASE_URL,
-          max: 5,
-        }))
-      : getStudioPool()
+    (musicPool ??= createPool({ connectionString: url, max: 5 }))
   );
 }

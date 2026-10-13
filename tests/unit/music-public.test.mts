@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
+import { cacheApproved, publicMusicPool } from '../../lib/music/public';
 import { visibleCollection } from '../../lib/music/public-projection';
 import { type MusicPlaylist, emptyCatalog } from '../../lib/music/types';
 
@@ -54,4 +55,25 @@ test('public reads suppress excluded, newly private, and expired cache records i
     ).playlists.length,
     0
   );
+});
+
+test('public Music refuses unscoped read and write connections', async () => {
+  const previous = process.env.MUSIC_PUBLIC_DATABASE_URL;
+  const previousWriter = process.env.MUSIC_CACHE_WRITE_DATABASE_URL;
+  delete process.env.MUSIC_PUBLIC_DATABASE_URL;
+  delete process.env.MUSIC_CACHE_WRITE_DATABASE_URL;
+  try {
+    assert.throws(
+      publicMusicPool,
+      /MUSIC_PUBLIC_DATABASE_URL is not configured/
+    );
+    await assert.rejects(
+      cacheApproved([make(a)]),
+      /MUSIC_CACHE_WRITE_DATABASE_URL is not configured/
+    );
+  } finally {
+    if (previous) process.env.MUSIC_PUBLIC_DATABASE_URL = previous;
+    if (previousWriter)
+      process.env.MUSIC_CACHE_WRITE_DATABASE_URL = previousWriter;
+  }
 });

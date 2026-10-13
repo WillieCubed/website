@@ -93,6 +93,6 @@ export async function accessToken(): Promise<{
     await client.query('ROLLBACK');
     throw error;
   } finally {
-    client.release();
+    await client.release();
   }
 }

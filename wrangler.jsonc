@@ -23,6 +23,7 @@
     "ATPROTO_PUBLICATION_RKEY": "3mwxne5td6lid",
     "MICROPUB_GITHUB_REPO": "WillieCubed/website",
     "MICROPUB_GITHUB_BRANCH": "main",
+    "SPOTIFY_CLIENT_ID": "e454b680b63243c9940fe1173214d8da",
   },
   "routes": [
     { "pattern": "williecubed.me/*", "zone_name": "williecubed.me" },

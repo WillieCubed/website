@@ -28,16 +28,20 @@ for the former PR head, but Vercel then refused private Production promotion
 because the account reached its 100-deployment daily limit. Do not retry a
 deployment until fresh quota evidence shows capacity.
 
-The Music branch is rebased onto `origin/main` at `ab02f13`. Its new shared
+The Music branch is rebased onto `origin/main` at `ab02f13`. Its shared
 palette and lost-import-response recovery are local, not hosted. PR
-[#221](https://github.com/WillieCubed/website/pull/221) still points to its
-older pushed head and needs new CI after the quota resets. Main now serves
-`willie.page` from Cloudflare Workers. The public Music route needs a Worker
-build, public database schema, approved catalog, and hosted checks. The
+[#221](https://github.com/WillieCubed/website/pull/221) passed the required
+`ci` check at the earlier head `5949371`. The Cloudflare refresh fix needs a
+new CI run, and its private Vercel deployment remains rate limited. A newer
+private Production deployment belongs to another branch and does not prove
+this Music build. Main now serves
+`willie.page` from Cloudflare Workers. The public Music route has a local
+Worker build but still needs a hosted deployment, public database schema,
+approved catalog, and hosted checks. The
 owner must choose what belongs in the collection before publication. Do not
-turn a test fixture or an agent's guess into his public catalog.
-Client-token success does **not** establish access to Willie's playlists.
-The OAuth callback allowlist and a fresh owner grant remain unverified.
+turn a test fixture or an agent's guess into his public catalog. The verified
+Spotify grant imported 466 playlists; a client-token check alone would not
+have established that access.
 Credential checks did not print secret values, and their temporary file was
 removed. See [the audit evidence](../../evidence/music-launch-readiness-20261012.json).
 

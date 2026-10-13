@@ -146,9 +146,12 @@ SELECT cache so the first read after moderation sees the committed data. Direct
 database moderation from a local script may take up to one hour to appear.
 Native Bluesky repost receipt reads and writes use a separate one-hour Next
 data cache keyed by the post and observed actor set; a newly discovered actor
-set records receipts on its first read. Hosted proof of both caches and
-invalidation is required before cutover. Other authenticated operations can
-still wake Neon. After cutover, inspect each Neon project's compute and
+set records receipts on its first read. Malformed Webmention POSTs are rejected
+before the database-backed rate counter; acceptable submissions still wake
+Neon. If submission traffic holds the compute active, enforce an edge rate
+limit before the Worker. Hosted proof of these caches, invalidation, and
+Webmention rejection is required before cutover. Other authenticated operations
+can still wake Neon. After cutover, inspect each Neon project's compute and
 storage at least daily for the first week. Project the current CU-hour rate
 through the end of the billing period; if the projection reaches 80 CU-hours
 or storage reaches 800 MB, find the hot read before the Free limit interrupts

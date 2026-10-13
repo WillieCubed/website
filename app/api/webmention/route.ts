@@ -45,19 +45,6 @@ async function existingPages(): Promise<string[]> {
  * Receive a webmention notification.
  */
 export async function POST(request: NextRequest) {
-  // Rate limiting, counted in Postgres so it holds across instances
-  const allowed = await isWithinWebmentionRateLimit(
-    webmentionRateLimitStore,
-    webmentionRateLimitKey(request.headers)
-  );
-
-  if (!allowed) {
-    return NextResponse.json(
-      { error: 'Too many requests. Please try again later.' },
-      { status: 429 }
-    );
-  }
-
   try {
     // Parse form data (standard webmention format)
     const contentType = request.headers.get('content-type') || '';
@@ -147,6 +134,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Target must be a page on this site.' },
         { status: 400 }
+      );
+    }
+
+    // Rejected payloads must not wake Neon. Count only submissions that could
+    // be stored; Postgres keeps the limit shared across Worker instances.
+    const allowed = await isWithinWebmentionRateLimit(
+      webmentionRateLimitStore,
+      webmentionRateLimitKey(request.headers)
+    );
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
       );
     }
 

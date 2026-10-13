@@ -6,12 +6,17 @@ import { statusStore } from './storage';
 export const STATUS_LOCATION_TAG = 'status-location';
 export async function readLocation() {
   'use cache';
-  cacheLife({ stale: 0, revalidate: 10800, expire: 21600 });
+  cacheLife({ stale: 300, revalidate: 10800, expire: 21600 });
   cacheTag(STATUS_LOCATION_TAG);
   if (!process.env.POSTGRES_URL) return defaultLocation;
   return resolveLocation(statusStore);
 }
 export async function readPublicStatus() {
+  'use cache';
+  // Include the snapshot in the static shell; provider revalidation must not
+  // replace the page with a loading screen.
+  cacheLife({ stale: 300, revalidate: 900, expire: 3600 });
+  cacheTag(STATUS_LOCATION_TAG);
   const snapshot = await readLocation();
   const { latitude, longitude } = snapshot.location;
   const url = new URL('https://api.open-meteo.com/v1/forecast');

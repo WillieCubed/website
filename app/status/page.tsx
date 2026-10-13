@@ -1,5 +1,3 @@
-import { Suspense } from 'react';
-
 import DockFooter from '@/components/site/DockFooter';
 import TopBar from '@/components/site/TopBar';
 import LiveStatus from '@/components/status/LiveStatus';
@@ -21,9 +19,7 @@ export default function StatusPage() {
         crumbs={[{ label: 'Status', href: '/status' }]}
       />
       <main id="main" className="status-expanded">
-        <Suspense fallback={<p role="status">Loading status…</p>}>
-          <LiveStatus expanded />
-        </Suspense>
+        <LiveStatus expanded />
       </main>
     </div>
   );

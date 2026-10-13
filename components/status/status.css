@@ -277,14 +277,12 @@
   grid-row: 1;
   width: 340px;
   height: 340px;
-  transform: rotate(-4deg);
   display: grid;
   place-items: center;
 }
 .status-expanded .sky-glyph {
   width: 86%;
   height: 72%;
-  transform: rotate(4deg);
 }
 .weather-reading {
   border: 0;
@@ -549,7 +547,7 @@ button.weather-reading {
     border-radius 180ms ease;
 }
 button.weather-reading:is(:hover, :focus-visible) {
-  transform: rotate(-3deg) translateY(-3px);
+  transform: translateY(-3px);
   border-radius: 24px 32px 24px 12px;
 }
 button.weather-reading:focus-visible {
@@ -557,7 +555,7 @@ button.weather-reading:focus-visible {
   outline-offset: 4px;
 }
 button.weather-reading:active {
-  transform: scale(0.94) rotate(2deg);
+  transform: scale(0.96);
 }
 @media (max-width: 599px) {
   .status-weather-group {
@@ -637,5 +635,14 @@ button.weather-reading:active {
 @media (prefers-reduced-motion: reduce) {
   .status-expanded button.zone {
     transition: none;
+  }
+}
+
+@media (scripting: none) {
+  .status-expanded .clock {
+    display: none;
+  }
+  button.weather-reading {
+    pointer-events: none;
   }
 }

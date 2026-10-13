@@ -65,6 +65,7 @@ export default function Status({
     };
     const interval = setInterval(refresh, 900000);
     document.addEventListener('visibilitychange', refresh);
+    void refresh();
     return () => {
       reaction.current?.cancel();
       clearInterval(clock);

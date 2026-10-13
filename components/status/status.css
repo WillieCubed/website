@@ -258,6 +258,9 @@
   }
 }
 @container footer (max-width: 280px) {
+  .microstatus-place > svg {
+    display: none;
+  }
   .microstatus .temperature,
   .microstatus .weather-picture {
     display: none;

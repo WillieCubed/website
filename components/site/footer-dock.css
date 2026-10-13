@@ -375,3 +375,13 @@
   --shell-max: 800px;
   --rail-w: 360px;
 }
+
+@container footer (max-width: 320px) {
+  .site-footer[data-dock] .site-footer__profiles li[data-extra] {
+    display: none;
+  }
+}
+
+.site-footer[data-dock] .site-footer__profiles a:active {
+  color: var(--color-on-secondary-container);
+}

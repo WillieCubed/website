@@ -8,7 +8,7 @@
 
 **Architecture:** Extend the protected preview studio with a Music-specific catalog and provider store. Reuse the reviewed gallery for private review and public rendering. Publish only an approved catalog through the protected GitHub pipeline; cache provider data separately from editorial revisions.
 
-**Tech stack:** Next.js 16, React 19, PostgreSQL, Spotify OAuth/Web API, Cloudflare Access, GitHub protected PRs, and Vercel.
+**Tech stack:** Next.js 16, React 19, PostgreSQL, Spotify OAuth/Web API, Cloudflare Access, GitHub protected PRs, Vercel for the private studio, and Cloudflare Workers for the public site.
 
 ## Audit baseline
 
@@ -19,25 +19,23 @@ have passed; hosted acceptance below remains required. The old prototype
 screens used fictional content, a simulated connection, and browser-local
 drafts. Those fixtures are not used by the production Music routes.
 
-At 01:29 PDT on October 13, the private `preview.willie.page` deployment was
-live with Music setup and editing. Anonymous requests redirect to Cloudflare
-Access. Direct Vercel-origin requests to the Music API return 401. The latest
-publication-check fix is committed in [PR #221](https://github.com/WillieCubed/website/pull/221),
-but Vercel refused the next deployment after the team reached its limit of 100
-deployments per day. The public `willie.page/music` route is still absent. The
-owner's Cloudflare biometric sign-in and actual Spotify consent have not been
-completed. Do not call the feature launched until the private fix, public
-deployment, and hosted acceptance below are verified.
+At 13:20 PDT on October 13, the private `preview.willie.page` studio was open
+in Willie's personal Chrome profile behind Cloudflare Access. Spotify consent
+worked, and the hosted studio imported 466 real public playlists. All remain
+unselected. The deployed studio is older than the current Music branch and
+still has a separate search field. A private exact-head deployment was ready
+for the former PR head, but Vercel then refused private Production promotion
+because the account reached its 100-deployment daily limit. Do not retry a
+deployment until fresh quota evidence shows capacity.
 
-The Music branch was rebased onto `origin/main` at `42732cd`. The separate
-studio foundation [PR #201](https://github.com/WillieCubed/website/pull/201)
-remains draft and unmerged. Its private preview deployment works separately;
-its recorded publication attempt stopped at GitHub 403 before creating a PR.
-That implementation supports writings, not Music catalogs.
-
-Production has Spotify client keys. A check using the actual production
-configuration returned 200 from the client-token endpoint. The stored user
-access token returned 401 from `/me`. No refresh token is configured there.
+The Music branch is rebased onto `origin/main` at `69f2088`. Its new shared
+palette and lost-import-response recovery are local, not hosted. PR
+[#221](https://github.com/WillieCubed/website/pull/221) still points to its
+older pushed head and needs new CI after the quota resets. Main now serves
+`willie.page` from Cloudflare Workers. The public Music route needs a Worker
+build, public database schema, approved catalog, and hosted checks. The
+owner must choose what belongs in the collection before publication. Do not
+turn a test fixture or an agent's guess into his public catalog.
 Client-token success does **not** establish access to Willie's playlists.
 The OAuth callback allowlist and a fresh owner grant remain unverified.
 Credential checks did not print secret values, and their temporary file was
@@ -185,7 +183,7 @@ Music JSON does not run through writing MDX validation or widget compilation.
 Create a scoped refresh-service endpoint, `.github/workflows/music-refresh.yml`,
 and one idempotent Music provisioning/verification script.
 
-- [ ] Inventory configuration separately on the public and private Vercel projects. Production must not have `SITE_MODE=preview`; do not copy the entire private environment into it.
+- [ ] Inventory configuration separately on the public Cloudflare Worker and private Vercel studio. The public Worker must not inherit private studio state or `SITE_MODE=preview`.
 - [ ] Set a dedicated refresh-service secret and the exact provider/store variables. Never use the publishing token as a refresh credential.
 - [ ] Use the existing GitHub Actions scheduler for the hourly refresh target unless the verified hosting plan already supports hourly cron. Do not upgrade hosting or add a paid service silently.
 - [ ] Restrict the refresh route to that service credential, approved IDs, and bounded work. Return status/counts only. Test invalid credentials and repeated jobs.
@@ -194,22 +192,19 @@ and one idempotent Music provisioning/verification script.
 
 ## Final hosted acceptance and rollout
 
-- [ ] Rebase on integrated main, run unit/integration checks, lint, types, content checks, and the production build with bounded concurrency. Run browser projects with at most two workers.
-- [ ] Sign in to the real protected admin on desktop and phone. Connect Spotify and import actual owned public playlists.
-- [ ] Select two playlists, change the feature between them, then choose none. Save optional notes and a two-part series. Reload and confirm the draft survives while the public gallery remains unchanged.
+- [ ] Rebase on integrated main, run unit/integration checks, lint, types, content checks, and both Next and Cloudflare production builds with bounded concurrency. Run browser projects with at most two workers. Re-run CI after pushing the rebased head.
+- [ ] Verify the exact-head private Production deployment in Willie's authenticated personal Chrome profile. Confirm that the 466 imported playlists remain available without repeating consent.
+- [ ] Have Willie choose playlists, the optional feature, and any series or notes. Reload and confirm the draft survives while the public gallery remains unchanged. Do not create editorial choices for him.
 - [ ] Review one revision, edit again, and confirm the old approval cannot publish the newer draft. Exercise conflict recovery and a failed save.
 - [ ] Publish an explicitly chosen real catalog. Verify the protected PR, CI, deployment, public revision proof, actual artwork, ordered tracks, source links, metadata, navigation, and search.
 - [ ] Check anonymous public browsing, anonymous private denial, direct-origin denial, excluded-playlist denial, rate-limit retry, token expiry, and last-good cache expiry.
 - [ ] Capture the real admin and public gallery in full desktop/phone viewports and both themes. Check keyboard operation, focus restoration, reduced motion, and screen-reader labels.
 - [ ] Enable the scheduler, verify a real refresh, and verify rollback. Mark #44/#45 complete only after this hosted sequence passes.
 
-No new visual decision is required from Willie to implement this plan. His
-necessary product actions are Spotify consent and choosing what to publish.
-Callback registration and publishing-token permission changes may need a
-provider-account action; verify the available authenticated tooling first.
-If either still needs him, provide one numbered setup script after the code
-and deployment are ready. Do not ask him to collect secrets in chat or leave
-him a collection of disconnected dashboard instructions.
+No new visual decision is required from Willie to implement this plan. Spotify
+consent and import are complete. His remaining product action is choosing
+what to publish. The agent can finish code, CI, deployment, and verification
+work around that choice without asking him to repeat setup.
 
 About and Research remain outside this release. Deploying the current
 prototype alone does not satisfy any of the hosted launch gates above.

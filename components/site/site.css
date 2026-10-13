@@ -32,6 +32,27 @@
   padding: 0;
   list-style: none;
 }
+.site-footer__pages a,
+.site-footer__profiles a,
+.site-footer__tagline-link {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 0.18em;
+}
+.site-footer__pages a,
+.site-footer__tagline-link {
+  transition:
+    color 180ms var(--ease-site),
+    text-decoration-color 180ms var(--ease-site);
+}
+.site-footer__pages a:hover,
+.site-footer__pages a:focus-visible,
+.site-footer__profiles a:hover,
+.site-footer__profiles a:focus-visible,
+.site-footer__tagline-link:hover,
+.site-footer__tagline-link:focus-visible {
+  text-decoration-color: currentColor;
+}
 /* The homepage dock uses flex for the old single list. Keep both groups
    aligned at their first link when the dock opens. */
 .site-footer[data-dock] .site-footer__top .site-footer__pages {
@@ -744,41 +765,6 @@ header[data-column] .site-breadcrumb:focus-visible::before {
     border: 1px solid CanvasText;
   }
 }
-.site-footer__pages a,
-.site-footer__profiles a {
-  border-radius: 8px;
-  padding-inline: 8px;
-  margin-inline: -8px;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    translate 180ms ease,
-    border-radius 180ms ease;
-}
-.site-footer__pages a:is(:hover, :focus-visible),
-.site-footer__profiles a:is(:hover, :focus-visible) {
-  background: var(--color-surface-container-highest);
-  color: var(--color-ink);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  translate: 0 -2px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .site-footer__pages a,
-  .site-footer__profiles a {
-    transition: none;
-    translate: none;
-  }
-}
-
-.site-footer .site-footer__pages a:active,
-.site-footer .site-footer__profiles a:active,
-.site-footer a.microstatus:active {
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
-  border-radius: 12px;
-  translate: 0 0;
-}
 .site-footer .feeds-button:is(:active, [aria-expanded='true']) {
   background: var(--color-secondary-container);
   color: var(--color-on-secondary-container);
@@ -791,15 +777,6 @@ header[data-column] .site-breadcrumb:focus-visible::before {
 }
 @media (prefers-reduced-motion: reduce) {
   .site-footer .feeds-button {
-    transition: none;
-  }
-  .site-footer
-    :is(.site-footer__pages a, .site-footer__profiles a, a.microstatus):is(
-      :hover,
-      :focus-visible,
-      :active
-    ) {
-    translate: none;
     transition: none;
   }
 }

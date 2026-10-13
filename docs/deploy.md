@@ -85,6 +85,20 @@ Worker, and check Images usage along with Worker CPU after cutover. Do not
 send authenticated or mutable responses through a shared edge cache to reduce
 a bill.
 
+Do not enable Workers Caching for this whole Worker. Its default policy can
+cache responses without explicit headers, including account routes, and its
+default key does not distinguish the redirect hosts. Static files already use
+the free Assets binding. If runtime metrics justify more caching, scope it to
+public feed or media paths, use a host-aware key, and verify a hosted cache
+hit and invalidation before relying on it for cost control.
+
+IndieWeb's public URL fetch uses a connection-time DNS guard in Node.js. In
+Workers, `dns.lookup` is unavailable; the URL guard rejects private IP
+literals and localhost names, while Cloudflare's public-only fetch proxy
+enforces the destination boundary. Keep the `global_fetch_strictly_public`
+flag on both Workers so same-zone fetches also go through the public front
+door. A hosted Webmention fetch is part of preview acceptance.
+
 To cut over a verified candidate, add Custom Domains for `willie.page`,
 `www.willie.page`, `tour.willie.page`, and `diaries.willie.page` to the
 production Worker. Add both `williecubed.me` hosts only after confirming that

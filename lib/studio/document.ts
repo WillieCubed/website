@@ -1,4 +1,3 @@
-import { validateMdxImageAlts } from '@/scripts/image-alt-check';
 import matter from 'gray-matter';
 import remarkMdx from 'remark-mdx';
 import remarkParse from 'remark-parse';
@@ -6,6 +5,7 @@ import sanitizeHtml from 'sanitize-html';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
+import { validateMdxImageAlts } from '@/lib/accessibility/mdx-image-alt-check';
 import { auditPortableContent, renderFeedHtml } from '@/lib/feeds/html';
 
 import { catalogEntry } from './catalog';

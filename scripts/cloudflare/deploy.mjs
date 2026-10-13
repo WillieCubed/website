@@ -15,14 +15,47 @@ if (process.env.CLOUDFLARE_PROFILE) {
   args.push('--profile', process.env.CLOUDFLARE_PROFILE);
 }
 
+const env = {
+  ...process.env,
+  CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
+    process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE ||
+    localHyperdriveUrl,
+};
 const deploy = spawnSync('pnpm', args, {
-  stdio: 'inherit',
-  env: {
-    ...process.env,
-    CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-      process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE ||
-      localHyperdriveUrl,
-  },
+  encoding: 'utf8',
+  env,
+  maxBuffer: 16 * 1024 * 1024,
 });
+if (deploy.stdout) process.stdout.write(deploy.stdout);
+if (deploy.stderr) process.stderr.write(deploy.stderr);
 if (deploy.error) throw deploy.error;
-if (deploy.status !== 0) process.exit(deploy.status ?? 1);
+
+// cf's current upload path can fail while Cloudflare validates an existing
+// Hyperdrive binding, even when Wrangler accepts the identical built Worker.
+// Use the checked-in equivalent Wrangler config only for this provider 503.
+if (deploy.status !== 0) {
+  const output = `${deploy.stdout ?? ''}\n${deploy.stderr ?? ''}`;
+  if (
+    !output.includes('binding HYPERDRIVE') ||
+    !output.includes('sqc-config failed with status code 503')
+  ) {
+    process.exitCode = deploy.status ?? 1;
+  } else {
+    console.warn(
+      'cf Hyperdrive validation returned 503; deploying with Wrangler.'
+    );
+    const fallback = spawnSync(
+      'pnpm',
+      [
+        'exec',
+        'wrangler',
+        'deploy',
+        '--config',
+        target === 'preview' ? 'wrangler.preview.jsonc' : 'wrangler.jsonc',
+      ],
+      { stdio: 'inherit', env }
+    );
+    if (fallback.error) throw fallback.error;
+    if (fallback.status !== 0) process.exitCode = fallback.status ?? 1;
+  }
+}

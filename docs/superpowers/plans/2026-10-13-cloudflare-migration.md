@@ -62,7 +62,7 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
 
 **Interfaces:** Produces `sql` tagged queries, `sql.query`, `sql.connect`, and `createPool` with parameterized `pg` queries and connection-pinned transactions.
 
-- [ ] Write focused tests for placeholder conversion, query results, transaction pinning, release, and failure cleanup.
+- [x] Verify parameterized tags, query results, transaction pinning, overlapping advisory locks, and rollback/release after failure against a disposable local PostgreSQL 18 instance in `tests/integration/postgres-portability.test.mts`. Hosted Hyperdrive concurrency acceptance remains open.
 - [x] Implement the narrow compatibility module using request-scoped Hyperdrive clients in Workers and a direct URL locally.
 - [x] Replace runtime `@vercel/postgres` imports; run the unit suite and a hosted Webmention rate-limit write against isolated Neon.
 - [x] Verify real reads and writes through the isolated Worker and retained acceptance schema; IndieAuth authorization, token writes, revocation, and R2 media upload passed. Connection-pinned transaction locks still need a hosted concurrency check.

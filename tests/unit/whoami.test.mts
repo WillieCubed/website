@@ -27,20 +27,18 @@ test('whoamiLines prefers cf-connecting-ip when Cloudflare fronts the site', () 
   assert.equal(value(lines, 'ip'), '198.51.100.7');
 });
 
-test('whoamiLines decodes the percent-encoded city Vercel sends', () => {
-  const lines = whoamiLines(
-    new Headers({
-      'x-vercel-ip-city': 'Las%20Vegas',
-      'x-vercel-ip-country': 'US',
-      'x-vercel-ip-country-region': 'NV',
-      'x-vercel-id': 'sfo1::iad1::abcde-1',
-    })
-  );
+test('whoamiLines reports Cloudflare location properties', () => {
+  const lines = whoamiLines(new Headers(), {
+    city: 'Las Vegas',
+    country: 'US',
+    region: 'NV',
+    colo: 'LAS',
+  });
 
   assert.equal(value(lines, 'city'), 'Las Vegas');
   assert.equal(value(lines, 'country'), 'US');
   assert.equal(value(lines, 'region'), 'NV');
-  assert.equal(value(lines, 'edge'), 'sfo1::iad1::abcde-1');
+  assert.equal(value(lines, 'edge'), 'LAS');
 });
 
 test('whoamiLines reports the connection details Cloudflare exposes on request.cf', () => {

@@ -2,7 +2,11 @@ import { studioRoute } from '../studio/auth';
 import { StudioError } from '../studio/errors';
 
 export function musicRoute(request: Request, work: () => Promise<Response>) {
-  return studioRoute(request, work);
+  return studioRoute(
+    request,
+    work,
+    'The private Music service is unavailable.'
+  );
 }
 export async function readMusicBody(request: Request): Promise<any> {
   const text = await request.text();

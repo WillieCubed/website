@@ -3,9 +3,10 @@
 Account: WillieCubed (`18f90fa11cf0a87145be4a1517e41217`). The production
 and preview Workers have separate Hyperdrive connections, R2 media/cache
 buckets, Durable Objects, and secrets. `willie.page` and `williecubed.me`
-are active zones in this account. The canonical `willie.page` hosts still
-point to Vercel; the legacy `williecubed.me` redirect hosts moved to the
-production Worker on October 13.
+are active zones in this account. At the start of these checks, the canonical
+`willie.page` hosts pointed to Vercel; the legacy `williecubed.me` redirect
+hosts moved to the production Worker on October 13. The canonical cutover is
+recorded below.
 
 Before canonical cutover, `willie.page` returned `server: Vercel` and
 revision `96d17e40a94a68e7dc31654a43c163e98b8e651a`.
@@ -43,10 +44,10 @@ twice failed the preview upload while Cloudflare's Hyperdrive binding service
 returned `sqc-config` HTTP 503 (`10021`). Deploying the same built artifact
 with the repository's Wrangler preview configuration succeeded. This is a
 deployment-tool/provider failure, not evidence that the Worker runtime failed.
-The production build and `cf` dry run passed at the same Git revision. The
-production Worker still lacks `MICROPUB_GITHUB_TOKEN` and
-`ATPROTO_APP_PASSWORD`; Vercel marks those values as non-readable Secrets, so
-they require replacement before a production deployment and DNS cutover.
+The production build and `cf` dry run passed at the same Git revision. At that
+point, the production Worker lacked `MICROPUB_GITHUB_TOKEN` and
+`ATPROTO_APP_PASSWORD`; Vercel marked those values as non-readable Secrets, so
+the owner later created replacements before production deployment.
 
 Cloudflare Workers Builds was connected on October 13 to the GitHub App's
 `WillieCubed/website` repository for the `willie-page-preview` Worker. The
@@ -106,10 +107,10 @@ build before the later writing cache and maintainer-doc edits. A subsequent
 build output now reports one-minute revalidation instead of the layout's
 15-minute default. Run the final suite again after the release commit.
 
-Cutover still requires owner-created GitHub and Bluesky credentials, production
-TOTP enrollment, the GitHub App build connection, exact-revision production
-redeployment, custom domains, and public route/write checks. This preview
-receipt is not production acceptance.
+At the time of this preview receipt, cutover still required owner-created
+GitHub and Bluesky credentials, production TOTP sign-in, production Workers
+Builds, exact-revision deployment, custom domains, and public route/write
+checks. The later production checks are recorded below.
 
 Legacy-host cutover on October 13: production Worker version
 `4c85f2d2-914f-4d84-872d-e769f6be431e` was built from commit `c52be2f`.
@@ -184,3 +185,37 @@ preview-host authorization and token endpoints. Local OAuth client metadata
 reported sign-in unavailable because no OAuth secrets were supplied to the
 disposable local Worker. This verifies the preview build configuration and
 packaging, not a hosted deployment or owner sign-in.
+
+## Production cutover, October 13
+
+The owner saved `MICROPUB_GITHUB_TOKEN` and `ATPROTO_APP_PASSWORD` directly on
+the production `willie-page` Worker. `wrangler secret list` confirmed both
+names and `secret_text` types after deployment; their values were neither read
+nor copied. The production OpenNext build from exact commit
+`565737eea9784e6054adf5d5215b1986dd2ff08b` succeeded. Cloudflare
+activated Worker version `e7ed9f69-9ba0-4cd2-9abd-17432a24859c` with
+Custom Domains for `willie.page`, `www.willie.page`, `tour.willie.page`, and
+`diaries.willie.page`. The existing `williecubed.me/*` Worker route and
+`www.williecubed.me` Custom Domain remained active.
+
+Cloudflare rejected the first domain attach because four Vercel CNAME records
+occupied those names. Removing those exact CNAME records and repeating the
+deployment succeeded. The Cloudflare DNS API then returned four read-only,
+proxied Worker-managed AAAA records. Fresh Cloudflare and Google DNS-over-HTTPS
+queries resolved the apex to Cloudflare edge addresses; this Mac's local DNS
+resolver still returned cached Vercel addresses immediately after cutover.
+The three `willie.page` MX records remained on Cloudflare Email Routing.
+
+The full hosted public route gate passed on the production diagnostic Worker
+URL at the exact SHA. Direct Cloudflare edge HTTPS checks for the canonical
+host returned 200 for `/`, `/status`, `/search`, `/api/status`, search API,
+RSS/Atom/JSON feeds, IndieAuth metadata, OAuth client metadata, `/micropub`,
+`/webmention`, social images, and image optimization; an absent writing
+returned 404. `www.willie.page` returned the expected path-preserving 308;
+`tour.willie.page` and `diaries.willie.page` returned their expected 307
+initiative redirects. The two `williecubed.me` redirects continued to return
+path-preserving 308 responses.
+
+The production GitHub and Bluesky secret values have not been exercised by a
+real publish, and production owner TOTP sign-in is pending. Those are the
+remaining protected-write acceptance gates before Vercel retirement.

@@ -592,6 +592,12 @@ button.weather-reading:active {
   color: var(--color-on-secondary-container);
   border-radius: 12px;
 }
+.status-expanded button.zone[aria-expanded='true'] {
+  border-radius: 16px;
+}
+.status-expanded button.zone:active {
+  border-radius: 18px;
+}
 .status-expanded button.zone:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 3px;
@@ -645,4 +651,8 @@ button.weather-reading:active {
   button.weather-reading {
     pointer-events: none;
   }
+}
+
+.status-timezones__visitor {
+  font-style: italic;
 }

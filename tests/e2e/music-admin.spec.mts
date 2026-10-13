@@ -123,6 +123,75 @@ test('owner can choose a feature, save, reopen and recover a conflict without pu
       .body.selected
   ).toHaveLength(3);
 });
+test('a Spotify refresh keeps the reviewed draft aligned with the saved revision', async ({
+  page,
+  request,
+}, info) => {
+  const initial = await (await request.get('/api/studio/music/catalog')).json();
+  const reset = await request.put('/api/studio/music/catalog', {
+    headers: { origin: process.env.STUDIO_TEST_ORIGIN! },
+    data: {
+      expectedRevisionId: initial.revision?.id ?? null,
+      catalog: {
+        version: 1,
+        order: ids,
+        selected: [ids[1]],
+        lead: null,
+        series: [],
+        notes: {},
+      },
+    },
+  });
+  expect(reset.ok()).toBeTruthy();
+  let finishImport!: () => void;
+  const importFinished = new Promise<void>((resolve) => {
+    finishImport = resolve;
+  });
+  let importStarted!: () => void;
+  const importRequested = new Promise<void>((resolve) => {
+    importStarted = resolve;
+  });
+  await page.route('**/api/studio/music/import', async (route) => {
+    importStarted();
+    await importFinished;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ failed: 0 }),
+    });
+  });
+  await page.goto('/studio/music');
+  const selection = page.getByRole('checkbox', {
+    name: 'Include Summer in the city',
+    exact: true,
+  });
+  await expect(selection).toBeChecked();
+  await page.getByRole('button', { name: 'Open menu for Music' }).click();
+  await page.getByRole('button', { name: 'Refresh Spotify' }).click();
+  await importRequested;
+  await expect(
+    page.locator('.music-admin-notices [role="status"]')
+  ).toContainText('Importing your Spotify playlists…');
+  await expect(page.locator('.music-prototype')).toHaveAttribute('inert', '');
+  await expect(selection).toBeDisabled();
+  const dir = '.playwright-mcp/music/iterations/2026-10-13-refresh-locked';
+  await mkdir(dir, { recursive: true });
+  await page.screenshot({
+    path: `${dir}/${info.project.name}-refresh.png`,
+    fullPage: false,
+  });
+  finishImport();
+  await expect(
+    page.getByText('Saved privately', { exact: true }).first()
+  ).toBeVisible();
+  await expect(selection).toBeChecked();
+  await page.screenshot({
+    path: `${dir}/${info.project.name}-ready.png`,
+    fullPage: false,
+  });
+  const saved = await (await request.get('/api/studio/music/catalog')).json();
+  expect(saved.revision.body.selected).toEqual([ids[1]]);
+});
 test('anonymous access and foreign-origin changes fail', async ({
   playwright,
   request,

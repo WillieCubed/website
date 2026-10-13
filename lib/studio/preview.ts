@@ -101,7 +101,8 @@ export async function websitePreviewBody(
     try {
       const sandbox = await compileSandbox(proposal, props);
       return `<figure class="my-6 space-y-3"><iframe class="generated h-96 w-full rounded-lg border border-outline-variant" title="${escape(proposal.name)}" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escape(sandbox)}"></iframe><figcaption class="space-y-2 text-body-medium leading-relaxed text-on-surface"><p class="whitespace-pre-wrap">${escape(proposal.portableText)}</p></figcaption></figure>`;
-    } catch {
+    } catch (error) {
+      console.error('Studio component preview compilation failed', error);
       return `<p class="fallback">${escape(proposal.name)} could not be previewed. Its saved source is preserved.</p>`;
     }
   }

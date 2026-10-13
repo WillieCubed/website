@@ -7,6 +7,16 @@ are active zones in this account. The canonical `willie.page` hosts still
 point to Vercel; the legacy `williecubed.me` redirect hosts moved to the
 production Worker on October 13.
 
+Before canonical cutover, `willie.page` returned `server: Vercel` and
+revision `96d17e40a94a68e7dc31654a43c163e98b8e651a`.
+GET `/`, `/status`, `/api/status`, `/writings/feed.xml`, `/micropub`, and
+`/api/indieweb/revision` returned 200; `/rss.xml` returned 308 to
+`/feed.xml`. Current `content/`, `public/`, `lib/`, and `app/` files contain no
+`blob.vercel-storage.com` reference. The Vercel public Blob store separately
+reported zero objects. A fresh production `pg_dump --data-only` inspected in
+memory on October 13 also found zero `blob.vercel-storage.com` references;
+neither the dump nor its connection string was written to disk.
+
 Preview: `https://willie-page-preview.willieechalmers-18f.workers.dev`.
 The Worker advertises its own preview origin in IndieAuth metadata, feeds, and
 links. GET checks returned 200 for `/`, `/status`, `/search`, `/api/status`,
@@ -37,6 +47,16 @@ The production build and `cf` dry run passed at the same Git revision. The
 production Worker still lacks `MICROPUB_GITHUB_TOKEN` and
 `ATPROTO_APP_PASSWORD`; Vercel marks those values as non-readable Secrets, so
 they require replacement before a production deployment and DNS cutover.
+
+At `4918e2e3e6a6ef65108ab7289561ae51b0c396ce`, the preview build and
+`pnpm deploy:cloudflare:preview` completed through `cf`, producing Worker
+version `924dd895-8522-432f-bddb-4d0f6468a42d`. The hosted route gate passed
+again with that exact SHA. A GET of the preview IndieAuth consent page using
+IndieAuth.com's public `client_id` and listed redirect URI rendered the
+fetched client name `IndieAuth.com`. This exercises the outbound metadata
+fetch on the hosted Worker; the Cloudflare runtime skips Node's unsupported
+`dns.lookup` and uses Workers' public-network `fetch` with URL and redirect
+guards. No authorization was approved by that GET.
 
 Hosted write checks:
 

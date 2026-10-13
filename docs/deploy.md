@@ -92,11 +92,15 @@ placeholder is never a production database credential. Bare `cf deploy`
 fails at that local proxy preflight when no local connection string is set.
 
 On the current Worker architecture, Workers Free's 10 ms CPU limit is too
-small for some dynamic requests. Workers Paid includes 10 million requests and
-30 million CPU milliseconds per month. Static asset requests are free. The
-account has a $25 usage alert, which is a notification rather than a hard
-limit. Watch Worker CPU, R2 operations and storage, Hyperdrive, and any other
-paid services in the Cloudflare billing dashboard after cutover.
+small for some dynamic requests. WillieCubed billing confirmed Workers Paid
+subscribed on October 13. It includes 10 million requests and 30 million CPU
+milliseconds per month; static asset requests are free. The billing dashboard
+showed two $10 budget alerts, both notifications rather than hard limits.
+R2 Paid and Images Stream Basic were also listed as subscriptions. Watch Worker
+CPU, R2 operations and storage, Images, Hyperdrive, and other billable usage
+after cutover. The owner's $25 monthly ceiling cannot be enforced by a budget
+alert; pause new billable use or change the architecture before projected
+charges approach it.
 
 Neon is a separate Free account. Its October 2026 allowance is 100 compute
 unit hours and 1 GB of storage **per project** each month. On October 13 the
@@ -109,13 +113,17 @@ preview compute was capped at 0.25 CU on October 13; all three computes were
 idle and had scale to zero enabled when checked. Neon's API value
 `suspend_timeout_seconds: 0` uses the plan default idle timeout. A 0.25 CU
 compute kept awake all month would consume roughly 186 CU-hours, exceeding
-the Free allowance. Avoid frequent database polling and keep scale to zero
-enabled. The public footer's location read uses the shared Next data cache
-for three hours; an owner city save invalidates its tag. Verify the hosted
-cache and fresh city update before canonical DNS moves. After cutover, inspect
-each Neon project's compute and storage at least daily for the first week;
-investigate if production projects toward 80 CU-hours or 800 MB. Cloudflare's
-$25 alert does not cover Neon.
+the Free allowance after roughly 400 active hours, or about 17 continuously
+active days. Avoid frequent database polling and keep scale to zero enabled.
+The public footer's location read uses the shared Next data cache for three
+hours; an owner city save invalidates its tag. Verify the hosted cache and
+fresh city update before canonical DNS moves. Writing detail pages revalidate
+every minute and read interactions from Postgres, so sustained traffic to them
+could keep Neon awake despite the footer cache. After cutover, inspect each
+Neon project's compute and storage at least daily for the first week; if
+production projects toward 80 CU-hours or 800 MB, reduce read frequency or
+move that workload to a budgeted paid service before Free is exhausted.
+Cloudflare budget alerts do not cover Neon.
 
 The production database has a tested logical backup path: on October 13 a
 `pg_dump` custom archive restored successfully into temporary local
@@ -124,13 +132,17 @@ archive was deleted. Neon Free offers a six-hour point-in-time restore
 window, so a retained off-site backup remains necessary for longer recovery
 and before destructive schema changes.
 
-Images is a [separate free plan](https://developers.cloudflare.com/images/pricing/)
-on this account. It permits 5,000 unique transformations per month; once
-exhausted, new variants fail instead of incurring automatic overage charges.
+The [Images pricing](https://developers.cloudflare.com/images/pricing/)
+includes the first 5,000 unique transformations per month on both Free and
+Paid. WillieCubed billing lists Images Stream Basic, while the Images plan
+screen showed no hosted-image storage selected and $0 base for storage.
+Treat usage beyond 5,000 as potentially billable until the account's exact
+transformation tier is confirmed: Free rejects new variants with error 9422,
+while Paid charges $0.50 per additional 1,000 transformations.
 `next.config.ts` limits generated widths to twelve and allows only qualities
 75 and 90. Keep static assets on the Assets binding so they do not invoke the
 Worker, and check Images usage along with Worker CPU after cutover. On October
-13 the Images dashboard showed 2 unique transformations in the current month.
+13 the Images dashboard showed 3 unique transformations in the current month.
 This is an early candidate-only reading, not a production traffic estimate.
 
 Remote YouTube posters bypass optimization, and there is no remote image
@@ -148,8 +160,8 @@ would use at most 2,688 monthly unique transformations. R2 uploads and remote
 YouTube images add to that count; the dashboard, not this upper bound, is the
 source of actual usage. If the month approaches 4,000 transformations, reduce
 new variants or make an explicit Images plan decision before publishing more
-images. Images Free serves existing variants but returns error 9422 for new
-ones after 5,000, so this is a broken-image risk, not an automatic charge.
+images. Depending on the account's Images tier, exceeding 5,000 either risks
+new-image failures or paid overage; neither should be the default cost plan.
 
 Cloudflare Web Analytics already has automatic setup enabled for `willie.page`
 in the WillieCubed account and was recording visits before cutover. It does not

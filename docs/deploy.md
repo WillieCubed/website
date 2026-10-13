@@ -51,7 +51,7 @@ pnpm exec tsx scripts/cloudflare/verify-public-routes.mts --origin https://willi
 ```
 
 The first command checks the isolated preview. The second is for the canonical
-host after cutover. Each checks the deployed revision, Cloudflare server,
+host after cutover. Each checks the deployed revision, Worker binding marker, Cloudflare server,
 IndieAuth issuer, public route matrix, redirects, and unauthenticated admin
 response. Use `--output <private-path>` to save a receipt. Passing this gate
 does not prove authenticated writes, media upload, or database usage.

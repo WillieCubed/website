@@ -48,10 +48,12 @@ async function get(path: string, status: number, contentType?: string) {
 }
 
 const revision = await get('/api/indieweb/revision', 200, 'application/json');
+const release = await revision.json();
+assert.equal(release.sha, expectedSha, 'Wrong deployed revision');
 assert.equal(
-  (await revision.json()).sha,
-  expectedSha,
-  'Wrong deployed revision'
+  release.runtime,
+  'cloudflare-workers',
+  'Revision route lacks Worker deployment bindings'
 );
 
 const metadata = await get(

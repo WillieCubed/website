@@ -19,6 +19,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json'))
+    throw new Error(
+      'The preview returned a page instead of music data. Reload your collection and try again.'
+    );
   const data = await response.json();
   if (!response.ok)
     throw Object.assign(
@@ -32,6 +37,13 @@ interface Connection {
   configured: boolean;
   reconnect: boolean;
   ownerId: string | null;
+  import?: {
+    total: number;
+    done: number;
+    failed: number;
+    running: boolean;
+    updatedAt: string;
+  } | null;
 }
 export default function MusicAdmin() {
   const [data, setData] = useState<{
@@ -231,9 +243,30 @@ export default function MusicAdmin() {
     setError('');
     setStatus('Importing your Spotify playlists…');
     try {
-      const imported = await request<{ failed: number }>('/import', {
-        method: 'POST',
-      });
+      const started = Date.now();
+      let imported: { failed: number };
+      try {
+        imported = await request<{ failed: number }>('/import', {
+          method: 'POST',
+        });
+      } catch (error) {
+        // The edge may lose a long import's response after the server has
+        // saved its progress. Check that this specific run finished before
+        // treating the missing response as a failed import.
+        const latest = await request<Connection>('/connection');
+        const progress = latest.import;
+        const finishedAt = Date.parse(progress?.updatedAt ?? '');
+        if (
+          (error as { status?: number }).status ||
+          !progress ||
+          progress.running ||
+          !Number.isFinite(finishedAt) ||
+          finishedAt < started ||
+          progress.done + progress.failed < progress.total
+        )
+          throw error;
+        imported = progress;
+      }
       const result = await load();
       const body = result.catalog.revision?.body ?? emptyCatalog;
       const order = [

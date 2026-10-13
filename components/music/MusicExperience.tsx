@@ -5,6 +5,7 @@ import { flushSync } from 'react-dom';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
+import SiteLink from '@/components/link/SiteLink';
 import { usePalette } from '@/components/palette/PaletteProvider';
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import TopBar from '@/components/site/TopBar';
@@ -17,6 +18,7 @@ import {
   listeningTime,
   moveItem,
 } from '@/lib/music/presentation';
+import { spotifyProfileUrl } from '@/lib/site';
 
 import MusicCover from './MusicCover';
 import MusicScrollCue from './MusicScrollCue';
@@ -93,6 +95,7 @@ export default function MusicExperience({
   const ownPop = useRef(false);
   const dragId = useRef<string | null>(null);
   const catalog = editing || mode === 'admin' ? draft : live;
+  const publicEmpty = mode === 'public' && catalog.selected.length === 0;
   const series = catalog.series.find((item) => item.id === seriesId);
   const order = series?.playlistIds ?? catalog.order;
   const visibleIds = order.filter(
@@ -786,43 +789,48 @@ export default function MusicExperience({
           },
         ]}
       />
-      <main id="main" className="mp-shell">
+      <main
+        id="main"
+        className={`mp-shell${publicEmpty ? ' mp-shell-public-empty' : ''}`}
+      >
         <aside className="mp-rail">
           <div className="mp-heading">
             <h1>Music</h1>
           </div>
-          <nav className="mp-series-nav" aria-label="Playlist series">
-            <button aria-pressed={!series} onClick={() => chooseSeries(null)}>
-              <span>All playlists</span>
-              <span>
-                {editing ? playlists.length : catalog.selected.length}
-              </span>
-            </button>
-            {catalog.series.map((item) => (
-              <button
-                key={item.id}
-                aria-pressed={series?.id === item.id}
-                onClick={() => chooseSeries(item.id)}
-              >
-                <span>{item.title}</span>
+          {!publicEmpty && (
+            <nav className="mp-series-nav" aria-label="Playlist series">
+              <button aria-pressed={!series} onClick={() => chooseSeries(null)}>
+                <span>All playlists</span>
                 <span>
-                  {
-                    item.playlistIds.filter(
-                      (id) => editing || catalog.selected.includes(id)
-                    ).length
-                  }
+                  {editing ? playlists.length : catalog.selected.length}
                 </span>
               </button>
-            ))}
-            {editing && (
-              <button
-                className="mp-new-series"
-                onClick={() => setNewSeries('')}
-              >
-                Create a series<span aria-hidden="true">+</span>
-              </button>
-            )}
-          </nav>
+              {catalog.series.map((item) => (
+                <button
+                  key={item.id}
+                  aria-pressed={series?.id === item.id}
+                  onClick={() => chooseSeries(item.id)}
+                >
+                  <span>{item.title}</span>
+                  <span>
+                    {
+                      item.playlistIds.filter(
+                        (id) => editing || catalog.selected.includes(id)
+                      ).length
+                    }
+                  </span>
+                </button>
+              ))}
+              {editing && (
+                <button
+                  className="mp-new-series"
+                  onClick={() => setNewSeries('')}
+                >
+                  Create a series<span aria-hidden="true">+</span>
+                </button>
+              )}
+            </nav>
+          )}
           {newSeries !== null && (
             <form className="mp-new-series-form" onSubmit={addSeries}>
               <label htmlFor="mp-series-title">Series name</label>
@@ -875,119 +883,155 @@ export default function MusicExperience({
             </div>
           )}
         </aside>
-        <section
-          className="mp-collection"
-          aria-labelledby="mp-collection-title"
-        >
-          <header className="mp-collection-header">
-            <div
-              className={!series && !editing ? 'mp-visually-hidden' : undefined}
-            >
-              <h2 id="mp-collection-title">
-                {series?.title ??
-                  (editing ? 'Your playlists' : 'Selected playlists')}
-              </h2>
-              <p className="mp-small">
-                {series
-                  ? `${matching.length} playlists · In sequence`
-                  : `${matching.length} playlists`}
-              </p>
-            </div>
-          </header>
-          {editing && (
-            <>
-              <div
-                className="mp-library-filters"
-                role="group"
-                aria-label="Library filter"
-              >
-                {(
-                  [
-                    ['all', 'All', visibleIds.length],
-                    [
-                      'selected',
-                      'In gallery',
-                      visibleIds.filter((id) => catalog.selected.includes(id))
-                        .length,
-                    ],
-                    [
-                      'unselected',
-                      'Not included',
-                      visibleIds.filter((id) => !catalog.selected.includes(id))
-                        .length,
-                    ],
-                  ] as const
-                ).map(([value, label, count]) => (
-                  <button
-                    key={value}
-                    aria-pressed={libraryFilter === value}
-                    onClick={() => setLibraryFilter(value)}
-                  >
-                    {label}
-                    <span aria-hidden="true">{count}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="mp-edit-hint">
-                Choose what appears in your gallery. Open a playlist to add
-                notes or arrange its place in a series.
-              </p>
-            </>
-          )}
-          {storageError && (
-            <p className="mp-notice" role="status">
-              {storageError}
-            </p>
-          )}
-          <div
-            ref={gallery}
-            className={`mp-grid${editing ? ' mp-grid-editing' : ''}`}
+        {publicEmpty ? (
+          <section
+            className="mp-public-placeholder"
+            aria-labelledby="mp-public-placeholder-title"
           >
-            {displayed.map((id, index) =>
-              renderCard(playlists.find((item) => item.id === id)!, index)
-            )}
-          </div>
-          <MusicScrollCue
-            gallery={gallery}
-            collection={`${seriesId}:${editing}:${displayed.join(',')}`}
-          />
-          {!matching.length && (
-            <div className="mp-empty">
+            <span className="mp-public-placeholder-icon" aria-hidden="true">
               <Icon name="music" size={32} />
-              <h3>
-                {editing && libraryFilter === 'unselected'
-                  ? 'Every playlist is included.'
-                  : editing && libraryFilter === 'selected'
-                    ? 'No playlists included yet'
-                    : 'This series is still empty'}
-              </h3>
-              <p>
-                {editing && libraryFilter !== 'all'
-                  ? 'Choose All to see the rest of your library.'
-                  : 'Open a playlist from All playlists to add it to this series.'}
-              </p>
-              <button
-                className="mp-button"
-                onClick={() => {
-                  setLibraryFilter('all');
-                  chooseSeries(null);
-                }}
+            </span>
+            <h2 id="mp-public-placeholder-title">
+              Looks like Willie’s playlists aren’t here yet.
+            </h2>
+            <p>
+              While this page finds its groove, you can listen to what he’s
+              sharing on Spotify.
+            </p>
+            <SiteLink
+              className="mp-button mp-public-placeholder-link"
+              href={spotifyProfileUrl}
+              target="_blank"
+            >
+              <SpotifyIcon />
+              Visit Willie on Spotify
+              <Icon name="external" />
+            </SiteLink>
+          </section>
+        ) : (
+          <section
+            className="mp-collection"
+            aria-labelledby="mp-collection-title"
+          >
+            <header className="mp-collection-header">
+              <div
+                className={
+                  !series && !editing ? 'mp-visually-hidden' : undefined
+                }
               >
-                Browse all playlists
-              </button>
-            </div>
-          )}
-          <p className="mp-sample-note">
-            {mode === 'prototype' ? (
-              'These covers and tracks are illustrative fixtures for design review.'
-            ) : (
+                <h2 id="mp-collection-title">
+                  {series?.title ??
+                    (editing ? 'Your playlists' : 'Selected playlists')}
+                </h2>
+                <p className="mp-small">
+                  {series
+                    ? `${matching.length} playlists · In sequence`
+                    : `${matching.length} playlists`}
+                </p>
+              </div>
+            </header>
+            {editing && (
               <>
-                <SpotifyIcon /> Playlist artwork and track information from
-                Spotify.
+                <div
+                  className="mp-library-filters"
+                  role="group"
+                  aria-label="Library filter"
+                >
+                  {(
+                    [
+                      ['all', 'All', visibleIds.length],
+                      [
+                        'selected',
+                        'In gallery',
+                        visibleIds.filter((id) => catalog.selected.includes(id))
+                          .length,
+                      ],
+                      [
+                        'unselected',
+                        'Not included',
+                        visibleIds.filter(
+                          (id) => !catalog.selected.includes(id)
+                        ).length,
+                      ],
+                    ] as const
+                  ).map(([value, label, count]) => (
+                    <button
+                      key={value}
+                      aria-pressed={libraryFilter === value}
+                      onClick={() => setLibraryFilter(value)}
+                    >
+                      {label}
+                      <span aria-hidden="true">{count}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="mp-edit-hint">
+                  Choose what appears in your gallery. Open a playlist to add
+                  notes or arrange its place in a series.
+                </p>
               </>
             )}
-          </p>
-        </section>
+            {storageError && (
+              <p className="mp-notice" role="status">
+                {storageError}
+              </p>
+            )}
+            <div
+              ref={gallery}
+              className={`mp-grid${editing ? ' mp-grid-editing' : ''}`}
+            >
+              {displayed.map((id, index) =>
+                renderCard(playlists.find((item) => item.id === id)!, index)
+              )}
+            </div>
+            <MusicScrollCue
+              gallery={gallery}
+              collection={`${seriesId}:${editing}:${displayed.join(',')}`}
+            />
+            {!matching.length && (
+              <div className="mp-empty">
+                <Icon name="music" size={32} />
+                <h3>
+                  {editing && libraryFilter === 'unselected'
+                    ? 'Every playlist is included.'
+                    : editing && libraryFilter === 'selected'
+                      ? 'No playlists included yet'
+                      : 'This series is still empty'}
+                </h3>
+                <p>
+                  {editing && playlists.length === 0
+                    ? 'Connect Spotify to bring your playlists into the studio.'
+                    : editing && libraryFilter !== 'all'
+                      ? 'Choose All to see the rest of your library.'
+                      : 'Open a playlist from All playlists to add it to this series.'}
+                </p>
+                {(editing
+                  ? playlists.length > 0
+                  : catalog.selected.length > 0) && (
+                  <button
+                    className="mp-button"
+                    onClick={() => {
+                      setLibraryFilter('all');
+                      chooseSeries(null);
+                    }}
+                  >
+                    Browse all playlists
+                  </button>
+                )}
+              </div>
+            )}
+            <p className="mp-sample-note">
+              {mode === 'prototype' ? (
+                'These covers and tracks are illustrative fixtures for design review.'
+              ) : (
+                <>
+                  <SpotifyIcon /> Playlist artwork and track information from
+                  Spotify.
+                </>
+              )}
+            </p>
+          </section>
+        )}
       </main>
       <p className="mp-announcement" role="status" aria-live="polite">
         {announcement}

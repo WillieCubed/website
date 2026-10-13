@@ -16,10 +16,7 @@ import { indieAuthEndpointOptions } from '@/lib/indieweb/indieauth-storage';
 export async function GET(request: Request) {
   try {
     const options = indieAuthEndpointOptions();
-    if (
-      !options.owner ||
-      !(await options.owner.verify(request, new FormData())).ok
-    )
+    if (!options.owner || !(await options.owner.verify(request)).ok)
       return denied();
     return await handleConsentPage(request, options);
   } catch (error) {
@@ -31,10 +28,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const options = indieAuthEndpointOptions();
-    if (
-      !options.owner ||
-      !(await options.owner.verify(request, new FormData())).ok
-    )
+    if (!options.owner || !(await options.owner.verify(request)).ok)
       return denied();
     return await handleConsentDecision(request, options);
   } catch (error) {

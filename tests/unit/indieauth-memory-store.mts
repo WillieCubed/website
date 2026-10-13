@@ -3,7 +3,6 @@ import type {
   IndieAuthStore,
   IndieAuthTokenGrant,
   IndieAuthTokenRecord,
-  OwnerSignInStore,
 } from '@/lib/indieweb/types';
 
 /**
@@ -142,35 +141,4 @@ export function memoryIndieAuthStore() {
   };
 
   return { store, codes, tokens, families, refreshTokens };
-}
-
-export function memoryOwnerSignInStore() {
-  const failures = new Map<string, Date>();
-  let nextId = 1;
-  let lastStep = -Infinity;
-
-  const store: OwnerSignInStore = {
-    async recordAttempt(windowMs, now) {
-      const id = String(nextId++);
-      failures.set(id, now);
-      // Postgres runs the insert and the count as two queries, so let other
-      // requests run between them here too.
-      await Promise.resolve();
-      let attempts = 0;
-      for (const failedAt of failures.values()) {
-        if (failedAt.getTime() > now.getTime() - windowMs) attempts++;
-      }
-      return { id, attempts };
-    },
-    async forgetAttempt(id) {
-      failures.delete(id);
-    },
-    async claimTotpStep(step) {
-      if (step <= lastStep) return false;
-      lastStep = step;
-      return true;
-    },
-  };
-
-  return { store, failures };
 }

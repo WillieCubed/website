@@ -13,11 +13,6 @@ import {
   handleTokenRequest,
   handleTokenVerification,
 } from '@/lib/indieweb/indieauth-endpoints';
-import {
-  createTotpOwnerAuthenticator,
-  totpCode,
-  totpStep,
-} from '@/lib/indieweb/indieauth-owner';
 import { codeChallengeFor } from '@/lib/indieweb/indieauth-server';
 import type {
   IndieAuthClientInfo,
@@ -25,12 +20,8 @@ import type {
 } from '@/lib/indieweb/types';
 import { site } from '@/lib/site';
 
-import {
-  memoryIndieAuthStore,
-  memoryOwnerSignInStore,
-} from './indieauth-memory-store.mts';
+import { memoryIndieAuthStore } from './indieauth-memory-store.mts';
 
-const SECRET = Buffer.from('12345678901234567890');
 const CLIENT = 'https://client.example/';
 const REDIRECT = 'https://client.example/callback';
 const VERIFIER = 'v'.repeat(64);
@@ -40,18 +31,17 @@ const INTROSPECTION_SECRET = 'introspection-secret';
 function setup({
   client = { name: 'Client', redirectUris: [] },
   owner = true,
-}: { client?: IndieAuthClientInfo; owner?: boolean } = {}) {
+  access = true,
+}: { client?: IndieAuthClientInfo; owner?: boolean; access?: boolean } = {}) {
   let now = new Date('2026-09-22T12:00:00Z');
   const { store } = memoryIndieAuthStore();
-  const signIns = memoryOwnerSignInStore();
   const options: IndieAuthEndpointOptions = {
     store,
     owner: owner
-      ? createTotpOwnerAuthenticator({
-          secret: SECRET,
-          store: signIns.store,
-          now: () => now,
-        })
+      ? {
+          verify: async () =>
+            access ? { ok: true } : { ok: false, reason: 'invalid' },
+        }
       : null,
     fetchClient: async () => client,
     introspectionSecret: INTROSPECTION_SECRET,
@@ -60,7 +50,6 @@ function setup({
   return {
     options,
     store,
-    code: () => totpCode(SECRET, totpStep(now)),
     advance(ms: number) {
       now = new Date(now.getTime() + ms);
     },
@@ -118,7 +107,7 @@ async function approve(
   grant: string[] = ['create', 'media', 'profile']
 ) {
   const response = await handleConsentDecision(
-    consentPost({ code: context.code(), grant }),
+    consentPost({ grant }),
     context.options
   );
   assert.equal(response.status, 303);
@@ -170,7 +159,7 @@ test('the consent page shows the client and the requested scopes', async () => {
   assert.match(html, /https:\/\/client\.example\/callback/);
   assert.match(html, /name="grant" value="create" checked/);
   assert.match(html, /name="grant" value="media" checked/);
-  assert.match(html, /autocomplete="one-time-code"/);
+  assert.doesNotMatch(html, /authenticator app|one-time-code/);
 });
 
 test('the consent page refuses a redirect URI the client does not list', async () => {
@@ -222,7 +211,7 @@ test('a consent post from another site is refused', async () => {
     { Origin: 'https://evil.example' },
   ]) {
     const response = await handleConsentDecision(
-      consentPost({ code: context.code() }, headers),
+      consentPost({}, headers),
       context.options
     );
     assert.equal(response.status, 403);
@@ -232,25 +221,25 @@ test('a consent post from another site is refused', async () => {
 test('a consent post with neither Sec-Fetch-Site nor Origin is refused', async () => {
   const context = setup();
   const response = await handleConsentDecision(
-    consentPost({ code: context.code() }, {}),
+    consentPost({}, {}),
     context.options
   );
   assert.equal(response.status, 403);
   const sameOrigin = await handleConsentDecision(
-    consentPost({ code: context.code() }, { Origin: site.origin }),
+    consentPost({}, { Origin: site.origin }),
     context.options
   );
   assert.equal(sameOrigin.status, 303);
 });
 
-test('a wrong code shows the form again and issues nothing', async () => {
-  const context = setup();
+test('a missing owner Access identity denies consent and issues nothing', async () => {
+  const context = setup({ access: false });
   const response = await handleConsentDecision(
-    consentPost({ code: '000000' }),
+    consentPost({}),
     context.options
   );
-  assert.equal(response.status, 401);
-  assert.match(await response.text(), /That code did not work/);
+  assert.equal(response.status, 403);
+  assert.match(await response.text(), /Cloudflare Access/);
 });
 
 test('denying sends access_denied back to the client', async () => {
@@ -390,9 +379,6 @@ test('a code without a scope redeems for a profile, never a token', async () => 
   assert.equal(refused.status, 200);
   assert.deepEqual(await refused.json(), { me: `${site.origin}/` });
 
-  // A fresh code, since the exchange spent that one. Wait for the next TOTP
-  // step, as each code signs in once.
-  context.advance(30_000);
   const profileCode = await approve(context, []);
   const profile = await handleProfileRedemption(
     formPost('/indieauth/auth', {
@@ -583,7 +569,6 @@ test('userinfo returns only profile fields granted to a valid bearer token', asy
     const context = setup();
     const consent = await handleConsentDecision(
       consentPost({
-        code: context.code(),
         scope: scope.join(' '),
         grant: scope,
       }),
@@ -654,7 +639,7 @@ test('ambiguous authorization and consent parameters cannot redirect or issue a 
     'code_challenge_method',
     'scope',
   ]) {
-    const { options, code } = setup();
+    const { options } = setup();
     const params = authorizationQuery();
     params.append(
       key,
@@ -669,7 +654,6 @@ test('ambiguous authorization and consent parameters cannot redirect or issue a 
     assert.equal(response.status, 400, key);
     assert.equal(response.headers.get('Location'), null, key);
     params.set('decision', 'approve');
-    params.set('code', code());
     const consent = await handleConsentDecision(
       new Request(`${site.origin}/indieauth/consent`, {
         method: 'POST',

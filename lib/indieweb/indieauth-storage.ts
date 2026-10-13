@@ -5,7 +5,6 @@ import type {
   IndieAuthEndpointOptions,
   IndieAuthStore,
   IndieAuthTokenRecord,
-  OwnerSignInStore,
 } from '@/lib/indieweb/types';
 import { ownerAccessAuthenticatorFromEnvironment } from '@/lib/owner/access';
 
@@ -134,48 +133,6 @@ export const indieAuthStore: IndieAuthStore = {
       UPDATE indieauth_tokens SET revoked_at = ${now.toISOString()}
       WHERE token_hash = ${tokenHash} AND revoked_at IS NULL
     `;
-  },
-};
-
-export const ownerSignInStore: OwnerSignInStore = {
-  async recordAttempt(windowMs, now) {
-    const since = new Date(now.getTime() - windowMs).toISOString();
-    await sql`DELETE FROM indieauth_sign_in_failures WHERE failed_at <= ${since}`;
-    // The insert commits before the count runs, so parallel requests each
-    // see their own row and every row recorded before it.
-    const inserted = await sql`
-      INSERT INTO indieauth_sign_in_failures (failed_at)
-      VALUES (${now.toISOString()})
-      RETURNING id
-    `;
-    const result = await sql`
-      SELECT COUNT(*) AS attempts FROM indieauth_sign_in_failures
-      WHERE failed_at > ${since}
-    `;
-    return {
-      id: String(inserted.rows[0].id),
-      attempts: Number(result.rows[0].attempts),
-    };
-  },
-  async forgetAttempt(id) {
-    await sql`DELETE FROM indieauth_sign_in_failures WHERE id = ${id}`;
-  },
-  async claimTotpStep(step, now) {
-    // A step claims only when it is later than every step used before, and
-    // the primary key settles two requests racing with the same code.
-    const result = await sql`
-      INSERT INTO indieauth_totp_steps (step, used_at)
-      SELECT ${step}, ${now.toISOString()}
-      WHERE NOT EXISTS (
-        SELECT 1 FROM indieauth_totp_steps WHERE step >= ${step}
-      )
-      ON CONFLICT (step) DO NOTHING
-      RETURNING step
-    `;
-    if (result.rows.length === 0) return false;
-    // Only the latest step matters to the check above.
-    await sql`DELETE FROM indieauth_totp_steps WHERE step < ${step}`;
-    return true;
   },
 };
 

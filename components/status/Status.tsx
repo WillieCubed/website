@@ -147,7 +147,6 @@ export default function Status({
     return (
       <SiteLink
         preview={false}
-        prefetch={true}
         href="/status"
         className="microstatus"
         aria-label={`Willie's status in ${location.city}${weather ? `, ${Math.round(weather.temperature)} degrees Fahrenheit, ${weatherLabel(weather)}` : ''}`}

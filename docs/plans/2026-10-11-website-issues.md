@@ -5,6 +5,11 @@ review the Music prototype first, then complete its private curation and provide
 integration. Publish About only after Willie approves its exact content and
 release. Research is deferred.
 
+The [production launch plan](../superpowers/plans/2026-10-12-music-production-launch.md)
+records the October 12 readiness audit and every remaining admin-to-public
+implementation and hosted acceptance gate. The reviewed screens alone are
+not a deployed Music feature.
+
 ## Decisions recorded on October 11, 2026
 
 | Issue                                                   | Decision                                    | Completion requirement                                                    |

@@ -28,6 +28,13 @@ Hosted write checks:
   object was deleted, and its URL returned 404 afterward.
 - A separate direct R2 object smoke returned byte-identical media with
   immutable cache and `nosniff` headers, then its object was deleted.
+- After replacing the unsupported Workers `dns.lookup` preflight, a hosted
+  Webmention received an external source at `https://httpbingo.org/status/404`
+  (with a unique query marker) and returned 202. The isolated Neon row was
+  subsequently marked deleted by the asynchronous verifier, which only
+  happens after fetching the source's real 404 response. The synthetic row
+  was deleted. This proves the Worker can fetch a public hostname through
+  Cloudflare's outbound proxy; the earlier invalid-source smoke could not.
 
 `pnpm check` passed 892 unit tests, lint, typecheck, and a normal Next.js
 build before the later writing cache and maintainer-doc edits. A subsequent

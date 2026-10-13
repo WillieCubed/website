@@ -243,18 +243,25 @@ rebase merging with required checks. The main ruleset remains unchanged and
 has no bypass actors. PR #201 remains draft and unmerged.
 
 The hosted protected publication attempt saved its immutable artifact proposal
-but stopped at GitHub 403 before opening a pull request. Its website-only
-publishing credential needs Contents and Pull requests read/write. GitHub's
-protected merge enforces the required checks; fine-grained personal access
-tokens cannot call the Checks API. Credential regeneration and provider
-replacement are pending; the local publishing-token copy was removed. Retry
-the retained publication after configuration, then verify the exact deployed
-source hash before claiming Live.
+but stopped at GitHub 403 before opening a pull request. The replacement
+website-only credential has Contents and Pull requests read/write; GitHub's
+protected merge enforces required checks. Its name is present on the preview
+Worker. Add the same secret to the production Worker, retry the retained
+publication, and verify the exact deployed source hash before claiming Live.
 
-Until the studio PR #201 lands, the private project's production branch is
-temporarily `codex/private-writing-preview`. Leaving it on `main` replaced
-the studio with the public code after the endpoint release; the private
-deployment was restored and the branch pinned. Return this project to `main`
-when the studio implementation is merged. The component-only implementation
-is the required deployment; prose generation and generation-driven document
+On October 13, `preview.willie.page` moved from a Vercel CNAME to a
+Worker-managed Cloudflare custom domain. Anonymous requests to the Studio,
+API, assets, and revision endpoint redirect to Access; direct `workers.dev`
+requests receive 401 from the Worker. A signed owner browser session loaded
+all five retained drafts through the new hostname. A scratch draft saved,
+survived a reload, and was then soft-deleted from private Postgres; the library
+returned to five drafts. The old Vercel encryption key for the two Lattice
+connection rows remains unavailable, so the owner must reconnect and select
+the personal runtime before hosted widget generation can pass.
+
+The preview Worker Builds connection remains on
+`codex/private-writing-preview` until PR #201 merges. Then return it to
+`main` or disable its duplicate automatic builds. The Vercel project's Git
+connection is already disconnected. The component-only implementation is the
+required deployment; prose generation and generation-driven document
 replacement are excluded from this product.

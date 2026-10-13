@@ -17,7 +17,7 @@ export default defineConfig((context) => {
       previewUrls: true,
       observability: { enabled: true },
       ...(preview
-        ? {}
+        ? { domains: ['preview.willie.page'] }
         : {
             domains: [
               'willie.page',

@@ -34,38 +34,4 @@ if (deploy.stdout) process.stdout.write(deploy.stdout);
 if (deploy.stderr) process.stderr.write(deploy.stderr);
 if (deploy.error) throw deploy.error;
 
-// cf's current upload path can fail while Cloudflare validates an existing
-// Hyperdrive binding. Its strict configuration comparison can also reject the
-// existing dashboard metadata even when Wrangler accepts the checked-in config.
-// Use the checked-in equivalent Wrangler config for either known failure.
-if (deploy.status !== 0) {
-  const output = `${deploy.stdout ?? ''}\n${deploy.stderr ?? ''}`;
-  const hyperdriveUnavailable =
-    output.includes('binding HYPERDRIVE') &&
-    output.includes('sqc-config failed with status code 503');
-  const strictConfigurationConflict =
-    output.includes('local configuration being used') &&
-    output.includes('Aborting the upload operation because of conflicts');
-  if (!hyperdriveUnavailable && !strictConfigurationConflict) {
-    process.exitCode = deploy.status ?? 1;
-  } else {
-    console.warn(
-      hyperdriveUnavailable
-        ? 'cf Hyperdrive validation returned 503; deploying with Wrangler.'
-        : 'cf rejected existing remote configuration metadata; deploying the checked-in Wrangler configuration.'
-    );
-    const fallback = spawnSync(
-      'pnpm',
-      [
-        'exec',
-        'wrangler',
-        'deploy',
-        '--config',
-        target === 'preview' ? 'wrangler.preview.jsonc' : 'wrangler.jsonc',
-      ],
-      { stdio: 'inherit', env }
-    );
-    if (fallback.error) throw fallback.error;
-    if (fallback.status !== 0) process.exitCode = fallback.status ?? 1;
-  }
-}
+if (deploy.status !== 0) process.exitCode = deploy.status ?? 1;

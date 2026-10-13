@@ -164,3 +164,75 @@ test('missing weather shows a pending state during refresh and an error only aft
   ).not.toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('weather-loaded.png') });
 });
+
+test('footer status adapts within one row even with a long city name', async ({
+  page,
+}) => {
+  await page.route('**/api/status', (route) =>
+    route.fulfill({
+      json: {
+        location: {
+          city: 'Llanfairpwllgwyngyll',
+          region: 'Wales',
+          country: 'United Kingdom',
+          timezone: 'Europe/London',
+          updatedAt: null,
+        },
+        weather: {
+          temperature: 102,
+          unit: 'F',
+          code: 0,
+          isDay: true,
+          observedAt: new Date().toISOString(),
+        },
+      },
+    })
+  );
+  await page.goto('/');
+  const status = page.locator('.microstatus');
+  await expect(status.locator('.status-city')).toHaveText(
+    'Llanfairpwllgwyngyll'
+  );
+  for (const width of [320, 390, 600, 840, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    );
+    await expect
+      .poll(() =>
+        page.locator('.site-footer__row').evaluate((row) => {
+          const controls = [
+            row.querySelector('.site-footer__profiles')!,
+            row.querySelector('.microstatus')!,
+            row.querySelector('.feeds-button')!,
+          ];
+          const [profiles, status, feeds] = controls.map((e) =>
+            e.getBoundingClientRect()
+          );
+          const height = row.getBoundingClientRect().height;
+          const lastContact = Math.max(
+            ...[...controls[0].querySelectorAll('a')]
+              .filter((e) => e.getClientRects().length)
+              .map((e) => e.getBoundingClientRect().right)
+          );
+          return (
+            height <=
+              Math.max(profiles.height, status.height, feeds.height) + 1 &&
+            Math.abs(
+              status.y + status.height / 2 - feeds.y - feeds.height / 2
+            ) < 1 &&
+            Math.abs(
+              status.y + status.height / 2 - profiles.y - profiles.height / 2
+            ) < 1 &&
+            lastContact <= status.x &&
+            status.right <= feeds.x &&
+            document.documentElement.scrollWidth <= innerWidth
+          );
+        })
+      )
+      .toBe(true);
+    await expect(
+      page.getByRole('button', { name: 'Feeds', exact: true })
+    ).toBeVisible();
+  }
+});

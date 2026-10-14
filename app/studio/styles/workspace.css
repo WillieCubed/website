@@ -1,0 +1,251 @@
+@media (min-width: 840px) {
+  .studio-insertion-row > button:is(:hover, :focus-visible) .studio-add-label {
+    display: block;
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + var(--spacing-sm));
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-lg);
+    background: var(--color-on-surface);
+    color: var(--color-surface);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
+.studio-editor-context {
+  display: inline-flex;
+  gap: var(--spacing-sm);
+  padding: 0;
+}
+.studio-block-details[hidden] {
+  display: none;
+}
+.studio-editor .studio-block-guidance,
+.studio-editor .studio-block-details small,
+.studio-editor .studio-block-alternative {
+  color: var(--color-muted);
+  font-size: var(--text-body-small);
+  line-height: 1.5;
+}
+.studio-editor .studio-block-settings-title {
+  margin-block: 20px 0;
+  font-size: var(--text-label-large, 14px);
+  font-weight: var(--text-label-large--font-weight);
+}
+.studio-block-alternative summary {
+  cursor: pointer;
+  min-height: var(--control-target);
+  padding-block: var(--spacing-md);
+}
+.studio-block-heading {
+  flex-wrap: wrap;
+}
+.studio-block-heading > strong {
+  font-size: var(--text-label-large);
+  line-height: var(--text-label-large--line-height);
+  font-weight: var(--text-label-large--font-weight);
+  color: var(--color-on-surface-variant);
+  flex: 1 1 120px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 839px) {
+  .studio-heading-fields {
+    margin-inline: 0;
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-3xl);
+  }
+  .studio-writing-surface {
+    margin-inline: 0;
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-3xl);
+  }
+  .studio-editor .studio-source {
+    padding: var(--spacing-lg);
+    margin-inline: calc(-1 * var(--spacing-sm));
+    border-radius: var(--radius-2xl);
+  }
+  .studio-editor .studio-widget-output {
+    border-radius: var(--radius-2xl);
+  }
+  .studio-block-heading {
+    justify-content: flex-start;
+    gap: var(--spacing-sm);
+  }
+  .studio-block-heading > strong {
+    flex-basis: 100%;
+  }
+  .studio-editor .studio-insertion-row {
+    top: var(--block-boundary, 0px);
+    left: 0;
+    right: 0;
+    width: auto;
+  }
+  .studio-editor .studio-insertion-row > button {
+    width: 100%;
+    height: var(--spacing-xl);
+    min-height: var(--spacing-xl);
+    padding: 0 var(--spacing-sm);
+    border-radius: var(--shape-full);
+  }
+  .studio-editor .studio-insertion-row > button > svg {
+    width: var(--spacing-lg);
+    height: var(--spacing-lg);
+  }
+  .studio-editor .studio-writing-space:focus-within .studio-insertion-row,
+  .studio-editor
+    .studio-writing-space:has(.studio-widget-frames[data-widget-active])
+    .studio-insertion-row,
+  .studio-editor
+    .studio-writing-space:has(:popover-open)
+    .studio-insertion-row {
+    top: var(--block-boundary, 0px);
+  }
+}
+.studio-byline {
+  position: relative;
+}
+.studio-byline .site-button,
+.studio-byline .studio-inline-trigger {
+  margin-block: 0;
+}
+.studio-editor-context > [role='status'] {
+  font-size: inherit;
+  flex: 1;
+}
+.studio-editor .studio-prose:has(p:only-child:empty) {
+  min-height: 3lh;
+}
+
+.studio-selection-tools[hidden] {
+  display: none;
+}
+.studio-history-inspection {
+  flex: 1;
+  min-width: 0;
+}
+.studio-history-inspection summary {
+  min-height: var(--control-target);
+  cursor: pointer;
+  display: list-item;
+}
+
+.studio-writing-space {
+  position: relative;
+  cursor: text;
+}
+.studio-save-state {
+  min-width: 5ch;
+}
+.studio-task,
+.studio-review-screen {
+  animation: studio-task-enter var(--duration-fast) var(--ease-site);
+}
+.studio-editor .site-button,
+.studio-editor .studio-inline-trigger {
+  transition:
+    background-color var(--duration-fast) var(--ease-site),
+    color var(--duration-fast) var(--ease-site);
+}
+@keyframes studio-task-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-task,
+  .studio-review-screen {
+    animation: none;
+  }
+  :is(.studio-editor, .writing-studio) .site-button,
+  .studio-editor .studio-inline-trigger {
+    transition: none;
+  }
+}
+
+/* Media controls occupy space immediately after their source block. */
+.studio-editor .studio-inline-media {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  background: var(--color-ground);
+}
+.studio-writing-space:has(.studio-inline-media) .studio-active-block {
+  margin-bottom: calc(
+    var(--inline-panel-height) + var(--spacing-xl)
+  ) !important;
+}
+.studio-writing-space:has(.studio-inline-media) .studio-insertion-row {
+  visibility: hidden;
+}
+
+.studio-portable-review {
+  margin-block: var(--spacing-xl);
+  padding-block: var(--spacing-lg);
+  border-block: 1px solid var(--color-line);
+}
+.studio-portable-text {
+  white-space: pre-wrap;
+}
+.studio-portable-review summary {
+  min-height: var(--control-target);
+  padding-block: var(--spacing-md);
+  cursor: pointer;
+}
+
+.studio-document-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: 0;
+}
+.studio-document-controls > button:last-of-type {
+  margin-left: 0;
+  width: var(--control-target);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+
+@media (max-width: 839px) {
+  .studio-document-metadata {
+    padding-inline: var(--spacing-lg);
+    gap: var(--spacing-2xs) var(--spacing-lg);
+  }
+  .studio-document-toolbar {
+    margin-inline: 0;
+  }
+}
+
+/* On phones, the writing area becomes the page ground rather than an inset card. */
+@media (max-width: 599px) {
+  .studio-editor {
+    padding-bottom: 0;
+  }
+  .studio-editor > .studio-reading-column {
+    padding-inline: 0;
+  }
+  .studio-writing-surface {
+    border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
+  }
+  .studio-document-controls {
+    flex-wrap: nowrap;
+    gap: var(--spacing-sm);
+  }
+  body:has(main.studio-editor .studio-writing-surface) .site-footer {
+    margin-top: 0;
+  }
+  .studio-document-controls > button:last-of-type {
+    margin-left: auto;
+    margin-right: var(--spacing-sm);
+  }
+}

@@ -1,0 +1,234 @@
+.studio-widget-inspector {
+  --field-fill: var(--color-surface-container-lowest);
+  position: fixed;
+  inset: auto 0 var(--inspector-keyboard-inset, 0px);
+  width: 100%;
+  max-width: var(--max-width-breakpoint-md);
+  max-height: calc(
+    var(--inspector-available-height, 100dvh) - var(--spacing-2xl)
+  );
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
+  background: var(--color-surface-container);
+  color: var(--color-ink);
+  overflow: hidden;
+  font: inherit;
+  z-index: 40;
+}
+.studio-widget-inspector[open] {
+  display: flex;
+  flex-direction: column;
+  animation: studio-inspector-enter var(--duration-standard) var(--ease-site);
+}
+.studio-widget-inspector[data-closing] {
+  animation: studio-inspector-exit var(--duration-standard) var(--ease-site)
+    forwards;
+}
+.studio-widget-inspector::backdrop {
+  background: color-mix(in srgb, var(--color-ink) 32%, transparent);
+  animation: studio-inspector-scrim-enter var(--duration-standard)
+    var(--ease-site);
+}
+.studio-widget-inspector[data-closing]::backdrop {
+  animation: studio-inspector-scrim-exit var(--duration-standard)
+    var(--ease-site) forwards;
+}
+body:has(.studio-widget-inspector:modal) {
+  overflow: hidden;
+}
+.studio-inspector-header,
+.studio-inspector-footer {
+  /* Mirror the thin scroll track so fields and chrome share balanced rails. */
+  scrollbar-gutter: stable both-edges;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+  padding: var(--spacing-lg);
+}
+.studio-inspector-header {
+  justify-content: space-between;
+  padding-block: var(--spacing-md);
+}
+.studio-inspector-header h2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--text-title-medium);
+  line-height: var(--text-title-medium--line-height);
+  font-weight: var(--text-title-medium--font-weight);
+}
+.studio-inspector-header h2:focus {
+  outline: none;
+}
+.studio-inspector-header > button {
+  flex-shrink: 0;
+}
+.studio-inspector-content {
+  overflow: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  padding: var(--spacing-2xs) 0 0;
+  display: grid;
+  gap: var(--spacing-xl);
+  scrollbar-gutter: stable both-edges;
+}
+.studio-widget-settings {
+  display: grid;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+.studio-widget-inspector .site-field {
+  margin: 0;
+}
+.studio-widget-inspector .studio-checkbox-field {
+  grid-template-columns: var(--spacing-lg) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--spacing-sm);
+  min-height: var(--control-target);
+}
+.studio-checkbox-field > span {
+  grid-column: 2;
+  grid-row: 1;
+}
+.studio-checkbox-field > input {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+}
+.studio-checkbox-field > small {
+  grid-column: 2;
+}
+.studio-widget-inspector .site-field:focus-within {
+  /* Edge-to-edge surfaces keep their complete keyboard ring inside the scroller. */
+  outline-offset: calc(-1 * var(--focus-width));
+}
+.studio-widget-inspector small,
+.studio-widget-inspector .studio-block-guidance {
+  margin: 0;
+  font-size: var(--text-label-large);
+  line-height: var(--text-label-large--line-height);
+  color: var(--color-on-surface-variant);
+}
+.studio-widget-inspector input[type='checkbox'] {
+  width: var(--spacing-lg);
+  height: var(--spacing-lg);
+  accent-color: var(--color-primary);
+}
+.studio-widget-inspector textarea {
+  resize: vertical;
+}
+.studio-widget-inspector textarea:not([rows]) {
+  min-height: 5lh;
+}
+.studio-portable-settings {
+  min-width: 0;
+}
+.studio-portable-settings > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  cursor: pointer;
+  font-size: var(--text-label-large);
+  font-weight: var(--text-label-large--font-weight);
+}
+.studio-portable-settings > summary::before {
+  content: '+';
+}
+.studio-portable-settings[open] > summary::before {
+  content: '−';
+}
+.studio-portable-settings > summary > span:first-child {
+  flex: 1;
+}
+.studio-alternative-status {
+  color: var(--color-ink);
+  font-weight: normal;
+}
+.studio-portable-settings > section {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+.studio-portable-settings > section > button {
+  justify-self: start;
+}
+.studio-inspector-footer {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-inline: 0;
+  padding-top: var(--spacing-xl);
+  padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+}
+/* A modal sheet has room to breathe around its editable surfaces. The narrow
+   desktop gutter keeps its existing edge-to-edge fields. */
+.studio-widget-inspector:modal .studio-inspector-content {
+  padding-inline: var(--spacing-md);
+}
+.studio-widget-inspector:modal .studio-inspector-header {
+  padding-inline: calc(var(--spacing-md) + var(--spacing-lg));
+}
+.studio-widget-inspector:modal .studio-inspector-footer {
+  padding-inline: var(--spacing-md);
+}
+@keyframes studio-inspector-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-lg));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes studio-inspector-exit {
+  to {
+    opacity: 0;
+    transform: translateY(var(--spacing-lg));
+  }
+}
+@keyframes studio-inspector-scrim-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes studio-inspector-scrim-exit {
+  to {
+    opacity: 0;
+  }
+}
+@media (min-width: 600px) and (max-width: 1439px) {
+  .studio-widget-inspector {
+    width: calc(100% - 2 * var(--spacing-xl));
+  }
+}
+@media (min-width: 1440px) {
+  .studio-widget-inspector {
+    /* The writing keeps its established center and width. Use only its gutter,
+       leaving one gap beyond the canvas bleed and one at the window edge. */
+    inset: var(--spacing-lg) var(--spacing-xl) var(--spacing-lg)
+      calc(50% + var(--max-width-breakpoint-md) / 2 + 2 * var(--spacing-xl));
+    width: auto;
+    min-width: 20rem;
+    max-width: 22rem;
+    margin: 0;
+    max-height: calc(100dvh - 2 * var(--spacing-lg));
+    border-radius: var(--radius-3xl);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-widget-inspector[open],
+  .studio-widget-inspector::backdrop {
+    animation: none;
+  }
+}

@@ -1,0 +1,104 @@
+/* The restored writing workspace uses the site's Material surface roles. */
+:is(.studio-editor, .writing-studio) {
+  --control-target: 44px;
+  --focus-width: 2px;
+  --shape-full: 999px;
+  --duration-fast: 160ms;
+  --duration-standard: 200ms;
+}
+
+:is(.studio-editor, .writing-studio) .site-button {
+  --button-fill: var(--color-surface-container-high);
+  --button-ink: var(--color-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  min-height: var(--control-target);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: 1px solid transparent;
+  border-radius: var(--shape-full);
+  background: var(--button-fill);
+  color: var(--button-ink);
+  font: inherit;
+  font-size: var(--text-label-large);
+  font-weight: var(--text-label-large--font-weight);
+  line-height: var(--text-label-large--line-height);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-site),
+    color var(--duration-fast) var(--ease-site);
+}
+:is(.studio-editor, .writing-studio) .site-button > svg {
+  display: block;
+  flex: none;
+}
+:is(.studio-editor, .writing-studio) .site-button-tonal {
+  --button-fill: var(--color-primary-container);
+  --button-ink: var(--color-on-primary-container);
+}
+:is(.studio-editor, .writing-studio) .site-button-primary {
+  --button-fill: var(--color-primary);
+  --button-ink: var(--color-on-primary);
+}
+:is(.studio-editor, .writing-studio) .site-button-quiet {
+  --button-fill: transparent;
+  --button-ink: var(--color-on-surface-variant);
+}
+:is(.studio-editor, .writing-studio) .site-button-outlined {
+  border-color: var(--color-line);
+}
+:is(.studio-editor, .writing-studio) .site-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--button-ink) 8%, var(--button-fill));
+}
+:is(.studio-editor, .writing-studio) .site-button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--button-ink) 12%, var(--button-fill));
+}
+:is(.studio-editor, .writing-studio) .site-button:focus-visible {
+  outline: var(--focus-width) solid var(--color-accent);
+  outline-offset: var(--spacing-2xs);
+}
+:is(.studio-editor, .writing-studio) .site-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+:is(.studio-editor, .writing-studio) .site-button-icon {
+  width: var(--control-target);
+  height: var(--control-target);
+  flex: none;
+  padding: 0;
+}
+:is(.studio-editor, .writing-studio) .site-field {
+  display: grid;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-2xl);
+  background: var(--field-fill, var(--color-surface-container-highest));
+  font-size: var(--text-label-large);
+  line-height: var(--text-label-large--line-height);
+}
+:is(.studio-editor, .writing-studio) .site-field:focus-within {
+  outline: var(--focus-width) solid var(--color-accent);
+  outline-offset: var(--spacing-2xs);
+}
+:is(.studio-editor, .writing-studio) .site-field :is(input, textarea, select) {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-body-large);
+  line-height: var(--text-body-large--line-height);
+}
+:is(.studio-editor, .writing-studio)
+  .site-field
+  :is(input, textarea, select):focus-visible {
+  outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.studio-editor, .writing-studio) .site-button {
+    transition: none;
+  }
+}

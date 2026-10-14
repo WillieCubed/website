@@ -1,9 +1,11 @@
 'use client';
+
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
+import Button from '@/components/site/Button';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
@@ -69,15 +71,15 @@ export default function StudioLibrary() {
         <section className="mt-6">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4">
             <h1 className="text-display-small">Your writings</h1>
-            <button
-              className="feeds-button min-h-11"
+            <Button
+              className="site-button site-button-surface site-button-tonal min-h-11"
               type="button"
               disabled={creating}
               onClick={() => void create()}
             >
               <Icon name="pen-line" size={16} />
-              {creating ? 'Opening…' : 'New writing'}
-            </button>
+              <span>{creating ? 'Opening…' : 'New writing'}</span>
+            </Button>
           </div>
           <p className="mt-3 text-body-medium text-muted">
             <SiteLink

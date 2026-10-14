@@ -2,6 +2,8 @@ export interface CatalogProperty {
   type: 'string' | 'number' | 'boolean';
   required?: boolean;
   description: string;
+  label?: string;
+  options?: readonly { value: string; label: string }[];
 }
 
 export interface CatalogEntry {

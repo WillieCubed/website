@@ -1,10 +1,14 @@
-import { generateRssFeed } from '@/lib/feeds';
-import { getSiteFeedItems } from '@/lib/feeds/items';
+import { generateRssFeed } from '@/lib/indieweb/feeds/index';
+import { getSiteFeedItems } from '@/lib/indieweb/feeds/items';
 
 async function buildFeed() {
   return generateRssFeed(await getSiteFeedItems());
 }
 
+/**
+ * Return published writings, dated initiatives, and projects, newest first,
+ * as RSS.
+ */
 export async function GET() {
   const feed = await buildFeed();
 

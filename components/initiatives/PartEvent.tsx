@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 
-import { type Initiative, type Part, partTitle } from '@/lib/initiatives';
+import { type Initiative, type Part } from '@/lib/initiatives/index';
+import { partTitle } from '@/lib/initiatives/load';
 
 import { formatRange, isoDate } from './dates';
 
@@ -17,8 +18,8 @@ interface PartEventProps {
 /**
  * The words over a part's cover, marked up as an h-event so a reader's
  * calendar or a parser can take the trip as an event. The name is the
- * standalone part title, because the event is read away from the page
- * (docs/reference/design/metadata.md). The name, the URL, and the last day are `<data>`
+ * standalone part title, because the event is read away from the page.
+ * The name, the URL, and the last day are `<data>`
  * elements because the page shows them some other way or not at all.
  */
 export default function PartEvent({ initiative, part, url }: PartEventProps) {

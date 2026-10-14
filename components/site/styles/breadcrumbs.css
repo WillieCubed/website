@@ -1,0 +1,355 @@
+.site-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 12px;
+  border-radius: 8px;
+  color: var(--color-ink);
+  transition: background-color 160ms var(--ease-site);
+}
+.site-breadcrumbs {
+  --home-crumb-padding-x: 8px;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+}
+.site-breadcrumbs__crumb {
+  gap: 7px;
+}
+.site-breadcrumbs__crumb,
+.site-breadcrumb-item--home {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.site-breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+.site-breadcrumb-name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px var(--home-crumb-padding-x) 4px 0;
+  border-radius: 8px;
+}
+.site-breadcrumb-name__mark {
+  display: none;
+  width: 1.375em;
+  height: 1.375em;
+}
+header[data-compact='true'] .site-breadcrumb-name__mark {
+  display: block;
+}
+/* The name stays the link's accessible name while the cube shows. */
+header[data-compact='true'] .site-breadcrumb-name__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Before the bar has measured itself, a phone with two or more crumbs
+   starts compact, since nearly every such trail overflows there. This keeps
+   the first paint from showing the name and then swapping it for the cube. */
+@media (max-width: 639px) {
+  header[data-long-trail]:not([data-compact]) .site-breadcrumb-name__mark {
+    display: block;
+  }
+  header[data-long-trail]:not([data-compact]) .site-breadcrumb-name__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+/* The ellipsis crumb swaps in for the crumbs it folds, with no transition
+   between them, when the cube alone does not make room. TopBarFrame marks
+   each folded crumb and the menu link that stands in for it. */
+.site-breadcrumbs__crumb--collapsed,
+header[data-folded] .site-breadcrumbs__crumb--middle[data-folded],
+header[data-folded]
+  .site-breadcrumbs__crumb--collapsed
+  .site-breadcrumb-menu__link:not([data-folded]) {
+  display: none;
+}
+header[data-folded]:not([data-folded='0']) .site-breadcrumbs__crumb--collapsed {
+  display: flex;
+}
+/* Trails that nearly always fold on a phone start folded, for the same
+   reason long trails start compact. TopBar makes the guess, and the widths
+   are where the Fall Tour part and initiative pages stop fitting. */
+@media (max-width: 419px) {
+  header[data-deep-trail='phone']:not([data-folded])
+    .site-breadcrumbs__crumb--middle {
+    display: none;
+  }
+}
+@media (min-width: 420px) and (max-width: 499px) {
+  header[data-deep-trail='phone']:not([data-folded])
+    .site-breadcrumbs__crumb--middle[data-depth='0'] {
+    display: none;
+  }
+}
+@media (max-width: 343px) {
+  header[data-deep-trail='narrow']:not([data-folded])
+    .site-breadcrumbs__crumb--middle {
+    display: none;
+  }
+}
+@media (max-width: 499px) {
+  header[data-deep-trail='phone']:not([data-folded])
+    .site-breadcrumbs__crumb--collapsed {
+    display: flex;
+  }
+}
+@media (max-width: 343px) {
+  header[data-deep-trail='narrow']:not([data-folded])
+    .site-breadcrumbs__crumb--collapsed {
+    display: flex;
+  }
+}
+/* The current page's label truncates when even the collapsed trail does not
+   fit, so the rail never has to scroll. */
+.site-breadcrumbs__crumb:last-child {
+  flex-shrink: 1;
+  min-width: 0;
+}
+.site-breadcrumbs__crumb:last-child
+  :is(.site-breadcrumb-item, .site-breadcrumb-menu-trigger) {
+  min-width: 0;
+}
+.site-breadcrumbs__crumb:last-child .site-breadcrumb-menu__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.site-breadcrumb-name:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.site-breadcrumb-menu-trigger {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+.site-breadcrumb-menu-trigger::before {
+  position: absolute;
+  inset: 8px 0;
+  z-index: -1;
+  border-radius: inherit;
+  content: '';
+  pointer-events: none;
+  transition: background-color 160ms var(--ease-site);
+}
+.site-breadcrumb-item--home .site-breadcrumb-menu-trigger::before {
+  left: calc(-1 * var(--home-crumb-padding-x));
+}
+.site-breadcrumb-menu__icon {
+  display: inline-flex;
+  flex: none;
+  color: inherit;
+  transition: transform 160ms var(--ease-site);
+}
+.site-breadcrumb-menu-trigger[aria-expanded='true']
+  .site-breadcrumb-menu__icon {
+  transform: rotate(180deg);
+}
+@media (hover: hover) {
+  .site-breadcrumb-menu-trigger:hover::before {
+    background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  }
+}
+.site-breadcrumb-menu-trigger:focus-visible,
+.site-breadcrumb-menu-trigger[aria-expanded='true'] {
+  color: var(--color-ink);
+}
+.site-breadcrumb-menu-trigger[aria-expanded='true']::before {
+  background: color-mix(in srgb, var(--color-ink) 10%, transparent);
+}
+.site-breadcrumb-menu-trigger:focus-visible {
+  outline: none;
+}
+.site-breadcrumb-menu-trigger:focus-visible::before {
+  background: color-mix(in srgb, var(--color-ink) 10%, transparent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.site-breadcrumb-menu {
+  box-sizing: border-box;
+  width: max-content;
+  min-width: min(160px, calc(100vw - 32px));
+  max-width: min(240px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  white-space: normal;
+}
+.site-breadcrumb-menu__items {
+  display: grid;
+  gap: 2px;
+}
+.site-breadcrumb-menu__link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.site-breadcrumb-menu__link[aria-current='page'] {
+  background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  color: var(--color-ink);
+}
+.site-breadcrumb-menu__link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .site-breadcrumb-menu__link:hover {
+    background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  }
+}
+.site-breadcrumb-menu__link:active {
+  background: color-mix(in srgb, var(--color-ink) 10%, transparent);
+}
+@media (hover: hover) {
+  .site-breadcrumb:hover {
+    background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  }
+}
+.site-breadcrumb:focus-visible,
+.site-breadcrumb:active,
+.site-breadcrumb[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--color-ink) 10%, transparent);
+}
+.site-breadcrumb:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Keep the 44px target while drawing a shorter state surface around its text. */
+header[data-column] .site-breadcrumb {
+  position: relative;
+  isolation: isolate;
+  padding: 4px 8px;
+}
+@media (max-width: 360px) {
+  .site-breadcrumbs {
+    --home-crumb-padding-x: 4px;
+    gap: 3px;
+  }
+  .site-breadcrumbs__crumb {
+    gap: 3px;
+  }
+  header[data-column] .site-breadcrumb {
+    padding-inline: 4px;
+  }
+}
+/* A compact trail draws its crumbs closer, which saves 10px a crumb before
+   anything has to fold. Phones at or below 360px are already this close. */
+@media (min-width: 361px) {
+  header[data-compact='true'] .site-breadcrumbs,
+  header[data-compact='true'] .site-breadcrumbs__crumb {
+    --home-crumb-padding-x: 6px;
+    gap: 4px;
+  }
+  header[data-compact='true'] .site-breadcrumbs .site-breadcrumb {
+    padding-inline: 6px;
+  }
+}
+@media (min-width: 361px) and (max-width: 639px) {
+  header[data-long-trail]:not([data-compact]) .site-breadcrumbs,
+  header[data-long-trail]:not([data-compact]) .site-breadcrumbs__crumb {
+    --home-crumb-padding-x: 6px;
+    gap: 4px;
+  }
+  header[data-long-trail]:not([data-compact])
+    .site-breadcrumbs
+    .site-breadcrumb {
+    padding-inline: 6px;
+  }
+}
+@media (max-width: 639px) {
+  .site-breadcrumbs {
+    /* Keep the expanded visual state inside the clipped breadcrumb rail. */
+    margin-left: calc(-1 * var(--home-crumb-padding-x));
+    padding-left: var(--home-crumb-padding-x);
+    overflow-x: clip;
+  }
+}
+header[data-column] .site-breadcrumb::before {
+  position: absolute;
+  inset: 8px 0;
+  z-index: -1;
+  border-radius: inherit;
+  content: '';
+  pointer-events: none;
+  transition: background-color 160ms var(--ease-site);
+}
+@media (hover: hover) {
+  header[data-column] .site-breadcrumb:hover {
+    background: transparent;
+  }
+  header[data-column] .site-breadcrumb:hover::before {
+    background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  }
+}
+header[data-column] .site-breadcrumb:focus-visible,
+header[data-column] .site-breadcrumb:active,
+header[data-column] .site-breadcrumb[aria-expanded='true'] {
+  background: transparent;
+}
+header[data-column] .site-breadcrumb:focus-visible::before,
+header[data-column] .site-breadcrumb:active::before,
+header[data-column] .site-breadcrumb[aria-expanded='true']::before {
+  background: color-mix(in srgb, var(--color-ink) 10%, transparent);
+}
+header[data-column] .site-breadcrumb:focus-visible {
+  outline: none;
+}
+header[data-column] .site-breadcrumb:focus-visible::before {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.site-private-indicator {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+html[data-site-mode='preview'] .site-private-indicator {
+  display: inline-flex;
+}
+.site-private-indicator__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+html[data-site-mode='preview'] .site-private-indicator + .site-topbar-search {
+  margin-left: 12px;
+}

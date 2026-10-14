@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-import { setFooterDocked } from '@/lib/footer/docked';
+import { setFooterDocked } from '@/lib/site/footer/docked';
 
 /**
  * Rendered by the homepage to say that the footer is its contact row until

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
-import type { MediaMention as Mention } from '@/lib/media';
+import type { MediaMention as Mention } from '@/lib/media/content';
 
 const dateFormat = new Intl.DateTimeFormat('en-US', {
   // Calendar dates must not shift a day when rendered in the site's zone.

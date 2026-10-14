@@ -1,7 +1,7 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { randomUUID } from 'node:crypto';
 
-import { createPool } from '@/lib/db/postgres';
+import { type PostgresPoolClient, createPool } from '@/lib/db/postgres';
 
 import { StudioError } from './errors';
 import type {
@@ -14,10 +14,12 @@ import type {
   StudioStore,
 } from './types';
 
-type StudioPool = ReturnType<typeof createPool>;
+type StudioPool = Pick<ReturnType<typeof createPool>, 'query'> & {
+  connect(): Promise<Pick<PostgresPoolClient, 'query' | 'release'>>;
+};
 
-let pool: StudioPool | undefined;
-export function getStudioPool(): StudioPool {
+let pool: ReturnType<typeof createPool> | undefined;
+export function getStudioPool(): ReturnType<typeof createPool> {
   if (pool) return pool;
   const localUrl = process.env.STUDIO_DATABASE_URL;
   let workerBinding = false;
@@ -42,7 +44,22 @@ const projection = `SELECT d.id, d.slug, d.live_revision_id, d.deleted_at,
   r.id AS revision_id, r.number, r.body, r.created_at
   FROM studio_documents d JOIN studio_revisions r ON r.id = d.head_id`;
 
-function revision(row: Record<string, any>): Revision {
+interface RevisionRow {
+  id: string;
+  revision_id?: string;
+  document_id?: string;
+  number: number;
+  body: DraftContent;
+  created_at: string | Date;
+}
+
+interface DraftRow extends RevisionRow {
+  slug: string;
+  live_revision_id: string | null;
+  deleted_at: string | Date | null;
+}
+
+function revision(row: RevisionRow): Revision {
   return {
     id: row.revision_id ?? row.id,
     documentId: row.document_id ?? row.id,
@@ -52,7 +69,7 @@ function revision(row: Record<string, any>): Revision {
   };
 }
 
-function draft(row: Record<string, any>): Draft {
+function draft(row: DraftRow): Draft {
   return {
     id: row.id,
     slug: row.slug,
@@ -68,14 +85,14 @@ export class PostgresStudioStore implements StudioStore {
 
   async list() {
     return (
-      await this.pool.query(
+      await this.pool.query<DraftRow>(
         projection + ' WHERE d.deleted_at IS NULL ORDER BY r.created_at DESC'
       )
     ).rows.map(draft);
   }
 
   async get(id: string) {
-    const result = await this.pool.query(
+    const result = await this.pool.query<DraftRow>(
       projection + ' WHERE d.id = $1 AND d.deleted_at IS NULL',
       [id]
     );
@@ -83,7 +100,7 @@ export class PostgresStudioStore implements StudioStore {
   }
 
   async bySlug(slug: string) {
-    const result = await this.pool.query(
+    const result = await this.pool.query<DraftRow>(
       projection + ' WHERE d.slug = $1 AND d.deleted_at IS NULL',
       [slug]
     );
@@ -115,7 +132,7 @@ export class PostgresStudioStore implements StudioStore {
         throw new StudioError(409, 'A writing already uses that address.');
       throw error;
     } finally {
-      client.release();
+      await client.release();
     }
     return (await this.get(id))!;
   }
@@ -162,7 +179,7 @@ export class PostgresStudioStore implements StudioStore {
       await client.query('ROLLBACK');
       throw error;
     } finally {
-      client.release();
+      await client.release();
     }
     if (conflict) throw conflict;
     return (await this.get(id))!;
@@ -170,7 +187,7 @@ export class PostgresStudioStore implements StudioStore {
 
   async revisions(id: string) {
     return (
-      await this.pool.query(
+      await this.pool.query<RevisionRow>(
         'SELECT * FROM studio_revisions WHERE document_id=$1 ORDER BY number DESC',
         [id]
       )
@@ -178,7 +195,7 @@ export class PostgresStudioStore implements StudioStore {
   }
 
   async revision(id: string) {
-    const result = await this.pool.query(
+    const result = await this.pool.query<RevisionRow>(
       'SELECT * FROM studio_revisions WHERE id=$1',
       [id]
     );
@@ -266,7 +283,7 @@ export class PostgresStudioStore implements StudioStore {
       await client.query('ROLLBACK');
       throw error;
     } finally {
-      client.release();
+      await client.release();
     }
   }
 

@@ -2,12 +2,12 @@
  * Everything the homepage shows about Willie's organizations and projects.
  *
  * Adding work to the homepage means adding an entry here; the grid packs new
- * tiles without a layout change. The markup lives in components/home and
- * reads these records, so nothing here carries HTML.
+ * tiles without a layout change. The homepage renders
+ * these records, so nothing here carries HTML.
  */
 import type { FocusId } from './focuses';
 
-/** A key into lib/brand/seeds.json. */
+/** A key into the shared brand seeds. */
 export type BrandKey =
   | 'lvbt'
   | 'logdate'
@@ -18,9 +18,8 @@ export type BrandKey =
   | 'hypertext';
 
 /**
- * A picture with its intrinsic size, so the page reserves its box before the
- * file arrives. The files are WebP; tests/unit/home-images.test.mts checks
- * that each one exists and matches the size given here.
+ * A WebP picture with its intrinsic size, so the page reserves its box before
+ * it arrives. Tests verify that each asset exists and matches these dimensions.
  */
 export interface Picture {
   src: string;
@@ -91,7 +90,7 @@ export interface Product {
   name: string;
   brand: BrandKey;
   parent: string;
-  /** The focuses the product serves (lib/home/focuses.ts). */
+  /** The homepage goals the product serves. */
   focuses: FocusId[];
   platform: string;
   copy: string;
@@ -123,7 +122,7 @@ export interface Venture {
    * the whole row at the medium and expanded sizes too.
    */
   size: string;
-  /** The focuses the venture's tile serves (lib/home/focuses.ts). */
+  /** The homepage goals the venture's tile serves. */
   focuses: FocusId[];
   /** The chip that appears over the tile label on hover. */
   hint: string;

@@ -5,9 +5,9 @@ import type {
   SiteStandardPublication,
 } from '@atcute/standard-site';
 
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 import { clipText } from '@/lib/text/clip';
-import { themeSchemes } from '@/lib/theme';
+import { themeSchemes } from '@/lib/theme/tokens';
 import { writingText } from '@/lib/writings/content';
 import type { WritingData } from '@/lib/writings/types';
 

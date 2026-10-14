@@ -2,7 +2,7 @@
 
 import Button from '@/components/site/Button';
 
-import { formatDate } from '@/lib/site';
+import { formatDate } from '@/lib/site/dates';
 import type { DraftContent } from '@/lib/studio/types';
 
 import { type CatalogEntry } from './StudioNodes';

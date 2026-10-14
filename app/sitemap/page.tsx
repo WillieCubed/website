@@ -6,15 +6,17 @@ import TopBar, { COLUMN } from '@/components/site/TopBar';
 
 import { STATIC_PAGES } from '@/lib/entities/pages';
 import { getPublicResources } from '@/lib/indieweb/resources';
-import { getInitiatives } from '@/lib/initiatives';
+import { getInitiatives } from '@/lib/initiatives/index';
 import { getPublishedProjects } from '@/lib/projects';
 import { projectFacts } from '@/lib/projects/facts';
+import { pageMetadata } from '@/lib/seo/metadata';
 import { publishedSitemapContent } from '@/lib/seo/sitemap';
-import { formatDate, pageMetadata, sitePage } from '@/lib/site';
-import { getAllWritings } from '@/lib/writings';
+import { formatDate } from '@/lib/site/dates';
+import { sitePage } from '@/lib/site/navigation';
+import { getAllWritings } from '@/lib/writings/index';
 import { tagPath, writingCount } from '@/lib/writings/tags';
 
-import './sitemap.css';
+import '../../components/seo/sitemap.css';
 
 const page = sitePage('/sitemap');
 export const metadata = pageMetadata({

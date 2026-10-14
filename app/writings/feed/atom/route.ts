@@ -1,10 +1,11 @@
-import { generateWritingsAtomFeed } from '@/lib/feeds';
-import { getWritingFeedItems } from '@/lib/feeds/items';
+import { generateWritingsAtomFeed } from '@/lib/indieweb/feeds/index';
+import { getWritingFeedItems } from '@/lib/indieweb/feeds/items';
 
 async function buildWritingsFeed() {
   return generateWritingsAtomFeed(await getWritingFeedItems());
 }
 
+/** Return published writings, newest first, as Atom. */
 export async function GET() {
   const feed = await buildWritingsFeed();
 

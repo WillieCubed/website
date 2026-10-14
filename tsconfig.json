@@ -22,18 +22,23 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "noUnusedLocals": true
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "scripts/**/*.mts",
-    "tests/unit/media-*.test.mts",
-    "tests/e2e/media.spec.mts",
+    "**/*.mts",
     "**/*.tsx",
     "**/*.mdx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".open-next",
+    ".generated",
+    ".studio",
+    ".wrangler"
+  ]
 }

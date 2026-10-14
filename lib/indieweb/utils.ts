@@ -20,9 +20,9 @@ export function makeIndieWebSlug(
 }
 
 /**
- * Routes that already answer at /writings/<name>, so a writing given one of
- * these slugs could never be reached. tests/unit/writing-slugs.test.mts
- * checks the list against the folders and files in app/writings.
+ * Routes that already answer under /writings, so a writing given one of
+ * these slugs could never be reached. Tests check this list against the
+ * active routes.
  */
 export const RESERVED_WRITING_SLUGS: ReadonlySet<string> = new Set([
   'feed',

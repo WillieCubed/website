@@ -1,9 +1,9 @@
-import { ComAtprotoRepoStrongRef } from '@atcute/atproto';
 import { AppBskyFeedPost } from '@atcute/bluesky';
 import { type Did, safeParse } from '@atcute/lexicons';
 import { SiteStandardDocument } from '@atcute/standard-site';
 
-import { absoluteUrl, site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
+import { absoluteUrl } from '@/lib/site/urls';
 import { clipText } from '@/lib/text/clip';
 import { writingText } from '@/lib/writings/content';
 
@@ -11,6 +11,7 @@ import { blueskyAppview, publishingIdentity } from './config';
 import { resolvePds } from './identity';
 import { documentRkey } from './keys';
 import { oauthFetch } from './oauth-fetch';
+import { assertOwnerCopy } from './owner-copy';
 import type { DocumentSource } from './records';
 import type { RepoClient } from './types';
 
@@ -360,27 +361,4 @@ export async function syncBlueskyCopies(
     });
   }
   return results;
-}
-
-export function assertOwnerCopy(
-  ref: unknown
-): asserts ref is { uri: string; cid: string } {
-  const copy = ref as { uri?: unknown; cid?: unknown };
-  if (
-    typeof copy?.uri !== 'string' ||
-    !copy.uri.startsWith(
-      `at://${publishingIdentity().did}/app.bsky.feed.post/`
-    ) ||
-    !/^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[^/]+$/.test(copy.uri) ||
-    typeof copy.cid !== 'string' ||
-    !safeParse(
-      ComAtprotoRepoStrongRef.mainSchema,
-      { uri: copy.uri, cid: copy.cid },
-      { strict: true }
-    ).ok
-  ) {
-    throw new Error(
-      'A Bluesky copy must identify a post owned by the publication account.'
-    );
-  }
 }

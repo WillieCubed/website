@@ -14,7 +14,7 @@ See [the projects guide](../../docs/reference/content/projects.md).
 
 Before restoring a page, rebuild and review its retained source, then obtain
 explicit content and publication approval. After approval, move its folder to
-`app/<route>`. Add or update its record in `sitePages` in `lib/site.ts`, with
+`app/<route>`. Add or update its record in `sitePages` in `lib/site/navigation.ts`, with
 `routed: true`; About and Research currently have no entries to toggle. That
 shared list supplies footer links, sitemap entries, hover cards, and the 404
 page's “being rebuilt” note. Review those discovery surfaces with the page so

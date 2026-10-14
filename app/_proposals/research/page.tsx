@@ -5,9 +5,10 @@ import JsonLd from '@/components/seo/JsonLd';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar, { COLUMN } from '@/components/site/TopBar';
 
-import { getMediaMentions } from '@/lib/media';
+import { getMediaMentions } from '@/lib/media/content';
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
-import { pageMetadata, sitePage } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { sitePage } from '@/lib/site/navigation';
 
 const researchPage = sitePage('/research');
 const coverageDate = new Intl.DateTimeFormat('en-US', {

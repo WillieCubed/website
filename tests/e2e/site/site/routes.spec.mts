@@ -1,0 +1,108 @@
+import { expect, test } from '@playwright/test';
+
+import { skipUnlessPublished } from '../../../support/browser/published.mts';
+
+// These check the server's answers rather than a rendered page, so
+// The browser configuration runs them in the desktop project only.
+
+const REDIRECTS = [
+  // Retired pages, temporary while their replacements settle.
+  { from: '/apps', to: '/projects', status: 307 },
+  // Paths feed readers guess.
+  { from: '/rss.xml', to: '/feed.xml', status: 308 },
+  { from: '/rss', to: '/feed.xml', status: 308 },
+  { from: '/feed', to: '/feed.xml', status: 308 },
+  { from: '/index.xml', to: '/feed.xml', status: 308 },
+  { from: '/atom.xml', to: '/feed/atom', status: 308 },
+];
+
+for (const { from, to, status } of REDIRECTS) {
+  test(`${from} redirects to ${to}`, async ({ request, baseURL }) => {
+    const response = await request.get(from, { maxRedirects: 0 });
+    expect(response.status()).toBe(status);
+    expect(new URL(response.headers()['location'], baseURL).pathname).toBe(to);
+  });
+}
+
+// The document head's endpoint links, repeated as a header.
+const DISCOVERY_LINKS = [
+  '</webmention>; rel="webmention"',
+  '</micropub>; rel="micropub"',
+  '</.well-known/oauth-authorization-server>; rel="indieauth-metadata"',
+  '</indieauth/auth>; rel="authorization_endpoint"',
+  '</indieauth/token>; rel="token_endpoint"',
+  '<https://websubhub.com/hub>; rel="hub"',
+];
+
+for (const path of ['/', '/writings', '/initiatives/fall-tour-2026/part-1']) {
+  test(`${path} advertises the IndieWeb endpoints in a Link header`, async ({
+    request,
+  }) => {
+    await skipUnlessPublished(request, path);
+    const response = await request.get(path);
+    expect(response.status()).toBe(200);
+    const link = response.headers()['link'] ?? '';
+    for (const entry of DISCOVERY_LINKS) expect(link).toContain(entry);
+  });
+}
+
+test('a page sends the security headers', async ({ request }) => {
+  const headers = (await request.get('/')).headers();
+  expect(headers['x-content-type-options']).toBe('nosniff');
+  expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+  expect(headers['permissions-policy']).toBe(
+    'camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()'
+  );
+  expect(headers['cross-origin-opener-policy']).toBe(
+    'same-origin-allow-popups'
+  );
+});
+
+test('the IndieAuth consent page keeps its opener and its own referrer policy', async ({
+  request,
+}) => {
+  const headers = (await request.get('/indieauth/consent')).headers();
+  expect(headers['cross-origin-opener-policy']).toBeUndefined();
+  expect(headers['referrer-policy']).toBe('no-referrer');
+});
+
+test('a feed carries no page Link header', async ({ request }) => {
+  const response = await request.get('/feed.xml');
+  expect(response.headers()['link'] ?? '').not.toContain('rel="webmention"');
+});
+
+test('/humans.txt names the team and the day the site was built', async ({
+  request,
+}) => {
+  const response = await request.get('/humans.txt');
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toBe('text/plain; charset=utf-8');
+  const text = await response.text();
+  expect(text).toMatch(/^Developer: Willie Chalmers III$/m);
+  expect(text).toMatch(/^Last update: \d{4}\/\d{2}\/\d{2}$/m);
+});
+
+test('/feed.xml serves the RSS feed', async ({ request }) => {
+  const response = await request.get('/feed.xml');
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toContain('application/rss+xml');
+  expect(await response.text()).toMatch(/<rss[\s>][\s\S]*<channel>/);
+});
+
+const ALIAS_HOSTS = [
+  { host: 'tour.willie.page', to: '/initiatives/fall-tour-2026' },
+  { host: 'diaries.willie.page', to: '/initiatives/twd' },
+];
+
+for (const { host, to } of ALIAS_HOSTS) {
+  test(`${host} redirects to ${to}`, async ({ request }) => {
+    const response = await request.get('/', {
+      headers: { host },
+      maxRedirects: 0,
+    });
+    expect(response.status()).toBe(307);
+    expect(
+      new URL(response.headers()['location'], 'https://willie.page').pathname
+    ).toBe(to);
+  });
+}

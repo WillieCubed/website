@@ -1,6 +1,6 @@
 import { PUBLICATION_URI, appPassword } from '@/lib/atproto/config';
-import type { MicropubSyndicationTarget } from '@/lib/indieweb/types';
-import { site } from '@/lib/site';
+import type { MicropubSyndicationTarget } from '@/lib/indieweb/micropub/types';
+import { site } from '@/lib/site/identity';
 
 /** Advertise only configured destinations whose publishing can run. */
 export function getMicropubSyndicationTargets(): MicropubSyndicationTarget[] {
@@ -19,7 +19,7 @@ export function getMicropubSyndicationTargets(): MicropubSyndicationTarget[] {
 }
 
 /**
- * The targets a client chose with `mp-syndicate-to`. A client only offers
+ * The targets a client chose with `mp-syndicate-to`. A client only requests
  * the uids `q=syndicate-to` listed, so an unknown one is a bad request rather
  * than something to drop quietly.
  */

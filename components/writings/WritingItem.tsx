@@ -2,8 +2,8 @@ import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import SharedTitle from '@/components/site/SharedTitle';
 
-import { formatDate } from '@/lib/site';
-import { WritingData } from '@/lib/writings';
+import { formatDate } from '@/lib/site/dates';
+import { WritingData } from '@/lib/writings/index';
 import { writingAttachments } from '@/lib/writings/media';
 import { locationText } from '@/lib/writings/properties';
 

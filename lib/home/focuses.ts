@@ -1,10 +1,9 @@
 /**
  * What Willie is working toward, in his own words: the rail's list on the
- * homepage. The grid beside it shows the work itself, and each tile names
- * the focuses it serves (`focuses` in lib/home/ventures.ts, or `feature`
- * in an initiative's frontmatter), so this file holds only the lines and
- * their order. A tile can serve no focus; a focus can wait for its first
- * tile, and until then the rail shows it as plain text.
+ * homepage. The grid beside it shows the work itself. Each venture's focuses
+ * and each initiative's feature settings determine which goals its tile
+ * serves; this list owns only the goal labels and their order. A tile can
+ * serve no focus, and a focus without a tile appears as plain text.
  */
 
 export const FOCUS_IDS = [
@@ -21,8 +20,7 @@ export interface Focus {
   id: FocusId;
   line: string;
   /**
-   * The work's own app icons or marks, back to front, from
-   * public/assets/home/icon-*.webp (96px squares). They fan out beside the
+   * The work's own 96px app icons or marks, back to front. They fan out beside the
    * line when it is pointed at.
    */
   icons: string[];

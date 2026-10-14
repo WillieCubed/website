@@ -1,30 +1,24 @@
 import { after } from 'next/server';
 
-import { invalidatePublicWebmentions } from '@/lib/indieweb/public-webmention-reads';
 import { jsonError } from '@/lib/indieweb/responses';
 import {
   defaultSalmentionDeps,
   sendSalmention,
 } from '@/lib/indieweb/salmention';
-import type { WebmentionModerationRouteOptions } from '@/lib/indieweb/types';
 import {
   handleListPendingWebmentions,
   handleModerateWebmention,
-} from '@/lib/indieweb/webmention-moderation';
+} from '@/lib/indieweb/webmention/moderation';
+import { invalidatePublicWebmentions } from '@/lib/indieweb/webmention/public-reads';
 import {
   getWebmentionTargetRequest,
   webmentionModerationStore,
-} from '@/lib/indieweb/webmention-storage';
+} from '@/lib/indieweb/webmention/storage';
+import type { WebmentionModerationRouteOptions } from '@/lib/indieweb/webmention/types';
 
 /**
- * GET /api/webmention/moderate
- * List webmentions awaiting moderation.
- *
- * POST /api/webmention/moderate
- * Approve or reject one: { "action": "approve" | "reject", "id": "<uuid>" }.
- * Approving a reply resends its post's webmentions upstream (Salmention).
- *
- * Both require `Authorization: Bearer $WEBMENTION_MODERATION_SECRET`.
+ * List verified webmentions awaiting moderation. Require the
+ * WEBMENTION_MODERATION_SECRET bearer token.
  */
 export async function GET(request: Request) {
   try {
@@ -35,6 +29,12 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * Approve or reject a webmention using a JSON action and id. Require the
+ * WEBMENTION_MODERATION_SECRET bearer token. Refresh cached mentions after a
+ * successful decision; approving a reply also schedules upstream
+ * notifications.
+ */
 export async function POST(request: Request) {
   try {
     const response = await handleModerateWebmention(request, {

@@ -1,4 +1,4 @@
-import type { WritingData } from '@/lib/writings';
+import type { WritingData } from '@/lib/writings/index';
 import { groupByTag, tagPath, writingCount } from '@/lib/writings/tags';
 
 import type { EntityCard } from './types';

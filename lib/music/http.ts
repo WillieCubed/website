@@ -8,7 +8,15 @@ export function musicRoute(request: Request, work: () => Promise<Response>) {
     'The private Music service is unavailable.'
   );
 }
-export async function readMusicBody(request: Request): Promise<any> {
+interface MusicRequestBody {
+  revisionId: string;
+  expectedRevisionId: string | null;
+  catalog: unknown;
+}
+
+export async function readMusicBody(
+  request: Request
+): Promise<MusicRequestBody> {
   const text = await request.text();
   if (text.length > 2000000)
     throw new StudioError(413, 'This collection is too large.');

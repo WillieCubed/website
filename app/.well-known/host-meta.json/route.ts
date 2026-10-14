@@ -1,7 +1,10 @@
 import { buildHostMetaResponse } from '@/lib/indieweb/discovery';
 import { jsonResponse } from '@/lib/indieweb/responses';
 
-/** The JSON form of host-meta (RFC 6415), beside the XRD at /host-meta. */
+/**
+ * Return JSON host metadata that tells discovery clients how to look up a
+ * resource through WebFinger.
+ */
 export async function GET() {
   return jsonResponse(buildHostMetaResponse(), {
     headers: {

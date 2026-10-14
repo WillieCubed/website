@@ -1,7 +1,9 @@
 import { defineConfig } from '@playwright/test';
+import { join } from 'node:path';
 
 export default defineConfig({
-  testDir: './e2e',
+  outputDir: join(import.meta.dirname, '../test-results/music-admin'),
+  testDir: './e2e/site/music',
   testMatch: 'music-admin.spec.mts',
   fullyParallel: false,
   workers: 1,

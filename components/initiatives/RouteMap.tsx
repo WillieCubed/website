@@ -1,4 +1,4 @@
-import type { Place } from '@/lib/initiatives';
+import type { Place } from '@/lib/initiatives/index';
 
 interface RouteMapProps {
   /** Places in travel order. */

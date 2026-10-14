@@ -2,8 +2,7 @@ import { connection } from 'next/server';
 import { Suspense } from 'react';
 
 import StudioEditor from '@/components/studio/StudioEditor';
-
-import '../studio.css';
+import '@/components/studio/studio.css';
 
 export const metadata = {
   title: 'Writing studio',

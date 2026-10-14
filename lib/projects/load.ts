@@ -1,40 +1,19 @@
 import matter from 'gray-matter';
 import { join } from 'node:path';
 
-import { existsSync, readFileSync, readdirSync } from '@/lib/runtime-files';
+import { markdownFiles } from '@/lib/content/files';
+import { existsSync, readFileSync } from '@/lib/content/runtime-files';
+import { statusFromDates as projectStatus } from '@/lib/content/status';
 
-import {
-  type Project,
-  ProjectFrontmatterSchema,
-  type ProjectStatus,
-} from './schema';
+import { type Project, ProjectFrontmatterSchema } from './schema';
 
 /**
- * Reads content/projects with no Next.js cache involved, so tests and
- * build scripts can call it under plain Node. Pages use lib/projects.
+ * Read project content and validate relationships before filtering visibility.
  */
 
 export const PROJECTS_DIR = join(process.cwd(), 'content', 'projects');
-const HIDDEN_PREFIX = '_';
 
-export function projectStatus(
-  explicit: ProjectStatus | undefined,
-  starts: Date | undefined,
-  ends: Date | undefined,
-  now: Date
-): ProjectStatus {
-  if (explicit) return explicit;
-  if (starts && now < starts) return 'planned';
-  if (ends && now > endOfDay(ends)) return 'complete';
-  if (starts) return 'active';
-  return 'planned';
-}
-
-function endOfDay(date: Date): Date {
-  const copy = new Date(date);
-  copy.setHours(23, 59, 59, 999);
-  return copy;
-}
+export { statusFromDates as projectStatus } from '@/lib/content/status';
 
 function readProject(filePath: string, slug: string, now: Date): Project {
   const { data, content } = matter(readFileSync(filePath, 'utf8'));
@@ -86,11 +65,9 @@ export function loadAllProjects({
   now = new Date(),
 }: LoadOptions = {}): Project[] {
   if (!existsSync(dir)) return [];
-  const all = readdirSync(dir)
-    .filter((file) => file.endsWith('.mdx') && !file.startsWith(HIDDEN_PREFIX))
-    .map((file) =>
-      readProject(join(dir, file), file.replace(/\.mdx$/, ''), now)
-    );
+  const all = markdownFiles(dir, ['.mdx']).map((file) =>
+    readProject(join(dir, file), file.replace(/\.mdx$/, ''), now)
+  );
   // References are checked against every file, hidden and draft included,
   // so hiding a parent never breaks the build of its children.
   const slugs = new Set(all.map((project) => project.slug));

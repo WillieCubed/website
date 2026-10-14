@@ -1,6 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 
-import { renderFeedHtml } from '@/lib/feeds/html';
+import { renderFeedHtml } from '@/lib/indieweb/feeds/html';
 
 import { catalogEntry } from './catalog';
 import { compileSandbox } from './components';

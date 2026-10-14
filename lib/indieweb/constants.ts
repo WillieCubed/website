@@ -1,6 +1,6 @@
-// Relative for next.config.ts, which reaches this file through
-// lib/indieweb/discovery-links.ts; see the note there.
-import { site } from '../site';
+// Keep imports relative for the framework's configuration loader;
+// it resolves aliases against a different root than the application.
+import { site } from '../site/identity';
 
 export const SITE_URL = site.origin;
 export const SITE_NAME = site.name;

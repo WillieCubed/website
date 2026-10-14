@@ -2,8 +2,8 @@ import type { Metadata } from 'next/types';
 
 import SiteLink from '@/components/link/SiteLink';
 
-import { getAllNowEntries } from '@/lib/data/now-loader';
-import { pageMetadata } from '@/lib/site';
+import { getAllNowEntries } from '@/lib/legacy/content/now-loader';
+import { pageMetadata } from '@/lib/seo/metadata';
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', {
@@ -16,7 +16,10 @@ type NowItemState = {
   date: Date;
 };
 
-function NowItem({ date, children }: React.PropsWithChildren<NowItemState>) {
+export function NowItem({
+  date,
+  children,
+}: React.PropsWithChildren<NowItemState>) {
   return (
     <li className="flex text-title-small">
       <span className="shrink-0 inline-block w-32 font-bold font-display">
@@ -71,8 +74,7 @@ async function loadNowSections() {
 }
 
 export default async function NowPage() {
-  const { recentEntries, currentEntries, laterEntries } =
-    await loadNowSections();
+  await loadNowSections();
 
   return (
     <div className="min-h-[75vh]">

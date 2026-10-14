@@ -2,32 +2,32 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
-import { invalidatePublicWebmentions } from '@/lib/indieweb/public-webmention-reads';
 import {
   defaultSalmentionDeps,
   sendSalmention,
 } from '@/lib/indieweb/salmention';
 import { applyVouch, readVouchParameter } from '@/lib/indieweb/vouch';
+import { invalidatePublicWebmentions } from '@/lib/indieweb/webmention/public-reads';
 import {
   WEBMENTION_RATE_WINDOW_MS,
   isWithinEdgeWebmentionRateLimit,
   isWithinWebmentionRateLimit,
   webmentionRateLimitKey,
-} from '@/lib/indieweb/webmention-rate-limit';
+} from '@/lib/indieweb/webmention/rate-limit';
 import {
   getWebmentionBySourceTarget,
   storeWebmention,
   webmentionRateLimitStore,
   webmentionVouchStore,
-} from '@/lib/indieweb/webmention-storage';
+} from '@/lib/indieweb/webmention/storage';
 import {
   canonicalWebmentionTarget,
   sitePath,
-} from '@/lib/indieweb/webmention-targets';
-import { verifyWebmention } from '@/lib/indieweb/webmention-verifier';
-import { getInitiatives } from '@/lib/initiatives';
+} from '@/lib/indieweb/webmention/targets';
+import { verifyWebmention } from '@/lib/indieweb/webmention/verifier';
+import { getInitiatives } from '@/lib/initiatives/index';
 import { buildSitemap } from '@/lib/seo/sitemap';
-import { getAllWritings } from '@/lib/writings';
+import { getAllWritings } from '@/lib/writings/index';
 
 /**
  * Every page a webmention may target: the sitemap's list, which covers the
@@ -52,8 +52,10 @@ function edgeRateLimiter() {
 }
 
 /**
- * POST /api/webmention
- * Receive a webmention notification.
+ * Accept source and target URLs as form data or JSON and return 202 after
+ * storing a pending webmention. Rate-limit senders, require an existing
+ * local target and a distinct public HTTP source, and verify the source
+ * after responding. An optional vouch can approve a verified mention.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -241,8 +243,8 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/webmention
- * Return endpoint information for discovery.
+ * Return the webmention receiving URL and a link to the protocol
+ * specification for discovery clients.
  */
 export async function GET() {
   return NextResponse.json({

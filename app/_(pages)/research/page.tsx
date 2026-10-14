@@ -21,7 +21,7 @@ export const metadata: Metadata = {
  * Route: /research
  */
 export default async function ResearchOverviewPage() {
-  const { researchProjects: projects } = await getResearchPageData();
+  await getResearchPageData();
 
   return (
     <main className="">
@@ -122,7 +122,7 @@ export default async function ResearchOverviewPage() {
   );
 }
 
-/** The projects data/projects.json typed as research before the migration. */
+/** Project data retained from the former research model. */
 const RESEARCH_SLUGS = ['cole', 'storygen', 'aggie'];
 
 type ProjectsPageProps = {

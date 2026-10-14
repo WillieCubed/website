@@ -46,7 +46,7 @@ for review without restoring its routes or discovery entries.
 
 ### Current public work
 
-`lib/site.ts` provides the identity sentence and public organizations.
+`lib/site/identity.ts` provides the identity sentence and public organizations.
 `lib/home/focuses.ts` provides About's focus lines. About includes only focuses
 served by a visible public venture. `lib/home/ventures.ts` provides every work
 card's exact name and description. Both pages link to existing homepage detail

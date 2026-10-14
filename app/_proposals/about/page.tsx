@@ -10,7 +10,9 @@ import TopBar, { COLUMN } from '@/components/site/TopBar';
 import { focuses } from '@/lib/home/focuses';
 import { ventures } from '@/lib/home/ventures';
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
-import { pageMetadata, site, sitePage } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { site } from '@/lib/site/identity';
+import { sitePage } from '@/lib/site/navigation';
 
 const aboutPage = sitePage('/about');
 const publicFocusIds = new Set(

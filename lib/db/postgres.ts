@@ -2,13 +2,13 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { Client, Pool, type QueryResult, type QueryResultRow } from 'pg';
 
 type Value = string | number | boolean | null | undefined;
-type SqlTag = <T extends QueryResultRow = any>(
+type SqlTag = <T extends QueryResultRow = QueryResultRow>(
   strings: TemplateStringsArray,
   ...values: Value[]
 ) => Promise<QueryResult<T>>;
 
 export interface PostgresPoolClient {
-  query<T extends QueryResultRow = any>(
+  query<T extends QueryResultRow = QueryResultRow>(
     text: string,
     values?: unknown[]
   ): Promise<QueryResult<T>>;
@@ -18,7 +18,7 @@ export interface PostgresPoolClient {
 
 interface PoolFacade {
   sql: SqlTag;
-  query<T extends QueryResultRow = any>(
+  query<T extends QueryResultRow = QueryResultRow>(
     text: string,
     values?: unknown[]
   ): Promise<QueryResult<T>>;

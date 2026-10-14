@@ -15,14 +15,14 @@ import {
   getTopBar,
   getTopBarOnServer,
   subscribeTopBar,
-} from '@/lib/footer/column';
+} from '@/lib/site/footer/column';
 
 /**
  * The cube, with the name beside it. The name shows once per screen: on
  * most pages it wipes in once the top bar has left the screen, a trigger
  * rather than a scroll distance, so it never stops partway on a page that
  * can only scroll a little. On the homepage the footer's letter wave
- * brings it in instead (lib/footer/name-reveal.ts), and footer-dock.css
+ * brings it in instead, and the homepage styles
  * turns the wipe off there.
  */
 export default function FooterLockup({ name }: { name: string }) {

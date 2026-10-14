@@ -1,4 +1,4 @@
-import type { WritingData } from '@/lib/writings';
+import type { WritingData } from '@/lib/writings/index';
 
 type Shareable = Pick<
   WritingData,

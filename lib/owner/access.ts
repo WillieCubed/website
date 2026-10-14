@@ -1,6 +1,6 @@
 import { type JWTVerifyGetKey, createRemoteJWKSet, jwtVerify } from 'jose';
 
-import type { OwnerAuthenticator } from '@/lib/indieweb/types';
+import type { OwnerAuthenticator } from '@/lib/indieweb/indieauth/types';
 
 export interface OwnerAccessConfig {
   issuer: string;

@@ -1,0 +1,199 @@
+import AxeBuilder from '@axe-core/playwright';
+import { type Page, expect, test } from '@playwright/test';
+
+/**
+ * The command palette. Every page gets the ⌘K / Ctrl+K shortcut from the
+ * root layout, and the palette accepts either modifier on any platform, so
+ * these press ControlOrMeta rather than guess the emulated device's.
+ */
+
+// The rail hides its trigger on desktop windows under 721px tall, where
+// the sticky rail has no room for it, and Desktop Chrome is 720px.
+// Tall enough that the homepage rail shows its search row, which short
+// desktop windows hide.
+test.use({ viewport: { width: 1280, height: 1000 } });
+
+/** Waits out the open or close morph, while the page shows snapshots. */
+function settled(page: Page) {
+  return page.waitForFunction(
+    () => !document.documentElement.matches(':active-view-transition')
+  );
+}
+
+/**
+ * Presses Escape once `dialog` is open and its opening morph is still
+ * running, and fails if the key landed after the morph ended, when it
+ * would only test an ordinary close.
+ */
+async function escapeMidMorph(page: Page, dialog: string) {
+  await page.waitForFunction(
+    (selector) =>
+      !!document.querySelector<HTMLDialogElement>(selector)?.open &&
+      document.documentElement.matches(':active-view-transition'),
+    dialog
+  );
+  await page.evaluate(() => {
+    const flags = window as Window & { escapedMidMorph?: boolean };
+    window.addEventListener(
+      'keydown',
+      () => {
+        flags.escapedMidMorph = document.documentElement.matches(
+          ':active-view-transition'
+        );
+      },
+      { capture: true, once: true }
+    );
+  });
+  await page.keyboard.press('Escape');
+  expect(
+    await page.evaluate(
+      () => (window as Window & { escapedMidMorph?: boolean }).escapedMidMorph
+    )
+  ).toBe(true);
+}
+
+function palette(page: Page) {
+  return page.getByRole('dialog', { name: 'Command palette' });
+}
+
+function combobox(page: Page) {
+  return palette(page).getByRole('combobox');
+}
+
+test('the search button opens with Space without navigating', async ({
+  page,
+}) => {
+  await page.goto('/writings');
+  const trigger = page.getByRole('button', { name: 'Search', exact: true });
+  await trigger.focus();
+  await page.keyboard.press('Space');
+  await expect(combobox(page)).toBeFocused();
+  await expect(page).toHaveURL(/\/writings$/);
+  await settled(page);
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+});
+
+test('the search button still navigates when JavaScript is unavailable', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL: test.info().project.use.baseURL,
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto('/writings');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect(page).toHaveURL(/\/search\??$/);
+    await expect(
+      page.getByRole('heading', { name: 'Search', exact: true })
+    ).toBeVisible();
+  } finally {
+    await context.close();
+  }
+});
+
+for (const path of ['/', '/writings']) {
+  test(`⌘K opens the palette on ${path}`, async ({ page }) => {
+    await page.goto(path);
+    // The shortcut is registered once the page hydrates, as the trigger is.
+    await expect(page.locator('.palette-trigger').first()).toBeVisible();
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(palette(page)).toBeVisible();
+    await expect(combobox(page)).toBeFocused();
+    await expect(
+      palette(page).getByRole('option', { name: /Writings/ })
+    ).toBeVisible();
+    await settled(page);
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(palette(page)).toBeHidden();
+  });
+}
+
+test('a query returns Pagefind results with the hit marked', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.locator('.palette-trigger').first().click();
+  // Only a venture's detail text says "journal", so the match can come from
+  // the search index alone, not from a command's title.
+  await combobox(page).fill('journal');
+  const result = palette(page).getByRole('option', { name: /^LogDate/ });
+  await expect(result).toBeVisible();
+  await expect(result.locator('mark').first()).toHaveText(/journal/i);
+  await expect(
+    palette(page).getByRole('group', { name: 'Pages' })
+  ).toBeVisible();
+});
+
+test('brew sends a real POST /coffee and shows the 418', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.palette-trigger').first().click();
+  const request = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/coffee') &&
+      response.request().method() === 'POST'
+  );
+  await combobox(page).fill('brew');
+  // An egg is never listed; Enter runs the exact name that was typed.
+  await expect(palette(page).getByRole('option', { name: 'brew' })).toHaveCount(
+    0
+  );
+  await page.keyboard.press('Enter');
+  expect((await request).status()).toBe(418);
+  const readout = palette(page).getByRole('region', { name: 'Command output' });
+  await expect(readout).toContainText('HTTP 418');
+  await expect(readout).toContainText('x-clacks-overhead');
+  await expect(readout).toContainText("418 I'm a teapot");
+  await expect(palette(page).getByRole('status')).toContainText('418');
+});
+
+test('Escape closes the palette and returns focus to its trigger', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const trigger = page.locator('.palette-trigger').first();
+  await trigger.click();
+  await expect(combobox(page)).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(combobox(page)).toHaveAttribute(
+    'aria-activedescendant',
+    /option-1$/
+  );
+  await settled(page);
+  await page.keyboard.press('Escape');
+  await expect(palette(page)).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test('Escape during the opening morph closes once it ends', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.addStyleTag({
+    content:
+      '::view-transition-group(palette) { animation-duration: 1800ms !important; }',
+  });
+  await page.locator('.palette-trigger').first().click();
+  await escapeMidMorph(page, 'dialog.palette');
+  await settled(page);
+  await expect(palette(page)).toBeHidden();
+});
+
+test('the open palette passes axe', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.palette-trigger').first().click();
+  await expect(combobox(page)).toBeFocused();
+  // Let the morph finish so axe reads the settled dialog.
+  await settled(page);
+  const { violations } = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .include('dialog.palette')
+    .analyze();
+  const summary = violations.map(
+    ({ id, impact, nodes }) =>
+      `${id} (${impact}): ${nodes.map((node) => node.target.join(' ')).join(', ')}`
+  );
+  expect(summary).toEqual([]);
+});

@@ -7,14 +7,16 @@ export function required(name: string): string {
 }
 
 export function isPrivatePreview(
-  env: NodeJS.ProcessEnv = process.env
+  env: Record<string, string | undefined> = process.env
 ): boolean {
   return env.SITE_MODE === 'preview';
 }
 
 export const PREVIEW_ORIGIN = 'https://preview.willie.page';
 
-export function studioOrigin(env: NodeJS.ProcessEnv = process.env): string {
+export function studioOrigin(
+  env: Record<string, string | undefined> = process.env
+): string {
   return env.STUDIO_ORIGIN || PREVIEW_ORIGIN;
 }
 

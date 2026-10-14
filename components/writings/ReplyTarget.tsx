@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Icon, { type IconName } from '@/components/icons/Icon';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
-import { formatDate } from '@/lib/site';
+import { formatDate } from '@/lib/site/dates';
 import { propertyLinks } from '@/lib/writings/properties';
 import type { RSVPStatus, WritingData } from '@/lib/writings/types';
 

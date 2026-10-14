@@ -3,7 +3,7 @@
 `/media` collects published coverage in which Willie appears, whether in an
 interview, a quotation, or a photo caption. Each mention has one Markdown file
 in `content/media/`; its filename is the stable ID, using lowercase letters,
-numbers, and hyphens. `lib/media.ts` loads the editorial fields from that file.
+numbers, and hyphens. `lib/media/content.ts` loads the editorial fields from that file.
 
 The archive records the publication's account rather than assigning Willie a
 role in each story. Preserve the source headline, date, and attribution so a
@@ -41,7 +41,7 @@ loader checks it. The date comes from the publication, not the URL: FOX5 Vegas
 published its Week Without Driving story on September 30, 2026 even though the
 address includes October 1.
 
-`lib/media.ts` rejects missing fields, invalid dates, unsafe source URLs, and
+`lib/media/content.ts` rejects missing fields, invalid dates, unsafe source URLs, and
 unknown keys with the filename in the error. Both search indexes and the page
 read the same records, so repair the source file rather than patching an index.
 A production build includes new entries; rebuild and deploy after a content
@@ -159,10 +159,10 @@ stylesheet reads the initial header only until the footer has its own
 `data-column`. Check this alignment when navigating into and away from the
 archive, not only when loading it directly.
 
-The `/media` entry in `lib/site.ts` supplies metadata and adds the archive to
+The `/media` entry in `lib/site/navigation.ts` supplies metadata and adds the archive to
 the footer, breadcrumbs, command palette, hover cards, search, and sitemap. Edit
 coverage in `content/media/` and the archive page's shared identity in
-`lib/site.ts`. A new mention belongs in the archive's records; it does not need
+`lib/site/navigation.ts`. A new mention belongs in the archive's records; it does not need
 a separate navigation entry.
 
 ## Source verification and limits

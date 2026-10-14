@@ -4,8 +4,8 @@ import WebmentionReplies from '@/components/indieweb/WebmentionReplies';
 import type {
   PublishingResponse,
   ResponseGroup as WebmentionGroup,
-} from '@/lib/indieweb/types';
-import { formatDate } from '@/lib/site';
+} from '@/lib/indieweb/webmention/types';
+import { formatDate } from '@/lib/site/dates';
 
 interface WebmentionSectionProps {
   webmentions: WebmentionGroup;

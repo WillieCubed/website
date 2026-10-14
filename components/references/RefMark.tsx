@@ -28,7 +28,7 @@ const CARD_WIDTH = 360;
 export function RefMark({
   id,
   index,
-  kind = 'note',
+  kind: _kind = 'note',
   content,
   href,
 }: RefMarkProps) {

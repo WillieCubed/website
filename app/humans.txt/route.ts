@@ -1,5 +1,9 @@
-import { buildHumansTxt } from '@/lib/humans-txt';
+import { buildHumansTxt } from '@/lib/protocols/humans-txt';
 
+/**
+ * Return the site's author, credits, and technology list as plain text.
+ * Include the deployment build date when it is available.
+ */
 export function GET() {
   const builtAt = process.env.SITE_BUILT_AT;
   return new Response(buildHumansTxt(builtAt ? new Date(builtAt) : undefined), {

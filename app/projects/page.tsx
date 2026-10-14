@@ -5,7 +5,8 @@ import TopBar from '@/components/site/TopBar';
 import { getPublishedProjects } from '@/lib/projects';
 import { currentWorkCards, projectToCard } from '@/lib/projects/catalog';
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
-import { pageMetadata, sitePage } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { sitePage } from '@/lib/site/navigation';
 
 const PAGE = sitePage('/projects');
 

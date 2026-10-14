@@ -1,7 +1,7 @@
 /**
  * The organizations a project can belong to. A project lists these keys in
  * `owners`; a project with none is Willie's own. `brand` is a key in
- * lib/brand/seeds.json, and an owner without one keeps its projects neutral.
+ * the shared brand seeds, and an owner without one keeps its projects neutral.
  */
 export interface Owner {
   name: string;

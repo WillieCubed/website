@@ -5,8 +5,8 @@ import { type ComponentType } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
-import { usePalette } from '@/components/palette/PaletteProvider';
-import PaletteTrigger from '@/components/palette/PaletteTrigger';
+import { usePalette } from '@/components/search/palette/PaletteProvider';
+import PaletteTrigger from '@/components/search/palette/PaletteTrigger';
 
 import {
   type Catalog,

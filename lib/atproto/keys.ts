@@ -21,7 +21,7 @@ function fnv1a(input: string): number {
  * in microseconds, with a clock ID taken from the path. The page and the
  * sync both derive it, so the <link> tag ships with the build and nothing
  * maps posts to records. A new `published` time or slug gives a new key,
- * and the sync then moves the record (lib/atproto/plan.ts).
+ * and the sync then moves the record.
  */
 export function documentRkey(path: string, published: Date): string {
   return TID.create(published.getTime() * 1000, fnv1a(path) & 1023);

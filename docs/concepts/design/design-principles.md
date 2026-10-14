@@ -363,7 +363,7 @@ if a page commits behind a loading state, it forms no pair and cuts.
 
 These limits make the underlying navigation especially important. The content
 and destination must make sense even when there is no visual pairing.
-`tests/e2e/view-transitions.spec.mts` records the names React sets on both pages
+`tests/e2e/site/site/view-transitions.spec.mts` records the names React sets on both pages
 and the groups the browser animates; it checks the mechanism rather than
 proving every navigation will produce a morph.
 

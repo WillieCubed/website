@@ -9,8 +9,10 @@ import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import SiteLink from '@/components/link/SiteLink';
 import LiveStatus from '@/components/status/LiveStatus';
 
-import { randomlyChooseTagline, taglineHref } from '@/lib/enhancements';
-import { routedPages, site, spotifyProfileUrl } from '@/lib/site';
+import { spotifyProfileUrl } from '@/lib/site/identity';
+import { site } from '@/lib/site/identity';
+import { routedPages } from '@/lib/site/navigation';
+import { randomlyChooseTagline, taglineHref } from '@/lib/site/taglines';
 import { isPrivatePreview } from '@/lib/studio/config';
 
 import FeedsButton from './FeedsButton';
@@ -174,7 +176,7 @@ export default function SiteFooter() {
             {site.social.map((profile, index) => (
               // The row is the homepage's footer while it is collapsed, and
               // only so much of it fits the rail's column: the ones past the
-              // first few wait until the footer opens (footer-dock.css).
+              // first few wait until the footer opens.
               <li
                 key={profile.href}
                 data-extra={index >= KEPT ? '' : undefined}

@@ -2,13 +2,17 @@ import { notFound } from 'next/navigation';
 
 import { formatRange } from '@/components/initiatives/dates';
 
-import { getPart } from '@/lib/initiatives';
-import { publicImageDataUri, renderEntityImage } from '@/lib/og/render';
+import { getPart } from '@/lib/initiatives/index';
+import { publicImageDataUri, renderEntityImage } from '@/lib/seo/og/render';
 
 export const alt = 'Part of an initiative';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
+/**
+ * Render a PNG social preview with the initiative part title, dates, places,
+ * brand color, and available cover. Return 404 when the part is unavailable.
+ */
 export default async function Image(props: {
   params: Promise<{ slug: string; part: string }>;
 }) {

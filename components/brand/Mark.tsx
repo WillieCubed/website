@@ -5,8 +5,8 @@ interface MarkProps {
 }
 
 /**
- * The WillieCubed cube, from public/brand/mark/williecubed-cube-black.svg,
- * drawn in the current text colour so it takes the ink of wherever it sits.
+ * The WillieCubed cube, drawn in the current text colour so it takes the ink
+ * of wherever it sits. Its geometry matches the generated bare cube asset.
  */
 export default function Mark({ className, title }: MarkProps) {
   return (

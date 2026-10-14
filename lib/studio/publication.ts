@@ -250,7 +250,7 @@ async function rebaseArtifacts(
 }
 
 function proposalBody(publication: Publication): string {
-  // Keep these headings in the same order as .github/pull_request_template.md.
+  // Keep these headings in the same order as the repository pull request template.
   // Workers cannot read repository files from process.cwd() at request time.
   return `## TL;DR
 

@@ -3,8 +3,8 @@ import SiteLink from '@/components/link/SiteLink';
 import SharedTitle from '@/components/site/SharedTitle';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
-import { formatDate } from '@/lib/site';
-import { SeriesWithWritings, WritingData } from '@/lib/writings';
+import { formatDate } from '@/lib/site/dates';
+import { SeriesWithWritings, WritingData } from '@/lib/writings/index';
 import {
   prepareWritingHtmlMedia,
   writingPhotoMedia,

@@ -28,6 +28,10 @@ Understand why the site works this way and how its parts fit together.
 - [ActivityPub proposal](./concepts/publishing/activitypub.md): a future
   federation design; this is not an implemented capability.
 
+### Architecture
+
+- [Domain boundaries](./concepts/architecture/domain-boundaries.md): module ownership, dependency direction, and retained publishing recovery contracts.
+
 ## Reference
 
 Look up exact rules, schemas, commands, routes, and supported behavior.
@@ -89,6 +93,8 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
   `/tea`, `/whoami`, discovery, and headers.
 
 ### Operations
+
+- [Testing](./reference/operations/testing.md): suite boundaries and the checks appropriate to a change.
 
 - [Setup and deployment checks](./reference/operations/bootstrap.md): local setup, Cloudflare account and resource requirements, and current verification limits.
 - [Commit conventions](./reference/operations/commits.md): types, scopes, and

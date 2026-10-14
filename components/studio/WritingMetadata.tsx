@@ -3,7 +3,7 @@
 import Icon from '@/components/icons/Icon';
 import Popover from '@/components/site/Popover';
 
-import { formatDate } from '@/lib/site';
+import { formatDate } from '@/lib/site/dates';
 
 import type { WritingController } from './useWritingController';
 

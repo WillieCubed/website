@@ -2,7 +2,7 @@
 
 import React, { useLayoutEffect, useRef } from 'react';
 
-import { type PageColumn, registerTopBar } from '@/lib/footer/column';
+import { type PageColumn, registerTopBar } from '@/lib/site/footer/column';
 
 interface TopBarFrameProps {
   column: PageColumn;
@@ -17,7 +17,7 @@ interface TopBarFrameProps {
 
 /**
  * The top bar's own element. It tells the footer which column the page uses
- * for as long as it is on screen (lib/footer/column.ts), so nothing has to
+ * for as long as it is on screen, so nothing has to
  * work out from the markup which page is showing. A layout effect, so the
  * footer changes width in the same frame as the page rather than after it.
  */
@@ -49,7 +49,7 @@ export default function TopBarFrame({
     // from the top, until the rest fit. The current page's label truncates
     // as the last resort. The rail never scrolls, since a scrolled rail moves
     // the cube off the page's text edge. Each attribute is set explicitly so
-    // the measurement overrides the server's guess (site.css).
+    // the measurement overrides the server's guess.
     const current = rail.querySelector<HTMLElement>(
       '.site-breadcrumbs__crumb:last-child .site-breadcrumb-menu__label'
     );

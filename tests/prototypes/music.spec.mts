@@ -1118,7 +1118,9 @@ test('interrupted motion and unavailable view transitions leave the gallery usab
     name: 'Open Fall Tour 2026, Part 1',
     exact: true,
   });
-  await opener.evaluate((button) => button.click());
+  await opener.evaluate((button) => {
+    if (button instanceof HTMLElement) button.click();
+  });
   await expect(page.locator('dialog.mp-detail')).toBeVisible();
   await page.evaluate(() => {
     document

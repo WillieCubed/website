@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
+import { readFileSync } from '../content/runtime-files';
 import { createPool } from '../db/postgres';
-import { readFileSync } from '../runtime-files';
 import { isPrivatePreview } from '../studio/config';
 import { StudioError } from '../studio/errors';
 import { visibleCollection } from './public-projection';

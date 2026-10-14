@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 import LiteYouTube from '@/components/media/LiteYouTube';
 
-import type { Initiative } from '@/lib/initiatives';
+import type { Initiative } from '@/lib/initiatives/index';
 
 /**
  * The trailer at the top of an initiative page. Before the video exists it

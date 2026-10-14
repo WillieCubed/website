@@ -1,5 +1,5 @@
-import { generateTagRssFeed } from '@/lib/feeds';
-import { getTagFeedItems } from '@/lib/feeds/items';
+import { generateTagRssFeed } from '@/lib/indieweb/feeds/index';
+import { getTagFeedItems } from '@/lib/indieweb/feeds/items';
 import { getTagParams } from '@/lib/writings';
 import { tagFromParam } from '@/lib/writings/tags';
 
@@ -12,6 +12,10 @@ async function buildTagFeed(tag: string) {
   return items.length > 0 ? generateTagRssFeed(tag, items) : null;
 }
 
+/**
+ * Return published writings carrying the requested tag, newest first, as
+ * RSS. Return 404 when the tag has no public writings.
+ */
 export async function GET(
   _request: Request,
   props: { params: Promise<{ tag: string }> }

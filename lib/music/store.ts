@@ -8,7 +8,7 @@ import { parseCatalog } from './schema';
 import type { MusicCatalog, MusicPlaylist, MusicRevision } from './types';
 
 interface MusicClient {
-  query<T extends QueryResultRow = any>(
+  query<T extends QueryResultRow = QueryResultRow>(
     text: string,
     values?: unknown[]
   ): Promise<QueryResult<T>>;
@@ -16,11 +16,12 @@ interface MusicClient {
 }
 
 interface MusicPool {
-  query<T extends QueryResultRow = any>(
+  query<T extends QueryResultRow = QueryResultRow>(
     text: string,
     values?: unknown[]
   ): Promise<QueryResult<T>>;
   connect(): Promise<MusicClient>;
+  end(): Promise<void>;
 }
 
 function revision(row: Record<string, unknown>): MusicRevision {

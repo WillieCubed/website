@@ -1,6 +1,6 @@
 import matter from 'gray-matter';
 
-import { loadAllInitiatives } from '@/lib/initiatives';
+import { loadAllInitiatives } from '@/lib/initiatives/load';
 import { collectSearchDocuments } from '@/lib/search/collect';
 import { rankItems, tokenize } from '@/lib/search/rank';
 import type {
@@ -8,7 +8,8 @@ import type {
   SearchResponse,
   SearchableItem,
 } from '@/lib/search/types';
-import { getAllWritings, readWritingFile } from '@/lib/writings';
+import { getAllWritings } from '@/lib/writings';
+import { readWritingFile } from '@/lib/writings/load';
 
 import { documentSource } from './document';
 import { getStudioStore } from './store';

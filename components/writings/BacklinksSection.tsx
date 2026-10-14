@@ -1,6 +1,6 @@
 import SiteLink from '@/components/link/SiteLink';
 
-import { formatDate } from '@/lib/site';
+import { formatDate } from '@/lib/site/dates';
 import type { Backlink } from '@/lib/writings/backlinks';
 
 interface BacklinksSectionProps {

@@ -7,11 +7,14 @@ import {
   WEBMENTION_ENDPOINT,
 } from '@/lib/indieweb/constants';
 import { INDIEAUTH_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
+import type {
+  HostMetaResponse,
+  WebFingerResponse,
+} from '@/lib/indieweb/discovery-types';
 import {
   type AtProtocolResources,
   getPublicResources,
 } from '@/lib/indieweb/resources';
-import type { HostMetaResponse, WebFingerResponse } from '@/lib/indieweb/types';
 import { absoluteSiteUrl } from '@/lib/indieweb/utils';
 
 /**
@@ -120,11 +123,11 @@ function llmsLink(label: string, path: string, notes?: string): string {
   return `- [${linkText(label)}](${SITE_URL}${path})${text ? `: ${text}` : ''}`;
 }
 
-/** The AT Protocol values that decide which of its endpoints llms.txt lists. */
+/** AT Protocol values that determine which endpoints appear in the site summary. */
 export type LlmsAtProtocol = AtProtocolResources;
 
 /**
- * The site's llms.txt, in the llmstxt.org shape: an H1, a blockquote
+ * The site's machine-readable summary, in the llmstxt.org shape: an H1, a blockquote
  * summary, then H2 sections of `- [name](url): notes` lists. Pass only
  * writings a visitor can open; drafts must never reach this file. The AT
  * Protocol entries appear only for what is configured, as their routes
@@ -136,7 +139,7 @@ export function buildLlmsSummary(
 ): string {
   const sections = [
     `# ${SITE_NAME}\n\n> ${SITE_URL} is the personal website, writing archive, and IndieWeb home of ${SITE_NAME}.`,
-    // app/robots.ts holds the same line: agents reading for a person and AI
+    // The crawler policy holds the same line: agents reading for a person and AI
     // search are welcome, training crawlers are disallowed site-wide.
     `Assistants fetching pages for a reader and AI search engines are welcome to use this file, the pages it links, and the MCP server. AI training crawlers are not: [robots.txt](${SITE_URL}/robots.txt) disallows them across the whole site.`,
   ];

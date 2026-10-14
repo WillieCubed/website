@@ -4,11 +4,11 @@
    the last stretch of scroll, so every link on the page appears once, and
    the one row changes form instead of handing off to a copy.
 
-   FooterDock marks the footer with data-dock and writes one number, --p: 0
+   The dock controller marks the footer with data-dock and writes one number, --p: 0
    while the page above fills the window, 1 once the footer's own height has
    scrolled in. Everything below is a function of --p. Without scripting, or
    anywhere else on the site, none of it applies and the footer is the plain
-   block it has always been (site.css). */
+   block it has always been. */
 .site-footer[data-dock] {
   --p: 0;
   /* Each part of the opening takes its own stretch of --p. The sides open
@@ -117,8 +117,7 @@
   font-weight: 700;
   letter-spacing: -0.02em;
 }
-/* The name arrives letter by letter as the headline's name leaves
-   (lib/footer/name-reveal.ts), so the wipe other pages use is off. Its
+/* The name arrives letter by letter as the headline's name leaves, so the wipe other pages use is off. Its
    opacity follows the wave while the highlight ranges paint. */
 .site-footer[data-dock] .site-footer__wordmark {
   clip-path: none;
@@ -325,7 +324,7 @@
    shadow, not move the letter, so an arriving letter is a soft shadow a
    little below its place; as it lands the shadow tightens and rises and
    the ink comes in. Under reduced motion the letters skip the stages and
-   simply appear (lib/footer/name-reveal.ts). */
+   simply appear. */
 ::highlight(footer-name-0) {
   color: transparent;
 }

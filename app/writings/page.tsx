@@ -5,8 +5,9 @@ import TopBar from '@/components/site/TopBar';
 import WritingsIndex from '@/components/writings/WritingsIndex';
 
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
-import { pageMetadata, sitePage } from '@/lib/site';
-import { getAllWritings } from '@/lib/writings';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { sitePage } from '@/lib/site/navigation';
+import { getAllWritings } from '@/lib/writings/index';
 
 const WRITINGS_PAGE = sitePage('/writings');
 const WRITINGS = {

@@ -1,9 +1,14 @@
 import matter from 'gray-matter';
 import { createHash } from 'node:crypto';
 
-import { readWritingFile } from '@/lib/writings';
+import { readWritingFile } from '@/lib/writings/load';
 
-/** Public proof identifies the deployed published MDX without exposing its source. */
+/**
+ * Return a published writing's Studio revision, Git blob hash, and deployed
+ * commit so Studio can confirm publication without reading the source.
+ * Return 404 for previews, invalid or missing slugs, drafts, hidden
+ * writings, or writings without a Studio revision.
+ */
 export async function GET(
   _request: Request,
   context: { params: Promise<{ slug: string }> }

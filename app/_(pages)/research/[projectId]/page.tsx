@@ -1,4 +1,4 @@
-type ResearchProject = {
+export type ResearchProject = {
   title: string;
   description: string;
 };

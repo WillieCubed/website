@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { sendWebmentionsForPost } from '@/lib/indieweb/send-webmention';
+import { sendWebmentionsForPost } from '@/lib/indieweb/webmention/send';
 import type {
   SendAllWebmentionsRequest,
   SendAllWebmentionsWritingResult,
-} from '@/lib/indieweb/types';
-import { getAllWritings, getPublishedWriting } from '@/lib/writings';
+} from '@/lib/indieweb/webmention/types';
+import { getAllWritings, getPublishedWriting } from '@/lib/writings/index';
 
 /**
- * POST /api/webmention/send-all
- *
- * Send webmentions for all published writings.
- * Designed to be called from a Vercel deploy hook.
- *
- * Requires WEBMENTION_SECRET for authentication.
- *
- * Optional body parameters:
- * - slugs: string[] - Only send for specific slugs (useful for incremental updates)
- * - dryRun: boolean - If true, only return what would be sent without actually sending
+ * Send outgoing webmentions for published writings and return per-writing
+ * results and totals. Require the WEBMENTION_SECRET bearer token. An
+ * optional slugs array limits the writings; dryRun reports which writings
+ * would be processed without sending notifications.
  */
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('Authorization');

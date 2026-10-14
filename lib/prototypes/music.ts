@@ -18,7 +18,7 @@ export interface SamplePlaylist {
 }
 
 // Fictional artwork has fixed colors, independent of the interface theme.
-// These records stay outside content/ and every public loader.
+// These records stay outside authored content and every public loader.
 export const playlists: SamplePlaylist[] = [
   {
     id: 'fall-1',

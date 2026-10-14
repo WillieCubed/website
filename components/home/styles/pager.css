@@ -1,0 +1,45 @@
+.home {
+  .pager {
+    display: none;
+    justify-content: center;
+    gap: 0;
+    padding: 10px 0 14px;
+  }
+  .pager button {
+    position: relative;
+    z-index: 3;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .pager button::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    top: 8px;
+    left: 8px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-ink) 22%, transparent);
+    transition:
+      width 320ms var(--ease-site),
+      left 320ms var(--ease-site),
+      background-color 320ms var(--ease-site);
+  }
+  .pager button[aria-current='true']::after {
+    width: 22px;
+    left: 1px;
+    background: var(--color-ink);
+  }
+  .tile[data-branded] .pager button[aria-current='true']::after {
+    background: var(--b-primary, var(--color-ink));
+  }
+  .pager button:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}

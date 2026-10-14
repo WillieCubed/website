@@ -1,6 +1,6 @@
 import type { Metadata } from 'next/types';
 
-import { pageMetadata } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = pageMetadata({
   title: 'About',
@@ -228,8 +228,8 @@ async function fetchResumeData(): Promise<ResumeCV> {
 function VirtualResume({
   education,
   experience,
-  service,
-  publications,
+  service: _service,
+  publications: _publications,
   talks,
   volunteerism,
   awards,
@@ -314,7 +314,7 @@ type PublicationItem = {
   url: string;
 };
 
-type ProfessionalAffiliationItem = {
+export type ProfessionalAffiliationItem = {
   organization: string;
   positionTitle: string;
   startDate: string;
@@ -393,7 +393,7 @@ function ResumeExperienceList({ items }: { items: ResumeExperienceItem[] }) {
   return <ul className="space-y-6">{experienceItems}</ul>;
 }
 
-function BigWordsBox({ children }: React.PropsWithChildren) {
+export function BigWordsBox({ children }: React.PropsWithChildren) {
   return (
     <section className="h-[60vh] py-16 flex">
       <blockquote className="my-auto ml-48 max-w-6xl bg-surface-bright/[0.13] p-16 font-display text-[72px] font-semibold">

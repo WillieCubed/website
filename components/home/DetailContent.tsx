@@ -1,0 +1,100 @@
+'use client';
+
+import { Constellation } from '@/components/home/Constellation';
+import { Icon } from '@/components/home/Icon';
+
+import { type Detail, type DetailMedia } from '@/lib/home/ventures';
+
+export function Media({
+  id,
+  media,
+  countdown,
+}: {
+  id: string;
+  media: DetailMedia;
+  countdown: React.ReactNode;
+}) {
+  switch (media.kind) {
+    case 'countdown':
+      return (
+        <div className="d-count">
+          <b data-morph={id}>{countdown}</b>
+          <span>{media.caption}</span>
+        </div>
+      );
+    case 'image':
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={media.src}
+          width={media.width}
+          height={media.height}
+          alt={media.alt}
+          className={media.fromLeft ? 'from-left' : undefined}
+          data-morph={id}
+        />
+      );
+    case 'stack':
+      return (
+        <div className="d-stack">
+          {media.images.map((image) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={image.src}
+              src={image.src}
+              width={image.width}
+              height={image.height}
+              alt={image.alt}
+            />
+          ))}
+        </div>
+      );
+    case 'constellation':
+      return <Constellation morph={id} />;
+  }
+}
+export function Body({
+  detail,
+  onOpen,
+}: {
+  detail: Detail;
+  onOpen: (id: string) => void;
+}) {
+  return (
+    <div className="d-body">
+      {detail.body.map((paragraph) => (
+        <p key={paragraph}>{paragraph}</p>
+      ))}
+      {detail.list && (
+        <ul className="d-list">
+          {detail.list.map((item) => (
+            <li key={item.title}>
+              {item.opens ? (
+                <button type="button" onClick={() => onOpen(item.opens!)}>
+                  <b>
+                    {item.title}
+                    <Icon name="forward" />
+                  </b>
+                  <span>{item.text}</span>
+                </button>
+              ) : (
+                <>
+                  <b>{item.title}</b>
+                  <span>{item.text}</span>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="d-links">
+        {detail.links.map((link) => (
+          <a key={link.href} href={link.href}>
+            {link.label}
+            <Icon name="outward" />
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}

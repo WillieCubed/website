@@ -14,11 +14,15 @@ downloads from `/brand`.
 
 ### Geometry and clear space
 
-The script's “Usage rules” constants sit beside the geometry they measure.
-`GAP` is the space between the cube and the name in a lockup, expressed as a
-share of the cube's drawn height. `CLEAR_SPACE` uses the same number: the
-clear-space unit _x_ is visible inside every lockup as the gap between its two
-parts. The current value is 0.25, so _x_ is 25% of the cube's drawn height.
+A lockup combines the cube and a name into one supplied drawing. The gap
+between them also provides the measure for the empty space around the finished
+logo: _x_ is 25% of the cube's drawn height. Someone placing a lockup can see
+that unit in the drawing itself rather than needing an unrelated measurement.
+
+In the generator, `GAP` sets the space between the cube and name, and
+`CLEAR_SPACE` uses the same value, 0.25. These “Usage rules” constants sit
+beside the geometry they measure, so a change to that relationship can update
+both the drawing and its instructions.
 
 Every logo file is trimmed to its drawing. Measure clear space outward from
 the file's edge on all four sides; there is no invisible padding in the file
@@ -49,11 +53,12 @@ lockup when crediting work made under that name, and a wordmark when the cube
 is already nearby. Choose the provided light, dark, or one-color variant for
 the placement rather than recoloring an asset.
 
-The drawings retain their angles, proportions, face order, type, and flat
-appearance. Do not rotate, stretch, skew, redraw, rearrange, or add effects to
-them. The cube's angles make it read as a cube, and its small cuts solve a
-specific legibility problem; treating either as incidental decoration defeats
-those choices.
+Use the supplied drawings without rotating, stretching, skewing, redrawing,
+rearranging, or adding effects. The cube's angles make it read as a cube;
+changing them alters the mark rather than fitting it into a layout. The
+provided variants solve placement problems without changing that geometry.
+For a photograph or a one-ink print, choose the one-color version rather than
+recoloring faces or adding an outline. Keep the supplied type and face order.
 
 Platform files under `web/`, `apple/`, `android/`, and `social/` follow their
 platform's templates and keep their supplied artwork. The general clear-space
@@ -108,8 +113,7 @@ the source is unchanged. Review generated differences with that dependency in
 mind instead of assuming every changed render reflects an intentional edit to
 the logo.
 
-Prefer newer renders because they match what current Apple platforms draw,
-and name the tooling change in the commit that ships them. This explanation
-lets a later reviewer distinguish a platform-rendering update from a redesign.
-Rebuilding the kit establishes generated output; it does not by itself verify
-how every platform will display an installed icon.
+Prefer the newer renders because they match what current Apple platforms draw.
+Name the Xcode or Icon Composer change in the commit that ships them, so someone
+reviewing the generated files can understand why they changed without searching
+for a nonexistent logo edit.

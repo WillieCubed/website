@@ -1,16 +1,17 @@
 # Run the site locally from a fresh checkout
 
 Set up a new checkout, run the repository checks, and browse the site locally.
-By the end, you will have seen both the development server and the checks used
-to prepare changes. The exercise uses local-only bootstrap so learning the site
-does not require provisioning a publishing deployment.
+You will finish with a working checkout and a local URL where you can browse the
+homepage, writings, and search. The exercise uses local-only bootstrap so
+learning the site does not require provisioning a publishing deployment.
 
 ## Prerequisites
 
-You need Git with SSH access to `WillieCubed/website`, Node.js 24 or later,
-and pnpm. The exact pnpm version is pinned in `package.json`; bootstrap checks
-it before installing. You also need network access to GitHub and the package
-registry, a terminal, a browser, and an unused parent directory for the checkout.
+You need Git with SSH access to `WillieCubed/website`, Node.js 24 or later, and
+pnpm. The exact pnpm version is pinned in `package.json`; bootstrap checks it
+before installing. You also need network access to GitHub and the package
+registry, a terminal, a browser, and an unused parent directory for the
+checkout.
 
 These instructions have been inspected against the bootstrap scripts. A complete
 fresh-machine run has not been exercised for this documentation revision. The
@@ -43,22 +44,24 @@ over work.
 pnpm bootstrap --local-only
 ```
 
-Expect successful Node and pnpm checks, installation from the lockfile, a passing
-`pnpm check`, and creation of `.env.local` from `.env.example` when absent.
-An existing `.env.local` is preserved. Leave the example environment values empty
-for this exercise: ordinary content can run without the hosted publishing setup.
+Expect successful Node and pnpm checks, installation from the lockfile, a
+passing `pnpm check`, and creation of `.env.local` from `.env.example` when
+absent. An existing `.env.local` is preserved. Leave the example environment
+values empty for this exercise: ordinary content can run without the hosted
+publishing setup.
 
-Local-only mode stops before provider authentication and deployment. The workspace
-check includes tests, lint, type checking, and a production build; it disables
-outgoing publishing notifications for that check. This gives you a baseline for
-source work without making setup depend on external publishing credentials.
+Local-only mode stops before provider authentication and deployment. The
+workspace check includes tests, lint, type checking, and a production build; it
+disables outgoing publishing notifications for that check. This gives you a
+baseline for source work without making setup depend on external publishing
+credentials.
 
 ### Resolve a failed baseline before editing
 
 Stop at the first reported failure. For a version mismatch, use the version
-pinned in `package.json` and rerun bootstrap without modifying the lockfile.
-For an installation or check failure, inspect the command's error before moving
-on. Starting edits on a failed baseline makes it harder to distinguish a setup
+pinned in `package.json` and rerun bootstrap without modifying the lockfile. For
+an installation or check failure, inspect the command's error before moving on.
+Starting edits on a failed baseline makes it harder to distinguish a setup
 problem from a regression you introduced.
 
 ## 3. Open the local site
@@ -76,14 +79,16 @@ checkout.
 
 ### Browse the content you came to work on
 
-Confirm the homepage renders, follow a link to Writings, and open Search.
-You should see ordinary public content. Optional database-backed features can
-be unavailable with empty environment values; that is a separate boundary from
-whether a writing page renders.
+Confirm the homepage renders, follow a link to Writings, and open Search. You
+should be able to read public content and navigate between pages. Publishing and
+account features can remain unavailable because this exercise leaves their
+database and credentials unconfigured; those features are not needed to read an
+article locally.
 
 If the server cannot start, inspect its terminal error. If a browser page looks
 wrong, first confirm its origin matches the URL the current process printed.
-Keep the terminal running while you browse; Ctrl+C stops that development server.
+Keep the terminal running while you browse; Ctrl+C stops that development
+server.
 
 ## 4. Verify and finish
 
@@ -96,11 +101,11 @@ pnpm preflight --local-only --phase env
 Expect the environment check to find `.env.local`. Selecting `env` checks the
 file created during setup without repeating the full tests and build after a
 browsing-only exercise. If you changed source while experimenting, use
-`pnpm preflight --local-only` to repeat the full local checks. Neither form
-certifies hosted publishing.
+`pnpm preflight --local-only` to repeat the full local checks. These local
+checks do not contact a publishing deployment.
 
 Keep the checkout for development and continue with
 [your first writing page](../content/first-writing.md). `.env.local` and build
 output are ignored; do not commit environment values. If the exercise was
 disposable, confirm the checkout contains no work you need before removing only
-that checkout. Do not remove a shared working directory as tutorial cleanup.
+that checkout. Keep any checkout that contains ongoing work.

@@ -29,8 +29,11 @@ leave the site. Centralizing this decision keeps navigation and preview
 behavior aligned with where the browser will actually go.
 
 MDX prose receives `SiteLink` through the `a` override in
-`components/mdx/index.tsx`. Authors can write ordinary Markdown links; they do
-not need to reproduce the component's behavior in each article.
+`components/mdx/index.tsx`, which replaces the anchor rendered for a Markdown
+link. Authors can therefore write ordinary Markdown links. When writing a page
+or component in JSX, import `SiteLink` directly, as in these three cases: an
+inline initiative link, an existing card that needs no second preview, and an
+external studio link.
 
 ```tsx
 import SiteLink from '@/components/link/SiteLink';
@@ -42,15 +45,16 @@ import SiteLink from '@/components/link/SiteLink';
 
 ### Event handlers compose with the shared behavior
 
-For events it handles, such as `onPointerDown` and `onFocus`, `SiteLink` calls
-the caller's handler before its own. Adding a handler therefore does not replace
-the preview behavior. An `onClick` handler can call `event.preventDefault()`
-to stop navigation; homepage tiles use this to open a detail view in place.
+A component may need to respond to focus or a press while still using the link's
+preview. For the events it handles, including `onPointerDown` and `onFocus`,
+`SiteLink` calls your handler before its own. Supplying one therefore adds to
+the behavior instead of replacing the code that opens or dismisses the card.
 
-A page link remains a `SiteLink` even when its enhanced click behavior is
-intercepted. Its href supplies the destination for ordinary navigation, while
-the handler supplies the richer interaction. That distinction protects the
-JavaScript-free route to the same content.
+Click interception is a separate choice. An `onClick` handler can call
+`event.preventDefault()` to stop navigation; homepage tiles do this to open
+a detail view in place. Keep the destination in the href and keep using
+`SiteLink`. The click handler supplies the enhanced view, while ordinary
+navigation still has an address to follow when that handler does not run.
 
 ## What lint checks
 
@@ -71,8 +75,8 @@ site.
 
 Both rules apply to `app/` and `components/` outside `components/link/`. The
 raw-anchor rule also skips `app/_(pages)`, whose parked pages are not routed.
-That scope explains what a passing lint result has inspected; it does not
-create a different design rule for other code.
+Links elsewhere still follow this document's rule; those locations are outside
+the lint check's scope.
 
 ### Computed hrefs still need review
 
@@ -81,10 +85,10 @@ The source rule cannot follow a value such as `{link.href}` or
 manually. The same `SiteLink` requirement applies, even when lint cannot
 recognize the address.
 
-Lint and runtime classification serve different purposes. The first finds
-obvious violations during editing; the second decides actual navigation and
-preview behavior from the supplied URL. Passing one does not prove that every
-computed link follows the contract.
+For a computed href, find where its value comes from and check the rendered
+destination. A variable may hold an external address in one use and an in-site
+page in another; routing both through `SiteLink` lets its URL classification
+choose the appropriate behavior.
 
 ## When a raw anchor is right
 
@@ -102,19 +106,24 @@ transition would promise the wrong kind of result.
 
 ### Canonical identifiers for microformat parsers
 
-The hidden `u-url` on `/writings` and `/initiatives`, a writing's hidden
-`u-url u-uid`, the hidden h-feed author, and the homepage rail's name link
-are microformat anchors. Parsers need their absolute canonical URLs. These
-anchors supply structured identity as well as, where visible, a destination;
-they follow the explicit parser contract rather than the preview convention.
+Some anchors identify a page or its author for microformat parsers. Their
+classes, such as `u-url` and `u-uid`, tell a parser that the href is a canonical
+identifier, so those anchors need absolute canonical URLs. They include the
+hidden `u-url` on `/writings` and `/initiatives`, a writing's hidden
+`u-url u-uid`, the hidden h-feed author, and the homepage rail's name link.
+
+Keep these as raw anchors. Most supply machine-readable identity rather than
+a visible preview opportunity; the rail's visible name also serves that identity
+role.
 
 ### The command palette's fallback
 
-The palette trigger retains a raw `/search` href for visitors without scripts.
-With scripts, its click opens the palette, which morphs from the trigger element
-through a ref. `SiteLink` does not forward that ref, so this trigger is a
-specific exception. The plain href is still essential: opening the palette
-must enhance a working search destination.
+The command palette opens search in a temporary view. Its trigger is still a
+link to `/search`, so a visitor without scripts can reach the search page.
+With scripts, the click opens the palette and animates it from the trigger's
+position. That animation needs a ref to the trigger element, which `SiteLink`
+does not forward; the trigger therefore uses a raw anchor. Preserve its
+`/search` href when changing the animation or palette behavior.
 
 ### Explain each reported exception at the href
 
@@ -138,10 +147,10 @@ Inline prose links, chips, and bylines keep the card because their destination
 may otherwise be unclear until opened. The card helps a visitor assess a link
 without requiring every sentence to contain a destination summary.
 
-The footer shows no cards. Its page list turns them off, and its remaining
-links go to other sites, route handlers, or files. Those destinations never
-receive a card. Use that composition as the explanation, rather than adding
-a special global “footer” exception.
+The footer's page list turns previews off. Its other destinations are external
+sites, route handlers, or files, which never receive cards. This is why the
+footer shows none; a new inline page link there would still need an explicit
+decision about whether its context warrants a preview.
 
 ## What the card shows
 
@@ -161,15 +170,16 @@ also keeps search and other presentations of the page in agreement.
 
 ### Loading follows visitor intent
 
-The registry is served as `/entities.json`. `SiteLink` fetches it when the
-first preview intent reaches the show step and reuses the successful request
-for the visit. A failed request shows no card and clears the cached promise,
-so a later intent can retry. Navigation does not depend on the registry being
-available.
+A visitor expresses preview intent by resting the mouse pointer on a link or
+giving it visible keyboard focus. Once that intent reaches the show step,
+`SiteLink` fetches `/entities.json` and reuses the successful request for the
+visit. Waiting for intent avoids downloading preview data for someone who
+only reads the page or follows a link immediately.
 
-This failure behavior matters during a bad response or cold start. An optional
-preview should disappear quietly while the working link remains; one failed
-request should not disable all previews for the rest of the visit.
+If the request fails, the link still navigates and no card appears. The failure
+clears the cached promise so a later intent can try again. A temporary bad
+response therefore costs the visitor a preview, rather than breaking the
+destination or suppressing every card for the rest of the visit.
 
 ### Ventures retain their detail query
 
@@ -231,10 +241,8 @@ page content instead.
 
 ## Open questions
 
-The site does not fetch external metadata on hover. Such a request would tell
-a third party about a visitor's interest before the visitor chose to follow
-the link. Keeping external links as ordinary anchors avoids that disclosure
-and keeps a reading action from silently becoming a remote request.
-
-This is a recorded design decision, not an incomplete registry feature.
-Missing cards for external destinations do not require repair.
+External previews were considered and rejected. Fetching a destination's
+metadata when someone hovered would send a request to that site before they
+chose to visit it, disclosing interest through an otherwise local reading
+action. External links therefore remain ordinary anchors without preview
+fetches. Their missing cards are intentional.

@@ -1,16 +1,16 @@
 # Production IndieWeb rollout
 
 This is the September 23, 2026 rollout record. Its deployment and configuration
-statements are historical. Use the [current conformance
-matrix](../../reference/publishing/publishing-conformance.md) for present
-release gates.
+statements are historical. Use the
+[current conformance matrix](../../reference/publishing/publishing-conformance.md)
+for present release gates.
 
-Before publishing on `willie.page`, review the [exact draft
-text](publication-review.md), enroll the production IndieAuth secret in an
-authenticator, and approve the posts that should become public. The [isolated
-acceptance
-record](../../evidence/publishing/verification-2026-09-23-followup.md) contains
-the tested URLs and outside responses.
+That rollout established the production services while keeping authored drafts
+private. The
+[isolated acceptance record](../../evidence/publishing/verification-2026-09-23-followup.md)
+contains the tested URLs and outside responses;
+[publication review](publication-review.md) covers the approval needed before an
+original writing becomes public.
 
 ## Recorded deployment
 
@@ -29,13 +29,13 @@ repository-scoped Micropub token. The token granted Contents write to
 `WillieCubed/website` only, with a September 23, 2027 expiry. Vercel held the
 production notification secret; GitHub did not yet have the matching secret, so
 the production workflow skipped outbound sends pending public post checks. The
-publishing branch was `main`. [PR
-111](https://github.com/WillieCubed/website/pull/111) deployed revision
+publishing branch was `main`.
+[PR 111](https://github.com/WillieCubed/website/pull/111) deployed revision
 `8dcede2` on September 23, 2026 PDT.
 
-These identifiers bind the record to the rollout that was inspected. Later
-migrations and credential changes need their own evidence; this account of
-001–003 does not describe the full current schema.
+The migration range above describes the September database. Later publishing
+changes applied additional migrations; use the current bootstrap reference when
+preparing a database now.
 
 ## Recorded checks
 
@@ -48,38 +48,38 @@ passed.
 
 ### What the production checks could establish
 
-After deployment, seven read-only browser checks passed on
-`willie.page`; the published-post case skipped because the feed had no items.
-The homepage, writings page, all six feeds, Micropub configuration, IndieAuth
-metadata, search route, and public Webmention JSON returned HTTP 200. `GET
-/micropub?q=config` advertised the media endpoint and no false syndication
-destinations. All four drafts still returned HTTP 404. The [production RSS
-feed](https://willie.page/writings/feed.xml) advertised matching WebSub hub and
-self URLs.
+After deployment, seven read-only browser checks passed on `willie.page`; the
+published-post case skipped because the feed had no items. The homepage,
+writings page, all six feeds, Micropub configuration, IndieAuth metadata, search
+route, and public Webmention JSON returned HTTP 200. `GET /micropub?q=config`
+advertised the media endpoint and no false syndication destinations. All four
+drafts still returned HTTP 404. The
+[production RSS feed](https://willie.page/writings/feed.xml) advertised matching
+WebSub hub and self URLs.
 
-The distinction follows from the inputs: isolated publication exercised a real
-post lifecycle, while an empty production feed left no published post to test.
-Keep the skipped case visible. HTTP success and valid discovery metadata are
-useful checks, but cannot stand in for a missing public article or receipt.
+Production had no public writing to exercise, so those checks established
+reachable endpoints and discovery metadata rather than a completed production
+post lifecycle. The isolated site's subscriber receipt covered delivery in that
+separate environment.
 
 ## Publication requirements
 
 ### Complete the public-content checks
 
 At the September rollout, approved public posts were still needed to check
-production permalinks, search
-results, rendered Webmentions, and the feed contents. The rollout also left real outside reply and
-manual syndication checks open, requiring exact outside permalinks in both
-directions. Its gate withheld the level 3 claim and routine outbound notifications
-pending those checks. Later October receipts record required production sync;
-the September gate does not describe that later notification configuration.
+production permalinks, search results, rendered Webmentions, and the feed
+contents. The rollout also left real outside reply and manual syndication checks
+open, requiring exact outside permalinks in both directions. Its gate withheld
+the level 3 claim and routine outbound notifications pending those checks. Later
+October receipts record required production sync; the September gate does not
+describe that later notification configuration.
 
 ### Enroll the owner before authenticated use
 
-At the time of the rollout, the production TOTP secret still needed enrollment.
-Willie must add it to an authenticator before using the IndieAuth consent
-screen. No production Micropub test post should be created before the content
-review, because that post would become public on `willie.page`.
+At the rollout, Willie still needed to enroll the production time-based
+one-time-password (TOTP) secret in an authenticator before using the IndieAuth
+consent screen. The rollout also deferred production Micropub test posts until
+content review, because those posts would become public on `willie.page`.
 
 Recheck these conditions against the
 [current conformance reference](../../reference/publishing/publishing-conformance.md)

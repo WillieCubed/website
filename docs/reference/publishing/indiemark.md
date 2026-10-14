@@ -1,12 +1,19 @@
 # IndieMark criteria and evidence
 
-Check public results before claiming an IndieMark level. The [IndieMark
+IndieMark groups independent-publishing capabilities into levels. A level is a
+claim about the site's public behavior, so check the public examples before
+claiming one. The [IndieMark
 criteria](https://indieweb.org/IndieMark) are draft guidance and include
 untestable `TBD` items. The table dates each recorded result; verify it again
 before making a current claim. Protocol details follow the [supported behavior
 contract](indieweb-spec.md).
 
 ## Criteria and repeatable checks
+
+The checks below distinguish an available feature from an example that a reader
+can actually use. POSSE means publishing on your own site and syndicating
+elsewhere: its evidence needs both the original post and its outside copy. An
+isolated test of the machinery cannot supply those production examples.
 
 | Level | Testable criterion                                                      | Repeatable check                                                                                                                                         | Public state (2026-09-23 unless noted)                                                  |
 | ----- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -30,8 +37,8 @@ capabilities exceed several level 1–3 criteria, but their existence does not
 replace a missing public post, actual syndication copy, or hub delivery.
 
 The October 9 acceptance results cover received media, Vouch, moderation, source
-updates and deletion, and upstream Salmention receipt. Independent Authorship
-Rocks and Webmention Rocks discovery checks pass. The [current conformance
+updates and deletion, and upstream Salmention receipt. The recorded independent Authorship
+Rocks and Webmention Rocks discovery checks passed. The [current conformance
 matrix](publishing-conformance.md) links the live receipts and cleanup. These
 isolated checks do not supply the two original production posts or establish a
 production IndieMark level.
@@ -67,6 +74,6 @@ source-driven publishing, copy association, real responses and playback;
 [#163](https://github.com/WillieCubed/website/issues/163) is complete.
 
 The dated evidence leaves an approved production original as the prerequisite
-for the public-post criteria. Recheck that state before making a current claim. Profile URLs never become copy links because they do not
-identify a syndicated post. Only a copy's exact permalink counts as syndication
-evidence.
+for the public-post criteria. Recheck that state before making a current claim;
+the isolated copy establishes the implementation's behavior, not a production
+post's syndication relationship.

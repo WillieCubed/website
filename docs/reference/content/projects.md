@@ -8,35 +8,34 @@ fields and visibility; Willie supplies the editorial content.
 Every title, summary, body paragraph, caption, and image description must use
 Willie's exact words. If you are an agent, copy his text without editing it,
 including typos, or leave the field empty. Do not write, shorten, or reword
-project copy. The page omits empty fields.
+project copy. These pages represent his account of his work; a plausible summary
+written by someone else would change that account.
 
-The page adds only the status names (`STATUS_LABELS` in `lib/projects/facts.ts`)
-and the host label on a link that has no `label`.
+This includes accessibility copy. When an image description is missing, obtain
+Willie's words rather than supplying your own or bypassing the alt-text check.
+The page omits empty optional fields, but a required field still needs valid
+content before the record can pass validation.
 
-This applies to accessibility copy as well as visible prose. An agent cannot
-fill a missing image description with a plausible description and call the
-record complete. Preserve supplied wording exactly or leave the field empty;
-if a required field or alt-text check then fails, obtain Willie's text rather
-than bypassing the schema. The rule protects how his work is represented, not
-only whether a page looks finished.
+The interface adds only the status names from `STATUS_LABELS` in
+`lib/projects/facts.ts` and the host label for a link without a `label`.
 
 ## Where a project lives
 
-Each project is one file, `content/projects/<slug>.mdx`, and the slug is the
-URL: `content/projects/orbit.mdx` serves `/projects/orbit`. Files that start
-with an underscore are skipped. Copy `content/projects/_template.mdx` to begin.
+Each project is one file, `content/projects/<slug>.mdx`. The slug is the
+filename without its extension and supplies the URL: a file named `orbit.mdx`
+serves `/projects/orbit`. Files that start with an underscore are skipped. Copy
+`content/projects/_template.mdx` to begin.
 
-The body below the frontmatter is MDX, and Willie writes it.
-
-The single file keeps a project's facts and authored account together. Use
-`parent`, `initiative`, or `successor` for relationships; placing one project
-inside another project's directory would not establish those relationships or
-create a nested public URL.
+The frontmatter, the fields at the top, holds the facts; the MDX body below it
+holds Willie's account. Use `parent`, `initiative`, or `successor` for
+relationships; placing one project inside another project's directory would not
+establish those relationships or create a nested public URL.
 
 ## Frontmatter
 
-The schema is `lib/projects/schema.ts`. It rejects unknown keys, so a misspelled
-field fails the build and does not vanish.
+The fields below describe a project's facts, relationships, and presentation.
+`lib/projects/schema.ts` rejects unknown keys: a misspelled field fails the
+build instead of silently disappearing from the page.
 
 | Field           | Type                               | Meaning                                                                   |
 | --------------- | ---------------------------------- | ------------------------------------------------------------------------- |
@@ -67,10 +66,10 @@ field fails the build and does not vanish.
 `planned`, a past `ends` gives `complete`, a `starts` alone gives `active`, and
 no dates give `planned`.
 
-Dates use the shared calendar-day schema from initiatives. They describe the
-day work began, ended, or changed rather than a publication timestamp. An
-explicit status is appropriate when the calendar cannot say what happened—for
-example, that work was handed off rather than completed.
+Dates use the shared calendar-day schema from initiatives. They describe the day
+work began, ended, or changed rather than a publication timestamp. An explicit
+status is appropriate when the calendar cannot say what happened—for example,
+that work was handed off rather than completed.
 
 ### Media requirements
 
@@ -80,11 +79,9 @@ Willie's. The full policy is in [accessibility.md](../design/accessibility.md),
 and `pnpm content:check` enforces it. A video needs `kind: video`, `youtubeId`,
 and `title`. A document needs `kind: document`, `href`, and `title`.
 
-For images, an optional nonblank `caption` is also supported and remains subject
-to the same authorship rule. Media type determines the required fields: a
-YouTube ID belongs to a video record, while a document uses its own `href`.
-The strict schema catches misplaced or misspelled fields before a reader sees
-an incomplete result.
+Images also accept an optional nonblank `caption`, in Willie's words. Use the
+fields for the actual media type; the strict schema rejects a YouTube ID placed
+in a document record rather than guessing which presentation you intended.
 
 ## Visibility
 
@@ -94,10 +91,11 @@ an incomplete result.
 | `facts`  | Header only; suitable for an NDA project | No                                    |
 | `hidden` | No page                                  | No                                    |
 
-The loader empties the body and media of every non-`public` project. Withholding
-those values at the loading boundary protects all consumers, including feeds,
-instead of relying on each renderer to remember the same condition. A
-facts-only project can acknowledge work without disclosing its account or assets.
+A facts-only project can acknowledge work covered by an NDA without publishing
+its narrative or assets. The loader removes body and media from every
+non-`public` project before passing the record to pages, feeds, or other
+consumers. That keeps the restriction with the record instead of asking each
+renderer to apply it independently.
 
 Visibility and draft state answer separate questions. `visibility: public`
 selects the full presentation once published; it does not authorize an agent to
@@ -109,36 +107,39 @@ A file with `draft: true` renders in development and returns 404 in production.
 Only Willie clears a draft flag. An agent that migrates or adds a project leaves
 `draft: true` in place.
 
-A direct development preview is useful for reviewing unfinished records, but it
-is not the public catalog. Discovery consumers explicitly request published
-projects even in development. Review the detail page as a draft, then review
-discovery after Willie authorizes publication; neither check substitutes for
-the other.
+Development preview and public discovery serve different stages of review. You
+can inspect a draft detail page locally while the index, search, and other
+discovery surfaces continue to select only published records. After Willie
+authorizes publication, review those surfaces too: a correct detail page does
+not show whether someone can find it.
 
 ## Brand
 
-The page uses a Material 3 Fidelity color scheme when it has a seed; otherwise
-it uses neutral colors. The first available source below supplies the seed.
+A project can have its own color identity or inherit its organization's. The
+page uses a Material 3 Fidelity scheme—a palette derived from one seed color—
+when a seed is available, and neutral colors otherwise. The first available
+source in this order supplies it:
 
-1. The project's own `brand` field.
-2. The seed `pnpm brand:seeds` resolved from the project's `website`, stored by slug in `lib/brand/seeds.json`.
+1. The project's explicit `brand` field.
+2. The seed resolved from its `website`, stored by slug in `lib/brand/seeds.json`.
 3. The `brand` of the project's first owner that has one.
 
-Run `pnpm brand:seeds` after you add a `website` or after a project's site
-rebrands. The script reads the live site, so it needs network access.
+An explicit field preserves a deliberate choice for this project. The website
+source lets a project with its own site bring that identity with it, while the
+owner supplies a fallback when the project has neither. You do not need to
+assign a separate color merely to fill the field.
 
-An explicit seed takes precedence because it records a deliberate choice for
-this project. The website-derived seed follows, then the owner's brand supplies
-a fallback. This lets a project have its own identity without requiring every
-project under an organization to define a color. Inspect the resulting scheme
-when updating seeds: a successful network fetch is not a visual review.
+Run `pnpm brand:seeds` after adding a `website` or when the site's branding
+changes. The script reads the live site and needs network access. Inspect the
+resulting palette on the project page after updating it.
 
 ## Owners
 
 An owner is a key in `OWNERS` in `lib/projects/owners.ts`. To add one, add a key
 with `name`, an optional `href`, and an optional `brand` that names a key in
 `lib/brand/seeds.json`. Use the organization's name exactly as Willie's own
-records spell it. An owner with no `brand` leaves its projects neutral.
+records spell it. When neither the project nor its website supplies a seed, an
+owner without `brand` leaves the project neutral.
 
 Owners are shared records, so correcting an organization's name there affects
 every project that cites its key. Add an owner for an actual organization rather
@@ -154,8 +155,8 @@ touch an image.
 Check the intended visibility as well as the schema. A facts-only preview should
 have no body or media, and a hidden project should have no public detail page.
 Confirm that supplied copy survived verbatim, including captions and image
-alternatives. Passing a content check does not grant editorial approval or
-permission to clear a draft flag.
+alternatives. Keep the draft flag in place throughout this review; Willie
+decides when the record can be published.
 
 ## The public index
 
@@ -167,10 +168,12 @@ copy, and image alt text and opens its existing homepage detail view. A hidden
 venture and its products do not appear. The cards stay neutral until a visitor
 points at or focuses one, when its existing Fidelity scheme applies.
 
-Published project files appear in a second section. The index leaves that
-section out until there is a published project. The top bar's global search
-finds the published work. The layout uses one column below 600px and two columns
-above it inside the same 840px content column as the top bar and footer.
+Published project files appear in a second section, which the index omits while
+empty. Current work reuses the homepage copy; the project section adds Willie's
+authored records as he publishes them. This keeps an unfinished project catalog
+from suggesting that the public homepage work is missing. The top bar's global
+search finds the published work. The layout uses one column below 600px and two
+columns above it inside the same 840px content column as the top bar and footer.
 
 ### One publication boundary for discovery
 
@@ -195,11 +198,6 @@ flowchart LR
   loader --> sitemap
 ```
 
-Willie still controls publication by clearing each file's draft flag. The content files were still drafts when this index behavior was documented;
-that observation is not a permanent inventory. Inspect current draft flags to
-establish which project records now qualify.
-
-The two index sections serve different sources. Current work reuses the public
-homepage records so those descriptions do not acquire competing versions. The
-project section can grow when Willie publishes authored records; its absence
-while empty avoids suggesting missing work to visitors.
+Willie controls publication by clearing each file's draft flag. Project files
+were still drafts when the index behavior was first documented; inspect the
+current flags to establish which records qualify now.

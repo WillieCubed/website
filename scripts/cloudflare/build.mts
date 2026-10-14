@@ -30,6 +30,7 @@ export async function runCloudflareBuild() {
           env: {
             ...process.env,
             NEXT_PUBLIC_SITE_REVISION: revision,
+            SITE_BUILT_AT: new Date().toISOString(),
             NEXT_PUBLIC_SITE_ORIGIN: origin,
             SITE_MODE: target,
             NEXT_PUBLIC_ATPROTO_DID: 'did:plc:iyn6nc3ffqm2e3555exyrgvv',

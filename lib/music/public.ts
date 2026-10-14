@@ -47,10 +47,7 @@ export async function approvedManifest() {
       .update(`blob ${Buffer.byteLength(source)}\0`)
       .update(source)
       .digest('hex'),
-    commit:
-      process.env.NEXT_PUBLIC_SITE_REVISION ??
-      process.env.VERCEL_GIT_COMMIT_SHA ??
-      null,
+    commit: process.env.NEXT_PUBLIC_SITE_REVISION ?? null,
   };
 }
 export async function publicCollection() {

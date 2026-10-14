@@ -205,7 +205,7 @@ for (const width of [320, 390, 1440]) {
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
       await page.goto('/brand');
       const headerCenters = await page
-        .locator('.brand-header header > *')
+        .locator('.brand-header header > :visible')
         .evaluateAll((elements) =>
           elements.map((element) => {
             const box = element.getBoundingClientRect();

@@ -51,27 +51,14 @@ export default function ColophonPage() {
               <SiteLink href="/">Willie Chalmers III</SiteLink>.
             </p>
           </div>
-          <figure
-            className="colophon-specimen"
-            aria-label="Atkinson Hyperlegible type specimens"
-          >
-            <div className="colophon-type-sample colophon-type-sample--sans">
-              <span className="colophon-sample-text">Aa 0O 1Il</span>
-              <span className="colophon-sample-name">
-                Atkinson Hyperlegible Next
-              </span>
-            </div>
-            <div className="colophon-type-sample colophon-type-sample--mono">
-              <span className="colophon-sample-text">Aa 0O 1Il</span>
-              <span className="colophon-sample-name">
-                Atkinson Hyperlegible Mono
-              </span>
-            </div>
-          </figure>
+          <div className="colophon-illustration" aria-hidden="true">
+            <span className="colophon-illustration-letters">Aa</span>
+            <span className="colophon-illustration-glyphs">0O &nbsp; 1Il</span>
+          </div>
         </section>
 
         <div className="colophon-notes">
-          <section aria-labelledby="type-title">
+          <section className="colophon-type" aria-labelledby="type-title">
             <h2 id="type-title">Type</h2>
             <p>
               Atkinson Hyperlegible Next is used for reading, and Atkinson
@@ -83,8 +70,28 @@ export default function ColophonPage() {
               . Their distinct character shapes help separate similar letters
               and numbers.
             </p>
+            <figure
+              className="colophon-specimen"
+              aria-label="Atkinson Hyperlegible type specimens"
+            >
+              <div className="colophon-type-sample colophon-type-sample--sans">
+                <span className="colophon-sample-text">Aa 0O 1Il</span>
+                <span className="colophon-sample-name">
+                  Atkinson Hyperlegible Next
+                </span>
+              </div>
+              <div className="colophon-type-sample colophon-type-sample--mono">
+                <span className="colophon-sample-text">Aa 0O 1Il</span>
+                <span className="colophon-sample-name">
+                  Atkinson Hyperlegible Mono
+                </span>
+              </div>
+            </figure>
           </section>
-          <section aria-labelledby="publishing-title">
+          <section
+            className="colophon-publishing"
+            aria-labelledby="publishing-title"
+          >
             <h2 id="publishing-title">Publishing</h2>
             <p>
               Original posts live here at their own URLs. Markdown and MDX keep
@@ -97,7 +104,7 @@ export default function ColophonPage() {
               responses from other websites to the posts they reference.
             </p>
           </section>
-          <section aria-labelledby="credits-title">
+          <section className="colophon-credits" aria-labelledby="credits-title">
             <h2 id="credits-title">Source and credits</h2>
             <p>
               The source is on{' '}
@@ -119,73 +126,78 @@ export default function ColophonPage() {
               <SiteLink href="https://workers.cloudflare.com/">
                 Cloudflare Workers
               </SiteLink>
-              . Full credits and standards:{' '}
+              .{' '}
               <a
                 // eslint-disable-next-line site/no-raw-internal-anchor -- A plain-text route handler, not a page.
                 href="/humans.txt"
               >
-                humans.txt
+                Plain-text credits (humans.txt)
               </a>
               .
             </p>
+            <section
+              className="colophon-edition"
+              aria-labelledby="edition-title"
+            >
+              <table className="colophon-build">
+                <caption id="edition-title">This build</caption>
+                <tbody>
+                  <tr>
+                    <th scope="row">Version</th>
+                    <td>
+                      {build.revision ? (
+                        <SiteLink
+                          className="colophon-revision"
+                          href={`https://github.com/WillieCubed/website/commit/${build.revision}`}
+                          aria-label={`View source for revision ${build.revision}`}
+                        >
+                          {build.revision.slice(0, 8)}
+                        </SiteLink>
+                      ) : (
+                        'Revision unavailable'
+                      )}
+                      {build.development && (
+                        <span className="colophon-detail">Development</span>
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Last built</th>
+                    <td>
+                      {builtAt ? (
+                        <time dateTime={build.builtAt!}>
+                          {buildDate} · {buildTime}
+                        </time>
+                      ) : (
+                        'Development server'
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Build record</th>
+                    <td>
+                      {build.buildUrl ? (
+                        <SiteLink href={build.buildUrl}>
+                          {build.provider === 'cloudflare'
+                            ? 'Cloudflare build'
+                            : 'GitHub Actions run'}{' '}
+                          ↗
+                        </SiteLink>
+                      ) : (
+                        'Built locally'
+                      )}
+                      {build.provider === 'cloudflare' && (
+                        <span className="colophon-detail">
+                          Sign-in required
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
           </section>
         </div>
-        <section className="colophon-edition" aria-labelledby="edition-title">
-          <table className="colophon-build">
-            <caption id="edition-title">This build</caption>
-            <tbody>
-              <tr>
-                <th scope="row">Version</th>
-                <td>
-                  {build.revision ? (
-                    <SiteLink
-                      className="colophon-revision"
-                      href={`https://github.com/WillieCubed/website/commit/${build.revision}`}
-                      aria-label={`View source for revision ${build.revision}`}
-                    >
-                      {build.revision.slice(0, 8)}
-                    </SiteLink>
-                  ) : (
-                    'Revision unavailable'
-                  )}
-                  {build.development && (
-                    <span className="colophon-detail">Development</span>
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Last built</th>
-                <td>
-                  {builtAt ? (
-                    <time dateTime={build.builtAt!}>
-                      {buildDate} · {buildTime}
-                    </time>
-                  ) : (
-                    'Development server'
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Build record</th>
-                <td>
-                  {build.buildUrl ? (
-                    <SiteLink href={build.buildUrl}>
-                      {build.provider === 'cloudflare'
-                        ? 'Cloudflare build'
-                        : 'GitHub Actions run'}{' '}
-                      ↗
-                    </SiteLink>
-                  ) : (
-                    'Built locally'
-                  )}
-                  {build.provider === 'cloudflare' && (
-                    <span className="colophon-detail">Sign-in required</span>
-                  )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
       </main>
     </>
   );

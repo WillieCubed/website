@@ -78,51 +78,55 @@
   text-wrap: balance;
 }
 .colophon-edition {
-  margin-bottom: 72px;
-}
-.colophon-edition h2 {
-  margin-bottom: 24px;
+  margin-bottom: 48px;
 }
 .colophon-build {
-  display: grid;
-  grid-template-columns: 0.8fr 1.2fr 1fr;
-  gap: 8px;
+  max-width: 100%;
+  border-spacing: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--color-surface-container);
   margin: 0;
 }
-.colophon-build > div {
-  padding: 24px;
-  background: var(--color-surface-container);
-  border-radius: 12px;
+.colophon-build caption {
+  text-align: left;
+  font: 600 18px/1.4 var(--font-sans);
+  padding-bottom: 12px;
 }
-.colophon-build > div:first-child {
-  border-radius: 28px 12px 12px 28px;
+.colophon-build th,
+.colophon-build td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 16px;
+  line-height: 1.5;
 }
-.colophon-build > div:last-child {
-  border-radius: 12px 28px 28px 12px;
+.colophon-build tr:first-child > * {
+  padding-top: 12px;
 }
-.colophon-build dt {
+.colophon-build tr:last-child > * {
+  padding-bottom: 12px;
+}
+.colophon-build tr:nth-child(even) {
+  background: var(--color-surface-container-high);
+}
+.colophon-build th {
   color: var(--color-on-surface-variant);
   font-size: 14px;
-  margin-bottom: 10px;
+  font-weight: 500;
+  white-space: nowrap;
 }
-.colophon-build dd {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.5;
+.colophon-build td {
+  font-size: 16px;
+  padding-left: 0;
 }
 .colophon-revision {
   font-family: var(--font-mono);
 }
 .colophon-build .colophon-detail {
-  display: block;
+  display: inline-block;
   font-size: 13px;
   color: var(--color-on-surface-variant);
-  margin-top: 4px;
-}
-.colophon .colophon-build-note {
-  font-size: 13px;
-  margin: 16px 0 0;
-  max-width: 70ch;
+  margin-inline-start: 8px;
 }
 .colophon-notes {
   display: grid;
@@ -193,21 +197,6 @@
   }
   .colophon-letters {
     font-size: 144px;
-  }
-  .colophon-build {
-    grid-template-columns: 1fr;
-  }
-  .colophon-build > div:first-child {
-    border-radius: 28px 28px 12px 12px;
-  }
-  .colophon-build > div:last-child {
-    border-radius: 12px 12px 28px 28px;
-  }
-  .colophon-build dt {
-    margin-bottom: 4px;
-  }
-  .colophon-edition {
-    margin-bottom: 48px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
 /**
  * Create, update, or delete a writing with an IndieAuth token carrying the
- * `create`, `update`, or `delete` scope. See docs/indieweb/README.md#micropub.
+ * `create`, `update`, or `delete` scope. See docs/reference/publishing/indieweb.md#micropub.
  */
 export async function POST(request: Request) {
   return handleMicropubPost(request);

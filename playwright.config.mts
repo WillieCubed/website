@@ -28,7 +28,7 @@ export default defineConfig({
       testMatch: 'pages.spec.mts',
       use: { ...devices['Desktop Chrome'], colorScheme: 'dark' },
     },
-    // The site is built for a 390px phone first (docs/design-principles.md).
+    // The site is built for a 390px phone first (docs/concepts/design/design-principles.md).
     {
       name: 'phone',
       testMatch: 'pages.spec.mts',

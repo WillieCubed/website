@@ -10,7 +10,7 @@ import type { Readout } from './types';
  * a made-up response.
  */
 
-/** The path the MCP server answers on, as docs/protocols.md lists it. */
+/** The path the MCP server answers on, as docs/reference/publishing/protocols.md lists it. */
 export const MCP_PATH = '/api/mcp';
 
 /**

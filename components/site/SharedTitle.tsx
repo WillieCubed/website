@@ -18,7 +18,7 @@ interface SharedTitleProps {
 /**
  * A title that stands for the same thing on two pages, such as a homepage
  * tile's name and the initiative page's heading. A navigation between them
- * morphs one into the other (docs/design-principles.md, Fluid). React
+ * morphs one into the other (docs/concepts/design/design-principles.md, Fluid). React
  * names the element only while such a navigation runs, so the palette's and
  * the detail view's own transitions never see it.
  */

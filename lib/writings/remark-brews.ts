@@ -4,7 +4,7 @@ import { SKIP, visit } from 'unist-util-visit';
 
 /**
  * The words that lead to the teapot, and where. Both targets are route
- * handlers speaking HTCPCP (docs/protocols.md), not pages.
+ * handlers speaking HTCPCP (docs/reference/publishing/protocols.md), not pages.
  */
 export const BREW_TARGETS: Record<string, string> = {
   coffee: '/coffee',

@@ -7,7 +7,7 @@ import { materialSchemeVars } from '@/lib/brand/material-scheme';
  *
  * The homepage uses the same role set for venture tiles. Fidelity keeps the
  * seed as the primary, which is why it was chosen over Expressive
- * (docs/design-principles.md, Brand).
+ * (docs/concepts/design/design-principles.md, Brand).
  */
 export type BrandStyle = CSSProperties & Record<`--b-${string}`, string>;
 

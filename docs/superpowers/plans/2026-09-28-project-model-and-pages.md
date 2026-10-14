@@ -70,13 +70,13 @@ Some things are still open, and Willie has to answer them:
 ## Global Constraints
 
 - Every sentence of project content is Willie's own words. Migration copies text exactly, typos included ("parlimentary", "United Sates", "embarassed"). Where he has written nothing, the field stays empty. Never write, shorten, or reword a title, line, body, caption, or alt text.
-- Images follow docs/accessibility.md, which `pnpm content:check` and the build enforce. An informative image needs nonblank alt text. A decorative image sets `decorative: true` with `alt: ''`, and its markup carries `aria-hidden`. Run `pnpm content:check` after touching project MDX or image markup.
+- Images follow docs/reference/design/accessibility.md, which `pnpm content:check` and the build enforce. An informative image needs nonblank alt text. A decorative image sets `decorative: true` with `alt: ''`, and its markup carries `aria-hidden`. Run `pnpm content:check` after touching project MDX or image markup.
 - The only interface text the page adds is the status names in `STATUS_LABELS` and the link host labels from `linkLabel`.
 - Nothing reaches willie.page without Willie's explicit go-ahead. Keep `/projects` parked (`routed: false` in `lib/site.ts`), and leave `draft: true` on every migrated file.
 - The repository is ESM. Tests are `tests/unit/*.test.mts` using `node:test` and `node:assert/strict`, and `pnpm test` runs them.
-- Brand colors follow docs/design-principles.md: neutral at rest, with the project's Material 3 Fidelity scheme on the page.
-- Every in-site link goes through `SiteLink` (docs/links.md).
-- Commits use Conventional Commits with a scope from docs/commits.md, a sentence-case subject, a why-body for anything non-trivial, and end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never create merge commits.
+- Brand colors follow docs/concepts/design/design-principles.md: neutral at rest, with the project's Material 3 Fidelity scheme on the page.
+- Every in-site link goes through `SiteLink` (docs/reference/design/links.md).
+- Commits use Conventional Commits with a scope from docs/reference/operations/commits.md, a sentence-case subject, a why-body for anything non-trivial, and end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never create merge commits.
 - Bound builds on this machine. Run `pnpm build` alone, never beside another build or the dev server.
 
 ---
@@ -253,7 +253,7 @@ import { OWNER_KEYS } from './owners';
 
 /**
  * Frontmatter for content/projects/<slug>.mdx. Every field a visitor reads
- * is Willie's own words; see docs/projects.md. Unknown keys fail the build
+ * is Willie's own words; see docs/reference/content/projects.md. Unknown keys fail the build
  * so a misspelled field cannot silently disappear.
  */
 
@@ -282,7 +282,7 @@ export const ProjectMediaSchema = z
     z.strictObject({
       kind: z.literal('image'),
       src: z.string().min(1),
-      /** Willie's words, under the policy in docs/accessibility.md. */
+      /** Willie's words, under the policy in docs/reference/design/accessibility.md. */
       alt: z.string(),
       decorative: z.literal(true).optional(),
       caption: z.string().min(1).optional(),
@@ -1328,7 +1328,7 @@ Replace `content/projects/_template.mdx` with a commented template. The loader s
 ```mdx
 ---
 # Copy to content/projects/<slug>.mdx. Every sentence must be Willie's own
-# words; leave a field out rather than write it for him. docs/projects.md
+# words; leave a field out rather than write it for him. docs/reference/content/projects.md
 # explains each field.
 title: ''
 line: ''
@@ -1973,12 +1973,12 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 
-- Modify: `docs/projects.md` (rewrite)
-- Modify: `docs/commits.md` (the `projects` scope)
-- Modify: `docs/index.md` (the Content and Plans lists)
+- Modify: `docs/reference/content/projects.md` (rewrite)
+- Modify: `docs/reference/operations/commits.md` (the `projects` scope)
+- Modify: `docs/README.md` (the Content and Plans lists)
 - Modify: `app/_(pages)/README.md` (the project note)
 
-- [ ] **Step 1: Rewrite docs/projects.md**
+- [ ] **Step 1: Rewrite docs/reference/content/projects.md**
 
 Replace the file with a guide for whoever adds a project, whether Willie or an agent. It must cover these points:
 
@@ -1995,13 +1995,13 @@ Delete the old three-column category table and the JSON copypasta.
 
 - [ ] **Step 2: Update the projects scope and the indexes**
 
-In `docs/commits.md`, change the `projects` line to:
+In `docs/reference/operations/commits.md`, change the `projects` line to:
 
 ```
 - **`projects`** — the project content model, `lib/projects`, `components/projects`, and the `/projects` routes
 ```
 
-In `docs/index.md`, change the Projects entry under Content to "the one-file-per-project schema, visibility, and the rule that every word is Willie's". Add this plan under "Plans and specs".
+In `docs/README.md`, change the Projects entry under Content to "the one-file-per-project schema, visibility, and the rule that every word is Willie's". Add this plan under "Plans and specs".
 
 In `app/_(pages)/README.md`, note that the project detail route moved to `app/projects/[codename]`, and that only the `/projects` index is still parked.
 

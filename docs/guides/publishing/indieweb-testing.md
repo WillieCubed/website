@@ -1,0 +1,111 @@
+# Run the IndieWeb HTTP checks
+
+This runbook is for a maintainer changing IndieWeb routes or markup. Run the
+local checks, then use the [supported behavior contract](../../reference/publishing/indieweb-spec.md) to choose
+which public interoperability checks the change affects. The [current verification guide](publishing-verification.md) covers isolated account checks and recovery. The [conformance matrix](../../reference/publishing/publishing-conformance.md) links observed hosted results. Keep the disposable
+writing and database outside production.
+
+## Read-only checks
+
+Run `pnpm test`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`. Then run
+`pnpm exec playwright test tests/e2e/indieweb.spec.mts --project=desktop --workers=1`.
+Set `INDIEWEB_TEST_BASE_URL` to a public deployment for a hosted run, and set
+`NEXT_PUBLIC_SITE_ORIGIN` to the origin that deployment advertises. Set
+`INDIEWEB_TEST_POST_PATH` to a published disposable writing to enable the
+post and feed item check. Without that path, the post case skips.
+
+## Isolated local write checks
+
+Use a disposable PostgreSQL database and a disposable publishing fixture.
+These commands assume local PostgreSQL is running and your shell can create a
+database. Replace the connection string with your local test role if needed.
+
+```sh
+createdb indieweb_acceptance
+export INDIEWEB_TEST_POSTGRES_URL=postgresql://localhost:5432/indieweb_acceptance
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f tests/support/webmentions.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/001_level4_tables.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/002_webmention_rate_limits.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/003_indieauth.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/004_webmention_responses.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/005_atproto_oauth.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/006_indieauth_refresh.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/007_micropub_deleted_archives.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/008_atproto_response_observations.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/009_indieauth_code_replay.sql
+cp tests/fixtures/indieweb-acceptance.mdx content/writings/indieweb-acceptance.mdx
+pnpm build
+```
+
+The SQL module uses the direct PostgreSQL URL above outside Cloudflare. The
+write test serves its
+reply from a self-signed HTTPS server on 127.0.0.1. The verifier fetches
+sources from public addresses only, so the command below sets
+`INDIEWEB_TEST_ALLOW_LOOPBACK=true` to let loopback through, and disables
+certificate verification. A Cloudflare deployment ignores the loopback
+allowance, but keep both variables out of any hosted server's environment
+and out of a production check.
+
+```sh
+INDIEWEB_TEST_POST_PATH=/writings/indieweb-acceptance \
+POSTGRES_URL='<isolated Neon connection URL>' \
+WEBMENTION_MODERATION_SECRET=local-test-secret \
+INDIEWEB_TEST_ALLOW_LOOPBACK=true \
+NODE_TLS_REJECT_UNAUTHORIZED=0 \
+pnpm exec playwright test tests/e2e/indieweb-write.spec.mts --project=desktop --workers=1
+```
+
+Remove the copied writing when the local checks finish, and rebuild before
+checking a release. The write suite creates and removes its own Micropub note,
+IndieAuth token, Webmention, HTTPS source, and certificate. It checks the
+Micropub `Location` and content file. It checks verification, approval, public
+JSON, page rendering, and deletion after the source link disappears.
+
+A hosted publishing check also needs a test database and a separate GitHub
+branch configured with `STUDIO_GITHUB_REPOSITORY`, `STUDIO_GITHUB_TOKEN`, and
+`STUDIO_GITHUB_BRANCH`. Set `NEXT_PUBLIC_SITE_ORIGIN` to the test deployment
+origin at build time. Configure a repository-scoped token with Contents and
+Pull requests read/write, plus Checks and Commit statuses read. Do not put a
+broad personal token in the public deployment.
+Connect Cloudflare Workers Builds to the repository so a content commit
+automatically deploys the isolated Worker. The publish workflow waits until
+the public alias
+serves that commit before it sends Webmentions and pings the WebSub hub.
+Confirm the returned `Location`, branch commit, deployed permalink, feed
+entry, and notification result without manually rebuilding.
+
+This sequence diagram shows the hosted write and notification order.
+
+```mermaid
+sequenceDiagram
+    participant Client as Micropub client
+    participant Site as Isolated site
+    participant GitHub as Publishing branch
+    participant Cloudflare as Worker deployment
+    participant Workflow as Publish workflow
+    participant Hub as WebSub hub
+    participant Target as Webmention target
+    Client->>Site: POST /micropub
+    Site->>GitHub: Commit published writing
+    Site-->>Client: 202 and Location
+    GitHub->>Cloudflare: Build and deploy commit
+    GitHub->>Workflow: Start notification job
+    Workflow->>Site: Poll deployed revision
+    Site-->>Workflow: Matching commit SHA
+    Workflow->>Site: POST /api/indieweb/notify
+    Site->>Hub: Publish feed URLs
+    Site->>Target: Send Webmention from public post
+```
+
+Use the isolated preview R2 media bucket for acceptance photos. Upload a photo through `/micropub/media`,
+then create a JSON photo post with its URL and nonblank alt text. Confirm that multipart creation preserves the uploaded media and its description. Validate images, audio, video, and PDF signatures under the 4MiB upload limit.
+
+Micropub Rocks requires a passkey or email sign-in before its server cases. Its current client supports PKCE. Complete its IndieAuth flow with S256 before running publishing cases. Do not weaken PKCE or substitute a manually issued token for authorization proof. Run
+write cases only where the endpoint has an isolated publishing path. Revoke
+the test token after the run. The [verification record](../../evidence/publishing/verification-2026-09-23.md)
+shows the responses from both paths.
+
+Record the deployment revision, date, test URL, response, and any case that
+could not run. The [2026-09-23 record](../../evidence/publishing/verification-2026-09-23.md) shows the
+format. The [follow-up](../../evidence/publishing/verification-2026-09-23-followup.md) records the
+isolated publication and protocol fixes.

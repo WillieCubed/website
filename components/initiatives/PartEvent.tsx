@@ -18,7 +18,7 @@ interface PartEventProps {
  * The words over a part's cover, marked up as an h-event so a reader's
  * calendar or a parser can take the trip as an event. The name is the
  * standalone part title, because the event is read away from the page
- * (docs/metadata.md). The name, the URL, and the last day are `<data>`
+ * (docs/reference/design/metadata.md). The name, the URL, and the last day are `<data>`
  * elements because the page shows them some other way or not at all.
  */
 export default function PartEvent({ initiative, part, url }: PartEventProps) {

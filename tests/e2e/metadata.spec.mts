@@ -2,7 +2,7 @@ import { type Page, expect, test } from '@playwright/test';
 
 import { skipUnlessPublished } from './published';
 
-// docs/metadata.md: og:site_name carries the name, so no social title
+// docs/reference/design/metadata.md: og:site_name carries the name, so no social title
 // repeats it, and every title reads on its own.
 
 const SITE_NAME = 'Willie Chalmers III';

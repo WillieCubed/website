@@ -44,7 +44,7 @@ focus lights it. Curfew and Project Superbloom carry no focus.
   - Ventures and products in `lib/home/ventures.ts`: `focuses: FocusId[]`.
   - Featured initiatives: `feature.focuses` in frontmatter, validated in
     `lib/initiatives/schema.ts` against the focus ids, so featuring an
-    initiative stays a frontmatter edit (docs/initiatives.md).
+    initiative stays a frontmatter edit (docs/reference/content/initiatives.md).
 - A focus is live when at least one visible tile names it; the rail derives
   this, nobody sets it by hand.
 - Removed: the `Facet` type, `FacetSchema`, `FacetKey`, `isFacetPressed`,
@@ -62,7 +62,7 @@ logic in `HomeShell` stays the same shape with focuses in place of facets.
 - Pointing at a tile marks the focus rows that name it, the way tiles light
   the facet keys today.
 - An active row takes its first tile's brand scheme (the Brand principle in
-  docs/design-principles.md), on a tonal container rather than an underline.
+  docs/concepts/design/design-principles.md), on a tonal container rather than an underline.
   A plain-text row has no container, following the rule that only
   interactive things sit in containers.
 - Every row transition has a reduced-motion fallback.

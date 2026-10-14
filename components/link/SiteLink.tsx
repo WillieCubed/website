@@ -62,7 +62,7 @@ function loadRegistry(): Promise<Map<string, EntityCard>> {
 /**
  * The one link component for the site. In-site links get client-side
  * navigation and a hover card fed by the entity registry; everything else
- * renders as a plain anchor. See docs/links.md.
+ * renders as a plain anchor. See docs/reference/design/links.md.
  */
 export default function SiteLink({
   href,

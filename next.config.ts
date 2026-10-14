@@ -1,14 +1,32 @@
 import withMDX from '@next/mdx';
 import type { NextConfig } from 'next/types';
+import { execFileSync } from 'node:child_process';
 
 import { siteHeaders } from './lib/http/response-headers';
 import { site } from './lib/site/identity';
+import { createBuildRecord } from './scripts/shared/build-record.mts';
+
+let checkoutRevision: string | null = null;
+try {
+  checkoutRevision = execFileSync('git', ['rev-parse', 'HEAD'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  }).trim();
+} catch {
+  /* Source archives may not contain Git metadata. */
+}
+const build = createBuildRecord(process.env, checkoutRevision, new Date());
+// Keep repeated config loads in the same build on one timestamp.
+if (build.builtAt) process.env.SITE_BUILT_AT = build.builtAt;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // The credits document's Last update line. Next inlines this into the bundle while
-  // building, so a request long after still reads the build's own time.
-  env: { SITE_BUILT_AT: new Date().toISOString() },
+  // Next inlines the complete record so start time and newer CI runs cannot change it.
+  env: {
+    SITE_BUILD_RECORD: JSON.stringify(build),
+    SITE_BUILT_AT: build.builtAt ?? '',
+    NEXT_PUBLIC_SITE_REVISION: build.revision ?? '',
+  },
   async headers() {
     return siteHeaders.map((rule) => ({
       ...rule,

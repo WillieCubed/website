@@ -41,6 +41,7 @@ category. Omit the scope only for repository-wide changes.
 - **`landing`** — the `/` route
 - **`profile`** — Willie's background, biography, and research, including `/about` and `/research`
 - **`status`** — current location, local time, and weather; includes `/status`, footer microstatus, status data sources, caching, and the admin status editor
+- **`colophon`** — how the site is made, its credits, and the build provenance shown on `/colophon`
 - **`admin`** — shared owner identity and controls across status editing, IndieAuth approval, and the private writing studio
 - **`music`** — playlist browsing, curation, ordered series, Spotify integration, and music publication
 - **`projects`** — the project content model, `lib/projects`, `components/projects`, and the `/projects` routes

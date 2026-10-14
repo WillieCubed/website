@@ -109,6 +109,7 @@ export default function StudioWidgetGenerator({
         setMessage('Save your draft before requesting a proposal.');
         return;
       }
+      setMessage('Generating widget…');
       const current = await studioRequest<Draft>(`/documents/${documentId}`);
       const next = await studioRequest<Generation>('/generations', {
         method: 'POST',
@@ -121,6 +122,7 @@ export default function StudioWidgetGenerator({
       });
       setGeneration(next);
       setProposal(null);
+      setMessage('');
     } catch (error) {
       setMessage((error as Error).message);
     } finally {

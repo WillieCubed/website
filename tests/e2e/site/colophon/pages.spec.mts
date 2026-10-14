@@ -1,6 +1,38 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
+test('the header and body share content edges across window sizes', async ({
+  page,
+}) => {
+  await page.goto('/colophon');
+  for (const width of [320, 390, 600, 840, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const edges = await page.evaluate(() => {
+      const contentEdges = (selector: string) => {
+        const element = document.querySelector(selector)!;
+        const box = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return {
+          left: box.left + parseFloat(style.paddingLeft),
+          right: box.right - parseFloat(style.paddingRight),
+        };
+      };
+      return {
+        header: contentEdges('header'),
+        body: contentEdges('main.colophon'),
+      };
+    });
+    expect(
+      Math.abs(edges.header.left - edges.body.left),
+      `left edge at ${width}px`
+    ).toBeLessThan(1);
+    expect(
+      Math.abs(edges.header.right - edges.body.right),
+      `right edge at ${width}px`
+    ).toBeLessThan(1);
+  }
+});
+
 test('the colophon shows the served artifact and remains readable at every viewport', async ({
   page,
   request,

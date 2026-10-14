@@ -1,5 +1,5 @@
 .colophon {
-  width: min(100% - 40px, 960px);
+  width: 100%;
   margin: 64px auto 104px;
 }
 .colophon-intro {
@@ -81,16 +81,24 @@
   margin-bottom: 72px;
 }
 .colophon-edition h2 {
-  font-size: 22px;
   margin-bottom: 24px;
 }
 .colophon-build {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr 1fr;
-  gap: 32px;
-  border-block: 1px solid var(--color-outline-variant);
-  padding-block: 24px;
+  gap: 8px;
   margin: 0;
+}
+.colophon-build > div {
+  padding: 24px;
+  background: var(--color-surface-container);
+  border-radius: 12px;
+}
+.colophon-build > div:first-child {
+  border-radius: 28px 12px 12px 28px;
+}
+.colophon-build > div:last-child {
+  border-radius: 12px 28px 28px 12px;
 }
 .colophon-build dt {
   color: var(--color-on-surface-variant);
@@ -121,26 +129,30 @@
   gap: 48px;
 }
 .colophon-notes section {
-  display: grid;
-  grid-template-columns: 0.8fr 1.8fr;
-  gap: 64px;
+  max-width: 68ch;
+}
+.colophon-notes h2 {
+  margin-bottom: 16px;
 }
 .colophon a {
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
   transition:
-    color 160ms ease,
-    text-decoration-color 160ms ease;
+    color 200ms var(--ease-site),
+    text-decoration-color 200ms var(--ease-site),
+    outline-offset 280ms var(--ease-site),
+    outline-color 200ms var(--ease-site);
+  outline: 2px solid transparent;
+  outline-offset: 10px;
 }
 .colophon a:hover {
   color: var(--color-primary);
   text-decoration-color: currentColor;
 }
 .colophon a:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 4px;
-  border-radius: 2px;
+  outline-color: var(--color-ink);
+  outline-offset: 3px;
 }
 @media (max-width: 839px) {
   .colophon {
@@ -154,13 +166,6 @@
   }
   .colophon-letterpress {
     min-height: 250px;
-  }
-  .colophon-notes section {
-    gap: 32px;
-    grid-template-columns: 1fr 2fr;
-  }
-  .colophon-build {
-    gap: 24px;
   }
 }
 @media (max-width: 599px) {
@@ -191,17 +196,18 @@
   }
   .colophon-build {
     grid-template-columns: 1fr;
-    gap: 24px;
+  }
+  .colophon-build > div:first-child {
+    border-radius: 28px 28px 12px 12px;
+  }
+  .colophon-build > div:last-child {
+    border-radius: 12px 12px 28px 28px;
   }
   .colophon-build dt {
     margin-bottom: 4px;
   }
   .colophon-edition {
     margin-bottom: 48px;
-  }
-  .colophon-notes section {
-    grid-template-columns: 1fr;
-    gap: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

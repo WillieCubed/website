@@ -42,6 +42,7 @@ export interface MusicExperienceProps {
   onChange?: (catalog: Catalog) => void;
   onPublish?: (reviewed: Catalog) => Promise<void>;
   saveStatus?: string;
+  published?: boolean;
   canReview?: boolean;
   interactionLocked?: boolean;
   connected?: boolean;
@@ -59,6 +60,7 @@ export default function MusicExperience({
   onChange,
   onPublish,
   saveStatus,
+  published = false,
   canReview = true,
   interactionLocked = false,
   connected = false,
@@ -862,14 +864,18 @@ export default function MusicExperience({
                   ? changed
                     ? 'Unapplied changes'
                     : 'No unapplied changes'
-                  : 'Private draft'}
+                  : published
+                    ? 'Live collection'
+                    : 'Private draft'}
               </span>
               <small>
                 {mode === 'prototype'
                   ? storageError
                     ? 'This tab only'
                     : 'Saved in this browser'
-                  : saveStatus}
+                  : published
+                    ? 'On willie.page'
+                    : saveStatus}
               </small>
               <button
                 className="mp-button mp-primary"

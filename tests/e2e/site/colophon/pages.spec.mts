@@ -47,9 +47,11 @@ test('the colophon shows the served artifact and remains readable at every viewp
   await expect(
     page.getByRole('rowheader', { name: 'Version', exact: true })
   ).toBeVisible();
-  await expect(page.locator('main h1')).toHaveText(
-    'A little about how this place is made.'
-  );
+  await expect(page.locator('main h1')).toHaveText('Colophon');
+  if (testInfo.project.name === 'phone')
+    await expect(
+      page.getByRole('heading', { name: 'Type', exact: true })
+    ).toBeInViewport();
   await expect(page.locator('.colophon-revision')).toHaveAttribute(
     'href',
     `https://github.com/WillieCubed/website/commit/${record.sha}`
@@ -105,11 +107,11 @@ test('direct loading without JavaScript preserves the note, version, and links',
     await expect(page.locator('main h1')).toBeVisible();
     await expect(page.locator('.colophon-build time')).toBeVisible();
     await expect(page.locator('.colophon-notes')).toContainText(
-      'A few credits.'
+      'Source and credits'
     );
     await expect(
-      page.getByRole('link', { name: 'status page', exact: true })
-    ).toHaveAttribute('href', '/status');
+      page.getByRole('link', { name: 'RSS, Atom, and JSON feeds', exact: true })
+    ).toHaveAttribute('href', '/sitemap');
     await page.getByRole('link', { name: 'humans.txt', exact: true }).click();
     await expect(page.locator('body')).toContainText(
       'Developer: Willie Chalmers III'

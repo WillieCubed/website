@@ -257,6 +257,7 @@
 .studio-writing-surface {
   --studio-focus-bleed: 0px;
   --studio-canvas-inset: var(--spacing-xl);
+  min-height: 18rem;
   border: 0;
   border-radius: var(--radius-3xl);
   background: var(--color-surface-container-lowest);

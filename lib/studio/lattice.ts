@@ -36,6 +36,7 @@ export async function dispatchGeneration(
       JSON.stringify({
         status: 'running',
         error: null,
+        result: null,
         dispatchId,
         startedAt: new Date().toISOString(),
       }),
@@ -48,6 +49,7 @@ export async function dispatchGeneration(
       [generation.id, dispatchId, JSON.stringify(update)]
     );
   };
+  let invalidOutput: string | null = null;
   try {
     const client = new LatticeClient({
       baseUrl: required('STUDIO_LATTICE_GATEWAY'),
@@ -63,10 +65,13 @@ export async function dispatchGeneration(
         maxOutputTokens: 8192,
       }
     );
+    invalidOutput = result.outputText;
     try {
       await compileSandbox(parseComponent(result.outputText, generation.id));
-    } catch {
-      throw new StudioError(422, 'Invalid widget package.');
+    } catch (error) {
+      throw error instanceof StudioError
+        ? error
+        : new StudioError(422, 'Invalid widget package.');
     }
     await finish({ status: 'ready', result: result.outputText, error: null });
   } catch (error) {
@@ -79,12 +84,15 @@ export async function dispatchGeneration(
     await finish({
       status: unavailable ? 'waiting' : 'failed',
       ...(error instanceof StudioError && error.status === 422
+        ? { result: invalidOutput }
+        : {}),
+      ...(error instanceof StudioError && error.status === 422
         ? { inferenceKey: randomUUID() }
         : {}),
       error: unavailable
         ? 'Your personal runtime or connection is unavailable. Retry when it is ready.'
         : error instanceof StudioError && error.status === 422
-          ? 'Your device returned an invalid widget package. Retry to generate a complete component with its portable representation.'
+          ? `Your device returned an invalid widget package: ${error.message} Retry to generate a complete component with its portable representation.`
           : 'Generation failed. Check the Lattice connection and retry.',
     });
   }

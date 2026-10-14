@@ -246,6 +246,7 @@ test(
             merge_commit_sha: head,
             state: 'closed',
           });
+          branches.delete((pr.head as { ref: string }).ref);
           fileSha = createHash('sha1')
             .update(`blob ${Buffer.byteLength(source)}\0`)
             .update(source)

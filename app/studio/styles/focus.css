@@ -1,0 +1,282 @@
+/* Focus separates a piece of the canvas; its editable fill stays unchanged. */
+.studio-editor
+  .studio-prose
+  :is(
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    pre,
+    blockquote,
+    li,
+    .studio-catalog-block,
+    .studio-source,
+    .react-renderer
+  ) {
+  transition:
+    margin-top var(--duration-standard) var(--ease-site),
+    margin-bottom var(--duration-standard) var(--ease-site),
+    padding-top var(--duration-standard) var(--ease-site),
+    padding-bottom var(--duration-standard) var(--ease-site),
+    border-radius var(--duration-standard) var(--ease-site),
+    background-color var(--duration-standard) var(--ease-site);
+}
+.studio-editor .studio-prose:focus-visible {
+  outline: none;
+}
+.studio-writing-space:has(
+    .ProseMirror-focused,
+    .studio-insertion-row:focus-within,
+    .site-popover:popover-open,
+    .studio-inline-media:focus-within
+  )
+  .studio-active-block[data-studio-focus='single'],
+.studio-writing-workspace:has(.studio-selection-tools:focus-within)
+  .studio-active-block[data-studio-focus='single'],
+.studio-editor
+  .react-renderer:is(
+    :has(.studio-catalog-block:focus-within),
+    :has(.studio-catalog-block[data-editing]),
+    :has(.studio-widget-frames[data-widget-active])
+  ),
+.studio-editor .react-renderer:has(.studio-source:focus-within) {
+  --studio-block-inner-margin: 0px;
+  --field-fill: light-dark(
+    var(--color-surface-container-lowest),
+    var(--color-surface-container-low)
+  );
+  --studio-focus-fill: light-dark(
+    var(--color-surface-dim),
+    var(--color-surface-bright)
+  );
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  border-radius: var(--radius-3xl);
+  margin-block: var(--studio-focus-block-gap, var(--spacing-xl));
+  margin-inline: calc(-1 * var(--studio-canvas-inset));
+  padding: var(--studio-focus-block-inset, var(--spacing-md))
+    var(--studio-canvas-inset);
+}
+/* The ground cuts through the surrounding canvas, rather than tinting a field
+   inside it. Both pieces retain the writing surface's original color. */
+.studio-editor
+  .studio-prose
+  .studio-active-block[data-studio-focus='single']::before,
+.studio-editor
+  .studio-prose
+  .studio-active-block[data-studio-focus='single']::after,
+.studio-editor
+  .react-renderer:is(
+    :has(.studio-catalog-block:focus-within),
+    :has(.studio-catalog-block[data-editing]),
+    :has(.studio-widget-frames[data-widget-active])
+  )::before,
+.studio-editor
+  .react-renderer:is(
+    :has(.studio-catalog-block:focus-within),
+    :has(.studio-catalog-block[data-editing]),
+    :has(.studio-widget-frames[data-widget-active])
+  )::after,
+.studio-editor .react-renderer:has(.studio-source:focus-within)::before,
+.studio-editor .react-renderer:has(.studio-source:focus-within)::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  display: none;
+}
+.studio-writing-space:has(
+    .ProseMirror-focused,
+    .studio-insertion-row:focus-within,
+    .site-popover:popover-open,
+    .studio-inline-media:focus-within
+  )
+  .studio-active-block[data-studio-focus='single'],
+.studio-writing-workspace:has(.studio-selection-tools:focus-within)
+  .studio-active-block[data-studio-focus='single'],
+.studio-editor
+  .react-renderer:is(
+    :has(.studio-catalog-block:focus-within),
+    :has(.studio-catalog-block[data-editing]),
+    :has(.studio-widget-frames[data-widget-active])
+  ),
+.studio-editor .react-renderer:has(.studio-source:focus-within) {
+  &::before {
+    display: block;
+    inset: calc(-1 * var(--spacing-lg)) calc(-1 * var(--studio-focus-bleed));
+    z-index: -2;
+    background:
+      var(
+          --studio-focus-leading-mask,
+          linear-gradient(transparent, transparent)
+        )
+        top / 100% var(--spacing-sm) no-repeat,
+      radial-gradient(
+          circle at 8px 0,
+          transparent 8px,
+          var(--color-ground) 8.5px
+        )
+        top left / var(--spacing-sm) var(--spacing-sm) no-repeat,
+      radial-gradient(circle at 0 0, transparent 8px, var(--color-ground) 8.5px)
+        top right / var(--spacing-sm) var(--spacing-sm) no-repeat,
+      radial-gradient(
+          circle at 8px 8px,
+          transparent 8px,
+          var(--color-ground) 8.5px
+        )
+        bottom left / var(--spacing-sm) var(--spacing-sm) no-repeat,
+      radial-gradient(
+          circle at 0 8px,
+          transparent 8px,
+          var(--color-ground) 8.5px
+        )
+        bottom right / var(--spacing-sm) var(--spacing-sm) no-repeat,
+      linear-gradient(var(--color-ground), var(--color-ground)) center / 100%
+        calc(100% - 16px) no-repeat;
+  }
+  &::after {
+    display: block;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--studio-focus-fill);
+  }
+}
+@media (max-width: 839px) {
+  .studio-writing-surface {
+    --studio-focus-bleed: 0px;
+    --studio-canvas-inset: var(--spacing-lg);
+  }
+}
+/* At the start of the document there is no preceding block to separate.
+   Cover the canvas inset too, so it cannot become an orphan surface strip. */
+.studio-editor
+  .studio-prose
+  > .studio-active-block[data-studio-focus='single']:first-child {
+  margin-block-start: 0;
+  --studio-focus-leading-mask: linear-gradient(
+    var(--color-ground),
+    var(--color-ground)
+  );
+  &::before {
+    top: calc(-1 * var(--studio-canvas-inset));
+  }
+}
+/* Mobile Insert occupies the focused boundary, outside the block's padding. */
+@media (max-width: 839px) {
+  .studio-writing-surface {
+    --studio-focus-block-gap: var(--spacing-2xl);
+    --studio-focus-block-inset: var(--spacing-md);
+  }
+  .studio-editor .studio-prose > :first-child {
+    margin-block-start: 0;
+  }
+}
+@media (forced-colors: active) {
+  .studio-editor
+    .studio-prose:focus-visible
+    .studio-active-block[data-studio-focus='single'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+.studio-editor
+  .react-renderer:is(
+    :has(.studio-catalog-block:focus-within),
+    :has(.studio-catalog-block[data-editing]),
+    :has(.studio-widget-frames[data-widget-active])
+  ) {
+  margin-block: var(--studio-focus-block-gap, var(--spacing-xl));
+}
+.studio-editor
+  .react-renderer:is(
+    :has(.studio-catalog-block:focus-within),
+    :has(.studio-catalog-block[data-editing]),
+    :has(.studio-widget-frames[data-widget-active])
+  )
+  .studio-widget-output {
+  background: var(--color-ground);
+  border-radius: var(--radius-2xl);
+}
+.studio-editor
+  .studio-prose
+  .studio-catalog-block[data-block-type='figure']
+  .studio-widget-output {
+  background: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-editor
+    .studio-prose
+    :is(
+      p,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      pre,
+      blockquote,
+      li,
+      .studio-catalog-block,
+      .studio-source,
+      .react-renderer
+    ) {
+    transition: none;
+  }
+}
+
+.studio-writing-space[data-focus-press]
+  .studio-prose
+  :is(
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    pre,
+    blockquote,
+    li,
+    .studio-catalog-block,
+    .studio-source,
+    .react-renderer
+  ) {
+  /* Hold shape movement until the pointer selection gesture has completed. */
+  transition-duration: 1ms;
+  transition-delay: 86400s;
+}
+
+/* Widget content occupies its own stage; authoring controls sit outside it. */
+.studio-widget-toolbar {
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-md);
+  flex-wrap: nowrap;
+  padding-block: var(--spacing-2xs);
+}
+.studio-widget-toolbar > button {
+  flex-shrink: 0;
+}
+.studio-widget-type {
+  margin-inline-end: auto;
+  min-width: 0;
+  font-size: var(--text-label-large);
+  line-height: var(--text-label-large--line-height);
+  color: var(--color-on-surface-variant);
+}
+.studio-widget-type[aria-hidden='true'] {
+  visibility: hidden;
+}
+
+.studio-inspector-save {
+  margin: 0;
+  margin-inline-end: var(--spacing-lg);
+  font-size: var(--text-label-large);
+  line-height: var(--text-label-large--line-height);
+  color: var(--color-ink);
+}

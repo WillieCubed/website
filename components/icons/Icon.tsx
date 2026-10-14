@@ -1,6 +1,9 @@
 import type { SVGProps } from 'react';
 
 const STROKE = {
+  plus: 'M12 5v14M5 12h14',
+  sliders: 'M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6',
+  eye: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Zm13 0a3 3 0 1 0-6 0 3 3 0 0 0 6 0',
   cloud: 'M7 18h11a4 4 0 0 0 0-8 6 6 0 0 0-11.7-1A4.5 4.5 0 0 0 7 18z',
   'cloud-sun':
     'M8 2v2M2 8h2m1-5 1 1m7-1-1 1M5 9a4 4 0 1 1 7-3M8 20h10a4 4 0 0 0 0-8 5 5 0 0 0-9.7-1A4.5 4.5 0 0 0 8 20z',

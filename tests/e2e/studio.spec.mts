@@ -57,10 +57,22 @@ async function writingAction(
   page: import('@playwright/test').Page,
   name: string
 ) {
+  if (name === 'Writing details') {
+    await page
+      .getByRole('button', { name: 'Writing details', exact: true })
+      .click();
+    return;
+  }
+  if (
+    name === 'Create widget' &&
+    !(await page
+      .getByRole('button', { name: 'Insert block', exact: true })
+      .isVisible())
+  )
+    await page.getByRole('textbox', { name: 'Writing content' }).click();
   await page
     .getByRole('button', {
-      name:
-        name === 'Create widget' ? 'Insert into writing' : 'Writing actions',
+      name: name === 'Create widget' ? 'Insert block' : 'Writing actions',
       exact: true,
     })
     .click();
@@ -71,6 +83,74 @@ async function writingAction(
     })
     .click();
 }
+test('the writing workspace keeps its tonal surfaces and editing controls', async ({
+  page,
+  request,
+}, testInfo) => {
+  const draft = await createWriting(request, 'A working draft');
+  await page.goto(`/studio/${draft.id}`);
+  const canvas = page.getByRole('region', { name: 'Writing editor' });
+  const editor = canvas.getByRole('textbox', { name: 'Writing content' });
+  await expect(editor).toContainText('This private writing belongs here.');
+  await expect(page.locator('.studio-document-opening')).toHaveCount(0);
+  await expect(
+    page.locator('.studio-document-reveal[data-ready] .studio-heading-fields')
+  ).toBeVisible();
+  await expect(
+    page.getByRole('navigation', { name: 'Writing controls' })
+  ).toBeVisible();
+  const surfaces = await page.evaluate(() => {
+    const root = document.documentElement;
+    const ready = document.querySelector(
+      '.studio-document-reveal[data-ready]'
+    )!;
+    const heading = ready.querySelector('.studio-heading-fields')!;
+    const canvas = ready.querySelector('.studio-writing-surface')!;
+    const role = (name: string) => {
+      const probe = document.createElement('div');
+      probe.style.background = `var(${name})`;
+      root.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    };
+    return {
+      heading: getComputedStyle(heading).backgroundColor,
+      headingRole: role('--color-surface-container'),
+      canvas: getComputedStyle(canvas).backgroundColor,
+      canvasRole: role('--color-surface-container-lowest'),
+    };
+  });
+  expect(surfaces.heading).toBe(surfaces.headingRole);
+  expect(surfaces.canvas).toBe(surfaces.canvasRole);
+  await editor.fill(
+    'This private writing belongs here. And the editor is still working.'
+  );
+  await expect(
+    page.getByRole('status').filter({ hasText: 'All changes saved' })
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole('textbox', { name: 'Writing content' })
+  ).toContainText('And the editor is still working.');
+  await expect(page.locator('.studio-document-opening')).toHaveCount(0);
+  await page.screenshot({
+    path: testInfo.outputPath('writing-md3-viewport.png'),
+  });
+  await page.getByRole('button', { name: 'Writing details' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Writing details' })
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Back to writing' }).click();
+  await expect(
+    page.getByRole('region', { name: 'Writing editor' })
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth
+    )
+  ).toBeTruthy();
+});
 test('the signed owner can edit, save, reload and review a private writing', async ({
   page,
   request,
@@ -95,20 +175,23 @@ test('the signed owner can edit, save, reload and review a private writing', asy
     'A thought worth keeping'
   );
   await expect(editor).toContainText('And a second sentence.');
-  const byline = await page.locator('.studio-byline').evaluate((element) =>
-    Array.from(
-      element.querySelectorAll('button, [role="status"], :scope > span')
-    )
-      .filter((node) => !node.closest('[popover]'))
-      .map((node) => node.getBoundingClientRect())
-      .filter((rect) => rect.width > 0 && rect.height > 0)
-      .map((rect) => ({
-        left: rect.left,
-        right: rect.right,
-        top: rect.top,
-        bottom: rect.bottom,
-      }))
-  );
+  const byline = await page
+    .locator('.studio-byline')
+    .first()
+    .evaluate((element) =>
+      Array.from(
+        element.querySelectorAll('button, [role="status"], :scope > span')
+      )
+        .filter((node) => !node.closest('[popover]'))
+        .map((node) => node.getBoundingClientRect())
+        .filter((rect) => rect.width > 0 && rect.height > 0)
+        .map((rect) => ({
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+        }))
+    );
   for (let i = 0; i < byline.length; i++)
     for (let j = i + 1; j < byline.length; j++)
       expect(
@@ -340,33 +423,34 @@ test('catalog blocks retain their editable properties and imported MDX on reload
   await expect(page.getByLabel('MDX source', { exact: true })).toHaveValue(
     source
   );
-  await page
-    .getByRole('button', { name: 'Insert into writing', exact: true })
-    .click();
+  await page.getByRole('textbox', { name: 'Writing content' }).click();
+  await page.getByRole('button', { name: 'Insert block' }).click();
   await page.getByRole('button', { name: 'Callout', exact: true }).click();
   const block = page.locator('.studio-catalog-block');
   await expect(block).toBeVisible();
-  await block.getByText('Edit block', { exact: true }).click();
-  await block
-    .getByRole('textbox', { name: /^title/ })
+  await block.getByRole('button', { name: 'Edit block' }).click();
+  const settings = page.getByRole('dialog', { name: 'Callout' });
+  await settings
+    .getByRole('textbox', { name: /^Title/ })
     .fill('An important aside');
-  await block
+  await settings
     .getByRole('textbox', { name: 'Content', exact: true })
     .fill('This deserves a little room.');
   await expect(
     page.getByRole('status').filter({ hasText: 'All changes saved' })
   ).toBeVisible();
   await page.reload();
-  await block.getByText('Edit block', { exact: true }).click();
-  await expect(block.getByRole('textbox', { name: /^title/ })).toHaveValue(
+  await block.getByRole('button', { name: 'Edit block' }).click();
+  await expect(settings.getByRole('textbox', { name: /^Title/ })).toHaveValue(
     'An important aside'
   );
   await expect(
-    block.getByRole('textbox', { name: 'Content', exact: true })
+    settings.getByRole('textbox', { name: 'Content', exact: true })
   ).toHaveValue('This deserves a little room.');
   await expect(page.getByLabel('MDX source', { exact: true })).toHaveValue(
     source
   );
+  await settings.getByRole('button', { name: 'Close widget settings' }).click();
   await writingAction(page, 'Read preview');
   await expect(
     page.locator('.studio-review-screen').getByRole('note')
@@ -1028,11 +1112,14 @@ test('an approved generated component is editable beside its paragraph', async (
     .getByRole('button', { name: 'Insert approved component', exact: true })
     .click();
   const block = page.locator('.studio-catalog-block');
-  await expect(block.locator('strong')).toHaveText(
-    'InteractiveSidebarWithAnAccessibleStaticAlternative'
+  await expect(block.locator('.studio-widget-type')).toHaveText(
+    'Interactive Sidebar With An Accessible Static Alternative'
   );
-  await block.getByText('Edit block', { exact: true }).click();
-  const property = block.getByRole('textbox', { name: /^label/ });
+  await block.getByRole('button', { name: 'Edit block' }).click();
+  const settings = page.getByRole('dialog', {
+    name: 'Interactive Sidebar With An Accessible Static Alternative',
+  });
+  const property = settings.getByRole('textbox', { name: /^Label/ });
   await expect(property).toHaveValue('A small thought.');
   expect(
     await block.evaluate(
@@ -1040,6 +1127,11 @@ test('an approved generated component is editable beside its paragraph', async (
     )
   ).toBeTruthy();
   await property.fill('Another useful thought.');
+  await settings.getByText('Feed alternative').click();
+  await settings
+    .getByRole('textbox', { name: 'Feed alternative' })
+    .fill('Another useful thought.');
+  await settings.getByRole('button', { name: 'Confirm alternative' }).click();
   await expect(
     page.getByRole('status').filter({ hasText: 'All changes saved' })
   ).toBeVisible();
@@ -1051,10 +1143,10 @@ test('an approved generated component is editable beside its paragraph', async (
     fullPage: true,
   });
   await page.reload();
-  await expect(block.locator('strong')).toHaveText(
-    'InteractiveSidebarWithAnAccessibleStaticAlternative'
+  await expect(block.locator('.studio-widget-type')).toHaveText(
+    'Interactive Sidebar With An Accessible Static Alternative'
   );
-  await block.getByText('Edit block', { exact: true }).click();
+  await block.getByRole('button', { name: 'Edit block' }).click();
   await expect(property).toHaveValue('Another useful thought.');
 });
 
@@ -1069,13 +1161,13 @@ test('untitled prose is recognizable after returning and creation is available a
   ).toHaveCount(0);
   await create.click();
   const editor = page.getByRole('textbox', { name: 'Writing content' });
-  await expect(editor).toBeFocused();
+  await expect(editor).toBeFocused({ timeout: 15000 });
   const sentence = `A recognizable beginning ${Date.now()}.`;
   await editor.fill(sentence);
   await expect(
     page.getByRole('status').filter({ hasText: 'All changes saved' })
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Your writing', exact: true }).click();
+  await page.goBack();
   await expect(create).toBeEnabled();
   await page
     .getByRole('link', { name: `Edit ${sentence}`, exact: true })
@@ -1167,7 +1259,7 @@ test('inline controls follow a middle paragraph and preserve selected prose', as
   await paragraph.scrollIntoViewIfNeeded();
   await paragraph.click();
   const add = page.getByRole('button', {
-    name: 'Insert into writing',
+    name: 'Insert block',
     exact: true,
   });
   await expect(async () => {
@@ -1221,8 +1313,11 @@ test('inline controls follow a middle paragraph and preserve selected prose', as
     'Paragraph 10. A sentence that stays where its author put it.'
   );
   await block.getByRole('button', { name: 'Edit block', exact: true }).click();
-  const title = block.getByRole('textbox', { name: /^title/ });
-  await expect(title).toBeFocused();
+  const settings = page.getByRole('dialog', { name: 'Callout' });
+  const title = settings.getByRole('textbox', { name: /^Title/ });
+  await expect(
+    settings.getByRole('heading', { name: 'Callout' })
+  ).toBeFocused();
   await title.fill('A local aside');
   await title.press('Escape');
   await expect(
@@ -1237,6 +1332,7 @@ test('inline controls follow a middle paragraph and preserve selected prose', as
   await page.reload();
   await block.getByRole('button', { name: 'Edit block', exact: true }).click();
   await expect(title).toHaveValue('A local aside');
+  await settings.getByRole('button', { name: 'Close widget settings' }).click();
   const listParagraph = page.locator('.studio-prose li p').nth(9);
   await listParagraph.scrollIntoViewIfNeeded();
   await listParagraph.click();

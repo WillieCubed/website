@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
 import type {
@@ -57,6 +58,7 @@ export default function MusicAdmin() {
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [publication, setPublication] = useState<MusicPublication | null>(null);
+  const [showPublicationNotice, setShowPublicationNotice] = useState(false);
   const [history, setHistory] = useState<MusicRevision[] | null>(null);
   const [recovery, setRecovery] = useState<{
     catalog: MusicCatalog;
@@ -91,6 +93,9 @@ export default function MusicAdmin() {
     };
     setData(catalog);
     setPublication(catalog.publication ?? null);
+    setShowPublicationNotice(
+      Boolean(catalog.publication && catalog.publication.status !== 'live')
+    );
     setConnection(conn);
     setStatus(
       catalog.revision
@@ -322,12 +327,12 @@ export default function MusicAdmin() {
     setBusy(true);
     setError('');
     try {
-      setPublication(
-        await request<MusicPublication>('/publications', {
-          method: 'POST',
-          body: JSON.stringify({ revisionId: base.current }),
-        })
-      );
+      const result = await request<MusicPublication>('/publications', {
+        method: 'POST',
+        body: JSON.stringify({ revisionId: base.current }),
+      });
+      setPublication(result);
+      setShowPublicationNotice(true);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -389,29 +394,40 @@ export default function MusicAdmin() {
     <>
       <div className="music-admin-notices">
         {error && (
-          <div role="alert">
+          <div className="music-admin-notice" role="alert">
             <p>{error}</p>
-            {blocked.current && (
-              <button
-                className="mp-button mp-tonal"
-                onClick={() => void retrySave()}
-              >
-                {conflict ? 'Save my version' : 'Retry save'}
-              </button>
-            )}
-            {conflict && (
-              <button
-                className="mp-button mp-tonal"
-                onClick={() => void useSaved()}
-              >
-                Use current saved draft
-              </button>
-            )}
-            {connection?.reconnect && (
-              <button className="mp-button" onClick={() => void connect()}>
-                Reconnect Spotify
-              </button>
-            )}
+            <div className="music-admin-notice__actions">
+              {blocked.current && (
+                <button
+                  className="mp-button mp-tonal"
+                  onClick={() => void retrySave()}
+                >
+                  {conflict ? 'Save my version' : 'Retry save'}
+                </button>
+              )}
+              {conflict && (
+                <button
+                  className="mp-button mp-tonal"
+                  onClick={() => void useSaved()}
+                >
+                  Use current saved draft
+                </button>
+              )}
+              {connection?.reconnect && (
+                <button className="mp-button" onClick={() => void connect()}>
+                  Reconnect Spotify
+                </button>
+              )}
+              {!blocked.current && !connection?.reconnect && (
+                <button
+                  className="music-admin-notice__close"
+                  aria-label="Dismiss message"
+                  onClick={() => setError('')}
+                >
+                  <Icon name="x" size={18} />
+                </button>
+              )}
+            </div>
           </div>
         )}
         {busy && (
@@ -422,44 +438,46 @@ export default function MusicAdmin() {
           </p>
         )}
         {recovery && (
-          <div role="status">
+          <div className="music-admin-notice" role="status">
             <p>This browser has an unsaved draft.</p>
-            <button
-              className="mp-button"
-              onClick={() => {
-                setData((old) =>
-                  old
-                    ? {
-                        ...old,
-                        revision: {
-                          id: base.current ?? '',
-                          body: recovery.catalog,
-                          conflict: false,
-                          createdAt: new Date().toISOString(),
-                        },
-                      }
-                    : old
-                );
-                setGeneration((n) => n + 1);
-                change(recovery.catalog);
-                setRecovery(null);
-              }}
-            >
-              Recover draft
-            </button>
-            <button
-              className="mp-button mp-tonal"
-              onClick={() => {
-                localStorage.removeItem(recoveryKey);
-                setRecovery(null);
-              }}
-            >
-              Use saved draft
-            </button>
+            <div className="music-admin-notice__actions">
+              <button
+                className="mp-button"
+                onClick={() => {
+                  setData((old) =>
+                    old
+                      ? {
+                          ...old,
+                          revision: {
+                            id: base.current ?? '',
+                            body: recovery.catalog,
+                            conflict: false,
+                            createdAt: new Date().toISOString(),
+                          },
+                        }
+                      : old
+                  );
+                  setGeneration((n) => n + 1);
+                  change(recovery.catalog);
+                  setRecovery(null);
+                }}
+              >
+                Recover draft
+              </button>
+              <button
+                className="mp-button mp-tonal"
+                onClick={() => {
+                  localStorage.removeItem(recoveryKey);
+                  setRecovery(null);
+                }}
+              >
+                Use saved draft
+              </button>
+            </div>
           </div>
         )}
-        {publication && (
-          <div role="status">
+        {publication && showPublicationNotice && (
+          <div className="music-admin-notice" role="status">
             <p>
               {publication.status === 'live'
                 ? 'Your collection is live.'
@@ -469,28 +487,40 @@ export default function MusicAdmin() {
                     ? 'Publishing your reviewed collection…'
                     : (publication.error ?? 'Publication failed.')}
             </p>
-            {publication.status === 'failed' && (
-              <button
-                className="mp-button"
-                onClick={() => void publish(saved.current)}
-              >
-                Retry publication
-              </button>
-            )}
-            {publication.pullRequestUrl && (
-              <a
-                href={publication.pullRequestUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View publication
-              </a>
-            )}
-            {publication.status === 'live' && (
-              <SiteLink href="https://willie.page/music" preview={false}>
-                Open live gallery
-              </SiteLink>
-            )}
+            <div className="music-admin-notice__actions">
+              {publication.status === 'failed' && (
+                <button
+                  className="mp-button"
+                  onClick={() => void publish(saved.current)}
+                >
+                  Retry publication
+                </button>
+              )}
+              {publication.pullRequestUrl && publication.status !== 'live' && (
+                <SiteLink
+                  href={publication.pullRequestUrl}
+                  target="_blank"
+                  preview={false}
+                >
+                  View publication
+                </SiteLink>
+              )}
+              {publication.status === 'live' && (
+                <SiteLink href="https://willie.page/music" preview={false}>
+                  View gallery
+                </SiteLink>
+              )}
+              {publication.status !== 'publishing' &&
+                publication.status !== 'deploying' && (
+                  <button
+                    className="music-admin-notice__close"
+                    aria-label="Dismiss publication message"
+                    onClick={() => setShowPublicationNotice(false)}
+                  >
+                    <Icon name="x" size={18} />
+                  </button>
+                )}
+            </div>
           </div>
         )}
       </div>
@@ -507,6 +537,12 @@ export default function MusicAdmin() {
             !saving && !busy && !blocked.current && Boolean(base.current)
           }
           saveStatus={status}
+          published={
+            publication?.status === 'live' &&
+            publication.revisionId === data.revision?.id &&
+            !pending.current &&
+            !saving
+          }
           connected={connection.connected}
           onConnect={connect}
           onRefresh={refresh}

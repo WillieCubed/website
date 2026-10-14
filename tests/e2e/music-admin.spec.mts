@@ -192,6 +192,68 @@ test('a Spotify refresh keeps the reviewed draft aligned with the saved revision
   const saved = await (await request.get('/api/studio/music/catalog')).json();
   expect(saved.revision.body.selected).toEqual([ids[1]]);
 });
+test('publication feedback stays out of the page layout', async ({
+  page,
+  request,
+}, info) => {
+  const initial = await (await request.get('/api/studio/music/catalog')).json();
+  const savedResponse = await request.put('/api/studio/music/catalog', {
+    headers: { origin: process.env.STUDIO_TEST_ORIGIN! },
+    data: {
+      expectedRevisionId: initial.revision?.id ?? null,
+      catalog: {
+        version: 1,
+        order: ids,
+        selected: [ids[0]],
+        lead: null,
+        series: [],
+        notes: {},
+      },
+    },
+  });
+  expect(savedResponse.ok()).toBeTruthy();
+  const { revision } = await savedResponse.json();
+  await page.route('**/api/studio/music/publications', async (route) => {
+    if (route.request().method() !== 'POST') return route.continue();
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 'visual-publication',
+        revisionId: revision.id,
+        status: 'live',
+        error: null,
+        createdAt: new Date().toISOString(),
+      }),
+    });
+  });
+  await page.goto('/studio/music');
+  await page.getByRole('button', { name: 'Review changes' }).click();
+  await page.getByRole('button', { name: 'Publish collection' }).click();
+  const notice = page.locator('.music-admin-notice[role="status"]');
+  await expect(notice).toContainText('Your collection is live.');
+  await expect(page.getByText('Live collection')).toBeVisible();
+  const bar = await page.locator('header[data-column]').boundingBox();
+  const message = await notice.boundingBox();
+  expect(bar).not.toBeNull();
+  expect(message).not.toBeNull();
+  expect(bar!.y).toBe(0);
+  await expect(
+    page.getByRole('complementary', { name: 'Private preview' })
+  ).toHaveCount(0);
+  expect(bar!.y).toBeLessThan(message!.y);
+  const dir = '.playwright-mcp/music/iterations/2026-10-13-studio-toast';
+  await mkdir(dir, { recursive: true });
+  await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
+  await page.screenshot({
+    path: `${dir}/${info.project.name}.png`,
+    fullPage: false,
+  });
+  await page
+    .getByRole('button', { name: 'Dismiss publication message' })
+    .click();
+  await expect(notice).toHaveCount(0);
+});
 test('anonymous access and foreign-origin changes fail', async ({
   playwright,
   request,

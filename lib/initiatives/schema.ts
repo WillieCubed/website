@@ -9,7 +9,7 @@ import { FOCUS_IDS } from '@/lib/home/focuses';
  * Every initiative page and homepage tile reads these fields, and dates drive
  * countdowns, the Playbill's current act, sitemap timestamps, and social
  * images, so a typo has to fail the build rather than render as "Invalid
- * Date". See docs/initiatives.md for the authoring guide.
+ * Date".
  */
 
 /**
@@ -100,7 +100,7 @@ export const TileSizeSchema = z.enum([
 ]);
 export type TileSize = z.infer<typeof TileSizeSchema>;
 
-/** The homepage focuses a featured initiative serves (lib/home/focuses.ts). */
+/** The homepage goals a featured initiative serves. */
 export const FocusSchema = z.enum(FOCUS_IDS);
 
 /** How an initiative shows up on the homepage tile grid. */
@@ -134,7 +134,7 @@ export const InitiativeFrontmatterSchema = z.object({
   ends: DateSchema.optional(),
   /** The last day the page was meaningfully edited. Feeds the sitemap. */
   updated: DateSchema.optional(),
-  /** A key in lib/brand/seeds.json or a `#rrggbb` hex. */
+  /** A shared brand seed key or a `#rrggbb` hex. */
   brand: z
     .string()
     .regex(/^(#[0-9a-fA-F]{6}|[a-z][a-z0-9-]*)$/)

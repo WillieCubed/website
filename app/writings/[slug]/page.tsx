@@ -12,14 +12,15 @@ import WritingHeader from '@/components/writings/WritingHeader';
 
 import { documentUri } from '@/lib/atproto/keys';
 import { documentPath } from '@/lib/atproto/records';
-import { loadBlueskyResponses, mergeResponses } from '@/lib/atproto/responses';
+import { loadBlueskyResponses } from '@/lib/atproto/responses';
+import { mergeResponses } from '@/lib/atproto/responses/merge';
 import { OEMBED_ENDPOINT, SITE_URL } from '@/lib/indieweb/constants';
 import {
   type ReplyContext,
   getReplyContext,
 } from '@/lib/indieweb/reply-context';
-import type { WebmentionGroup } from '@/lib/indieweb/types';
-import { getWebmentionsForPost } from '@/lib/indieweb/webmention-storage';
+import { getWebmentionsForPost } from '@/lib/indieweb/webmention/storage';
+import type { WebmentionGroup } from '@/lib/indieweb/webmention/types';
 import {
   breadcrumbLd,
   graph,
@@ -28,7 +29,10 @@ import {
   postingType,
   websiteLd,
 } from '@/lib/seo/jsonld';
-import { absoluteRoute, formatDate, pageMetadata } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { formatDate } from '@/lib/site/dates';
+import { absoluteRoute } from '@/lib/site/urls';
+import { getBacklinksForPost } from '@/lib/writings/backlinks';
 import {
   SeriesWithWritings,
   WritingData,
@@ -37,8 +41,7 @@ import {
   getPublishedWriting,
   getPublishedWritingSlugs,
   getSeriesWithWritings,
-} from '@/lib/writings';
-import { getBacklinksForPost } from '@/lib/writings/backlinks';
+} from '@/lib/writings/index';
 
 function generateCanonicalUrl(slug: string) {
   return absoluteRoute`/writings/${slug}`;

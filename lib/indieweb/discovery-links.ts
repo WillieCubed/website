@@ -1,6 +1,5 @@
-// next.config.ts loads this file through lib/response-headers.ts, and
-// Next's config loader resolves `@/` against the wrong folder for a file
-// under lib/, so every import on that path stays relative.
+// Keep imports relative: the framework's configuration loader resolves
+// application aliases against a different root.
 import {
   INDIEAUTH_AUTHORIZATION_ENDPOINT,
   INDIEAUTH_METADATA_ENDPOINT,
@@ -13,7 +12,7 @@ import {
 /**
  * How a client finds the IndieAuth server. `indieauth-metadata` is the
  * current mechanism; the two endpoint links serve clients written before it.
- * The head in `app/layout.tsx` and the WebFinger response both render this
+ * The document head and the WebFinger response both render this
  * list, so they cannot drift apart.
  */
 export const INDIEAUTH_DISCOVERY_LINKS = [
@@ -24,9 +23,8 @@ export const INDIEAUTH_DISCOVERY_LINKS = [
 
 /**
  * Every endpoint a client discovers from a page: where to send mentions
- * and posts, how to sign in as this site, and the WebSub hub. The head in
- * `app/layout.tsx` renders them as `<link>` elements, and every page
- * response repeats them in an HTTP `Link` header (lib/response-headers.ts)
+ * and posts, how to sign in as this site, and the WebSub hub. The document head renders them as `<link>` elements, and every page
+ * response repeats them in an HTTP `Link` header
  * for clients that read headers without parsing HTML. Both render this
  * list, so they cannot drift apart. The paths stay relative, as they are in
  * the head, so a preview deployment advertises its own endpoints.

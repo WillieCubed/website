@@ -2,21 +2,23 @@ import {
   corsPreflight,
   handleAuthorizationRequest,
   handleProfileRedemption,
-} from '@/lib/indieweb/indieauth-endpoints';
-import { indieAuthEndpointOptions } from '@/lib/indieweb/indieauth-storage';
+} from '@/lib/indieweb/indieauth/endpoints';
+import { indieAuthEndpointOptions } from '@/lib/indieweb/indieauth/storage';
 import { jsonError } from '@/lib/indieweb/responses';
 
 /**
- * The IndieAuth authorization endpoint.
- *
- * GET forwards the browser to /indieauth/consent with the same query, where
- * the owner approves or denies the request. POST redeems a code for the
- * profile URL alone, for clients that only sign people in.
+ * Redirect the browser to the owner consent page with the authorization
+ * query unchanged.
  */
 export function GET(request: Request) {
   return handleAuthorizationRequest(request);
 }
 
+/**
+ * Redeem a form-encoded authorization code and PKCE verifier for the
+ * authorized profile URL. Return an OAuth error when the code, client,
+ * callback, or verifier is invalid.
+ */
 export async function POST(request: Request) {
   try {
     return await handleProfileRedemption(request, indieAuthEndpointOptions());
@@ -26,6 +28,7 @@ export async function POST(request: Request) {
   }
 }
 
+/** Return the CORS preflight headers for browser-based IndieAuth clients. */
 export function OPTIONS() {
   return corsPreflight();
 }

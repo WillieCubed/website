@@ -12,16 +12,10 @@ const CONTENT_TYPES: SearchContentType[] = [
 ];
 
 /**
- * GET /api/search
- *
- * JSON search over the site's own content. Answers from the build-time index
- * by default and from Postgres when SEARCH_BACKEND=postgres.
- *
- * Query parameters:
- * - q: Search query (required)
- * - type: 'writing' | 'initiative' | 'page' | 'project' | 'all' (default: 'all')
- * - limit: Maximum results (default: 20, max: 100)
- * - offset: Pagination offset (default: 0)
+ * Search published site content and return JSON results for the required q
+ * parameter. Filter by type when supplied; default to all content, limit 20,
+ * and offset 0. Clamp limit to 1–100 and offset to zero or greater. Use the
+ * build-time index unless Postgres search is enabled.
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

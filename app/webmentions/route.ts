@@ -5,14 +5,12 @@ import {
   noStoreJsonHeaders,
 } from '@/lib/indieweb/responses';
 import { sameOrigin } from '@/lib/indieweb/utils';
-import { getPublicWebmentionsForTarget } from '@/lib/indieweb/webmention-storage';
+import { getPublicWebmentionsForTarget } from '@/lib/indieweb/webmention/storage';
 
 /**
- * Public Webmention listing endpoint.
- *
- * This mirrors the Hypertext Studio pattern: pages can render from database
- * state, while other tools can also fetch grouped, approved mentions for a
- * canonical target URL.
+ * Return grouped, verified, approved webmentions for the same-origin target
+ * query parameter. Return 400 when the target is missing or external;
+ * disable response caching.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);

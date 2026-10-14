@@ -4,14 +4,14 @@ import SiteLink from '@/components/link/SiteLink';
 import WritingItem from '@/components/writings/WritingItem';
 
 import { socialSettings } from '@/lib/atproto/config';
-import { getWritingContentHtml } from '@/lib/feeds/items';
-import { absoluteUrl } from '@/lib/site';
+import { getWritingContentHtml } from '@/lib/indieweb/feeds/items';
+import { absoluteUrl } from '@/lib/site/urls';
 import {
   type WritingData,
   getAllTags,
   getAllWritings,
   getSeries,
-} from '@/lib/writings';
+} from '@/lib/writings/index';
 import { tagPath } from '@/lib/writings/tags';
 
 import StandardSocialControls from './StandardSocialControls';
@@ -73,7 +73,7 @@ export default async function WritingsIndex({
 
 async function WritingsList({ writings }: { writings: WritingData[] }) {
   // Resolve every series a listed writing belongs to. A series can be a file
-  // in content/series/ or an initiative, and getSeries handles both.
+  // or an initiative; the series loader handles both.
   const seriesSlugs = [
     ...new Set(writings.flatMap((w) => (w.series ? [w.series.slug] : []))),
   ];

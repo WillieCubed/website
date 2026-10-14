@@ -1,0 +1,320 @@
+.home {
+  dialog.detail {
+    --dh: min(640px, calc(100svh - 64px));
+    position: fixed;
+    inset: 0;
+    width: min(960px, calc(100vw - 48px));
+    height: var(--dh);
+    max-width: none;
+    max-height: none;
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 18px;
+    background: var(--color-ground);
+    color: var(--color-ink);
+    box-shadow: var(--detail-shadow);
+    /* Closing keeps the dialog in the top layer, hidden, until its backdrop
+       has cleared; only the morphing card shows in the meantime. */
+    transition:
+      background-color 420ms var(--ease-site),
+      overlay 320ms allow-discrete,
+      display 320ms allow-discrete;
+  }
+  /* Opacity, not visibility: the backdrop inherits from the dialog, and
+     hiding the dialog with visibility hid the backdrop that is clearing. */
+  dialog.detail:not([open]) {
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* The page behind blurs and dims in place under the morph. Letting the
+     page crossfade into a blurred copy of itself instead showed every line
+     of text twice while the two overlapped. */
+  dialog.detail::backdrop {
+    background-color: transparent;
+    backdrop-filter: blur(0);
+    transition:
+      background-color 320ms var(--ease-site),
+      backdrop-filter 320ms var(--ease-site),
+      overlay 320ms allow-discrete,
+      display 320ms allow-discrete;
+  }
+  dialog.detail[open]::backdrop {
+    background-color: color-mix(in srgb, var(--color-scrim) 30%, transparent);
+    backdrop-filter: blur(6px);
+  }
+  @starting-style {
+    dialog.detail[open]::backdrop {
+      background-color: transparent;
+      backdrop-filter: blur(0);
+    }
+  }
+  .d-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
+    min-height: 100%;
+  }
+  .d-media {
+    position: sticky;
+    top: 0;
+    display: grid;
+    place-items: center;
+    height: var(--dh);
+    overflow: hidden;
+    background: var(--color-tray);
+  }
+  .d-media > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+  .d-media.framed > img {
+    width: 84%;
+    height: auto;
+    max-height: 84%;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 24px 50px -30px
+      color-mix(in srgb, var(--color-scrim) 60%, transparent);
+  }
+  .d-count {
+    padding: 36px;
+  }
+  /* Hugs the number, so it and the tile's number share a shape to morph
+     between. */
+  .d-count b {
+    display: block;
+    width: fit-content;
+    font-size: clamp(88px, 11vw, 150px);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+  }
+  .d-count > span {
+    display: block;
+    max-width: 22ch;
+    margin-top: 14px;
+    color: var(--color-muted);
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .d-stack {
+    position: absolute;
+    inset: 0;
+  }
+  .d-stack img {
+    position: absolute;
+    border-radius: 10px;
+    box-shadow: 0 24px 44px -26px
+      color-mix(in srgb, var(--color-scrim) 60%, transparent);
+  }
+  .d-stack img:nth-child(2) {
+    left: 22%;
+    top: 16%;
+    width: 70%;
+    rotate: 3deg;
+  }
+  .d-stack img:nth-child(3) {
+    left: 30%;
+    top: 50%;
+    width: 58%;
+    rotate: -2deg;
+  }
+  .d-stack img:nth-child(1) {
+    left: 8%;
+    top: 12%;
+    width: 30%;
+    rotate: -4deg;
+    z-index: 1;
+    border-radius: 14px;
+  }
+  dialog.detail[open] .d-stack img {
+    animation: fan 640ms var(--ease-site) both;
+  }
+  dialog.detail[open] .d-stack img:nth-child(2) {
+    animation-delay: 60ms;
+  }
+  dialog.detail[open] .d-stack img:nth-child(3) {
+    animation-delay: 120ms;
+  }
+
+  .d-media .constellation {
+    inset: 14%;
+  }
+  /* Only the text column scrolls, inset from the card's edges so its bar
+     clears the rounded corners; the picture beside it stays put. The inset
+     comes out of the padding, so the text sits where it always has. */
+  .d-content {
+    position: relative;
+    max-height: calc(var(--dh) - 24px);
+    margin: 12px 4px 12px 0;
+    padding: 44px 28px 20px 32px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .d-bar {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    height: 0;
+  }
+  .d-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: color-mix(
+      in srgb,
+      var(--color-surface-container-lowest) 92%,
+      transparent
+    );
+    box-shadow: 0 1px 3px
+      color-mix(in srgb, var(--color-scrim) 20%, transparent);
+    font-size: 22px;
+    cursor: pointer;
+    transition:
+      rotate 280ms var(--ease-site),
+      outline-offset 280ms var(--ease-site),
+      outline-color 200ms var(--ease-site);
+  }
+  .d-close:hover {
+    rotate: 90deg;
+  }
+  .d-kicker {
+    color: var(--color-muted);
+    font: 500 12px/1 var(--font-mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .d-kicker:empty {
+    display: none;
+  }
+  .d-kicker:empty + .d-title {
+    margin-top: 0;
+  }
+  .d-title {
+    margin: 10px 0 0;
+    font-size: clamp(28px, 3vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+  }
+  .d-body > p {
+    max-width: 46ch;
+    margin: 14px 0 0;
+    color: var(--color-muted);
+    font-size: 17px;
+  }
+  .d-list {
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .d-list li {
+    padding-block: 12px;
+    border-top: 1px solid var(--color-line);
+  }
+  .d-list b {
+    display: block;
+    font-weight: 600;
+  }
+  .d-list span {
+    color: var(--color-muted);
+    font-size: 15px;
+  }
+  .d-list button {
+    display: grid;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .d-list button b {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .d-list button b .icon {
+    font-size: 16px;
+    opacity: 0;
+    translate: -4px 0;
+    transition:
+      opacity 200ms var(--ease-site),
+      translate 280ms var(--ease-site);
+  }
+  .d-list button:hover b .icon,
+  .d-list button:focus-visible b .icon {
+    opacity: 1;
+    translate: 0 0;
+  }
+  .d-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .d-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--color-tray);
+    font-size: 15px;
+    font-weight: 600;
+    transition:
+      translate 240ms var(--ease-site),
+      outline-offset 280ms var(--ease-site),
+      outline-color 200ms var(--ease-site);
+  }
+  .d-links a:first-child {
+    background: var(--color-ink);
+    color: var(--color-ground);
+  }
+  .d-links a:hover {
+    translate: 0 -2px;
+  }
+  .d-links .icon {
+    font-size: 16px;
+    transition: translate 240ms var(--ease-site);
+  }
+  .d-links a:hover .icon {
+    translate: 1px -1px;
+  }
+  dialog.detail[open]
+    :is(.d-kicker, .d-title, .d-body > p, .d-list li, .d-links) {
+    animation: rise 520ms var(--ease-site) both;
+  }
+  dialog.detail[open] .d-title {
+    animation-delay: 40ms;
+  }
+  dialog.detail[open] .d-body > p {
+    animation-delay: 90ms;
+  }
+  dialog.detail[open] .d-list li:nth-child(1) {
+    animation-delay: 140ms;
+  }
+  dialog.detail[open] .d-list li:nth-child(2) {
+    animation-delay: 180ms;
+  }
+  dialog.detail[open] .d-list li:nth-child(3) {
+    animation-delay: 220ms;
+  }
+  dialog.detail[open] .d-list li:nth-child(4) {
+    animation-delay: 260ms;
+  }
+  dialog.detail[open] .d-links {
+    animation-delay: 300ms;
+  }
+}

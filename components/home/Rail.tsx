@@ -1,6 +1,6 @@
-import PaletteTrigger from '@/components/palette/PaletteTrigger';
+import PaletteTrigger from '@/components/search/palette/PaletteTrigger';
 
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 
 import { type FocusItem, Focuses, VentureLink } from './Focuses';
 

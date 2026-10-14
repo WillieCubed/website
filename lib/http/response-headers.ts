@@ -1,0 +1,90 @@
+// Keep imports relative because the framework's configuration loader does not resolve aliases here.
+import {
+  ENDPOINT_DISCOVERY_LINKS,
+  linkHeader,
+} from '../indieweb/discovery-links';
+
+export interface HeaderRule {
+  source: string;
+  headers: Array<{ key: string; value: string }>;
+}
+
+/**
+ * The routes that answer with a page, as `headers()` sources. Everything
+ * other endpoint returns protocol data, an asset, or an image, which a Link
+ * header would only mislabel. A unit test checks routed pages and fails when a page
+ * is missing here or a route handler matches.
+ */
+export const PAGE_SOURCES = [
+  '/',
+  '/:page(projects|brand|search|writings|initiatives|media|sitemap|status|500)',
+  '/:section(writings|initiatives|projects)/:slug((?!opengraph-image$)[^/.]+)',
+  '/initiatives/:slug([^/.]+)/:part(part-\\d+)',
+  '/writings/tags/:tag([^/.]+)',
+  '/admin/status',
+];
+
+/**
+ * Headers sent with every response. The framework configuration serves them.
+ *
+ * X-Clacks-Overhead keeps a name moving through the network for as long as
+ * there are servers, after Terry Pratchett's Going Postal.
+ *
+ * The rest close doors the site never opens. The referrer policy is the
+ * browsers' own default, pinned so a host or a browser change cannot loosen
+ * it. The permissions policy denies the camera, the microphone, location,
+ * and interest-based ad cohorts (FLoC's interest-cohort and the Topics API
+ * that replaced it) to every page and every embed on it; nothing asks for
+ * them. Pages have no Content-Security-Policy;
+ * generated widget documents are sandboxed even when opened directly.
+ */
+export const siteHeaders: HeaderRule[] = [
+  {
+    source: '/:path*',
+    headers: [
+      { key: 'X-Clacks-Overhead', value: 'GNU Terry Pratchett' },
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      {
+        key: 'Permissions-Policy',
+        value:
+          'camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()',
+      },
+    ],
+  },
+  // A header here replaces a route handler's own, and the IndieAuth consent
+  // page and admin forms set their own policy, so those routes are left out.
+  {
+    source: '/:path((?!admin/|indieauth/|atproto/|api/atproto/).*)',
+    headers: [
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+    ],
+  },
+  {
+    source: '/generated-blocks/:path*',
+    headers: [
+      {
+        key: 'Content-Security-Policy',
+        value: "sandbox allow-scripts; frame-ancestors 'self'",
+      },
+      { key: 'Referrer-Policy', value: 'no-referrer' },
+    ],
+  },
+  {
+    source: '/admin/:path*',
+    headers: [
+      { key: 'Cache-Control', value: 'private, no-store' },
+      { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'Referrer-Policy', value: 'same-origin' },
+    ],
+  },
+  ...PAGE_SOURCES.map((source) => ({
+    source,
+    headers: [
+      { key: 'Link', value: linkHeader(ENDPOINT_DISCOVERY_LINKS) },
+      // Pages only. The IndieAuth routes are route handlers and must never
+      // get it: a client that opens sign-in in a popup reads window.opener
+      // once the popup lands back on its redirect page.
+      { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
+    ],
+  })),
+];

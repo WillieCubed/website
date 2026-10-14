@@ -1,5 +1,5 @@
 // Reads each venture's public site and writes the brand seed it finds to
-// lib/brand/seeds.json. Run `pnpm brand:seeds` after a venture rebrands.
+// the shared brand seeds. Run `pnpm brand:seeds` after a venture rebrands.
 //
 // For every site the script fetches the page and takes the first saturated
 // color it finds, checking in this order:

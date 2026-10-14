@@ -1,16 +1,14 @@
 import type { MetadataRoute } from 'next';
 
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 
 const ICON_SIZES = [48, 72, 96, 144, 192, 512];
 const MASKABLE_ICON_SIZES = [192, 512];
 
 /**
- * The web app manifest at /manifest.webmanifest. Its colors come from the
- * theme through `site`, so an installed app opens on the same surface the
- * page paints. A manifest takes one color per field, so both use the light
- * scheme; the viewport's theme-color meta tags still switch with the scheme.
- * The brand kit keeps its own copy at /brand/web/manifest.webmanifest.
+ * Return the app identity, icons, display mode, launch URL, and theme colors
+ * used when installing the site. The downloadable brand kit carries a
+ * separate manifest.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {

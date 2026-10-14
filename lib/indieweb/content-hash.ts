@@ -4,7 +4,7 @@ import { createHash } from 'crypto';
 import type {
   OutgoingWebmentionRecord,
   PendingOutgoingWebmention,
-} from '@/lib/indieweb/types';
+} from '@/lib/indieweb/webmention/types';
 
 /**
  * Create a hash of content for change detection.

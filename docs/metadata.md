@@ -3,7 +3,7 @@
 This page is for anyone adding a page or changing what a page says about
 itself in a link preview, Willie or an agent. Read it before writing a
 `metadata` export or a `generateMetadata` function. When you finish, run
-`pnpm test`; `tests/unit/seo-metadata.test.mts` checks the rule below.
+`pnpm test`; `tests/unit/seo/seo-metadata.test.mts` checks the rule below.
 
 ## The rule
 
@@ -32,7 +32,7 @@ preview never prints the bare name twice.
 
 ## How to follow it
 
-Call `pageMetadata()` from `lib/site.ts`. It sets `og:title` and
+Call `pageMetadata()` from `lib/seo/metadata.ts`. It sets `og:title` and
 `twitter:title` to the bare title, repeats the site-level OpenGraph fields
 that Next.js would otherwise drop, and leaves the description out when it
 only repeats the title, which happens for a short note with no description.
@@ -42,7 +42,7 @@ A page with nothing to share, such as the 404 or the 500 page, spreads
 document title into `og:title`.
 
 A top-level page reads its label and description from `sitePages` in
-`lib/site.ts` through `sitePage(path)`. The page's metadata, its social image,
+`lib/seo/metadata.ts` through `sitePage(path)`. The page's metadata, its social image,
 the hover card, and site search all read that one entry, so they cannot
 drift apart.
 

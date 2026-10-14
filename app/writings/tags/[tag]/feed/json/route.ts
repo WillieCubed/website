@@ -1,10 +1,10 @@
 import { cacheLife } from 'next/cache';
 
-import { generateTagJsonFeed } from '@/lib/feeds';
-import { getTagFeedItems } from '@/lib/feeds/items';
+import { generateTagJsonFeed } from '@/lib/indieweb/feeds/index';
+import { getTagFeedItems } from '@/lib/indieweb/feeds/items';
 import { webSubLinkHeader } from '@/lib/indieweb/websub-discovery';
-import { absoluteRoute } from '@/lib/site';
-import { getTagParams } from '@/lib/writings';
+import { absoluteRoute } from '@/lib/site/urls';
+import { getTagParams } from '@/lib/writings/index';
 import { tagFeedPaths, tagFromParam } from '@/lib/writings/tags';
 
 export async function generateStaticParams() {
@@ -19,6 +19,10 @@ async function buildTagFeed(tag: string) {
   return items.length > 0 ? generateTagJsonFeed(tag, items) : null;
 }
 
+/**
+ * Return published writings carrying the requested tag, newest first, as
+ * JSON Feed. Return 404 when the tag has no public writings.
+ */
 export async function GET(
   _request: Request,
   props: { params: Promise<{ tag: string }> }

@@ -17,12 +17,12 @@ category. Omit the scope only for repository-wide changes.
 - **`writings`** — the writing system: `lib/writings`, `components/writings`, and page routes
 - **`content`** — data and content files under `content/` and `data/` directories
 - **`theme`** — how the site looks: Tailwind configuration, `app/globals.css`, and the colors, type, spacing, and motion every surface shares
-- **`site`** — the chrome every page shares: the top bar and breadcrumbs, their menus, the footer and its dock, the skip link, fragment links, and page transitions in `components/site` and `lib/footer`. It is the last resort, not a catch-all: use it only when no other scope matches, so a breadcrumb change on initiative pages alone is `initiatives` and a color change is `theme`
+- **`site`** — the chrome every page shares: the top bar and breadcrumbs, their menus, the footer and its dock, the skip link, fragment links, and page transitions in `components/site` and `lib/site/footer`. It is the last resort, not a catch-all: use it only when no other scope matches, so a breadcrumb change on initiative pages alone is `initiatives` and a color change is `theme`
 - **`initiatives`** — the initiative content model, `lib/initiatives`, `components/initiatives`, and the `/initiatives` routes
 - **`links`** — the in-site link component, hover cards, and the entity registry under `lib/entities`
 - **`indieweb`** — webmentions, feeds, discovery endpoints, and microformats; infrastructure for content interaction and syndication
-- **`seo`** — page titles, social metadata, structured data, and the sitemap: the metadata helpers in `lib/site.ts`, `lib/seo`, and `docs/metadata.md`
-- **`search`** — the command palette and site search: `components/palette`, `lib/palette`, `lib/search`, and `/search`
+- **`seo`** — page titles, social metadata, structured data, and the sitemap: the metadata helpers in `lib/seo/metadata.ts`, `lib/seo`, and `docs/metadata.md`
+- **`search`** — the command palette and site search: `components/search/palette`, `lib/search/palette`, `lib/search`, and `/search`
 - **`protocols`** — the small protocol routes and headers (`/coffee`, `/tea`, `/whoami`, `security.txt`, OpenSearch, the MCP server); see `docs/protocols.md`
 - **`atproto`** — AT Protocol identity and records: `lib/atproto`, standard.site publishing, and the Bluesky integration; see `docs/atproto.md`
 - **`docs`** — maintainer documentation under `docs/`

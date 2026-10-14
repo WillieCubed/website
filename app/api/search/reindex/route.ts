@@ -4,11 +4,10 @@ import { generateSearchIndex } from '@/lib/search';
 import { usePostgresSearch } from '@/lib/search/server';
 
 /**
- * POST /api/search/reindex
- *
- * Rebuild the Postgres search index from the content files. Only meaningful
- * when SEARCH_BACKEND=postgres; the default JSON index is rebuilt by the
- * prebuild script instead. Requires SEARCH_REINDEX_SECRET in production.
+ * Replace the Postgres search index with current site content and return the
+ * indexed count and statistics. Return 503 unless Postgres search is
+ * enabled. In production, require the bearer token when
+ * SEARCH_REINDEX_SECRET is configured.
  */
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('Authorization');
@@ -51,9 +50,8 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/search/reindex
- *
- * Report search index statistics without rebuilding.
+ * Return the active search backend and, for Postgres, index statistics
+ * without rebuilding the index.
  */
 export async function GET() {
   if (!usePostgresSearch()) {

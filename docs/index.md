@@ -6,6 +6,9 @@ how its content is modeled, and the conventions that govern changes to it.
 
 ## Operations
 
+- [Testing](./testing.md): routine checks, browser tests, publishing end-to-end tests,
+  and which checks CI runs.
+
 - [Bootstrap](./bootstrap.md): local setup, read-only preflight, and linked
   deployment readiness.
 - [Deploying](./deploy.md): hosts, the redirect table, the DNS cutover script,
@@ -35,8 +38,8 @@ how its content is modeled, and the conventions that govern changes to it.
   publication, document sync, and visitor subscriptions and recommendations.
 - [Publishing conformance](./publishing-conformance.md): inspected standards,
   implementation coverage, external results and unresolved release gates.
-- [Publishing verification](./publishing-verification.md): isolated acceptance
-  runners, real account checks, receipt requirements and cleanup.
+- [Publishing verification](./publishing-verification.md): publishing end-to-end tests,
+  real account checks, saved results and cleanup.
 - [Content](./content/README.md): writing and feed documentation, including
   the frontmatter for notes, replies, likes, reposts, bookmarks, and RSVPs.
 - [ActivityPub plan](./future/activitypub.md): what federation would take,
@@ -67,6 +70,8 @@ how its content is modeled, and the conventions that govern changes to it.
   caching, and the future Docket boundary.
 
 ## Conventions
+
+- [Architecture](./architecture.md): module ownership, content loading, publishing end-to-end tests, and verification boundaries.
 
 - [Commits](./commits.md): Conventional Commit types and scopes.
 

@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next';
 
-import type { Initiative } from '@/lib/initiatives';
+import type { Initiative } from '@/lib/initiatives/index';
 import type { Project } from '@/lib/projects';
-import { canonicalUrl, routedPages } from '@/lib/site';
-import type { WritingData } from '@/lib/writings';
+import { routedPages } from '@/lib/site/navigation';
+import { canonicalUrl } from '@/lib/site/urls';
+import type { WritingData } from '@/lib/writings/index';
 import { groupByTag, tagPath } from '@/lib/writings/tags';
 
 type Entry = MetadataRoute.Sitemap[number];
@@ -45,8 +46,8 @@ export function publishedSitemapContent(input: {
  * so dates come only from an edit date the content carries and never from an
  * event's own dates. Drafts are dropped here as well as in the loaders.
  *
- * The top-level pages come from `sitePages` in lib/site.ts, so a page that is
- * parked in app/_(pages) stays out of the sitemap until its `routed` flag
+ * The top-level pages come from {@link routedPages}, so a page that is
+ * parked stays out of the sitemap until its `routed` flag
  * flips back.
  */
 export function buildSitemap(input: {

@@ -1,0 +1,349 @@
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+
+import kit from '../../../../lib/brand/kit.json' with { type: 'json' };
+
+test('typography guide shows composition and the complete role catalog', async ({
+  page,
+}) => {
+  await page.goto('/brand#type');
+  const guide = page.locator('section[aria-labelledby="type"]');
+  await expect(
+    guide.getByRole('heading', { name: 'How I compose a page' })
+  ).toBeVisible();
+  await expect(guide.getByText('Subtitle, when it helps')).toBeVisible();
+  await expect(
+    guide.getByRole('heading', { name: 'Type roles' })
+  ).toBeVisible();
+  await expect(guide.locator('[data-type-role]')).toHaveCount(15);
+  await expect(
+    guide.locator('[data-type-role="display-large"] .brand-role-sample')
+  ).toHaveCSS('font-size', '57px');
+  await expect(
+    guide.locator('[data-type-role="body-medium"] .brand-role-sample')
+  ).toHaveCSS('line-height', '24px');
+});
+
+test('brand downloads, navigation, and disclosures work', async ({ page }) => {
+  await page.goto('/brand');
+  const downloads = await page
+    .locator('a[download]')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  const expectedDownloads = [
+    kit.archive,
+    ...kit.tokens,
+    ...kit.marks.flatMap((mark) => [
+      ...mark.downloads,
+      ...(mark.small?.downloads ?? []),
+    ]),
+    ...kit.usage.guidelines,
+    ...kit.lockups.flatMap((lockup) => lockup.downloads),
+    ...kit.appIcons.flatMap((icon) => icon.downloads),
+    ...kit.platforms.flatMap((group) => group.files),
+  ];
+  for (const file of expectedDownloads) expect(downloads).toContain(file.href);
+  await page
+    .getByRole('button', { name: 'Open menu for Brand', exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Brand destinations' })
+      .getByRole('link')
+  ).toHaveCount(5);
+
+  const mark = page.locator('figure').filter({
+    has: page.getByRole('heading', { name: 'The cube', exact: true }),
+  });
+  await expect(
+    mark.getByRole('link', { name: 'Download PNG', exact: true })
+  ).toHaveAttribute('href', '/brand/mark/png/williecubed-mark-1024.png');
+  await expect(
+    mark.getByRole('link', { name: 'PDF', exact: true })
+  ).not.toBeVisible();
+  await mark.getByRole('button', { name: 'More formats', exact: true }).click();
+  await expect(
+    mark.getByRole('link', { name: 'PDF', exact: true })
+  ).toBeVisible();
+  await expect(
+    mark.getByRole('link', { name: 'PNG 2048', exact: true })
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Open menu for Brand', exact: true })
+    .click();
+  await page
+    .getByRole('navigation', { name: 'Brand destinations' })
+    .getByRole('link', { name: 'Colors', exact: true })
+    .click();
+  await expect(page).toHaveURL(/#color$/);
+  await expect(page.locator('#color')).toBeFocused();
+  await page
+    .getByRole('button', { name: 'Open menu for Brand', exact: true })
+    .click();
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('navigation', { name: 'Brand destinations' })
+  ).not.toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Open menu for Brand', exact: true })
+  ).toBeFocused();
+
+  const platform = page.locator('.brand-platform').filter({
+    has: page.locator('summary[aria-label="Web and PWA: browse files"]'),
+  });
+  await expect(
+    platform.getByRole('link', { name: /favicon.svg/ })
+  ).not.toBeVisible();
+  await platform.locator('summary').click();
+  await expect(
+    platform.getByRole('link', { name: /favicon.svg/ })
+  ).toBeVisible();
+});
+
+test('brand navigation surfaces appear only after scrolling', async ({
+  page,
+}) => {
+  await page.goto('/brand');
+  const header = page.locator('.brand-header header');
+  const crumbs = header.locator('.site-breadcrumbs');
+  const search = header.locator('.palette-trigger');
+
+  await expect(crumbs).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(search).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(crumbs).toHaveCSS('box-shadow', 'none');
+  await expect(search).toHaveCSS('box-shadow', 'none');
+
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect(header).toHaveAttribute('data-scrolled', '');
+  await expect(crumbs).not.toHaveCSS('box-shadow', 'none');
+  await expect(search).not.toHaveCSS('box-shadow', 'none');
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(header).not.toHaveAttribute('data-scrolled', '');
+  await expect(crumbs).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(search).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(crumbs).toHaveCSS('box-shadow', 'none');
+  await expect(search).toHaveCSS('box-shadow', 'none');
+});
+
+test('brand format popovers move focus into their links and restore it', async ({
+  page,
+}) => {
+  await page.goto('/brand');
+  const trigger = page.getByRole('button', { name: 'More formats' }).first();
+  await trigger.click();
+  const panel = page.locator('.site-popover:popover-open');
+  await expect(panel.locator('a').first()).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
+test('logo usage is drawn and listed from the kit', async ({ page }) => {
+  await page.goto('/brand#usage');
+  const usage = page.locator('section[aria-labelledby="usage"]');
+  // One diagram each for the tile, the bare cube, and a lockup, with an x
+  // on three sides, four x squares, and the lockup's gap.
+  await expect(usage.locator('.brand-clear-space')).toHaveCount(3);
+  await expect(usage.locator('.brand-clear-space > span')).toHaveCount(
+    3 * 7 + 1
+  );
+  await expect(usage.locator('.brand-selection > li')).toHaveCount(
+    kit.usage.selection.length
+  );
+  const avoid = usage.locator('.brand-avoid > li');
+  await expect(avoid).toHaveCount(kit.usage.prohibited.length);
+  for (const item of kit.usage.prohibited)
+    await expect(
+      usage.getByRole('img', { name: `Incorrect: ${item.rule}` })
+    ).toBeVisible();
+  await expect(usage.locator('#minimum-size + p')).toContainText(
+    `At ${kit.usage.smallMaxPx}px or smaller`
+  );
+});
+
+for (const succeeds of [true, false]) {
+  test(`hex copy ${succeeds ? 'succeeds' : 'fails accessibly'}`, async ({
+    page,
+  }) => {
+    await page.addInitScript((ok) => {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: async (value: string) => {
+            if (!ok) throw new Error('Clipboard unavailable');
+            document.documentElement.dataset.copied = value;
+          },
+        },
+      });
+    }, succeeds);
+    await page.goto('/brand');
+    const button = page.getByRole('button', {
+      name: 'Copy Accent green hex value',
+    });
+    await button.click();
+    await expect(button).toBeFocused();
+    const swatch = page.locator('.brand-swatch').first();
+    await expect(swatch.getByRole('status')).toHaveText(
+      succeeds
+        ? 'Copied'
+        : 'Could not copy. Select the hex value and copy it manually.'
+    );
+    await expect(swatch.locator('code').first()).toHaveText('#2f6f5e');
+    if (succeeds)
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-copied',
+        '#2f6f5e'
+      );
+  });
+}
+
+for (const width of [320, 390, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`brand is accessible at ${width}px in ${colorScheme}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.goto('/brand');
+      const headerCenters = await page
+        .locator('.brand-header header > *')
+        .evaluateAll((elements) =>
+          elements.map((element) => {
+            const box = element.getBoundingClientRect();
+            return box.top + box.height / 2;
+          })
+        );
+      expect(
+        Math.max(...headerCenters) - Math.min(...headerCenters)
+      ).toBeLessThan(2);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth
+        )
+      ).toBe(true);
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+        .analyze();
+      expect(violations).toEqual([]);
+      await page
+        .getByRole('button', { name: 'Open menu for Brand', exact: true })
+        .focus();
+      await page.keyboard.press('Enter');
+      await expect(
+        page.locator('.site-breadcrumb-menu:popover-open')
+      ).toHaveCSS('opacity', '1');
+      await expect(
+        page.getByRole('navigation', { name: 'Brand destinations' })
+      ).toHaveCSS('opacity', '1');
+      const openPicker = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+        .analyze();
+      expect(openPicker.violations).toEqual([]);
+      await page
+        .getByRole('navigation', { name: 'Brand destinations' })
+        .getByRole('link', { name: 'Logo' })
+        .focus();
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/#mark$/);
+    });
+  }
+}
+
+for (const deviceScaleFactor of [1, 2, 3]) {
+  test(`glass previews retain detail at ${deviceScaleFactor}x`, async ({
+    browser,
+  }, testInfo) => {
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+      deviceScaleFactor,
+    });
+    const page = await context.newPage();
+    await page.goto(
+      new URL('/brand#app-icon', testInfo.project.use.baseURL).href
+    );
+    const images = page.locator('.brand-app-icon');
+    await expect(images).toHaveCount(3);
+    const measurements = [];
+    for (const image of await images.all()) {
+      await image.scrollIntoViewIfNeeded();
+      await expect
+        .poll(
+          () =>
+            image.evaluate(
+              (img: HTMLImageElement) => img.complete && img.naturalWidth > 0
+            ),
+          { timeout: 15_000 }
+        )
+        .toBe(true);
+      const data = await image.evaluate((img: HTMLImageElement) => ({
+        src: img.currentSrc,
+        width: img.getBoundingClientRect().width,
+        height: img.getBoundingClientRect().height,
+        alt: img.alt,
+      }));
+      expect(data.width).toBe(160);
+      expect(data.height).toBe(160);
+      const url = new URL(data.src);
+      expect(Number(url.searchParams.get('w'))).toBeGreaterThanOrEqual(
+        160 * deviceScaleFactor
+      );
+      expect(url.searchParams.get('q')).toBe('90');
+      const response = await context.request.get(data.src, {
+        headers: { Accept: 'image/webp' },
+      });
+      expect(response.ok()).toBe(true);
+      expect(response.headers()['content-type']).toBe('image/webp');
+      const original = await context.request.get(
+        new URL(url.searchParams.get('url')!, data.src).href
+      );
+      const master = await original.body();
+      expect(master.readUInt32BE(16)).toBe(1024);
+      expect(master.readUInt32BE(20)).toBe(1024);
+      measurements.push({
+        ...data,
+        optimizedBytes: (await response.body()).length,
+        originalBytes: master.length,
+      });
+    }
+    await testInfo.attach('image-delivery', {
+      body: JSON.stringify(measurements, null, 2),
+      contentType: 'application/json',
+    });
+    console.log(`Glass ${deviceScaleFactor}x: ${JSON.stringify(measurements)}`);
+    await page.screenshot({
+      path: testInfo.outputPath(`glass-${deviceScaleFactor}x.png`),
+    });
+    await context.close();
+  });
+}
+
+for (const width of [390, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`brand screenshots at ${width}px in ${colorScheme}`, async ({
+      page,
+    }, testInfo) => {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.emulateMedia({ colorScheme });
+      await page.goto('/brand');
+      await page.evaluate(() => document.fonts.ready);
+      for (const [name, hash] of [
+        ['intro', ''],
+        ['downloads', '#mark'],
+        ['colors', '#color'],
+        ['type', '#type'],
+        ['glass', '#app-icon'],
+        ['usage', '#usage'],
+        ['clear-space', '#clear-space'],
+        ['minimum-size', '#minimum-size'],
+        ['avoid', '#avoid'],
+      ] as const) {
+        await page.goto(`/brand${hash}`);
+        await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+          'WillieCubed brand'
+        );
+        await page.screenshot({
+          path: testInfo.outputPath(`${name}-${width}-${colorScheme}.png`),
+        });
+      }
+    });
+  }
+}

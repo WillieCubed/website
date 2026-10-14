@@ -1,6 +1,9 @@
 import { buildAtProtocolDid } from '@/lib/indieweb/discovery';
 
-/** The AT Protocol DID this domain vouches for; 404 when none is configured. */
+/**
+ * Return the AT Protocol DID associated with this domain as plain text.
+ * Return 404 when no DID is configured.
+ */
 export async function GET() {
   const body = buildAtProtocolDid();
   if (!body) return new Response('Not found', { status: 404 });

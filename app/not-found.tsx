@@ -6,9 +6,10 @@ import SiteLink from '@/components/link/SiteLink';
 import RequestLog from '@/components/not-found/RequestLog';
 import TopBar from '@/components/site/TopBar';
 
-import { getInitiatives } from '@/lib/initiatives';
-import { bareSocialMetadata, site } from '@/lib/site';
-import { getAllWritings } from '@/lib/writings';
+import { getInitiatives } from '@/lib/initiatives/index';
+import { bareSocialMetadata } from '@/lib/seo/metadata';
+import { site } from '@/lib/site/identity';
+import { getAllWritings } from '@/lib/writings/index';
 
 // Absolute so the title never depends on which segment renders the page;
 // it spells out the same string the root title template would.
@@ -30,7 +31,7 @@ async function routedPaths(): Promise<string[]> {
     getInitiatives(),
   ]);
   // The homepage is left out: every short path is within two edits of "/",
-  // and the page already offers a way home.
+  // and the page already links home.
   return [
     '/writings',
     '/initiatives',

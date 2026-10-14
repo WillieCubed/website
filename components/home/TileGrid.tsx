@@ -6,7 +6,6 @@ import type {
 
 import { Constellation } from './Constellation';
 import { CountdownDays } from './Countdown';
-import { Icon } from './Icon';
 import { InitiativeTile } from './InitiativeTile';
 import { ProductScroller } from './ProductScroller';
 import { Tile } from './Tile';

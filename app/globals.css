@@ -204,9 +204,8 @@
 
 /* The theme boundary. The roles above are light-dark() pairs, so the
    scheme alone picks between them: the system's, unless the visitor chose
-   one in the command palette, which sets data-theme on <html>
-   (lib/theme-preference.ts). The venture schemes are light-dark() pairs
-   too, so they follow the same switch. */
+   one in the command palette, which sets data-theme on <html>. The venture
+   schemes are light-dark() pairs too, so they follow the same switch. */
 :root[data-theme='dark'] {
   color-scheme: dark;
 }
@@ -232,7 +231,7 @@
   color: var(--color-ink);
 }
 
-/* The words a fragmention link points at (components/site/Fragmention.tsx),
+/* The words a fragmention link points at,
    in the page's own scheme, so a branded initiative page marks them in its
    brand. A highlight takes no outline, so the underline draws the edge. It
    never animates: the words are marked when the page scrolls to them, and
@@ -244,7 +243,7 @@
   text-underline-offset: 3px;
 }
 
-/* Page transitions (components/site/SharedTitle.tsx and TopBar.tsx). React
+/* Page transitions. React
    leaves everything it does not name out of a navigation's transition, so
    the page itself cuts over and only the named pairs move. Each pair draws
    one snapshot, never both fading, and the group carries it from the old
@@ -393,8 +392,7 @@ h4 {
   }
 }
 
-/* Scrollbars follow the theme; the reasoning is in
-   docs/superpowers/specs/2026-09-28-scrollbars-design.md. */
+/* Scrollbars follow the theme. */
 :root {
   --scrollbar-thumb: color-mix(in srgb, var(--color-outline) 50%, transparent);
   --scrollbar-thumb-hover: var(--color-outline);
@@ -444,7 +442,7 @@ h4 {
    sits on the rail's line and its lockup lands where the rail's name was.
    The rail is 400px wide, and 300px with a tighter gap in the expanded
    window class. The shell's width and gutter are here for the same reason:
-   the footer's collapsed row is drawn from them (footer-dock.css). */
+   the footer's collapsed row is drawn from them. */
 :root {
   --shell-max: 1480px;
   --shell-gutter: 20px;
@@ -453,7 +451,7 @@ h4 {
   --footer-row-h: 40px;
   --footer-inset: 28px;
   --lockup-h: 48px;
-  /* The cube's drawn proportion, from components/brand/Mark.tsx. */
+  /* The cube's drawn proportion. */
   --mark-aspect: 403.52 / 435.92;
 }
 @media (min-width: 840px) and (max-width: 1199px) {

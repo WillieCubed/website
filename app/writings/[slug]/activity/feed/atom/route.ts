@@ -1,9 +1,13 @@
 import { writingActivityFeedConfig } from '@/lib/indieweb/activity-feed-config';
 import { getActivityFeedItemsForPost } from '@/lib/indieweb/activity-feed-data';
 import { createActivityFeedResponse } from '@/lib/indieweb/activity-feed-route';
-import type { WritingActivityFeedRouteProps } from '@/lib/indieweb/types';
-import { getPublishedWriting } from '@/lib/writings';
+import type { WritingActivityFeedRouteProps } from '@/lib/indieweb/webmention/types';
+import { getPublishedWriting } from '@/lib/writings/index';
 
+/**
+ * Return reactions and replies to this published writing as Atom. Return 404
+ * for a draft or missing writing.
+ */
 export async function GET(
   _request: Request,
   props: WritingActivityFeedRouteProps

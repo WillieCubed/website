@@ -11,7 +11,7 @@ const baseURL = remoteURL ?? `http://localhost:${port}`;
 const ci = Boolean(process.env.CI);
 
 export default defineConfig({
-  testDir: 'tests/e2e',
+  testDir: 'tests/e2e/site',
   forbidOnly: ci,
   retries: ci ? 1 : 0,
   reporter: ci ? [['github'], ['html', { open: 'never' }]] : 'list',
@@ -25,13 +25,13 @@ export default defineConfig({
     // both. Route checks answer the same in any browser and run once.
     {
       name: 'desktop-dark',
-      testMatch: 'pages.spec.mts',
+      testMatch: '**/pages.spec.mts',
       use: { ...devices['Desktop Chrome'], colorScheme: 'dark' },
     },
-    // The site is built for a 390px phone first (docs/design-principles.md).
+    // The site is built for a 390px phone first.
     {
       name: 'phone',
-      testMatch: 'pages.spec.mts',
+      testMatch: '**/pages.spec.mts',
       use: { ...devices['Pixel 7'] },
     },
   ],

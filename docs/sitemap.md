@@ -1,7 +1,7 @@
 # Sitemap
 
 This page is for the maintainer adding public pages or resources to the site.
-Add a routed page to the registry in `lib/site.ts`; add a programmatic resource
+Add a routed page to the registry in `lib/site/identity.ts`; add a programmatic resource
 to `lib/indieweb/resources.ts`. Do not maintain a separate sitemap URL list.
 
 The footer includes Sitemap with its page links. Below 600px, those links

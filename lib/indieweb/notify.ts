@@ -1,12 +1,12 @@
 import { timingSafeEqual } from 'node:crypto';
 
 import { syncAtproto } from '@/lib/atproto/sync';
-import { sendChangedWebmentions } from '@/lib/indieweb/webmention-publisher';
+import { sendChangedWebmentions } from '@/lib/indieweb/webmention/publisher';
 import {
   pingWebSubHub,
   publishedTopicPaths,
 } from '@/lib/indieweb/websub-publisher';
-import { absoluteUrl } from '@/lib/site';
+import { absoluteUrl } from '@/lib/site/urls';
 
 function equalSecret(actual: string, expected: string): boolean {
   const a = Buffer.from(actual);

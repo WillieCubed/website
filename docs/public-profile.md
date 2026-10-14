@@ -30,7 +30,7 @@ compact public-work and profile columns, including on the homepage dock.
 
 ## Sources and privacy
 
-`lib/site.ts` provides the identity sentence and public organizations.
+`lib/site/identity.ts` provides the identity sentence and public organizations.
 `lib/home/focuses.ts` provides About's focus lines. About includes only focuses
 served by a visible public venture. `lib/home/ventures.ts` provides every work
 card's exact name and description. Both pages link to existing homepage detail

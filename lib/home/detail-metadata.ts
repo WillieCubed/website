@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
-import { pageMetadata, site } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { site } from '@/lib/site/identity';
 
 import { type Entry, entries } from './ventures';
 

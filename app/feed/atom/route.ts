@@ -1,7 +1,7 @@
 import { cacheLife } from 'next/cache';
 
-import { generateAtomFeed } from '@/lib/feeds';
-import { getSiteFeedItems } from '@/lib/feeds/items';
+import { generateAtomFeed } from '@/lib/indieweb/feeds/index';
+import { getSiteFeedItems } from '@/lib/indieweb/feeds/items';
 
 async function buildFeed() {
   'use cache';
@@ -10,6 +10,10 @@ async function buildFeed() {
   return generateAtomFeed(await getSiteFeedItems());
 }
 
+/**
+ * Return published writings, dated initiatives, and projects, newest first,
+ * as Atom.
+ */
 export async function GET() {
   const feed = await buildFeed();
 

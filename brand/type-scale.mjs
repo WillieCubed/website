@@ -1,6 +1,6 @@
 /**
  * The site's adapted Material 3 type roles. The brand guide and downloadable
- * kit consume this list; the unit test keeps app/globals.css in sync.
+ * kit consume this list; the unit test keeps the shared type styles in sync.
  */
 export const typeScale = [
   {

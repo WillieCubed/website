@@ -1,5 +1,6 @@
-import { absoluteUrl, site } from '@/lib/site';
-import { loadWriting } from '@/lib/writings';
+import { site } from '@/lib/site/identity';
+import { absoluteUrl } from '@/lib/site/urls';
+import { loadWriting } from '@/lib/writings/load';
 
 import { publishingIdentity } from './config';
 import { resolvePds } from './identity';

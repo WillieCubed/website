@@ -1,7 +1,7 @@
 import { mf2 } from 'microformats-parser';
 
 import { fetchPublicDocument } from '@/lib/indieweb/public-fetch';
-import type { ExtractedWebmentionAuthor } from '@/lib/indieweb/types';
+import type { ExtractedWebmentionAuthor } from '@/lib/indieweb/webmention/types';
 
 type ParsedDocument = ReturnType<typeof mf2>;
 type MicroformatRoot = ParsedDocument['items'][number];

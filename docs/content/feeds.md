@@ -1,9 +1,9 @@
 # Feeds
 
 This page is for whoever adds a feed or a content type to one. Every feed is
-a route handler that calls a generator in `lib/feeds/index.ts`; the generators
+a route handler that calls a generator in `lib/indieweb/feeds/index.ts`; the generators
 know nothing about routes, and the routes know nothing about XML. The site and
-writings routes get their items from `lib/feeds/items.ts`, and the activity
+writings routes get their items from `lib/indieweb/feeds/items.ts`, and the activity
 routes get theirs through `lib/indieweb/activity-feed-route.ts`.
 
 | Route                                                              | Format          | Items                                 |
@@ -45,7 +45,7 @@ too: `next.config.ts` permanently redirects `/rss.xml`, `/rss`, `/feed`, and
 
 Every site and writings item carries its whole body as HTML: `content:encoded`
 in RSS, `<content type="html">` in Atom, and `content_html` in JSON Feed, next
-to the description as the summary. `renderFeedHtml` in `lib/feeds/html.ts`
+to the description as the summary. `renderFeedHtml` in `lib/indieweb/feeds/html.ts`
 renders the MDX body without React. Feed readers run no scripts and load no
 site styles, so it turns each MDX component into plain HTML: a `Callout`
 becomes an `<aside>`, a `Ref` a link, an image component a `<figure>`, and an
@@ -58,10 +58,10 @@ MDX component that should survive into feeds needs a case in
 ## Adding a content type
 
 Write a `<type>ToFeedItem` function next to `writingToFeedItem` and
-`initiativeToFeedItem` in `lib/feeds/index.ts` that returns a `FeedItem`, then
-load the items in `lib/feeds/items.ts` and add them to the list the routes
+`initiativeToFeedItem` in `lib/indieweb/feeds/index.ts` that returns a `FeedItem`, then
+load the items in `lib/indieweb/feeds/items.ts` and add them to the list the routes
 that should carry them read. The generators sort nothing; the loaders in
-`lib/feeds/items.ts` sort items newest first.
+`lib/indieweb/feeds/items.ts` sort items newest first.
 
 Initiatives are dated by `starts`, or by `updated` when they have no start
 date. An initiative with neither stays out of the feeds until it gets one.

@@ -39,8 +39,7 @@ element transitions are the minimum, not extras.
 **Responsive.** The site works first on a 390px phone and scales up from there.
 It also responds to time, so current work surfaces first and older work steps
 back without anyone editing the homepage by hand. Layouts change at the Material
-3 window size classes, because the codebase already uses Material 3 tokens and
-MUI:
+3 window size classes, because the codebase already uses Material 3 tokens:
 
 | Class    | Width      | Homepage layout                                       |
 | -------- | ---------- | ----------------------------------------------------- |
@@ -92,7 +91,7 @@ jumps to its new place at once. React animates only what is in the
 viewport, so a title scrolled out of view cuts. A morph also needs the
 destination prefetched: a page that commits behind a loading state forms
 no pair and cuts. A note has no visible title, so opening one never
-morphs. `tests/e2e/view-transitions.spec.mts` records the names React sets
+morphs. `tests/e2e/site/site/view-transitions.spec.mts` records the names React sets
 on both pages and the groups the browser animates.
 
 The browser's back and forward buttons do not morph yet. Next restores a

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-import { findWords, fragmentionWords } from '@/lib/fragmention';
+import { findWords, fragmentionWords } from '@/lib/site/fragmention';
 
 const HIGHLIGHT = 'fragmention';
 
@@ -66,7 +66,7 @@ function apply() {
 }
 
 /**
- * Follows a fragmention (lib/fragmention.ts) on load, on a hash change, and
+ * Follows a fragmention on load, on a hash change, and
  * after a client-side navigation, which changes the URL without a
  * hashchange event. Renders nothing; the root layout mounts it once.
  */

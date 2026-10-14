@@ -8,6 +8,23 @@ Maintainer documentation lives in [docs/index.md](docs/index.md): deployment,
 the content models, IndieWeb and protocol routes, design principles, and commit
 conventions.
 
+## Organization
+
+Code is grouped by role, then by the domain that owns it:
+
+| Location                               | What belongs there                        |
+| -------------------------------------- | ----------------------------------------- |
+| `app/`                                 | Routes, layouts, and page composition     |
+| `components/<domain>/`                 | Views, hooks, and their styles            |
+| `lib/<domain>/`                        | Application rules, types, and data access |
+| `scripts/<domain>/`                    | Maintenance commands and their helpers    |
+| `tests/<suite>/<domain>/`              | Unit, integration, and end-to-end tests   |
+| `tests/support/` and `tests/fixtures/` | Shared test helpers and inputs            |
+
+Use the same domain name across those roles. See
+[Architecture](docs/architecture.md) for concrete examples and dependency
+rules. Existing root script paths remain compatibility entrypoints.
+
 ## Setup
 
 You need Node.js 24 or later and [pnpm]. The repository pins its pnpm version
@@ -45,26 +62,33 @@ once. To skip portless and use plain `next dev` on `localhost:3000`, run
 
 Both commands regenerate the search index first.
 
+## Testing
+
+For a routine change, run `pnpm check`, then `pnpm test:e2e`. These are also the
+checks run by CI. Publishing changes can need additional tests against real
+external services. See [Testing](docs/testing.md) for when to run those tests
+and how their setup and cleanup work.
+
 ## Commands
 
-| Command                 | What it does                                                                         |
-| ----------------------- | ------------------------------------------------------------------------------------ |
-| `pnpm bootstrap`        | Sets up the checkout and checks the linked deployment                                |
-| `pnpm preflight`        | Reports setup gaps without changing the checkout                                     |
-| `pnpm dev`              | Starts the dev server behind portless                                                |
-| `pnpm dev:app`          | Starts `next dev` directly                                                           |
-| `pnpm build`            | Generates the search index, builds for production, and runs the postbuild scripts    |
-| `pnpm start`            | Serves the production build                                                          |
-| `pnpm test`             | Runs the unit tests in `tests/unit` with Node's test runner                          |
-| `pnpm test:e2e`         | Runs the Playwright smoke and axe tests in `tests/e2e` against the production build  |
-| `pnpm lint`             | Runs ESLint                                                                          |
-| `pnpm typecheck`        | Generates route types and runs `tsc`                                                 |
-| `pnpm check`            | Runs test, lint, typecheck, and build in order; run it before opening a pull request |
-| `pnpm format`           | Formats the repository with Prettier                                                 |
-| `pnpm brand:build`      | Regenerates the brand assets under `public/brand` from `brand/`                      |
-| `pnpm search:index`     | Regenerates the search index on its own                                              |
-| `pnpm websub:ping`      | Notifies the WebSub hub that the feeds changed                                       |
-| `pnpm webmentions:send` | Sends webmentions for writings whose content changed                                 |
+| Command                 | What it does                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| `pnpm bootstrap`        | Sets up the checkout and checks the linked deployment                                    |
+| `pnpm preflight`        | Reports setup gaps without changing the checkout                                         |
+| `pnpm dev`              | Starts the dev server behind portless                                                    |
+| `pnpm dev:app`          | Starts `next dev` directly                                                               |
+| `pnpm build`            | Generates the search index, builds for production, and runs the postbuild scripts        |
+| `pnpm start`            | Serves the production build                                                              |
+| `pnpm test`             | Runs the unit tests in `tests/unit` with Node's test runner                              |
+| `pnpm test:e2e`         | Runs the Playwright smoke and axe tests in `tests/e2e/site` against the production build |
+| `pnpm lint`             | Runs ESLint                                                                              |
+| `pnpm typecheck`        | Generates route types and runs `tsc`                                                     |
+| `pnpm check`            | Runs test, lint, typecheck, and build in order; run it before opening a pull request     |
+| `pnpm format`           | Formats the repository with Prettier                                                     |
+| `pnpm brand:build`      | Regenerates the brand assets under `public/brand` from `brand/`                          |
+| `pnpm search:index`     | Regenerates the search index on its own                                                  |
+| `pnpm websub:ping`      | Notifies the WebSub hub that the feeds changed                                           |
+| `pnpm webmentions:send` | Sends webmentions for writings whose content changed                                     |
 
 ## Environment variables
 

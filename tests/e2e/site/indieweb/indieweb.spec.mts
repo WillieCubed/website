@@ -1,0 +1,412 @@
+import { expect, test } from '@playwright/test';
+import { mf2 } from 'microformats-parser';
+
+import { WEBSUB_HUB } from '../../../../lib/indieweb/constants';
+import { site } from '../../../../lib/site/identity';
+import {
+  isPublished,
+  skipUnlessPublished,
+} from '../../../support/browser/published.mts';
+import type { MicroformatRoot } from '../../../support/indieweb/microformats.mts';
+
+function rootOfType(items: MicroformatRoot[], type: string) {
+  return items.find((item) => item.type?.includes(type));
+}
+
+test('the homepage exposes a parseable representative h-card and endpoints', async ({
+  request,
+}) => {
+  const response = await request.get('/');
+  expect(response.status()).toBe(200);
+  const html = await response.text();
+  const card = rootOfType(mf2(html, { baseUrl: site.origin }).items, 'h-card');
+  expect(card?.properties.name).toContain(site.author.name);
+  expect(card?.properties.url).toContain(`${site.origin}/`);
+  expect(card?.properties.photo?.length).toBeGreaterThan(0);
+  expect(html).toMatch(/<link[^>]+rel="webmention"[^>]+href="\/webmention"/);
+  expect(html).toMatch(/<link[^>]+rel="micropub"[^>]+href="\/micropub"/);
+  expect(html).toMatch(/<link[^>]+rel="indieauth-metadata"/);
+});
+
+test('the initiatives page exposes a parseable feed and author', async ({
+  request,
+}) => {
+  const response = await request.get('/initiatives');
+  expect(response.status()).toBe(200);
+  const feed = rootOfType(
+    mf2(await response.text(), { baseUrl: `${site.origin}/initiatives` }).items,
+    'h-feed'
+  );
+  expect(feed?.properties.name).toContain('Initiatives');
+  expect(feed?.properties.url).toContain(`${site.origin}/initiatives`);
+  const author = feed?.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author?.type).toContain('h-card');
+  expect(author?.properties.name).toContain(site.author.name);
+  // An empty feed is valid while every initiative is a draft.
+  for (const entry of feed?.children ?? []) {
+    expect(entry.type).toContain('h-entry');
+    expect(entry.properties.url?.length).toBeGreaterThan(0);
+  }
+});
+
+test('the writings page exposes a parseable feed and author', async ({
+  request,
+}) => {
+  const response = await request.get('/writings');
+  expect(response.status()).toBe(200);
+  const { items } = mf2(await response.text(), {
+    baseUrl: `${site.origin}/writings`,
+  });
+  const feed = rootOfType(items, 'h-feed');
+  // An entry streamed in after the shell lands outside the feed as a stray
+  // top-level h-entry, and the feed then parses with none.
+  expect(items.filter((item) => item.type?.includes('h-entry'))).toEqual([]);
+  expect(feed?.properties.name).toContain('Writings');
+  expect(feed?.properties.url).toContain(`${site.origin}/writings`);
+  const author = feed?.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author?.type).toContain('h-card');
+  expect(author?.properties.name).toContain(site.author.name);
+  for (const entry of feed?.children ?? []) {
+    expect(entry.type).toContain('h-entry');
+    expect(entry.properties.url?.length).toBeGreaterThan(0);
+  }
+});
+
+// `note` is on every published note, so it stays published while any is.
+const TAG_PATH = '/writings/tags/note';
+
+test('a tag page exposes a parseable feed of its entries', async ({
+  request,
+}) => {
+  await skipUnlessPublished(request, TAG_PATH);
+  const response = await request.get(TAG_PATH);
+  expect(response.status()).toBe(200);
+  const { items } = mf2(await response.text(), {
+    baseUrl: `${site.origin}${TAG_PATH}`,
+  });
+  const feed = rootOfType(items, 'h-feed');
+  expect(items.filter((item) => item.type?.includes('h-entry'))).toEqual([]);
+  expect(feed?.properties.name).toContain('note');
+  expect(feed?.properties.url).toContain(`${site.origin}${TAG_PATH}`);
+  const author = feed?.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author?.type).toContain('h-card');
+  expect(author?.properties.name).toContain(site.author.name);
+  expect(feed?.children?.length).toBeGreaterThan(0);
+  for (const entry of feed?.children ?? []) {
+    expect(entry.type).toContain('h-entry');
+    expect(entry.properties.url?.length).toBeGreaterThan(0);
+    expect(entry.properties.published?.length).toBeGreaterThan(0);
+    // Every entry here is a note, and the index shows only its first
+    // sentence, so the whole text has to ride along as e-content.
+    expect(entry.properties.content?.length).toBeGreaterThan(0);
+  }
+});
+
+test('the old tag filter redirects permanently to the tag page', async ({
+  request,
+}) => {
+  const response = await request.get('/writings?tag=note', {
+    maxRedirects: 0,
+  });
+  expect(response.status()).toBe(308);
+  const location = new URL(response.headers()['location'], site.origin);
+  expect(location.pathname).toBe(TAG_PATH);
+  expect(location.search).toBe('');
+});
+
+test('a tag no published writing carries is not found', async ({ request }) => {
+  const response = await request.get('/writings/tags/no-such-tag');
+  expect(response.status()).toBe(404);
+});
+
+test('the writings and tag pages name the hub and themselves for WebSub', async ({
+  request,
+}) => {
+  const tagPublished = await isPublished(request, TAG_PATH);
+  for (const path of tagPublished ? ['/writings', TAG_PATH] : ['/writings']) {
+    const html = await (await request.get(path)).text();
+    const head = html.slice(0, html.indexOf('</head>'));
+    expect(head, path).toContain(`<link rel="hub" href="${WEBSUB_HUB}"/>`);
+    expect(head, path).toContain(
+      `<link rel="self" href="${site.origin}${path}"/>`
+    );
+  }
+  if (!tagPublished) return;
+  const tagHead = await (await request.get(TAG_PATH)).text();
+  for (const feed of ['feed.xml', 'feed/atom', 'feed/json']) {
+    expect(tagHead).toMatch(
+      new RegExp(
+        `<link rel="alternate" type="[^"]+" href="${site.origin}${TAG_PATH}/${feed}"/>`
+      )
+    );
+  }
+});
+
+test('a tag feed for a tag no published writing carries is not found', async ({
+  request,
+}) => {
+  for (const feed of ['feed.xml', 'feed/atom', 'feed/json']) {
+    const response = await request.get(`/writings/tags/no-such-tag/${feed}`);
+    expect(response.status(), feed).toBe(404);
+  }
+});
+
+test('feed documents advertise their own URL and the WebSub hub', async ({
+  request,
+}) => {
+  const tagFeeds = (await isPublished(request, TAG_PATH))
+    ? [
+        [`${TAG_PATH}/feed.xml`, 'application/rss+xml'],
+        [`${TAG_PATH}/feed/atom`, 'application/atom+xml'],
+        [`${TAG_PATH}/feed/json`, 'application/feed+json'],
+      ]
+    : [];
+  for (const [path, type] of [
+    ['/feed.xml', 'application/rss+xml'],
+    ['/feed/atom', 'application/atom+xml'],
+    ['/feed/json', 'application/feed+json'],
+    ['/writings/feed.xml', 'application/rss+xml'],
+    ['/writings/feed/atom', 'application/atom+xml'],
+    ['/writings/feed/json', 'application/feed+json'],
+    ...tagFeeds,
+  ]) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(200);
+    expect(response.headers()['content-type'], path).toContain(type);
+    const body = await response.text();
+    expect(body, path).toContain(`${site.origin}${path}`);
+    expect(body, path).toContain(WEBSUB_HUB);
+    if (type === 'application/feed+json') {
+      expect(response.headers().link, path).toContain(
+        `<${WEBSUB_HUB}>; rel="hub"`
+      );
+      expect(response.headers().link, path).toContain(
+        `<${site.origin}${path}>; rel="self"`
+      );
+    }
+  }
+});
+
+test('WebFinger and IndieAuth metadata resolve the advertised endpoints', async ({
+  request,
+}) => {
+  const webfinger = await request.get(
+    `/.well-known/webfinger?resource=acct:${site.author.handle}@${new URL(site.origin).host}`
+  );
+  expect(webfinger.status()).toBe(200);
+  const identity = await webfinger.json();
+  expect(identity.aliases).toContain(site.origin);
+  expect(identity.links).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        rel: 'micropub',
+        href: `${site.origin}/micropub`,
+      }),
+      expect.objectContaining({ href: `${site.origin}/webmention` }),
+    ])
+  );
+  const metadata = await request.get('/.well-known/oauth-authorization-server');
+  expect(metadata.status()).toBe(200);
+  const oauth = await metadata.json();
+  expect(oauth.authorization_endpoint).toBe(`${site.origin}/indieauth/auth`);
+  expect(oauth.token_endpoint).toBe(`${site.origin}/indieauth/token`);
+});
+
+test('Micropub advertises capabilities and rejects unauthenticated creation', async ({
+  request,
+}) => {
+  const config = await request.get('/micropub?q=config');
+  expect(config.status()).toBe(200);
+  const capabilities = await config.json();
+  expect(capabilities.q).toEqual([
+    'config',
+    'source',
+    'syndicate-to',
+    'category',
+  ]);
+  const categories = await request.get('/micropub?q=category');
+  expect(categories.status()).toBe(200);
+  expect(Array.isArray((await categories.json()).categories)).toBe(true);
+  const source = await request.get(
+    `/micropub?q=source&url=${encodeURIComponent(`${site.origin}/writings/any`)}`
+  );
+  expect(source.status()).toBe(401);
+  expect(capabilities['post-types']).toEqual(
+    expect.arrayContaining([expect.objectContaining({ type: 'note' })])
+  );
+  const targets = capabilities['syndicate-to'];
+  expect(Array.isArray(targets)).toBe(true);
+  for (const target of targets) {
+    expect(target.service.name).toBe('Bluesky');
+    expect(target.uid).toMatch(/^https:\/\/bsky\.app\/profile\//);
+  }
+  expect(
+    (await (await request.get('/micropub?q=syndicate-to')).json())[
+      'syndicate-to'
+    ]
+  ).toEqual(targets);
+  const create = await request.post('/micropub', {
+    form: { h: 'entry', content: 'This must not be published.' },
+  });
+  expect(create.status()).toBe(401);
+  const invalid = await request.post('/micropub', {
+    headers: { authorization: 'Bearer invalid-test-token' },
+    form: { h: 'entry', content: 'This must not be published.' },
+  });
+  const tokenStoreAvailable = Boolean(
+    process.env.POSTGRES_URL ||
+    process.env.DATABASE_URL ||
+    process.env.INDIEWEB_TEST_BASE_URL
+  );
+  expect(invalid.status()).toBe(tokenStoreAvailable ? 401 : 503);
+  expect((await invalid.json()).error).toBe(
+    tokenStoreAvailable ? 'invalid_token' : 'temporarily_unavailable'
+  );
+});
+
+test('the Webmention receiver rejects invalid input before storage', async ({
+  request,
+}) => {
+  const missing = await request.post('/webmention', {
+    form: { source: 'https://example.com/' },
+  });
+  expect(missing.status()).toBe(400);
+  const insecure = await request.post('/webmention', {
+    form: { source: 'http://example.com/', target: `${site.origin}/` },
+  });
+  expect(insecure.status()).toBe(400);
+});
+
+const postPath = process.env.INDIEWEB_TEST_POST_PATH;
+test('post actions offer reply destinations and retain native sharing', async ({
+  page,
+}) => {
+  test.skip(!postPath, 'Set INDIEWEB_TEST_POST_PATH to a test writing.');
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async (data: ShareData) => {
+        Object.assign(window, { __sharedPost: data });
+      },
+    });
+  });
+  await page.goto(postPath!);
+  const actions = page.getByRole('group', { name: 'Post actions' });
+  const replySurface = actions.locator('[data-reply-surface]');
+  const replyOptions = actions.getByRole('button', { name: 'Reply options' });
+  const indieWebReply = actions.locator(
+    'button[data-post-action][aria-label="Reply via IndieWeb"]'
+  );
+  const hasBlueskyCopy = await replyOptions.count();
+  const reply = indieWebReply;
+  const share = actions.getByRole('button', {
+    name: 'Share this writing',
+    exact: true,
+  });
+  const moreSharing = actions.getByRole('button', {
+    name: 'More sharing options',
+  });
+  const bluesky = actions.getByRole('link', { name: 'Share on Bluesky' });
+  const threads = actions.getByRole('link', { name: 'Share on Threads' });
+
+  await expect(reply).toBeVisible();
+  await expect(replySurface).toBeHidden();
+  await expect(share).toBeVisible();
+  await expect(bluesky).toBeHidden();
+  await expect(threads).toBeHidden();
+  await moreSharing.click();
+  await expect(bluesky).toBeVisible();
+  await expect(bluesky).toHaveAttribute(
+    'href',
+    /^https:\/\/bsky\.app\/intent\/compose/
+  );
+  await expect(threads).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(bluesky).toBeHidden();
+  await expect(moreSharing).toBeFocused();
+
+  if (hasBlueskyCopy) {
+    await replyOptions.click();
+    await expect(
+      actions.getByRole('link', { name: 'Reply on Bluesky' })
+    ).toHaveAttribute('href', /^https:\/\/bsky\.app\/profile\/.+\/post\/.+/);
+    await page.keyboard.press('Escape');
+    await expect(replyOptions).toBeFocused();
+  }
+  await reply.click();
+  await expect(replySurface).toBeVisible();
+  await expect(
+    page.getByRole('textbox', { name: 'Published reply URL' })
+  ).toBeFocused();
+  await page.getByRole('button', { name: 'Close IndieWeb reply' }).click();
+  await expect(replySurface).toBeHidden();
+  await expect(reply).toBeFocused();
+  await share.click();
+  await expect
+    .poll(() => page.evaluate(() => Reflect.get(window, '__sharedPost')))
+    .toMatchObject({ url: `${site.origin}${postPath}` });
+});
+
+test('a published writing has a parseable author, permalink, date, and content', async ({
+  request,
+}) => {
+  test.skip(
+    !postPath,
+    'Set INDIEWEB_TEST_POST_PATH to a published test writing.'
+  );
+  const response = await request.get(postPath!);
+  expect(response.status()).toBe(200);
+  const entry = rootOfType(
+    mf2(await response.text(), { baseUrl: `${site.origin}${postPath}` }).items,
+    'h-entry'
+  );
+  expect(entry?.properties.url).toContain(`${site.origin}${postPath}`);
+  expect(entry?.properties.published?.length).toBeGreaterThan(0);
+  expect(entry?.properties.content?.length).toBeGreaterThan(0);
+  const author = entry?.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author?.type).toContain('h-card');
+  expect(author?.properties.name).toContain(site.author.name);
+  const feed = await request.get('/writings/feed/json');
+  expect(feed.status()).toBe(200);
+  const feedItem = (await feed.json()).items.find(
+    (item: { url: string }) => item.url === `${site.origin}${postPath}`
+  );
+  expect(feedItem?.date_published).toBeTruthy();
+  expect(feedItem?.content_html).toBeTruthy();
+});
+
+test('standard.site discovery names the publication and each document', async ({
+  request,
+}) => {
+  // The expectation comes from the server under test, not this process's env.
+  const wellKnown = await request.get('/.well-known/site.standard.publication');
+  test.skip(
+    wellKnown.status() === 404,
+    'the AT Protocol publication is not configured on this deployment'
+  );
+  expect(wellKnown.status()).toBe(200);
+  const publicationUri = await wellKnown.text();
+  expect(publicationUri).toMatch(
+    /^at:\/\/did:[a-z]+:[^/]+\/site\.standard\.publication\/[2-7a-j][2-7a-z]{12}$/
+  );
+  const did = publicationUri.split('/')[2];
+
+  const home = await (await request.get('/')).text();
+  expect(home.slice(0, home.indexOf('</head>'))).toContain(
+    `<link rel="site.standard.publication" href="${publicationUri}"/>`
+  );
+
+  const index = await (await request.get('/writings')).text();
+  const slug = index.match(/href="\/writings\/(?!tags\/|feed)([^"/?#]+)"/)?.[1];
+  test.skip(!slug, 'no writing is published yet');
+  const page = await (await request.get(`/writings/${slug}`)).text();
+  const head = page.slice(0, page.indexOf('</head>'));
+  expect(head).toContain(
+    `<link rel="site.standard.publication" href="${publicationUri}"/>`
+  );
+  expect(head).toMatch(
+    new RegExp(
+      `<link rel="site\\.standard\\.document" href="at://${did}/site\\.standard\\.document/[2-7a-j][2-7a-z]{12}"/>`
+    )
+  );
+});

@@ -28,7 +28,7 @@ export function usePostgresSearch(): boolean {
 let indexPromise: Promise<SearchableItem[]> | null = null;
 
 /**
- * Load the search index. The prebuild script writes public/search-index.json;
+ * Load the search index. The prebuild script writes the serialized search index;
  * when that file is missing or was written before items carried a path (dev
  * server, fresh checkout, stale file) the index is built from the content
  * directory on first use and cached for the process.

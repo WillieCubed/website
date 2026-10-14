@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
-import { absoluteUrl } from '@/lib/site';
+import { absoluteUrl } from '@/lib/site/urls';
 
 import './site.css';
 

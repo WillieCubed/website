@@ -9,7 +9,7 @@ excludes from routing. The old research detail pages remain unrouted.
 
 To bring a page back, rebuild it, move its folder to `app/<route>`, and
 get explicit content and publication approval, then set its `routed` flag
-to true in `sitePages` in `lib/site.ts`. The footer
+to true in `sitePages` in `lib/site/navigation.ts`. The footer
 links, the sitemap, the hover-card registry, and the 404 page's "being
 rebuilt" note all read that list.
 

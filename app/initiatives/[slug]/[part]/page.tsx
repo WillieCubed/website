@@ -12,7 +12,6 @@ import {
   formatRange,
   isoDate,
 } from '@/components/initiatives/dates';
-import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import TopBar from '@/components/site/TopBar';
@@ -23,8 +22,8 @@ import {
   getInitiativeSlugs,
   getInitiatives,
   getPart,
-  partTitle,
-} from '@/lib/initiatives';
+} from '@/lib/initiatives/index';
+import { partTitle } from '@/lib/initiatives/load';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
 import {
@@ -35,7 +34,8 @@ import {
   webPageLd,
   websiteLd,
 } from '@/lib/seo/jsonld';
-import { absoluteUrl, canonicalUrl, pageMetadata } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { absoluteUrl, canonicalUrl } from '@/lib/site/urls';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix

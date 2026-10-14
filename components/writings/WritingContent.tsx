@@ -1,12 +1,15 @@
-import WritingDetailsView from '@/app/writings/[slug]/WritingDetailsView';
-
-import TableOfContents from '@/components/TableOfContents';
 import SiteLink from '@/components/link/SiteLink';
 import NativeVideo from '@/components/media/NativeVideo';
 import References from '@/components/references/References';
+import TableOfContents from '@/components/writings/TableOfContents';
+import WritingDetailsView from '@/components/writings/WritingDetailsView';
 
-import { absoluteUrl } from '@/lib/site';
-import { SeriesWithWritings, TOCHeading, WritingData } from '@/lib/writings';
+import { absoluteUrl } from '@/lib/site/urls';
+import {
+  SeriesWithWritings,
+  TOCHeading,
+  WritingData,
+} from '@/lib/writings/index';
 import {
   prepareWritingHtmlMedia,
   writingAttachments,

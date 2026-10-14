@@ -1,0 +1,60 @@
+/*
+ * The homepage's own styles. Colors, fonts, and easing use shared theme
+ * tokens. Rules for body and bare elements stay nested under .home so
+ * nothing here reaches another route.
+ */
+.home {
+  padding-inline: var(--shell-gutter);
+  color: var(--color-ink);
+  font: 400 16px/1.5 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+  }
+  img {
+    display: block;
+    max-width: 100%;
+    /* The width and height attributes only reserve the aspect ratio. */
+    height: auto;
+  }
+  .icon {
+    display: block;
+    flex: none;
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+  }
+
+  a,
+  button {
+    outline: 2px solid transparent;
+    outline-offset: 10px;
+    transition:
+      outline-offset 280ms var(--ease-site),
+      outline-color 200ms var(--ease-site);
+  }
+  a:focus-visible,
+  button:focus-visible {
+    outline-color: var(--color-ink);
+    outline-offset: 3px;
+  }
+
+  /* Rail */
+  /* The rail's width and gap are shared with the footer, so
+     the footer's columns line up with these. */
+  .shell {
+    display: grid;
+    grid-template-columns: var(--rail-w) minmax(0, 1fr);
+    gap: var(--rail-gap);
+    max-width: var(--shell-max);
+    margin: 0 auto;
+  }
+  /* The foot of the rail is left clear: the footer, collapsed to its
+     contact row, rides there. */
+}

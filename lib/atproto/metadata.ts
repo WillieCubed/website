@@ -8,7 +8,7 @@ import {
   SiteStandardThemeColor,
 } from '@atcute/standard-site';
 
-import { assertOwnerCopy } from './bluesky';
+import { assertOwnerCopy } from './owner-copy';
 
 const knownMembers = {
   'app.bsky.feed.post': AppBskyFeedPost.mainSchema,

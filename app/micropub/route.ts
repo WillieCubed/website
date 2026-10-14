@@ -2,25 +2,29 @@ import {
   handleMicropubGet,
   handleMicropubPost,
   micropubCorsPreflight,
-} from '@/lib/indieweb/micropub-endpoint';
+} from '@/lib/indieweb/micropub/endpoint';
 
 /**
- * Micropub queries: `q=config`, `q=syndicate-to`, `q=category`, and, with a
- * token, `q=source`. IndieWeb clients find this route through
- * `<link rel="micropub" href="/micropub" />` in the document head.
+ * Return publishing configuration, syndication targets, or published
+ * categories selected by q. For q=source, require a valid site token and
+ * return the writing's editable properties, including drafts. Return 400 for
+ * an unsupported query.
  */
 export async function GET(request: Request) {
   return handleMicropubGet(request);
 }
 
 /**
- * Create, update, or delete a writing with an IndieAuth token carrying the
- * `create`, `update`, or `delete` scope. See docs/indieweb/README.md#micropub.
+ * Create, update, delete, or restore a writing using Micropub form data or
+ * JSON. Require a valid site token with the scope needed by the action.
+ * Persist through the configured GitHub repository or the local writable
+ * checkout.
  */
 export async function POST(request: Request) {
   return handleMicropubPost(request);
 }
 
+/** Return the CORS preflight headers for browser-based publishing requests. */
 export function OPTIONS() {
   return micropubCorsPreflight();
 }

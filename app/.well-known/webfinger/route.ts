@@ -2,8 +2,9 @@ import { buildWebFingerResponse } from '@/lib/indieweb/discovery';
 import { jsonError, jsonResponse } from '@/lib/indieweb/responses';
 
 /**
- * WebFinger (RFC 7033). A request without a resource is a 400, and a
- * resource this site does not describe is a 404.
+ * Return the profile and discovery links for the requested resource. Require
+ * a resource query parameter; return 400 when missing and 404 when the site
+ * does not recognize it.
  */
 export async function GET(request: Request) {
   const resource = new URL(request.url).searchParams.get('resource');

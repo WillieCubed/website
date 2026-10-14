@@ -1,14 +1,14 @@
 import kitJson from './kit.json';
 
 /**
- * The brand kit that /brand lists. `pnpm brand:build` writes kit.json next
- * to the files it generates under public/brand, so the page never names a
- * file or a size by hand.
+ * The catalog rendered by the brand page. Run `pnpm brand:build` to generate
+ * the catalog and its assets together, so the page never names an asset or
+ * size by hand.
  */
 
 export interface KitDownload {
   label: string;
-  /** A path under /brand, served from public/brand. */
+  /** A public download path under /brand. */
   href: string;
   bytes: number;
 }
@@ -77,7 +77,7 @@ export interface KitLockup {
   usage: KitUsage;
 }
 
-/** The rules that apply across files, shared with guidelines.json. */
+/** Rules shared by the brand page and its downloadable guidelines. */
 export interface KitRules {
   /** x as a share of the cube's drawn height. */
   clearSpace: number;

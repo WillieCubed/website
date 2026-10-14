@@ -6,10 +6,13 @@ import JsonLd from '@/components/seo/JsonLd';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
-import { currentPart, getInitiatives } from '@/lib/initiatives';
+import { getInitiatives } from '@/lib/initiatives/index';
+import { currentPart } from '@/lib/initiatives/load';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
-import { absoluteUrl, pageMetadata, sitePage } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { sitePage } from '@/lib/site/navigation';
+import { absoluteUrl } from '@/lib/site/urls';
 
 const INITIATIVES_PAGE = sitePage('/initiatives');
 const INITIATIVES = {

@@ -7,7 +7,7 @@ import type {
   WebmentionActivity,
   WebmentionGroup,
   WebmentionType,
-} from '@/lib/indieweb/types';
+} from '@/lib/indieweb/webmention/types';
 import { plainTextHtml } from '@/lib/writings/content';
 import { responseMediaHtml } from '@/lib/writings/media';
 

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next/types';
 import { Suspense } from 'react';
 
-import SiteSearch from '@/components/SiteSearch';
+import SiteSearch from '@/components/search/SiteSearch';
 import TopBar, { COLUMN } from '@/components/site/TopBar';
 
 import { SEARCH_PAGE } from '@/lib/entities/pages';
-import { pageMetadata } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
 
 // Kept out of the index on purpose: a results page for every query would
 // crowd out the pages it links to. The canonical drops the query.

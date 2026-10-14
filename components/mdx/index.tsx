@@ -5,7 +5,7 @@ import SiteLink from '@/components/link/SiteLink';
 import { Ref } from '@/components/references/Ref';
 import { RefMark } from '@/components/references/RefMark';
 
-import { isInternalHref } from '@/lib/site';
+import { isInternalHref } from '@/lib/site/urls';
 
 import Callout from './Callout';
 import ImageWithCaption from './ImageWithCaption';
@@ -15,12 +15,12 @@ import StudioBlock from './StudioBlock';
 import YouTubeEmbed from './YouTubeEmbed';
 
 export {
-  YouTubeEmbed,
-  SpotifyEmbed,
-  SoundCloudEmbed,
   Callout,
   ImageWithCaption,
+  SoundCloudEmbed,
+  SpotifyEmbed,
   StudioBlock,
+  YouTubeEmbed,
 };
 
 export const mdxComponents = {

@@ -1,15 +1,13 @@
 import type { MetadataRoute } from 'next';
 
-import { getInitiatives } from '@/lib/initiatives';
+import { getInitiatives } from '@/lib/initiatives/index';
 import { getPublishedProjects } from '@/lib/projects';
 import { buildSitemap } from '@/lib/seo/sitemap';
-import { getAllWritings } from '@/lib/writings';
+import { getAllWritings } from '@/lib/writings/index';
 
 /**
- * Generates the sitemap for the whole website.
- *
- * Only routed pages belong here. Pages parked in app/_(pages) are left
- * out until they are rebuilt and routed again.
+ * Return canonical URLs and content-derived edit dates for routed pages and
+ * published content. Exclude drafts and parked pages.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [initiatives, writings, projects] = await Promise.all([

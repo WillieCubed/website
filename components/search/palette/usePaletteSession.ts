@@ -1,0 +1,208 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+
+import {
+  buildCommands,
+  findEgg,
+  matchCommands,
+  normalizeQuery,
+} from '@/lib/search/palette/commands';
+import {
+  type SearchRow,
+  loadPagefind,
+  searchSite,
+} from '@/lib/search/palette/search';
+import type {
+  CloseOptions,
+  Command,
+  PaletteData,
+  Readout,
+} from '@/lib/search/palette/types';
+
+import './palette.css';
+import { type Row, sectionsFor } from './rows';
+import { usePlaceholder } from './usePlaceholder';
+
+interface Props {
+  data: PaletteData;
+  open: boolean;
+  onClose: (options?: CloseOptions) => void;
+}
+export function usePaletteSession({ data, open, onClose }: Props) {
+  const router = useRouter();
+  const id = useId();
+  const listboxId = `${id}-listbox`;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SearchRow[]>([]);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  // The readout belongs to the input that produced it and goes when it
+  // changes; `pending` holds the command still waiting on its request.
+  const [readout, setReadout] = useState<Readout | null>(null);
+  const [pending, setPending] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState('');
+  const [active, setActive] = useState(0);
+  const placeholder = usePlaceholder(open && query === '');
+
+  const commands = useMemo(() => buildCommands(data), [data]);
+  const typed = normalizeQuery(query);
+  const egg = findEgg(commands, query);
+  // The theme commands read the page's scheme, so the list is worked out
+  // on every render rather than memoised against the query alone.
+  const matched = matchCommands(commands, query);
+  const sections = readout || pending ? [] : sectionsFor(matched, results);
+  const rows = sections.flatMap((section) => section.rows);
+  const activeRow = active >= 0 ? rows[active] : undefined;
+
+  // The script and its index start loading as the palette first opens, so
+  // the first query does not wait on them.
+  useEffect(() => {
+    void loadPagefind().catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (typed.length < 2) {
+      setResults([]);
+      setSearchError(null);
+      return;
+    }
+    let current = true;
+    searchSite(typed).then(
+      (found) => {
+        if (!current || found === null) return;
+        setResults(found);
+        setSearchError(null);
+      },
+      (error: unknown) => {
+        if (!current) return;
+        setResults([]);
+        setSearchError(
+          `Search could not load /pagefind/pagefind.js (${
+            error instanceof Error ? error.message : String(error)
+          }).`
+        );
+      }
+    );
+    return () => {
+      current = false;
+    };
+  }, [typed]);
+
+  // Keeps the active row in view as the arrow keys move it.
+  useEffect(() => {
+    if (!activeRow) return;
+    document
+      .getElementById(`${id}-option-${active}`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [id, active, activeRow?.key]);
+
+  function changeQuery(value: string) {
+    setQuery(value);
+    setReadout(null);
+    setAnnouncement('');
+    // An exact egg name leaves no row active, so Enter runs what was typed
+    // until the visitor picks a row with the arrow keys.
+    setActive(findEgg(commands, value) ? -1 : 0);
+  }
+
+  function show(result: Readout) {
+    setReadout(result);
+    const firstLine = result.body?.split('\n').find(Boolean);
+    setAnnouncement([result.heading, firstLine].filter(Boolean).join('. '));
+  }
+
+  function openHref(href: string, opens: Command['opens'] = 'router') {
+    if (opens === 'tab') {
+      window.open(href, '_blank', 'noopener,noreferrer');
+      onClose();
+      return;
+    }
+    // The page is about to change, so the palette steps aside at once
+    // rather than morphing back into a trigger that is leaving.
+    onClose({ animate: false, restoreFocus: false });
+    if (opens === 'document') window.location.assign(href);
+    else router.push(href);
+  }
+
+  async function run(command: Command) {
+    if (command.href) {
+      openHref(command.href, command.opens);
+      return;
+    }
+    if (!command.run) return;
+    setPending(command.title);
+    // Once the palette closes, its input is gone from the page, and focus
+    // belongs to whatever the provider hands it back to.
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      onClose();
+    };
+    try {
+      const result = await command.run({ close });
+      if (result) show(result);
+      else close();
+    } catch (error) {
+      show({
+        heading: `${command.title} failed`,
+        body: error instanceof Error ? error.message : String(error),
+        failed: true,
+      });
+    } finally {
+      setPending(null);
+      if (!closed) inputRef.current?.focus();
+    }
+  }
+
+  function choose(row: Row | undefined) {
+    if (!row) return;
+    if (row.command) void run(row.command);
+    else if (row.search) openHref(row.search.href);
+  }
+
+  function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.nativeEvent.isComposing) return;
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        if (rows.length > 0) setActive((index) => (index + 1) % rows.length);
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        if (rows.length > 0)
+          setActive((index) => (index <= 0 ? rows.length : index) - 1);
+        break;
+      case 'Enter':
+        event.preventDefault();
+        if (pending) break;
+        if (activeRow) choose(activeRow);
+        else if (egg) void run(egg);
+        break;
+    }
+  }
+
+  return {
+    id,
+    listboxId,
+    inputRef,
+    query,
+    searchError,
+    readout,
+    pending,
+    announcement,
+    active,
+    setActive,
+    placeholder,
+    typed,
+    egg,
+    sections,
+    rows,
+    activeRow,
+    changeQuery,
+    choose,
+    onKeyDown,
+  };
+}

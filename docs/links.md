@@ -38,7 +38,7 @@ which is how the homepage tiles open a detail view in place.
 
 Two rules enforce this. `no-restricted-imports` rejects a `next/link`
 import. `site/no-raw-internal-anchor`, a local rule in
-`eslint/no-raw-internal-anchor.mjs`, rejects a JSX `<a>` whose href is a
+`eslint/no-raw-internal-anchor.mts`, rejects a JSX `<a>` whose href is a
 string or template literal starting with `/`, `?`, or
 `https://willie.page`, or a template literal that opens with `site.origin`.
 Both apply to `app/` and `components/` outside `components/link/`. The raw
@@ -93,7 +93,7 @@ shows intent. If that request fails, the intent shows no card and the next
 intent fetches again. A page that is not in the registry gets no card, which
 is the signal to add it: content pages come from their loaders, and
 hand-written pages are listed in `STATIC_PAGES` in `lib/entities/pages.ts`.
-Most of those come from `sitePages` in `lib/site.ts`. A page kept out of
+Most of those come from `sitePages` in `lib/site/navigation.ts`. A page kept out of
 that list, such as `/search`, which stays out of the sitemap, gets its own
 entry in `STATIC_PAGES`.
 

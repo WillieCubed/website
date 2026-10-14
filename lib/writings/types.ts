@@ -82,7 +82,7 @@ export type WritingData = {
   featuredImage?: string;
   featuredImageAlt?: string;
   readingTime: number;
-  /** Series slug - references a series definition in content/series/ */
+  /** The series this writing belongs to. */
   series?: {
     slug: string;
     part: number;
@@ -125,5 +125,4 @@ export type TOCHeading = {
   level: 2 | 3 | 4;
 };
 
-// Series types are now in lib/collections/
-// Re-exported from lib/writings/index.ts for backward compatibility
+// Retained type re-export for existing callers.

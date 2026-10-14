@@ -2,9 +2,9 @@
 
 import ServerError from '@/components/error/ServerError';
 
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 
-import { monoFont, sansFont } from './fonts';
+import { monoFont, sansFont } from '../components/site/fonts';
 import './globals.css';
 
 /**

@@ -7,7 +7,7 @@ interface SharedTitleProps {
   id: string;
   /**
    * Which end of the morph this title is. The group draws only the larger
-   * title's snapshot (app/globals.css), so text never grows out of a small
+   * title's snapshot, so text never grows out of a small
    * raster and two copies never fade into each other.
    */
   size: 'small' | 'large';
@@ -18,7 +18,7 @@ interface SharedTitleProps {
 /**
  * A title that stands for the same thing on two pages, such as a homepage
  * tile's name and the initiative page's heading. A navigation between them
- * morphs one into the other (docs/design-principles.md, Fluid). React
+ * morphs one into the other. React
  * names the element only while such a navigation runs, so the palette's and
  * the detail view's own transitions never see it.
  */

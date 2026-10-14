@@ -3,7 +3,7 @@ import type {
   OEmbedBuildOptions,
   OEmbedHtmlParts,
   OEmbedResponse,
-} from '@/lib/indieweb/types';
+} from '@/lib/indieweb/discovery-types';
 
 export function buildOEmbedResponse({
   targetUrl,

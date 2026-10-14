@@ -2,7 +2,7 @@ import DockFooter from '@/components/site/DockFooter';
 import TopBar from '@/components/site/TopBar';
 import LiveStatus from '@/components/status/LiveStatus';
 
-import { pageMetadata } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = pageMetadata({
   title: 'Status',

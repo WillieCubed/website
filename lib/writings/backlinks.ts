@@ -1,7 +1,8 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { getPublishedWriting, getWritingSlugs } from './index';
+import { getPublishedWriting } from './index';
+import { getWritingSlugs } from './load';
 
 const HIDDEN_ITEM_PREFIX = '_';
 const writingsDirectory = join(process.cwd(), 'content/writings');

@@ -1,10 +1,12 @@
 import { cacheLife } from 'next/cache';
 
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
-import { type Initiative, getInitiatives } from '@/lib/initiatives';
+import { type Initiative, getInitiatives } from '@/lib/initiatives/index';
 import { type Project, getPublishedProjects } from '@/lib/projects';
-import { formatDate, isInternalHref, site } from '@/lib/site';
-import { type WritingData, getAllWritings } from '@/lib/writings';
+import { formatDate } from '@/lib/site/dates';
+import { site } from '@/lib/site/identity';
+import { isInternalHref } from '@/lib/site/urls';
+import { type WritingData, getAllWritings } from '@/lib/writings/index';
 
 import { entityKey } from './key';
 import { STATIC_PAGES } from './pages';

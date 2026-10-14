@@ -5,7 +5,7 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 
-import type { OwnerAuthenticator } from '@/lib/indieweb/types';
+import type { OwnerAuthenticator } from '@/lib/indieweb/indieauth/types';
 
 import type { AdminState } from './admin-state';
 import { citySchema, resolveLocation, searchCities } from './location';

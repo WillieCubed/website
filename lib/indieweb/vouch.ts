@@ -6,7 +6,7 @@ import {
   type DocumentFetch,
   fetchPublicDocument,
 } from '@/lib/indieweb/public-fetch';
-import { sitePath } from '@/lib/indieweb/webmention-targets';
+import { sitePath } from '@/lib/indieweb/webmention/targets';
 
 /**
  * Vouch (https://indieweb.org/Vouch) lets a sender this site has never heard

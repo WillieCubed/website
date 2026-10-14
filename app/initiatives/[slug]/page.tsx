@@ -19,7 +19,7 @@ import {
   getInitiative,
   getInitiativeSlugs,
   getInitiatives,
-} from '@/lib/initiatives';
+} from '@/lib/initiatives/index';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
 import {
@@ -29,7 +29,8 @@ import {
   webPageLd,
   websiteLd,
 } from '@/lib/seo/jsonld';
-import { absoluteUrl, pageMetadata } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { absoluteUrl } from '@/lib/site/urls';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix

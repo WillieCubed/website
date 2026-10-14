@@ -4,19 +4,19 @@ import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
-import PaletteProvider from '@/components/palette/PaletteProvider';
+import PaletteProvider from '@/components/search/palette/PaletteProvider';
 import Fragmention from '@/components/site/Fragmention';
 import SiteFooter from '@/components/site/SiteFooter';
 import SkipLink from '@/components/site/SkipLink';
 
 import { PUBLICATION_URI } from '@/lib/atproto/config';
 import { ENDPOINT_DISCOVERY_LINKS } from '@/lib/indieweb/discovery-links';
-import { site } from '@/lib/site';
-import { SPECULATION_RULES } from '@/lib/speculation-rules';
-import { themeTransitionScript } from '@/lib/theme-transition';
+import { site } from '@/lib/site/identity';
+import { SPECULATION_RULES } from '@/lib/site/speculation-rules';
+import { themeTransitionScript } from '@/lib/theme/transition';
 
-import { monoFont, sansFont } from './fonts';
-import './glass.css';
+import { monoFont, sansFont } from '../components/site/fonts';
+import '../components/site/glass.css';
 import './globals.css';
 
 /** Google shows the favicon in results only when it is a multiple of 48px. */
@@ -132,14 +132,14 @@ export default async function RootLayout({
         {PUBLICATION_URI && (
           <link rel="site.standard.publication" href={PUBLICATION_URI} />
         )}
-        {/* Prefetches, never prerenders; lib/speculation-rules.ts says why. */}
+        {/* Prefetches document navigations without running unused prerendered pages. */}
         <script
           type="speculationrules"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(SPECULATION_RULES),
           }}
         />
-        {/* Lets a browser offer this site as a search engine in its address bar. */}
+        {/* Advertise site search to compatible browsers. */}
         <link
           rel="search"
           type="application/opensearchdescription+xml"

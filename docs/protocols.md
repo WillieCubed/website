@@ -11,22 +11,22 @@ route file only forwards the request.
 
 ## Routes
 
-| Route                       | Protocol                                                                                             | Notes                                                                                                                                                                                                   |
-| --------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/coffee`                   | HTCPCP, [RFC 2324](https://www.rfc-editor.org/rfc/rfc2324)                                           | Every `GET` or `POST` gets a real 418, because this server is a teapot. The footer tagline "418 I'm a teapot." links here.                                                                              |
-| `/tea`                      | HTCPCP-TEA, [RFC 7168](https://www.rfc-editor.org/rfc/rfc7168)                                       | `POST` a `message/teapot` body of `start` or `stop`. `Accept-Additions` allows the RFC 2324 milk types and answers 406 otherwise.                                                                       |
-| prose links                 | none; links to `/coffee` and `/tea`                                                                  | A standalone "coffee" or "tea" in writing and initiative MDX becomes a quiet plain `<a>` (`lib/writings/remark-brews.ts`). JSX copy uses `withBrewLinks`.                                               |
-| `/whoami`                   | none; echoes the request                                                                             | Plain text for `curl`, HTML for browsers, never cached or stored. See the host note below.                                                                                                              |
-| every path                  | `X-Clacks-Overhead: GNU Terry Pratchett`                                                             | Defined in `lib/response-headers.ts`, served by `headers()` in `next.config.ts`.                                                                                                                        |
-| every page                  | `Link` header, [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288)                                    | The head's Webmention, Micropub, IndieAuth, and WebSub hub links, for clients that read headers. See the Link header note below.                                                                        |
-| every path                  | Security headers                                                                                     | `nosniff`, a pinned referrer policy, a permissions policy, and an opener policy on pages. See the security headers note below.                                                                          |
-| `/.well-known/security.txt` | [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116)                                                   | `Expires` is required and must stay under a year out. A unit test fails 30 days before it lapses; renew `SECURITY_TXT_EXPIRES`.                                                                         |
-| `/opensearch.xml`           | [OpenSearch](https://github.com/dewitt/opensearch/blob/master/opensearch-1-1-draft-6.md) description | Lets a browser add the site as a search engine. Queries go to `/search?q=`. Root layout advertises it with `<link rel="search">`.                                                                       |
-| `/api/mcp`                  | [Model Context Protocol](https://modelcontextprotocol.io), Streamable HTTP                           | Read-only and unauthenticated: `get_profile`, `list_writings`, `get_writing`, `search_writings`, `list_initiatives`, and `brew_coffee`, which answers with a 418 tool error. See the MCP section below. |
-| `/llms.txt`                 | [llmstxt.org](https://llmstxt.org)                                                                   | An H1, a summary, and `- [name](url): notes` lists of the published writings, feeds, and protocol endpoints. Drafts never appear.                                                                       |
-| `/humans.txt`               | [humanstxt.org](https://humanstxt.org)                                                               | Who made the site and with what, from `lib/humans-txt.ts`. See the humans.txt note below.                                                                                                               |
-| every page                  | [Fragmention](https://indieweb.org/fragmention)                                                      | A URL ending in `##some+words` scrolls to and highlights the first place those words appear. See the fragmentions note below.                                                                           |
-| every page                  | [Speculation rules](https://developer.mozilla.org/docs/Web/API/Speculation_Rules_API)                | Prefetches in-site pages on hover. See the speculation rules note below.                                                                                                                                |
+| Route                       | Protocol                                                                                             | Notes                                                                                                                                                     |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/coffee`                   | HTCPCP, [RFC 2324](https://www.rfc-editor.org/rfc/rfc2324)                                           | GET and POST return HTTP 418 with a teapot explanation. Accept selects plain text or HTML.                                                                |
+| `/tea`                      | HTCPCP-TEA, [RFC 7168](https://www.rfc-editor.org/rfc/rfc7168)                                       | GET returns brewing instructions. POST accepts message/teapot start or stop commands; unsupported additions return 406.                                   |
+| prose links                 | none; links to `/coffee` and `/tea`                                                                  | A standalone "coffee" or "tea" in writing and initiative MDX becomes a quiet plain `<a>` (`lib/writings/remark-brews.ts`). JSX copy uses `withBrewLinks`. |
+| `/whoami`                   | none; echoes the request                                                                             | GET returns the request IP, user agent, and available host location/network data as text or HTML. The response is not cached or stored.                   |
+| every path                  | `X-Clacks-Overhead: GNU Terry Pratchett`                                                             | Defined in `lib/http/response-headers.ts`, served by `headers()` in `next.config.ts`.                                                                     |
+| every page                  | `Link` header, [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288)                                    | The head's Webmention, Micropub, IndieAuth, and WebSub hub links, for clients that read headers. See the Link header note below.                          |
+| every path                  | Security headers                                                                                     | `nosniff`, a pinned referrer policy, a permissions policy, and an opener policy on pages. See the security headers note below.                            |
+| `/.well-known/security.txt` | [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116)                                                   | GET returns the security reporting contact, policy, and expiration. Renew the configured expiration before it lapses.                                     |
+| `/opensearch.xml`           | [OpenSearch](https://github.com/dewitt/opensearch/blob/master/opensearch-1-1-draft-6.md) description | GET returns the description browsers use to register the site as a search engine. Queries go to `/search?q=`.                                             |
+| `/api/mcp`                  | [Model Context Protocol](https://modelcontextprotocol.io), Streamable HTTP                           | GET and POST handle unauthenticated, read-only content tools over MCP; OPTIONS returns browser preflight headers. See the MCP section for tool names.     |
+| `/llms.txt`                 | [llmstxt.org](https://llmstxt.org)                                                                   | GET returns a Markdown site summary, published writings, feeds, and configured protocol endpoints. Production responses exclude drafts.                   |
+| `/humans.txt`               | [humanstxt.org](https://humanstxt.org)                                                               | GET returns the site author, credits, technologies, and deployment build date when available.                                                             |
+| every page                  | [Fragmention](https://indieweb.org/fragmention)                                                      | A URL ending in `##some+words` scrolls to and highlights the first place those words appear. See the fragmentions note below.                             |
+| every page                  | [Speculation rules](https://developer.mozilla.org/docs/Web/API/Speculation_Rules_API)                | Prefetches in-site pages on hover. See the speculation rules note below.                                                                                  |
 
 ## humans.txt
 
@@ -36,7 +36,7 @@ deployment was built, in the site's time zone: `next.config.ts` sets
 `SITE_BUILT_AT` in `env`, and Next inlines it into the bundle while
 building, so the prerendered file keeps the build's date. The Components
 line names packages from `package.json`, and
-`tests/unit/humans-txt.test.mts` fails when one of them leaves it. Edit
+`tests/unit/protocols/humans-txt.test.mts` fails when one of them leaves it. Edit
 the Standards line when a protocol comes or goes.
 
 The head links the file as a second `rel="author"` with
@@ -56,8 +56,8 @@ list.
 
 Only pages get it, because a feed or a JSON endpoint that claims a
 Webmention endpoint misleads a sender. `PAGE_SOURCES` in
-`lib/response-headers.ts` names the page routes, and
-`tests/unit/response-headers.test.mts` walks `app/` and fails when a new
+`lib/http/response-headers.ts` names the page routes, and
+`tests/unit/http/response-headers.test.mts` walks `app/` and fails when a new
 page is missing from it or a route handler matches it. The files on the
 path from `next.config.ts` import each other by relative path: Next's config
 loader resolves `@/` against the wrong folder for a file under `lib/`, and
@@ -65,7 +65,7 @@ the build fails with "Cannot find module".
 
 ## Security headers
 
-`lib/response-headers.ts` sends four headers that cost nothing, because the
+`lib/http/response-headers.ts` sends four headers that cost nothing, because the
 site never does what they forbid:
 
 | Header                       | Value                                                                              | Where                                        |
@@ -79,7 +79,7 @@ The referrer policy is already every browser's default. Pinning it keeps a
 host or a future default from loosening it. The IndieAuth consent page sends
 the stricter `no-referrer` itself, and a header from `next.config.ts`
 replaces the one a route handler sets, so the rule skips `/indieauth/`;
-`tests/e2e/routes.spec.mts` checks that the consent page keeps its own.
+`tests/e2e/site/site/routes.spec.mts` checks that the consent page keeps its own.
 
 The permissions policy also binds the YouTube, Spotify, and SoundCloud
 embeds, none of which asks for those features. Chromium still recognises
@@ -116,7 +116,7 @@ space. The first visible text node inside `<main>` that holds them, ignoring
 case and line breaks, is scrolled to the middle of the window and
 highlighted. A screen-reader-only heading does not count as visible, so a
 note's hidden title never takes the match from its text. The matching lives
-in `lib/fragmention.ts` with unit tests, and `tests/e2e/fragmention.spec.mts`
+in `lib/site/fragmention.ts` with unit tests, and `tests/e2e/site/site/fragmention.spec.mts`
 checks real pages.
 
 The highlight is a CSS Custom Highlight, styled by `::highlight(fragmention)`
@@ -136,7 +136,7 @@ without the Navigation API follows a fragmention only on load and on
 ## Speculation rules
 
 The root layout carries a `<script type="speculationrules">` built from
-`lib/speculation-rules.ts`. It prefetches same-origin links at `moderate`
+`lib/site/speculation-rules.ts`. It prefetches same-origin links at `moderate`
 eagerness, which in Chromium means after about 200ms of hover on a desktop.
 It skips `/api/`, the feeds and activity feeds, `/micropub`,
 `/webmention` and `/webmentions`, `/indieauth/`, `/oembed`, `/coffee`,
@@ -159,13 +159,13 @@ After hydration each hovered link still costs that HTML request, which
 nothing reads. If that ever shows up in bandwidth, limit the rule to the
 page before hydration, for example with a `not` `selector_matches` on an
 attribute a client component sets on `<html>`.
-`tests/unit/speculation-rules.test.mts` checks the exclusions with
-`URLPattern`, and `tests/e2e/speculation.spec.mts` reads the candidate list
+`tests/unit/site/speculation-rules.test.mts` checks the exclusions with
+`URLPattern`, and `tests/e2e/site/site/speculation.spec.mts` reads the candidate list
 Chromium reports through its DevTools Preload domain.
 
 ## In the command palette
 
-The ⌘K palette (`lib/palette/`) runs these for visitors who never open a
+The ⌘K palette (`lib/search/palette/`) runs these for visitors who never open a
 terminal. Typing a whole command name and pressing Enter makes the real
 request and shows the response; a partial name never matches, and the
 commands are never listed. `brew`, `coffee`, and `teapot` send `POST /coffee`;
@@ -173,7 +173,7 @@ commands are never listed. `brew`, `coffee`, and `teapot` send `POST /coffee`;
 routes; `mcp` copies a client config for `/api/mcp`; `llms` opens `/llms.txt`
 and `humans` opens `/humans.txt`; `fortune` draws a tagline. A request that
 fails shows what failed. When you add a route here, add its command to
-`eggs()` in `lib/palette/commands.ts` too.
+`eggs()` in `lib/search/palette/commands.ts` too.
 
 ## Try them
 

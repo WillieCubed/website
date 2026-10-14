@@ -1,11 +1,11 @@
 import type { Did } from '@atcute/lexicons';
 import * as TID from '@atcute/tid';
 
-import { site } from '../site';
+import { site } from '../site/identity';
 
 /**
- * Server-only AT Protocol settings. With lib/site.ts, this is the only
- * module that reads the environment; everything else asks it.
+ * Server-only AT Protocol settings. Environment reads stay here and in the
+ * shared site identity; other modules consume the resolved settings.
  */
 
 /** The account every record lives in: the DID /.well-known/atproto-did serves. */

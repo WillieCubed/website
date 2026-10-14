@@ -3,7 +3,7 @@
 This page is for the maintainer adding coverage to `/media`. Create a Markdown
 file in `content/media/` and check the page at desktop and phone widths.
 The filename supplies the entry's stable ID. Keep editorial content in these
-files; `lib/media.ts` only loads and validates them.
+files; `lib/media/content.ts` only loads and validates them.
 Use lowercase letters, numbers, and hyphens in filenames.
 
 For example, `content/media/las-vegas-sun-da-vinci.md` contains:
@@ -114,5 +114,5 @@ archives supply those dates. The College Tour video uses YouTube's July 12,
 2023 publication date. Its separate October 18 news entry is Kent Best's
 Dallas Morning News story republished on The College Tour's website.
 
-The `/media` entry in `lib/site.ts` supplies its metadata and adds it to the
+The `/media` entry in `lib/site/identity.ts` supplies its metadata and adds it to the
 footer, breadcrumbs, command palette, hover cards, search, and sitemap.

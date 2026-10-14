@@ -1,7 +1,7 @@
 import { revalidateTag } from 'next/cache';
 
-import { ownerAuthenticatorFromEnvironment } from '@/lib/indieweb/indieauth-owner';
-import { ownerSignInStore } from '@/lib/indieweb/indieauth-storage';
+import { ownerAuthenticatorFromEnvironment } from '@/lib/indieweb/indieauth/owner';
+import { ownerSignInStore } from '@/lib/indieweb/indieauth/storage';
 
 import { createAdminHandler } from './admin';
 import { STATUS_LOCATION_TAG } from './reader';

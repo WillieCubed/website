@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation';
 
 import ProjectPage from '@/components/projects/ProjectPage';
 
-import { getInitiative } from '@/lib/initiatives';
+import { getInitiative } from '@/lib/initiatives/index';
 import { childrenOf, getProject, getProjects } from '@/lib/projects';
-import { pageMetadata } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
 
 // Cache Components refuses an empty list, and every project is a draft in
 // production until Willie clears the flag, so an underscore path stands in.

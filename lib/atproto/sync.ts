@@ -4,7 +4,8 @@ import {
   SiteStandardPublication,
 } from '@atcute/standard-site';
 
-import { absoluteUrl, site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
+import { absoluteUrl } from '@/lib/site/urls';
 
 import { fetchImageBlob } from './blobs';
 import {
@@ -50,7 +51,7 @@ export interface SyncOptions {
   client?: RepoClient;
   /** Signs in with the app password when no `client` is given; tests pass a fake. */
   createClient?: (password: string) => Promise<RepoClient>;
-  /** Published writings; defaults to reading content/writings. */
+  /** Published writings; defaults to loading published content. */
   writings?: DocumentSource[];
   fetchImage?: (url: string) => Promise<LocalBlob | null>;
 }
@@ -62,7 +63,7 @@ export interface SyncOptions {
  * "nothing is published".
  */
 async function publishedWritings(): Promise<DocumentSource[]> {
-  const { getWritingSlugs, loadWriting } = await import('@/lib/writings');
+  const { getWritingSlugs, loadWriting } = await import('@/lib/writings/load');
   const sources: DocumentSource[] = [];
   for (const slug of await getWritingSlugs()) {
     const { writing, content } = await loadWriting(slug);
@@ -154,7 +155,7 @@ function assertValid(records: DesiredRecord[]): void {
 /**
  * Make the repo match the published content: the publication record and
  * one document per writing. Runs after a production deploy, once the
- * pages that name these records are live (app/api/indieweb/notify).
+ * pages that name these records are live and the deploy notification arrives.
  */
 export async function syncAtproto(
   options: SyncOptions = {}

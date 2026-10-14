@@ -1,9 +1,9 @@
 import { PUBLICATION_URI } from '@/lib/atproto/config';
 
 /**
- * standard.site verification: the AT-URI of the publication this origin
- * hosts, and nothing else. Readers compare it with the record's `url`.
- * 404 while the publication is not configured.
+ * Return the publication's AT-URI as plain text so readers can verify that
+ * its record points to this origin. Return 404 when no publication is
+ * configured.
  */
 export async function GET() {
   if (!PUBLICATION_URI) {

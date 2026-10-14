@@ -2,7 +2,8 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import { createMcpHandler } from 'mcp-handler';
 import { z } from 'zod';
 
-import { absoluteUrl, site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
+import { absoluteUrl } from '@/lib/site/urls';
 
 export interface WritingSummary {
   slug: string;

@@ -22,14 +22,13 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "noUnusedLocals": true
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "scripts/**/*.mts",
-    "tests/unit/media-*.test.mts",
-    "tests/e2e/media.spec.mts",
+    "**/*.mts",
     "**/*.tsx",
     "**/*.mdx",
     ".next/types/**/*.ts",

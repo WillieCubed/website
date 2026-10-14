@@ -11,19 +11,19 @@ The Next.js app is the whole site. The static Cloudflare Worker that served
 the homepage prototype on willie.page is retired; the homepage is now the
 `/` route.
 
-| Host                  | Role                                 | Where it is configured               |
-| --------------------- | ------------------------------------ | ------------------------------------ |
-| `willie.page`         | canonical origin                     | `lib/site.ts` (`site.origin`)        |
-| `www.willie.page`     | 308 to the apex, path for path       | `site.legacyHosts`, `next.config.ts` |
-| `williecubed.me`      | 308 to willie.page, path for path    | `site.legacyHosts`, `next.config.ts` |
-| `www.williecubed.me`  | 308 to willie.page, path for path    | `site.legacyHosts`, `next.config.ts` |
-| `tour.willie.page`    | 307 to `/initiatives/fall-tour-2026` | `site.aliasHosts`, `next.config.ts`  |
-| `diaries.willie.page` | 307 to `/initiatives/twd`            | `site.aliasHosts`, `next.config.ts`  |
+| Host                  | Role                                 | Where it is configured                 |
+| --------------------- | ------------------------------------ | -------------------------------------- |
+| `willie.page`         | canonical origin                     | `lib/site/identity.ts` (`site.origin`) |
+| `www.willie.page`     | 308 to the apex, path for path       | `site.legacyHosts`, `next.config.ts`   |
+| `williecubed.me`      | 308 to willie.page, path for path    | `site.legacyHosts`, `next.config.ts`   |
+| `www.williecubed.me`  | 308 to willie.page, path for path    | `site.legacyHosts`, `next.config.ts`   |
+| `tour.willie.page`    | 307 to `/initiatives/fall-tour-2026` | `site.aliasHosts`, `next.config.ts`    |
+| `diaries.willie.page` | 307 to `/initiatives/twd`            | `site.aliasHosts`, `next.config.ts`    |
 
 Alias hosts are temporary redirects on purpose: `tour.willie.page` points at
 whichever tour is current, and next year that path changes.
 
-The redirect table is code. Adding a host means one line in `lib/site.ts`
+The redirect table is code. Adding a host means one line in `lib/site/identity.ts`
 and then attaching the hostname to the hosting project so requests for it
 reach the app at all. A redirect rule for a host that is not attached does
 nothing.
@@ -36,7 +36,7 @@ is rebuilt. `/media` is a page that lists media mentions and appearances.
 The app deploys to Vercel from the GitHub repository. Vercel-specific
 dependencies are `@vercel/postgres`, `@vercel/analytics`, and
 `@vercel/speed-insights`. Postgres holds webmentions and their rate limits
-(`lib/indieweb/webmention-storage.ts`), outgoing webmention hashes and reply
+(`lib/indieweb/webmention/storage.ts`), outgoing webmention hashes and reply
 contexts, and the optional search backend (`lib/search/postgres.ts`); the two
 webmention scripts under `scripts/` read it too. Nothing else assumes Vercel.
 
@@ -122,7 +122,7 @@ pass, but a full audit must continue to report this upstream advisory.
 
 Every address on the site is on willie.page (`hello@`, `projects@`), set
 by `NEXT_PUBLIC_EMAIL_HELLO` and `NEXT_PUBLIC_EMAIL_PROJECTS` with those as
-defaults (`site.emails` in lib/site.ts), and williecubed.me is legacy: it
+defaults (`site.emails` in lib/site/identity.ts), and williecubed.me is legacy: it
 only redirects here. Mail to willie.page
 needs Cloudflare Email Routing on the zone before these addresses receive
 anything. `NEXT_PUBLIC_GTAG_ID` is optional; without

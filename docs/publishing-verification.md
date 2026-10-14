@@ -1,5 +1,9 @@
 # Publishing verification
 
+These are maintainer-run live publishing tests, separate from the routine CI
+suite. Start with [Testing](testing.md) to choose the checks for your change.
+Existing commands and environment names use “acceptance” for historical reasons.
+
 This guide is for Willie and the maintainer running the release checks. Run the isolated checks, retain their receipts, and close the linked issues only when their external behavior and cleanup pass.
 
 Use `codex/publishing-compatibility-acceptance-20261008` in the separate acceptance checkout. Its public origin is `https://indieweb-acceptance.vercel.app`. Its Vercel project is `prj_rurUFlQ4YKYKoMxGCaAyL6ASijHm`. Never use the production owner account or production database for these checks.

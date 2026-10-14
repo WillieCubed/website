@@ -1,8 +1,9 @@
 import SiteLink from '@/components/link/SiteLink';
-import PaletteTrigger from '@/components/palette/PaletteTrigger';
+import PaletteTrigger from '@/components/search/palette/PaletteTrigger';
 
-import type { PageColumn } from '@/lib/footer/column';
-import { routedPages, site } from '@/lib/site';
+import type { PageColumn } from '@/lib/site/footer/column';
+import { site } from '@/lib/site/identity';
+import { routedPages } from '@/lib/site/navigation';
 
 import BreadcrumbMenu, { type BreadcrumbMenuItem } from './BreadcrumbMenu';
 import TopBarFrame from './TopBarFrame';
@@ -37,8 +38,7 @@ export type Column = keyof typeof COLUMN;
 
 /**
  * Whether a phone should paint the trail folded before the bar measures
- * itself (TopBarFrame). Three crumbs fold below 500px (site.css has the
- * bands), and two only fail to fit below about 344px once their labels pass
+ * itself. Three crumbs fold below 500px, and two only fail to fit below about 344px once their labels pass
  * about 26 characters. Both bands come from the Fall Tour pages.
  */
 function collapseGuess(crumbs: Crumb[]): 'phone' | 'narrow' | undefined {

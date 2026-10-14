@@ -47,7 +47,7 @@ export function webSubTopicPaths(tags: string[]): string[] {
  */
 export async function publishedTopicPaths(): Promise<string[]> {
   try {
-    const { getWritingSlugs, loadWriting } = await import('../writings');
+    const { getWritingSlugs, loadWriting } = await import('../writings/load');
     const loaded = await Promise.all(
       (await getWritingSlugs()).map((slug) => loadWriting(slug))
     );

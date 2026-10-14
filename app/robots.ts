@@ -1,21 +1,22 @@
 import type { MetadataRoute } from 'next';
 
 import { MCP_ENDPOINT } from '@/lib/mcp/constants';
-import { absoluteUrl } from '@/lib/site';
+import { absoluteUrl } from '@/lib/site/urls';
 
 /**
- * Generates a robots.txt file for the website.
+ * Return crawler rules that allow public indexing and MCP access while
+ * blocking other API paths and AI training crawlers.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      // Everyone not named below, including the agents llms.txt speaks to:
+      // Everyone not named below, including agents reading the site summary:
       // assistants fetching a page for a reader (ChatGPT-User, Claude-User,
       // Perplexity-User) and AI search (OAI-SearchBot, Claude-SearchBot,
       // PerplexityBot) are deliberately left out of the training group.
       {
         userAgent: ['*'],
-        // llms.txt advertises the MCP server, which lives under /api/. The
+        // The site summary advertises the MCP server, which lives under /api/. The
         // longer Allow wins over the Disallow (RFC 9309).
         allow: ['/', MCP_ENDPOINT],
         disallow: ['/api/'],

@@ -3,18 +3,15 @@ import { tagCards } from '@/lib/entities/tags';
 import type { EntityCard } from '@/lib/entities/types';
 import { detailHref } from '@/lib/entities/ventures';
 import { type Entry, entries } from '@/lib/home/ventures';
-import {
-  type Initiative,
-  type Part,
-  loadAllInitiatives,
-  partTitle,
-} from '@/lib/initiatives';
-import { getMediaMentions } from '@/lib/media';
+import { type Initiative, type Part } from '@/lib/initiatives/index';
+import { loadAllInitiatives, partTitle } from '@/lib/initiatives/load';
+import { getMediaMentions } from '@/lib/media/content';
 import { type Project, loadAllProjects } from '@/lib/projects';
 import { projectFacts } from '@/lib/projects/facts';
 import { stripMdxSyntax } from '@/lib/text/strip-mdx';
-import { type WritingData, getWritingSlugs, loadWriting } from '@/lib/writings';
 import { writingText } from '@/lib/writings/content';
+import { type WritingData } from '@/lib/writings/index';
+import { getWritingSlugs, loadWriting } from '@/lib/writings/load';
 
 import { type SearchableItem, UNDATED } from './types';
 

@@ -8,7 +8,7 @@ writing and database outside production.
 ## Read-only checks
 
 Run `pnpm test`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`. Then run
-`pnpm exec playwright test tests/e2e/indieweb.spec.mts --project=desktop --workers=1`.
+`pnpm exec playwright test tests/e2e/site/indieweb/indieweb.spec.mts --project=desktop --workers=1`.
 Set `INDIEWEB_TEST_BASE_URL` to a public deployment for a hosted run, and set
 `NEXT_PUBLIC_SITE_ORIGIN` to the origin that deployment advertises. Set
 `INDIEWEB_TEST_POST_PATH` to a published disposable writing to enable the
@@ -23,7 +23,7 @@ database. Replace the connection string with your local test role if needed.
 ```sh
 createdb indieweb_acceptance
 export INDIEWEB_TEST_POSTGRES_URL=postgresql://localhost:5432/indieweb_acceptance
-psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f tests/support/webmentions.sql
+psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f tests/fixtures/indieweb/webmentions.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/001_level4_tables.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/002_webmention_rate_limits.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/003_indieauth.sql
@@ -33,7 +33,7 @@ psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/006_i
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/007_micropub_deleted_archives.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/008_atproto_response_observations.sql
 psql "$INDIEWEB_TEST_POSTGRES_URL" -v ON_ERROR_STOP=1 -f lib/db/migrations/009_indieauth_code_replay.sql
-cp tests/fixtures/indieweb-acceptance.mdx content/writings/indieweb-acceptance.mdx
+cp tests/fixtures/indieweb/publishing.mdx content/writings/indieweb-acceptance.mdx
 pnpm build
 ```
 
@@ -50,10 +50,10 @@ and out of a production check.
 INDIEWEB_TEST_POST_PATH=/writings/indieweb-acceptance \
 POSTGRES_URL='postgresql://test:pass@ep-local-pooler.us-east-1.aws.neon.tech/test?sslmode=require' \
 WEBMENTION_MODERATION_SECRET=local-test-secret \
-NODE_OPTIONS='--import=./tests/support/neon-local-postgres.mjs' \
+NODE_OPTIONS='--import=./tests/support/indieweb/neon-local-postgres.mjs' \
 INDIEWEB_TEST_ALLOW_LOOPBACK=true \
 NODE_TLS_REJECT_UNAUTHORIZED=0 \
-pnpm exec playwright test tests/e2e/indieweb-write.spec.mts --project=desktop --workers=1
+pnpm exec playwright test tests/e2e/site/indieweb/indieweb-write.spec.mts --project=desktop --workers=1
 ```
 
 Remove the copied writing when the local checks finish, and rebuild before

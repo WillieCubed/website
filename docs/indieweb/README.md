@@ -14,42 +14,42 @@ environment variables switch each part on, and where the site stands against
 or remove a route, update the tables here and rerun `pnpm test`.
 
 The canonical origin, author name, photo, and social profiles all come from
-`lib/site.ts`. Protocol endpoints and the WebSub hub are named once in
+`lib/site/identity.ts`. Protocol endpoints and the WebSub hub are named once in
 `lib/indieweb/constants.ts`. `NEXT_PUBLIC_SITE_ORIGIN` overrides the origin
 for an isolated deployment. Do not write the hostname anywhere else.
 
 ## Routes
 
-| Route                                                              | Purpose                                                                                                                | Needs                                                        |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `/webmention` (alias of `/api/webmention`)                         | Receives webmentions, verifies the source, stores them for moderation                                                  | Postgres                                                     |
-| `/webmentions?target=`                                             | Public JSON list of approved webmentions for one page                                                                  | Postgres                                                     |
-| `/api/webmention/send`, `/api/webmention/send-all`                 | Send webmentions for one post or every post; bearer `WEBMENTION_SECRET`                                                | Postgres, `WEBMENTION_SECRET`                                |
-| `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                        | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
-| `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                               | Postgres (optional)                                          |
-| `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                               | Postgres (optional)                                          |
-| `/micropub`                                                        | `GET ?q=config`, `?q=syndicate-to`, `?q=category`, `?q=source`; `POST` creates, updates, deletes and restores writings | IndieAuth token; see Micropub                                |
-| `/micropub/media`                                                  | Micropub media endpoint; `POST` stores one image, audio, video or PDF file and answers 201 with its `Location`         | IndieAuth token, Vercel Blob connection                      |
-| `/.well-known/oauth-authorization-server`                          | IndieAuth server metadata; the head's `rel="indieauth-metadata"` points here                                           | nothing                                                      |
-| `/indieauth/auth`                                                  | IndieAuth authorization endpoint; `GET` forwards to the consent page, `POST` redeems a code for the profile URL        | Postgres                                                     |
-| `/indieauth/consent`                                               | The owner's consent page; approving needs a code from the authenticator app                                            | Postgres, `INDIEAUTH_TOTP_SECRET`                            |
-| `/indieauth/token`                                                 | Token endpoint; `POST` exchanges a code or rotates a refresh grant, `GET` with a bearer token verifies one             | Postgres                                                     |
-| `/indieauth/userinfo`                                              | Permitted profile information for an active bearer token                                                               | Postgres                                                     |
-| `/indieauth/introspect`, `/indieauth/revoke`                       | Token introspection (RFC 7662) and revocation (RFC 7009); see IndieAuth                                                | Postgres; `INDIEAUTH_INTROSPECTION_SECRET` for introspection |
-| `/oembed?url=`                                                     | oEmbed provider for any page on the canonical origin                                                                   | nothing                                                      |
-| `/search?q=`, `/api/search?q=`                                     | Server-rendered search over writings, initiatives, and pages, answered from this domain                                | nothing (Postgres optional)                                  |
-| `/api/search/reindex`                                              | Rebuilds the Postgres search table; returns 503 unless `SEARCH_BACKEND=postgres`                                       | Postgres, `SEARCH_REINDEX_SECRET`                            |
-| ⌘K on every page                                                   | Command palette over the same Pagefind index as `/search`, served from `/pagefind/`                                    | nothing                                                      |
-| `/llms.txt`                                                        | llmstxt.org map of published writings, feeds, and protocol endpoints                                                   | nothing                                                      |
-| `/api/mcp`                                                         | Read-only MCP server; see [protocols.md](../protocols.md)                                                              | nothing                                                      |
-| `/.well-known/webfinger`, `/.well-known/host-meta`                 | Identity discovery for `acct:willie@willie.page`                                                                       | nothing                                                      |
-| `/.well-known/host-meta.json`                                      | The same host-meta LRDD link as JSON                                                                                   | nothing                                                      |
-| `/.well-known/atproto-did`                                         | Publishes the AT Protocol DID from `site.author.atprotoDid`; 404 without one                                           | `NEXT_PUBLIC_ATPROTO_DID`                                    |
-| `/.well-known/site.standard.publication`                           | standard.site verification: the AT-URI of the publication record; see [atproto.md](../atproto.md)                      | `NEXT_PUBLIC_ATPROTO_DID`, `ATPROTO_PUBLICATION_RKEY`        |
-| `/feed.xml`, `/feed/atom`, `/feed/json`                            | Site feeds for writings and initiatives; each declares the WebSub hub                                                  | nothing                                                      |
-| `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json` | Writings-only feeds, advertised from `/writings`                                                                       | nothing                                                      |
-| `/writings/tags/[tag]`                                             | One published tag's h-feed; `/writings?tag=` redirects here with a 308                                                 | nothing                                                      |
-| `/writings/tags/[tag]/feed.xml`, `/feed/atom`, `/feed/json`        | The same three formats scoped to one tag, advertised from its page                                                     | nothing                                                      |
+| Route                                                                                                              | Purpose                                                                                                                                             | Needs                                                        |
+| ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `/webmention` (alias of `/api/webmention`)                                                                         | POST accepts a source and target, stores a pending mention, and verifies it asynchronously; GET returns discovery URLs                              | Postgres                                                     |
+| `/webmentions?target=`                                                                                             | GET returns grouped, verified, approved mentions for a same-origin target; missing or external targets return 400                                   | Postgres                                                     |
+| `/api/webmention/send`, `/api/webmention/send-all`                                                                 | POST sends outgoing webmentions for one published writing or a selected set; requires a WEBMENTION_SECRET bearer token                              | Postgres, `WEBMENTION_SECRET`                                |
+| `/api/webmention/moderate`                                                                                         | GET lists pending mentions; POST approves or rejects an id and refreshes public responses; requires the moderation bearer token                     | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
+| `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json`                                                 | GET returns recent public Webmention and Bluesky reactions and replies as RSS, Atom, or JSON Feed                                                   | Postgres (optional)                                          |
+| `/writings/[slug]/activity/feed.xml`, `/writings/[slug]/activity/feed/atom`, `/writings/[slug]/activity/feed/json` | GET returns the same activity formats for one writing; drafts and missing writings return 404                                                       | Postgres (optional)                                          |
+| `/micropub`                                                                                                        | GET returns publishing configuration, targets, categories, or authenticated source properties; POST creates, updates, deletes, or restores writings | IndieAuth token; see Micropub                                |
+| `/micropub/media`                                                                                                  | POST stores one supported attachment and returns 201 with its public URL and Location header                                                        | IndieAuth token, Vercel Blob connection                      |
+| `/.well-known/oauth-authorization-server`                                                                          | GET returns IndieAuth endpoint URLs, scopes, grants, and PKCE methods for client discovery                                                          | nothing                                                      |
+| `/indieauth/auth`                                                                                                  | GET redirects to owner consent; POST exchanges an authorization code and verifier for the profile URL                                               | Postgres                                                     |
+| `/indieauth/consent`                                                                                               | GET renders the validated sign-in request; POST approves or denies it; approval requires owner authentication                                       | Postgres, `INDIEAUTH_TOTP_SECRET`                            |
+| `/indieauth/token`                                                                                                 | POST exchanges a code, rotates a refresh token, or revokes a token; GET verifies a bearer access token                                              | Postgres                                                     |
+| `/indieauth/userinfo`                                                                                              | GET returns the current profile fields permitted by an active bearer token; missing profile authorization returns 403                               | Postgres                                                     |
+| `/indieauth/introspect`, `/indieauth/revoke`                                                                       | POST checks a token with the introspection secret or revokes a token; revocation succeeds even for an unknown token                                 | Postgres; `INDIEAUTH_INTROSPECTION_SECRET` for introspection |
+| `/oembed?url=`                                                                                                     | GET returns oEmbed metadata for a same-origin URL; drafts, missing writings, and external URLs return 404                                           | nothing                                                      |
+| `/search?q=`, `/api/search?q=`                                                                                     | GET renders search results or returns them as JSON for writings, initiatives, projects, and pages                                                   | nothing (Postgres optional)                                  |
+| `/api/search/reindex`                                                                                              | POST rebuilds the Postgres index; GET returns backend information and statistics; rebuilds return 503 when Postgres search is disabled              | Postgres for rebuilds; configured production bearer token    |
+| `/api/palette`                                                                                                     | GET returns navigation links and featured destinations for the command palette; full-text queries use the generated Pagefind index                  | nothing                                                      |
+| `/llms.txt`                                                                                                        | GET returns a Markdown summary of the site, published writings, and configured discovery endpoints                                                  | nothing                                                      |
+| `/api/mcp`                                                                                                         | GET and POST handle read-only MCP requests for site content; OPTIONS handles browser preflight                                                      | nothing                                                      |
+| `/.well-known/webfinger`, `/.well-known/host-meta`                                                                 | GET returns identity links for a requested resource or XRD instructions for looking that resource up                                                | nothing                                                      |
+| `/.well-known/host-meta.json`                                                                                      | GET returns the host metadata lookup instructions as JSON                                                                                           | nothing                                                      |
+| `/.well-known/atproto-did`                                                                                         | GET returns the AT Protocol DID associated with this domain; returns 404 when none is configured                                                    | `NEXT_PUBLIC_ATPROTO_DID`                                    |
+| `/.well-known/site.standard.publication`                                                                           | GET returns the publication AT-URI for origin verification; returns 404 when no publication is configured                                           | `NEXT_PUBLIC_ATPROTO_DID`, `ATPROTO_PUBLICATION_RKEY`        |
+| `/feed.xml`, `/feed/atom`, `/feed/json`                                                                            | Site feeds for writings and initiatives; each declares the WebSub hub                                                                               | nothing                                                      |
+| `/writings/feed.xml`, `/writings/feed/atom`, `/writings/feed/json`                                                 | Writings-only feeds, advertised from `/writings`                                                                                                    | nothing                                                      |
+| `/writings/tags/[tag]`                                                                                             | One published tag's h-feed; `/writings?tag=` redirects here with a 308                                                                              | nothing                                                      |
+| `/writings/tags/[tag]/feed.xml`, `/feed/atom`, `/feed/json`                                                        | The same three formats scoped to one tag, advertised from its page                                                                                  | nothing                                                      |
 
 Every route that says "Postgres" reads `POSTGRES_URL` through
 `@vercel/postgres`. Without it the webmention routes return errors and the
@@ -151,7 +151,7 @@ a deploy. Do not move the read to request time: a streamed section lands
 after the page, outside the `h-entry`, and parsers lose the comments.
 Author photos load straight from the author's site, since the image
 optimizer only accepts the hosts in `next.config.ts`.
-`tests/unit/webmention-display.test.mts` parses the rendered markup.
+`tests/unit/indieweb/webmention/webmention-display.test.mts` parses the rendered markup.
 Initiative and part pages show their approved mentions the same way through
 `components/indieweb/PageWebmentions.tsx`, at the foot of the page. Those
 pages carry no `h-entry`, so the mentions there are standalone `h-cite`s.
@@ -162,7 +162,7 @@ A part page's hero is an `h-event` (`components/initiatives/PartEvent.tsx`):
 per place carrying `p-locality`, `p-region`, `p-latitude`, and
 `p-longitude`. The mentions sit outside the hero, so they stay standalone.
 The page's JSON-LD graph carries the same trip as a schema.org `Event`
-(`eventLd()` in `lib/seo/jsonld.ts`). `tests/unit/initiative-event.test.mts`
+(`eventLd()` in `lib/seo/jsonld.ts`). `tests/unit/initiatives/initiative-event.test.mts`
 parses the rendered markup.
 
 `@handle` in prose becomes a link through `lib/writings/remark-mentions.ts`.
@@ -195,8 +195,8 @@ Only a verified mention can be approved; unverified ones are listed, marked
 soft delete the verifier uses when a source goes away, so a resent mention from
 that source stays hidden. Approving or rejecting an id that is not in a state
 to change answers 404 from the route and exits 1 from the script.
-Moderation logic and its tests live in `lib/indieweb/webmention-moderation.ts`
-and `tests/unit/webmention-moderation.test.mts`.
+Moderation logic and its tests live in `lib/indieweb/webmention/moderation.ts`
+and `tests/unit/indieweb/webmention/webmention-moderation.test.mts`.
 
 ## Receiving
 
@@ -208,8 +208,8 @@ because each one redirects to the canonical origin. It is stored under its
 canonical address, without a trailing slash, query, or fragment, so it
 matches the address the page reads its mentions from. The verifier then
 resolves links against the fetched page's final URL and valid HTML base URL. An absolute or relative link counts when it resolves to the same target page on an allowed host. Distinct pages on the same site may mention each other. Identical source and target URLs are rejected. The logic
-and its tests live in `lib/indieweb/webmention-targets.ts` and
-`tests/unit/webmention-targets.test.mts`.
+and its tests live in `lib/indieweb/webmention/targets.ts` and
+`tests/unit/indieweb/webmention/webmention-targets.test.mts`.
 
 Anyone can name any source, so the verifier fetches it through
 `fetchPublicDocument` in `lib/indieweb/public-fetch.ts`, the same guard the
@@ -246,8 +246,8 @@ requests a minute; the counts live in the `webmention_rate_limits` table so
 the limit holds across instances, and expired rows are pruned after each
 accepted mention. If the table is missing or the count fails, the request goes
 through and the error is logged. The logic and its tests live in
-`lib/indieweb/webmention-rate-limit.ts` and
-`tests/unit/webmention-rate-limit.test.mts`.
+`lib/indieweb/webmention/rate-limit.ts` and
+`tests/unit/indieweb/webmention/webmention-rate-limit.test.mts`.
 
 ## Sending
 
@@ -256,7 +256,7 @@ posts named by `inReplyTo`, `likeOf`, `repostOf`, `bookmarkOf`, and
 `rsvp.eventUrl`, then to its tagged people. The deploy publisher
 (`pnpm webmentions:send` and the notification endpoint),
 `/api/webmention/send`, and `/api/webmention/send-all` all take that list
-from `webmentionTargetsForWriting` in `lib/indieweb/send-webmention.ts`, so
+from `webmentionTargetsForWriting` in `lib/indieweb/webmention/send.ts`, so
 a reply whose body never links its parent still notifies the parent. The
 publisher hashes the list with the body, so reordering it resends every post
 once.
@@ -510,7 +510,7 @@ The client address stays visible below its name. A native **Request details**
 disclosure exposes the complete client, return, and identity URLs.
 
 The route renders HTML outside the site's React layout. It uses the site's text
-navigation, Material surface roles from `lib/theme.ts`, and variable Atkinson
+navigation, Material surface roles from `lib/theme/tokens.ts`, and variable Atkinson
 faces from `public/fonts`. Update those public copies when the site's fonts
 change.
 
@@ -526,9 +526,9 @@ New access tokens last one hour and refresh authorization expires after 90 days 
 To see or cut off what is signed in, query the table:
 `SELECT client_id, scope, issued_at FROM indieauth_tokens WHERE revoked_at IS NULL`,
 and set `revoked_at = NOW()` on a row to revoke it. The protocol logic lives
-in `lib/indieweb/indieauth-server.ts`, the HTTP handlers in
-`lib/indieweb/indieauth-endpoints.ts`, and their tests in
-`tests/unit/indieauth-*.test.mts`.
+in `lib/indieweb/indieauth/server.ts`, the HTTP handlers in
+`lib/indieweb/indieauth/endpoints.ts`, and their tests in
+`tests/unit/indieweb/indieauth/*.test.mts`.
 
 ### Owner sign-in
 
@@ -543,9 +543,9 @@ oldest one ages out, even for the right code, while tokens already issued
 keep working. That caps an attacker at ten guesses a day.
 
 The consent flow only sees the `OwnerAuthenticator` interface in
-`lib/indieweb/types.ts`. `lib/indieweb/indieauth-owner.ts` implements it
+`lib/indieweb/indieauth/types.ts`. `lib/indieweb/indieauth/owner.ts` implements it
 with TOTP, and `indieAuthEndpointOptions()` in
-`lib/indieweb/indieauth-storage.ts` picks it. To move owner sign-in to
+`lib/indieweb/indieauth/storage.ts` picks it. To move owner sign-in to
 Cloudflare Access, put `/indieauth/consent`, and only that path, behind an
 Access application. Then write an `OwnerAuthenticator` whose `verify` checks
 the `Cf-Access-Jwt-Assertion` header against the team's signing keys and the
@@ -585,7 +585,7 @@ same goes for any challenge Cloudflare puts in front of the site.
 | `pnpm atproto:sync`                      | Prints the standard.site writes a sync would make; `--write` makes them. Needs `ATPROTO_APP_PASSWORD`; see [atproto.md](../atproto.md).                                                                                                                                                                           |
 | `pnpm indieauth:totp`                    | Prints a new secret for `INDIEAUTH_TOTP_SECRET` and the `otpauth://` URI to add to an authenticator app; see IndieAuth.                                                                                                                                                                                           |
 | `.github/workflows/indieweb-publish.yml` | Waits for the public alias to serve a pushed revision, then calls the authenticated notification endpoint.                                                                                                                                                                                                        |
-| `pnpm test`                              | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                                                                                |
+| `pnpm test`                              | `tsx --test 'tests/unit/**/*.test.mts'`                                                                                                                                                                                                                                                                           |
 
 ## Environment variables
 

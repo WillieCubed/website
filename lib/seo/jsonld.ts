@@ -1,4 +1,5 @@
-import { absoluteUrl, canonicalUrl, site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
+import { absoluteUrl, canonicalUrl } from '@/lib/site/urls';
 import type { WritingData } from '@/lib/writings/types';
 
 // A page's address here always comes from `canonicalUrl`, so the structured

@@ -1,18 +1,18 @@
-import {
-  emptyResponses,
-  loadBlueskyResponses,
-  mergeResponses,
-} from '@/lib/atproto/responses';
+import { loadBlueskyResponses } from '@/lib/atproto/responses';
+import { emptyResponses, mergeResponses } from '@/lib/atproto/responses/merge';
 import {
   buildActivityFeedItems,
   extractWritingSlugFromTarget,
 } from '@/lib/indieweb/activity-feed';
-import type { ActivityFeedItem, ResponseActivity } from '@/lib/indieweb/types';
 import {
   getAllWebmentionActivities,
   getWebmentionActivitiesForPost,
-} from '@/lib/indieweb/webmention-storage';
-import { getAllWritings, getPublishedWriting } from '@/lib/writings';
+} from '@/lib/indieweb/webmention/storage';
+import type {
+  ActivityFeedItem,
+  ResponseActivity,
+} from '@/lib/indieweb/webmention/types';
+import { getAllWritings, getPublishedWriting } from '@/lib/writings/index';
 
 const titleCache = new Map<string, string>();
 

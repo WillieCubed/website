@@ -4,12 +4,12 @@ import { Suspense } from 'react';
 
 import TopBar, { COLUMN } from '@/components/site/TopBar';
 
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 import { statusAdmin } from '@/lib/status/admin-runtime';
 import type { AdminState } from '@/lib/status/admin-state';
 
-import StatusEditor from './StatusEditor';
-import './status-admin.css';
+import StatusEditor from '../../../components/status/admin/StatusEditor';
+import '../../../components/status/admin/status-admin.css';
 
 export const metadata: Metadata = {
   title: 'Status admin',

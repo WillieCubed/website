@@ -97,11 +97,11 @@ flowchart LR
 
 ## Verification
 
-Run unit tests with `pnpm exec tsx --env-file=tests/unit/test.env --test --test-concurrency=2 tests/unit/*.test.mts`, then lint, type checking, and a production build. Next.js limits build workers to two.
+Run unit tests with `pnpm exec tsx --env-file=tests/unit/test.env --test --test-concurrency=2 'tests/unit/**/*.test.mts'`, then lint, type checking, and a production build. Next.js limits build workers to two.
 
-`tests/integration/standard-oauth.mts` exercises encrypted state expiry, cancellation, callback replay, browser isolation, sign-out, and nested distributed locks against an isolated acceptance database. Load acceptance configuration into the process environment before running it with `tsx --test --test-concurrency=1`. Never run fixture tests against the production database.
+`tests/integration/atproto/oauth.test.mts` exercises encrypted state expiry, cancellation, callback replay, browser isolation, sign-out, and nested distributed locks against an isolated acceptance database. Load acceptance configuration into the process environment before running it with `tsx --test --test-concurrency=1`. Never run fixture tests against the production database.
 
-For browser fixtures, copy `tests/fixtures/indieweb-acceptance.mdx` into `content/writings/indieweb-acceptance.mdx`, build with isolated OAuth configuration, and run `STANDARD_SOCIAL_FIXTURE=1 pnpm exec playwright test tests/e2e/standard-site.spec.mts --project=desktop --workers=1`. The test uses simulated provider responses and saves desktop and 390px screenshots under `.playwright-mcp`. Remove the copied writing before a production build or commit. These checks do not prove a live account-provider grant or real PDS social write.
+For browser fixtures, copy `tests/fixtures/indieweb/publishing.mdx` into `content/writings/indieweb-acceptance.mdx`, build with isolated OAuth configuration, and run `STANDARD_SOCIAL_FIXTURE=1 pnpm exec playwright test tests/e2e/site/atproto/standard-site.spec.mts --project=desktop --workers=1`. The test uses simulated provider responses and saves desktop and 390px screenshots under `.playwright-mcp`. Remove the copied writing before a production build or commit. These checks do not prove a live account-provider grant or real PDS social write.
 
 All four authored writings remain drafts. Production document verification waits for the first approved publication. The [conformance matrix](publishing-conformance.md) records current external gates. Explicit Bluesky copies and imported responses are implemented; public counts and a reader remain outside this work.
 

@@ -1,10 +1,10 @@
-import { getInitiatives } from '@/lib/initiatives';
+import { getInitiatives } from '@/lib/initiatives/index';
 import { searchContent } from '@/lib/search/server';
 import {
   getAllWritings,
   getPublishedWriting,
   getPublishedWritingSlugs,
-} from '@/lib/writings';
+} from '@/lib/writings/index';
 
 import { type SiteContent, summarizeWriting } from './site-server';
 

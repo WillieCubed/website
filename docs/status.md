@@ -74,7 +74,7 @@ handling, and an explicit source selection policy. It must not overwrite a
 manual choice implicitly. Exact-location storage belongs to Docket rather than
 these public-site tables.
 
-Run `pnpm exec tsx --test tests/unit/status.test.mts` for authentication, session,
+Run `pnpm exec tsx --test tests/unit/status/status.test.mts` for authentication, session,
 CSRF, city validation, and source fallback checks. The standard test command
 includes these checks. Use a separate database for local integration checks.
 Do not use production credentials for test city changes.

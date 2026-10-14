@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { sendWebmentionsForPost } from '@/lib/indieweb/send-webmention';
-import { getPublishedWriting } from '@/lib/writings';
+import { sendWebmentionsForPost } from '@/lib/indieweb/webmention/send';
+import { getPublishedWriting } from '@/lib/writings/index';
 
 /**
- * POST /api/webmention/send
- * Send webmentions for a specific blog post.
- *
- * Requires a secret key for authentication.
- * Body: { slug: string }
+ * Send outgoing webmentions for the published writing identified by the JSON
+ * body slug and return delivery results. Require the WEBMENTION_SECRET
+ * bearer token. Return 400 for a missing slug and 404 for an unavailable
+ * writing.
  */
 export async function POST(request: NextRequest) {
   // Check for secret key (set via environment variable)

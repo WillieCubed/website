@@ -129,8 +129,8 @@ public status.
 
 ## Verification
 
-Run `pnpm exec tsx --test tests/unit/status*.test.mts
-tests/unit/owner-access.test.mts` for signed identity, origin, city validation,
+Run `pnpm exec tsx --test tests/unit/status/*.test.mts
+tests/unit/owner/owner-access.test.mts` for signed identity, origin, city validation,
 and source fallback checks. The standard test command includes these checks. Use
 a separate database for local integration checks, never production credentials
 for test city changes.

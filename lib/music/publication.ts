@@ -14,6 +14,21 @@ import { musicStore } from './store';
 import type { MusicPublication } from './types';
 import { emptyCatalog } from './types';
 
+interface GitHubObject {
+  sha: string;
+}
+interface GitHubPullRequest {
+  head: GitHubObject;
+  number: number;
+  html_url: string;
+}
+interface GitHubCheckRun {
+  name: string;
+  app?: { id: number };
+  status: string;
+  conclusion: string;
+}
+
 type Publication = MusicPublication & {
   source?: string;
   message?: string;
@@ -60,7 +75,7 @@ async function patch(id: string, value: Partial<Publication>) {
   );
   return get(id);
 }
-async function optional(path: string): Promise<any> {
+async function optional(path: string): Promise<Record<string, unknown> | null> {
   try {
     return await github(path);
   } catch (e) {
@@ -72,14 +87,14 @@ async function fileSha(ref: string) {
   const file = await optional(
     `contents/${path}?ref=${encodeURIComponent(ref)}`
   );
-  return file?.sha ?? null;
+  return (file?.sha as string | undefined) ?? null;
 }
 const message = (p: Publication) =>
   p.message ?? `feat(music): Publish collection ${p.revisionId}`;
 async function makeCommit(p: Publication, base: string) {
   const parent = await github(`git/commits/${base}`);
   const tree = await github('git/trees', 'POST', {
-    base_tree: (parent.tree as any).sha,
+    base_tree: (parent.tree as GitHubObject).sha,
     tree: [{ path, mode: '100644', type: 'blob', content: p.source }],
   });
   const identity = {
@@ -106,7 +121,7 @@ async function rebase(p: Publication, base: string) {
     });
   }
   const ref = await github(`git/ref/heads/${encodeURIComponent(p.branch!)}`),
-    current = (ref.object as any).sha;
+    current = (ref.object as GitHubObject).sha;
   if (current !== p.rebase!.after) {
     if (current !== p.rebase!.before)
       throw new StudioError(
@@ -152,7 +167,7 @@ async function advance(p: Publication): Promise<Publication> {
   if (p.pullRequestNumber) {
     const existing = await github(`pulls/${p.pullRequestNumber}`);
     if (existing.merged) {
-      if ((existing.head as any).sha !== p.proposalCommit)
+      if ((existing.head as GitHubObject).sha !== p.proposalCommit)
         throw new StudioError(
           409,
           'The merged proposal changed outside Music.'
@@ -165,7 +180,7 @@ async function advance(p: Publication): Promise<Publication> {
     }
   }
   const ref = await github(`git/ref/heads/${encodeURIComponent(branch)}`),
-    base = (ref.object as any).sha;
+    base = (ref.object as GitHubObject).sha;
   const currentSha = await fileSha(base);
   if (currentSha !== p.baseFileSha)
     throw new StudioError(
@@ -177,19 +192,21 @@ async function advance(p: Publication): Promise<Publication> {
       `git/ref/heads/${encodeURIComponent(p.branch!)}`
     );
     if (existing) {
-      const commit = await github(`git/commits/${existing.object.sha}`);
+      const commit = await github(
+        `git/commits/${(existing.object as GitHubObject).sha}`
+      );
       if (
         String(commit.message).replace(/\n+$/, '') !==
           message(p).replace(/\n+$/, '') ||
-        (await fileSha(existing.object.sha)) !== p.sourceSha
+        (await fileSha((existing.object as GitHubObject).sha)) !== p.sourceSha
       )
         throw new StudioError(
           409,
           'The publication branch contains unexpected content.'
         );
       p = await patch(p.id, {
-        proposalCommit: existing.object.sha,
-        base: (commit.parents as any[])[0].sha,
+        proposalCommit: (existing.object as GitHubObject).sha,
+        base: (commit.parents as GitHubObject[])[0].sha,
       });
     } else {
       const commit = await makeCommit(p, base);
@@ -206,7 +223,7 @@ async function advance(p: Publication): Promise<Publication> {
     });
     branchRef = { object: { sha: p.proposalCommit } };
   }
-  if (branchRef.object.sha !== p.proposalCommit)
+  if ((branchRef.object as GitHubObject).sha !== p.proposalCommit)
     throw new StudioError(
       409,
       'The publication proposal changed outside Music.'
@@ -219,7 +236,7 @@ async function advance(p: Publication): Promise<Publication> {
     const owner = required('STUDIO_GITHUB_REPOSITORY').split('/')[0];
     const matches = (await github(
       `pulls?state=all&head=${encodeURIComponent(`${owner}:${p.branch}`)}&base=${encodeURIComponent(branch)}`
-    )) as unknown as any[];
+    )) as unknown as GitHubPullRequest[];
     const pr =
       matches[0] ??
       (await github('pulls', 'POST', {
@@ -234,7 +251,7 @@ async function advance(p: Publication): Promise<Publication> {
     });
   }
   const pr = await github(`pulls/${p.pullRequestNumber}`);
-  if ((pr.head as any).sha !== p.proposalCommit)
+  if ((pr.head as GitHubObject).sha !== p.proposalCommit)
     throw new StudioError(
       409,
       'The publication proposal changed outside Music.'
@@ -246,7 +263,7 @@ async function advance(p: Publication): Promise<Publication> {
     });
   if (pr.state !== 'open')
     throw new StudioError(409, 'The publication pull request was closed.');
-  const runs: any[] = [];
+  const runs: GitHubCheckRun[] = [];
   for (let page = 1; page <= 10; page++) {
     const checkPath = `commits/${p.proposalCommit}/check-runs?per_page=100&page=${page}`;
     let checks: Record<string, unknown>;
@@ -259,7 +276,7 @@ async function advance(p: Publication): Promise<Publication> {
         throw error;
       checks = await github(checkPath, 'GET', undefined, false);
     }
-    runs.push(...(checks.check_runs as any[]));
+    runs.push(...(checks.check_runs as GitHubCheckRun[]));
     if (runs.length >= Number(checks.total_count)) break;
     if (page === 10)
       throw new StudioError(502, 'GitHub returned too many checks to verify.');
@@ -283,14 +300,14 @@ async function advance(p: Publication): Promise<Publication> {
   if (
     pr.mergeable !== true ||
     !['clean', 'unstable'].includes(String(pr.mergeable_state)) ||
-    (pr.base as any).sha !== base ||
+    (pr.base as GitHubObject).sha !== base ||
     !requiredRuns.some(
       (run) => run.status === 'completed' && run.conclusion === 'success'
     )
   )
     return p;
   const latest = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  if ((latest.object as any).sha !== base) return p;
+  if ((latest.object as GitHubObject).sha !== base) return p;
   const store = musicStore(),
     revision = await store.revision(p.revisionId);
   if (!revision || (await store.head())?.id !== p.revisionId)
@@ -404,7 +421,7 @@ export async function publishMusic(
       const artifact = musicArtifact(revisionId, revision.body),
         branch = required('STUDIO_GITHUB_BRANCH'),
         base = await github(`git/ref/heads/${encodeURIComponent(branch)}`),
-        published = await githubCatalog((base.object as any).sha),
+        published = await githubCatalog((base.object as GitHubObject).sha),
         baseSha = published.sha;
       const manifest = await approvedManifest();
       if (baseSha !== manifest.sourceSha) {

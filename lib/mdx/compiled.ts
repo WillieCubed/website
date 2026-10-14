@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { ComponentType } from 'react';
 
-import { generatedMdx } from '@/lib/generated-mdx';
+import { generatedMdx } from '@/lib/mdx/generated';
 
 export type CompiledMdxKind = 'writing' | 'narrative';
 

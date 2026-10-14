@@ -1,0 +1,94 @@
+.home {
+  .tile,
+  .product,
+  .d-media,
+  .d-links a {
+    transition-property:
+      background-color, color, box-shadow, border-color, filter, opacity,
+      translate, rotate, scale, outline-offset, outline-color;
+    transition-duration: 420ms;
+    transition-timing-function: var(--ease-site);
+  }
+  .head,
+  .body h3,
+  .body p,
+  .count b,
+  .count > span,
+  .active,
+  .active b,
+  .hint i,
+  .product-text b,
+  .product-text em {
+    transition:
+      color 380ms var(--ease-site),
+      border-color 380ms var(--ease-site),
+      opacity 240ms var(--ease-site),
+      translate 320ms var(--ease-site);
+  }
+  .tile[data-branded]:is(.hover, .hit) {
+    background: var(--b-surface-container-high);
+  }
+  .tile[data-branded]:is(.hover, .hit)
+    :is(.head, .body p, .count > span, .active) {
+    color: var(--b-on-surface-variant);
+  }
+  .tile[data-branded]:is(.hover, .hit) :is(.body h3, .active b) {
+    color: var(--b-on-surface);
+  }
+  .tile[data-branded]:is(.hover, .hit) :is(.count b, .hint i, .hint span) {
+    color: var(--b-primary);
+  }
+  .tile[data-branded]:is(.hover, .hit) .active {
+    border-color: var(--b-outline-variant);
+  }
+  .tile[data-branded]:is(.hover, .hit) .shot {
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--color-scrim) 5%, transparent),
+      0 22px 44px -22px color-mix(in srgb, var(--b-primary) 55%, transparent);
+  }
+  .tile[data-branded]:is(.hover, .hit) .constellation line {
+    stroke: var(--b-primary);
+  }
+  .tile[data-branded]:is(.hover, .hit) .constellation circle {
+    fill: var(--b-primary);
+  }
+  .product[data-branded]:is(:hover, :focus-visible) {
+    background: var(--b-primary-container);
+  }
+  .product[data-branded]:is(:hover, :focus-visible) .product-text b {
+    color: var(--b-on-primary-container);
+  }
+  .product[data-branded]:is(:hover, :focus-visible) .product-text em {
+    color: var(--b-on-primary-container);
+  }
+  dialog.detail[data-branded] {
+    --scrollbar-thumb: color-mix(in srgb, var(--b-primary) 45%, transparent);
+    --scrollbar-thumb-hover: var(--b-primary);
+    background: var(--b-surface-container-low);
+  }
+  dialog.detail[data-branded] .d-media {
+    background: var(--b-surface-container-high);
+  }
+  dialog.detail[data-branded] :is(.d-kicker, .d-count b) {
+    color: var(--b-primary);
+  }
+  dialog.detail[data-branded] .d-links a {
+    background: var(--b-secondary-container);
+    color: var(--b-on-secondary-container);
+  }
+  dialog.detail[data-branded] .d-links a:first-child {
+    background: var(--b-primary);
+    color: var(--b-on-primary);
+  }
+  dialog.detail[data-branded] .d-list li {
+    border-color: var(--b-outline-variant);
+  }
+  dialog.detail[data-branded] .constellation line {
+    stroke: var(--b-primary);
+  }
+  dialog.detail[data-branded] .constellation circle {
+    fill: var(--b-primary);
+  }
+
+  /* Detail view */
+}

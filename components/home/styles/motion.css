@@ -1,0 +1,144 @@
+/* While a detail is open it is the only thing that scrolls, so a wheel or
+   swipe anywhere on it moves its content instead of the hidden page. */
+html:has(dialog.detail[open]) {
+  overflow: hidden;
+}
+
+@keyframes fan {
+  from {
+    rotate: 0deg;
+    translate: 0 12px;
+  }
+}
+
+@keyframes rise {
+  from {
+    translate: 0 10px;
+  }
+}
+
+@keyframes settle {
+  0% {
+    scale: 0.9;
+    opacity: 0.55;
+  }
+  38%,
+  62% {
+    scale: 1;
+    opacity: 1;
+  }
+  100% {
+    scale: 0.9;
+    opacity: 0.55;
+  }
+}
+
+/* A tile and its detail view trade the `card` name (DetailDialog), and the
+   card morphs the way the command palette does: both snapshots keep their
+   natural size, pinned to the top left, and the growing box clips them, so
+   the view is uncovered rather than its text stretched out of a tile. The
+   `media` pair is the same picture or number on both sides, so it scales
+   to fill its box. */
+::view-transition-group(card),
+::view-transition-group(media) {
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-image-pair(card) {
+  overflow: clip;
+  border-radius: 18px;
+}
+/* Clipping cuts the dialog's shadow out of its snapshot, so the box wears
+   it instead: it lifts in as the view opens, holds through a swap, and
+   settles away as the view closes into its tile, rather than popping at
+   either end. */
+:root {
+  --detail-shadow: 0 40px 80px -40px
+    color-mix(in srgb, var(--color-scrim) 55%, transparent);
+}
+html[data-detail-morph]::view-transition-image-pair(card) {
+  box-shadow: var(--detail-shadow);
+}
+html[data-detail-morph='open']::view-transition-image-pair(card) {
+  animation: detail-lift 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html[data-detail-morph='close']::view-transition-image-pair(card) {
+  animation: detail-lift 480ms cubic-bezier(0.2, 0.8, 0.2, 1) reverse both;
+}
+@keyframes detail-lift {
+  from {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+::view-transition-old(card),
+::view-transition-new(card) {
+  width: 100%;
+  height: 100%;
+  object-fit: none;
+  object-position: left top;
+  animation-duration: 260ms;
+}
+::view-transition-old(media),
+::view-transition-new(media) {
+  height: 100%;
+  object-fit: cover;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+}
+/* The detail view's backdrop animates itself (above), so the page does not
+   crossfade under its morphs. */
+html[data-detail-morph]::view-transition-old(root) {
+  animation: none;
+  opacity: 0;
+}
+html[data-detail-morph]::view-transition-new(root) {
+  animation: none;
+}
+
+/* A short desktop window still keeps every focus above the contact row. */
+@media (min-width: 840px) and (max-height: 800px) {
+  .home .statement {
+    margin-top: 24px;
+  }
+  .home .focuses {
+    margin-top: 24px;
+  }
+  .home .focus {
+    padding-block: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  .home dialog.detail[open] * {
+    animation: none !important;
+  }
+  .home *,
+  .home *::before,
+  .home *::after {
+    transition-duration: 0ms !important;
+  }
+  .home .shot[data-media],
+  .home .atlas-field[data-media] {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :is(.tile, .product, dialog.detail) {
+    border: 1px solid CanvasText;
+  }
+  .pager button::after {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+  .pager button[aria-current='true']::after {
+    background: Highlight;
+  }
+}

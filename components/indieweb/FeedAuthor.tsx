@@ -1,4 +1,4 @@
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 
 /**
  * The author of an h-feed, for parsers. Entries inside the feed inherit it,

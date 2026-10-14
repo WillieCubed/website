@@ -1,7 +1,7 @@
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
-import type { WritingData } from '@/lib/writings';
+import type { WritingData } from '@/lib/writings/index';
 
 interface PostNavigationProps {
   /** The post published before this one. */

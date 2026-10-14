@@ -6,7 +6,7 @@ import { flushSync } from 'react-dom';
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
 import SiteLink from '@/components/link/SiteLink';
-import { usePalette } from '@/components/palette/PaletteProvider';
+import { usePalette } from '@/components/search/palette/PaletteProvider';
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import TopBar from '@/components/site/TopBar';
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
@@ -18,7 +18,7 @@ import {
   listeningTime,
   moveItem,
 } from '@/lib/music/presentation';
-import { spotifyProfileUrl } from '@/lib/site';
+import { spotifyProfileUrl } from '@/lib/site/identity';
 
 import MusicCover from './MusicCover';
 import MusicScrollCue from './MusicScrollCue';

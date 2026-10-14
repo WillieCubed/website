@@ -21,7 +21,7 @@ hover or keyboard focus describing the destination. External destinations
 render as plain anchors, with `rel="noopener"` by default and no card. Hash
 links never get a card.
 
-`isInternalHref()` in `lib/site.ts` determines whether the destination is on
+`isInternalHref()` in `lib/site/urls.ts` determines whether the destination is on
 the canonical origin. It accepts site paths beginning with `/` and absolute
 HTTP(S) URLs only when URL parsing resolves them to that origin. A spelling
 prefix is insufficient: `https://willie.page.evil.com` and `//other.example`
@@ -160,7 +160,7 @@ The registry in `lib/entities/registry.ts` supplies a kind, title, description,
 optional cover, optional brand seed, and a line of context for each destination.
 Content pages come from their loaders. Hand-written pages are listed in
 `STATIC_PAGES` in `lib/entities/pages.ts`, mostly from `sitePages` in
-`lib/site.ts`. A page outside that list, such as `/search`, which stays out of
+`lib/site/navigation.ts`. A page outside that list, such as `/search`, which stays out of
 the sitemap, receives its own `STATIC_PAGES` entry.
 
 A destination missing from the registry gets no card. For a public page that

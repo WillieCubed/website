@@ -20,15 +20,15 @@ The Next.js app serves the whole site. The static Cloudflare Worker that served
 the homepage prototype on willie.page is retired; the homepage is now the
 `/` route.
 
-| Host                  | Role                                  | Where it is configured               |
-| --------------------- | ------------------------------------- | ------------------------------------ |
-| `willie.page`         | canonical origin                      | `lib/site.ts` (`site.origin`)        |
-| `preview.willie.page` | private writing preview behind Access | `cloudflare.config.ts`               |
-| `www.willie.page`     | 308 to the apex, path for path        | `site.legacyHosts`, `next.config.ts` |
-| `williecubed.me`      | 308 to willie.page, path for path     | `site.legacyHosts`, `next.config.ts` |
-| `www.williecubed.me`  | 308 to willie.page, path for path     | `site.legacyHosts`, `next.config.ts` |
-| `tour.willie.page`    | 307 to `/initiatives/fall-tour-2026`  | `site.aliasHosts`, `next.config.ts`  |
-| `diaries.willie.page` | 307 to `/initiatives/twd`             | `site.aliasHosts`, `next.config.ts`  |
+| Host                  | Role                                  | Where it is configured                 |
+| --------------------- | ------------------------------------- | -------------------------------------- |
+| `willie.page`         | canonical origin                      | `lib/site/identity.ts` (`site.origin`) |
+| `preview.willie.page` | private writing preview behind Access | `cloudflare.config.ts`                 |
+| `www.willie.page`     | 308 to the apex, path for path        | `site.legacyHosts`, `next.config.ts`   |
+| `williecubed.me`      | 308 to willie.page, path for path     | `site.legacyHosts`, `next.config.ts`   |
+| `www.williecubed.me`  | 308 to willie.page, path for path     | `site.legacyHosts`, `next.config.ts`   |
+| `tour.willie.page`    | 307 to `/initiatives/fall-tour-2026`  | `site.aliasHosts`, `next.config.ts`    |
+| `diaries.willie.page` | 307 to `/initiatives/twd`             | `site.aliasHosts`, `next.config.ts`    |
 
 The 308 redirects preserve older links after the move to the canonical host.
 Initiative aliases use 307 redirects because their destinations can change:
@@ -37,7 +37,7 @@ full URL identifies that particular trip.
 
 ### Connect the hostname to its application rule
 
-The redirect table is code. Adding a host means one line in `lib/site.ts`
+The redirect table is code. Adding a host means one line in `lib/site/identity.ts`
 and then attaching the hostname to the hosting project so requests for it
 reach the app at all. A redirect rule for a host that is not attached does
 nothing.
@@ -490,7 +490,7 @@ does not establish the result for a later installation.
 
 The site defaults to `hello@willie.page` and `projects@willie.page`, configured
 through `NEXT_PUBLIC_EMAIL_HELLO` and `NEXT_PUBLIC_EMAIL_PROJECTS` in
-`site.emails` (`lib/site.ts`). Receiving mail at those addresses requires
+`site.emails` (`lib/site/identity.ts`). Receiving mail at those addresses requires
 Cloudflare Email Routing on the zone. A rendered `mailto:` link establishes
 only the address the visitor can use; verify routing before claiming delivery
 works. Legacy web-host redirects are a separate HTTP configuration.

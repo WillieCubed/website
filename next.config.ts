@@ -1,12 +1,12 @@
 import withMDX from '@next/mdx';
 import type { NextConfig } from 'next/types';
 
-import { siteHeaders } from './lib/response-headers';
-import { site } from './lib/site';
+import { siteHeaders } from './lib/http/response-headers';
+import { site } from './lib/site/identity';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // humans.txt's Last update line. Next inlines this into the bundle while
+  // The credits document's Last update line. Next inlines this into the bundle while
   // building, so a request long after still reads the build's own time.
   env: { SITE_BUILT_AT: new Date().toISOString() },
   async headers() {
@@ -26,8 +26,8 @@ const nextConfig: NextConfig = {
   },
   /**
    * Host redirects live here rather than in a dashboard so they are
-   * versioned and work on any host that runs next.config. Every hostname
-   * below must also be attached to the deployment (docs/guides/operations/deploy.md).
+   * versioned and work on any host that loads the configuration. Every hostname
+   * below must also be attached to the deployment.
    */
   async redirects() {
     const legacy = site.legacyHosts.map((host) => ({

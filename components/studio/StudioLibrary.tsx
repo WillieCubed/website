@@ -9,7 +9,7 @@ import Button from '@/components/site/Button';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
-import { formatDate } from '@/lib/site';
+import { formatDate } from '@/lib/site/dates';
 import type { Draft, EditorNode } from '@/lib/studio/types';
 
 import { studioRequest } from './api';

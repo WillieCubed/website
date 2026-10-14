@@ -16,7 +16,7 @@ import {
   type StateStore,
 } from '@atcute/oauth-node-client';
 
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 
 import { socialSettings } from './config';
 import { validateBrowserBinding } from './oauth-binding';

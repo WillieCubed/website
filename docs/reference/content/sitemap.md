@@ -1,7 +1,7 @@
 # Sitemap
 
 `/sitemap` is a directory for visitors; the XML sitemap lists canonical pages
-for crawlers. Both use the page registry in `lib/site.ts` and share published
+for crawlers. Both use the page registry in `lib/site/navigation.ts` and share published
 content selection. Feeds, downloads, and other public resources come from
 `lib/indieweb/resources.ts`.
 

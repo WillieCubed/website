@@ -12,8 +12,8 @@ import {
   webPageLd,
   websiteLd,
 } from '@/lib/seo/jsonld';
-import { pageMetadata } from '@/lib/site';
-import { getTagGroup, getTagParams } from '@/lib/writings';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { getTagGroup, getTagParams } from '@/lib/writings/index';
 import {
   tagFeedPaths,
   tagFromParam,

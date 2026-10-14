@@ -1,10 +1,11 @@
-import { handleIntrospection } from '@/lib/indieweb/indieauth-endpoints';
-import { indieAuthEndpointOptions } from '@/lib/indieweb/indieauth-storage';
+import { handleIntrospection } from '@/lib/indieweb/indieauth/endpoints';
+import { indieAuthEndpointOptions } from '@/lib/indieweb/indieauth/storage';
 import { jsonError } from '@/lib/indieweb/responses';
 
 /**
- * The IndieAuth token introspection endpoint (RFC 7662). Callers send
- * `Authorization: Bearer $INDIEAUTH_INTROSPECTION_SECRET` and a form `token`.
+ * Return whether the form token is active and its authorization details.
+ * Require the INDIEAUTH_INTROSPECTION_SECRET bearer token; unknown or
+ * expired tokens return active: false.
  */
 export async function POST(request: Request) {
   try {

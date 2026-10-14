@@ -2,11 +2,11 @@ import {
   generateActivityAtomFeed,
   generateActivityJsonFeed,
   generateActivityRssFeed,
-} from '@/lib/feeds';
+} from '@/lib/indieweb/feeds/index';
 import type {
   ActivityFeedItem,
   ActivityFeedRouteConfig,
-} from '@/lib/indieweb/types';
+} from '@/lib/indieweb/webmention/types';
 import { webSubLinkHeader } from '@/lib/indieweb/websub-discovery';
 
 export type ActivityFeedFormat = 'rss' | 'atom' | 'json';

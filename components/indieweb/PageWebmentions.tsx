@@ -2,8 +2,8 @@ import WebmentionSection, {
   hasVisibleWebmentions,
 } from '@/components/indieweb/WebmentionSection';
 
-import { publicWebmentionsForTarget } from '@/lib/indieweb/public-webmention-reads';
-import type { WebmentionGroup } from '@/lib/indieweb/types';
+import { publicWebmentionsForTarget } from '@/lib/indieweb/webmention/public-reads';
+import type { WebmentionGroup } from '@/lib/indieweb/webmention/types';
 
 interface PageWebmentionsProps {
   /** The page's canonical URL, the target its mentions were sent to. */

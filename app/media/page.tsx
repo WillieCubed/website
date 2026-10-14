@@ -2,10 +2,15 @@ import SiteLink from '@/components/link/SiteLink';
 import MediaMention from '@/components/media/MediaMention';
 import TopBar from '@/components/site/TopBar';
 
-import { type MediaMention as Mention, getMediaMentions } from '@/lib/media';
-import { pageMetadata, site, sitePage } from '@/lib/site';
+import {
+  type MediaMention as Mention,
+  getMediaMentions,
+} from '@/lib/media/content';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { site } from '@/lib/site/identity';
+import { sitePage } from '@/lib/site/navigation';
 
-import './media.css';
+import '../../components/media/media.css';
 
 const mediaPage = sitePage('/media');
 

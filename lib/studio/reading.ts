@@ -1,7 +1,7 @@
 import readingTime from 'reading-time';
 import sanitizeHtml from 'sanitize-html';
 
-import { renderFeedHtml } from '@/lib/feeds/html';
+import { renderFeedHtml } from '@/lib/indieweb/feeds/html';
 import type { WritingData } from '@/lib/writings';
 import { writingText } from '@/lib/writings/content';
 

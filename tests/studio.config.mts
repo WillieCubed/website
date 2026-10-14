@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { join } from 'node:path';
 
 export default defineConfig({
-  testDir: './e2e',
+  outputDir: join(import.meta.dirname, '../test-results/studio'),
+  testDir: './e2e/site/studio',
   testMatch: 'studio.spec.mts',
   fullyParallel: false,
   workers: 1,

@@ -1,7 +1,7 @@
 // Generates every WillieCubed brand asset, and the manifest the
 // willie.page/brand download page renders, from one geometry and one palette.
-// Run `pnpm brand:build` after changing either; never edit files under
-// public/brand or lib/brand/kit.json by hand.
+// Run `pnpm brand:build` after changing either; never edit generated assets
+// or their catalog by hand.
 import { Resvg } from '@resvg/resvg-js';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -145,7 +145,7 @@ const mark = {
       `${bg ? `<rect width="512" height="512" fill="${bg}"/>` : ''}${facetSvg(facets({ cx: 256, cy: 256, r }), colors)}`,
       'WillieCubed'
     ),
-  // The bare cube, cropped to its drawn edge like components/brand/Mark.tsx,
+  // The bare cube, cropped to its drawn edge,
   // so the file's box is the cube's box.
   cube: (colors, small = false) => {
     const box = cubeBounds(facets(tuned({ cx: 0, cy: 0, r: 250 }, small)));
@@ -196,7 +196,7 @@ const GAP = 0.25;
 
 // ---------- Usage rules ----------
 
-// Every rule on willie.page/brand and in guidelines.json comes from here.
+// Every rule on the brand page and in its downloadable guidelines comes from here.
 // Clear space is one unit, x: the lockup's cube-to-name gap, so x is a
 // quarter of the cube's drawn height in every file. At or below
 // SMALL_MAX_PX, each mark switches to its -small cut with wider gaps.
@@ -927,13 +927,13 @@ fs.copyFileSync(
   path.join(OUT, 'web/apple-touch-icon.png'),
   path.join(PUBLIC, 'apple-touch-icon.png')
 );
-// The site serves its own manifest from app/manifest.ts, with colors from
-// lib/theme; web/manifest.webmanifest stays in the kit only.
+// The site's own web manifest uses shared theme colors. The generated
+// web manifest stays in the downloadable kit only.
 
 // ---------- Usage rules for people and agents ----------
 
-// The rules below render on /brand from kit.json and ship as
-// guidelines.json and guidelines.md, so a person reading the page and an
+// The rules below render on the brand page from the generated catalog and ship as
+// structured and readable guidelines, so a person reading the page and an
 // agent reading the kit follow the same numbers.
 const SITE = 'https://willie.page';
 const siteUrl = (rel) => `${SITE}/brand/${rel}`;
@@ -1115,7 +1115,7 @@ const guidelines = {
   prohibited: PROHIBITED,
   exceptions: EXCEPTIONS,
   files: Object.entries(ENTRIES).map(([name, e]) => {
-    const { cube, ...usage } = e.usage;
+    const { cube: _cube, ...usage } = e.usage;
     const m = MARKS[name];
     return {
       name,
@@ -1239,9 +1239,8 @@ const zipBytes = fs.statSync(path.join(OUT, 'williecubed-brand.zip')).size;
 
 // ---------- Manifest for /brand ----------
 
-// app/brand/page.tsx renders the download page from this list, inside the
-// site's own layout, so every label, note, and size it shows comes from the
-// files written above.
+// The brand download page renders this list inside the site's own layout,
+// so every label, note, and size comes from the generated assets.
 function oklch(hex) {
   const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
   const [r, g, b] = [1, 3, 5].map((i) =>

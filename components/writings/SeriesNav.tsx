@@ -1,6 +1,6 @@
 import SiteLink from '@/components/link/SiteLink';
 
-import { SeriesDefinition, WritingData } from '@/lib/writings';
+import { SeriesDefinition, WritingData } from '@/lib/writings/index';
 
 interface SeriesNavProps {
   series: SeriesDefinition;

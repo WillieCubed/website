@@ -3,7 +3,7 @@
 import SiteLink from '@/components/link/SiteLink';
 import Button from '@/components/site/Button';
 
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 
 import type { WritingController } from './useWritingController';
 

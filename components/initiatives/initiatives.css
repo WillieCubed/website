@@ -1,5 +1,5 @@
 /*
- * Initiative and part pages. The tokens come from app/globals.css; a page
+ * Initiative and part pages. The tokens come from the shared theme; a page
  * that carries a brand sets --b-* custom properties inline, and the rules
  * below fall back to the site's neutral palette when it does not.
  */

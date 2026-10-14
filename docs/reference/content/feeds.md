@@ -9,8 +9,8 @@ initiatives, and dated projects; writings and tag feeds offer narrower choices.
 Activity feeds contain approved responses from other websites, called
 Webmentions, rather than new articles.
 
-In the implementation, `lib/feeds/items.ts` selects site and writings content,
-`lib/feeds/index.ts` converts and serializes it, and the route handlers serve
+In the implementation, `lib/indieweb/feeds/items.ts` selects site and writings content,
+`lib/indieweb/feeds/index.ts` converts and serializes it, and the route handlers serve
 the response. Activity uses `lib/indieweb/activity-feed-route.ts`. This
 separation matters when extending a feed: selecting an item and expressing it as
 RSS are different changes.
@@ -73,7 +73,7 @@ in RSS, `<content type="html">` in Atom, and `content_html` in JSON Feed.
 
 ### Turning a page into portable HTML
 
-`renderFeedHtml` in `lib/feeds/html.ts` renders MDX without React. Feed readers
+`renderFeedHtml` in `lib/indieweb/feeds/html.ts` renders MDX without React. Feed readers
 run no site scripts and load no site styles, so the renderer preserves meaning
 with ordinary elements. A `Callout` becomes an `<aside>`, a `Ref` becomes a
 link, image components become `<figure>` elements, and an embed becomes a link
@@ -110,9 +110,9 @@ conversion from those records to `FeedItem`, the shared representation used by
 all three formats. Keep publication rules in the loader and item converter so an
 RSS subscriber receives the same eligible records as an Atom subscriber.
 
-1. Add a `<type>ToFeedItem` function in `lib/feeds/index.ts`, alongside
+1. Add a `<type>ToFeedItem` function in `lib/indieweb/feeds/index.ts`, alongside
    `writingToFeedItem`, `initiativeToFeedItem`, and `projectToFeedItem`.
-2. Load eligible records in `lib/feeds/items.ts`, convert them, and add them to
+2. Load eligible records in `lib/indieweb/feeds/items.ts`, convert them, and add them to
    the collection used by the routes that should include the new type.
 3. Preserve the newest-first order in the item loader. Generators do not sort.
 4. Review the full HTML and attachments in all three formats; a correct title

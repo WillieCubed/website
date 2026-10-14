@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import MusicExperience from '@/components/music/MusicExperience';
 
 import { publicCollection } from '@/lib/music/public';
-import { canonicalUrl } from '@/lib/site';
+import { canonicalUrl } from '@/lib/site/urls';
 
 export async function generateMetadata({
   searchParams,

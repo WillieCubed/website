@@ -41,7 +41,7 @@ jobs:
         with:
           node-version: 24
 
-      # Reads the pnpm version from `packageManager` in package.json.
+      # Install the package manager version declared by the project.
       - uses: pnpm/action-setup@v6
         with:
           cache: true
@@ -53,7 +53,7 @@ jobs:
       - run: pnpm build
 
   # Browser smoke tests and axe checks against a production build started
-  # locally (`pnpm build`, then `pnpm start` from playwright.config.mts).
+  # locally using the browser suite's production server configuration.
   # A separate job so the required `ci` check is not slowed, and not
   # required itself yet.
   smoke:

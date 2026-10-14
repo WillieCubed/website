@@ -1,8 +1,8 @@
 import { getEntityRegistry } from '@/lib/entities/registry';
 
 /**
- * The hover-card registry. Fetched once per visit by SiteLink on first
- * intent, so a page with a hundred links costs one small request.
+ * Return page and content metadata indexed by link target for hover cards.
+ * Include titles, descriptions, and available preview details.
  */
 export async function GET() {
   const registry = await getEntityRegistry();

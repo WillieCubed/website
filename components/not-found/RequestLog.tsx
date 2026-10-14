@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 
-import { isParkedPath } from '@/lib/site';
+import { isParkedPath } from '@/lib/site/navigation';
 
 import { describeArrival } from './arrival';
 import { closestPath } from './closest';

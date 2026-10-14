@@ -1,5 +1,9 @@
 import { SITE_URL } from '@/lib/indieweb/constants';
-import { getBearerToken, micropubTokenStatus } from '@/lib/indieweb/indieauth';
+import type { IndieAuthStore } from '@/lib/indieweb/indieauth/types';
+import {
+  getBearerToken,
+  micropubTokenStatus,
+} from '@/lib/indieweb/indieauth/verify';
 import {
   type MediaStore,
   MediaUploadError,
@@ -12,9 +16,8 @@ import {
   authorizationError,
   readMicropubAccessToken,
   withMicropubCors,
-} from '@/lib/indieweb/micropub-endpoint';
+} from '@/lib/indieweb/micropub/endpoint';
 import { jsonError, jsonResponse } from '@/lib/indieweb/responses';
-import type { IndieAuthStore } from '@/lib/indieweb/types';
 
 export interface MediaEndpointOptions {
   mediaStore?: MediaStore | null;

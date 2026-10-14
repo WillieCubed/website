@@ -8,7 +8,7 @@ import { StudioError } from './errors';
 /** No development bypass: the same signed Access identity gates every origin. */
 export async function authorizeStudio(
   request: Request,
-  env: NodeJS.ProcessEnv = process.env,
+  env: Record<string, string | undefined> = process.env,
   verifyKey?: JWTVerifyGetKey
 ): Promise<{ email: string }> {
   if (!isPrivatePreview(env)) throw new StudioError(404, 'Not found');

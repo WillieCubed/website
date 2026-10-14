@@ -2,16 +2,15 @@ import { SITE_NAME, SITE_URL } from '@/lib/indieweb/constants';
 import { buildOEmbedResponse } from '@/lib/indieweb/oembed';
 import { jsonError, jsonResponse } from '@/lib/indieweb/responses';
 import { plainTextExcerpt, sameOrigin } from '@/lib/indieweb/utils';
-import { absoluteUrl, site } from '@/lib/site';
-import { getPublishedWriting } from '@/lib/writings';
+import { site } from '@/lib/site/identity';
+import { absoluteUrl } from '@/lib/site/urls';
+import { getPublishedWriting } from '@/lib/writings/index';
 
 /**
- * oEmbed provider endpoint.
- *
- * Embed-aware tools get a small, stable representation for any page on the
- * site. Writings resolve to their real title and description, and a draft
- * or missing writing gets a 404; every other path falls back to a title
- * derived from the last path segment.
+ * Return oEmbed metadata for the same-origin URL supplied in the url query
+ * parameter. Published writings use their authored title and description;
+ * other paths use a title derived from the URL. Return 400 for a missing URL
+ * and 404 for an unsupported URL or unavailable writing.
  */
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);

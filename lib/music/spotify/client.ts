@@ -21,7 +21,7 @@ export class SpotifyClient {
     private token: string,
     private request: typeof fetch = fetch
   ) {}
-  async get(path: string): Promise<any> {
+  async get(path: string): Promise<Record<string, unknown>> {
     const url = new URL(path, 'https://api.spotify.com/v1/');
     if (
       url.origin !== 'https://api.spotify.com' ||
@@ -42,8 +42,8 @@ export class SpotifyClient {
       );
     return response.json();
   }
-  async pages(path: string): Promise<any[]> {
-    const items: any[] = [];
+  async pages<T = unknown>(path: string): Promise<T[]> {
+    const items: T[] = [];
     let next: string | null = path;
     const seen = new Set<string>();
     while (next) {
@@ -54,7 +54,7 @@ export class SpotifyClient {
       if (!Array.isArray(page.items))
         throw new Error('Spotify returned invalid items.');
       items.push(...page.items);
-      next = page.next ?? null;
+      next = (page.next as string | null | undefined) ?? null;
     }
     return items;
   }

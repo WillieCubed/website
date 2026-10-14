@@ -1,12 +1,12 @@
 # Titles and social previews
 
-Use `pageMetadata()` from `lib/site.ts` for page titles and social previews.
+Use `pageMetadata()` from `lib/seo/metadata.ts` for page titles and social previews.
 A social title must identify its subject when separated from the page and must
 not append the site name. Browser document titles keep the site suffix because
 they appear in a different context.
 
 Run `pnpm test` after changing metadata.
-`tests/unit/seo-metadata.test.mts` checks the contract described here; external
+`tests/unit/seo/seo-metadata.test.mts` checks the contract described here; external
 services' rendering and truncation require their own evidence.
 
 ## The rule
@@ -58,7 +58,7 @@ name again. Preserve that distinction when revising the headline.
 When a page supplies its own OpenGraph metadata, those fields replace the
 parent layout's OpenGraph object rather than merging into it. A page that
 sets only its title can therefore lose the site's name and other shared
-fields. `pageMetadata()` in `lib/site.ts` repeats those fields while setting
+fields. `pageMetadata()` in `lib/seo/metadata.ts` repeats those fields while setting
 `og:title` and `twitter:title` to the page's bare title. Pass the page's facts
 to the helper so you do not have to reconstruct the shared metadata on every
 route.
@@ -76,7 +76,7 @@ social title.
 ### Read top-level labels from their common source
 
 Top-level pages get their label and description from `sitePages` in
-`lib/site.ts` through `sitePage(path)`. Their metadata, social image, hover card,
+`lib/site/navigation.ts` through `sitePage(path)`. Their metadata, social image, hover card,
 and site search all read that entry. A change to the label should therefore
 happen there, where every representation of the destination can agree.
 

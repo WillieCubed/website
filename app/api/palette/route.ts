@@ -1,12 +1,9 @@
-import { getPaletteData } from '@/lib/palette/data';
+import { getPaletteData } from '@/lib/search/palette/data';
 
 /**
- * GET /api/palette
- *
- * The places the command palette offers (lib/palette/data.ts): the latest
- * writing and initiative part, every writing, initiative, and venture. The
- * palette asks for them when it first opens, so no page carries the whole
- * list in its own payload.
+ * Return titles, URLs, and supporting text for writings, initiatives, and
+ * ventures in the command palette. Include the latest writing and current
+ * initiative part. Use the same draft visibility as the site's pages.
  */
 export async function GET() {
   return Response.json(await getPaletteData());

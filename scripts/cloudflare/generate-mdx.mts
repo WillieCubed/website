@@ -2,7 +2,7 @@ import matter from 'gray-matter';
 import { serialize } from 'next-mdx-remote/serialize';
 import { createHash } from 'node:crypto';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
-import { join, relative, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
 import remarkFrontmatter from 'remark-frontmatter';
@@ -13,75 +13,82 @@ import { remarkMentions } from '../../lib/writings/remark-mentions';
 import { remarkSidenotes } from '../../lib/writings/remark-sidenotes';
 import { remarkSpotify } from '../../lib/writings/remark-spotify';
 import { rehypeShiki } from '../../lib/writings/shiki-plugin';
+import { isMain } from '../shared/command.mts';
 
-const root = resolve(import.meta.dirname, '../..');
-const output = join(root, 'lib/generated-mdx.tsx');
-const entries: string[] = [];
-const seen = new Set<string>();
+export async function generateMdx() {
+  const root = resolve(import.meta.dirname, '../..');
+  const output = join(root, 'lib/mdx/generated.tsx');
+  const entries: string[] = [];
+  const seen = new Set<string>();
 
-async function files(directory: string): Promise<string[]> {
-  const paths: string[] = [];
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    if (entry.name.startsWith('_')) continue;
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) paths.push(...(await files(path)));
-    else if (entry.isFile() && entry.name.endsWith('.mdx')) paths.push(path);
+  async function files(directory: string): Promise<string[]> {
+    const paths: string[] = [];
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (entry.name.startsWith('_')) continue;
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) paths.push(...(await files(path)));
+      else if (entry.isFile() && entry.name.endsWith('.mdx')) paths.push(path);
+    }
+    return paths.sort();
   }
-  return paths.sort();
-}
 
-// The compiler's function body is inserted as static module code below. It is
-// never passed to Function/eval in the Worker, where both are prohibited.
-Object.assign(process.env, { NODE_ENV: 'production' });
-for (const path of [
-  ...(await files(join(root, 'content/writings'))),
-  ...(await files(join(root, 'content/projects'))),
-  ...(await files(join(root, 'content/initiatives'))),
-]) {
-  const kind = path.includes('/content/writings/') ? 'writing' : 'narrative';
-  const { data, content: rawContent } = matter(await readFile(path, 'utf8'));
-  if (kind === 'writing' && data.contentFormat) continue;
-  const content = path.includes('/content/projects/')
-    ? rawContent.trim()
-    : rawContent;
-  const key = createHash('sha256').update(`${kind}\0${content}`).digest('hex');
-  if (seen.has(key)) continue;
-  seen.add(key);
-  const mdxOptions =
-    kind === 'writing'
-      ? {
-          remarkPlugins: [
-            remarkFrontmatter,
-            remarkGfm,
-            remarkSidenotes,
-            remarkSpotify,
-            remarkMentions,
-            remarkBrews,
-          ],
-          rehypePlugins: [
-            rehypeSlug,
-            [rehypeAutolinkHeadings, { behavior: 'wrap' }] as [
-              typeof rehypeAutolinkHeadings,
-              { behavior: 'wrap' },
+  // The compiler's function body is inserted as static module code below. It is
+  // never passed to Function/eval in the Worker, where both are prohibited.
+  Object.assign(process.env, { NODE_ENV: 'production' });
+  for (const path of [
+    ...(await files(join(root, 'content/writings'))),
+    ...(await files(join(root, 'content/projects'))),
+    ...(await files(join(root, 'content/initiatives'))),
+  ]) {
+    const kind = path.includes('/content/writings/') ? 'writing' : 'narrative';
+    const { data, content: rawContent } = matter(await readFile(path, 'utf8'));
+    if (kind === 'writing' && data.contentFormat) continue;
+    const content = path.includes('/content/projects/')
+      ? rawContent.trim()
+      : rawContent;
+    const key = createHash('sha256')
+      .update(`${kind}\0${content}`)
+      .digest('hex');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const mdxOptions =
+      kind === 'writing'
+        ? {
+            remarkPlugins: [
+              remarkFrontmatter,
+              remarkGfm,
+              remarkSidenotes,
+              remarkSpotify,
+              remarkMentions,
+              remarkBrews,
             ],
-            rehypeShiki,
-          ],
-        }
-      : {
-          remarkPlugins: [remarkGfm, remarkBrews],
-          rehypePlugins: [rehypeSlug],
-        };
-  const { compiledSource } = await serialize(content, { mdxOptions }, true);
-  const runtime = /\bjsxDEV\s*:/.test(compiledSource)
-    ? 'jsxDevRuntime'
-    : 'jsxRuntime';
-  entries.push(
-    `  ${JSON.stringify(key)}: (function () {\n${compiledSource}\n})(${runtime}).default, // ${relative(root, path)}`
+            rehypePlugins: [
+              rehypeSlug,
+              [rehypeAutolinkHeadings, { behavior: 'wrap' }] as [
+                typeof rehypeAutolinkHeadings,
+                { behavior: 'wrap' },
+              ],
+              rehypeShiki,
+            ],
+          }
+        : {
+            remarkPlugins: [remarkGfm, remarkBrews],
+            rehypePlugins: [rehypeSlug],
+          };
+    const { compiledSource } = await serialize(content, { mdxOptions }, true);
+    const runtime = /\bjsxDEV\s*:/.test(compiledSource)
+      ? 'jsxDevRuntime'
+      : 'jsxRuntime';
+    entries.push(
+      `  ${JSON.stringify(key)}: (function () {\n${compiledSource}\n})(${runtime}).default,`
+    );
+  }
+
+  await writeFile(
+    output,
+    `// @ts-nocheck\n/* eslint-disable */\n// Generated compiled MDX bodies.\nimport * as jsxRuntime from 'react/jsx-runtime';\nimport * as jsxDevRuntime from 'react/jsx-dev-runtime';\nexport const generatedMdx = {\n${entries.join('\n')}\n};\n`
   );
+  console.log(`Bundled ${entries.length} MDX bodies.`);
 }
 
-await writeFile(
-  output,
-  `// @ts-nocheck\n/* eslint-disable */\n// Generated by scripts/cloudflare/generate-mdx.mts.\nimport * as jsxRuntime from 'react/jsx-runtime';\nimport * as jsxDevRuntime from 'react/jsx-dev-runtime';\nexport const generatedMdx = {\n${entries.join('\n')}\n};\n`
-);
-console.log(`Bundled ${entries.length} MDX bodies.`);
+if (isMain(import.meta.url)) await generateMdx();

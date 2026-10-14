@@ -1,11 +1,14 @@
 import {
   corsPreflight,
   handleRevocation,
-} from '@/lib/indieweb/indieauth-endpoints';
-import { indieAuthEndpointOptions } from '@/lib/indieweb/indieauth-storage';
+} from '@/lib/indieweb/indieauth/endpoints';
+import { indieAuthEndpointOptions } from '@/lib/indieweb/indieauth/storage';
 import { jsonError } from '@/lib/indieweb/responses';
 
-/** The IndieAuth token revocation endpoint (RFC 7009). */
+/**
+ * Revoke the form token and return an empty success response. Unknown tokens
+ * also succeed so callers cannot use this endpoint to test token validity.
+ */
 export async function POST(request: Request) {
   try {
     return await handleRevocation(request, indieAuthEndpointOptions());
@@ -15,6 +18,7 @@ export async function POST(request: Request) {
   }
 }
 
+/** Return the CORS preflight headers for browser-based token revocation. */
 export function OPTIONS() {
   return corsPreflight();
 }

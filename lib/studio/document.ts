@@ -6,7 +6,10 @@ import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
 import { validateMdxImageAlts } from '@/lib/accessibility/mdx-image-alt-check';
-import { auditPortableContent, renderFeedHtml } from '@/lib/feeds/html';
+import {
+  auditPortableContent,
+  renderFeedHtml,
+} from '@/lib/indieweb/feeds/html';
 
 import { catalogEntry } from './catalog';
 import { StudioError } from './errors';

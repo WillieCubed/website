@@ -2,7 +2,7 @@ import { type DefaultTreeAdapterMap, parseFragment, serialize } from 'parse5';
 
 import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import { mediaMimeForUrl } from '@/lib/indieweb/media';
-import type { ResponseMedia } from '@/lib/indieweb/types';
+import type { ResponseMedia } from '@/lib/indieweb/webmention/types';
 
 import { propertyText, propertyUrl } from './properties';
 import type { WritingData } from './types';

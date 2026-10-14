@@ -1,5 +1,5 @@
-import * as React from 'react';
 import type { ReactNode } from 'react';
+import * as React from 'react';
 
 // Next.js ships React's canary build, which has ViewTransition. Plain Node,
 // where the unit tests render components, resolves the stable build, which

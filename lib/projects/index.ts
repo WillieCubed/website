@@ -1,4 +1,4 @@
-import { showDrafts } from '@/lib/drafts';
+import { showDrafts } from '@/lib/content/visibility';
 
 import { loadAllProjects } from './load';
 import type { Project } from './schema';

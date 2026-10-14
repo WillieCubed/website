@@ -1,6 +1,8 @@
 import { defineConfig } from '@playwright/test';
+import { join } from 'node:path';
 
 export default defineConfig({
+  outputDir: join(import.meta.dirname, '../test-results/music-prototype'),
   testDir: './prototypes',
   workers: 2,
   retries: 0,

@@ -1,5 +1,12 @@
-import { OPENSEARCH_CONTENT_TYPE, buildOpenSearchXml } from '@/lib/opensearch';
+import {
+  OPENSEARCH_CONTENT_TYPE,
+  buildOpenSearchXml,
+} from '@/lib/search/opensearch';
 
+/**
+ * Return an OpenSearch description that lets browsers register the site's
+ * search URL and query parameter.
+ */
 export async function GET() {
   return new Response(buildOpenSearchXml(), {
     headers: {

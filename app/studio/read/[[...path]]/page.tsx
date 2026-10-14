@@ -5,11 +5,13 @@ import { Suspense } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 import TopBar from '@/components/site/TopBar';
+import ImportWriting from '@/components/studio/ImportWriting';
 import WritingContent from '@/components/writings/WritingContent';
 import WritingHeader from '@/components/writings/WritingHeader';
 import WritingItem from '@/components/writings/WritingItem';
 
-import { absoluteUrl, pageMetadata } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { absoluteUrl } from '@/lib/site/urls';
 import { isPrivatePreview } from '@/lib/studio/config';
 import { websitePreviewBody } from '@/lib/studio/preview';
 import { preparePublicationPreview } from '@/lib/studio/publication';
@@ -24,11 +26,9 @@ import {
   getAllWritings,
   getSeries,
   getSeriesWithWritings,
-  loadWriting,
 } from '@/lib/writings';
+import { loadWriting } from '@/lib/writings/load';
 import { normalizeTag, tagFromParam, tagPath } from '@/lib/writings/tags';
-
-import ImportWriting from './ImportWriting';
 
 export const metadata: Metadata = {
   ...pageMetadata({

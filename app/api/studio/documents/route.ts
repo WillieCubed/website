@@ -5,7 +5,7 @@ import { studioRoute } from '@/lib/studio/auth';
 import { importMdx, parseDraftContent } from '@/lib/studio/document';
 import { StudioError } from '@/lib/studio/errors';
 import { getStudioStore } from '@/lib/studio/store';
-import { readWritingFile } from '@/lib/writings';
+import { readWritingFile } from '@/lib/writings/load';
 
 export async function GET(request: Request) {
   return studioRoute(request, async () =>

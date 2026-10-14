@@ -1,4 +1,7 @@
-import type { IndieWebJsonError, JsonResponseInit } from '@/lib/indieweb/types';
+import type {
+  IndieWebJsonError,
+  JsonResponseInit,
+} from '@/lib/indieweb/http-types';
 
 export function jsonResponse<TBody>(
   body: TBody,

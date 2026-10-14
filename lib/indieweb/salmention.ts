@@ -1,13 +1,16 @@
 import { extractWritingSlugFromTarget } from '@/lib/indieweb/activity-feed';
-import { sendWebmention } from '@/lib/indieweb/send-webmention';
-import type { Webmention, WebmentionSourceWriting } from '@/lib/indieweb/types';
+import { sendWebmention } from '@/lib/indieweb/webmention/send';
 import {
   getWebmention,
   salmentionStore,
-} from '@/lib/indieweb/webmention-storage';
-import { sitePath } from '@/lib/indieweb/webmention-targets';
-import { absoluteUrl } from '@/lib/site';
-import { loadWriting } from '@/lib/writings';
+} from '@/lib/indieweb/webmention/storage';
+import { sitePath } from '@/lib/indieweb/webmention/targets';
+import type {
+  Webmention,
+  WebmentionSourceWriting,
+} from '@/lib/indieweb/webmention/types';
+import { absoluteUrl } from '@/lib/site/urls';
+import { loadWriting } from '@/lib/writings/load';
 
 /**
  * Salmention (https://indieweb.org/Salmention): when a post that answers

@@ -1,8 +1,9 @@
 import { join } from 'node:path';
 
-import { readFileSync, readdirSync } from '@/lib/runtime-files';
+import { readFileSync, readdirSync } from '@/lib/content/runtime-files';
 
-import { getPublishedWriting, getWritingSlugs } from './index';
+import { getPublishedWriting } from './index';
+import { getWritingSlugs } from './load';
 
 const HIDDEN_ITEM_PREFIX = '_';
 const writingsDirectory = join(process.cwd(), 'content/writings');

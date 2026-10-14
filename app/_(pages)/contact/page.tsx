@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 
 import SiteLink from '@/components/link/SiteLink';
 
-import { pageMetadata, site } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo/metadata';
+import { site } from '@/lib/site/identity';
 
 export const metadata: Metadata = pageMetadata({
   title: 'Contact',

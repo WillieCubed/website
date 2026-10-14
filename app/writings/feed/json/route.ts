@@ -1,12 +1,13 @@
-import { generateWritingsJsonFeed } from '@/lib/feeds';
-import { getWritingFeedItems } from '@/lib/feeds/items';
+import { generateWritingsJsonFeed } from '@/lib/indieweb/feeds/index';
+import { getWritingFeedItems } from '@/lib/indieweb/feeds/items';
 import { webSubLinkHeader } from '@/lib/indieweb/websub-discovery';
-import { absoluteRoute } from '@/lib/site';
+import { absoluteRoute } from '@/lib/site/urls';
 
 async function buildWritingsFeed() {
   return generateWritingsJsonFeed(await getWritingFeedItems());
 }
 
+/** Return published writings, newest first, as JSON Feed. */
 export async function GET() {
   const feed = await buildWritingsFeed();
 

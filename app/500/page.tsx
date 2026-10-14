@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import ServerError from '@/components/error/ServerError';
 
-import { bareSocialMetadata } from '@/lib/site';
+import { bareSocialMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = {
   title: 'Something went wrong',

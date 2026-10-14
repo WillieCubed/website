@@ -1,6 +1,6 @@
 import SiteLink from '@/components/link/SiteLink';
 
-import type { Initiative, Part } from '@/lib/initiatives';
+import type { Initiative, Part } from '@/lib/initiatives/index';
 
 interface PartNavProps {
   initiative: Initiative;

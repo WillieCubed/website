@@ -7,14 +7,14 @@ import {
   getPageColumn,
   getPageColumnOnServer,
   subscribeTopBar,
-} from '@/lib/footer/column';
-import { footerProgress } from '@/lib/footer/dock';
+} from '@/lib/site/footer/column';
+import { footerProgress } from '@/lib/site/footer/dock';
 import {
   getFooterDocked,
   getFooterDockedOnServer,
   subscribeFooterDocked,
-} from '@/lib/footer/docked';
-import { createNameReveal, waveProgress } from '@/lib/footer/name-reveal';
+} from '@/lib/site/footer/docked';
+import { createNameReveal, waveProgress } from '@/lib/site/footer/name-reveal';
 
 import './footer-dock.css';
 
@@ -23,12 +23,12 @@ const REDUCE = '(prefers-reduced-motion: reduce)';
 
 /**
  * The footer element itself. On most pages it is a plain block. On the
- * homepage, which says so by rendering DockFooter, it is the rail's contact
+ * homepage, which enables the dock controller, it is the rail's contact
  * row until the page ends and then opens into the full footer: this marks
- * it for footer-dock.css to draw and writes how far open it is as --p,
+ * it for the stylesheet to draw and writes how far open it is as --p,
  * which the stylesheet derives everything else from. It also runs the
  * name's letter wave. On every page it carries the column the top bar
- * registered (lib/footer/column.ts), so its text lines up with the page's.
+ * registered, so its text lines up with the page's.
  *
  * Both the mark and the opening are client-side, so a visitor without
  * scripting gets the plain footer rather than one stuck shut.
@@ -84,7 +84,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     let scrollHeight = 0;
     let p = 0;
     // The page above turns into a sheet as the footer opens
-    // (footer-dock.css), so the root carries the progress too, with the
+    // through the shared styles, so the root carries the progress too, with the
     // page's width as a plain number for the sheet's scale.
     const root = document.documentElement;
     root.dataset.footerDock = '';

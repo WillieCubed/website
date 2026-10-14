@@ -1,10 +1,10 @@
-import { buildIndieAuthMetadata } from '@/lib/indieweb/indieauth-server';
+import { buildIndieAuthMetadata } from '@/lib/indieweb/indieauth/server';
 import { jsonResponse } from '@/lib/indieweb/responses';
 
 /**
- * IndieAuth server metadata (RFC 8414), advertised by
- * `<link rel="indieauth-metadata">` in the head and in WebFinger. Browser
- * clients read it cross-origin, so it allows any origin.
+ * Return IndieAuth authorization, token, introspection, and revocation URLs
+ * with supported scopes and PKCE methods. Browser clients may read this
+ * metadata across origins.
  */
 export async function GET() {
   return jsonResponse(buildIndieAuthMetadata(), {

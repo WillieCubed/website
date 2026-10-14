@@ -1,0 +1,190 @@
+.home {
+  .rail {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    padding-block: var(--footer-inset)
+      calc(var(--footer-inset) + var(--footer-row-h) + 16px);
+  }
+  .statement {
+    margin: clamp(48px, 12vh, 120px) 0 0;
+    font-size: clamp(28px, 2.5vw, 36px);
+    font-weight: 500;
+    line-height: 1.18;
+    letter-spacing: -0.025em;
+  }
+  .statement b {
+    font-weight: 700;
+  }
+  .copy {
+    display: grid;
+    margin-top: 18px;
+  }
+  .copy > p {
+    max-width: 42ch;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  /* A venture's name opens its detail view in place. It reads as part of
+     the sentence, with a quiet underline, and never breaks across lines. */
+  .venture-link {
+    white-space: nowrap;
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-outline-variant);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    transition: text-decoration-color 240ms var(--ease-site);
+  }
+  .venture-link:hover,
+  .venture-link:focus-visible {
+    text-decoration-color: currentColor;
+  }
+  .statement {
+    text-wrap: balance;
+  }
+  .description {
+    color: var(--color-muted);
+  }
+
+  /* What he is working toward. Its rows sit close together and the group
+     sits well apart from search above it, so spacing alone says which
+     things belong together. A focus with work on the grid is a button on
+     a tonal surface that shows when it is pointed at; one still waiting
+     for its first tile is plain text. */
+  .focuses {
+    margin-top: 56px;
+  }
+  .focuses h2 {
+    margin: 0 0 10px;
+    color: var(--color-muted);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .focuses ul {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .focus {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 16px;
+    width: calc(100% + 24px);
+    margin-inline: -12px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-wrap: pretty;
+  }
+  span.focus {
+    color: var(--color-muted);
+    font-weight: 400;
+  }
+  span.focus .stack {
+    opacity: 0.6;
+  }
+  button.focus {
+    cursor: pointer;
+    transition:
+      background-color 320ms var(--ease-site),
+      color 320ms var(--ease-site),
+      opacity 320ms var(--ease-site),
+      filter 320ms var(--ease-site),
+      scale 180ms var(--ease-site),
+      outline-offset 280ms var(--ease-site),
+      outline-color 200ms var(--ease-site);
+  }
+  button.focus:is(:hover, :focus-visible, .hit) {
+    background: var(--color-surface-container-high);
+  }
+  button.focus[data-branded]:is(:hover, :focus-visible, .hit) {
+    background: var(--b-surface-container-high);
+    color: var(--b-on-surface);
+  }
+  /* Each focus carries its work's app icons as a small stack that fans
+     out when the row is pointed at, the way ja.mt's lists do. Icons, not
+     screenshots: at this size only a simple mark still reads. */
+  .stack {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    justify-self: center;
+    transition: scale 180ms var(--ease-site);
+  }
+  .stack i {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 9px;
+    background: var(--color-tray);
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--color-scrim) 12%, transparent),
+      0 3px 8px -2px color-mix(in srgb, var(--color-scrim) 18%, transparent);
+    font-style: normal;
+    transition:
+      rotate 460ms var(--ease-site),
+      translate 460ms var(--ease-site),
+      scale 460ms var(--ease-site),
+      box-shadow 420ms var(--ease-site);
+  }
+  .stack i img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* The cards behind sit half out to either side even at rest, so every
+     icon in the stack shows, not just its corner. */
+  .stack i:nth-last-child(2) {
+    rotate: 6deg;
+    translate: 16px 0;
+  }
+  .stack i:nth-last-child(3) {
+    rotate: -6deg;
+    translate: -16px 0;
+  }
+  button.focus:is(:hover, :focus-visible, .hit) .stack i:nth-last-child(1) {
+    translate: 0 -2px;
+    scale: 1.05;
+  }
+  button.focus:is(:hover, :focus-visible, .hit) .stack i:nth-last-child(2) {
+    rotate: 12deg;
+    translate: 22px -2px;
+  }
+  button.focus:is(:hover, :focus-visible, .hit) .stack i:nth-last-child(3) {
+    rotate: -12deg;
+    translate: -22px -2px;
+  }
+  button.focus[data-branded]:is(:hover, :focus-visible, .hit)
+    .stack
+    i:last-child {
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--b-primary) 20%, transparent),
+      0 6px 14px -4px color-mix(in srgb, var(--b-primary) 50%, transparent);
+  }
+  button.focus:active .stack {
+    scale: 0.92;
+  }
+  /* Pointing at one focus sets the others out of focus, the way Jace's
+     lists do, so the row and its tiles read as the thing being looked at. */
+  .focusing .focus:not(.hit) {
+    opacity: 0.4;
+    filter: blur(1.5px);
+  }
+
+  /* Tiles */
+}

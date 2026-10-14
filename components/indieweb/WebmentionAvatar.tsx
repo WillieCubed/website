@@ -1,6 +1,6 @@
 import SiteLink from '@/components/link/SiteLink';
 
-import type { WebmentionAuthor } from '@/lib/indieweb/types';
+import type { WebmentionAuthor } from '@/lib/indieweb/webmention/types';
 
 interface WebmentionAvatarProps {
   author: WebmentionAuthor;

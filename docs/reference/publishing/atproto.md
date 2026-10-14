@@ -322,7 +322,7 @@ Worker package; use `pnpm build:cloudflare:preview` for the preview package.
 Build each environment separately because its origin and revision are compiled
 into the output.
 
-`tests/integration/standard-oauth.mts` exercises encrypted state expiry,
+`tests/integration/atproto/oauth.test.mts` exercises encrypted state expiry,
 cancellation, callback replay, browser isolation, sign-out, and nested
 distributed locks against an isolated acceptance database. Load acceptance
 configuration into the process environment before running it with `tsx --test
@@ -330,10 +330,10 @@ configuration into the process environment before running it with `tsx --test
 
 ### Simulated browser checks
 
-For browser fixtures, copy `tests/fixtures/indieweb-acceptance.mdx` into
+For browser fixtures, copy `tests/fixtures/indieweb/publishing.mdx` into
 `content/writings/indieweb-acceptance.mdx`, build with isolated OAuth
 configuration, and run `STANDARD_SOCIAL_FIXTURE=1 pnpm exec playwright test
-tests/e2e/standard-site.spec.mts --project=desktop --workers=1`. The test uses
+tests/e2e/site/atproto/standard-site.spec.mts --project=desktop --workers=1`. The test uses
 simulated provider responses and saves desktop and 390px screenshots under
 `.playwright-mcp`. Remove the copied writing before a production build or
 commit. These checks do not prove a live account-provider grant or real PDS

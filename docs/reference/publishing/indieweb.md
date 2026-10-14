@@ -13,7 +13,7 @@ defines their observable obligations. The [HTTP checks](../../guides/publishing/
 cover verification, and [publication review](../../guides/publishing/publication-review.md)
 applies before an authored draft becomes public.
 
-Public identity comes from `lib/site.ts`: canonical origin, author name, photo,
+Public identity comes from `lib/site/identity.ts`: canonical origin, author name, photo,
 and social profiles. `lib/indieweb/constants.ts` names protocol endpoints and
 the WebSub hub. An isolated deployment sets `NEXT_PUBLIC_SITE_ORIGIN` so its
 identity and discovery links point to itself. A copied production hostname in a
@@ -206,7 +206,7 @@ The page reads Webmentions through a `'use cache'` loader with
 `cacheLife('minutes')`. Approval normally appears within about a minute without
 a deploy, while the responses remain part of the entry. Do not replace that read
 with request-time streaming without preserving the parsed structure.
-`tests/unit/webmention-display.test.mts` checks the rendered markup.
+`tests/unit/indieweb/webmention/webmention-display.test.mts` checks the rendered markup.
 
 Author photos load directly from their sites because the image optimizer accepts
 only the hosts listed in `next.config.ts`. Initiative and part pages use
@@ -223,7 +223,7 @@ and the tagline as `p-summary`. Each place contributes a `p-location h-adr` with
 
 Mentions sit outside that hero and remain standalone citations. The JSON-LD graph
 describes the same trip as a schema.org `Event` through `eventLd()` in
-`lib/seo/jsonld.ts`; `tests/unit/initiative-event.test.mts` checks the rendered
+`lib/seo/jsonld.ts`; `tests/unit/initiatives/initiative-event.test.mts` checks the rendered
 microformat.
 
 Prose handles are a separate authoring convenience. `lib/writings/remark-mentions.ts`
@@ -272,8 +272,8 @@ Only a verified mention can be approved; unverified ones are listed, marked
 soft delete the verifier uses when a source goes away, so a resent mention from
 that source stays hidden. Approving or rejecting an id that is not in a state to
 change answers 404 from the route and exits 1 from the script. Moderation logic
-and its tests live in `lib/indieweb/webmention-moderation.ts` and
-`tests/unit/webmention-moderation.test.mts`.
+and its tests live in `lib/indieweb/webmention/moderation.ts` and
+`tests/unit/indieweb/webmention/webmention-moderation.test.mts`.
 
 ## Receiving
 
@@ -289,8 +289,8 @@ reads its mentions from. The verifier then resolves links against the fetched
 page's final URL and valid HTML base URL. An absolute or relative link counts
 when it resolves to the same target page on an allowed host. Distinct pages on
 the same site may mention each other. Identical source and target URLs are
-rejected. The logic and its tests live in `lib/indieweb/webmention-targets.ts`
-and `tests/unit/webmention-targets.test.mts`.
+rejected. The logic and its tests live in `lib/indieweb/webmention/targets.ts`
+and `tests/unit/indieweb/webmention/webmention-targets.test.mts`.
 
 ### Fetch an untrusted source
 
@@ -343,7 +343,7 @@ rows are pruned after accepted requests. Cloudflare requests use
 A missing or failed edge limiter does not replace the database counter. If the
 PostgreSQL counter itself fails, the request proceeds and logs the error; an
 outage can still fail when the mention is stored. The policy and tests live in
-`lib/indieweb/webmention-rate-limit.ts` and its unit test.
+`lib/indieweb/webmention/rate-limit.ts` and its unit test.
 
 ## Sending
 
@@ -352,7 +352,7 @@ named by `inReplyTo`, `likeOf`, `repostOf`, `bookmarkOf`, and `rsvp.eventUrl`,
 then to its tagged people. The deploy publisher (`pnpm webmentions:send` and the
 notification endpoint), `/api/webmention/send`, and `/api/webmention/send-all`
 all take that list from `webmentionTargetsForWriting` in
-`lib/indieweb/send-webmention.ts`, so a reply whose body never links its parent
+`lib/indieweb/webmention/send.ts`, so a reply whose body never links its parent
 still notifies the parent. The publisher hashes the list with the body, so
 reordering it resends every post once.
 
@@ -698,7 +698,7 @@ The client address stays visible below its name. A native **Request details**
 disclosure exposes the complete client, return, and identity URLs.
 
 The route renders HTML outside the site's React layout. It uses the site's text
-navigation, Material surface roles from `lib/theme.ts`, and variable Atkinson
+navigation, Material surface roles from `lib/theme/tokens.ts`, and variable Atkinson
 faces from `public/fonts`. Update those public copies when the site's fonts
 change.
 
@@ -718,9 +718,9 @@ and UserInfo section below describes client binding and replay revocation.
 To see or cut off what is signed in, query the table: `SELECT client_id, scope,
 issued_at FROM indieauth_tokens WHERE revoked_at IS NULL`, and set `revoked_at =
 NOW()` on a row to revoke it. The protocol logic lives in
-`lib/indieweb/indieauth-server.ts`, the HTTP handlers in
-`lib/indieweb/indieauth-endpoints.ts`, and their tests in
-`tests/unit/indieauth-*.test.mts`.
+`lib/indieweb/indieauth/server.ts`, the HTTP handlers in
+`lib/indieweb/indieauth/endpoints.ts`, and their tests in
+`tests/unit/indieweb/indieauth/*.test.mts`.
 
 ### Owner sign-in
 
@@ -771,7 +771,7 @@ state or deliver to other sites.
 | `pnpm webmentions:backfill-authors`      | One-off repair for webmentions verified before the verifier read a `u-photo` with alt text: fills each missing author photo from the h-entry stored with the mention, through `extractAuthor`. It writes only rows with no photo, so a second run changes nothing. Without `POSTGRES_URL` it says so and exits 0. |
 | `pnpm atproto:sync`                      | Prints the standard.site writes a sync would make; `--write` makes them. Needs `ATPROTO_APP_PASSWORD`; see [atproto.md](atproto.md).                                                                                                                                                                              |
 | `.github/workflows/indieweb-publish.yml` | Waits for the public alias to serve a pushed revision, then calls the authenticated notification endpoint.                                                                                                                                                                                                        |
-| `pnpm test`                              | `tsx --test tests/unit/*.test.mts`                                                                                                                                                                                                                                                                                |
+| `pnpm test`                              | `tsx --test 'tests/unit/**/*.test.mts'`                                                                                                                                                                                                                                                                           |
 
 ## Environment variables and bindings
 

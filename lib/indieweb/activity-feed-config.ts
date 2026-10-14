@@ -1,5 +1,6 @@
-import type { ActivityFeedRouteConfig } from '@/lib/indieweb/types';
-import { absoluteRoute, site } from '@/lib/site';
+import type { ActivityFeedRouteConfig } from '@/lib/indieweb/webmention/types';
+import { site } from '@/lib/site/identity';
+import { absoluteRoute } from '@/lib/site/urls';
 
 import type { ActivityFeedFormat } from './activity-feed-route';
 

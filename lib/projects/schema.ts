@@ -6,9 +6,8 @@ import { DateSchema } from '@/lib/initiatives/schema';
 import { OWNER_KEYS } from './owners';
 
 /**
- * Frontmatter for content/projects/<slug>.mdx. Every field a visitor reads
- * is Willie's own words; see docs/reference/content/projects.md. Unknown keys fail the build
- * so a misspelled field cannot silently disappear.
+ * Project frontmatter. Every field a visitor reads is Willie's own words.
+ * Unknown keys fail the build so a misspelled field cannot silently disappear.
  */
 
 export const ProjectStatusSchema = z.enum([
@@ -36,7 +35,7 @@ export const ProjectMediaSchema = z
     z.strictObject({
       kind: z.literal('image'),
       src: z.string().min(1),
-      /** Willie's words, under the policy in docs/reference/design/accessibility.md. */
+      /** Willie's words, including an authored image description. */
       alt: z.string(),
       decorative: z.literal(true).optional(),
       caption: z.string().min(1).optional(),

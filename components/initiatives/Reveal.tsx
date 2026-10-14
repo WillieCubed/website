@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 /**
  * Fallback reveal for browsers without scroll-driven animations. It toggles
  * `data-reveal` on `.act` descendants once they enter the viewport; the CSS
- * in initiatives.css only reads that attribute when `animation-timeline`
+ * only reads that attribute when `animation-timeline`
  * is unsupported and motion is allowed.
  */
 export default function Reveal({ children }: { children: React.ReactNode }) {

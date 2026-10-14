@@ -1,6 +1,6 @@
 import SiteLink from '@/components/link/SiteLink';
 
-import { decodePortableMarkdown } from '@/lib/feeds/html';
+import { decodePortableMarkdown } from '@/lib/indieweb/feeds/html';
 
 interface StudioBlockProps {
   id: string;

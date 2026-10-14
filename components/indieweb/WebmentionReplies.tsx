@@ -3,8 +3,8 @@ import SiteLink from '@/components/link/SiteLink';
 import NativeVideo from '@/components/media/NativeVideo';
 
 import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
-import type { PublishingResponse } from '@/lib/indieweb/types';
-import { formatDate } from '@/lib/site';
+import type { PublishingResponse } from '@/lib/indieweb/webmention/types';
+import { formatDate } from '@/lib/site/dates';
 
 interface WebmentionRepliesProps {
   replies: PublishingResponse[];

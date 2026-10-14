@@ -1,4 +1,4 @@
-import { formatDate } from '@/lib/site';
+import { formatDate } from '@/lib/site/dates';
 
 import type { SearchResult } from './types';
 

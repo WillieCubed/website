@@ -1,8 +1,8 @@
 import type { MusicPlaylist, MusicTrack } from '../types';
 
-function record(value: unknown): Record<string, any> {
+function record(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, any>)
+    ? (value as Record<string, unknown>)
     : {};
 }
 export function normalizeTrack(value: unknown): MusicTrack {
@@ -29,9 +29,11 @@ export function normalizeTrack(value: unknown): MusicTrack {
     title: String(item.name),
     artist:
       kind === 'episode'
-        ? String(item.show?.name ?? item.publisher ?? 'Podcast')
+        ? String(record(item.show).name ?? item.publisher ?? 'Podcast')
         : Array.isArray(item.artists)
-          ? item.artists.map((a: any) => String(a.name ?? '')).join(', ')
+          ? item.artists
+              .map((a: unknown) => String(record(a).name ?? ''))
+              .join(', ')
           : '',
     duration:
       seconds === null
@@ -41,7 +43,7 @@ export function normalizeTrack(value: unknown): MusicTrack {
     kind,
     unavailable: item.is_playable === false,
     url:
-      !local && /^[A-Za-z0-9]{22}$/.test(item.id ?? '')
+      !local && /^[A-Za-z0-9]{22}$/.test(String(item.id ?? ''))
         ? `https://open.spotify.com/${kind}/${item.id}`
         : null,
   };
@@ -54,41 +56,43 @@ export function normalizePlaylist(
 ): MusicPlaylist {
   const item = record(value);
   if (
-    !/^[A-Za-z0-9]{22}$/.test(item.id ?? '') ||
+    !/^[A-Za-z0-9]{22}$/.test(String(item.id ?? '')) ||
     typeof item.name !== 'string' ||
     typeof item.snapshot_id !== 'string'
   )
     throw new Error('Spotify returned an invalid playlist.');
   const image = Array.isArray(item.images)
-    ? (item.images.find((i: any) => {
-        try {
-          const u = new URL(i.url);
-          return (
-            u.protocol === 'https:' &&
-            [
-              'i.scdn.co',
-              'mosaic.scdn.co',
-              'image-cdn-ak.spotifycdn.com',
-              'image-cdn-fa.spotifycdn.com',
-            ].includes(u.hostname)
-          );
-        } catch {
-          return false;
-        }
-      })?.url ?? null)
+    ? ((
+        item.images.find((i: unknown) => {
+          try {
+            const u = new URL(String(record(i).url));
+            return (
+              u.protocol === 'https:' &&
+              [
+                'i.scdn.co',
+                'mosaic.scdn.co',
+                'image-cdn-ak.spotifycdn.com',
+                'image-cdn-fa.spotifycdn.com',
+              ].includes(u.hostname)
+            );
+          } catch {
+            return false;
+          }
+        }) as { url: string } | undefined
+      )?.url ?? null)
     : null;
   return {
-    id: item.id,
+    id: String(item.id),
     title: item.name,
     description: String(item.description ?? ''),
     image,
     url: `https://open.spotify.com/playlist/${item.id}`,
-    ownerId: String(item.owner?.id ?? ''),
-    eligible: item.public === true && item.owner?.id === owner,
+    ownerId: String(record(item.owner).id ?? ''),
+    eligible: item.public === true && record(item.owner).id === owner,
     snapshot: item.snapshot_id,
     tracks,
     trackCount: Number(
-      item.items?.total ?? item.tracks?.total ?? tracks.length
+      record(item.items).total ?? record(item.tracks).total ?? tracks.length
     ),
     checkedAt: now,
     error: null,

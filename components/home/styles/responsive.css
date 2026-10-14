@@ -1,0 +1,320 @@
+.home {
+  /* Window size classes follow Material 3: compact < 600, medium 600–839,
+     expanded 840–1199, large ≥ 1200. Compact and medium stack the page. */
+  @media (max-width: 839px) {
+    .shell {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .rail {
+      display: contents;
+    }
+    .lead {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      padding-block: clamp(32px, 7svh, 72px) 20px;
+    }
+    .statement {
+      margin-top: 0;
+      font-size: clamp(30px, 4.6svh, 42px);
+    }
+    .copy {
+      margin-top: clamp(12px, 2svh, 20px);
+    }
+    .copy > p {
+      font-size: clamp(16px, 2.2svh, 19px);
+    }
+    .focuses {
+      margin-top: 0;
+    }
+    main.evidence {
+      order: 2;
+    }
+    .evidence {
+      grid-template-columns: minmax(0, 1fr);
+      grid-auto-rows: auto;
+      padding-block: 8px 48px;
+    }
+    .tile {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      aspect-ratio: 4 / 3;
+      scroll-margin-top: 16px;
+    }
+    /* A tapped focus brings its tiles to the front of the stacked feed, so
+       they are the next thing below the rail instead of a scroll away. Only
+       a tap pins it: hovering or tapping a tile never moves the feed. */
+    .pinned .tile.hit {
+      order: -1;
+    }
+    .tile.lvbt {
+      aspect-ratio: auto;
+    }
+    .tile.lvbt .body {
+      position: static;
+      padding: 48px 18px 20px;
+    }
+    .tile.studio {
+      aspect-ratio: auto;
+    }
+    .tile.studio .products {
+      position: static;
+      margin: 46px 0 0;
+      padding: 0 14px 14px;
+    }
+    .tile.atlas {
+      aspect-ratio: 16 / 10;
+    }
+    .products:hover .product:not(:hover) {
+      opacity: 1;
+      filter: none;
+    }
+    /* One column: the whole card scrolls, picture and all, so it fills the
+       window with square corners; a rounded sheet would run its scrollbar
+       into its corners. */
+    dialog.detail {
+      --dh: 100svh;
+      width: 100vw;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-radius: 0;
+    }
+    .d-inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .d-media {
+      position: relative;
+      height: auto;
+      aspect-ratio: 16 / 11;
+    }
+    .d-content {
+      max-height: none;
+      margin: 0;
+      padding: 24px 20px 40px;
+      overflow: visible;
+    }
+    .d-count {
+      padding: 24px;
+    }
+    .d-count b {
+      font-size: 88px;
+    }
+  }
+
+  /* Compact: the first screen ends where the first card's title and
+     description end, so the fold always shows a card to scroll toward.
+     Extra height goes between the tagline and the list. */
+  @media (max-width: 599px) {
+    /* Free space splits evenly above and below the tagline, so the page
+       doesn't start pressed against the top edge. */
+    .lead {
+      --peek: 150px;
+      justify-content: flex-start;
+      min-height: calc(100svh - var(--peek));
+    }
+    .intro {
+      margin-block: auto;
+    }
+    .tile.lvbt .body {
+      padding-top: 44px;
+    }
+    .tile.studio .products {
+      position: static;
+      display: grid;
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: 80%;
+      gap: 10px;
+      margin: 46px 0 0;
+      padding: 0 14px 4px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: 14px;
+      scrollbar-width: none;
+    }
+    .tile.studio .products::-webkit-scrollbar {
+      display: none;
+    }
+    .tile.studio .product {
+      height: 340px;
+      scroll-snap-align: start;
+    }
+    .tile.studio .product .product-platform {
+      opacity: 0;
+    }
+    .tile.studio .product .product-copy {
+      opacity: 1;
+      translate: 0 0;
+      color: var(--color-muted);
+    }
+    .tile.studio .pager {
+      display: flex;
+    }
+    /* Cards ease up to full size as they reach the snap point. */
+    @supports (animation-timeline: view()) {
+      .tile.studio .product {
+        animation: settle linear both;
+        animation-timeline: view(inline);
+        animation-range: cover 0% cover 100%;
+      }
+    }
+  }
+
+  /* Short phones tighten the focus list so it and the first card title
+     still fit above the fold. */
+  @media (max-width: 599px) and (max-height: 740px) {
+    .lead {
+      gap: 24px;
+      padding-top: 28px;
+    }
+    .focus {
+      padding-block: 6px;
+    }
+    .focuses h2 {
+      margin-bottom: 4px;
+    }
+  }
+
+  /* Medium: the stacked page uses its full width, with the list and the
+     tiles in two columns. */
+  @media (min-width: 600px) and (max-width: 839px) {
+    .copy > p {
+      max-width: 52ch;
+    }
+    .evidence {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    /* Tiles in a row stretch to the tallest one instead of keeping their
+       own aspect ratio, so LVBT's text never leaves its neighbor short. */
+    .tile,
+    .tile.lvbt,
+    .tile.atlas {
+      grid-column: auto;
+      aspect-ratio: auto;
+      min-height: 300px;
+    }
+    .tile.studio,
+    .tile.full {
+      grid-column: 1 / -1;
+    }
+    .tile.studio .products {
+      grid-auto-columns: 48%;
+      grid-auto-flow: column;
+      display: grid;
+      grid-template-columns: none;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: 14px;
+      scrollbar-width: none;
+    }
+    .tile.studio .products::-webkit-scrollbar {
+      display: none;
+    }
+    .tile.studio .product {
+      height: 260px;
+      scroll-snap-align: start;
+    }
+    .tile.studio .pager {
+      display: flex;
+    }
+    .tile .shot {
+      left: 7%;
+      right: 7%;
+      top: 18%;
+    }
+  }
+
+  @media (min-width: 720px) and (max-width: 839px) {
+    .focuses ul {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 28px;
+    }
+  }
+
+  /* Expanded: the rail returns beside a two-column grid whose rows size to
+     their content, so no tile clips its text at tablet-landscape widths. */
+  @media (min-width: 840px) and (max-width: 1199px) {
+    .statement {
+      font-size: 28px;
+    }
+    .evidence {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: auto;
+    }
+    .tile {
+      grid-column: auto;
+      grid-row: auto;
+      min-height: 320px;
+    }
+    .tile.lvbt .body {
+      position: static;
+      padding: 48px 18px 20px;
+    }
+    .tile.studio {
+      grid-column: 1 / -1;
+      aspect-ratio: auto;
+    }
+    .tile.full {
+      grid-column: 1 / -1;
+    }
+    .tile.studio .products {
+      position: static;
+      margin: 46px 0 0;
+      padding: 0 14px 14px;
+    }
+    .tile.studio .product {
+      height: 260px;
+    }
+    .tile .shot {
+      left: 7%;
+      right: 7%;
+      top: 18%;
+    }
+  }
+
+  /* Rules that were inline attributes on individual elements. */
+  .shot.low {
+    top: 26%;
+  }
+  .d-media > img.from-left {
+    object-position: top left;
+  }
+  .constellation line:nth-of-type(2) {
+    transition-delay: 60ms;
+  }
+  .constellation line:nth-of-type(3) {
+    transition-delay: 120ms;
+  }
+  .constellation line:nth-of-type(4) {
+    transition-delay: 180ms;
+  }
+  .constellation line:nth-of-type(5) {
+    transition-delay: 240ms;
+  }
+  .constellation line:nth-of-type(6) {
+    transition-delay: 300ms;
+  }
+  .constellation line:nth-of-type(7) {
+    transition-delay: 360ms;
+  }
+  .constellation line:nth-of-type(8) {
+    transition-delay: 420ms;
+  }
+
+  .tile[data-branded]:is(.hover, .hit) .hint span {
+    background: var(--b-surface-container-low);
+  }
+
+  /* The countdown counts up on first view; fixed-width digits keep the caption
+     beside it from shifting as the number changes. */
+  .count b,
+  .d-count b {
+    font-variant-numeric: tabular-nums;
+  }
+}

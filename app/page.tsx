@@ -18,9 +18,9 @@ import {
   type TileEntry,
   getHomeTiles,
 } from '@/lib/home/ventures';
-import { getFeaturedInitiatives } from '@/lib/initiatives';
+import { getFeaturedInitiatives } from '@/lib/initiatives/index';
 import { homeGraph } from '@/lib/seo/jsonld';
-import { site } from '@/lib/site';
+import { site } from '@/lib/site/identity';
 
 interface HomePageProps {
   searchParams: Promise<{ detail?: string | string[] }>;

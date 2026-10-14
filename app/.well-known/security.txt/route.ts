@@ -1,5 +1,9 @@
-import { buildSecurityTxt } from '@/lib/security-txt';
+import { buildSecurityTxt } from '@/lib/protocols/security-txt';
 
+/**
+ * Return the security reporting contact, disclosure policy, and expiration
+ * date as plain text.
+ */
 export async function GET() {
   return new Response(buildSecurityTxt(), {
     headers: {

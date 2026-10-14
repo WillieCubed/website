@@ -91,7 +91,9 @@ export async function importLibrary() {
     const { token, ownerId } = await accessToken(),
       client = new SpotifyClient(token),
       previous = await store.playlists();
-    const list = await client.pages('me/playlists?limit=50');
+    const list = await client.pages<{ id: string; owner?: { id?: string } }>(
+      'me/playlists?limit=50'
+    );
     const owned = list.filter((p) => p?.owner?.id === ownerId),
       seen = new Set(owned.map((p) => p.id));
     // An incomplete listing cannot establish that an old playlist disappeared.

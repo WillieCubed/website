@@ -54,10 +54,7 @@ export default function StudioWidgetGenerator({
     }
   }, [generation, documentId]);
   useEffect(() => {
-    if (
-      !generation ||
-      !['pending', 'running', 'waiting'].includes(generation.status)
-    )
+    if (!generation || !['pending', 'running'].includes(generation.status))
       return;
     const timer = setTimeout(() => {
       studioRequest<Generation>(`/generations/${generation.id}`)

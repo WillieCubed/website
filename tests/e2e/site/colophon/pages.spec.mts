@@ -43,6 +43,10 @@ test('the colophon shows the served artifact and remains readable at every viewp
   const response = await page.goto('/colophon');
   expect(response?.status()).toBe(200);
   const record = await (await request.get('/api/indieweb/revision')).json();
+  await expect(page.getByRole('table', { name: 'This build' })).toBeVisible();
+  await expect(
+    page.getByRole('rowheader', { name: 'Version', exact: true })
+  ).toBeVisible();
   await expect(page.locator('main h1')).toHaveText(
     'A little about how this place is made.'
   );
@@ -61,7 +65,7 @@ test('the colophon shows the served artifact and remains readable at every viewp
     );
   else
     await expect(page.locator('.colophon-build')).toContainText(
-      'No CI run for this build'
+      'Built locally'
     );
   await expect(page).toHaveTitle('Colophon · Willie Chalmers III');
   expect(

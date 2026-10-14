@@ -444,6 +444,12 @@ export async function publishRevision(
         );
       await remember(publication.id, { proposalCommit: sha });
     } else {
+      // GitHub can delete the private head branch after a successful merge.
+      // Reconcile the durable PR before considering a new proposal.
+      if (publication.pullRequestNumber) {
+        await reconcilePullRequest(publication, branch);
+        return (await store.getPublication(initial.id))!;
+      }
       if (!publication.proposalCommit && !publication.proposalInput) {
         const ref = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
         const base = (ref.object as { sha: string }).sha;

@@ -30,7 +30,7 @@ Spec: `docs/superpowers/specs/2026-09-18-static-search-and-metadata-design.md`.
 - Formatting: run `pnpm exec prettier --write <files>` and `pnpm exec eslint <ts/tsx files>` before every commit. The `.husky/pre-commit` hook is not executable, so lint-staged does not run on commit.
 - Prettier config: single quotes, `trailingComma: 'es5'`, 80 columns, imports grouped `@/components` → `@/lib` → relative.
 - Replace/with snippets are fragments. Prettier normalized their indentation when this plan was formatted, so match the target text by content rather than leading whitespace, keep the file's own indentation, and run prettier afterwards.
-- Commits use `type(scope): Subject` (`docs/commits.md`). Scopes in use: `indieweb` (search), `landing`, `writings`, `initiatives`, `docs`; omit the scope for site-wide metadata.
+- Commits use `type(scope): Subject` (`docs/reference/operations/commits.md`). Scopes in use: `indieweb` (search), `landing`, `writings`, `initiatives`, `docs`; omit the scope for site-wide metadata.
 
 ### Commit recipe
 
@@ -717,7 +717,7 @@ git restore --staged . && git add lib/search lib/entities lib/initiatives/index.
 
 **Files:**
 
-- Modify: `lib/search/types.ts`, `lib/search/server.ts`, `app/api/search/route.ts`, `components/SiteSearch.tsx`, `app/search/page.tsx`, `docs/indieweb/README.md`
+- Modify: `lib/search/types.ts`, `lib/search/server.ts`, `app/api/search/route.ts`, `components/SiteSearch.tsx`, `app/search/page.tsx`, `docs/reference/publishing/indieweb.md`
 - Test: `tests/unit/search-server.test.mts`
 
 **Interfaces:**
@@ -1033,7 +1033,7 @@ async function SearchResults({ searchParams }: SearchPageProps) {
 
 - [x] **Step 7: Update the IndieWeb doc row**
 
-In `docs/indieweb/README.md`, replace `Server-rendered search over writings, answered from this domain` with `Server-rendered search over writings, initiatives, and pages, answered from this domain`.
+In `docs/reference/publishing/indieweb.md`, replace `Server-rendered search over writings, answered from this domain` with `Server-rendered search over writings, initiatives, and pages, answered from this domain`.
 
 - [x] **Step 8: Run the tests, typecheck, and check the live route**
 
@@ -1052,7 +1052,7 @@ Expected: the JSON has `"total"` of at least 1 and a result with `"path":"/initi
 - [x] **Step 9: Format, lint, and commit**
 
 ```bash
-pnpm exec prettier --write lib/search app/api/search/route.ts app/search/page.tsx components/SiteSearch.tsx docs/indieweb/README.md tests/unit/search-server.test.mts
+pnpm exec prettier --write lib/search app/api/search/route.ts app/search/page.tsx components/SiteSearch.tsx docs/reference/publishing/indieweb.md tests/unit/search-server.test.mts
 pnpm exec eslint lib/search app/api/search/route.ts app/search/page.tsx components/SiteSearch.tsx
 MSG="$(git rev-parse --git-dir)/PLAN_COMMIT_MSG"
 cat > "$MSG" <<'EOF'
@@ -1063,7 +1063,7 @@ Projects stay out while their pages are parked, and only writings show a date.
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 EOF
-git restore --staged . && git add lib/search app/api/search/route.ts app/search/page.tsx components/SiteSearch.tsx docs/indieweb/README.md tests/unit/search-server.test.mts && git commit -F "$MSG"
+git restore --staged . && git add lib/search app/api/search/route.ts app/search/page.tsx components/SiteSearch.tsx docs/reference/publishing/indieweb.md tests/unit/search-server.test.mts && git commit -F "$MSG"
 ```
 
 ---
@@ -1073,7 +1073,7 @@ git restore --staged . && git add lib/search app/api/search/route.ts app/search/
 **Files:**
 
 - Create: `lib/search/pagefind.ts`
-- Modify: `scripts/generate-search-index.ts`, `.gitignore`, `package.json`, `pnpm-lock.yaml`, `docs/indieweb/README.md`
+- Modify: `scripts/generate-search-index.ts`, `.gitignore`, `package.json`, `pnpm-lock.yaml`, `docs/reference/publishing/indieweb.md`
 - Test: `tests/unit/search-pagefind.test.mts`
 
 **Interfaces:**
@@ -1282,7 +1282,7 @@ Expected: no output. Both generated paths are ignored.
 
 - [x] **Step 8: Document the script**
 
-In `docs/indieweb/README.md`, replace ``Writes `public/search-index.json` from published writings. The file is gitignored.`` with ``Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives, and pages. Both are gitignored.``
+In `docs/reference/publishing/indieweb.md`, replace ``Writes `public/search-index.json` from published writings. The file is gitignored.`` with ``Writes `public/search-index.json` and the Pagefind index in `public/pagefind/` from published writings, initiatives, and pages. Both are gitignored.``
 
 - [x] **Step 9: Typecheck, format, lint, and commit**
 
@@ -1290,7 +1290,7 @@ Run: `pnpm test && pnpm typecheck`
 Expected: PASS. 38 tests pass, typecheck clean. If `import('pagefind')` reports missing types, read `node_modules/pagefind/types/index.d.ts` and adjust the destructuring in `buildPagefindIndex` to the declared names.
 
 ```bash
-pnpm exec prettier --write lib/search/pagefind.ts scripts/generate-search-index.ts docs/indieweb/README.md tests/unit/search-pagefind.test.mts
+pnpm exec prettier --write lib/search/pagefind.ts scripts/generate-search-index.ts docs/reference/publishing/indieweb.md tests/unit/search-pagefind.test.mts
 pnpm exec eslint lib/search/pagefind.ts scripts/generate-search-index.ts
 MSG="$(git rev-parse --git-dir)/PLAN_COMMIT_MSG"
 cat > "$MSG" <<'EOF'
@@ -1301,7 +1301,7 @@ as the JSON index, so the ⌘K modal and /search cover the same content.
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 EOF
-git restore --staged . && git add lib/search/pagefind.ts scripts/generate-search-index.ts .gitignore package.json pnpm-lock.yaml pnpm-workspace.yaml docs/indieweb/README.md tests/unit/search-pagefind.test.mts && git commit -F "$MSG"
+git restore --staged . && git add lib/search/pagefind.ts scripts/generate-search-index.ts .gitignore package.json pnpm-lock.yaml pnpm-workspace.yaml docs/reference/publishing/indieweb.md tests/unit/search-pagefind.test.mts && git commit -F "$MSG"
 ```
 
 ---
@@ -1311,7 +1311,7 @@ git restore --staged . && git add lib/search/pagefind.ts scripts/generate-search
 **Files:**
 
 - Create: `components/search/pagefind.d.ts`, `components/search/search.css`, `components/search/SearchModal.tsx`
-- Modify: `app/layout.tsx`, `components/site/TopBar.tsx`, `components/home/Rail.tsx`, `docs/indieweb/README.md`
+- Modify: `app/layout.tsx`, `components/site/TopBar.tsx`, `components/home/Rail.tsx`, `docs/reference/publishing/indieweb.md`
 
 **Interfaces:**
 
@@ -1528,7 +1528,7 @@ with:
 
 - [x] **Step 7: Document the dialog**
 
-In `docs/indieweb/README.md`, replace ``Postgres, `SEARCH_REINDEX_SECRET` |`` with:
+In `docs/reference/publishing/indieweb.md`, replace ``Postgres, `SEARCH_REINDEX_SECRET` |`` with:
 
 ```
 Postgres, `SEARCH_REINDEX_SECRET` |
@@ -1604,7 +1604,7 @@ Re-run Step 9 (skip the curl for the script file).
 - [x] **Step 11: Format and commit**
 
 ```bash
-pnpm exec prettier --write components/search app/layout.tsx components/site/TopBar.tsx components/home/Rail.tsx docs/indieweb/README.md
+pnpm exec prettier --write components/search app/layout.tsx components/site/TopBar.tsx components/home/Rail.tsx docs/reference/publishing/indieweb.md
 pnpm exec eslint components/search app/layout.tsx components/site/TopBar.tsx components/home/Rail.tsx
 MSG="$(git rev-parse --git-dir)/PLAN_COMMIT_MSG"
 cat > "$MSG" <<'EOF'
@@ -1615,7 +1615,7 @@ bar and the home rail carry its trigger; hiatus mode does not mount it.
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 EOF
-git restore --staged . && git add components/search app/layout.tsx components/site/TopBar.tsx components/home/Rail.tsx docs/indieweb/README.md package.json pnpm-lock.yaml && git commit -F "$MSG"
+git restore --staged . && git add components/search app/layout.tsx components/site/TopBar.tsx components/home/Rail.tsx docs/reference/publishing/indieweb.md package.json pnpm-lock.yaml && git commit -F "$MSG"
 ```
 
 ---
@@ -3417,7 +3417,7 @@ git restore --staged . && git add app/robots.ts tests/unit/seo-robots.test.mts &
 **Files:**
 
 - Create: `lib/seo/sitemap.ts`
-- Modify: `app/sitemap.ts`, `lib/initiatives/schema.ts`, `docs/initiatives.md`
+- Modify: `app/sitemap.ts`, `lib/initiatives/schema.ts`, `docs/reference/content/initiatives.md`
 - Test: `tests/unit/seo-sitemap.test.mts`
 
 **Interfaces:**
@@ -3689,7 +3689,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 - [x] **Step 5: Document the field**
 
-In `docs/initiatives.md`, replace the initiative row:
+In `docs/reference/content/initiatives.md`, replace the initiative row:
 
 ```
 | `ends`        | no       | ISO date. Falls back to the last part's end.                                                               |
@@ -3723,7 +3723,7 @@ Expected: PASS. 63 tests pass, typecheck clean.
 - [x] **Step 7: Format, lint, and commit**
 
 ```bash
-pnpm exec prettier --write lib/seo/sitemap.ts app/sitemap.ts lib/initiatives/schema.ts docs/initiatives.md tests/unit/seo-sitemap.test.mts
+pnpm exec prettier --write lib/seo/sitemap.ts app/sitemap.ts lib/initiatives/schema.ts docs/reference/content/initiatives.md tests/unit/seo-sitemap.test.mts
 pnpm exec eslint lib/seo/sitemap.ts app/sitemap.ts lib/initiatives/schema.ts
 MSG="$(git rev-parse --git-dir)/PLAN_COMMIT_MSG"
 cat > "$MSG" <<'EOF'
@@ -3735,7 +3735,7 @@ frontmatter date for initiatives and parts. Drafts are filtered defensively.
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 EOF
-git restore --staged . && git add lib/seo/sitemap.ts app/sitemap.ts lib/initiatives/schema.ts docs/initiatives.md tests/unit/seo-sitemap.test.mts && git commit -F "$MSG"
+git restore --staged . && git add lib/seo/sitemap.ts app/sitemap.ts lib/initiatives/schema.ts docs/reference/content/initiatives.md tests/unit/seo-sitemap.test.mts && git commit -F "$MSG"
 ```
 
 ---

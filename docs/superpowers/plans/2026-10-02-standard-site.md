@@ -95,7 +95,7 @@ their own plans.
 - Modify: `lib/site.ts` (`social`)
 - Create: `components/icons/BlueskyIcon.tsx`
 - Modify: `components/site/SiteFooter.tsx:39-52` (`SocialIcon`)
-- Modify: `docs/commits.md` (scopes list)
+- Modify: `docs/reference/operations/commits.md` (scopes list)
 - Test: `tests/unit/seo-jsonld.test.mts`
 
 **Interfaces:**
@@ -162,10 +162,10 @@ In `components/site/SiteFooter.tsx`, import it and add a case to `SocialIcon` be
       return <BlueskyIcon className="size-4" />;
 ```
 
-In `docs/commits.md`, add this after the `protocols` bullet:
+In `docs/reference/operations/commits.md`, add this after the `protocols` bullet:
 
 ```markdown
-- **`atproto`** — AT Protocol identity and records: `lib/atproto`, standard.site publishing, and the Bluesky integration; see `docs/atproto.md`
+- **`atproto`** — AT Protocol identity and records: `lib/atproto`, standard.site publishing, and the Bluesky integration; see `docs/reference/publishing/atproto.md`
 ```
 
 - [ ] **Step 4: Run the tests and confirm they pass**
@@ -175,7 +175,7 @@ Expected: PASS. The existing `sameAs` deep-equal test still passes, because it c
 
 - [ ] **Step 5: Check the footer by eye.** Run `pnpm dev`, open `/`, expand the footer, and confirm Bluesky shows with its icon and `rel="me"`.
 
-- [ ] **Step 6: Commit.** Paths: `lib/site.ts components/icons/BlueskyIcon.tsx components/site/SiteFooter.tsx docs/commits.md tests/unit/seo-jsonld.test.mts`. Message: `feat(atproto): List the Bluesky profile among the site's profiles`.
+- [ ] **Step 6: Commit.** Paths: `lib/site.ts components/icons/BlueskyIcon.tsx components/site/SiteFooter.tsx docs/reference/operations/commits.md tests/unit/seo-jsonld.test.mts`. Message: `feat(atproto): List the Bluesky profile among the site's profiles`.
 
 ### Task 2: "Share on Bluesky" post action
 
@@ -770,8 +770,8 @@ If `textContent` differs only in whitespace, the test is pinning `stripMdxSyntax
 - Modify: `app/layout.tsx:118` (after the JSON Feed alternate `<link>`)
 - Modify: `app/writings/[slug]/page.tsx:213` (right after `<JsonLd … />`)
 - Modify: `lib/indieweb/discovery.ts` (`buildLlmsSummary`, the `## Protocols` list), `lib/humans-txt.ts` (`HUMANS_STANDARDS`)
-- Create: `docs/atproto.md`
-- Modify: `docs/index.md` (IndieWeb section), `docs/indieweb/README.md` (Routes table, after the `atproto-did` row)
+- Create: `docs/reference/publishing/atproto.md`
+- Modify: `docs/README.md` (IndieWeb section), `docs/reference/publishing/indieweb.md` (Routes table, after the `atproto-did` row)
 - Test: `tests/unit/atproto-discovery.test.mts`, `tests/e2e/indieweb.spec.mts`
 
 **Interfaces:**
@@ -917,7 +917,7 @@ test('standard.site discovery names the publication and each document', async ({
 Run: `pnpm build && pnpm exec playwright test tests/e2e/indieweb.spec.mts -g "standard.site"`, with `NEXT_PUBLIC_ATPROTO_DID` and `ATPROTO_PUBLICATION_RKEY` set in `.env.local` (the fixture values from `tests/unit/test.env` will do).
 Expected: PASS. Without those values the test skips, as it does in CI, and the document part is skipped while every writing is a draft. Then check the document tag by hand against a dev server, where drafts render: run `pnpm dev`, then `curl -s localhost:3000/writings/fall-tour-2026-begins | grep -o '<link rel="site.standard[^>]*>'`. Expected: two tags, the publication and the document.
 
-- [ ] **Step 8: Write the docs.** Create `docs/atproto.md`:
+- [ ] **Step 8: Write the docs.** Create `docs/reference/publishing/atproto.md`:
 
 ```markdown
 # AT Protocol
@@ -972,22 +972,22 @@ Records leave out `content`, because the site renders its own HTML.
 [standard]: https://standard.site
 ```
 
-Add this to `docs/index.md` under `## IndieWeb`:
+Add this to `docs/README.md` under `## IndieWeb`:
 
 ```markdown
-- [AT Protocol](./atproto.md): the Bluesky handle, the standard.site
+- [AT Protocol](../../reference/publishing/atproto.md): the Bluesky handle, the standard.site
   publication and documents, and how the sync writes them.
 ```
 
-Add this row to the Routes table in `docs/indieweb/README.md`, after `/.well-known/atproto-did`:
+Add this row to the Routes table in `docs/reference/publishing/indieweb.md`, after `/.well-known/atproto-did`:
 
 ```markdown
-| `/.well-known/site.standard.publication` | standard.site verification: the AT-URI of the publication record; see [atproto.md](../atproto.md) | nothing |
+| `/.well-known/site.standard.publication` | standard.site verification: the AT-URI of the publication record; see [atproto.md](../../reference/publishing/atproto.md) | nothing |
 ```
 
-Then run `pnpm exec prettier --write docs/indieweb/README.md docs/atproto.md` so the table columns line up.
+Then run `pnpm exec prettier --write docs/reference/publishing/indieweb.md docs/reference/publishing/atproto.md` so the table columns line up.
 
-- [ ] **Step 9: Commit.** Paths: `app/.well-known/site.standard.publication/route.ts app/layout.tsx "app/writings/[slug]/page.tsx" lib/indieweb/discovery.ts lib/humans-txt.ts docs/atproto.md docs/index.md docs/indieweb/README.md tests/unit/atproto-discovery.test.mts tests/e2e/indieweb.spec.mts`. Message: `feat(atproto): Advertise the standard.site publication and documents`.
+- [ ] **Step 9: Commit.** Paths: `app/.well-known/site.standard.publication/route.ts app/layout.tsx "app/writings/[slug]/page.tsx" lib/indieweb/discovery.ts lib/humans-txt.ts docs/reference/publishing/atproto.md docs/README.md docs/reference/publishing/indieweb.md tests/unit/atproto-discovery.test.mts tests/e2e/indieweb.spec.mts`. Message: `feat(atproto): Advertise the standard.site publication and documents`.
 
 ### Task 6: The sync planner
 
@@ -1412,7 +1412,7 @@ Expected: PASS, 7 tests, with no type errors.
 
 - Create: `lib/atproto/identity.ts`, `lib/atproto/blobs.ts`, `lib/atproto/client.ts`, `lib/atproto/sync.ts`, `scripts/atproto-sync.mts`
 - Modify: `package.json`, `pnpm-lock.yaml` (`pnpm add @atcute/identity@^2.0.2 @atcute/identity-resolver@^2.0.2`, and the `atproto:sync` script), `app/api/indieweb/notify/route.ts`
-- Modify: `.env.example`, `docs/indieweb/README.md` (Scripts and Environment variables tables, and the firewall note at about line 586), `docs/atproto.md` (a sync section)
+- Modify: `.env.example`, `docs/reference/publishing/indieweb.md` (Scripts and Environment variables tables, and the firewall note at about line 586), `docs/reference/publishing/atproto.md` (a sync section)
 - Test: `tests/unit/atproto-sync.test.mts`
 
 **Interfaces:**
@@ -1955,7 +1955,7 @@ Expected: PASS. Those tests cover authentication only.
 
 ```bash
 # The standard.site publication's record key: a TID generated once (see
-# docs/atproto.md) and never changed, because every page names the record by
+# docs/reference/publishing/atproto.md) and never changed, because every page names the record by
 # it. Empty leaves out the publication, its <link> tags, and the sync.
 ATPROTO_PUBLICATION_RKEY=
 # App password for the account behind NEXT_PUBLIC_ATPROTO_DID (Bluesky
@@ -1965,15 +1965,15 @@ ATPROTO_PUBLICATION_RKEY=
 ATPROTO_APP_PASSWORD=
 ```
 
-In `docs/indieweb/README.md`, make three changes:
+In `docs/reference/publishing/indieweb.md`, make three changes:
 
 - Add a Scripts row: `` `pnpm atproto:sync` `` | `Prints the standard.site writes a sync would make; --write makes them. Needs ATPROTO_APP_PASSWORD; see atproto.md.`
 - Add two Environment variables rows: `` `ATPROTO_PUBLICATION_RKEY` `` | `the standard.site publication: its record, <link> tags, and well-known route` | `unset, all off`, and `` `ATPROTO_APP_PASSWORD` `` | `standard.site sync after each production deploy` | `unset, sync skipped`.
 - In the firewall paragraph at about line 586, add `/.well-known/site.standard.publication`, `/.well-known/atproto-did`, `/writings/*/opengraph-image` and `/brand/social/*` to the paths no challenge may cover.
 
-Then run `pnpm exec prettier --write docs/indieweb/README.md`.
+Then run `pnpm exec prettier --write docs/reference/publishing/indieweb.md`.
 
-Append to `docs/atproto.md`:
+Append to `docs/reference/publishing/atproto.md`:
 
 ```markdown
 ## Sync
@@ -2018,7 +2018,7 @@ be pulled; add it to `.env.atproto.local` by hand.
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`
 Expected: everything passes.
 
-- [ ] **Step 9: Commit.** Paths: `pnpm-lock.yaml lib/atproto/identity.ts lib/atproto/blobs.ts lib/atproto/client.ts lib/atproto/sync.ts scripts/atproto-sync.mts package.json app/api/indieweb/notify/route.ts .env.example docs/indieweb/README.md docs/atproto.md tests/unit/atproto-sync.test.mts`. Message: `feat(atproto): Sync standard.site records after each production deploy`.
+- [ ] **Step 9: Commit.** Paths: `pnpm-lock.yaml lib/atproto/identity.ts lib/atproto/blobs.ts lib/atproto/client.ts lib/atproto/sync.ts scripts/atproto-sync.mts package.json app/api/indieweb/notify/route.ts .env.example docs/reference/publishing/indieweb.md docs/reference/publishing/atproto.md tests/unit/atproto-sync.test.mts`. Message: `feat(atproto): Sync standard.site records after each production deploy`.
 
 - [ ] **Step 10: Open PR B** (Tasks 3 to 7). Its title is `feat(atproto): Publish writings as standard.site documents`.
 

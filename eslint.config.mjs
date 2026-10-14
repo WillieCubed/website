@@ -47,7 +47,7 @@ const eslintConfig = [
   },
   {
     // Every in-site link goes through SiteLink so it gets the hover card and
-    // one navigation behaviour. See docs/links.md.
+    // one navigation behaviour. See docs/reference/design/links.md.
     files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}'],
     ignores: ['components/link/**'],
     rules: {
@@ -58,7 +58,7 @@ const eslintConfig = [
             {
               name: 'next/link',
               message:
-                'Use SiteLink from @/components/link/SiteLink so in-site links get hover cards (docs/links.md).',
+                'Use SiteLink from @/components/link/SiteLink so in-site links get hover cards (docs/reference/design/links.md).',
             },
           ],
         },

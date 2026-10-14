@@ -36,7 +36,7 @@ export const PAGE_SOURCES = [
  * it. The permissions policy denies the camera, the microphone, location,
  * and interest-based ad cohorts (FLoC's interest-cohort and the Topics API
  * that replaced it) to every page and every embed on it; nothing asks for
- * them. Pages have no Content-Security-Policy (docs/protocols.md says why);
+ * them. Pages have no Content-Security-Policy (docs/reference/publishing/protocols.md says why);
  * generated widget documents are sandboxed even when opened directly.
  */
 export const siteHeaders: HeaderRule[] = [

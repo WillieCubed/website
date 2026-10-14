@@ -29,7 +29,7 @@ export const SPECULATION_EXCLUDED_PATHS = [
  * its analytics for nothing. A prefetch is one HTML request, and it is
  * what a document navigation uses: a click before the page hydrates, a
  * visitor without scripts, or a navigation Next hands to the browser.
- * docs/protocols.md has the full reasoning.
+ * docs/reference/publishing/protocols.md has the full reasoning.
  */
 export const SPECULATION_RULES = {
   prefetch: [

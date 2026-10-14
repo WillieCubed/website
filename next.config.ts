@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
   /**
    * Host redirects live here rather than in a dashboard so they are
    * versioned and work on any host that runs next.config. Every hostname
-   * below must also be attached to the deployment (docs/deploy.md).
+   * below must also be attached to the deployment (docs/guides/operations/deploy.md).
    */
   async redirects() {
     const legacy = site.legacyHosts.map((host) => ({

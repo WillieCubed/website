@@ -8,7 +8,7 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
 }) => {
   test.skip(
     !process.env.STANDARD_SOCIAL_FIXTURE,
-    'Requires the isolated fixture build documented in docs/atproto.md.'
+    'Requires the isolated fixture build documented in docs/reference/publishing/atproto.md.'
   );
   mkdirSync(directory, { recursive: true });
   await page.emulateMedia({ reducedMotion: 'reduce' });

@@ -73,7 +73,7 @@ Everything in the standard.site plan's Global Constraints applies. In addition:
 **Files:**
 
 - Modify: `lib/writings/index.ts` (`RawFrontmatter` at about line 68, and the `writing` object at about line 246), `lib/writings/types.ts` (`WritingData`)
-- Modify: `lib/indieweb/syndication.ts` (add `blueskyAccount`), `lib/atproto/config.ts` (add `blueskyAppview`), `.env.example`, `docs/indieweb/README.md` (an Environment variables row)
+- Modify: `lib/indieweb/syndication.ts` (add `blueskyAccount`), `lib/atproto/config.ts` (add `blueskyAppview`), `.env.example`, `docs/reference/publishing/indieweb.md` (an Environment variables row)
 - Create: `lib/atproto/bluesky.ts` (URL helpers)
 - Modify: `lib/atproto/records.ts` (`DocumentSource` gains three optional fields; export `clipGraphemes`)
 - Modify: `lib/atproto/sync.ts` (extract `documentSource`)
@@ -245,7 +245,7 @@ export function blueskyAppview(): string | undefined {
 BLUESKY_APPVIEW_URL=
 ```
 
-**`docs/indieweb/README.md`.** Add an Environment variables row: `` `BLUESKY_APPVIEW_URL` `` | `Bluesky responses on writings; resolving hand-posted copies` | `unset, both off`.
+**`docs/reference/publishing/indieweb.md`.** Add an Environment variables row: `` `BLUESKY_APPVIEW_URL` `` | `Bluesky responses on writings; resolving hand-posted copies` | `unset, both off`.
 
 **`tests/unit/test.env`.** Append `BLUESKY_APPVIEW_URL=https://appview.example`, a fixture that is never contacted, because tests stub `fetch` or inject resolvers.
 
@@ -335,7 +335,7 @@ export function documentSource(
 Run: `pnpm exec tsx --env-file=tests/unit/test.env --test tests/unit/atproto-bluesky.test.mts tests/unit/atproto-records.test.mts tests/unit/atproto-sync.test.mts && pnpm typecheck`
 Expected: PASS, with no type errors.
 
-- [ ] **Step 5: Commit.** Paths: `lib/writings/index.ts lib/writings/types.ts lib/indieweb/syndication.ts lib/atproto/config.ts lib/atproto/bluesky.ts lib/atproto/records.ts lib/atproto/sync.ts .env.example docs/indieweb/README.md tests/unit/test.env tests/unit/atproto-bluesky.test.mts`. Message: `feat(atproto): Read Bluesky intent and hand-posted copies from writings`.
+- [ ] **Step 5: Commit.** Paths: `lib/writings/index.ts lib/writings/types.ts lib/indieweb/syndication.ts lib/atproto/config.ts lib/atproto/bluesky.ts lib/atproto/records.ts lib/atproto/sync.ts .env.example docs/reference/publishing/indieweb.md tests/unit/test.env tests/unit/atproto-bluesky.test.mts`. Message: `feat(atproto): Read Bluesky intent and hand-posted copies from writings`.
 
 ### Task 9: The announcement post
 
@@ -504,7 +504,7 @@ Expected: PASS, with no type errors.
 - Modify: `lib/atproto/plan.ts` (`SyncPlan.final`; export `key`)
 - Modify: `lib/atproto/client.ts`, `lib/atproto/sync.ts`
 - Modify: `app/api/indieweb/notify/route.ts` (revalidate the `atproto` tag)
-- Modify: `docs/atproto.md`, `docs/indieweb/README.md` (Syndication section)
+- Modify: `docs/reference/publishing/atproto.md`, `docs/reference/publishing/indieweb.md` (Syndication section)
 - Test: `tests/unit/atproto-plan.test.mts`, `tests/unit/atproto-sync.test.mts`
 
 **Interfaces:**
@@ -1005,11 +1005,11 @@ Expected: PASS, with no type errors.
 
 - [ ] **Step 9: Update the docs.**
 
-In the Syndication section of `docs/indieweb/README.md`, replace the paragraph that starts "The site has no API access to either service" with:
+In the Syndication section of `docs/reference/publishing/indieweb.md`, replace the paragraph that starts "The site has no API access to either service" with:
 
 ```markdown
 Bluesky is automated through the AT Protocol sync (see
-[atproto.md](../atproto.md)). After a writing whose `syndicateTo` names the
+[atproto.md](../../reference/publishing/atproto.md)). After a writing whose `syndicateTo` names the
 Bluesky account is deployed, the sync posts one announcement: a link card
 back to the writing, carrying its standard.site records. It then records the
 post on the writing's document as `bskyPostRef`. The page reads that
@@ -1024,7 +1024,7 @@ canonical URL), confirms the copy links back, and adds its exact permalink
 to `syndication`. `syndicateTo` never renders.
 ```
 
-Append to `docs/atproto.md`:
+Append to `docs/reference/publishing/atproto.md`:
 
 ```markdown
 ## Bluesky
@@ -1042,7 +1042,7 @@ Append to `docs/atproto.md`:
   becomes the document's `bskyPostRef`, and nothing is posted.
 ```
 
-- [ ] **Step 10: Commit and open PR C.** Paths: `lib/atproto/types.ts lib/atproto/plan.ts lib/atproto/client.ts lib/atproto/sync.ts app/api/indieweb/notify/route.ts docs/atproto.md docs/indieweb/README.md tests/unit/atproto-plan.test.mts tests/unit/atproto-sync.test.mts`. Message: `feat(atproto): Announce opted-in writings on Bluesky`. The PR title is `feat(atproto): Post writings to Bluesky from the sync` (Tasks 8 to 10).
+- [ ] **Step 10: Commit and open PR C.** Paths: `lib/atproto/types.ts lib/atproto/plan.ts lib/atproto/client.ts lib/atproto/sync.ts app/api/indieweb/notify/route.ts docs/reference/publishing/atproto.md docs/reference/publishing/indieweb.md tests/unit/atproto-plan.test.mts tests/unit/atproto-sync.test.mts`. Message: `feat(atproto): Announce opted-in writings on Bluesky`. The PR title is `feat(atproto): Post writings to Bluesky from the sync` (Tasks 8 to 10).
 
 ---
 
@@ -1291,7 +1291,7 @@ Expected: both pass. `loadBlueskyCopy` swallows errors, so the build never depen
 
 - Create: `lib/atproto/responses.ts`
 - Modify: `app/writings/[slug]/page.tsx`
-- Modify: `docs/atproto.md`, `docs/indieweb/README.md` (the webmention display section, at about lines 103 to 150)
+- Modify: `docs/reference/publishing/atproto.md`, `docs/reference/publishing/indieweb.md` (the webmention display section, at about lines 103 to 150)
 - Test: `tests/unit/atproto-responses.test.mts`
 
 **Interfaces:**
@@ -1716,7 +1716,7 @@ const responses = mergeResponses(webmentions, blueskyResponses);
 
 Pass `webmentions={responses}` to `<PostInteractions>`.
 
-- [ ] **Step 6: Update the docs.** In the webmention display section of `docs/indieweb/README.md`, add:
+- [ ] **Step 6: Update the docs.** In the webmention display section of `docs/reference/publishing/indieweb.md`, add:
 
 ```markdown
 A writing announced on Bluesky also shows that post's direct replies, likes,
@@ -1730,7 +1730,7 @@ willie.page. Its webmentions would duplicate these (the stored copy wins a
 tie, so nothing shows twice, but every reaction would be stored).
 ```
 
-Append to the Bluesky section of `docs/atproto.md`:
+Append to the Bluesky section of `docs/reference/publishing/atproto.md`:
 
 ```markdown
 - **Responses:** the writing page reads its document's `bskyPostRef` (cached
@@ -1745,7 +1745,7 @@ Append to the Bluesky section of `docs/atproto.md`:
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`
 Expected: everything passes.
 
-- [ ] **Step 8: Commit and open PR D.** Paths: `lib/atproto/responses.ts "app/writings/[slug]/page.tsx" docs/atproto.md docs/indieweb/README.md tests/unit/atproto-responses.test.mts`. Message: `feat(atproto): Show Bluesky replies and reactions with webmentions`. The PR title is `feat(atproto): Bluesky responses on writings` (Tasks 11 and 12).
+- [ ] **Step 8: Commit and open PR D.** Paths: `lib/atproto/responses.ts "app/writings/[slug]/page.tsx" docs/reference/publishing/atproto.md docs/reference/publishing/indieweb.md tests/unit/atproto-responses.test.mts`. Message: `feat(atproto): Show Bluesky replies and reactions with webmentions`. The PR title is `feat(atproto): Bluesky responses on writings` (Tasks 11 and 12).
 
 ---
 

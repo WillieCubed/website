@@ -10,7 +10,7 @@ import type { InitiativeTile } from './ventures';
 /**
  * Featured initiatives as homepage tiles. Weight, size, hint, and focuses
  * come from each initiative's `feature` block, so moving one on the
- * homepage is an edit to its frontmatter (docs/initiatives.md).
+ * homepage is an edit to its frontmatter (docs/reference/content/initiatives.md).
  */
 export async function getFeaturedTiles(): Promise<InitiativeTile[]> {
   const featured = await getFeaturedInitiatives();

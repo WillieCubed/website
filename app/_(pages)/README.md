@@ -22,7 +22,7 @@ Contact's image before restoring that source.
 The project index and detail routes live at `app/projects`. Public project
 files also enter search, hover cards, the sitemap, and the three site feeds.
 Every discovery path excludes drafts and hidden projects, including in
-development. See [the projects guide](../../docs/projects.md).
+development. See [the projects guide](../../docs/reference/content/projects.md).
 
 `layout.tsx` here is the old layout for these pages, which adds the top
 bar. It only applies while the pages sit in this folder.

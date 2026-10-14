@@ -17,7 +17,7 @@ Publishing `site.standard.*` records gives every writing a signed, portable
 entry in the Atmosphere while the site stays canonical. It is the AT Protocol
 counterpart to the IndieWeb stack the site already runs (feeds, Webmention,
 Micropub, IndieAuth) and to the planned ActivityPub work in
-[docs/future/activitypub.md](../../future/activitypub.md).
+[docs/concepts/publishing/activitypub.md](../../concepts/publishing/activitypub.md).
 
 ## Where things stand (checked 2026-10-02)
 

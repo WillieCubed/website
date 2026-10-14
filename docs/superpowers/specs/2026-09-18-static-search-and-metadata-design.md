@@ -29,7 +29,7 @@ Two independent parts share only `app/layout.tsx` and `lib/site.ts`:
 - `/search` and `/api/search` answer from `public/search-index.json`, written
   by the `prebuild` script. They cover writings only. Postgres is optional
   (`SEARCH_BACKEND=postgres`).
-- `docs/indieweb/README.md` marks IndieMark "search results on your own domain"
+- `docs/reference/publishing/indieweb.md` marks IndieMark "search results on your own domain"
   as done because `/search?q=` puts results in the server HTML. That stays true.
 - `search_index.slug` is `UNIQUE` across all content types and `published_at`
   is `NOT NULL` (`lib/db/migrations/001_level4_tables.sql`).
@@ -227,7 +227,7 @@ now carries all four links.
   `changeFrequency` and `priority` (Google ignores both). `lastModified` is set
   only from a known value: writings use `lastUpdated`; initiatives and parts
   use a new optional `updated` frontmatter date (`lib/initiatives/schema.ts`,
-  documented in `docs/initiatives.md`); everything else omits it. The event end
+  documented in `docs/reference/content/initiatives.md`); everything else omits it. The event end
   date is no longer used.
 
 ### Tests
@@ -265,7 +265,7 @@ Modify: `lib/search/{index,types,server,postgres}.ts`,
 `app/writings/[slug]/page.tsx`, `app/writings/page.tsx`,
 `app/initiatives/page.tsx`, `app/initiatives/[slug]/page.tsx`,
 `app/initiatives/[slug]/[part]/page.tsx`, `app/robots.ts`, `app/sitemap.ts`,
-`lib/initiatives/schema.ts`, `docs/initiatives.md`, `docs/indieweb/README.md`
+`lib/initiatives/schema.ts`, `docs/reference/content/initiatives.md`, `docs/reference/publishing/indieweb.md`
 (search rows: ⌘K added, `/search` unchanged), `package.json`, `.gitignore`,
 `lib/initiatives/index.ts` (adds `loadAllInitiatives`), `eslint.config.mjs`
 (ignores `public/pagefind/**`), `tests/unit/search-rank.test.mts`.

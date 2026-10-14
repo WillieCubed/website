@@ -64,7 +64,7 @@ loopback.addSubnet('127.0.0.0', 8, 'ipv4');
 loopback.addAddress('::1', 'ipv6');
 
 /**
- * The local write test (docs/indieweb/testing.md) serves its webmention
+ * The local write test (docs/guides/publishing/indieweb-testing.md) serves its webmention
  * source from 127.0.0.1, which this guard exists to refuse. It sets
  * `INDIEWEB_TEST_ALLOW_LOOPBACK=true` to let loopback through, and only
  * loopback: private ranges and cloud metadata stay refused. Production

@@ -9,7 +9,7 @@ import { FOCUS_IDS } from '@/lib/home/focuses';
  * Every initiative page and homepage tile reads these fields, and dates drive
  * countdowns, the Playbill's current act, sitemap timestamps, and social
  * images, so a typo has to fail the build rather than render as "Invalid
- * Date". See docs/initiatives.md for the authoring guide.
+ * Date". See docs/reference/content/initiatives.md for the authoring guide.
  */
 
 /**

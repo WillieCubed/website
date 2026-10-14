@@ -133,7 +133,7 @@ test('noIndex keeps links followable', () => {
   assert.equal(pageMetadata(input).robots, undefined);
 });
 
-// docs/metadata.md: og:site_name carries the name, so no social title does.
+// docs/reference/design/metadata.md: og:site_name carries the name, so no social title does.
 test('social titles are bare and the site name travels as og:site_name', () => {
   const meta = pageMetadata({
     title: 'Fall Tour 2026 Part 1: A Boy Goes Back to Dallas',

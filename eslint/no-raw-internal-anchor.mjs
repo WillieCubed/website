@@ -1,7 +1,7 @@
 /**
  * Reports a JSX `<a>` whose href is written out as an in-site address, so
  * the link goes through SiteLink instead and gets the hover card and one
- * navigation behaviour. See docs/links.md.
+ * navigation behaviour. See docs/reference/design/links.md.
  *
  * Only hrefs spelled in the source are checked: a string or template literal
  * starting with `/`, `?`, or the canonical origin, and a template literal
@@ -60,7 +60,7 @@ const rule = {
         'Require SiteLink instead of a raw <a> for links to pages on this site.',
     },
     messages: {
-      raw: 'Use SiteLink from @/components/link/SiteLink for in-site links so they get the hover card (docs/links.md). For a route handler, a download, or a hidden microformat anchor, disable this rule on the line and say why.',
+      raw: 'Use SiteLink from @/components/link/SiteLink for in-site links so they get the hover card (docs/reference/design/links.md). For a route handler, a download, or a hidden microformat anchor, disable this rule on the line and say why.',
     },
     schema: [],
   },

@@ -4,7 +4,7 @@ The source for [willie.page][website], Willie Chalmers III's personal website.
 It is a [Next.js] 16 app using the App Router, written in TypeScript and MDX and
 styled with Tailwind CSS.
 
-Maintainer documentation lives in [docs/index.md](docs/index.md): deployment,
+Maintainer documentation lives in [docs/README.md](docs/README.md): deployment,
 the content models, IndieWeb and protocol routes, design principles, and commit
 conventions.
 
@@ -24,7 +24,7 @@ pnpm check
 
 Install runs the Husky setup hook. The pre-commit hook runs ESLint and
 Prettier on staged files through lint-staged. Cloudflare and Neon deployment
-setup is documented in [docs/deploy.md](docs/deploy.md).
+setup is documented in [docs/guides/operations/deploy.md](docs/guides/operations/deploy.md).
 
 ## Development
 
@@ -79,7 +79,7 @@ empty. `.env.example` describes each one. They cover:
 - **Analytics:** the Google Analytics measurement ID.
 
 The IndieWeb variables are explained in more depth in
-[docs/indieweb/README.md](docs/indieweb/README.md).
+[docs/reference/publishing/indieweb.md](docs/reference/publishing/indieweb.md).
 
 ## Routes
 
@@ -99,10 +99,10 @@ Feeds, IndieWeb, and protocol routes:
 - `/webmention`, `/webmentions`, `/micropub`, `/micropub/media`, `/oembed`,
   and the IndieAuth server under `/indieauth`, plus WebFinger, host-meta, the
   IndieAuth metadata, and the AT Protocol DID under `/.well-known`. See
-  [docs/indieweb/README.md](docs/indieweb/README.md).
+  [docs/reference/publishing/indieweb.md](docs/reference/publishing/indieweb.md).
 - `/coffee`, `/tea`, `/whoami`, `/.well-known/security.txt`,
   `/opensearch.xml`, `/llms.txt`, and the MCP server at `/api/mcp`. See
-  [docs/protocols.md](docs/protocols.md).
+  [docs/reference/publishing/protocols.md](docs/reference/publishing/protocols.md).
 
 Older pages such as `/about`, `/projects`, and `/research` are parked under
 `app/_(pages)`. The leading underscore keeps Next.js from routing them until they
@@ -113,7 +113,7 @@ are rebuilt.
 The site deploys to Cloudflare Workers from this repository, and `willie.page` is the
 canonical origin. The older `williecubed.me` domain redirects there path for
 path. Hosts, the redirect table, and the DNS steps are in
-[docs/deploy.md](docs/deploy.md).
+[docs/guides/operations/deploy.md](docs/guides/operations/deploy.md).
 
 [website]: https://willie.page
 [Next.js]: https://nextjs.org

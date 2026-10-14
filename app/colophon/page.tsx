@@ -1,5 +1,5 @@
 import SiteLink from '@/components/link/SiteLink';
-import TopBar from '@/components/site/TopBar';
+import TopBar, { COLUMN } from '@/components/site/TopBar';
 
 import { pageMetadata } from '@/lib/seo/metadata';
 import { siteBuild } from '@/lib/site/build';
@@ -42,7 +42,7 @@ export default function ColophonPage() {
         column="content"
         crumbs={[{ label: page.label, href: page.path }]}
       />
-      <main id="main" className="colophon">
+      <main id="main" className={`colophon ${COLUMN.content}`}>
         <section className="colophon-intro" aria-labelledby="colophon-title">
           <div className="colophon-welcome">
             <h1 id="colophon-title">A little about how this place is made.</h1>
@@ -133,23 +133,20 @@ export default function ColophonPage() {
 
         <div className="colophon-notes">
           <section aria-labelledby="personal-title">
-            <h2 id="personal-title">Made to feel personal.</h2>
+            <h2 id="personal-title">A place of my own.</h2>
             <div>
               <p>
-                A personal website has room to be a little playful. Warm colors,
-                soft shapes, and small discoveries make this one feel like
-                somewhere I’d want to spend time.
+                I keep my writing, software, music, and organizing here. It
+                gives the different parts of my work one address.
               </p>
               <p>
-                That playfulness should help you find your way. Links look like
-                links. Motion follows what you open or change, and steps aside
-                when you prefer less of it. The content and navigation work
-                without JavaScript.
+                Posts have permanent URLs and feeds. You can follow the writing
+                in your own reader and send a response from another site through
+                Webmention.
               </p>
               <p>
-                The <SiteLink href="/status">status page</SiteLink> is a small
-                example: a place, a time, and a little weather, with a few
-                things to try.
+                The <SiteLink href="/status">status page</SiteLink> keeps a
+                small window onto where I am.
               </p>
             </div>
           </section>
@@ -163,7 +160,7 @@ export default function ColophonPage() {
                 <SiteLink href="https://www.typescriptlang.org/">
                   TypeScript
                 </SiteLink>{' '}
-                helps keep the pieces in agreement, and{' '}
+                supplies the types, and{' '}
                 <SiteLink href="https://tailwindcss.com/">
                   Tailwind CSS
                 </SiteLink>{' '}
@@ -174,10 +171,9 @@ export default function ColophonPage() {
                 .
               </p>
               <p>
-                Writing lives in Markdown and MDX. Feeds let you follow along in
-                your own reader, and Webmention lets other websites send a
-                response. Those connections are part of what makes having a
-                place on the open web worthwhile.
+                Writing lives in Markdown and MDX files. The site’s code lives
+                in a Git repository; each build records the revision it came
+                from.
               </p>
               <p>
                 You can find the{' '}
@@ -197,13 +193,12 @@ export default function ColophonPage() {
                 <SiteLink href="https://www.brailleinstitute.org/freefont/">
                   Braille Institute
                 </SiteLink>
-                . Their distinct letterforms put legibility first; the specimen
-                above shows some characters that are easy to confuse.
+                .
               </p>
               <p>
-                The colors and{' '}
-                <SiteLink href="/brand">WillieCubed identity</SiteLink> belong
-                to the same family as the rest of my work. The source is on{' '}
+                The <SiteLink href="/brand">brand kit</SiteLink> has the
+                WillieCubed mark, colors, and downloadable assets. The source is
+                on{' '}
                 <SiteLink href="https://github.com/WillieCubed/website">
                   GitHub
                 </SiteLink>{' '}

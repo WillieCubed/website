@@ -10,8 +10,9 @@ Preview a new post on the development server and check `/writings`. Published
 posts should also appear at `/search?q=<a word from it>`; drafts stay out of the
 search index. The [first-writing
 tutorial](../../tutorials/content/first-writing.md) provides a complete local
-exercise. Client publishing uses the same files, with additional source fields
-described below.
+exercise. A client uses the same public writing model, but private drafts live
+in Studio revisions until publication exports a selected revision. The client
+storage boundary is described below.
 
 ## Frontmatter
 
@@ -205,9 +206,9 @@ from the page.
 
 Micropub is the publishing API a client uses to create and edit writings.
 IndieAuth authorizes that client to act for the owner. Once authorized, the
-client edits the same writing files as a local author. The protocol maps client
-properties to this page's frontmatter contract rather than maintaining a
-separate store of posts. See [IndieWeb:
+client can save and edit private Studio revisions or use the compatibility path
+for existing published files. The protocol maps MF2 properties to this writing
+model; private revision storage is deliberately separate from public MDX. See [IndieWeb:
 Micropub](../publishing/indieweb.md#micropub) for endpoint details.
 
 ### Creating and reading a post
@@ -215,7 +216,16 @@ Micropub](../publishing/indieweb.md#micropub) for endpoint details.
 The client creates writings through `POST /micropub`, including notes, photo
 notes, articles, and the other supported kinds. Upload photos first through
 `POST /micropub/media`. `q=source` reads the saved post as mf2 properties;
-`q=category` supplies published tags for suggestions.
+`q=category` supplies published tags for suggestions. Source reads prefer a
+matching private Studio document, otherwise the configured GitHub branch or local
+public source. A saved draft can therefore be readable to its authorized client
+without having a public permalink.
+
+Creation with `post-status=draft` accepts `create` or `draft` scope and requires
+private Studio storage. It returns 503 when that store is absent; draft source
+never falls back to GitHub or a local content file. Publishing an authored draft
+still requires Willie to approve its exact text and dates. Saving a revision or
+receiving 202 is not publication approval.
 
 Micropub advertises only configured destinations it can execute, currently
 Bluesky when the publication and publishing credential are available. Accepting
@@ -230,20 +240,37 @@ contract](../publishing/indieweb.md#micropub) for the complete path.
 
 ### Updating without replacing the author's file
 
-An update rewrites changed frontmatter keys and changes the body when the
-request changes `content`. It preserves everything else, including hand-edited
-comments and formatting. It sets `lastUpdated` to the request time. A client
-publishes a draft only when it replaces `post-status` with `published`; ordinary
-edits do not implicitly clear the draft state.
+For an existing public file, the compatibility updater changes the requested
+frontmatter and body fields while preserving unrelated comments and formatting.
+Its GitHub write carries the previously read blob SHA and rejects a concurrent
+edit instead of overwriting it. It sets `lastUpdated` to request time.
+
+Private Studio source instead saves a new revision against its previous head ID.
+That is a revision-aware edit, not a promise to preserve every byte of a rendered
+MDX export. A draft stays private unless the update explicitly replaces
+`post-status` with `published`. The selected-revision publication path then
+handles protected GitHub review/merge and deployment; an ordinary edit does not
+clear the draft state or bypass approval. Saving a private draft revision also
+does not retract a previously exported public revision.
 
 ### Deleting and recovering
 
-A delete removes the source file. After deployment, its permalink answers 404.
-Before deletion, the endpoint archives the exact source privately. A client with
-`undelete` scope can use `action=undelete` to restore that source at its
-original permalink. Restoration rejects an occupied path rather than overwriting
-a newer post. A Git revert provides a separate repository recovery option. It
-does not replace the archive and scope checks used by a client restoration.
+An existing published file is archived exactly in the private Micropub deletion
+archive before the compatibility backend removes it. After deployment, the
+permalink answers 404. A client with `undelete` scope can restore that archived
+source at its original permalink; an occupied path rejects restoration rather
+than overwriting another post. Git revert is a separate repository recovery
+option and does not replace the archive/scope checks.
 
-The request records a source change; the public route changes after deployment.
-Verify both stages when testing deletion or restoration.
+A private Studio document uses revision-checked removal and retains its immutable
+source revisions. It does not enter the public-source deletion archive, so that
+archive's Micropub `undelete` operation is not a restore path for private drafts.
+Removing that private document does not itself delete an already exported public
+file; verify the public source separately before claiming its permalink is gone.
+A legacy draft file must be imported into private storage before the endpoint
+will delete it; absence of that import returns 503.
+
+A request records a source operation. Public output changes only when the
+corresponding publication/deployment completes. Verify those stages separately,
+and do not assume that deleting a writing also deletes its R2 objects, outside
+copies, or stored Webmentions.

@@ -53,6 +53,7 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
 
 ### Content
 
+- [Music operations](./reference/content/music.md): playlist storage, provider configuration, owner roles, and refresh verification.
 - [Content catalog](./reference/content/README.md): entry point for content
   models.
 - [Writings](./reference/content/writings.md): frontmatter, post kinds, tags,
@@ -89,8 +90,7 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
 
 ### Operations
 
-- [Bootstrap and preflight](./reference/operations/bootstrap.md): phases, flags,
-  selected projects, resource changes, and readiness limits.
+- [Setup and deployment checks](./reference/operations/bootstrap.md): local setup, Cloudflare account and resource requirements, and current verification limits.
 - [Commit conventions](./reference/operations/commits.md): types, scopes, and
   design review.
 
@@ -119,6 +119,7 @@ Complete a task in an existing checkout or deployment.
 
 ### Publishing
 
+- [Private writing preview](./guides/publishing/private-writing.md): Access, private storage, draft migration, and owner-approved publication.
 - [Run IndieWeb HTTP checks](./guides/publishing/indieweb-testing.md): local and
   isolated write checks.
 - [Verify publishing](./guides/publishing/publishing-verification.md): account
@@ -153,3 +154,13 @@ references and guides above for current behavior and procedures.
   and [follow-up](./evidence/publishing/verification-2026-09-23-followup.md).
 - [Evidence artifacts](./evidence/): dated receipts and screenshots, interpreted
   by the conformance and verification documents.
+
+Recent hosting and publishing records:
+
+- [Website issue plan](./plans/2026-10-11-website-issues.md).
+- [Private writing preview plan](./superpowers/plans/2026-10-10-private-writing-preview.md).
+- [Music launch plan](./superpowers/plans/2026-10-12-music-production-launch.md).
+- [Cloudflare migration plan](./superpowers/plans/2026-10-13-cloudflare-migration.md)
+  and [design](./superpowers/specs/2026-10-13-cloudflare-migration-design.md).
+- [Cloudflare precutover evidence](./evidence/cloudflare-precutover-2026-10-13.md)
+  and [preview evidence](./evidence/cloudflare-preview-2026-10-13.md).

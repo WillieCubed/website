@@ -6,7 +6,7 @@ Move the current personal website off Vercel hosting and Vercel Blob without los
 
 ## Recovered context
 
-The September 14 Claude conversation on WillieMac (`72d2d6cf-f0d5-4ec6-a610-d3d4707a825f`) recalled `recovery/willie-page-relaunch`: a `willie-page` Worker, vinext, Cloudflare Web Analytics, Email Routing, and Vercel as rollback. That branch belongs to an older site. Its Worker configuration and runbook are reference material, not a patch to apply. The current `docs/deploy.md` records an unexecuted OpenNext spike. The present app is Next.js 16.3.8 with Cache Components, dynamic social images, `next/after`, and stateful publishing. OpenNext adapts its existing build and documents those features; choose it for this migration. Revisit vinext separately after route parity is demonstrated.
+The September 14 Claude conversation on WillieMac (`72d2d6cf-f0d5-4ec6-a610-d3d4707a825f`) recalled `recovery/willie-page-relaunch`: a `willie-page` Worker, vinext, Cloudflare Web Analytics, Email Routing, and Vercel as rollback. That branch belongs to an older site. Its Worker configuration and runbook are reference material, not a patch to apply. The current `docs/guides/operations/deploy.md` records an unexecuted OpenNext spike. The present app is Next.js 16.3.8 with Cache Components, dynamic social images, `next/after`, and stateful publishing. OpenNext adapts its existing build and documents those features; choose it for this migration. Revisit vinext separately after route parity is demonstrated.
 
 ## Runtime and data boundaries
 

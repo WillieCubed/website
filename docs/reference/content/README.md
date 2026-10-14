@@ -10,6 +10,8 @@ differ because they present different kinds of material.
 - [Writings](./writings.md) covers dated articles, short notes, media, and
   responses to other posts, whether authored locally or through a publishing
   client. It defines their frontmatter, tags, references, and client edits.
+  New client drafts stay in private Studio revisions until publication exports
+  the selected content; they do not become public files merely by being saved.
 - [Initiatives](./initiatives.md) defines campaigns, series, and projects under
   `/initiatives`, including their numbered parts and homepage placement.
 - [Projects](./projects.md) defines one-file project records, ownership,

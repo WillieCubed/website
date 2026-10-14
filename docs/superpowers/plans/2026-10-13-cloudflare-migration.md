@@ -65,7 +65,7 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
 
 ### Task 1: Baseline and provider inventory
 
-**Files:** Update `docs/deploy.md`; create an inventory receipt in `docs/evidence/` without credentials.
+**Files:** Update `docs/guides/operations/deploy.md`; create an inventory receipt in `docs/evidence/` without credentials.
 
 **Interfaces:** Produces the account, zone, database, blob, and deployment identifiers used by later tasks.
 
@@ -127,7 +127,7 @@ The WillieCubed Cloudflare account has Workers Paid, confirmed in Billing on Oct
 
 ### Task 6: Retire Vercel dependencies
 
-**Files:** Update `docs/deploy.md`, `README.md`, `docs/bootstrap.md`, `.env.example`, and scripts; remove `vercel.json` after Cloudflare cutover.
+**Files:** Update `docs/guides/operations/deploy.md`, `README.md`, `docs/reference/operations/bootstrap.md`, `.env.example`, and scripts; remove `vercel.json` after Cloudflare cutover.
 
 **Interfaces:** The runbook states current provider ownership, recovery commands, and retained-data locations.
 

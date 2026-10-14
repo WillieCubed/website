@@ -4,15 +4,15 @@ The source for [willie.page][website], Willie Chalmers III's personal website.
 It is a [Next.js] 16 app using the App Router, written in TypeScript and MDX and
 styled with Tailwind CSS.
 
-Maintainer documentation lives in [docs/README.md](docs/README.md): deployment,
-the content models, IndieWeb and protocol routes, design principles, and commit
-conventions.
+Documentation starts at [docs/README.md](docs/README.md), organized by Concepts,
+Reference, Tutorials, and Guides, with domains nested within each. Start with
+the [local setup tutorial](docs/tutorials/operations/local-development.md) for a
+fresh checkout.
 
 ## Setup
 
-You need Node.js 24 or later and [pnpm]. The repository pins its pnpm version
-in the `packageManager` field of `package.json`, and pnpm switches to that
-version on its own, so any recent pnpm install works:
+Use Node.js 24 or later and [pnpm]. The `packageManager` field in `package.json`
+pins pnpm's version. In an unused parent directory, create a fresh checkout:
 
 ```shell
 git clone git@github.com:WillieCubed/website.git
@@ -22,9 +22,16 @@ cp .env.example .env.local
 pnpm check
 ```
 
-Install runs the Husky setup hook. The pre-commit hook runs ESLint and
-Prettier on staged files through lint-staged. Cloudflare and Neon deployment
-setup is documented in [docs/guides/operations/deploy.md](docs/guides/operations/deploy.md).
+The copy step assumes this new checkout has no `.env.local`; preserve that file
+when working in an existing checkout. Fill only the values needed by the features
+you are developing. Installation sets up Husky, whose pre-commit hook runs ESLint
+and Prettier on staged files. The [local setup tutorial](docs/tutorials/operations/local-development.md)
+provides checkpoints and troubleshooting.
+
+Hosted deployment uses Cloudflare Workers and has separate account, storage, and
+Access requirements. Follow the [deployment guide](docs/guides/operations/deploy.md)
+when preparing those resources. The former Vercel bootstrap and preflight scripts
+have been removed.
 
 ## Development
 
@@ -43,38 +50,47 @@ Both commands regenerate the search index first.
 
 ## Commands
 
-| Command                 | What it does                                                                         |
-| ----------------------- | ------------------------------------------------------------------------------------ |
-| `pnpm dev`              | Starts the dev server behind portless                                                |
-| `pnpm dev:app`          | Starts `next dev` directly                                                           |
-| `pnpm build`            | Generates the search index, builds for production, and runs the postbuild scripts    |
-| `pnpm start`            | Serves the production build                                                          |
-| `pnpm test`             | Runs the unit tests in `tests/unit` with Node's test runner                          |
-| `pnpm test:e2e`         | Runs the Playwright smoke and axe tests in `tests/e2e` against the production build  |
-| `pnpm lint`             | Runs ESLint                                                                          |
-| `pnpm typecheck`        | Generates route types and runs `tsc`                                                 |
-| `pnpm check`            | Runs test, lint, typecheck, and build in order; run it before opening a pull request |
-| `pnpm format`           | Formats the repository with Prettier                                                 |
-| `pnpm brand:build`      | Regenerates the brand assets under `public/brand` from `brand/`                      |
-| `pnpm search:index`     | Regenerates the search index on its own                                              |
-| `pnpm websub:ping`      | Notifies the WebSub hub that the feeds changed                                       |
-| `pnpm webmentions:send` | Sends webmentions for writings whose content changed                                 |
+| Command                          | What it does                                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| `pnpm dev`                       | Starts the dev server behind portless                                                        |
+| `pnpm dev:app`                   | Starts `next dev` directly                                                                   |
+| `pnpm build`                     | Builds Studio runtime, checks images, generates search/content manifests, and builds Next.js |
+| `pnpm build:cloudflare`          | Builds the production Worker with its own origin and revision                                |
+| `pnpm build:cloudflare:preview`  | Builds the private preview Worker                                                            |
+| `pnpm deploy:cloudflare`         | Deploys the production Worker                                                                |
+| `pnpm deploy:cloudflare:preview` | Deploys the private preview Worker                                                           |
+| `pnpm start`                     | Serves the production build                                                                  |
+| `pnpm test`                      | Runs the unit tests in `tests/unit` with Node's test runner                                  |
+| `pnpm test:e2e`                  | Runs the Playwright smoke and axe tests in `tests/e2e` against the production build          |
+| `pnpm lint`                      | Runs ESLint                                                                                  |
+| `pnpm typecheck`                 | Generates route types and runs `tsc`                                                         |
+| `pnpm check`                     | Runs test, lint, typecheck, and build in order; run it before opening a pull request         |
+| `pnpm format`                    | Formats the repository with Prettier                                                         |
+| `pnpm brand:build`               | Regenerates the brand assets under `public/brand` from `brand/`                              |
+| `pnpm search:index`              | Regenerates the search index on its own                                                      |
+| `pnpm websub:ping`               | Notifies the WebSub hub that the feeds changed                                               |
+| `pnpm webmentions:send`          | Sends webmentions for writings whose content changed                                         |
 
 ## Environment variables
 
-Copy [`.env.example`](.env.example) to `.env.local` and fill in only what you
-need. Every variable is optional: the site builds and serves with none of them
-set, and each feature turns itself off or falls back when its variable is
-empty. `.env.example` describes each one. They cover:
+Copy [`.env.example`](.env.example) to `.env.local` when that file is absent. Leave values empty for ordinary local
+reading and navigation. To use publishing, account, or database-backed features,
+fill in their configuration as described in the example and linked references. A
+missing value can disable a feature or make its endpoint unavailable, so a
+working homepage does not mean every optional service is configured.
 
-- **Database:** a Postgres connection for webmentions, reply context, activity
-  feeds, and Postgres-backed search.
+The configuration groups include:
+
+- **Database:** storage for authorization, Webmentions, reply context, response
+  observations, publishing recovery, status administration, and optional search.
 - **Webmentions:** the secrets for sending and moderating webmentions, and the
-  switches for the postbuild pings.
-- **IndieAuth:** the owner's sign-in code secret and the introspection
-  secret for the site's own IndieAuth server.
-- **Micropub:** the GitHub repository and branch for new posts, and the R2
-  media bucket for uploaded photos and other attachments.
+  post-deployment notification workflow.
+- **IndieAuth:** the owner's sign-in code secret and the introspection secret
+  for the site's own IndieAuth server.
+- **Micropub:** the publishing branch for client-created posts and the R2
+  media bucket used for uploads.
+- **AT Protocol:** publication identity, signing and storage keys, and the
+  credential for syncing public records.
 - **Search:** the search backend and the reindex secret.
 - **Analytics:** the Google Analytics measurement ID.
 
@@ -86,27 +102,33 @@ The IndieWeb variables are explained in more depth in
 Pages:
 
 - `/` is the homepage.
-- `/initiatives` lists campaigns, series, and projects;
-  `/initiatives/[slug]` and `/initiatives/[slug]/[part]` show one and its parts.
+- `/initiatives` lists campaigns, trips, and series; `/initiatives/[slug]` and
+  `/initiatives/[slug]/[part]` show one and its parts.
+- `/projects` lists public projects, and `/projects/[codename]` shows one.
+- `/media` lists published mentions and appearances.
+- `/brand` provides the logo kit and usage rules.
 - `/writings` lists writings, and `/writings/[slug]` shows one.
 - `/search` searches the site.
 
 Feeds, IndieWeb, and protocol routes:
 
 - RSS, Atom, and JSON feeds at `/feed.xml`, `/writings/feed.xml`, and
-  `/activity/feed.xml`, with `/feed/atom`, `/feed/json`, and the matching
-  paths under `/writings` and `/activity`.
-- `/webmention`, `/webmentions`, `/micropub`, `/micropub/media`, `/oembed`,
-  and the IndieAuth server under `/indieauth`, plus WebFinger, host-meta, the
+  `/activity/feed.xml`, with `/feed/atom`, `/feed/json`, and the matching paths
+  under `/writings` and `/activity`.
+- `/webmention`, `/webmentions`, `/micropub`, `/micropub/media`, `/oembed`, and
+  the IndieAuth server under `/indieauth`, plus WebFinger, host-meta, the
   IndieAuth metadata, and the AT Protocol DID under `/.well-known`. See
   [docs/reference/publishing/indieweb.md](docs/reference/publishing/indieweb.md).
-- `/coffee`, `/tea`, `/whoami`, `/.well-known/security.txt`,
-  `/opensearch.xml`, `/llms.txt`, and the MCP server at `/api/mcp`. See
+- `/coffee`, `/tea`, `/whoami`, `/.well-known/security.txt`, `/opensearch.xml`,
+  `/llms.txt`, and the MCP server at `/api/mcp`. See
   [docs/reference/publishing/protocols.md](docs/reference/publishing/protocols.md).
 
-Older pages such as `/about`, `/projects`, and `/research` are parked under
-`app/_(pages)`. The leading underscore keeps Next.js from routing them until they
-are rebuilt.
+Retired page sources remain under `app/_(pages)` and do not create public
+routes. About and Research also have unapproved replacements in
+`app/_proposals`; they remain private pending Willie's content and publication
+approval. See the
+[profile proposals reference](docs/reference/content/public-profile.md) for that
+review boundary.
 
 ## Deployment
 

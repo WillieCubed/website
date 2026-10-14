@@ -1,22 +1,23 @@
 # Run the site locally from a fresh checkout
 
-Set up a new checkout, run the repository checks, and browse the site locally.
-You will finish with a working checkout and a local URL where you can browse the
-homepage, writings, and search. The exercise uses local-only bootstrap so
-learning the site does not require provisioning a publishing deployment.
+Create a checkout, install its locked dependencies, and browse the site locally.
+You will finish with a local URL where you can inspect the homepage, writings,
+and search. This exercise leaves the database and publishing credentials empty;
+it does not provision or deploy a Cloudflare Worker.
 
 ## Prerequisites
 
-You need Git with SSH access to `WillieCubed/website`, Node.js 24 or later, and
-pnpm. The exact pnpm version is pinned in `package.json`; bootstrap checks it
-before installing. You also need network access to GitHub and the package
-registry, a terminal, a browser, and an unused parent directory for the
-checkout.
+You need Git with SSH access to `WillieCubed/website`, Node.js 24 or later,
+and pnpm 11.5.1, the version currently pinned in `package.json`. You also need
+network access to GitHub and the package registry, a terminal, a browser, and
+an unused parent directory for the checkout. Installing dependencies uses local
+disk space and downloads packages; this exercise creates no provider resources.
 
-These instructions have been inspected against the bootstrap scripts. A complete
-fresh-machine run has not been exercised for this documentation revision. The
-[bootstrap reference](../../reference/operations/bootstrap.md) explains phases
-and provider setup when you need them later.
+The instructions were checked against `package.json`, `.env.example`, and
+`portless.json`. A complete fresh-machine run has not been exercised for this
+documentation revision. The
+[setup reference](../../reference/operations/bootstrap.md) describes account
+and resource preparation when you later need a hosted deployment.
 
 ## 1. Create the checkout
 
@@ -27,42 +28,60 @@ git clone git@github.com:WillieCubed/website.git
 cd website
 ```
 
-Check that this directory contains `package.json`, `pnpm-lock.yaml`, and `app/`.
+Check that the directory contains `package.json`, `pnpm-lock.yaml`, and `app/`.
 All remaining commands run here, at the repository root. The lockfile records
 the dependency tree the site expects; keep it intact during setup.
 
-If cloning fails, check that the GitHub account associated with your SSH key can
-read the repository. Resolve that access before continuing. If `website` already
-exists, use the existing checkout or choose another parent rather than cloning
-over work.
+If cloning fails, check that the GitHub account associated with your SSH key
+can read the repository. Resolve that access before continuing. If `website`
+already exists, use another parent directory for this fresh-checkout exercise
+rather than cloning over work.
 
-## 2. Bootstrap local development
+## 2. Prepare the local workspace
 
-### Install and check the locked workspace
+### Install the locked dependencies
+
+Check the local tools, then install:
 
 ```sh
-pnpm bootstrap --local-only
+node --version
+pnpm --version
+pnpm install --frozen-lockfile
 ```
 
-Expect successful Node and pnpm checks, installation from the lockfile, a
-passing `pnpm check`, and creation of `.env.local` from `.env.example` when
-absent. An existing `.env.local` is preserved. Leave the example environment
-values empty for this exercise: ordinary content can run without the hosted
-publishing setup.
+The Node version must satisfy `engines.node` in `package.json`, currently
+`>=24`; pnpm should match its `packageManager` version, currently 11.5.1.
+The frozen install must finish without changing `pnpm-lock.yaml`. If a version
+or installation check fails, resolve that error before editing source. A clean
+baseline will help you distinguish a later regression from a setup problem.
 
-Local-only mode stops before provider authentication and deployment. The
-workspace check includes tests, lint, type checking, and a production build; it
-disables outgoing publishing notifications for that check. This gives you a
-baseline for source work without making setup depend on external publishing
-credentials.
+### Create the environment file
 
-### Resolve a failed baseline before editing
+```sh
+test -f .env.local || cp .env.example .env.local
+```
 
-Stop at the first reported failure. For a version mismatch, use the version
-pinned in `package.json` and rerun bootstrap without modifying the lockfile. For
-an installation or check failure, inspect the command's error before moving on.
-Starting edits on a failed baseline makes it harder to distinguish a setup
-problem from a regression you introduced.
+This copies the example only when `.env.local` is absent, preserving any file
+that already exists. For this exercise, leave the database and publishing
+values empty. `.env.example` documents the optional features each value enables;
+you do not need a Neon connection or signed Cloudflare Access request to browse
+ordinary content. Never commit real environment values.
+
+### Run the repository checks
+
+```sh
+pnpm check
+```
+
+Expect tests, lint, type checking, and the Next production build to pass. The
+package scripts also prepare the Studio browser runtime, search index, and
+Cloudflare content manifest needed by the app. These checks build local output;
+they do not upload a Worker or prove a hosted deployment.
+
+Stop at the first failure and inspect its command output. Keep the lockfile
+intact while resolving the problem, then rerun the failed check or `pnpm check`
+as appropriate. The removed `bootstrap` and `preflight` commands are not part
+of the current package scripts.
 
 ## 3. Open the local site
 
@@ -72,40 +91,43 @@ problem from a regression you introduced.
 pnpm dev
 ```
 
-Wait for the ready message, then open the printed URL. A regular checkout uses
-`https://williecubed.localhost:1355`; worktrees have a branch-prefixed hostname.
-Use the actual output so you do not accidentally inspect a server from another
-checkout.
+Wait for the ready message, then open the printed URL. The command starts the
+app through portless, which gives a regular checkout the named address
+`https://williecubed.localhost:1355`. Worktrees use a branch-prefixed hostname.
+Follow the actual output so you inspect this checkout's server rather than
+another running copy.
 
-### Browse the content you came to work on
+### Check the local reading experience
 
-Confirm the homepage renders, follow a link to Writings, and open Search. You
-should be able to read public content and navigate between pages. Publishing and
-account features can remain unavailable because this exercise leaves their
-database and credentials unconfigured; those features are not needed to read an
-article locally.
+Confirm that the homepage renders, follow a link to Writings, and open Search.
+You should be able to read content and navigate between pages. Account,
+database, and publishing features can remain unavailable because their
+connections and credentials are unconfigured; this exercise does not test
+them.
 
-If the server cannot start, inspect its terminal error. If a browser page looks
-wrong, first confirm its origin matches the URL the current process printed.
-Keep the terminal running while you browse; Ctrl+C stops that development
+If the server cannot start, inspect the terminal error. If a browser page looks
+wrong, first compare its origin with the URL the current process printed.
+Keep that terminal running while you browse. Ctrl+C stops the development
 server.
 
 ## 4. Verify and finish
 
-Stop the server with Ctrl+C and run:
+Stop the server with Ctrl+C. Confirm that the local environment file exists
+and inspect any working-tree changes:
 
 ```sh
-pnpm preflight --local-only --phase env
+test -f .env.local
+git status --short
 ```
 
-Expect the environment check to find `.env.local`. Selecting `env` checks the
-file created during setup without repeating the full tests and build after a
-browsing-only exercise. If you changed source while experimenting, use
-`pnpm preflight --local-only` to repeat the full local checks. These local
-checks do not contact a publishing deployment.
+The file check exits successfully without output when `.env.local` exists.
+The environment file and ordinary build caches are ignored. Generated files
+may appear in the working tree; inspect their paths before deciding whether
+they belong to an intentional change. Preserve unrelated work.
 
-Keep the checkout for development and continue with
-[your first writing page](../content/first-writing.md). `.env.local` and build
-output are ignored; do not commit environment values. If the exercise was
-disposable, confirm the checkout contains no work you need before removing only
-that checkout. Keep any checkout that contains ongoing work.
+A browsing-only exercise does not need another full build. If you changed
+source while experimenting, run `pnpm check` again before treating the checkout
+as a passing baseline. Keep the checkout and continue with
+[your first writing page](../content/first-writing.md), or remove it after
+confirming it contains no work you need. Remove only that disposable checkout;
+keep any checkout with ongoing work.

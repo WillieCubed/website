@@ -1,6 +1,4 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 
 import { promoteAssets } from './assets';
 import { catalogEntry } from './catalog';
@@ -259,24 +257,25 @@ async function rebaseArtifacts(
   );
 }
 
-async function proposalBody(publication: Publication): Promise<string> {
-  // Keep the actual repository template's headings and order. This is operational
-  // PR metadata, never authored writing or generated editorial content.
-  const template = await readFile(
-    join(process.cwd(), '.github/pull_request_template.md'),
-    'utf8'
-  );
-  const answers = [
-    `Publish the selected immutable Studio revision ${publication.revisionId}.`,
-    `Export the selected revision and its approved assets in one commit. Publication ID: ${publication.id}.`,
-    'Studio validates the selected revision before creating this proposal. Required GitHub checks and branch protections must pass before rebase merging. Public revision verification follows deployment.',
-    'Verify the deployed revision and merged commit through the Studio publication status endpoint.',
-  ];
-  let index = 0;
-  return template.replace(
-    /<!--[\s\S]*?-->/g,
-    () => answers[index++] ?? 'None.'
-  );
+function proposalBody(publication: Publication): string {
+  // Keep these headings in the same order as .github/pull_request_template.md.
+  // Workers cannot read repository files from process.cwd() at request time.
+  return `## TL;DR
+
+Publish the selected immutable Studio revision ${publication.revisionId}.
+
+## Changes
+
+Export the selected revision and its approved assets in one commit. Publication ID: ${publication.id}.
+
+## Verification
+
+Studio validates the selected revision before creating this proposal. Required GitHub checks and branch protections must pass before rebase merging. Public revision verification follows deployment.
+
+## Follow-ups and Next Work
+
+Verify the deployed revision and merged commit through the Studio publication status endpoint.
+`;
 }
 
 async function reconcilePullRequest(

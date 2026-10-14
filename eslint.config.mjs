@@ -25,6 +25,7 @@ const eslintConfig = [
       'build/**',
       'public/pagefind/**',
       'lib/generated-content.ts',
+      'lib/generated-mdx.tsx',
       'test-results/**',
       'playwright-report/**',
       'next-env.d.ts',

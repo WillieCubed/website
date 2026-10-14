@@ -1,6 +1,34 @@
 # Commit conventions
 
-Commits use [Conventional Commits](https://www.conventionalcommits.org/) format with `type(scope): subject`.
+Write commit subjects as `type(scope): subject`, following
+[Conventional Commits](https://www.conventionalcommits.org/). The type describes
+what kind of change you made; the scope identifies the part of the site it
+affects. Together they help someone scanning history find a relevant change
+before reading its explanation.
+
+## Before committing
+
+### Review the experience the change affects
+
+For a page, content, style, or interaction change, review the affected
+experience against all seven
+[design principles](../../concepts/design/design-principles.md#before-committing).
+Check the affected experience, including JavaScript-free use and end-user
+resource costs. A hook can detect some source violations; it cannot decide
+whether a playful detail is useful or an interaction is misleading.
+
+Record an unmet requirement or necessary tradeoff in the change description.
+That explanation lets a later maintainer distinguish a deliberate compromise
+from a missed check. For documentation changes, use the
+[editorial principles](../documentation/editorial-principles.md) and verify the
+links, examples, and scope of any evidence claims.
+
+### Describe one coherent change
+
+The subject should identify what changes, with enough context to be useful in
+history. Put the reason and material consequences in the body when the subject
+cannot carry them. Use the narrowest scope below so someone investigating a
+feature can find its history without reading every site-wide commit.
 
 ## Scopes
 
@@ -33,24 +61,37 @@ category. Omit the scope only for repository-wide changes.
 
 ## Types
 
-Reach for these first:
+Choose the type from the resulting behavior:
 
-- **`feat`** — adds a capability
-- **`fix`** — corrects broken behavior
-- **`chore`** — refactors, tooling, dependencies, and documentation
+- **`feat`** adds a capability.
+- **`fix`** corrects broken behavior.
+- **`chore`** covers refactoring, tooling, dependencies, and documentation.
 
-Avoid `perf`; file performance work under `chore` instead.
+This repository files performance work under `chore`; avoid `perf`. The local
+convention takes precedence over the larger vocabulary Conventional Commits
+allows, keeping history and tooling consistent.
 
 ## Breaking changes
 
-Mark with `!` after the type, and explain in a `BREAKING CHANGE:` footer.
+Mark a breaking change with `type(scope)!: subject` and explain it in a
+`BREAKING CHANGE:` footer. With no scope, use `type!: subject`. Identify the old
+behavior, the new behavior, and what an affected caller or maintainer must
+change. The marker draws attention to the compatibility boundary; the
+explanation makes that attention useful.
 
 ## Example
 
-```
-feat(writings): Add webmention and feed infrastructure
+Suppose a change lets readers subscribe to writings and lets other sites send
+responses to them. The subject names the new capability; the body states what it
+adds for readers:
 
-Restore IndieWeb functionality to the writing system.
+```text
+feat(indieweb): Add webmention and feed infrastructure
 
-Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
+Let readers subscribe to writings and show responses from other sites beneath
+the original post.
 ```
+
+For a more involved change, explain the relevant constraint or tradeoff in the
+body. Add a `Co-Authored-By` trailer only for an actual contributor, using that
+person's or agent's correct attribution.

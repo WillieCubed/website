@@ -61,7 +61,7 @@ export const runtimeFiles: Record<string, string> = {
   'content/now/haystack.md':
     '---\ndate: 2024-\nlinks:\n  - text: Project Link\n    url: https://example.com\n---\n\nLaunching a better journal for your memories\n',
   'content/projects/_template.mdx':
-    "---\n# Copy to content/projects/<slug>.mdx. Every sentence must be Willie's own\n# words; leave a field out rather than write it for him. docs/projects.md\n# explains each field.\ntitle: ''\nline: ''\nowners: []\nroles: []\nvisibility: public\ndraft: true\n---\n",
+    "---\n# Copy to content/projects/<slug>.mdx. Every sentence must be Willie's own\n# words; leave a field out rather than write it for him. docs/reference/content/projects.md\n# explains each field.\ntitle: ''\nline: ''\nowners: []\nroles: []\nvisibility: public\ndraft: true\n---\n",
   'content/projects/aggie.mdx':
     "---\ntitle: 'Aggie: A Testbed for Intelligent Agents'\nline: Aggie is a testbench for building intelligent agents that are modular and explainable.\nstatus: complete\ndraft: true\n---\n",
   'content/projects/cole.mdx':

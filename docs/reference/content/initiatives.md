@@ -32,9 +32,10 @@ and `opengraph-image` is reserved for the image route.
 The loader is `lib/initiatives/index.ts`. It validates frontmatter with the zod
 schemas in `lib/initiatives/schema.ts`, resolves each status from its dates when
 the author leaves `status` out, and exposes `getInitiatives`, `getInitiative`,
-`getPart`, `getFeaturedInitiatives`, and `currentPart`. Results are cached with
-`'use cache'` for an hour, which is also what lets them read the clock under
-`cacheComponents`.
+`getPart`, `getFeaturedInitiatives`, and `currentPart`. The loaders resolve
+statuses against the clock when reading the records. They no longer declare an
+hourly Next.js `use cache` policy; inspect the consuming route's caching when
+diagnosing a stale rendered status.
 
 ## Initiative frontmatter
 

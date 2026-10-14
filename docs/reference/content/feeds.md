@@ -126,6 +126,8 @@ facts-only projects supply neither private body text nor media. Drafts stay out
 of every feed. These omissions avoid inventing chronology or allowing a feed to
 expose material the page loader has withheld.
 
-Routes use `'use cache'` with `cacheLife('hours')`. After deployment, cached
-feed content follows that hourly cache policy; checking a feed immediately after
-a change may still show the previous items.
+The site and writings RSS routes advertise `s-maxage=3600` with
+`stale-while-revalidate=600`; their Atom and JSON routes advertise
+`max-age=3600, s-maxage=3600`. A browser or shared cache can therefore serve an
+earlier feed after a content change. These are HTTP cache policies; the item
+loaders no longer declare a separate Next.js `use cache` / `cacheLife` policy.

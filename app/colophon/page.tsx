@@ -68,67 +68,60 @@ export default function ColophonPage() {
         </section>
 
         <section className="colophon-edition" aria-labelledby="edition-title">
-          <h2 id="edition-title">The version you’re visiting</h2>
-          <dl className="colophon-build">
-            <div>
-              <dt>Current version</dt>
-              <dd>
-                {build.revision ? (
-                  <SiteLink
-                    className="colophon-revision"
-                    href={`https://github.com/WillieCubed/website/commit/${build.revision}`}
-                    aria-label={`View source for revision ${build.revision}`}
-                  >
-                    {build.revision.slice(0, 8)}
-                  </SiteLink>
-                ) : (
-                  'Revision unavailable'
-                )}
-              </dd>
-              <dd className="colophon-detail">
-                {build.development ? 'Development checkout' : 'Source revision'}
-              </dd>
-            </div>
-            <div>
-              <dt>Last built</dt>
-              <dd>
-                {builtAt ? (
-                  <time dateTime={build.builtAt!}>
-                    {buildDate}
-                    <span className="colophon-detail">{buildTime}</span>
-                  </time>
-                ) : (
-                  'Development server'
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt>Build record</dt>
-              <dd>
-                {build.buildUrl ? (
-                  <SiteLink href={build.buildUrl}>
-                    {build.provider === 'cloudflare'
-                      ? 'Cloudflare build'
-                      : 'GitHub Actions run'}{' '}
-                    ↗
-                  </SiteLink>
-                ) : (
-                  'Built locally'
-                )}
-              </dd>
-              <dd className="colophon-detail">
-                {build.provider === 'cloudflare'
-                  ? 'Cloudflare sign-in required'
-                  : build.buildUrl
-                    ? 'The run that made this version'
-                    : 'No CI run for this build'}
-              </dd>
-            </div>
-          </dl>
-          <p className="colophon-build-note">
-            This records when the site’s code was built. Writing and live
-            information can change between builds.
-          </p>
+          <table className="colophon-build">
+            <caption id="edition-title">This build</caption>
+            <tbody>
+              <tr>
+                <th scope="row">Version</th>
+                <td>
+                  {build.revision ? (
+                    <SiteLink
+                      className="colophon-revision"
+                      href={`https://github.com/WillieCubed/website/commit/${build.revision}`}
+                      aria-label={`View source for revision ${build.revision}`}
+                    >
+                      {build.revision.slice(0, 8)}
+                    </SiteLink>
+                  ) : (
+                    'Revision unavailable'
+                  )}
+                  {build.development && (
+                    <span className="colophon-detail">Development</span>
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Last built</th>
+                <td>
+                  {builtAt ? (
+                    <time dateTime={build.builtAt!}>
+                      {buildDate} · {buildTime}
+                    </time>
+                  ) : (
+                    'Development server'
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Build record</th>
+                <td>
+                  {build.buildUrl ? (
+                    <SiteLink href={build.buildUrl}>
+                      {build.provider === 'cloudflare'
+                        ? 'Cloudflare build'
+                        : 'GitHub Actions run'}{' '}
+                      ↗
+                    </SiteLink>
+                  ) : (
+                    'Built locally'
+                  )}
+                  {build.provider === 'cloudflare' && (
+                    <span className="colophon-detail">Sign-in required</span>
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </section>
 
         <div className="colophon-notes">

@@ -231,7 +231,7 @@ export default function StudioWidgetGenerator({
           {generation.error && <p>{generation.error}</p>}
           {generation.result && (
             <details className="studio-block-details">
-              <summary>View component source</summary>
+              <summary>View device output</summary>
               <pre className="studio-proposal-text">{generation.result}</pre>
             </details>
           )}

@@ -196,8 +196,11 @@ test(
         draft.head.id
       );
       assert.equal(malformed.status, 'failed');
-      assert.match(malformed.error!, /invalid widget package/);
-      assert.equal(malformed.result, null);
+      assert.match(malformed.error!, /valid JSON/);
+      assert.equal(
+        malformed.result,
+        '```jsx\nexport default function Counter() {}\n```'
+      );
       assert.ok(malformed.inferenceKey);
       assert.notEqual(malformed.inferenceKey, malformed.id);
       assert.equal((await store.get(draft.id))!.head.id, draft.head.id);
@@ -224,7 +227,8 @@ test(
         prompt: 'Build another counter',
       });
       assert.equal(broken.status, 'failed');
-      assert.match(broken.error!, /invalid widget package/);
+      assert.match(broken.error!, /valid TSX/);
+      assert.ok(broken.result);
       assert.ok(broken.inferenceKey);
       assert.equal((await store.get(draft.id))!.head.id, draft.head.id);
 

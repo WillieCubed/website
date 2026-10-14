@@ -361,8 +361,11 @@ hosted proposal acceptance check.
 
 ### Deployment connection and remaining release gates
 
-The preview Worker Builds connection remains on `codex/private-writing-preview`
-until PR #201 merges. Then return it to `main` or disable its duplicate
-automatic builds. The Vercel project's Git connection is already disconnected.
+PR #201 merged. The preview Worker's Git build connection was removed to avoid
+duplicating every production build. Deploy private writing changes to preview
+deliberately with the Cloudflare preview commands. The Vercel project has been
+removed. Lattice was reconnected on the hosted preview, but fresh generation
+has returned invalid widget output or timed out; generation, proposal approval,
+and protected publication remain unverified on this Worker.
 The component-only implementation is the required deployment; prose generation
 and generation-driven document replacement are excluded from this product.

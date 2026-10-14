@@ -6,6 +6,7 @@ import {
 } from '@/lib/studio/lattice';
 import { getStudioStore } from '@/lib/studio/store';
 
+export const maxDuration = 180;
 type Context = { params: Promise<{ id: string }> };
 export async function GET(request: Request, context: Context) {
   return studioRoute(request, async () => {

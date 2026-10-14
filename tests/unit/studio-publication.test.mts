@@ -87,29 +87,34 @@ test(
         if (endpoint.origin === 'https://public.example')
           return Response.json(marker);
         assert.equal(endpoint.origin, 'https://api.github.com');
-        if (endpoint.pathname === '/graphql') {
-          const body = JSON.parse(String(init?.body));
-          const update = body.variables.input.refUpdates[0];
+        if (
+          path.startsWith('git/refs/heads/codex') &&
+          init?.method === 'PATCH'
+        ) {
+          const update = JSON.parse(String(init.body));
           assert.equal(update.force, true);
-          assert.match(update.name, /^refs\/heads\/codex\/studio-publish-/);
-          const branch = update.name.replace('refs/heads/', '');
-          assert.equal(branches.get(branch), update.beforeOid);
-          branches.set(branch, update.afterOid);
+          assert.match(
+            decodeURIComponent(path),
+            /^git\/refs\/heads\/codex\/studio-publish-/
+          );
+          const branch = decodeURIComponent(
+            path.replace('git/refs/heads/', '')
+          );
           const pr = [...pulls.values()].find(
             (pr) => (pr.head as { ref: string }).ref === branch
           )!;
+          assert.equal(branches.get(branch), (pr.head as { sha: string }).sha);
+          branches.set(branch, update.sha);
           Object.assign(pr, {
-            head: { ref: branch, sha: update.afterOid },
+            head: { ref: branch, sha: update.sha },
             base: { sha: head },
           });
           rebaseCount++;
           if (failRebaseResponse) {
             failRebaseResponse = false;
-            throw new Error('Connection lost after CAS rebase');
+            throw new Error('Connection lost after ref update');
           }
-          return Response.json({
-            data: { updateRefs: { clientMutationId: 'test' } },
-          });
+          return Response.json({ object: { sha: update.sha } });
         }
         if (path === '') return Response.json({ node_id: 'repository-node' });
         if (path === 'git/ref/heads/main')

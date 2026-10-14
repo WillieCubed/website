@@ -174,26 +174,18 @@ async function completeRebase(
         409,
         'The publication proposal changed. Review it before retrying.'
       );
-    const repository = await github('');
-    const result = await github('$graphql', 'POST', {
-      query:
-        'mutation StudioRebase($input: UpdateRefsInput!) { updateRefs(input: $input) { clientMutationId } }',
-      variables: {
-        input: {
-          repositoryId: repository.node_id,
-          clientMutationId: `${publication.id}:${pending.parent}`,
-          refUpdates: [
-            {
-              name: `refs/heads/${privateBranch}`,
-              beforeOid: pending.before,
-              afterOid: pending.after,
-              force: true,
-            },
-          ],
-        },
-      },
-    });
-    if (result.errors)
+    // This branch belongs to one publication and is serialized by its advisory
+    // lock. Recheck its head before the forced update so a changed proposal is
+    // never knowingly overwritten. The scoped token supports Git refs via REST.
+    await github(
+      `git/refs/heads/${encodeURIComponent(privateBranch)}`,
+      'PATCH',
+      { sha: pending.after, force: true }
+    );
+    const updated = await github(
+      `git/ref/heads/${encodeURIComponent(privateBranch)}`
+    );
+    if ((updated.object as { sha: string }).sha !== pending.after)
       throw new StudioError(
         409,
         'The publication branch could not be rebased. Review the pull request and retry.'

@@ -181,7 +181,7 @@ export default function ColophonPage() {
                           {build.provider === 'cloudflare'
                             ? 'Cloudflare build'
                             : 'GitHub Actions run'}{' '}
-                          ↗
+                          <span aria-hidden="true">↗</span>
                         </SiteLink>
                       ) : (
                         'Built locally'

@@ -69,7 +69,6 @@
 }
 .colophon-sample-text {
   display: block;
-  white-space: nowrap;
   font: 600 clamp(34px, 4.5vw, 64px)/1.15 var(--font-sans);
   letter-spacing: -0.03em;
 }
@@ -191,8 +190,28 @@
   margin-bottom: 24px;
 }
 .colophon-credits {
-  grid-column: 8 / -1;
-  margin-top: 72px;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px 24px;
+  align-items: start;
+}
+.colophon-credits h2 {
+  grid-column: 1 / span 4;
+  grid-row: 1 / span 3;
+  font-size: 40px;
+  margin: 0;
+}
+.colophon-credits > p,
+.colophon-credits .colophon-edition {
+  grid-column: 5 / -1;
+  margin: 0;
+}
+.colophon-credits .colophon-edition {
+  margin-top: 8px;
+}
+.colophon-credits .colophon-build {
+  width: 100%;
 }
 .colophon .colophon-tools {
   font-size: 14px;
@@ -236,9 +255,16 @@
     grid-column: 1;
   }
   .colophon-credits {
-    margin-top: 0;
-    max-width: 36rem;
-    justify-self: end;
+    grid-template-columns: 1fr;
+  }
+  .colophon-credits h2,
+  .colophon-credits > p,
+  .colophon-credits .colophon-edition {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .colophon-credits h2 {
+    margin-bottom: 4px;
   }
   .colophon-specimen {
     margin-top: 8px;
@@ -281,9 +307,6 @@
   }
   .colophon-type h2 {
     font-size: 40px;
-  }
-  .colophon-credits {
-    justify-self: stretch;
   }
   .colophon-specimen {
     grid-template-columns: repeat(2, minmax(0, 1fr));

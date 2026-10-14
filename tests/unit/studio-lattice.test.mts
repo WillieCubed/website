@@ -162,6 +162,9 @@ test(
         );
         const body = JSON.parse(String(init?.body));
         assert.match(JSON.stringify(body), /runtime-mine/);
+        assert.match(body.input, /Reply with exactly one JSON object/);
+        assert.match(body.input, /Build an interactive chart/);
+        assert.equal(body.temperature, 0);
         assert.doesNotMatch(
           JSON.stringify(body),
           /PRIVATE_AUTHOR_TITLE|Source document/

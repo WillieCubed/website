@@ -62,6 +62,11 @@ the baked commit SHA at `/api/indieweb/revision`. Do not build once and deploy
 the same `.open-next` directory to both environments: the public origin and
 revision are compiled into the build.
 
+Workers Builds deploys production from `main`. Preview no longer has a Git
+build connection: deploy it deliberately with the preview build and deploy
+commands when testing private writing changes. This avoids rebuilding the same
+repository twice on every `main` push.
+
 ### Authenticate to the pinned account
 
 Create the named WillieCubed profile with `pnpm exec cf auth create williecubed`
@@ -190,17 +195,15 @@ through the custom domain. The public route gate does not apply to it.
 ### Complete authenticated and retained-data acceptance
 
 The three old Vercel website projects (`website`, `willie-page-preview`, and
-`indieweb-acceptance`) were disconnected from Git on October 13 so a push no
-longer starts three duplicate Vercel builds. Their existing deployments remain
-while protected publication and the isolated IndieWeb acceptance environment
-are still being verified. The preview's original Lattice encryption key was
-recovered and installed on Cloudflare, but its OAuth refresh authorization
-requires owner reconnection. Delete the Vercel projects only after those
-acceptance paths no longer depend on them.
+`indieweb-acceptance`) have been removed. Their URLs no longer provide a
+rollback or an isolated test site. The retained IndieWeb and AT Protocol
+acceptance helpers still assume the old Vercel project; they are historical
+until adapted to an explicitly isolated Cloudflare test deployment. Do not run
+them against production to compensate for the missing fixture host.
 
-Owner reconnection and the remaining publishing checks are separate from the
-anonymous route gate. Record their results before treating the retained
-hosting projects as removable.
+Owner workflows and publishing checks remain separate from the anonymous
+route gate. Record their hosted results before treating the migration as fully
+accepted.
 
 ## Resource budgets
 

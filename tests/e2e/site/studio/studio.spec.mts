@@ -375,8 +375,12 @@ test('a preview response for an older draft cannot enable publication', async ({
   await expect(page.getByLabel('Title', { exact: true })).toHaveValue(
     'A preview in progress'
   );
+  let releasePreview!: () => void;
+  const pendingPreview = new Promise<void>((resolve) => {
+    releasePreview = resolve;
+  });
   await page.route('**/api/studio/preview', async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await pendingPreview;
     await route.continue();
   });
   const requested = page.waitForRequest(
@@ -389,6 +393,10 @@ test('a preview response for an older draft cannot enable publication', async ({
   await page
     .getByLabel('Title', { exact: true })
     .fill('A newer unreviewed thought');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'All changes saved' })
+  ).toBeVisible();
+  releasePreview();
   await expect(
     page.getByRole('status').filter({ hasText: 'Review it again' })
   ).toBeVisible();

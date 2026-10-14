@@ -5,10 +5,10 @@ The site targets WCAG 2.2 AA alongside the color and motion rules in the
 meaningful content images before pushing or publishing them, and run
 `pnpm content:check` after editing MDX or image markup.
 
-The image gate checks a specific part of that contract. It prevents content
-without an explicit description policy from entering the site; it does not
-establish that a description is useful, a control is understandable, or a whole
-page is accessible. Those questions still require review in context.
+The automated image check catches missing descriptions before content reaches
+a reader. It cannot judge whether a description conveys the useful part of a
+photo or whether a control makes sense. Review those questions on the page,
+where the surrounding text and interaction give them meaning.
 
 ## Image descriptions
 
@@ -16,11 +16,15 @@ page is accessible. Those questions still require review in context.
 
 An image needs nonblank alt text when it adds information: a writing's photo,
 a project screenshot, a map, or an illustration that carries part of an
-argument. Describe the information a reader would lose without seeing it.
-“A bus turning onto Maryland Parkway at dusk” gives the reader a scene;
-“Bus photo” mostly repeats the image's file type. For a screenshot, explain the
-interaction or result that makes the screenshot relevant to the surrounding
-text. A description that passes a nonblank check can still fail that task.
+argument. Start by asking what the surrounding passage asks the reader to
+notice. A scene-setting photo might need “A bus turning onto Maryland Parkway
+at dusk.” If the passage instead discusses a stop's access, the useful details
+would concern the stop and its surroundings. “Bus photo” would leave either
+reader with almost nothing.
+
+For a screenshot, describe the interaction or result that makes it relevant to
+the text. A nonblank description satisfies the validator, but its usefulness
+depends on whether it conveys that information.
 
 Decoration has a different contract. Initiative cover motifs repeat nearby
 titles and themes, so their frontmatter uses `decorative: true` with `alt: ''`.
@@ -48,16 +52,23 @@ correct the description or explicitly classify the image as decorative.
 
 ### Micropub accepts described photo objects
 
-Micropub photo posts require JSON photo objects with `value` and nonblank
-`alt`. Upload files to `/micropub/media` first, then include their URLs and
-descriptions in the post. A bare URL, form photo field, or multipart photo
-file receives `400 invalid_request` before any content write or GitHub commit.
+An author can publish a photo through a Micropub client instead of editing MDX.
+That route still needs the description before the post is written. Micropub
+therefore accepts photos as JSON objects with a URL in `value` and a nonblank
+`alt`; the object keeps the image and its description together.
 
-This places the decision at the point where the author still has the photo and
-its purpose in mind. Accepting an undescribed post and hoping to repair it
-later would make the publication path weaker than the repository path.
+Upload the file to `/micropub/media` first, then include the returned URL and
+description in the post. A bare URL, form photo field, or multipart photo file
+receives `400 invalid_request` before any content write or GitHub commit. The
+rejection leaves the author able to add the missing description before the
+photo becomes published content, rather than requiring a repair afterward.
 
 ### The same gate runs at multiple boundaries
+
+A repository edit passes through several checks on its way to a build. The
+pre-push hook catches missing descriptions locally, while CI and prebuild
+checks cover the path even when that hook was skipped. The sequence below
+shows where each check runs.
 
 ```mermaid
 sequenceDiagram
@@ -76,10 +87,10 @@ sequenceDiagram
   Build->>Check: prebuild check
 ```
 
-The local hook catches an omission before the push. A hook can be skipped, so
-CI checks every branch push and the build checks again. Micropub applies the
-same description policy before writing a post. These repeated boundaries cover
-different entry paths; none replaces an author's judgment about meaning.
+The pre-push hook catches an omission while it is still local. CI checks every
+branch push, and the build's prebuild step runs the validator again. Micropub
+applies the same description policy before writing a post, covering the
+authoring path that bypasses a local checkout.
 
 ## Interaction rules
 
@@ -91,17 +102,20 @@ fragment links. A destination must remain available without hover or a script
 that intercepts a click. Correct semantics also let the browser supply familiar
 behavior, such as opening a destination in another tab.
 
-The homepage Focuses buttons report pressed only when a visitor pins a focus.
-Passing the pointer over a focus is temporary interest, not a selection. If the
-pressed state followed hover, assistive technology would describe a choice the
-visitor had never made.
+The homepage's Focuses controls let a visitor explore a focus temporarily or
+pin it as a selection. Their pressed state reports only the pinned selection.
+Passing the pointer over one expresses temporary interest; reporting it as
+pressed would tell assistive technology that the visitor had made a choice
+before they had.
 
 ### Preserve a useful focus path
 
-Dialogs return focus to their opener. Popovers focus their first action and
-return focus when dismissed. These rules give the visitor a place to continue
-after inspecting temporary content, instead of sending them back through the
-page to find their previous position.
+When a visitor opens a dialog or an action popover, keyboard focus follows the
+new content. Popovers focus their first action; both kinds of temporary view
+return focus to their opener when dismissed. The visitor can then continue
+from the place they left, instead of tabbing through the page to find it again.
+The [link preview](./links.md#behaviour-and-accessibility) is different: it
+repeats destination information, contains no action, and does not take focus.
 
 Collapsed footer controls stay out of the tab order. An invisible control is
 still an interruption if a keyboard user can land on it. Check both the open
@@ -149,6 +163,6 @@ environment. VoiceOver's spoken announcements were not captured by the
 available browser tooling, so a person must check them before claiming a
 complete manual screen-reader review.
 
-Keep these boundaries attached to any report that cites the checks. Passing
-source validation remains useful evidence for the image gate, but it cannot
-fill in an unvisited page, an authenticated flow, or an uncaptured announcement.
+A later review can close these gaps by checking the published detail pages,
+completing the authenticated flows, and listening to VoiceOver. Until those
+results are recorded, cite the 28 September checks with their original scope.

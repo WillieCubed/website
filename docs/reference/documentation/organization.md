@@ -1,10 +1,14 @@
 # Documentation standard
 
-Organize maintainer documentation using [Diátaxis](https://diataxis.fr/). The
-site's four categories are Concepts, Reference, Tutorials, and Guides. Concepts
-corresponds to Diátaxis explanation; Guides corresponds to how-to guides. Follow
-the [editorial principles](./editorial-principles.md) for voice, character,
-tone, and structure.
+Organize maintainer documentation by the kind of help a reader needs: learning a
+process, completing a task, looking up a fact, or understanding a decision. The
+site uses [Diátaxis](https://diataxis.fr/) for those distinctions, naming its
+four categories Tutorials, Guides, Reference, and Concepts. Concepts corresponds
+to Diátaxis explanation; Guides corresponds to how-to guides.
+
+This standard covers placement, navigation, and the information a procedure must
+supply. The [editorial principles](editorial-principles.md) govern how to
+develop and express that information.
 
 ## Choose the reader's need first
 
@@ -24,10 +28,11 @@ rarely does. Choose the primary need before drafting the page.
 
 ### Link across categories at the point of need
 
-An explanation is not a substitute for instructions, and a command catalog is
-not a tutorial. A procedure should include the reason needed to make its next
-choice, then link to Concepts for the fuller design. A reference should describe
-a constraint and its consequence without turning every field into a walkthrough.
+A procedure needs enough explanation for its reader to choose the next action.
+Keep that reasoning beside the choice, then link to Concepts for the fuller
+design. Reference works differently: someone looking up a field needs its
+allowed values and consequences together, without following an entire exercise
+to find them.
 
 When revising a mixed document, split it where readers have genuinely different
 tasks. Preserve useful anchors and cross-links. Moving every paragraph of
@@ -46,8 +51,8 @@ someone locate material, rather than creating empty branches for symmetry.
 
 The [documentation README](../../README.md) uses that same order. Use
 `README.md` for directory entry points so they appear naturally while browsing
-the repository. Its link descriptions should explain what a page helps you do
-or understand; the full documentation rules belong here.
+the repository. Its link descriptions should explain what a page helps you do or
+understand; the full documentation rules belong here.
 
 A move is complete only when the new path works from its callers. Update links,
 source comments, configuration messages, templates, and other path references.
@@ -77,17 +82,20 @@ the exercise creates them. The reader should not discover halfway through that
 “setup” means provisioning production.
 
 Provide complete commands or edits in dependency order. Identify every
-placeholder and how to obtain its value. Use realistic practice content and
-keep credentials out of examples. A first-writing exercise should identify the
+placeholder and how to obtain its value. Use realistic practice content and keep
+credentials out of examples. A first-writing exercise should identify the
 filename, frontmatter, local URL, draft behavior, and removal step; merely
 linking to the schema leaves the exercise unfinished.
 
 ### Check the result, not only the command
 
 Place checkpoints where a reader can distinguish success from partial progress.
-For a deployment, installation, provisioning, build completion, a public page,
-and an outside receipt are separate results. State which one each check proves.
-Include likely failure paths and when to stop instead of retrying a mutation.
+In a deployment exercise, installing dependencies and building the site are
+preparation. The reader still needs to confirm that the public URL serves the
+intended version. If delivery to an outside service is part of the task, give
+that delivery its own check. Name the result at each stage so the reader knows
+what is complete and what remains. Include likely failure paths and when to stop
+instead of retrying a mutation.
 
 End with verification and cleanup. Name the files or resources created by the
 exercise and preserve unrelated work. A deployment-from-scratch tutorial must
@@ -106,14 +114,15 @@ selects it; do not make them infer it from two command blocks.
 
 Check instructions against repository scripts and authoritative documentation.
 Before calling a tutorial verified, complete it from its stated starting state
-and record the date, environment, outcome, and untested boundaries. Source
-inspection supports a narrower claim. A build supports another. Neither proves
-that a newcomer completed setup or that a hosted deployment works.
+and record the date, environment, outcome, and untested boundaries. If you have
+only inspected the source or built the site, say so. That review can catch a
+wrong command or missing file, but leaves the fresh-start and hosted steps
+untested.
 
 ## Before committing documentation
 
-Read continuously first, then skim the hierarchy. The first pass catches gaps
-in reasoning and duplicated introductions; the second checks whether someone
+Read continuously first, then skim the hierarchy. The first pass catches gaps in
+reasoning and duplicated introductions; the second checks whether someone
 returning with a question can find the relevant answer.
 
 - Apply the [editorial principles](editorial-principles.md), including their
@@ -124,6 +133,7 @@ returning with a question can find the relevant answer.
 - Check procedures against their starting states, expected results, and cleanup.
 - Preserve evidence limits and state any steps that have not been exercised.
 
-Apply the [design checklist](../../concepts/design/design-principles.md#before-committing)
+Apply the
+[design checklist](../../concepts/design/design-principles.md#before-committing)
 when the documentation change also affects public content or the site's
 experience. A prose review and an interface review answer different questions.

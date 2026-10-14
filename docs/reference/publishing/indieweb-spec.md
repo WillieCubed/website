@@ -1,21 +1,28 @@
 # Supported IndieWeb behavior
 
-This contract defines supported publishing and interaction behavior. After
-changing it, run the checks in the table and record interoperability failures.
-The [IndieWeb reference](indieweb.md) lists routes and environment variables;
-[IndieMark criteria and evidence](indiemark.md) maps community levels to tests.
-IndieMark is draft guidance; the W3C requirements below govern protocol
-behavior.
+A publishing client should be able to discover this site's endpoints, publish
+with the owner's permission, and retrieve the resulting public content. A
+response from another site should be verified before it appears here. This
+contract defines those supported behaviors and the checks needed when they
+change.
 
-The site publishes at `https://willie.page`. This table describes implemented
-behavior when its listed dependencies are configured and content is published.
-The [current conformance matrix](publishing-conformance.md) records external
-release gates. The September verification records remain historical evidence.
-Readers and clients must be able to discover and consume the behavior below from
-HTTP responses. A unit test alone does not establish that another IndieWeb
-implementation can use it.
+The [IndieWeb reference](indieweb.md) supplies endpoint and configuration details.
+The [conformance record](publishing-conformance.md) supplies dated interoperability
+results, and [IndieMark criteria](indiemark.md) concern community capability levels.
+These serve different purposes: a recorded validator pass does not expand the
+implemented contract, and an IndieMark level does not replace a protocol
+requirement.
+
+The contract applies when the listed dependencies are configured and content is
+published. Clients must be able to discover and consume the behavior through
+actual HTTP responses; a unit test alone cannot establish interoperability.
 
 ## Standards and the implemented subset
+
+Microformats2 (MF2) describes content through HTML classes: an `h-card` identifies
+a person, an `h-entry` a post, and an `h-feed` a collection of posts. That lets
+clients read the same pages people use instead of requiring a separate content
+API for every format.
 
 The source standards are [h-card](https://microformats.org/wiki/h-card),
 [h-entry](https://microformats.org/wiki/h-entry), and
@@ -32,6 +39,12 @@ required case in each standard.
 
 ## Observable behavior and verification
 
+Read each row as a supported operation and its observable result. Optional
+features listed here are implemented, but their protocol standards may not
+require every publisher to offer them. Use the verification column to select the
+checks affected by a change; use the conformance record to establish which
+external checks actually ran.
+
 | Supported behavior               | Observable contract                                                                                                                                                                                                                                                                                                                                                                                                                            | Verification                                                                      |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | Identity and authorship          | The homepage exposes a representative h-card and rel-me identity links. Published entries expose an author h-card, canonical URL, dates and content inside an h-feed.                                                                                                                                                                                                                                                                          | Parse rendered HTML and fetch WebFinger.                                          |
@@ -45,21 +58,22 @@ required case in each standard.
 
 ## Boundaries of the contract
 
-The site does not offer Microsub, a feed reader, or ActivityPub delivery. Those
-behaviors are outside this contract. The [ActivityPub
-plan](../../concepts/publishing/activitypub.md) describes possible later work.
-Micropub delete archives the original source privately before removing it.
-Undelete restores the same source and permalink. A conflicting source rejects
-restoration with 409.
+Microsub, a feed reader, and ActivityPub delivery are outside this contract. The
+[ActivityPub proposal](../../concepts/publishing/activitypub.md) describes possible
+later work rather than an available publishing path.
 
-[Authorship Rocks](https://authorship.rocks/) supplies sample posts for sites
-that _consume_ authorship data. The webmention verifier now discovers the
-authors of external posts, so its cases apply: send each case as a source to an
-isolated deployment and compare the stored author with the expected one. The
-October 8 independent fixture receipt records five Authorship Rocks cases; the
-[conformance record](publishing-conformance.md) retains that result and its
-limits. Repeat the cases after a relevant verifier change rather than treating a
-historical pass as permanent coverage.
+Micropub deletion is supported, but it removes the public source while retaining
+an exact private archive. Undelete restores that source at its original permalink
+and returns 409 if another source now occupies the address. This is recovery of
+a post, not cleanup of every photo or outside copy that ever referred to it.
+
+Authorship verification also has a specific direction. [Authorship
+Rocks](https://authorship.rocks/) supplies sample posts for software that consumes
+other sites' author data. Those cases apply to this site's Webmention verifier:
+submit a case to an isolated deployment and compare the stored author with the
+expected author. The October 8 fixture receipt records five such cases; the
+[conformance record](publishing-conformance.md) retains the result and its limits.
+Repeat relevant cases after changing the verifier.
 
 ## Test environments
 
@@ -98,7 +112,8 @@ not prove that a post was published or a Webmention was verified and displayed.
 
 ### Source fidelity and reversible deletion
 
-Micropub preserves a canonical nested and multivalued MF2 property map through
+The October 7 additions expanded what can survive a publishing-client round
+trip. Micropub preserves a canonical nested and multivalued MF2 property map through
 create, authenticated source queries and updates. It supports literal text, safe
 HTML, explicit drafts, audio/video/events and linked files. Delete commits an
 exact private source archive before removing the public source. Undelete
@@ -107,7 +122,8 @@ collisions.
 
 ### Credential lifetime and replay
 
-IndieAuth refresh credentials rotate as hashed, client-bound families. Replay
+A refresh family is the sequence of credentials issued from one authorization.
+IndieAuth stores their hashes and binds that sequence to the client. Replay
 revokes the family. New access credentials last one hour; refresh inactivity
 expires after 90 days. UserInfo exposes permitted profile fields. Existing
 access-token expiry and mandatory S256 PKCE remain unchanged.

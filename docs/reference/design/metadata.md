@@ -20,11 +20,13 @@ preview say the name twice. X, iMessage, LinkedIn, and Bluesky print the domain
 instead. A title must therefore work both with a separate site name and
 without one.
 
-A part needs the initiative's name because the surrounding initiative page
-will be absent from the preview. “Fall Tour 2026 Part 1: A Boy Goes Back to
-Dallas” names both the larger work and the part; “Part 1: A Boy Goes Back to
-Dallas” leaves the recipient to discover what it belongs to. The extra context
-is useful content, unlike an appended site credit.
+Initiatives can contain a sequence of parts, such as the entries in a trip.
+On an initiative's page, a reader already knows which trip they are browsing;
+in a message preview, a part arrives on its own. “Fall Tour 2026 Part 1: A Boy
+Goes Back to Dallas” preserves that missing context. “Part 1: A Boy Goes Back
+to Dallas” names the entry but leaves the recipient to discover the larger
+work. Include the initiative name because it identifies the subject, while
+leaving the site's credit to `og:site_name`.
 
 | Tag             | Example                                                                |
 | --------------- | ---------------------------------------------------------------------- |
@@ -53,12 +55,13 @@ name again. Preserve that distinction when revising the headline.
 
 ### Use the helper for a shareable page
 
-`pageMetadata()` sets `og:title` and `twitter:title` to the bare title and
-repeats the site-level OpenGraph fields that a page-level metadata object would
-otherwise replace. This is a repository contract implemented in `lib/site.ts`:
-callers provide the page's facts, while the helper preserves the shared shape.
-Writing a one-off social object makes each page responsible for remembering
-that shared information.
+When a page supplies its own OpenGraph metadata, those fields replace the
+parent layout's OpenGraph object rather than merging into it. A page that
+sets only its title can therefore lose the site's name and other shared
+fields. `pageMetadata()` in `lib/site.ts` repeats those fields while setting
+`og:title` and `twitter:title` to the page's bare title. Pass the page's facts
+to the helper so you do not have to reconstruct the shared metadata on every
+route.
 
 The helper omits a social description when it only repeats the title. A short
 note without a separate description can use its own text as its title, so
@@ -77,10 +80,10 @@ Top-level pages get their label and description from `sitePages` in
 and site search all read that entry. A change to the label should therefore
 happen there, where every representation of the destination can agree.
 
-A mismatch is more than a cosmetic inconsistency. If the hover card promises
-one page name and the shared preview uses another, a visitor has to decide
-whether they are looking at the same destination. A shared source removes that
-unnecessary uncertainty.
+For example, renaming the Projects page only in its route metadata would leave
+search and hover cards using the previous label. Updating the common entry
+keeps the name someone encounters before navigation aligned with the name they
+find after opening the page.
 
 ### Use a part's contextual title away from its initiative
 
@@ -98,7 +101,7 @@ Platform truncation of long part titles remains unverified, including
 metadata string the site emits, but it cannot establish where a particular
 service cuts the visible preview or how its client lays out the card.
 
-Record the platform and observed result when that check is performed. Until
-then, retain the complete contextual title and describe truncation as an open
-question; shortening it without evidence could remove the very context this
-contract protects.
+When checking those previews, record which platform and client displayed them
+and whether the visible text still identifies both the initiative and the part.
+That result will help distinguish a title that needs editing from a platform
+that displays less text. Until then, keep the complete contextual title.

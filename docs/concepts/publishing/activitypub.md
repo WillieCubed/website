@@ -1,11 +1,13 @@
 # ActivityPub integration (proposed)
 
-ActivityPub is proposed work for after launch. It would let people discover and
-follow `@willie@willie.page` from Mastodon and receive new posts. No ActivityPub
-delivery is implemented.
+ActivityPub would let a person on Mastodon discover `@willie@willie.page`,
+follow that identity, and receive newly published posts. The site does not
+implement ActivityPub delivery. This is proposed work for after launch.
 
-The design below describes the proposed architecture, endpoints, and content
-mapping. Code and configuration examples are proposals, not setup instructions.
+The design explores how discovery, follower state, and delivery could fit around
+the site's existing publishing source. Endpoint, schema, credential, and code
+examples describe the proposal; they are not an available setup path or a
+verified compatibility contract.
 
 ## Goal
 
@@ -25,16 +27,22 @@ specified delivery policy before this proposal could become a release contract.
 
 ## Architecture overview
 
-WebFinger resolves the address to an actor. The actor advertises its inbox,
-outbox, and followers collection. The inbox handles incoming relationship changes;
-a delivery process sends new activities to accepted followers. These responsibilities
-need separate tests because a successful discovery request says nothing about a
-remote inbox accepting a signed delivery.
+An actor is the protocol identity that another server would follow. WebFinger
+would resolve `@willie@willie.page` to that actor's profile. The profile would
+advertise an inbox for incoming activities, an outbox for published activity
+history, and a followers collection.
 
-The diagram retains the original Vercel Postgres design. It is a proposal-era
-storage choice, not a statement about the current deployment or an instruction
-to provision that service. Reconcile it with the approved hosting architecture
-before implementation.
+Following crosses those pieces: a remote server would send a Follow to the inbox,
+the site would persist the relationship and send an Accept, and later delivery
+would send a published post to the follower's inbox. Discovery, relationship
+state, and delivery need distinct acceptance checks. A searchable actor could
+still fail to accept follows or deliver anything.
+
+The diagram retains the original Vercel Postgres storage proposal. Its
+`/api/ap/` labels abbreviate the `/api/activitypub/` paths listed below. Neither
+the provider label nor the diagram establishes the current hosting arrangement;
+an implementation would need to reconcile storage with the approved deployment
+architecture.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -71,8 +79,8 @@ activity identity.
 
 The schema below is a starting point. It does not specify encrypted key storage,
 delivery attempts, retry scheduling, or the transaction boundary between an
-accepted Follow and its outgoing Accept. Resolve those omissions before treating
-it as an operational schema.
+accepted Follow and its outgoing Accept. Those omissions remain design work;
+the table definitions alone cannot establish a recoverable delivery service.
 
 ```sql
 -- Actor keypairs for HTTP signatures
@@ -109,13 +117,17 @@ CREATE TABLE activitypub_activities (
 
 ### WebFinger (Discovery)
 
+A remote client would begin with the account address and need the actor URL.
+The existing WebFinger route would need to advertise the proposed ActivityPub
+identity alongside its current discovery behavior.
+
 **Route**: `app/.well-known/webfinger/route.ts`
 
 ```
 GET /.well-known/webfinger?resource=acct:willie@willie.page
 ```
 
-Returns:
+The proposed response links that account to the actor endpoint:
 
 ```json
 {
@@ -132,6 +144,10 @@ Returns:
 
 ### Actor (Profile)
 
+The actor profile would tell another server where to send a Follow and how to
+verify requests signed by this identity. Its protocol `id` would need to remain
+stable independently of the displayed name and summary.
+
 **Route**: `app/api/activitypub/actor/route.ts`
 
 ```
@@ -139,7 +155,7 @@ GET /api/activitypub/actor
 Accept: application/activity+json
 ```
 
-Returns a Person object:
+The original proposal represents Willie as an ActivityStreams `Person`:
 
 ```json
 {
@@ -168,7 +184,15 @@ Returns a Person object:
 }
 ```
 
+The icon path and profile text are illustrative proposal values. They are not
+proof that this actor or its assets are currently served.
+
 ### Inbox (Receive Activities)
+
+The inbox would receive relationship changes from remote servers. Its core
+lifecycle is Follow followed by Accept, and Undo Follow to remove the
+relationship. Receiving likes or announces as Webmention-like responses is an
+optional extension, not part of the proposed following goal.
 
 **Route**: `app/api/activitypub/inbox/route.ts`
 
@@ -177,16 +201,11 @@ POST /api/activitypub/inbox
 Content-Type: application/activity+json
 ```
 
-Handles:
-
-- **Follow**: Add to followers table, send Accept
-- **Undo Follow**: Remove from followers table
-- **Like/Announce**: Could store as webmentions (optional)
-
-The proposed receiver requires HTTP signature verification before changing
-relationship state. The verification outline below is not a complete receiver
-policy: key retrieval, request freshness, replay handling, and fetch restrictions
-still need implementation decisions and acceptance checks.
+The receiver would verify the HTTP signature before changing relationship state.
+The outline below does not settle key retrieval, freshness, replay handling, or
+fetch restrictions. It also leaves the persistence boundary between accepting a
+Follow and delivering Accept unresolved. Those decisions determine whether an
+interrupted request can be retried without a duplicate or lost relationship.
 
 ### Outbox (Activity History)
 
@@ -204,6 +223,11 @@ returning one JSON collection in a local test would not establish that behavior.
 
 ### Followers
 
+The followers endpoint would expose the accepted follower identities as an
+OrderedCollection, an ordered list with collection metadata. It describes
+relationship state; it does not establish that a
+particular follower received the latest post.
+
 **Route**: `app/api/activitypub/followers/route.ts`
 
 ```
@@ -211,9 +235,12 @@ GET /api/activitypub/followers
 Accept: application/activity+json
 ```
 
-Returns OrderedCollection of follower URIs.
-
 ### Federation Trigger
+
+The proposed trigger would run after deployment so a remote receiver could fetch
+the public original when its announcement arrives. It would compare current
+content with stored activities, create activities for new posts, and deliver
+them to accepted follower inboxes.
 
 **Route**: `app/api/activitypub/federate/route.ts`
 
@@ -222,12 +249,10 @@ POST /api/activitypub/federate
 Authorization: Bearer $ACTIVITYPUB_SECRET
 ```
 
-The proposed trigger runs after deployment so the public post can be fetched
-when another server receives its announcement. It would:
-
-1. Compare current content with stored activities
-2. Generate Create activities for new posts
-3. Deliver to all follower inboxes
+The bearer secret would authorize the trigger, not verify the remote receiver's
+acceptance. The current outline does not define a retry queue, per-recipient
+outcomes, or what happens when deployment succeeds but only some deliveries do.
+Those are necessary delivery decisions before this becomes a release procedure.
 
 ## Content mapping
 
@@ -251,6 +276,12 @@ Signatures document is a draft, and interoperability requirements must be
 rechecked before choosing an implementation.
 
 ### Signing Outgoing Requests
+
+This sketch signs the method and path, host, date, and an optional body digest.
+It illustrates which request values participate in a signature; it does not
+cover a complete request-building or delivery policy. For example, it uses
+`pathname` without a query string, so query-bearing targets need an explicit
+signing decision before reusing this code.
 
 ```typescript
 import crypto from 'crypto';
@@ -294,10 +325,15 @@ function signRequest(
 
 ### Verifying Incoming Requests
 
-1. Parse the Signature header
-2. Fetch the actor's public key from their `publicKey.id`
-3. Reconstruct the signed string
-4. Verify with the public key
+The proposed verification sequence would parse the Signature header, resolve the
+actor's public key, reconstruct the signed request values, and verify the result
+with that key.
+
+Cryptographic verification alone would not settle whether the fetched key belongs
+to the claimed actor, whether the request is fresh, or whether it has already
+been processed. A receiver design would also need public-address fetch guards
+and bounds around key retrieval. This outline preserves those as open questions
+instead of treating four steps as a complete security contract.
 
 ## Library options
 
@@ -312,21 +348,27 @@ are not verified current installation guidance.
 
 ### Option 1: Manual Implementation
 
-A manual implementation would keep the behavior visible in the repository and
-avoid depending on an adapter. It would also make the site responsible for
-signature interoperability, pagination, and delivery recovery. The learning
-value mentioned in the original proposal does not establish that this is the
-right maintenance choice for the site.
+A manual implementation would keep actor construction and protocol handling in
+the repository without an adapter dependency. It would also make the site
+responsible for signature interoperability, collection pagination, and recovery
+from partial delivery.
+
+That tradeoff cannot be judged by route count alone. A small set of endpoints can
+still require considerable maintenance when other servers rotate keys, retry
+requests, or send unexpected activities.
 
 ### Option 2: @fedify/fedify
+
+The retained package command illustrates the dependency option considered by the
+original proposal:
 
 ```bash
 pnpm add @fedify/fedify @fedify/next
 ```
 
 The original proposal lists signature, delivery, and collection support with a
-Next.js adapter. Verify the package's current API and runtime support if this
-option is selected. A library can reduce protocol code while still leaving
+Next.js adapter. Selection would require checking the package's current API and
+runtime support against the approved hosting architecture. A library can reduce protocol code while still leaving
 publication policy, persisted state, and cleanup with the site.
 
 ## Environment variables
@@ -353,8 +395,10 @@ ACTIVITYPUB_SECRET="random-secure-token"
 Routes would translate HTTP requests and responses, while actor construction,
 activity generation, signatures, storage, and delivery would live in separate
 modules. This lets tests exercise delivery decisions without needing a running
-route for every case. These files do not exist merely because they are listed;
-confirm the current tree before planning implementation.
+route for every case. The tree describes proposed responsibilities, not a claim that every listed
+path is absent: WebFinger already exists and would need an extension. A later
+implementation plan would need to identify reused routes and genuinely new
+modules.
 
 ```
 app/
@@ -378,12 +422,16 @@ lib/activitypub/
 
 ## Testing
 
-These checks are proposed, and none records a completed ActivityPub test.
-The curl requests inspect discovery and actor serialization; the Mastodon steps
-exercise a different boundary, from a remote client through Follow and Accept.
-Before release, extend that lifecycle through an approved new post, verified
-remote delivery, Undo Follow, and cleanup of the test relationship. Record the
-revision and remote result instead of inferring delivery from a local HTTP 200.
+Acceptance would need to follow the remote lifecycle rather than stop at local
+JSON. Discovery checks would establish that the account resolves to an actor;
+a Mastodon follow would add the incoming Follow and outgoing Accept path. An
+approved new post would then need an observed remote delivery, followed by Undo
+Follow and cleanup of the test relationship.
+
+The checks below are proposed and have not been run as ActivityPub acceptance.
+Their production-domain URLs preserve the original examples; execution would
+require a deliberately selected test identity and deployment. A local HTTP 200
+would establish neither remote follow acceptance nor delivery.
 
 ### Test WebFinger
 
@@ -399,10 +447,11 @@ curl -H "Accept: application/activity+json" https://willie.page/api/activitypub/
 
 ### Test from Mastodon
 
-1. Search for `@willie@willie.page` in Mastodon
-2. Should show profile with name, bio, avatar
-3. Click Follow
-4. Should receive Accept and be added to followers
+The proposed remote check would search for `@willie@willie.page` and inspect the
+resolved name, bio, and avatar. Following that profile would then need two
+observations: an Accept received by Mastodon and a corresponding follower stored
+by the site. A visible Follow button or searchable profile alone would not close
+the lifecycle.
 
 ## References
 

@@ -1,25 +1,34 @@
 # Publishing conformance
 
-Resolve each applicable external check before describing a release as fully
-interoperable. Record writes and subscriber delivery separately from HTTP
-acceptance and simulated behavior. The dated results below describe the
-inspected releases, not a fresh check of the current deployment.
+This record connects the supported publishing behavior to the external checks
+performed on October 7–9, 2026. Use it to determine what a release demonstrated,
+which environment supplied the evidence, and what still needed an approved
+production publication. It is not a fresh inspection of the current deployment.
 
-The baseline was inspected on October 7, 2026. The site is a publisher with
-response display. Microsub, a reader, a hosted PDS service, relays, and
-ActivityPub delivery are outside this contract. The acceptance runner can use
-temporary PDS infrastructure for verification. Existing authored drafts remain
-private.
+The site publishes content and displays responses. It does not offer a reader,
+Microsub, a hosted personal data server (PDS), relays, or ActivityPub delivery.
+Acceptance tooling temporarily provisions a PDS to exercise account behavior;
+that test infrastructure is separate from the website's product scope.
+
+Resolve the applicable external checks before describing a new release as fully
+interoperable. A successful HTTP request, an actual provider write, a rendered
+response, and a subscriber's receipt establish different parts of that claim.
+Existing authored drafts remain private unless Willie approves publication.
 
 ## Standard.site baseline
 
 ### Schema identities inspected on October 7
 
-The authoritative schemas are `com.atproto.lexicon.schema` records under
-`did:plc:re3ebnp5v7ffagz6rb6xfei4`, resolved to
-`https://auriporia.us-west.host.bsky.network`. Every record below declares
-`lexicon: 1`. The CID identifies the inspected schema rather than a package
-version. The runtime uses `@atcute/standard-site` 2.0.2.
+A schema defines the shape of a record. The inspection pinned the actual schema
+records so later readers can distinguish that contract from a newer schema or
+client package. Each CID is a content identifier for the inspected version;
+it is not the version number of the JavaScript package used to build records.
+
+On October 7, the authoritative schemas were inspected as
+`com.atproto.lexicon.schema` records under DID
+`did:plc:re3ebnp5v7ffagz6rb6xfei4`, which resolved to
+`https://auriporia.us-west.host.bsky.network`. Every record below declared
+`lexicon: 1`. The inspected runtime used `@atcute/standard-site` 2.0.2.
 
 | Schema record key                  | Schema CID                                                    |
 | ---------------------------------- | ------------------------------------------------------------- |
@@ -34,12 +43,19 @@ version. The runtime uses `@atcute/standard-site` 2.0.2.
 The [document](https://standard.site/docs/lexicons/document/),
 [publication](https://standard.site/docs/lexicons/publication/),
 [verification](https://standard.site/docs/verification/), and
-[permissions](https://standard.site/docs/permissions/) documents explain those
-records. The published document schema has no `langs` field. Its `content` and
-`links` fields are open typed union objects. The description of `links` does not
-override the schema shape.
+[permissions](https://standard.site/docs/permissions/) descriptions explain those
+records. The inspected document schema has no `langs` field. Its `content` and
+`links` fields are open typed union objects: the object's `$type` identifies its
+format. In particular, the prose description of `links` does not make that field
+an arbitrary list of URLs; the schema still controls its shape.
 
 ### Standard.site capability matrix
+
+Standard.site separates the publication, its documents, and visitor social
+records. A publication record describes the site; a document record describes
+one writing. Subscription and recommendation records belong to the acting
+visitor. The matrix follows those responsibilities, with external results from
+the recorded acceptance runs.
 
 | Requirement or capability                                                       | Classification                                | Implementation and evidence                                                                                                                                  | External result                                                                                                                                                                                                                                         |
 | ------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,30 +72,40 @@ override the schema shape.
 
 ### OAuth writes, cleanup, and visual review
 
-The [final social receipt](../../evidence/atproto-social-live-20261009.json)
-records 18 API checks, five UI failure checks and logout after normal provider
-consent. It covers recommendation and subscription writes, undo, concurrent and
-foreign-client actions, browser isolation and two-process refresh. Exact
-graph/database cleanup passed. Read-only provider inspection found zero
-canonical-client tokens for both owned DIDs. Its foreign-token baseline was
-empty; it does not prove preservation of populated unrelated grants. Expiry
-checks used isolated deadline changes rather than a natural wait.
+The social checks needed to establish more than a button changing appearance:
+a visitor had to authorize the site through their provider, the requested record
+had to appear in their account, and undo had to remove the intended records.
+The [October 9 social receipt](../../evidence/atproto-social-live-20261009.json)
+records that path with 18 API checks, five UI failure checks, and logout.
 
-The final social run retained 180 full-page captures across 45 states at 1440px
-and 390px in both themes. Every capture passed the corrected invoked color,
-transition and overflow checks. An independent agent inspected 20 representative
-current captures and found no actionable visual defect. The review did not
-inspect all 180 images.
+The run covered subscriptions and recommendations, concurrent actions,
+recognition of records created by another client, browser isolation, and refresh
+from two processes. Exact graph and database cleanup passed. A separate
+read-only provider inspection found zero tokens issued to the canonical website
+client for both owned account DIDs. Because the foreign-token baseline was empty,
+this does not prove preservation of populated unrelated provider grants. Expiry
+checks changed isolated deadlines instead of waiting for natural expiry.
+
+Visual review supplied a different observation. The run retained 180 full-page
+captures across 45 states at 1440px and 390px in both themes. All passed the
+corrected, actually invoked color, transition, and overflow checks. An independent
+agent inspected 20 representative captures and found no actionable visual defect;
+the agent did not inspect all 180 images.
 
 ### Hosted responses and positive playback
 
-The [hosted Atmosphere
-receipt](../../evidence/atmosphere-hosted-live-20261009.json) records eight
-checks, 20 hosted captures and four captures with approved IndieWeb replies on
-the same writing. Its separate invoked playback probe proves positive
-audio/video playback where the earlier string-arrow wait did not execute. Exact
-hosted record, mention and source-worker cleanup passed. Parent-owned
-publication/source cleanup is recorded separately.
+A response importer can return correct data without the deployed page rendering
+or playing its media. The [hosted Atmosphere
+receipt](../../evidence/atmosphere-hosted-live-20261009.json) exercises that second
+path: eight checks, 20 hosted captures, and four captures with approved IndieWeb
+replies on the same writing. Here, Atmosphere responses are replies and reactions
+discovered through Bluesky's public AppView, its indexed account view.
+
+An earlier playback wait did not invoke its predicate, so that wait could not
+prove playback. The separate corrected probe observed positive audio/video
+playback. The run also cleaned up its exact hosted records, mentions, and source
+Worker. The outer acceptance run's publication and source cleanup is recorded
+separately; the helper's cleanup did not establish that broader result.
 
 ### A real repost received through two protocols
 
@@ -99,24 +125,35 @@ text-reply equivalence or add source-provenance UI.
 
 ### Importer failures and public-data limits
 
+An empty response list can mean that nobody responded or that discovery failed.
 The fresh Bluesky lifecycle run passed all eleven checks after importer errors
-stopped counting as empty results. A [separate read-only error
-check](../../evidence/bluesky-response-error-20261009.json) used an actual
-configured HTTPS endpoint that returned `401`. The importer marked its result
-incomplete and retained the verified copy URL. This check does not establish a
-production AppView outage or hosted rendering.
+stopped being reported as empty success. A [separate read-only error
+check](../../evidence/bluesky-response-error-20261009.json) supplied a real
+configured HTTPS endpoint that returned `401`. The importer retained the verified
+copy URL and marked its response result incomplete. This establishes its error
+handling, not a production AppView outage or a hosted render.
 
 The [Bluesky association
-guidance](https://github.com/bluesky-social/atproto/discussions/4978) defines
-the external embed association. The importer requests up to 100 thread levels
-and 1,000 items per paginated response category. Public AppView data does not
-reveal every visitor's private blocks. Repost actors have no event timestamp or
-individual record permalink in `getRepostedBy`; the site records observation
-time and links to the actor profile. It does not invent either value.
+guidance](https://github.com/bluesky-social/atproto/discussions/4978) describes the
+external embed association used to find a copy. The importer requests up to 100
+thread levels and 1,000 items per paginated response category. Those bounds and
+the public AppView constrain what it can observe: public data does not expose
+every visitor's private blocks.
+
+Reposts have another limit. `getRepostedBy` returns actors without an event
+timestamp or individual repost-record permalink. The site therefore records the
+observation time and links to the actor profile. It does not turn the time it
+noticed a repost into a claimed time of the repost itself.
 
 ## IndieWeb baseline
 
 ### Inspected standards
+
+The IndieWeb checks span author identity in HTML, client publishing,
+authorization, link notifications, and feed delivery. Microformats2 (MF2) is the
+HTML vocabulary: `h-card` describes a person, `h-entry` a post, and `h-feed` a
+collection. These are the standard revisions inspected for the October baseline,
+not a claim that the linked living specifications remain unchanged.
 
 | Standard                                                                    | Inspected version                          |
 | --------------------------------------------------------------------------- | ------------------------------------------ |
@@ -133,6 +170,11 @@ time and links to the actor profile. It does not invent either value.
 | [RSS](https://www.rssboard.org/rss-specification)                           | 2.0.11, March 30, 2009                     |
 
 ### IndieWeb capability matrix
+
+The implementation and external-result columns deliberately remain separate.
+For example, a serializer test can establish safe feed output for its inputs,
+while a hosted feed validator establishes what another service fetched from the
+deployment. Neither alone establishes a subscriber receiving a changed feed.
 
 | Requirement or capability                                            | Classification                      | Implementation and evidence                                                                                                                                               | External result                                                                                                                                          |
 | -------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -153,63 +195,76 @@ time and links to the actor profile. It does not invent either value.
 
 ### Standard.site lifecycle and owned identities
 
-The [real Standard.site
-receipt](../../evidence/standard-site-live-20261008.json) passes 14 checks
-against the isolated PDS. It covers creation, edits, restoration to the same
-URI/CID, draft exclusion, stable keys, unchanged repeated syncs, foreign-record
-preservation, every configured field, known union members, readable text/media
-descriptions, field limits, omission, explicit removal and owned-record cleanup.
-These results close [#156](https://github.com/WillieCubed/website/issues/156)
-and [#157](https://github.com/WillieCubed/website/issues/157). The separate
-independent validator result below establishes document verification.
+The [October 8 lifecycle receipt](../../evidence/standard-site-live-20261008.json)
+asks whether synchronizing a writing preserves the right records through change
+and recovery. Its 14 checks against the isolated PDS covered creation, edits,
+restoration to the same record address (URI) and content identifier (CID), draft
+exclusion, stable keys, unchanged repeated syncs, and preservation of records
+belonging to other publications. Field comparisons also covered configured
+extensions, known union members, readable text/media descriptions, field limits,
+omission, explicit removal, and owned-record cleanup.
 
-The tooling provisioned two owned acceptance identities. Both completed normal
-email confirmation and public AppView federation checks. Final cleanup
-deactivated them. The [identity
-plan](../../superpowers/plans/2026-10-08-acceptance-identities.md) records their
-ownership and cleanup rules. Those runs required no further manual account creation. The identities were
-subsequently deactivated, so a future run must establish its own usable accounts. A
-provisioned account does not prove a website OAuth grant, social write or
-Bluesky syndication check.
+Those results closed [#156](https://github.com/WillieCubed/website/issues/156)
+and [#157](https://github.com/WillieCubed/website/issues/157). They did not supply
+the independent document-validator result described below.
+
+The tooling owned the two acceptance accounts. Both completed normal email
+confirmation and public AppView federation checks, and final cleanup deactivated
+them. The [identity plan](../../superpowers/plans/2026-10-08-acceptance-identities.md)
+records ownership and cleanup. A later run needs usable isolated accounts again;
+provisioning one would still not establish website OAuth consent, a social write,
+or syndication.
 
 ### Hosted IndieWeb publishing and validators
 
 The [hosted IndieWeb receipt](../../evidence/indieweb-live-2026-10-08.json)
-records normal S256/TOTP authorization, real form/multipart/JSON Micropub
-operations, authenticated source editing, draft exclusion, exact restoration,
-HTTP/base-aware Webmention delivery, approved media replies and an upstream
-Salmention receipt. Independent Go/PHP parsers fetched the hosted page. W3C
-validators fetched hosted RSS and Atom feeds and returned zero errors and
-warnings. The [desktop](../../evidence/received-media/received-light-1440.png)
-and [390px](../../evidence/received-media/received-dark-390.png) captures show
-received image, audio, video, code, quotation and linked PDF in context. These
-results establish IndieWeb response rendering. They do not establish Atmosphere
-response rendering.
+follows a client from normal S256 PKCE/TOTP authorization through form,
+multipart, and JSON Micropub operations. PKCE binds code redemption to the client
+that started authorization; TOTP is the owner's authenticator code at consent.
+The run also covered authenticated source editing, draft exclusion, exact source
+restoration, Webmention links resolved through HTTP redirects and HTML base URLs,
+approved media replies, and an upstream Salmention receipt.
 
-IndieAuth Rocks returned 78 passes with zero failures or warnings. Three
-optional JWT cases do not apply to opaque access tokens. Separate normally
-authorized clients passed the three applicable skipped cases: a registered
-cross-origin redirect and two client-binding checks. The validator's
+Independent Go and PHP parsers fetched the hosted page. W3C validators fetched
+hosted RSS and Atom feeds and reported zero errors and warnings. The
+[desktop](../../evidence/received-media/received-light-1440.png) and
+[390px](../../evidence/received-media/received-dark-390.png) captures show received
+image, audio, video, code, quotation, and linked PDF in context. These observations
+establish the IndieWeb response path; the Bluesky response path has its own
+hosted receipt.
+
+IndieAuth Rocks reported 78 passes with zero failures or warnings. Three optional
+JWT cases did not apply because this site issues opaque access tokens. Separate
+normally authorized clients passed the three applicable skipped cases: one
+registered cross-origin redirect and two client-binding checks. The validator's
 cross-origin callback had an expired TLS certificate, and earlier invalid
-attempts consumed the codes for its client-binding cases. No check disabled TLS
-validation or weakened PKCE. Micropub Rocks remains inaccessible under
-administrator browser policy; the independent S256 client exercises the live
-publishing endpoints instead.
+attempts had consumed codes used by its client-binding cases. No check disabled
+TLS validation or weakened PKCE.
+
+Micropub Rocks was inaccessible under the administrator's browser policy during
+the run. The independent S256 client exercised the live publishing endpoints
+instead. Retain that substitution and its scope when interpreting coverage.
 
 ### Fixtures, controlled clocks, and database replay
 
-The [independent fixture
-receipt](../../evidence/indieweb-independent-2026-10-08.json) separately records
-five live Authorship fixtures, 23 live Webmention discovery fixtures and
-Go/PHP/W3C checks on current component and serializer output. Those feed inputs
-produced two warnings about direct-input self URLs and retained BDO markup. They
-are fixture evidence, not the later zero-warning hosted feed result. The 90-day
-refresh inactivity boundary and preservation of legacy expiry use controlled
-backend clocks. The [migration 009
-receipt](../../evidence/indieauth-code-replay-20261008.json) adds eight real
-PostgreSQL lock checks with controlled grants, including both issuance/replay
-orderings and preservation of unrelated tokens. None of these checks claims a
-90-day real-time wait or replaces normal client consent.
+Some boundaries cannot be exercised by waiting during an acceptance run. The
+90-day refresh inactivity checks used a controlled backend clock; preservation
+of legacy token expiry also used clock-controlled checks. These establish the
+implemented boundary for those inputs, not that a credential remained idle for
+90 real days.
+
+The [independent fixture receipt](../../evidence/indieweb-independent-2026-10-08.json)
+records five live Authorship fixtures, 23 live Webmention discovery fixtures,
+and Go/PHP/W3C checks on component and serializer output. Its feed inputs produced
+two warnings, concerning direct-input self URLs and retained BDO text-direction
+markup. That fixture result is distinct from the later zero-warning hosted feed
+result: the validators did not consume the same inputs in the same way.
+
+The [migration 009 receipt](../../evidence/indieauth-code-replay-20261008.json)
+adds eight real PostgreSQL lock checks with controlled grants. It covers both
+possible orderings of token issuance and authorization-code replay, plus
+preservation of unrelated tokens. These checks establish database behavior under
+the tested interleavings; they do not replace normal client consent.
 
 ### Subscriber delivery and cleanup
 
@@ -234,8 +289,7 @@ The split stack at `ac0631e` passed all 846 unit tests, lint, TypeScript, the
 bounded production build and browser smoke checks in [CI run
 37896976167](https://github.com/WillieCubed/website/actions/runs/37896976167).
 The record also reports ten targeted Bluesky tests and 17 targeted response
-tests passing. Later
-verifier changes require fresh checks on the final revision being deployed.
+tests passing. Later verifier changes require fresh checks on the final revision being deployed.
 Local UI evidence covers 19 subscription states and 15 recommendation states at
 1440px and 390px in both themes. Response-format fixtures cover native
 audio/video playback, containment and absent autoplay. These renders do not
@@ -248,8 +302,9 @@ receipt](../../evidence/standard-site-independent-20261008.json) records a real
 browser-observed validator result with 16 successful checks. Its
 [screenshot](../../evidence/screenshots/standard-site-validator-20261008.jpg)
 shows the hosted writing, resolved PDS records, schema validation and matching
-publication endpoint. The private capture helper's operator report does not
-establish this result; the separate browser observation does. The recovery run
+publication endpoint. The browser observation matters because the capture helper accepts a supplied
+validator report without independently establishing its result. The supplied
+report alone would not prove that the validator inspected the live document. The recovery run
 removed the source and PDS document, restored or removed the original
 publication, preserved foreign records and drained the required notification
 workflow. That workflow passed with `synced` on acceptance revision `9014e42`.
@@ -258,9 +313,10 @@ The [read-only production
 receipt](../../evidence/production-standard-publication-20261008.json) confirms
 exact agreement between the publication endpoint and resolved PDS record. That
 inspection found zero Standard.site documents on the owner PDS, four authored
-drafts in production, and no acceptance writing. Production document/recommendation verification waits
-for an approved real publication; isolated acceptance must prove those behaviors
-first.
+drafts in production, and no acceptance writing. Production document and
+recommendation verification therefore remained dependent on an approved real
+publication. Isolated acceptance established those behaviors without making an
+authored draft public.
 
 ### Schema rollout and final notification
 
@@ -277,19 +333,24 @@ clean acceptance revision `4d0ff1f9a76010ff429c84b9917fa6da4416297c` and fixture
 notification](https://github.com/WillieCubed/website/actions/runs/37919522943)
 and [dispatched
 notification](https://github.com/WillieCubed/website/actions/runs/37919577933)
-both returned `synced`. The parent drained the handlers and completed exact PDS
-cleanup. Historical missing-identity and deployment-quota failures do not
+both returned `synced`. The outer acceptance run waited for its notification
+handlers to finish before completing exact PDS cleanup, so a late handler could
+not recreate a record after its removal. Historical missing-identity and deployment-quota failures do not
 describe this final run. The independent signed WebSub subscriber receipt
 remains separate from notification success.
 
 ## Verification work tracking
 
 The October 9 audit records acceptance evidence for all five verification epics
-and their sixteen subtasks. The final audit reopened Bluesky #163/#166 when the earlier hosted
-capture did not establish overlap. The fresh native-only baseline followed by
-the real incoming repost closes that gap. All prior results retain their
-original scope and cleanup. That audit records production deployment, required synchronization, and
-public checks passing on `1ba27df040ef489751d1a0be940125235ec65e82`.
+and their sixteen subtasks. It also records why an apparently complete result
+needed another run: the earlier hosted capture did not establish native/IndieWeb
+overlap, so the audit reopened Bluesky #163/#166. A fresh hosted native-only
+baseline followed by the actual incoming repost supplied the missing sequence.
+
+The audit records production deployment, required synchronization, and public
+checks passing on `1ba27df040ef489751d1a0be940125235ec65e82`. The table below
+summarizes that dated work; earlier receipts retain their own narrower scopes
+and cleanup results.
 
 ### October 9 verification work
 

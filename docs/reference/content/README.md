@@ -1,14 +1,15 @@
 # Content
 
-The site has three editorial models. Writings are dated posts; initiatives
-hold a campaign or series and its parts; projects record Willie's work under
-an explicit authorship rule. Choose the model before adding a file: the
-choice determines its URL, fields, presentation, and publication controls.
+Choose the content model for what you want to publish. A writing is a dated
+post, an initiative holds a campaign or series and its parts, and a project
+records Willie's work in his exact words. Their fields and publication controls
+differ because they present different kinds of material.
 
 ## Authoring models
 
-- [Writings](./writings.md) defines article, note, photo, and interaction-post
-  frontmatter, tags, references, and Micropub edits. Start here for a dated post.
+- [Writings](./writings.md) covers dated articles, short notes, media, and
+  responses to other posts, whether authored locally or through a publishing
+  client. It defines their frontmatter, tags, references, and client edits.
 - [Initiatives](./initiatives.md) defines campaigns, series, and projects under
   `/initiatives`, including their numbered parts and homepage placement.
 - [Projects](./projects.md) defines one-file project records, ownership,
@@ -19,14 +20,16 @@ choice determines its URL, fields, presentation, and publication controls.
 
 [Feeds](./feeds.md) describes the formats readers subscribe to and the plain
 HTML they receive. [Sitemap](./sitemap.md) describes the human directory and
-machine discovery sources. These are consumers of published content; adding a
-URL to a directory is not a substitute for publishing through its content model.
-The [IndieWeb reference](../publishing/indieweb.md) covers the protocol endpoints
-and microformats that connect posts to other sites.
+machine discovery sources. Both draw from the published records described above,
+so a new post reaches them through its writing file rather than a separately
+maintained URL list. The [IndieWeb reference](../publishing/indieweb.md) covers
+the publishing endpoints and machine-readable HTML annotations (microformats)
+that connect posts to other sites.
 
 [Profile proposals](./public-profile.md) records the approval boundary for About
 and Research. [Status data and admin](./status.md) defines the separate owner
-editor for the public city and weather display. Neither is ordinary MDX authoring.
+editor for the public city and weather display. Neither is ordinary MDX
+authoring.
 
 ## Checks after an edit
 

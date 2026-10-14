@@ -1,14 +1,14 @@
 # Sitemap
 
-The sitemap uses the page registry in `lib/site.ts` and the public resource
-catalog in `lib/indieweb/resources.ts`. Add routed pages to the registry and
-programmatic resources to the catalog. Do not maintain a separate URL list.
+`/sitemap` is a directory for visitors; the XML sitemap lists canonical pages
+for crawlers. Both use the page registry in `lib/site.ts` and share published
+content selection. Feeds, downloads, and other public resources come from
+`lib/indieweb/resources.ts`.
 
-The footer includes Sitemap with its page links. Below 600px, those links stack
-vertically. At tablet widths, they form a horizontal row below the name and
-tagline. The social icons and Feeds button keep their original row. Footer
-placement does not affect search: every routed page remains in site search and
-the command palette, including Brand.
+Add a routed page to the registry or a programmatic resource to the catalog
+rather than maintaining another URL list. Those shared sources let discovery
+stay consistent while the human directory and machine responses present what
+their readers need.
 
 ## Content selection
 
@@ -23,56 +23,60 @@ content modification dates.
 
 ### Resources a visitor can use
 
-Both renderers use `publishedSitemapContent` for content selection. A new
-published writing or initiative appears through the normal content loaders. The
-reader-facing feeds and downloads come from the same catalog as `llms.txt`. A
-resource's `directory` field groups its format variants under one description.
-The HTML page does not list the internal hover-card index, crawler rules, or
-protocol discovery files. The Tools section lists features a visitor can use:
-browser search, MCP, Webmentions, and embeds. Each has a short description. A
-tool requiring a client or request parameters shows its address, a usage note,
-and a documentation link instead of a broken browser link. Publishing and
-sign-in infrastructure stays out of the directory. AT Protocol discovery remains
-conditional in `llms.txt`.
+Both renderers use `publishedSitemapContent`, the selector for published
+content. A new published writing or initiative appears through the normal
+content loaders. The reader-facing feeds and downloads come from the same
+catalog as `llms.txt`. A resource's `directory` field groups its format variants
+under one description. The HTML page does not list the internal hover-card
+index, crawler rules, or protocol discovery files. The Tools section lists
+features a visitor can use: browser search, MCP, Webmentions, and embeds. Each
+has a short description. A tool requiring a client or request parameters shows
+its address, a usage note, and a documentation link instead of a broken browser
+link. Publishing and sign-in infrastructure stays out of the directory. AT
+Protocol discovery remains conditional in `llms.txt`.
 
-The directory's test is whether the entry gives a visitor somewhere useful to
-go. Search qualifies as a human utility but does not represent indexable content
-for the XML sitemap. An MCP endpoint may be useful while requiring a client;
-showing its address and instructions is more honest than treating it as an
-ordinary page. Authentication and publishing endpoints serve maintainers and
-clients, so listing them as destinations would obscure that distinction.
+These choices follow the directory's purpose. A visitor can use Search to find
+something, while a crawler has no article to index at the search form. A client
+can use the MCP server to read site content, but its endpoint needs instructions
+rather than a link presented as a page. Publishing and sign-in routes offer
+neither kind of browsing destination.
 
 ## Layout and links
 
 ### Reading a destination
 
-Each page and content link shows its name, route, and a short description.
-Navigation rows use the site's neutral text and rounded hover and focus states.
-Prose-style underlines appear only on active secondary links. Rows size to their
-contents so wrapped descriptions stay inside the hit area. The text aligns with
-section headings; padded interaction surfaces extend 12px beyond that text, as
-on the writings index. Routes align right even when they wrap onto a second
-line. Each feed collection shows one description and its available formats.
-Tools describe their purpose instead of listing supported standards.
+Each destination shows a name, route, and short description: the name identifies
+it, the description explains what is there, and the route lets someone recognize
+the address. Navigation rows use the site's neutral text and rounded hover and
+focus states. Prose-style underlines appear only on active secondary links. Rows
+size to their contents so wrapped descriptions stay inside the hit area. The
+text aligns with section headings; padded interaction surfaces extend 12px
+beyond that text, as on the writings index. Routes align right even when they
+wrap onto a second line. Each feed collection shows one description and its
+available formats. Tools describe their purpose instead of listing supported
+standards.
 
 ### Responsive rows and navigation
 
-Sections have responsive grids: one column below 600px and two from 600px, with the same
-column alignment in every section. Feed and file links use full browser
+Sections have responsive grids: one column below 600px and two from 600px, with
+the same column alignment in every section. Feed and file links use full browser
 navigation because the app router cannot render their responses.
 
-The route supplements the name rather than replacing it: visitors can recognize
-both the destination and its address. Sharing one description across a feed's
-formats prevents RSS, Atom, and JSON from looking like three unrelated content
-collections. Full navigation for file responses is part of that same contract;
-a download or feed document should be handled by the browser rather than a page
-transition that expects an application view.
+Each feed collection shares one description across its format links, so RSS,
+Atom, and JSON read as ways to subscribe to one collection.
+
+The footer includes Sitemap among its page links. Below 600px those links stack
+vertically; at tablet widths they form a horizontal row below the name and
+tagline. Social icons and the Feeds button keep their original row. This
+placement does not determine search eligibility: every routed page, including
+Brand, remains in site search and the command palette.
 
 ## Shared sources
 
-Separate HTML and machine URLs let clients request a known format. User-Agent
-detection and content negotiation would complicate caching and change existing
-endpoints without improving the directory.
+The human page and machine responses keep separate URLs, so each reader can
+request a known format. Choosing a format from the User-Agent or request headers
+would complicate caching and change established endpoints without making the
+directory more useful.
 
 ```mermaid
 flowchart LR
@@ -84,11 +88,11 @@ flowchart LR
   resources --> llms[LLMS summary renderer]
 ```
 
-The sources remain shared even though the outputs differ. The page registry
-owns routed destinations, the published-content selector owns editorial
-eligibility, and the resource catalog owns feeds and downloads. Add a new
-resource to its owning source rather than repairing the HTML directory alone;
-otherwise `llms.txt` or the XML output can silently drift from what visitors see.
+The sources remain shared even though the outputs differ. The page registry owns
+routed destinations, the published-content selector owns editorial eligibility,
+and the resource catalog owns feeds and downloads. Add a new resource to its
+owning source rather than repairing the HTML directory alone; otherwise
+`llms.txt` or the XML output can silently drift from what visitors see.
 
 ## Verification
 
@@ -103,6 +107,6 @@ rendered directory at desktop and phone widths. Confirm the following outcomes:
 - The XML sitemap includes canonical content URLs and actual modification
   dates, while Search remains only in the human directory.
 
-Check the owning source when an entry is missing before adding a duplicate URL
-list. Protocol discovery files belong in their responses and maintainer docs;
-their absence from this visitor directory is intentional.
+If an expected entry is missing, check its registry record, publication state,
+or resource-catalog entry. Protocol discovery files are deliberately absent from
+the visitor directory; their availability belongs in protocol checks.

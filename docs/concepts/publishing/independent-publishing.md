@@ -31,15 +31,16 @@ outside response to the page it cites. A subscriber and a respondent need
 different things; feed delivery cannot establish that a reply was verified or
 approved for display.
 
-The [IndieWeb reference](../../reference/publishing/indieweb.md) records each
-protocol's endpoints and dependencies. Keep those requirements with the
-capability they enable. Creating a first local page should not require setting
-up a database or an external publishing identity merely because the site also
-supports them.
+These connections are optional capabilities around the writing. A local page
+can exist before a database, publishing client, or notification provider is set
+up. When one of those capabilities is needed, the [IndieWeb reference](../../reference/publishing/indieweb.md)
+records its endpoints and dependencies.
 
 ### Connect external identities without moving the original
 
-Standard.site records on AT Protocol describe the publication and its writings.
+Standard.site uses AT Protocol account records to describe the publication and
+its writings. Those records live on the owner's personal data server (PDS), while
+the actual writing still has its canonical page on `willie.page`.
 Visitors can use their own accounts to subscribe or recommend a published
 writing. An explicitly requested Bluesky copy can also carry conversation back
 to the original. The [AT Protocol reference](../../reference/publishing/atproto.md)

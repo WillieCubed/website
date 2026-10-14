@@ -125,3 +125,90 @@ test('direct loading without JavaScript preserves the note, version, and links',
     await context.close();
   }
 });
+
+test('decoration stays silent while the specimens and build table remain accessible', async ({
+  page,
+}) => {
+  await page.goto('/colophon');
+  const illustration = page.locator('.colophon-illustration');
+  await expect(illustration).toHaveAttribute('aria-hidden', 'true');
+  await expect(
+    illustration.locator('a, button, input, select, textarea, [tabindex]')
+  ).toHaveCount(0);
+  const intro = await page.locator('.colophon-intro').ariaSnapshot();
+  expect(intro).toContain('heading "Colophon"');
+  expect(intro).not.toContain('Aa');
+  expect(intro).not.toContain('0O');
+  await expect(
+    page.getByRole('figure', { name: 'Atkinson Hyperlegible type specimens' })
+  ).toBeVisible();
+  await expect(page.getByRole('rowheader')).toHaveText([
+    'Version',
+    'Last built',
+    'Build record',
+  ]);
+});
+
+test('content reflows with increased text spacing at 320px', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/colophon');
+  // WCAG 1.4.12: visitors can override these settings without losing content.
+  await page.addStyleTag({
+    content: `main.colophon, main.colophon * {
+      line-height: 1.5 !important;
+      letter-spacing: 0.12em !important;
+      word-spacing: 0.16em !important;
+    }
+    main.colophon p { margin-bottom: 2em !important; }`,
+  });
+  const overflowing = await page
+    .locator('main.colophon')
+    .evaluate((main) =>
+      [
+        ...main.querySelectorAll<HTMLElement>(
+          'h1, h2, p, .colophon-sample-text, th, td'
+        ),
+      ]
+        .filter((element) => element.scrollWidth > element.clientWidth + 1)
+        .map((element) => element.textContent?.trim())
+    );
+  expect(overflowing).toEqual([]);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)
+  ).toBeLessThanOrEqual(1);
+});
+
+test('keyboard navigation skips decoration and keeps focus visible in forced colors', async ({
+  page,
+}) => {
+  await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
+  await page.goto('/colophon');
+  await page.keyboard.press('Tab');
+  await expect(
+    page.getByRole('link', { name: 'Skip to content' })
+  ).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('main.colophon')).toBeFocused();
+  for (const link of await page.locator('main.colophon a').all()) {
+    await page.keyboard.press('Tab');
+    await expect(link).toBeFocused();
+    const focus = await link.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
+      return {
+        outlineWidth: parseFloat(style.outlineWidth),
+        outlineStyle: style.outlineStyle,
+        transition: style.transitionDuration,
+        visible: box.top >= 0 && box.bottom <= innerHeight,
+      };
+    });
+    expect(focus.outlineWidth).toBeGreaterThanOrEqual(2);
+    expect(focus.outlineStyle).not.toBe('none');
+    expect(
+      focus.transition.split(',').every((value) => parseFloat(value) <= 0.001)
+    ).toBe(true);
+    expect(focus.visible).toBe(true);
+  }
+});

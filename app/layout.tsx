@@ -2,7 +2,6 @@ import Script from 'next/script';
 import type { Metadata, Viewport } from 'next/types';
 import React from 'react';
 
-import SiteLink from '@/components/link/SiteLink';
 import PaletteProvider from '@/components/palette/PaletteProvider';
 import Fragmention from '@/components/site/Fragmention';
 import SiteFooter from '@/components/site/SiteFooter';
@@ -158,17 +157,6 @@ export default async function RootLayout({
       <body className="flex min-h-dvh flex-col bg-ground text-ink font-sans antialiased">
         <PaletteProvider>
           <SkipLink />
-          {isPrivatePreview() && (
-            <aside
-              aria-label="Private preview"
-              className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-5 py-2 text-label-medium text-muted"
-            >
-              <span>Preview · Private</span>
-              <SiteLink href="/studio" preview={false}>
-                Your writing
-              </SiteLink>
-            </aside>
-          )}
           {process.env.NODE_ENV === 'production' &&
             !isPrivatePreview() &&
             process.env.NEXT_PUBLIC_GTAG_ID && (

@@ -149,8 +149,12 @@ export default function TopBar({
             </div>
           ))}
         </nav>
+        <span className="site-private-indicator" title="Private preview">
+          <span className="site-private-indicator__dot" aria-hidden="true" />
+          <span>Private</span>
+        </span>
         {showSearch && (
-          <div className="ml-auto flex shrink-0 items-center">
+          <div className="site-topbar-search ml-auto flex shrink-0 items-center">
             <PaletteTrigger size="compact" glass={floating} />
           </div>
         )}

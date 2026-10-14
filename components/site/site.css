@@ -431,6 +431,29 @@ body:has(header[data-column='reading'])
   min-width: 0;
   gap: 7px;
 }
+.site-private-indicator {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+html[data-site-mode='preview'] .site-private-indicator {
+  display: inline-flex;
+}
+.site-private-indicator__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+html[data-site-mode='preview'] .site-private-indicator + .site-topbar-search {
+  margin-left: 12px;
+}
 .site-breadcrumbs__crumb {
   gap: 7px;
 }

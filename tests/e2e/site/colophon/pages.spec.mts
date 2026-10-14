@@ -112,7 +112,12 @@ test('direct loading without JavaScript preserves the note, version, and links',
     await expect(
       page.getByRole('link', { name: 'RSS, Atom, and JSON feeds', exact: true })
     ).toHaveAttribute('href', '/sitemap');
-    await page.getByRole('link', { name: 'humans.txt', exact: true }).click();
+    await page
+      .getByRole('link', {
+        name: 'Plain-text credits (humans.txt)',
+        exact: true,
+      })
+      .click();
     await expect(page.locator('body')).toContainText(
       'Developer: Willie Chalmers III'
     );

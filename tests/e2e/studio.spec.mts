@@ -874,6 +874,62 @@ test('native writing fields wrap and contextual tasks preserve the reading posit
   expect(results.violations).toEqual([]);
 });
 
+test('a waiting widget request stops polling until the owner retries', async ({
+  page,
+  request,
+}) => {
+  const draft = await createWriting(request, 'A widget connection check');
+  await page.route('**/api/studio/lattice/runtime', (route) =>
+    route.fulfill({
+      json: {
+        connected: true,
+        devices: [
+          { id: 'personal-test-device', name: 'Test Mac', status: 'reachable' },
+        ],
+        selectedRuntimeId: 'personal-test-device',
+      },
+    })
+  );
+  let polls = 0;
+  await page.route('**/api/studio/generations/waiting-generation', (route) => {
+    polls += 1;
+    return route.fulfill({
+      json: {
+        id: 'waiting-generation',
+        documentId: draft.id,
+        kind: 'component',
+        status: 'waiting',
+        result: null,
+        error: 'Personal runtime unavailable.',
+      },
+    });
+  });
+  await page.route('**/api/studio/generations', (route) =>
+    route.fulfill({
+      status: 202,
+      json: {
+        id: 'waiting-generation',
+        documentId: draft.id,
+        kind: 'component',
+        status: 'waiting',
+        result: null,
+        error: 'Personal runtime unavailable.',
+      },
+    })
+  );
+  await page.goto(`/studio/${draft.id}`);
+  await writingAction(page, 'Create widget');
+  await page
+    .getByLabel('Describe the widget', { exact: true })
+    .fill('A counter.');
+  await page
+    .getByRole('button', { name: 'Generate widget', exact: true })
+    .click();
+  await expect(page.getByText('Waiting for your device…')).toBeVisible();
+  await page.waitForTimeout(3500);
+  expect(polls).toBe(0);
+});
+
 test('an approved generated component is editable beside its paragraph', async ({
   page,
   request,

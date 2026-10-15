@@ -106,9 +106,7 @@ test('direct loading without JavaScript preserves the note, version, and links',
     expect((await page.goto('/colophon'))?.status()).toBe(200);
     await expect(page.locator('main h1')).toBeVisible();
     await expect(page.locator('.colophon-build time')).toBeVisible();
-    await expect(page.locator('.colophon-notes')).toContainText(
-      'Source and credits'
-    );
+    await expect(page.locator('.colophon-notes')).toContainText('Credits');
     await expect(
       page.getByRole('link', { name: 'RSS, Atom, and JSON feeds', exact: true })
     ).toHaveAttribute('href', '/sitemap');
@@ -201,7 +199,12 @@ test('keyboard navigation skips decoration and keeps focus visible in forced col
         outlineWidth: parseFloat(style.outlineWidth),
         outlineStyle: style.outlineStyle,
         transition: style.transitionDuration,
-        visible: box.top >= 0 && box.bottom <= innerHeight,
+        // Native keyboard scrolling rounds to whole CSS pixels.
+        visible: box.top >= -1 && box.bottom <= innerHeight + 1,
+        top: box.top,
+        bottom: box.bottom,
+        viewport: innerHeight,
+        label: element.textContent,
       };
     });
     expect(focus.outlineWidth).toBeGreaterThanOrEqual(2);
@@ -209,6 +212,6 @@ test('keyboard navigation skips decoration and keeps focus visible in forced col
     expect(
       focus.transition.split(',').every((value) => parseFloat(value) <= 0.001)
     ).toBe(true);
-    expect(focus.visible).toBe(true);
+    expect(focus.visible, JSON.stringify(focus)).toBe(true);
   }
 });

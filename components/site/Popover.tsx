@@ -90,7 +90,10 @@ export default function Popover({
       const placeAbove = desiredHeight > belowSpace && aboveSpace > belowSpace;
       const availableHeight = placeAbove ? aboveSpace : belowSpace;
       if (!breadcrumb) menu.style.width = `${width}px`;
-      menu.style.left = `${left}px`;
+      // A reserved start-side scrollbar gutter shifts the fixed containing
+      // block. Anchor rectangles use viewport coordinates, so remove that
+      // inset before assigning the menu's CSS position.
+      menu.style.left = `${left - document.documentElement.getBoundingClientRect().left}px`;
       menu.style.maxHeight = `${availableHeight}px`;
       menu.style.top = placeAbove
         ? `${anchorTop - gap - Math.min(desiredHeight, availableHeight)}px`

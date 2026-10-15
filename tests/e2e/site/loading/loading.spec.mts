@@ -54,7 +54,7 @@ test('Music curation retains its gallery shell while the collection arrives', as
   await expect(page.locator('.mp-rail h1')).toHaveText('Music');
   await expect(page.locator('.mp-collection')).toBeVisible();
   await expect(
-    page.getByRole('navigation', { name: 'Playlist series' })
+    page.getByRole('group', { name: 'Library filter' })
   ).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({

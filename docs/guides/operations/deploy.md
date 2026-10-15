@@ -57,7 +57,7 @@ settings for the beta `cf` CLI, while `wrangler.jsonc` and
 
 Prepare the account and runtime resources below before deploying. Build with
 `pnpm build:cloudflare`, deploy with
-`pnpm deploy:cloudflare` (or `pnpm deploy:cloudflare:preview`), and verify
+`pnpm deploy:cloudflare` (or `pnpm deploy:cloudflare-preview`), and verify
 the baked commit SHA at `/api/indieweb/revision`. Do not build once and deploy
 the same `.open-next` directory to both environments: the public origin and
 revision are compiled into the build.
@@ -106,7 +106,7 @@ Analytics. The production Neon project remains owned in Willie's Neon
 organization; Workers reach it through the production Hyperdrive binding.
 Preview has its own Neon project, Hyperdrive, cache bucket, media bucket,
 Durable Objects, secrets, and public origin. Build it with
-`pnpm build:cloudflare:preview` before deploying with the preview config.
+`pnpm build:cloudflare-preview` before deploying with the preview config.
 Local development uses a direct `POSTGRES_URL`.
 The public media store is R2 and `/media/*` serves validated immutable keys.
 
@@ -169,8 +169,8 @@ Cloudflare Workers Builds should connect `WillieCubed/website` to the
 production Worker on `main`. Its build command is `pnpm build:cloudflare` and
 deploy command is `pnpm deploy:cloudflare`. Set `PNPM_VERSION` to the
 `packageManager` version in `package.json`. Connect the preview Worker with
-deploy command `pnpm deploy:cloudflare:preview` and
-build command `pnpm build:cloudflare:preview`. The IndieWeb notification GitHub Action polls the
+deploy command `pnpm deploy:cloudflare-preview` and
+build command `pnpm build:cloudflare-preview`. The IndieWeb notification GitHub Action polls the
 canonical revision after each `main` push and invokes the production Worker
 only when the exact SHA is live. Check the Cloudflare build and the GitHub
 Action on a real publish; a successful build alone is not publication proof.

@@ -217,7 +217,9 @@ test('the homepage search fills its column up to the Material 3 maximum', async 
     await page.setViewportSize({ width, height: 1000 });
     await page.goto('/');
     const column = await page.locator('.rail-search').boundingBox();
-    const trigger = await page.locator('.palette-trigger--rail').boundingBox();
+    const trigger = await page
+      .locator('.rail-search .palette-trigger')
+      .boundingBox();
     expect(trigger?.x).toBeCloseTo(column!.x, 0);
     expect(trigger?.width).toBeCloseTo(Math.min(column!.width, 720), 0);
   }

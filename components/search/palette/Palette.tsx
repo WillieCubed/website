@@ -19,32 +19,36 @@ import './palette.css';
 function ReadoutView({ readout }: { readout: Readout }) {
   return (
     <section
-      className="palette-readout scroller"
+      className="palette-readout scroller min-h-0 overflow-y-auto overscroll-contain rounded-2xl bg-card p-5 font-mono text-[14px]/[22px] [overflow-wrap:anywhere]"
       aria-label="Command output"
       tabIndex={0}
       data-failed={readout.failed ? '' : undefined}
     >
-      <p className="palette-readout__heading">{readout.heading}</p>
+      <p className="palette-readout__heading m-0 text-base leading-6 font-bold">
+        {readout.heading}
+      </p>
       {readout.fields && readout.fields.length > 0 && (
-        <dl className="palette-readout__fields">
+        <dl className="palette-readout__fields mt-[14px] grid grid-cols-[max-content_minmax(0,1fr)] gap-x-5 gap-y-0.5 max-[599px]:grid-cols-[minmax(0,1fr)] max-[599px]:gap-0">
           {readout.fields.map(([label, value], index) => (
             // Headers can repeat, so the position keeps keys unique.
-            <div key={`${label}-${index}`}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
+            <div key={`${label}-${index}`} className="contents">
+              <dt className="text-muted">{label}</dt>
+              <dd className="m-0">{value}</dd>
             </div>
           ))}
         </dl>
       )}
       {readout.body && (
-        <pre className="palette-readout__body">{readout.body}</pre>
+        <pre className="palette-readout__body mt-[14px] [font:inherit] whitespace-pre-wrap">
+          {readout.body}
+        </pre>
       )}
     </section>
   );
 }
 function Excerpt({ parts }: { parts: ExcerptPart[] }) {
   return (
-    <span className="palette-option__detail palette-option__excerpt">
+    <span className="palette-option__detail palette-option__excerpt overflow-hidden text-ellipsis whitespace-normal text-sm leading-5 text-muted">
       {parts.map((part, index) =>
         part.mark ? (
           <mark key={index}>{part.text}</mark>
@@ -97,11 +101,11 @@ function PaletteBody({
 
   return (
     <>
-      <div className="palette-field">
-        <Icon name="search" size={20} className="palette-field__icon" />
+      <div className="palette-field flex min-h-14 flex-none items-center gap-[14px] rounded-2xl bg-surface-container-highest px-5 py-0">
+        <Icon name="search" size={20} className="flex-none text-muted" />
         <input
           ref={inputRef}
-          className="palette-field__input"
+          className="min-w-0 flex-1 border-0 bg-transparent px-0 py-[14px] font-sans text-[18px]/[28px] text-ink outline-none placeholder:text-muted placeholder:opacity-100"
           type="text"
           role="combobox"
           autoComplete="off"
@@ -123,7 +127,7 @@ function PaletteBody({
         />
       </div>
 
-      <div className="palette-body">
+      <div className="palette-body flex min-h-0 flex-1 flex-col gap-3">
         {(readout || pending) && (
           <ReadoutView
             readout={
@@ -136,18 +140,18 @@ function PaletteBody({
             id={listboxId}
             role="listbox"
             aria-label="Results"
-            className="palette-list scroller"
+            className="palette-list scroller flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain"
           >
             {sections.map((section) => (
               <div
                 key={section.label}
                 role="group"
                 aria-labelledby={`${id}-${section.label}`}
-                className="palette-group"
+                className="palette-group rounded-2xl bg-card px-2 pt-1.5 pb-2"
               >
                 <div
                   id={`${id}-${section.label}`}
-                  className="palette-group__label"
+                  className="palette-group__label px-3 pt-2.5 pb-1.5 text-xs leading-4 font-semibold tracking-[.05em] text-muted"
                 >
                   {section.label}
                 </div>
@@ -160,7 +164,7 @@ function PaletteBody({
                       id={`${id}-option-${index}`}
                       role="option"
                       aria-selected={index === active}
-                      className="palette-option"
+                      className="palette-option grid grid-cols-[20px_minmax(0,1fr)] items-center gap-x-4 rounded-xl p-[10px_12px] cursor-pointer transition-[background-color,color] duration-[160ms] ease-site aria-selected:bg-secondary-container aria-selected:text-on-secondary-container"
                       onPointerMove={() => {
                         if (index !== active) setActive(index);
                       }}
@@ -173,14 +177,16 @@ function PaletteBody({
                       <Icon
                         name={row.icon}
                         size={20}
-                        className="palette-option__icon"
+                        className="palette-option__icon text-muted"
                       />
-                      <span className="palette-option__title">{row.title}</span>
+                      <span className="palette-option__title overflow-hidden text-ellipsis whitespace-nowrap font-semibold">
+                        {row.title}
+                      </span>
                       {row.excerpt ? (
                         <Excerpt parts={row.excerpt} />
                       ) : (
                         row.detail && (
-                          <span className="palette-option__detail">
+                          <span className="palette-option__detail overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-5 text-muted">
                             {row.detail}
                           </span>
                         )
@@ -195,30 +201,46 @@ function PaletteBody({
         {/* Search runs from two characters on, so a single one has not
             been looked for yet and says nothing. */}
         {!showList && !readout && !pending && typed.length >= 2 && !egg && (
-          <p className="palette-empty">
+          <p className="palette-empty m-0 px-5 pt-5 pb-3 text-muted">
             {searchError ?? `Nothing on the site matches “${query.trim()}”.`}
           </p>
         )}
         {showList && searchError && (
-          <p className="palette-empty">{searchError}</p>
+          <p className="palette-empty m-0 px-5 pt-5 pb-3 text-muted">
+            {searchError}
+          </p>
         )}
       </div>
 
-      <p className="palette-hints" aria-hidden="true">
+      <p
+        className="palette-hints m-0 flex flex-none gap-5 px-3 pt-0.5 pb-1 text-xs leading-4 text-muted"
+        aria-hidden="true"
+      >
         <span>
-          <kbd>↑</kbd>
-          <kbd>↓</kbd> move
+          <kbd className="mr-1 font-mono text-xs leading-4 font-semibold text-ink">
+            ↑
+          </kbd>
+          <kbd className="mr-1 font-mono text-xs leading-4 font-semibold text-ink">
+            ↓
+          </kbd>{' '}
+          move
         </span>
         <span>
-          <kbd>Enter</kbd> open
+          <kbd className="mr-1 font-mono text-xs leading-4 font-semibold text-ink">
+            Enter
+          </kbd>{' '}
+          open
         </span>
         <span>
-          <kbd>Esc</kbd> close
+          <kbd className="mr-1 font-mono text-xs leading-4 font-semibold text-ink">
+            Esc
+          </kbd>{' '}
+          close
         </span>
       </p>
 
       {/* Egg readouts and copy confirmations are read out as they land. */}
-      <p className="palette-live" role="status" aria-live="polite">
+      <p className="sr-only" role="status" aria-live="polite">
         {announcement}
       </p>
     </>
@@ -252,7 +274,7 @@ export default function Palette({
   return (
     <dialog
       ref={ref}
-      className="palette"
+      className="palette box-border mx-auto mt-[12vh] w-[min(640px,calc(100vw_-_32px))] max-w-none max-h-[min(680px,calc(100dvh_-_20vh))] overflow-hidden rounded-[28px] border-0 bg-surface-container p-3 font-sans text-base leading-6 text-ink shadow-[0_4px_16px_-4px_color-mix(in_srgb,var(--color-scrim)_28%,transparent)] [&[open]]:flex [&[open]]:flex-col [&[open]]:gap-3 max-[599px]:w-[calc(100vw_-_16px)] max-[599px]:max-h-[calc(100dvh_-_16px)] max-[599px]:mt-2 max-[599px]:rounded-3xl max-[599px]:p-2 max-[599px]:[&[open]]:gap-2"
       aria-label="Command palette"
       onCancel={(event) => {
         // Escape closes through the provider, so the card morphs back.

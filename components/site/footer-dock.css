@@ -320,55 +320,6 @@
   }
 }
 
-/* The name's letters on their way in. A stage can set only colour and
-   shadow, not move the letter, so an arriving letter is a soft shadow a
-   little below its place; as it lands the shadow tightens and rises and
-   the ink comes in. Under reduced motion the letters skip the stages and
-   simply appear. */
-::highlight(footer-name-0) {
-  color: transparent;
-}
-::highlight(footer-name-1) {
-  color: color-mix(in srgb, var(--color-ink) 0%, transparent);
-  text-shadow: 0 0.311em 7.1px
-    color-mix(in srgb, var(--color-ink) 18%, transparent);
-}
-::highlight(footer-name-2) {
-  color: color-mix(in srgb, var(--color-ink) 0%, transparent);
-  text-shadow: 0 0.272em 6.2px
-    color-mix(in srgb, var(--color-ink) 36%, transparent);
-}
-::highlight(footer-name-3) {
-  color: color-mix(in srgb, var(--color-ink) 0%, transparent);
-  text-shadow: 0 0.233em 5.3px
-    color-mix(in srgb, var(--color-ink) 53%, transparent);
-}
-::highlight(footer-name-4) {
-  color: color-mix(in srgb, var(--color-ink) 0%, transparent);
-  text-shadow: 0 0.194em 4.4px
-    color-mix(in srgb, var(--color-ink) 71%, transparent);
-}
-::highlight(footer-name-5) {
-  color: color-mix(in srgb, var(--color-ink) 11%, transparent);
-  text-shadow: 0 0.156em 3.6px
-    color-mix(in srgb, var(--color-ink) 81%, transparent);
-}
-::highlight(footer-name-6) {
-  color: color-mix(in srgb, var(--color-ink) 33%, transparent);
-  text-shadow: 0 0.117em 2.7px
-    color-mix(in srgb, var(--color-ink) 75%, transparent);
-}
-::highlight(footer-name-7) {
-  color: color-mix(in srgb, var(--color-ink) 56%, transparent);
-  text-shadow: 0 0.078em 1.8px
-    color-mix(in srgb, var(--color-ink) 58%, transparent);
-}
-::highlight(footer-name-8) {
-  color: color-mix(in srgb, var(--color-ink) 78%, transparent);
-  text-shadow: 0 0.039em 0.9px
-    color-mix(in srgb, var(--color-ink) 42%, transparent);
-}
-
 /* A docked footer follows the registered page column, just like a plain footer. */
 .site-footer[data-dock][data-column='content'] {
   --shell-max: 800px;

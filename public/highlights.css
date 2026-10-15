@@ -1,0 +1,59 @@
+/* Lightning CSS currently warns on the valid ::highlight() pseudo-element
+   and its transform can alter pseudo-element selectors. Keep these rules in
+   a static stylesheet so browsers receive the CSS Highlight API selectors
+   unchanged. */
+
+/* Fragmentions mark their target words in the page's current brand scheme.
+   The underline draws the edge because a highlight has no outline. */
+::highlight(fragmention) {
+  background-color: var(--b-primary-container, var(--color-primary-container));
+  color: var(--b-on-primary-container, var(--color-on-primary-container));
+  text-decoration: underline 2px var(--b-primary, var(--color-primary));
+  text-underline-offset: 3px;
+}
+
+/* Each footer name stage tightens and lifts the shadow as the ink appears.
+   Under reduced motion the letters skip these stages. */
+::highlight(footer-name-0) {
+  color: transparent;
+}
+::highlight(footer-name-1) {
+  color: color-mix(in srgb, var(--color-ink) 0%, transparent);
+  text-shadow: 0 0.311em 7.1px
+    color-mix(in srgb, var(--color-ink) 18%, transparent);
+}
+::highlight(footer-name-2) {
+  color: color-mix(in srgb, var(--color-ink) 0%, transparent);
+  text-shadow: 0 0.272em 6.2px
+    color-mix(in srgb, var(--color-ink) 36%, transparent);
+}
+::highlight(footer-name-3) {
+  color: color-mix(in srgb, var(--color-ink) 0%, transparent);
+  text-shadow: 0 0.233em 5.3px
+    color-mix(in srgb, var(--color-ink) 53%, transparent);
+}
+::highlight(footer-name-4) {
+  color: color-mix(in srgb, var(--color-ink) 0%, transparent);
+  text-shadow: 0 0.194em 4.4px
+    color-mix(in srgb, var(--color-ink) 71%, transparent);
+}
+::highlight(footer-name-5) {
+  color: color-mix(in srgb, var(--color-ink) 11%, transparent);
+  text-shadow: 0 0.156em 3.6px
+    color-mix(in srgb, var(--color-ink) 81%, transparent);
+}
+::highlight(footer-name-6) {
+  color: color-mix(in srgb, var(--color-ink) 33%, transparent);
+  text-shadow: 0 0.117em 2.7px
+    color-mix(in srgb, var(--color-ink) 75%, transparent);
+}
+::highlight(footer-name-7) {
+  color: color-mix(in srgb, var(--color-ink) 56%, transparent);
+  text-shadow: 0 0.078em 1.8px
+    color-mix(in srgb, var(--color-ink) 58%, transparent);
+}
+::highlight(footer-name-8) {
+  color: color-mix(in srgb, var(--color-ink) 78%, transparent);
+  text-shadow: 0 0.039em 0.9px
+    color-mix(in srgb, var(--color-ink) 42%, transparent);
+}

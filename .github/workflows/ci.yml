@@ -82,3 +82,58 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  metrics:
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - uses: pnpm/action-setup@v6
+        with:
+          cache: true
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build:metrics
+      - run: pnpm preview:metrics
+
+      - name: Write metrics summary
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs';
+
+          const build = JSON.parse(readFileSync('artifacts/cloudflare-build-metrics.json', 'utf8'));
+          const preview = JSON.parse(readFileSync('artifacts/cloudflare-preview-metrics.json', 'utf8'));
+          const lines = [
+            '## Cloudflare build metrics',
+            '',
+            `- Revision: \`${build.revision}\``,
+            `- Build time: ${(build.buildMs / 1000).toFixed(1)} s`,
+            `- Worker JavaScript: ${(build.workerBytes / 1024 / 1024).toFixed(2)} MiB`,
+            `- Static assets: ${(build.staticAssetBytes / 1024 / 1024).toFixed(2)} MiB across ${build.staticAssetFiles} files`,
+            `- Tracked source lines: ${build.sourceLines.toLocaleString()}`,
+            '',
+            `Browser medians (${preview.samplesPerRoute} samples per route; milliseconds except CLS):`,
+            '',
+            '| Route | TTFB | FCP | LCP | CLS |',
+            '| --- | ---: | ---: | ---: | ---: |',
+            ...Object.entries(preview.routes).map(([route, metrics]) =>
+              `| \`${route}\` | ${metrics.ttfbMs} | ${metrics.fcpMs ?? 'n/a'} | ${metrics.lcpMs ?? 'n/a'} | ${metrics.cls} |`
+            ),
+            '',
+            'Informational only; no metric budgets are enforced.',
+            '',
+          ];
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n'));
+          NODE
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cloudflare-build-metrics
+          path: artifacts/cloudflare-*-metrics.json

@@ -16,6 +16,12 @@ interface Recorded {
   root?: string;
 }
 
+declare global {
+  interface Window {
+    __transitions?: Recorded[];
+  }
+}
+
 async function recordTransitions(page: Page) {
   await page.addInitScript(() => {
     const named = () =>
@@ -26,7 +32,7 @@ async function recordTransitions(page: Page) {
             `${element.tagName}:${element.style.viewTransitionName}:${element.style.viewTransitionClass}`
         );
     const recorded: Recorded[] = [];
-    Object.assign(window, { __transitions: recorded });
+    window.__transitions = recorded;
     const start = Document.prototype.startViewTransition;
     Document.prototype.startViewTransition = function (
       this: Document,
@@ -68,9 +74,12 @@ async function recordTransitions(page: Page) {
 }
 
 function transitions(page: Page): Promise<Recorded[]> {
-  return page.evaluate(
-    () => (window as unknown as { __transitions: Recorded[] }).__transitions
-  );
+  return page.evaluate(() => {
+    if (!window.__transitions) {
+      throw new Error('View transition recording was not initialized.');
+    }
+    return window.__transitions;
+  });
 }
 
 /** Waits until the router has the destination, so one commit swaps pages. */

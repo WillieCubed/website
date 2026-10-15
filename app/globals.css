@@ -390,6 +390,13 @@ h4 {
      scrollbars must neither shift a modal's page nor offset its centre. */
   scrollbar-gutter: stable both-edges;
 }
+@media (max-width: 839px) {
+  :root {
+    /* Compact layouts already supply their own viewport inset. Keep the
+       scrollbar reservation through modal opening, without a mirrored rail. */
+    scrollbar-gutter: stable;
+  }
+}
 
 /* An inner scroller: a thin bar that draws its thumb fully while the
    pointer is over it. It resolves the thumb itself, so a surface that sets

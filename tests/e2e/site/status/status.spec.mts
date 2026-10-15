@@ -193,7 +193,7 @@ test('footer status adapts within one row even with a long city name', async ({
   await expect(status.locator('.status-city')).toHaveText(
     'Llanfairpwllgwyngyll'
   );
-  for (const width of [320, 390, 600, 840, 1440]) {
+  for (const width of [300, 320, 390, 600, 840, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await page.evaluate(() =>
       window.scrollTo(0, document.documentElement.scrollHeight)
@@ -231,7 +231,19 @@ test('footer status adapts within one row even with a long city name', async ({
         })
       )
       .toBe(true);
-    if (width === 320) {
+    // The compact location icon follows the footer's available content
+    // width, which varies with classic versus overlay scrollbar gutters.
+    const footerWidth = await page
+      .locator('.site-footer__inner')
+      .evaluate((e) => {
+        const style = getComputedStyle(e);
+        return (
+          e.clientWidth -
+          parseFloat(style.paddingLeft) -
+          parseFloat(style.paddingRight)
+        );
+      });
+    if (footerWidth <= 280) {
       await expect(status.locator('.microstatus-place > svg')).toBeHidden();
     } else {
       await expect(status.locator('.microstatus-place > svg')).toBeVisible();

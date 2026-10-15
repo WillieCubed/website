@@ -25,6 +25,27 @@ test('the page draws a themed thumb', async ({ page }) => {
   expect(await computed(page, 'html', 'scrollbar-color')).not.toBe('auto');
 });
 
+test('compact viewports reserve only the actual scrollbar edge', async ({
+  page,
+}) => {
+  await page.goto('/');
+  for (const width of [320, 390, 599, 600, 839, 840, 1200]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await computed(page, 'html', 'scrollbar-gutter')).toBe(
+      width < 840 ? 'stable' : 'stable both-edges'
+    );
+    if (width < 840) {
+      // Classic scrollbars must not add a second empty rail before the
+      // page's own inset. This also runs with overlay scrollbars.
+      expect(
+        await page
+          .locator('body')
+          .evaluate((body) => body.getBoundingClientRect().left)
+      ).toBe(0);
+    }
+  }
+});
+
 test('the page keeps its scrollbar gutter under the detail view', async ({
   page,
 }) => {
@@ -98,14 +119,17 @@ test('below 840px the detail view fills the window with square corners', async (
       width: Math.round(box.width),
       availableWidth: Math.round(document.body.getBoundingClientRect().width),
       start: box.left,
-      end: innerWidth - box.right,
+      bodyStart: document.body.getBoundingClientRect().left,
+      end: box.right,
+      bodyEnd: document.body.getBoundingClientRect().right,
       height: Math.round(box.height),
       radius: getComputedStyle(dialog).borderTopRightRadius,
       overflow: getComputedStyle(dialog).overflowY,
     };
   });
   expect(view.width).toBe(view.availableWidth);
-  expect(Math.abs(view.start - view.end)).toBeLessThanOrEqual(1);
+  expect(Math.abs(view.start - view.bodyStart)).toBeLessThanOrEqual(1);
+  expect(Math.abs(view.end - view.bodyEnd)).toBeLessThanOrEqual(1);
   expect(view.height).toBe(900);
   expect(view.radius).toBe('0px');
   expect(view.overflow).toBe('auto');

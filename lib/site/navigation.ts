@@ -58,8 +58,9 @@ export const sitePages: SitePage[] = [
   {
     path: '/colophon',
     label: 'Colophon',
-    description: 'How this site is made.',
-    routed: false,
+    description:
+      'How this site is made, the choices behind it, and its current build.',
+    routed: true,
   },
   {
     path: '/contact',

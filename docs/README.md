@@ -94,6 +94,8 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
 
 ### Operations
 
+- [Site build record](./reference/operations/build-record.md): artifact versions,
+  build timestamps, and links to the producing CI run.
 - [Testing](./reference/operations/testing.md): suite boundaries and the checks appropriate to a change.
 
 - [Setup and deployment checks](./reference/operations/bootstrap.md): local setup, Cloudflare account and resource requirements, and current verification limits.

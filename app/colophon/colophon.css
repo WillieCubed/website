@@ -1,0 +1,334 @@
+.colophon {
+  width: 100%;
+  margin: 64px auto 104px;
+}
+.colophon-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: center;
+  margin-bottom: 64px;
+}
+.colophon-illustration {
+  display: grid;
+  place-items: center;
+  position: relative;
+  isolation: isolate;
+  min-height: 260px;
+  padding-bottom: 24px;
+}
+.colophon-illustration::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 10px 4px 18px;
+  background: var(--color-tertiary-container);
+  border-radius: 45% 55% 38% 62% / 55% 38% 62% 45%;
+  rotate: -8deg;
+}
+.colophon-illustration-letters {
+  font: 650 152px/1 var(--font-sans);
+  letter-spacing: -0.08em;
+  padding-right: 0.08em;
+  color: var(--color-on-tertiary-container);
+}
+.colophon-illustration-glyphs {
+  position: absolute;
+  bottom: 0;
+  right: 8px;
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  border-radius: 22px 22px 8px 22px;
+  padding: 12px 20px;
+  font: 500 24px/1.3 var(--font-mono);
+}
+.colophon h1 {
+  font: 650 clamp(48px, 7vw, 80px)/1.05 var(--font-sans);
+  letter-spacing: -0.05em;
+  margin: 0 0 16px;
+}
+.colophon p {
+  font: 400 17px/1.65 var(--font-sans);
+  margin: 0 0 16px;
+  color: var(--color-on-surface-variant);
+  text-wrap: pretty;
+}
+.colophon p:last-child {
+  margin-bottom: 0;
+}
+.colophon-welcome p {
+  max-width: 44ch;
+  font-size: 18px;
+}
+.colophon .colophon-byline {
+  font-size: 14px;
+  margin-bottom: 0;
+}
+.colophon-specimen {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  margin: 8px 0 0;
+  min-width: 0;
+}
+.colophon-sample-text {
+  display: block;
+  font: 600 clamp(34px, 4.5vw, 64px)/1.15 var(--font-sans);
+  letter-spacing: -0.03em;
+}
+.colophon-type-sample--mono .colophon-sample-text {
+  font-family: var(--font-mono);
+}
+.colophon-sample-name {
+  display: block;
+  margin-top: 12px;
+  font: 500 13px/1.5 var(--font-sans);
+}
+.colophon h2 {
+  font: 600 32px/1.1 var(--font-sans);
+  letter-spacing: -0.035em;
+  margin: 0 0 20px;
+}
+.colophon-edition {
+  margin-top: 24px;
+}
+.colophon-build {
+  max-width: 100%;
+  border-spacing: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--color-surface-container);
+  margin: 0;
+}
+.colophon-build caption {
+  text-align: left;
+  font: 600 18px/1.4 var(--font-sans);
+  padding-bottom: 12px;
+}
+.colophon-build th,
+.colophon-build td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 16px;
+  line-height: 1.5;
+}
+.colophon-build tr:first-child > * {
+  padding-top: 12px;
+}
+.colophon-build tr:last-child > * {
+  padding-bottom: 12px;
+}
+.colophon-build tr:nth-child(even) {
+  background: var(--color-surface-container-high);
+}
+.colophon-build th {
+  color: var(--color-on-surface-variant);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.colophon-build td {
+  font-size: 16px;
+  padding-left: 0;
+}
+.colophon-revision {
+  font-family: var(--font-mono);
+}
+.colophon-build .colophon-detail {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+  margin-inline-start: 8px;
+}
+.colophon-notes {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 64px 24px;
+  align-items: start;
+}
+.colophon-notes > section {
+  min-width: 0;
+}
+.colophon-type {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+.colophon-type h2 {
+  grid-column: span 4;
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  margin: 0;
+}
+.colophon-type > p {
+  grid-column: span 8;
+  margin: 0;
+}
+.colophon-specimen {
+  grid-column: 1 / -1;
+}
+.colophon-type-sample--sans {
+  color: var(--color-tertiary);
+}
+.colophon-type-sample--mono {
+  color: var(--color-primary);
+}
+.colophon-sample-name {
+  color: var(--color-on-surface-variant);
+}
+.colophon-publishing {
+  grid-column: 1 / span 7;
+}
+.colophon-publishing h2 {
+  font-size: 48px;
+  letter-spacing: -0.045em;
+}
+.colophon-publishing > p:first-of-type {
+  font-size: 22px;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+  color: var(--color-on-surface);
+  margin-bottom: 24px;
+}
+.colophon-credits {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px 24px;
+  align-items: start;
+}
+.colophon-credits h2 {
+  grid-column: 1 / span 4;
+  grid-row: 1 / span 3;
+  font-size: 40px;
+  margin: 0;
+}
+.colophon-credits > p,
+.colophon-credits .colophon-edition {
+  grid-column: 5 / -1;
+  margin: 0;
+}
+.colophon-credits .colophon-edition {
+  margin-top: 8px;
+}
+.colophon-credits .colophon-build {
+  width: 100%;
+}
+.colophon .colophon-tools {
+  font-size: 14px;
+}
+.colophon a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition:
+    color 200ms var(--ease-site),
+    text-decoration-color 200ms var(--ease-site),
+    outline-offset 280ms var(--ease-site),
+    outline-color 200ms var(--ease-site);
+  outline: 2px solid transparent;
+  outline-offset: 10px;
+}
+.colophon a:hover {
+  color: var(--color-primary);
+  text-decoration-color: currentColor;
+}
+.colophon a:focus-visible {
+  outline-color: var(--color-ink);
+  outline-offset: 3px;
+}
+@media (max-width: 839px) {
+  .colophon {
+    margin-top: 40px;
+  }
+  .colophon-notes {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .colophon-type {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .colophon-type h2,
+  .colophon-type > p,
+  .colophon-publishing,
+  .colophon-credits {
+    grid-column: 1;
+  }
+  .colophon-credits {
+    grid-template-columns: 1fr;
+  }
+  .colophon-credits h2,
+  .colophon-credits > p,
+  .colophon-credits .colophon-edition {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .colophon-credits h2 {
+    margin-bottom: 4px;
+  }
+  .colophon-specimen {
+    margin-top: 8px;
+  }
+  .colophon-publishing h2 {
+    font-size: 40px;
+  }
+}
+@media (max-width: 599px) {
+  .colophon {
+    margin-top: 28px;
+    margin-bottom: 64px;
+  }
+  .colophon-welcome p {
+    font-size: 17px;
+  }
+  .colophon-intro {
+    grid-template-columns: minmax(0, 1fr) 140px;
+    gap: 16px 12px;
+    margin-bottom: 40px;
+  }
+  .colophon-welcome {
+    display: contents;
+  }
+  .colophon h1 {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+  .colophon-illustration {
+    min-height: 150px;
+    padding-bottom: 16px;
+  }
+  .colophon-illustration-letters {
+    font-size: 90px;
+  }
+  .colophon-illustration-glyphs {
+    font-size: 14px;
+    padding: 8px 12px;
+    right: 0;
+  }
+  .colophon-type h2 {
+    font-size: 40px;
+  }
+  .colophon-specimen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .colophon-sample-text {
+    font-size: clamp(22px, 6vw, 32px);
+  }
+  .colophon-sample-name {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  .colophon-publishing > p:first-of-type {
+    font-size: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .colophon a {
+    transition: none;
+  }
+}

@@ -1,5 +1,7 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
+import { siteBuild } from '@/lib/site/build';
+
 function runtime(): 'cloudflare-workers' | 'other' {
   try {
     const { HYPERDRIVE, MEDIA_BUCKET, ASSETS } = getCloudflareContext().env;
@@ -12,8 +14,14 @@ function runtime(): 'cloudflare-workers' | 'other' {
 }
 
 export function GET() {
+  const build = siteBuild();
   return Response.json(
-    { sha: process.env.NEXT_PUBLIC_SITE_REVISION ?? null, runtime: runtime() },
+    {
+      sha: build.revision,
+      runtime: runtime(),
+      builtAt: build.builtAt,
+      buildUrl: build.buildUrl,
+    },
     {
       headers: { 'Cache-Control': 'no-store' },
     }

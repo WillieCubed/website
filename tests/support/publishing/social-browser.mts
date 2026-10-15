@@ -7,8 +7,10 @@ import { chmod, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 
+import type { Collection } from '../../../lib/atproto/config';
 import type { RepoClient } from '../../../lib/atproto/types';
 import { themeSchemes } from '../../../lib/theme/tokens';
+import type { Journal as IdentityJournal } from './identities/types.mts';
 
 const ORIGIN = 'https://indieweb-acceptance.vercel.app';
 const OWNER = 'did:plc:iyn6nc3ffqm2e3555exyrgvv';
@@ -57,32 +59,38 @@ function docker(args: string[]) {
     );
   }
 }
+interface ContainerSnapshot {
+  Name: string;
+  Id: string;
+  Image: string;
+  Config: {
+    Image: string;
+    Labels?: Record<string, string>;
+    Env: string[];
+    Cmd: unknown;
+    Entrypoint: unknown;
+  };
+  Mounts: {
+    Destination: string;
+    Type: string;
+    Name?: string;
+    Source: string;
+  }[];
+  HostConfig: {
+    PortBindings: Record<string, unknown>;
+    Memory: number;
+    MemorySwap: number;
+    NanoCpus: number;
+  };
+  State: { Running: boolean; Paused: boolean };
+}
 async function ownedContainer(path: string, publisher: string) {
   // Read ownership without a network identity probe so a paused container remains recoverable.
-  const journal = JSON.parse(await readFile(path, 'utf8'));
-  assert(
-    journal.version === 1 &&
-      journal.account === '18f90fa11cf0a87145be4a1517e41217'
-  );
-  assert(journal.domain === 'willieechalmers-18f.workers.dev');
-  assert(
-    /^[a-f0-9]{10}$/.test(journal.run) && /^[a-f0-9]{64}$/.test(journal.marker)
-  );
-  assert(
-    journal.container === `dev-williecubed-website-pds-${journal.run}` &&
-      journal.image === IMAGE
-  );
-  assert(
-    journal.origin === `https://willie-pds-${journal.run}.${journal.domain}`
-  );
-  assert(
-    journal.publisher.did === publisher &&
-      publisher !== OWNER &&
-      !journal.cleaned
-  );
-  assert(journal.visitor.did !== OWNER && journal.visitor.did !== publisher);
-  assert(journal.data === resolve(dirname(path), 'pds'));
-  const container = JSON.parse(docker(['inspect', journal.container]))[0];
+  const journal: IdentityJournal = JSON.parse(await readFile(path, 'utf8'));
+  validateContainerJournal(journal, path, publisher);
+  const container: ContainerSnapshot = JSON.parse(
+    docker(['inspect', journal.container])
+  )[0];
   const image = JSON.parse(docker(['image', 'inspect', IMAGE]))[0];
   assert(container.Name === `/${journal.container}`);
   assert(
@@ -139,17 +147,7 @@ async function ownedContainer(path: string, publisher: string) {
   assert(
     isDeepStrictEqual(container.Config.Entrypoint, image.Config.Entrypoint)
   );
-  const mounts = container.Mounts.filter(
-    (entry: { Destination: string }) => entry.Destination === '/pds'
-  );
-  assert(mounts.length === 1);
-  assert(
-    journal.storage?.active
-      ? mounts[0].Type === 'volume' &&
-          mounts[0].Name === `${journal.container}-data` &&
-          mounts[0].Name === journal.storage.volume
-      : mounts[0].Type === 'bind' && mounts[0].Source === journal.data
-  );
+  validateContainerMount(container, journal);
   assert(
     isDeepStrictEqual(container.HostConfig.PortBindings['3000/tcp'], [
       { HostIp: '127.0.0.1', HostPort: String(journal.port) },
@@ -227,15 +225,7 @@ export async function recoverSocialFailures(
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return;
     throw error;
   }
-  assert(
-    recovery.version === 1 &&
-      recovery.origin === ORIGIN &&
-      recovery.publisher === publisher &&
-      publisher !== OWNER
-  );
-  assert(
-    identityJournal && recovery.identityJournal === resolve(identityJournal)
-  );
+  validateSocialRecovery(recovery, identityJournal, publisher);
   if (recovery.outage?.intent) {
     const owned = await ownedContainer(recovery.identityJournal, publisher);
     assert(
@@ -482,9 +472,7 @@ export async function socialUiFailures(options: {
       kind === 'subscription'
         ? publishingIdentity().publicationUri
         : `at://${publisher}/site.standard.document/${documentRkey(`/writings/${slug}`, writing.published)}`;
-    const records = await client.listRecords(
-      collection as Parameters<typeof client.listRecords>[0]
-    );
+    const records = await client.listRecords(collection as Collection);
     return records
       .filter((record) => record.value[field] === target)
       .map((record) => ({
@@ -558,6 +546,39 @@ export async function socialUiFailures(options: {
         failed(error);
       }
     };
+    async function confirmLostResponse() {
+      await control.getByRole('button', { name: /^Try again to / }).waitFor();
+      assert.equal(
+        await control.locator('button').first().getAttribute('aria-pressed'),
+        method === 'DELETE' ? 'true' : 'false'
+      );
+      await captureSocialState(page, output, `${name}-lost-response`);
+      const persisted = await confirmedGraph(kind);
+      assert.equal(persisted.length, 1);
+      await page.unroute(url, handler);
+      await writeSlot();
+      await control.getByRole('button', { name: /^Try again to / }).click();
+      await control
+        .getByRole('button', {
+          name: kind === 'subscription' ? 'Subscribed' : 'Recommended',
+          exact: true,
+        })
+        .waitFor();
+      assert.deepEqual(
+        await confirmedGraph(kind),
+        persisted,
+        'Retry must retain the same real record CID and value.'
+      );
+      checks.push({
+        name: `A lost real ${kind} success response retains inactive UI until retry confirms the same PDS record`,
+        details: {
+          uri: persisted[0].uri,
+          cid: persisted[0].cid,
+          fault:
+            'Only the browser delivery was aborted after a genuine deployed 200 and durable PDS inventory.',
+        },
+      });
+    }
     await page.route(url, handler);
     try {
       await control.locator('button').first().click();
@@ -572,14 +593,7 @@ export async function socialUiFailures(options: {
       ]);
       await control
         .getByRole('button', {
-          name:
-            method === 'PUT'
-              ? kind === 'subscription'
-                ? 'Subscribing…'
-                : 'Recommending…'
-              : kind === 'subscription'
-                ? 'Unsubscribing…'
-                : 'Withdrawing…',
+          name: socialActionLabel(kind, method, 'pending'),
           exact: true,
         })
         .waitFor();
@@ -588,48 +602,11 @@ export async function socialUiFailures(options: {
       gate!();
       await completion;
       if (lost) {
-        await control.getByRole('button', { name: /^Try again to / }).waitFor();
-        assert.equal(
-          await control.locator('button').first().getAttribute('aria-pressed'),
-          method === 'DELETE' ? 'true' : 'false'
-        );
-        await captureSocialState(page, output, `${name}-lost-response`);
-        const persisted = await confirmedGraph(kind);
-        assert.equal(persisted.length, 1);
-        await page.unroute(url, handler);
-        await writeSlot();
-        await control.getByRole('button', { name: /^Try again to / }).click();
-        await control
-          .getByRole('button', {
-            name: kind === 'subscription' ? 'Subscribed' : 'Recommended',
-            exact: true,
-          })
-          .waitFor();
-        assert.deepEqual(
-          await confirmedGraph(kind),
-          persisted,
-          'Retry must retain the same real record CID and value.'
-        );
-        checks.push({
-          name: `A lost real ${kind} success response retains inactive UI until retry confirms the same PDS record`,
-          details: {
-            uri: persisted[0].uri,
-            cid: persisted[0].cid,
-            fault:
-              'Only the browser delivery was aborted after a genuine deployed 200 and durable PDS inventory.',
-          },
-        });
+        await confirmLostResponse();
       } else
         await control
           .getByRole('button', {
-            name:
-              method === 'PUT'
-                ? kind === 'subscription'
-                  ? 'Subscribed'
-                  : 'Recommended'
-                : kind === 'subscription'
-                  ? 'Subscribe'
-                  : 'Recommend',
+            name: socialActionLabel(kind, method, 'confirmed'),
             exact: true,
           })
           .waitFor();
@@ -685,42 +662,9 @@ export async function socialUiFailures(options: {
           'site.standard.graph.subscription',
           'site.standard.graph.recommend',
         ]) {
-          let cursor: string | undefined;
-          const seen = new Set<string>();
-          do {
-            if (cursor) {
-              assert(!seen.has(cursor), 'The graph inventory cursor repeated.');
-              seen.add(cursor);
-            }
-            const url = new URL('/xrpc/com.atproto.repo.listRecords', service);
-            url.search = new URLSearchParams({
-              repo: did,
-              collection,
-              limit: '100',
-              ...(cursor && { cursor }),
-            }).toString();
-            const response = await fetch(url, {
-              redirect: 'error',
-              signal: AbortSignal.timeout(15000),
-            });
-            assert.equal(response.status, 200);
-            const page = (await response.json()) as {
-              records: Snapshot[];
-              cursor?: string;
-            };
-            assert(Array.isArray(page.records));
-            for (const record of page.records) {
-              assert(record.uri.startsWith(`at://${did}/${collection}/`));
-              assert(typeof record.cid === 'string' && record.cid);
-              assert(record.value && typeof record.value === 'object');
-              records.push({
-                uri: record.uri,
-                cid: record.cid,
-                value: record.value,
-              });
-            }
-            cursor = page.cursor;
-          } while (cursor);
+          records.push(
+            ...(await visitorGraphRecords(did, service, collection))
+          );
         }
       }
       return records.sort((a, b) => a.uri.localeCompare(b.uri));
@@ -730,99 +674,212 @@ export async function socialUiFailures(options: {
       subscription: await confirmedGraph('subscription'),
       recommendation: await confirmedGraph('recommendation'),
     };
-    const fixture = JSON.parse(
-      await readFile(
-        options.fixturePublicationJournal ??
-          resolve(output, 'fixture-publication-journal.json'),
-        'utf8'
-      )
-    );
-    assert(
-      fixture.did === publisher &&
-        fixture.inventoryComplete &&
-        fixture.syncedPublication
-    );
-    const original = await client.getRecord(
-      'site.standard.publication',
-      fixture.publicationRkey
-    );
-    assert(
-      original &&
-        original.cid === fixture.syncedPublication.cid &&
-        isDeepStrictEqual(original.value, fixture.syncedPublication.value),
-      'Only the exact parent-journaled publication may be changed.'
-    );
-    recovery.publication = {
-      rkey: fixture.publicationRkey,
-      original,
-      changed: { ...original.value, url: `${ORIGIN}/acceptance-unverified` },
-      intent: true,
-    };
-    await privateSave(path, recovery);
-    try {
-      await client.putRecord(
-        'site.standard.publication',
-        fixture.publicationRkey,
-        recovery.publication.changed,
-        original.cid
+    async function ownedPublicationFixture() {
+      const fixture = JSON.parse(
+        await readFile(
+          options.fixturePublicationJournal ??
+            resolve(output, 'fixture-publication-journal.json'),
+          'utf8'
+        )
       );
-      const modified = await client.getRecord(
+      assert(
+        fixture.did === publisher &&
+          fixture.inventoryComplete &&
+          fixture.syncedPublication
+      );
+      const original = await client.getRecord!(
         'site.standard.publication',
         fixture.publicationRkey
       );
       assert(
-        modified &&
-          isDeepStrictEqual(modified.value, recovery.publication.changed)
+        original &&
+          original.cid === fixture.syncedPublication.cid &&
+          isDeepStrictEqual(original.value, fixture.syncedPublication.value),
+        'Only the exact parent-journaled publication may be changed.'
       );
-      for (const kind of ['subscription', 'recommendation'] as const) {
-        for (const method of ['PUT', 'DELETE'] as const) {
-          await writeSlot();
-          const response = await context.request.fetch(
-            `${ORIGIN}/api/atproto/${kind}`,
-            {
-              method,
-              headers: { origin: ORIGIN },
-              data: kind === 'recommendation' ? { slug } : {},
-            }
-          );
-          assert.equal(response.status(), 409);
+      return { fixture, original };
+    }
+    await verifyTargetMismatch();
+    async function verifyTargetMismatch() {
+      const { fixture, original } = await ownedPublicationFixture();
+      recovery.publication = {
+        rkey: fixture.publicationRkey,
+        original,
+        changed: { ...original.value, url: `${ORIGIN}/acceptance-unverified` },
+        intent: true,
+      };
+      await privateSave(path, recovery);
+      try {
+        await client.putRecord!(
+          'site.standard.publication',
+          fixture.publicationRkey,
+          recovery.publication.changed,
+          original.cid
+        );
+        const modified = await client.getRecord!(
+          'site.standard.publication',
+          fixture.publicationRkey
+        );
+        assert(
+          modified &&
+            isDeepStrictEqual(modified.value, recovery.publication.changed)
+        );
+        for (const kind of ['subscription', 'recommendation'] as const) {
+          for (const method of ['PUT', 'DELETE'] as const) {
+            await writeSlot();
+            const response = await context.request.fetch(
+              `${ORIGIN}/api/atproto/${kind}`,
+              {
+                method,
+                headers: { origin: ORIGIN },
+                data: kind === 'recommendation' ? { slug } : {},
+              }
+            );
+            assert.equal(response.status(), 409);
+          }
         }
+        const result = await context.request.get(
+          `${ORIGIN}/api/atproto/social?slug=${slug}`
+        );
+        assert.equal(result.status(), 200);
+        const data = await result.json();
+        assert(data.ready === false && data.signedIn === true);
+        await writeSlot();
+        const rejected = page.waitForResponse(
+          (response) =>
+            response.url() === `${ORIGIN}/api/atproto/recommendation` &&
+            response.request().method() === 'PUT'
+        );
+        await control
+          .getByRole('button', { name: 'Recommend', exact: true })
+          .click();
+        assert.equal((await rejected).status(), 409);
+        const unavailable = control.getByRole('button', {
+          name: 'Unavailable',
+          exact: true,
+        });
+        await unavailable.waitFor();
+        assert(await unavailable.isDisabled());
+        assert.equal(await unavailable.getAttribute('aria-pressed'), 'false');
+        await captureSocialState(
+          page,
+          output,
+          'recommendation-unverified-action'
+        );
+        const unavailableStatus = page.waitForResponse((response) =>
+          response.url().includes('/api/atproto/social')
+        );
+        await page.reload();
+        await unavailableStatus;
+        assert.equal(await page.locator('[data-standard-social]').count(), 0);
+        await captureSocialState(page, output, 'unverified-controls-hidden');
+        assert.deepEqual(
+          {
+            subscription: await confirmedGraph('subscription'),
+            recommendation: await confirmedGraph('recommendation'),
+          },
+          beforeGraph
+        );
+        assert.deepEqual(
+          await allVisitorGraphs(),
+          beforeMismatchGraphs,
+          'Target mismatch must preserve both visitors’ complete graph collections.'
+        );
+        checks.push({
+          name: 'A real schema-valid publication with a mismatched URL rejects writes and undo, hides controls on load and preserves both visitors’ graph collections',
+          details: { originalCid: original.cid, modifiedCid: modified.cid },
+        });
+      } finally {
+        await restorePublication(recovery, client);
+        await privateSave(path, recovery);
       }
-      const result = await context.request.get(
-        `${ORIGIN}/api/atproto/social?slug=${slug}`
+    }
+    await verifyProviderOutage();
+    async function verifyProviderOutage() {
+      const ready = await load('recommendation');
+      assert(
+        !owned.container.State.Paused,
+        'Never take ownership of an already paused PDS.'
       );
-      assert.equal(result.status(), 200);
-      const data = await result.json();
-      assert(data.ready === false && data.signedIn === true);
+      const beforeOutageGraphs = await allVisitorGraphs();
+      recovery.outage = {
+        container: owned.journal.container,
+        id: owned.container.Id,
+        fingerprint: owned.fingerprint,
+        intent: true,
+      };
+      await privateSave(path, recovery);
       await writeSlot();
-      const rejected = page.waitForResponse(
-        (response) =>
-          response.url() === `${ORIGIN}/api/atproto/recommendation` &&
-          response.request().method() === 'PUT'
-      );
-      await control
-        .getByRole('button', { name: 'Recommend', exact: true })
-        .click();
-      assert.equal((await rejected).status(), 409);
-      const unavailable = control.getByRole('button', {
-        name: 'Unavailable',
-        exact: true,
-      });
-      await unavailable.waitFor();
-      assert(await unavailable.isDisabled());
-      assert.equal(await unavailable.getAttribute('aria-pressed'), 'false');
-      await captureSocialState(
-        page,
-        output,
-        'recommendation-unverified-action'
-      );
-      const unavailableStatus = page.waitForResponse((response) =>
-        response.url().includes('/api/atproto/social')
-      );
-      await page.reload();
-      await unavailableStatus;
-      assert.equal(await page.locator('[data-standard-social]').count(), 0);
-      await captureSocialState(page, output, 'unverified-controls-hidden');
+      try {
+        const beforePause = await ownedContainer(
+          options.identityJournal,
+          publisher
+        );
+        assert(
+          beforePause.container.Id === owned.container.Id &&
+            beforePause.fingerprint === owned.fingerprint &&
+            !beforePause.container.State.Paused
+        );
+        docker(['pause', owned.container.Id]);
+        assert(
+          (await ownedContainer(options.identityJournal, publisher)).container
+            .State.Paused
+        );
+        const health = await fetch(
+          new URL('/xrpc/_health', owned.journal.origin),
+          { signal: AbortSignal.timeout(12000) }
+        )
+          .then((response) => response.status)
+          .catch(() => 0);
+        assert(
+          health === 0 || health >= 500,
+          'The genuine owned PDS outage was not observed.'
+        );
+        const action = page.waitForResponse(
+          (response) =>
+            response.url() === `${ORIGIN}/api/atproto/recommendation` &&
+            response.request().method() === 'PUT',
+          { timeout: 90000 }
+        );
+        await ready
+          .getByRole('button', { name: 'Recommend', exact: true })
+          .click();
+        const response = await action;
+        assert(
+          [409, 502].includes(response.status()),
+          'An outage must never confirm a successful social action.'
+        );
+        const failure = ready.locator('button').first();
+        await page.waitForFunction(() => {
+          const button = document.querySelector(
+            '[data-standard-social="recommendation"] button'
+          );
+          return (
+            button?.textContent?.includes('Unavailable') ||
+            button?.textContent?.includes('Try again')
+          );
+        });
+        assert.equal(await failure.getAttribute('aria-pressed'), 'false');
+        await captureSocialState(
+          page,
+          output,
+          'recommendation-owned-pds-outage'
+        );
+        checks.push({
+          name: 'A genuinely paused owned PDS rejects the action without successful UI state',
+          details: {
+            container: owned.journal.container,
+            healthStatus: health,
+            actionStatus: response.status(),
+            coverage:
+              response.status() === 409
+                ? 'Shared publisher/visitor PDS was unavailable during target validation; authenticated visitor graph-write failure is not established.'
+                : 'The deployed action returned a provider error; the shared outage does not independently locate the failure at visitor graph writes.',
+          },
+        });
+      } finally {
+        await recoverSocialFailures(output, options.identityJournal, publisher);
+      }
       assert.deepEqual(
         {
           subscription: await confirmedGraph('subscription'),
@@ -832,115 +889,16 @@ export async function socialUiFailures(options: {
       );
       assert.deepEqual(
         await allVisitorGraphs(),
-        beforeMismatchGraphs,
-        'Target mismatch must preserve both visitors’ complete graph collections.'
+        beforeOutageGraphs,
+        'Provider outage must preserve both visitors’ complete graph collections.'
       );
-      checks.push({
-        name: 'A real schema-valid publication with a mismatched URL rejects writes and undo, hides controls on load and preserves both visitors’ graph collections',
-        details: { originalCid: original.cid, modifiedCid: modified.cid },
-      });
-    } finally {
-      await restorePublication(recovery, client);
-      await privateSave(path, recovery);
+      await load('recommendation');
+      await captureSocialState(
+        page,
+        output,
+        'recommendation-after-provider-recovery'
+      );
     }
-    const ready = await load('recommendation');
-    assert(
-      !owned.container.State.Paused,
-      'Never take ownership of an already paused PDS.'
-    );
-    const beforeOutageGraphs = await allVisitorGraphs();
-    recovery.outage = {
-      container: owned.journal.container,
-      id: owned.container.Id,
-      fingerprint: owned.fingerprint,
-      intent: true,
-    };
-    await privateSave(path, recovery);
-    await writeSlot();
-    try {
-      const beforePause = await ownedContainer(
-        options.identityJournal,
-        publisher
-      );
-      assert(
-        beforePause.container.Id === owned.container.Id &&
-          beforePause.fingerprint === owned.fingerprint &&
-          !beforePause.container.State.Paused
-      );
-      docker(['pause', owned.container.Id]);
-      assert(
-        (await ownedContainer(options.identityJournal, publisher)).container
-          .State.Paused
-      );
-      const health = await fetch(
-        new URL('/xrpc/_health', owned.journal.origin),
-        { signal: AbortSignal.timeout(12000) }
-      )
-        .then((response) => response.status)
-        .catch(() => 0);
-      assert(
-        health === 0 || health >= 500,
-        'The genuine owned PDS outage was not observed.'
-      );
-      const action = page.waitForResponse(
-        (response) =>
-          response.url() === `${ORIGIN}/api/atproto/recommendation` &&
-          response.request().method() === 'PUT',
-        { timeout: 90000 }
-      );
-      await ready
-        .getByRole('button', { name: 'Recommend', exact: true })
-        .click();
-      const response = await action;
-      assert(
-        [409, 502].includes(response.status()),
-        'An outage must never confirm a successful social action.'
-      );
-      const failure = ready.locator('button').first();
-      await page.waitForFunction(() => {
-        const button = document.querySelector(
-          '[data-standard-social="recommendation"] button'
-        );
-        return (
-          button?.textContent?.includes('Unavailable') ||
-          button?.textContent?.includes('Try again')
-        );
-      });
-      assert.equal(await failure.getAttribute('aria-pressed'), 'false');
-      await captureSocialState(page, output, 'recommendation-owned-pds-outage');
-      checks.push({
-        name: 'A genuinely paused owned PDS rejects the action without successful UI state',
-        details: {
-          container: owned.journal.container,
-          healthStatus: health,
-          actionStatus: response.status(),
-          coverage:
-            response.status() === 409
-              ? 'Shared publisher/visitor PDS was unavailable during target validation; authenticated visitor graph-write failure is not established.'
-              : 'The deployed action returned a provider error; the shared outage does not independently locate the failure at visitor graph writes.',
-        },
-      });
-    } finally {
-      await recoverSocialFailures(output, options.identityJournal, publisher);
-    }
-    assert.deepEqual(
-      {
-        subscription: await confirmedGraph('subscription'),
-        recommendation: await confirmedGraph('recommendation'),
-      },
-      beforeGraph
-    );
-    assert.deepEqual(
-      await allVisitorGraphs(),
-      beforeOutageGraphs,
-      'Provider outage must preserve both visitors’ complete graph collections.'
-    );
-    await load('recommendation');
-    await captureSocialState(
-      page,
-      output,
-      'recommendation-after-provider-recovery'
-    );
     // Abort the actual browser request to exercise local transport failure separately from the genuine PDS outage.
     const recommendation = page.locator(
       '[data-standard-social="recommendation"]'
@@ -1130,4 +1088,129 @@ export async function captureSocialLogout(
     release?.();
     await page.close();
   }
+}
+
+function validateContainerJournal(
+  journal: IdentityJournal,
+  path: string,
+  publisher: string
+) {
+  assert(
+    journal.version === 1 &&
+      journal.account === '18f90fa11cf0a87145be4a1517e41217'
+  );
+  assert(journal.domain === 'willieechalmers-18f.workers.dev');
+  assert(
+    /^[a-f0-9]{10}$/.test(journal.run) && /^[a-f0-9]{64}$/.test(journal.marker)
+  );
+  assert(
+    journal.container === `dev-williecubed-website-pds-${journal.run}` &&
+      journal.image === IMAGE
+  );
+  assert(
+    journal.origin === `https://willie-pds-${journal.run}.${journal.domain}`
+  );
+  assert(
+    journal.publisher.did === publisher &&
+      publisher !== OWNER &&
+      !journal.cleaned
+  );
+  assert(journal.visitor.did !== OWNER && journal.visitor.did !== publisher);
+  assert(journal.data === resolve(dirname(path), 'pds'));
+}
+
+function validateContainerMount(
+  container: ContainerSnapshot,
+  journal: IdentityJournal
+) {
+  const mounts = container.Mounts.filter(
+    (entry: { Destination: string }) => entry.Destination === '/pds'
+  );
+  assert(mounts.length === 1);
+  assert(
+    journal.storage?.active
+      ? mounts[0].Type === 'volume' &&
+          mounts[0].Name === `${journal.container}-data` &&
+          mounts[0].Name === journal.storage.volume
+      : mounts[0].Type === 'bind' && mounts[0].Source === journal.data
+  );
+}
+
+function validateSocialRecovery(
+  recovery: Recovery,
+  identityJournal: string | undefined,
+  publisher: string
+) {
+  assert(
+    recovery.version === 1 &&
+      recovery.origin === ORIGIN &&
+      recovery.publisher === publisher &&
+      publisher !== OWNER
+  );
+  assert(
+    identityJournal && recovery.identityJournal === resolve(identityJournal)
+  );
+}
+
+function socialActionLabel(
+  kind: 'subscription' | 'recommendation',
+  method: 'PUT' | 'DELETE',
+  state: 'pending' | 'confirmed'
+): string {
+  const labels = {
+    subscription: {
+      PUT: { pending: 'Subscribing…', confirmed: 'Subscribed' },
+      DELETE: { pending: 'Unsubscribing…', confirmed: 'Subscribe' },
+    },
+    recommendation: {
+      PUT: { pending: 'Recommending…', confirmed: 'Recommended' },
+      DELETE: { pending: 'Withdrawing…', confirmed: 'Recommend' },
+    },
+  };
+  return labels[kind][method][state];
+}
+
+async function visitorGraphRecords(
+  did: string,
+  service: string,
+  collection: string
+): Promise<Snapshot[]> {
+  const records: Snapshot[] = [];
+  let cursor: string | undefined;
+  const seen = new Set<string>();
+  do {
+    if (cursor) {
+      assert(!seen.has(cursor), 'The graph inventory cursor repeated.');
+      seen.add(cursor);
+    }
+    const url = new URL('/xrpc/com.atproto.repo.listRecords', service);
+    url.search = new URLSearchParams({
+      repo: did,
+      collection,
+      limit: '100',
+      ...(cursor && { cursor }),
+    }).toString();
+    const response = await fetch(url, {
+      redirect: 'error',
+      signal: AbortSignal.timeout(15000),
+    });
+    assert.equal(response.status, 200);
+    const page = (await response.json()) as {
+      records: Snapshot[];
+      cursor?: string;
+    };
+    assert(Array.isArray(page.records));
+    for (const record of page.records) {
+      assert(record.uri.startsWith(`at://${did}/${collection}/`));
+      assert(typeof record.cid === 'string' && record.cid);
+      assert(record.value && typeof record.value === 'object');
+      records.push({
+        uri: record.uri,
+        cid: record.cid,
+        value: record.value,
+      });
+    }
+    cursor = page.cursor;
+  } while (cursor);
+  return records;
 }

@@ -1,25 +1,24 @@
 import { randomUUID } from 'node:crypto';
 import type { QueryResult, QueryResultRow } from 'pg';
 
-import { createPool } from '../db/postgres';
+import { type PostgresPool, createPool } from '../db/postgres';
 import { StudioError } from '../studio/errors';
 import { getStudioPool } from '../studio/store';
 import { parseCatalog } from './schema';
 import type { MusicCatalog, MusicPlaylist, MusicRevision } from './types';
 
-interface MusicClient {
+export interface MusicQuery {
   query<T extends QueryResultRow = QueryResultRow>(
     text: string,
     values?: unknown[]
   ): Promise<QueryResult<T>>;
+}
+
+interface MusicClient extends MusicQuery {
   release(): void | Promise<void>;
 }
 
-interface MusicPool {
-  query<T extends QueryResultRow = QueryResultRow>(
-    text: string,
-    values?: unknown[]
-  ): Promise<QueryResult<T>>;
+interface MusicPool extends MusicQuery {
   connect(): Promise<MusicClient>;
   end(): Promise<void>;
 }
@@ -111,7 +110,7 @@ export class MusicStore {
     );
   }
 }
-let musicPool: ReturnType<typeof createPool> | undefined;
+let musicPool: PostgresPool | undefined;
 export function musicStore() {
   const url =
     process.env.MUSIC_PRIVATE_DATABASE_URL ?? process.env.STUDIO_DATABASE_URL;

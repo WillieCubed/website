@@ -20,6 +20,13 @@ const WRITINGS_TITLE = "Willie's Writings";
 const WRITINGS_DESCRIPTION =
   'Thoughts, tutorials, and notes on software, music, and creativity from Willie Chalmers III.';
 
+export interface FeedAttachment {
+  url: string;
+  mime_type: string;
+  size_in_bytes?: number;
+  title?: string;
+}
+
 export interface FeedItem {
   id?: string;
   title: string;
@@ -32,12 +39,7 @@ export interface FeedItem {
   categories?: string[];
   indieweb?: ActivityFeedItem['indieweb'];
   author?: WebmentionAuthor;
-  attachments?: {
-    url: string;
-    mime_type: string;
-    size_in_bytes?: number;
-    title?: string;
-  }[];
+  attachments?: FeedAttachment[];
 }
 
 function rssEnclosure(item: FeedItem): string {
@@ -267,17 +269,13 @@ export function generateAtomFeed(
       (item) => `  <entry>
     <title>${escapeXml(item.title)}</title>
     <link href="${escapeXml(item.url)}" rel="alternate" type="text/html"/>
-    ${item.attachments?.map((attachment) => `<link rel="enclosure" href="${escapeXml(attachment.url)}" type="${escapeXml(attachment.mime_type)}"${attachment.size_in_bytes === undefined ? '' : ` length="${attachment.size_in_bytes}"`}/>`).join('') || ''}
+    ${atomAttachments(item)}
     <id>${escapeXml(item.id || item.url)}</id>
     <published>${formatAtomDate(item.published)}</published>
     <updated>${formatAtomDate(item.updated || item.published)}</updated>
     <summary>${escapeXml(item.description)}</summary>
     ${item.content ? `<content type="html">${escapeXml(item.content)}</content>` : ''}
-    <author>
-      <name>${escapeXml(item.author?.name || AUTHOR_NAME)}</name>
-      ${item.author ? '' : `<email>${escapeXml(AUTHOR_EMAIL)}</email>`}
-      <uri>${escapeXml(item.author?.url || authorUri)}</uri>
-    </author>
+    ${atomAuthor(item, authorUri)}
     ${item.categories?.map((cat) => `<category term="${escapeXml(cat)}"/>`).join('\n    ') || ''}
   </entry>`
     )
@@ -465,4 +463,23 @@ export function generateActivityJsonFeed(
     description: options.description,
     feedUrl: options.feedUrl,
   });
+}
+
+function atomAttachments(item: FeedItem): string {
+  return (
+    item.attachments
+      ?.map(
+        (attachment) =>
+          `<link rel="enclosure" href="${escapeXml(attachment.url)}" type="${escapeXml(attachment.mime_type)}"${attachment.size_in_bytes === undefined ? '' : ` length="${attachment.size_in_bytes}"`}/>`
+      )
+      .join('') || ''
+  );
+}
+
+function atomAuthor(item: FeedItem, authorUri: string): string {
+  return `<author>
+      <name>${escapeXml(item.author?.name || AUTHOR_NAME)}</name>
+      ${item.author ? '' : `<email>${escapeXml(AUTHOR_EMAIL)}</email>`}
+      <uri>${escapeXml(item.author?.url || authorUri)}</uri>
+    </author>`;
 }

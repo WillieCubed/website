@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import { SpotifyClient, SpotifyError } from '../../../lib/music/spotify/client';
 import { importPlaylist } from '../../../lib/music/spotify/import';
+import { normalizePlaylist } from '../../../lib/music/spotify/normalize';
 import { exchangeToken } from '../../../lib/music/spotify/tokens';
 
 const id = '0123456789012345678901';
@@ -88,5 +89,27 @@ test('refresh retains the prior refresh token and authorization date when Spotif
   } finally {
     if (oldId) process.env.SPOTIFY_CLIENT_ID = oldId;
     else delete process.env.SPOTIFY_CLIENT_ID;
+  }
+});
+
+test('successful null playlist metadata is rejected with or without a cached public playlist', async () => {
+  const previous = normalizePlaylist(
+    {
+      id,
+      name: 'Saved public playlist',
+      public: true,
+      owner: { id: 'willie' },
+      snapshot_id: 'saved',
+    },
+    'willie',
+    [],
+    '2026-10-14T00:00:00Z'
+  );
+  const client = new SpotifyClient('private', async () => Response.json(null));
+  for (const cached of [undefined, previous]) {
+    await assert.rejects(
+      importPlaylist(client, id, 'willie', cached),
+      /Spotify returned an invalid playlist/
+    );
   }
 });

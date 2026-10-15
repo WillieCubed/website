@@ -5,11 +5,7 @@ export const metadata = {
   title: 'Writing studio',
   robots: { index: false, follow: false },
 };
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function Page({ params }: PageProps<'/studio/[id]'>) {
   const { id } = await params;
   return <StudioEditor id={id} />;
 }

@@ -19,6 +19,10 @@ import {
   parseModerationCommand,
   summarizePendingWebmention,
 } from '../../../lib/indieweb/webmention/moderation';
+import type {
+  WebmentionModerationCommand,
+  WebmentionModerationStore,
+} from '../../../lib/indieweb/webmention/types';
 import { isMain } from '../../shared/command.mts';
 
 export async function runWebmentionModeration() {
@@ -47,53 +51,10 @@ export async function runWebmentionModeration() {
 
   try {
     if (parsed.command === 'list') {
-      const pending = (await store.listPending()).map(
-        summarizePendingWebmention
-      );
-      if (pending.length === 0) {
-        console.log('No webmentions are waiting for moderation.');
-      } else {
-        console.log(`${pending.length} pending:\n`);
-        console.log(pending.map(formatPendingWebmention).join('\n\n'));
-      }
+      await listPendingMentions(store);
     } else {
-      const { command: action, ids } = parsed;
-      const approved: string[] = [];
-      for (const id of ids) {
-        if (await moderateWebmention(store, { action, id })) {
-          console.log(`${MODERATION_PAST_TENSE[action]} ${id}`);
-          if (action === 'approve') approved.push(id);
-        } else {
-          process.exitCode = 1;
-          console.error(
-            action === 'approve'
-              ? `skipped ${id}: no verified, unrejected webmention has that id`
-              : `skipped ${id}: no unrejected webmention has that id`
-          );
-        }
-      }
-      // Every approval lands before the first salmention waits for its post,
-      // so replies to the same post reach upstream together in one send.
-      if (approved.length > 0) {
-        const {
-          SCRIPT_SALMENTION_TIMING,
-          defaultSalmentionDeps,
-          sendSalmention,
-        } = await import('../../../lib/indieweb/salmention');
-        for (const id of approved) {
-          const { outcome, results } = await sendSalmention(
-            id,
-            defaultSalmentionDeps(),
-            SCRIPT_SALMENTION_TIMING
-          );
-          console.log(`salmention for ${id}: ${outcome}`);
-          for (const result of results) {
-            console.log(
-              `  ${result.success ? 'sent to' : 'failed for'} ${result.targetUrl}${result.error ? ` (${result.error})` : ''}`
-            );
-          }
-        }
-      }
+      const approved = await moderateMentions(store, parsed);
+      await notifyApprovedReplies(approved);
     }
   } finally {
     // The pool holds its connection open, which would keep the process alive.
@@ -105,3 +66,58 @@ export async function runWebmentionModeration() {
 }
 
 if (isMain(import.meta.url)) await runWebmentionModeration();
+
+type ActionCommand = Exclude<WebmentionModerationCommand, { command: 'list' }>;
+async function listPendingMentions(
+  store: WebmentionModerationStore
+): Promise<void> {
+  const pending = (await store.listPending()).map(summarizePendingWebmention);
+  if (pending.length === 0) {
+    console.log('No webmentions are waiting for moderation.');
+  } else {
+    console.log(`${pending.length} pending:\n`);
+    console.log(pending.map(formatPendingWebmention).join('\n\n'));
+  }
+}
+async function moderateMentions(
+  store: WebmentionModerationStore,
+  parsed: ActionCommand
+): Promise<string[]> {
+  const { command: action, ids } = parsed;
+  const approved: string[] = [];
+  for (const id of ids) {
+    if (await moderateWebmention(store, { action, id })) {
+      console.log(`${MODERATION_PAST_TENSE[action]} ${id}`);
+      if (action === 'approve') approved.push(id);
+    } else {
+      process.exitCode = 1;
+      console.error(
+        action === 'approve'
+          ? `skipped ${id}: no verified, unrejected webmention has that id`
+          : `skipped ${id}: no unrejected webmention has that id`
+      );
+    }
+  }
+  return approved;
+}
+async function notifyApprovedReplies(approved: string[]): Promise<void> {
+  // Every approval lands before the first salmention waits for its post,
+  // so replies to the same post reach upstream together in one send.
+  if (approved.length > 0) {
+    const { SCRIPT_SALMENTION_TIMING, defaultSalmentionDeps, sendSalmention } =
+      await import('../../../lib/indieweb/salmention');
+    for (const id of approved) {
+      const { outcome, results } = await sendSalmention(
+        id,
+        defaultSalmentionDeps(),
+        SCRIPT_SALMENTION_TIMING
+      );
+      console.log(`salmention for ${id}: ${outcome}`);
+      for (const result of results) {
+        console.log(
+          `  ${result.success ? 'sent to' : 'failed for'} ${result.targetUrl}${result.error ? ` (${result.error})` : ''}`
+        );
+      }
+    }
+  }
+}

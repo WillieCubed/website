@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
+  documentSource,
   exportMdx,
   importMdx,
   parseDraftContent,
@@ -103,4 +104,94 @@ test('invalid formatting cannot poison a saved document head', () => {
     body.document.content = [node as never];
     assert.throws(() => parseDraftContent(body), /Invalid/);
   }
+});
+
+test('structured export preserves nested block separators, table escaping and code fences', () => {
+  const document = {
+    type: 'doc',
+    content: [
+      {
+        type: 'heading',
+        attrs: { level: 1 },
+        content: [{ type: 'text', text: 'Heading' }],
+      },
+      {
+        type: 'blockquote',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', text: 'First' },
+              { type: 'hardBreak' },
+              { type: 'text', text: 'Second' },
+            ],
+          },
+        ],
+      },
+      {
+        type: 'orderedList',
+        attrs: { start: 3 },
+        content: [
+          {
+            type: 'listItem',
+            content: [
+              { type: 'paragraph', content: [{ type: 'text', text: 'Third' }] },
+            ],
+          },
+        ],
+      },
+      {
+        type: 'codeBlock',
+        attrs: { language: 'ts' },
+        content: [{ type: 'text', text: '```inside' }],
+      },
+      {
+        type: 'table',
+        content: [
+          {
+            type: 'tableRow',
+            content: [
+              { type: 'tableHeader', content: [{ type: 'text', text: 'a|b' }] },
+              {
+                type: 'tableCell',
+                content: [
+                  { type: 'paragraph', content: [{ type: 'text', text: 'c' }] },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  assert.equal(
+    documentSource(document),
+    [
+      '## Heading',
+      '> First  \n> Second',
+      '3. Third',
+      '````ts\n```inside\n````',
+      '| a\\|b | c |\n| --- | --- |',
+    ].join('\n\n')
+  );
+});
+
+test('text export retains mark order and escapes link destinations', () => {
+  assert.equal(
+    documentSource({
+      type: 'text',
+      text: 'a`b',
+      marks: [
+        { type: 'bold' },
+        { type: 'code' },
+        { type: 'italic' },
+        { type: 'link', attrs: { href: 'https://example.com/a)b' } },
+      ],
+    }),
+    '[*`a\\`b`*](https://example.com/a%29b)'
+  );
+  assert.throws(
+    () => documentSource({ type: '__proto__' }),
+    /Unsupported writing node/
+  );
 });

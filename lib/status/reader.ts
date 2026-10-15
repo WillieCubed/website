@@ -4,6 +4,7 @@ import { hasDatabase } from '@/lib/db/postgres';
 
 import { defaultLocation, publicLocation, resolveLocation } from './location';
 import { statusStore } from './storage';
+import type { PublicStatus, WeatherObservation } from './types';
 
 // Cache Components is disabled for this app, so use Next's Data Cache for
 // this shared footer read. Without it, routine traffic keeps Neon awake.
@@ -17,7 +18,7 @@ export async function readLocation() {
   if (!hasDatabase()) return defaultLocation;
   return cachedLocation();
 }
-export async function readPublicStatus() {
+export async function readPublicStatus(): Promise<PublicStatus> {
   // Include the snapshot in the static shell; provider revalidation must not
   // replace the page with a loading screen.
   const snapshot = await readLocation();
@@ -30,7 +31,7 @@ export async function readPublicStatus() {
     temperature_unit: 'fahrenheit',
     timezone: 'UTC',
   }).toString();
-  let weather = null;
+  let weather: WeatherObservation | null = null;
   try {
     const response = await fetch(url, {
       signal: AbortSignal.timeout(5000),

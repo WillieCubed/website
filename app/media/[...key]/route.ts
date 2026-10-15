@@ -4,7 +4,7 @@ import { deliverMedia, mediaKey } from '@/lib/indieweb/media-delivery';
 
 export async function GET(
   _request: Request,
-  context: { params: Promise<{ key: string[] }> }
+  context: RouteContext<'/media/[...key]'>
 ) {
   const { key: segments } = await context.params;
   if (!mediaKey(segments)) return new Response(null, { status: 404 });

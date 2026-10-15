@@ -80,46 +80,15 @@ export default function WritingCanvas({
   } = controller;
   return (
     <>
-      {selection && (
-        <div
-          ref={selectionTools}
-          hidden={!visible || !selectionPosition}
-          style={selectionPosition || undefined}
-          className="studio-selection-tools site-glass"
-          role="toolbar"
-          aria-label="Selection tools"
-        >
-          {(['bold', 'italic'] as const).map((mark) => (
-            <Button
-              key={mark}
-              aria-pressed={editor?.isActive(mark) || false}
-              onPointerDown={(event) => event.preventDefault()}
-              onClick={() =>
-                editor
-                  ?.chain()
-                  .focus()
-                  .setTextSelection({
-                    from: selection.from,
-                    to: selection.to,
-                  })
-                  .toggleMark(mark)
-                  .run()
-              }
-            >
-              {mark === 'bold' ? <strong>Bold</strong> : <em>Italic</em>}
-            </Button>
-          ))}
-          <Button
-            onPointerDown={(event) => event.preventDefault()}
-            onClick={() => {
-              rememberRange();
-              setMedia('link');
-            }}
-          >
-            Link
-          </Button>
-        </div>
-      )}
+      <SelectionTools
+        visible={visible}
+        selection={selection}
+        selectionTools={selectionTools}
+        selectionPosition={selectionPosition}
+        editor={editor}
+        rememberRange={rememberRange}
+        setMedia={setMedia}
+      />
       <StudioWritingSurface
         hidden={!visible}
         ref={writingSpace}
@@ -371,5 +340,66 @@ export default function WritingCanvas({
         )}
       </StudioWritingSurface>
     </>
+  );
+}
+
+function SelectionTools({
+  visible,
+  selection,
+  selectionTools,
+  selectionPosition,
+  editor,
+  rememberRange,
+  setMedia,
+}: Pick<
+  WritingController,
+  | 'selection'
+  | 'selectionTools'
+  | 'selectionPosition'
+  | 'editor'
+  | 'rememberRange'
+  | 'setMedia'
+> & { visible: boolean }) {
+  return (
+    selection && (
+      <div
+        ref={selectionTools}
+        hidden={!visible || !selectionPosition}
+        style={selectionPosition || undefined}
+        className="studio-selection-tools site-glass"
+        role="toolbar"
+        aria-label="Selection tools"
+      >
+        {(['bold', 'italic'] as const).map((mark) => (
+          <Button
+            key={mark}
+            aria-pressed={editor?.isActive(mark) || false}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={() =>
+              editor
+                ?.chain()
+                .focus()
+                .setTextSelection({
+                  from: selection.from,
+                  to: selection.to,
+                })
+                .toggleMark(mark)
+                .run()
+            }
+          >
+            {mark === 'bold' ? <strong>Bold</strong> : <em>Italic</em>}
+          </Button>
+        ))}
+        <Button
+          onPointerDown={(event) => event.preventDefault()}
+          onClick={() => {
+            rememberRange();
+            setMedia('link');
+          }}
+        >
+          Link
+        </Button>
+      </div>
+    )
   );
 }

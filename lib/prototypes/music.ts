@@ -1,3 +1,7 @@
+import type { MusicCatalog } from '@/lib/music/types';
+
+export type { MusicSeries } from '@/lib/music/types';
+
 export type CoverStyle =
   | 'tour'
   | 'spring'
@@ -97,20 +101,7 @@ export const playlists: SamplePlaylist[] = [
   },
 ];
 
-export interface MusicSeries {
-  id: string;
-  title: string;
-  playlistIds: string[];
-}
-
-export interface Catalog {
-  version: 1;
-  order: string[];
-  selected: string[];
-  lead: string | null;
-  series: MusicSeries[];
-  notes: Record<string, string>;
-}
+export type Catalog = MusicCatalog;
 
 export const initialCatalog: Catalog = {
   version: 1,
@@ -173,6 +164,20 @@ export function moveItem(items: string[], id: string, step: number): string[] {
   return next;
 }
 
+function validLead(lead: unknown, selected: string[]): boolean {
+  return lead === null || (typeof lead === 'string' && selected.includes(lead));
+}
+
+function validNotes(notes: unknown, known: Set<string>): boolean {
+  return (
+    !!notes &&
+    typeof notes === 'object' &&
+    Object.entries(notes).every(
+      ([id, note]) => known.has(id) && typeof note === 'string'
+    )
+  );
+}
+
 export function validCatalog(value: unknown): value is Catalog {
   if (!value || typeof value !== 'object') return false;
   const c = value as Catalog;
@@ -185,8 +190,7 @@ export function validCatalog(value: unknown): value is Catalog {
     ids(c.order) &&
     c.order.length === playlists.length &&
     ids(c.selected) &&
-    (c.lead === null ||
-      (typeof c.lead === 'string' && c.selected.includes(c.lead))) &&
+    validLead(c.lead, c.selected) &&
     Array.isArray(c.series) &&
     c.series.every(
       (s) =>
@@ -197,10 +201,6 @@ export function validCatalog(value: unknown): value is Catalog {
         ids(s.playlistIds)
     ) &&
     new Set(c.series.map((s) => s.id)).size === c.series.length &&
-    !!c.notes &&
-    typeof c.notes === 'object' &&
-    Object.entries(c.notes).every(
-      ([id, note]) => known.has(id) && typeof note === 'string'
-    )
+    validNotes(c.notes, known)
   );
 }

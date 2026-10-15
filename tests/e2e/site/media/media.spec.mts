@@ -82,6 +82,14 @@ test('media stays readable at 320px and needs no scripts for excerpts', async ({
   const sun = main.getByRole('article', { name: /warn proposed fare hikes/ });
   await sun.locator('summary').click();
   await expect(sun.getByRole('blockquote')).toBeVisible();
+  // Finish native disclosure reflow before the image stability checks begin.
+  await expect
+    .poll(() =>
+      sun
+        .locator('details')
+        .evaluate((node) => node.getAnimations({ subtree: true }).length)
+    )
+    .toBe(0);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)
   ).toBeLessThanOrEqual(1);

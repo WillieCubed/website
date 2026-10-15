@@ -3,28 +3,18 @@ import { NextRequest, NextResponse, after } from 'next/server';
 
 import { SITE_URL, WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
 import {
-  defaultSalmentionDeps,
-  sendSalmention,
-} from '@/lib/indieweb/salmention';
-import { applyVouch, readVouchParameter } from '@/lib/indieweb/vouch';
-import { invalidatePublicWebmentions } from '@/lib/indieweb/webmention/public-reads';
-import {
-  WEBMENTION_RATE_WINDOW_MS,
   isWithinEdgeWebmentionRateLimit,
   isWithinWebmentionRateLimit,
   webmentionRateLimitKey,
 } from '@/lib/indieweb/webmention/rate-limit';
 import {
-  getWebmentionBySourceTarget,
+  completeWebmentionVerification,
+  readWebmentionSubmission,
+} from '@/lib/indieweb/webmention/receiver';
+import {
   storeWebmention,
   webmentionRateLimitStore,
-  webmentionVouchStore,
 } from '@/lib/indieweb/webmention/storage';
-import {
-  canonicalWebmentionTarget,
-  sitePath,
-} from '@/lib/indieweb/webmention/targets';
-import { verifyWebmention } from '@/lib/indieweb/webmention/verifier';
 import { getInitiatives } from '@/lib/initiatives/index';
 import { buildSitemap } from '@/lib/seo/sitemap';
 import { getAllWritings } from '@/lib/writings/index';
@@ -59,96 +49,9 @@ function edgeRateLimiter() {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Parse form data (standard webmention format)
-    const contentType = request.headers.get('content-type') || '';
-
-    let source: string | null = null;
-    let target: string | null = null;
-    let vouchParameter: unknown = null;
-
-    if (contentType.includes('application/x-www-form-urlencoded')) {
-      const formData = await request.formData();
-      source = formData.get('source') as string | null;
-      target = formData.get('target') as string | null;
-      vouchParameter = formData.get('vouch');
-    } else if (contentType.includes('application/json')) {
-      const json = await request.json();
-      source = json.source;
-      target = json.target;
-      vouchParameter = json.vouch;
-    } else {
-      return NextResponse.json(
-        {
-          error:
-            'Unsupported content type. Use application/x-www-form-urlencoded or application/json.',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate required fields
-    if (
-      typeof source !== 'string' ||
-      typeof target !== 'string' ||
-      !source ||
-      !target
-    ) {
-      return NextResponse.json(
-        { error: 'Both source and target URLs are required.' },
-        { status: 400 }
-      );
-    }
-
-    // Validate URLs
-    let sourceUrl: URL;
-    let targetUrl: URL;
-
-    try {
-      sourceUrl = new URL(source);
-      targetUrl = new URL(target);
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid URL format for source or target.' },
-        { status: 400 }
-      );
-    }
-
-    const vouch = readVouchParameter(vouchParameter);
-    if ('error' in vouch) {
-      return NextResponse.json({ error: vouch.error }, { status: 400 });
-    }
-
-    if (
-      !['http:', 'https:'].includes(sourceUrl.protocol) ||
-      sourceUrl.username ||
-      sourceUrl.password ||
-      sourceUrl.href === targetUrl.href
-    ) {
-      return NextResponse.json(
-        { error: 'Source must be a distinct public HTTP or HTTPS page.' },
-        { status: 400 }
-      );
-    }
-
-    // Target must be on our site, under any host that redirects here
-    if (sitePath(target) === null) {
-      return NextResponse.json(
-        { error: 'Target URL must be on this site.' },
-        { status: 400 }
-      );
-    }
-
-    // Target must be a page that exists, stored under its canonical address
-    const canonicalTarget = canonicalWebmentionTarget(
-      target,
-      await existingPages()
-    );
-    if (!canonicalTarget) {
-      return NextResponse.json(
-        { error: 'Target must be a page on this site.' },
-        { status: 400 }
-      );
-    }
+    const submission = await readWebmentionSubmission(request, existingPages);
+    if (submission instanceof Response) return submission;
+    const { source, target, canonicalTarget, vouch } = submission;
 
     // Rejected payloads must not wake Neon. Count only submissions that could
     // be stored. Cloudflare sheds bursts before Postgres; the database counter
@@ -180,50 +83,14 @@ export async function POST(request: NextRequest) {
 
     // Verify after the response is sent. `after` keeps the invocation alive
     // until the callback settles, where a bare promise could be cut off.
-    after(async () => {
-      try {
-        const result = await verifyWebmention(id, source, canonicalTarget, {
-          verificationTarget: target,
-        });
-        let vouched = false;
-        if (result.success && !result.isDeleted && vouch.vouch) {
-          const outcome = await applyVouch(
-            { id, sourceUrl: source, vouchUrl: vouch.vouch },
-            webmentionVouchStore
-          );
-          console.info(`Vouch for ${source}: ${outcome}`);
-          vouched = outcome === 'approved';
-        }
-        // Finish any vouch approval before clearing the public snapshot.
-        // Unapproved submissions do not need to wake Neon on the next read.
-        if (result.success) {
-          const current = result.isDeleted
-            ? null
-            : await getWebmentionBySourceTarget(source, canonicalTarget);
-          if (result.isDeleted || current?.isApproved) {
-            try {
-              await invalidatePublicWebmentions(canonicalTarget);
-            } catch (error) {
-              console.error('Invalidating public Webmentions failed:', error);
-            }
-          }
-        }
-        // A vouch approves without a moderator, so it notifies upstream here.
-        if (vouched) {
-          const salmention = await sendSalmention(id, defaultSalmentionDeps());
-          console.info(
-            `Salmention after vouch for ${source}: ${salmention.outcome}`
-          );
-        }
-      } catch (error) {
-        console.error('Webmention verification failed:', error);
-      }
-      try {
-        await webmentionRateLimitStore.prune(WEBMENTION_RATE_WINDOW_MS);
-      } catch (error) {
-        console.error('Pruning webmention rate limits failed:', error);
-      }
-    });
+    after(() =>
+      completeWebmentionVerification(id, {
+        source,
+        target,
+        canonicalTarget,
+        vouch,
+      })
+    );
 
     // Return 202 Accepted (async processing)
     return NextResponse.json(

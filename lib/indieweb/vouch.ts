@@ -155,6 +155,21 @@ export async function applyVouch(
   if (await store.hasApprovedSource(sourceDomain)) return 'known-sender';
   if (!(await isTrustedDomain(vouchUrl, store))) return 'untrusted';
 
+  const page = await readVouchPage(vouchUrl, { resolve, fetch });
+  if (!page) return 'unreadable';
+  // A redirect may have left the trusted domain; the page that answered counts.
+  if (!(await isTrustedDomain(page.url, store))) return 'untrusted';
+  if (!linksToDomain(page.body, page.url, sourceDomain)) return 'no-link';
+
+  return (await store.approveByVouch(id, vouchUrl))
+    ? 'approved'
+    : 'not-pending';
+}
+
+async function readVouchPage(
+  vouchUrl: string,
+  { resolve, fetch }: VouchOptions
+) {
   const page = await fetchPublicDocument(vouchUrl, {
     resolve,
     fetch,
@@ -164,12 +179,6 @@ export async function applyVouch(
     },
     timeoutMs: VOUCH_TIMEOUT_MS,
   }).catch(() => null);
-  if (!page || page.status < 200 || page.status > 299) return 'unreadable';
-  // A redirect may have left the trusted domain; the page that answered counts.
-  if (!(await isTrustedDomain(page.url, store))) return 'untrusted';
-  if (!linksToDomain(page.body, page.url, sourceDomain)) return 'no-link';
-
-  return (await store.approveByVouch(id, vouchUrl))
-    ? 'approved'
-    : 'not-pending';
+  if (!page || page.status < 200 || page.status > 299) return null;
+  return page;
 }

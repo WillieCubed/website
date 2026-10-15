@@ -83,25 +83,27 @@ export async function verifyPublicRoutes() {
     'IndieAuth advertises the wrong origin'
   );
 
-  const admin = await get(
-    '/api/admin/status',
-    origin === CANONICAL_ORIGIN ? 302 : 401,
-    origin === CANONICAL_ORIGIN ? 'text/html' : 'application/json'
-  );
-  if (origin === CANONICAL_ORIGIN) {
-    const location = new URL(admin.headers.get('location') ?? '', origin);
-    assert.equal(
-      location.hostname,
-      'williecubed.cloudflareaccess.com',
-      'Unauthenticated admin status did not redirect to Cloudflare Access'
+  await verifyAdminBoundary();
+  async function verifyAdminBoundary() {
+    const admin = await get(
+      '/api/admin/status',
+      origin === CANONICAL_ORIGIN ? 302 : 401,
+      origin === CANONICAL_ORIGIN ? 'text/html' : 'application/json'
     );
-    assert(
-      location.pathname.startsWith('/cdn-cgi/access/login/'),
-      'Unauthenticated admin status did not redirect to an Access login'
-    );
+    if (origin === CANONICAL_ORIGIN) {
+      const location = new URL(admin.headers.get('location') ?? '', origin);
+      assert.equal(
+        location.hostname,
+        'williecubed.cloudflareaccess.com',
+        'Unauthenticated admin status did not redirect to Cloudflare Access'
+      );
+      assert(
+        location.pathname.startsWith('/cdn-cgi/access/login/'),
+        'Unauthenticated admin status did not redirect to an Access login'
+      );
+    }
+    await admin.body?.cancel();
   }
-  await admin.body?.cancel();
-
   const routes: Array<[string, number, string?]> = [
     ['/', 200, 'text/html'],
     ['/status', 200, 'text/html'],

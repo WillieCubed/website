@@ -24,18 +24,28 @@ export async function exchangeToken(
     cache: 'no-store',
     signal: AbortSignal.timeout(20000),
   });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    if (error.error === 'invalid_grant')
-      throw new StudioError(401, 'Reconnect Spotify to continue.');
-    throw new SpotifyError(
-      response.status,
-      response.status === 429
-        ? Number(response.headers.get('retry-after')) || 60
-        : null
-    );
-  }
-  const result = await response.json();
+  if (!response.ok) await tokenExchangeError(response);
+  return readGrant(await response.json(), old);
+}
+async function tokenExchangeError(response: Response): Promise<never> {
+  const error = await response.json().catch(() => ({}));
+  if (error.error === 'invalid_grant')
+    throw new StudioError(401, 'Reconnect Spotify to continue.');
+  throw new SpotifyError(
+    response.status,
+    response.status === 429
+      ? Number(response.headers.get('retry-after')) || 60
+      : null
+  );
+}
+function readGrant(
+  result: {
+    access_token?: unknown;
+    refresh_token?: string;
+    expires_in?: number;
+  },
+  old?: SpotifyGrant
+): SpotifyGrant {
   if (
     typeof result.access_token !== 'string' ||
     !(result.refresh_token ?? old?.refreshToken) ||

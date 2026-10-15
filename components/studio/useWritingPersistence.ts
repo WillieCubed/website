@@ -39,6 +39,15 @@ export function useWritingPersistence(state: WritingState, initial: Draft) {
       /* The server revision remains available. */
     }
   }, [recoveryKey]);
+  function handleSaveError(error: unknown): void {
+    if ((error as { status?: number }).status === 409) {
+      conflictRef.current = true;
+      setConflict(true);
+      setStatus(
+        'Another revision was saved. Your changes are kept in this tab.'
+      );
+    } else setStatus(`Could not save · ${(error as Error).message}`);
+  }
   const save = useCallback(async (): Promise<boolean> => {
     if (saving.current || conflictRef.current) return false;
     const snapshot = bodyRef.current;
@@ -72,13 +81,7 @@ export function useWritingPersistence(state: WritingState, initial: Draft) {
         sessionStorage.removeItem(recoveryKey);
       return serialized === JSON.stringify(bodyRef.current);
     } catch (error) {
-      if ((error as { status?: number }).status === 409) {
-        conflictRef.current = true;
-        setConflict(true);
-        setStatus(
-          'Another revision was saved. Your changes are kept in this tab.'
-        );
-      } else setStatus(`Could not save · ${(error as Error).message}`);
+      handleSaveError(error);
       return false;
     } finally {
       saving.current = false;

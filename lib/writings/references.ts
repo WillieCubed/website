@@ -11,13 +11,16 @@ import { visit } from 'unist-util-visit';
  * number in order of appearance, a popover on the mark, and an entry in the
  * list at the end of the page.
  */
-export interface Reference {
+export interface ReferenceTarget {
   id: string;
-  index: number;
   kind: 'note' | 'link';
   /** The note's text, or the link's title. */
   content: string;
   href?: string;
+}
+
+export interface Reference extends ReferenceTarget {
+  index: number;
 }
 
 interface MdastLike {
@@ -46,6 +49,26 @@ function attr(node: MdastLike, name: string): string | undefined {
   return typeof found?.value === 'string' ? found.value : undefined;
 }
 
+function noteReference(
+  node: MdastLike,
+  notes: Map<string, string>
+): ReferenceTarget | undefined {
+  if (!node.identifier) return undefined;
+  const content = notes.get(node.identifier);
+  return content === undefined
+    ? undefined
+    : { id: node.identifier, kind: 'note', content };
+}
+
+function linkReference(node: MdastLike): ReferenceTarget | undefined {
+  if (node.type !== 'mdxJsxTextElement' || node.name !== 'Ref')
+    return undefined;
+  const href = attr(node, 'href');
+  const title = attr(node, 'title') ?? text(node.children);
+  const id = attr(node, 'id') ?? href ?? title;
+  return id ? { id, kind: 'link', content: title, href } : undefined;
+}
+
 /**
  * Numbers every reference in the order a reader meets it and returns the
  * list. The remark plugin and the page both call this, so the number on a
@@ -60,46 +83,18 @@ export function collectReferences(tree: Root): Reference[] {
   });
 
   const references: Reference[] = [];
-  const seen = new Map<string, number>();
-  const number = (key: string) => {
-    const existing = seen.get(key);
-    if (existing) return existing;
-    const next = references.length + 1;
-    seen.set(key, next);
-    return next;
-  };
-
+  const seen = new Set<string>();
   visit(tree, (visited) => {
     const node = visited as unknown as MdastLike;
-    if (node.type === 'footnoteReference' && node.identifier) {
-      const content = notes.get(node.identifier);
-      if (content === undefined) return;
-      const key = `note:${node.identifier}`;
-      if (!seen.has(key)) {
-        references.push({
-          id: node.identifier,
-          index: number(key),
-          kind: 'note',
-          content,
-        });
-      }
-    }
-    if (node.type === 'mdxJsxTextElement' && node.name === 'Ref') {
-      const href = attr(node, 'href');
-      const title = attr(node, 'title') ?? text(node.children);
-      const id = attr(node, 'id') ?? href ?? title;
-      if (!id) return;
-      const key = `link:${id}`;
-      if (!seen.has(key)) {
-        references.push({
-          id,
-          index: number(key),
-          kind: 'link',
-          content: title,
-          href,
-        });
-      }
-    }
+    const reference =
+      node.type === 'footnoteReference'
+        ? noteReference(node, notes)
+        : linkReference(node);
+    if (!reference) return;
+    const key = `${reference.kind}:${reference.id}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    references.push({ ...reference, index: references.length + 1 });
   });
 
   return references;

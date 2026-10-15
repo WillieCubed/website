@@ -31,6 +31,26 @@ export async function localBlob(
   };
 }
 
+async function validateImage(
+  bytes: Uint8Array,
+  mimeType: string,
+  icon: boolean
+): Promise<void> {
+  const detected = await fileTypeFromBuffer(bytes);
+  if (detected?.mime !== mimeType)
+    throw new Error('Image signature does not match its MIME type.');
+  const dimensions = imageSize(bytes);
+  if (!dimensions.width || !dimensions.height)
+    throw new Error('Image dimensions are unavailable.');
+  if (
+    icon &&
+    (dimensions.width !== dimensions.height || dimensions.width < 256)
+  )
+    throw new Error(
+      'Publication icons must be square and at least 256 pixels.'
+    );
+}
+
 /**
  * An image from the live site, or null when it is missing, not a raster
  * image, or over the limit. A record without a cover is still valid, so
@@ -43,19 +63,7 @@ export async function fetchImageBlob(
   try {
     const image = await fetchPublicBytes(url, MAX_BLOB_BYTES);
     if (!image || !RASTER.test(image.mimeType)) return null;
-    const detected = await fileTypeFromBuffer(image.bytes);
-    if (detected?.mime !== image.mimeType)
-      throw new Error('Image signature does not match its MIME type.');
-    const dimensions = imageSize(image.bytes);
-    if (!dimensions.width || !dimensions.height)
-      throw new Error('Image dimensions are unavailable.');
-    if (
-      options.icon &&
-      (dimensions.width !== dimensions.height || dimensions.width < 256)
-    )
-      throw new Error(
-        'Publication icons must be square and at least 256 pixels.'
-      );
+    await validateImage(image.bytes, image.mimeType, Boolean(options.icon));
     return localBlob(image.bytes, image.mimeType);
   } catch (error) {
     console.warn(`Could not fetch ${url} for a blob:`, error);

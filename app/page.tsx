@@ -9,7 +9,8 @@ import Playbill from '@/components/initiatives/Playbill';
 import JsonLd from '@/components/seo/JsonLd';
 import DockFooter from '@/components/site/DockFooter';
 
-import { allBrandVars } from '@/lib/brand/scheme';
+import type { BrandSchemeVars } from '@/lib/brand/material-scheme';
+import { type BrandSchemes, allBrandVars } from '@/lib/brand/scheme';
 import { detailMetadata } from '@/lib/home/detail-metadata';
 import { focusEntries, getFeaturedTiles } from '@/lib/home/featured';
 import { focuses, iconPicture, tilesByFocus } from '@/lib/home/focuses';
@@ -22,13 +23,9 @@ import { getFeaturedInitiatives } from '@/lib/initiatives/index';
 import { homeGraph } from '@/lib/seo/jsonld';
 import { site } from '@/lib/site/identity';
 
-interface HomePageProps {
-  searchParams: Promise<{ detail?: string | string[] }>;
-}
-
 export async function generateMetadata({
   searchParams,
-}: HomePageProps): Promise<Metadata> {
+}: PageProps<'/'>): Promise<Metadata> {
   // An open detail view names its venture, matching the first `detail`
   // value the way the dialog's useSearchParams().get() does.
   const { detail } = await searchParams;
@@ -74,7 +71,7 @@ export async function generateMetadata({
  *
  * Route: /
  */
-export default async function HomePage({ searchParams }: HomePageProps) {
+export default async function HomePage({ searchParams }: PageProps<'/'>) {
   const { detail } = await searchParams;
   const initialDetail = Array.isArray(detail) ? detail[0] : detail;
   const [featuredTiles, featured] = await Promise.all([
@@ -135,8 +132,8 @@ function focusesOfTile(tile: TileEntry) {
 /** A tile's brand scheme, if it has one: a venture's by key, an initiative's own. */
 function brandVarsOfTile(
   tile: TileEntry,
-  brands: Record<string, Record<string, string>>
-): Record<string, string> | undefined {
+  brands: BrandSchemes
+): BrandSchemeVars | undefined {
   const vars =
     tile.kind === 'venture' ? brands[tile.venture.brand] : tile.brandVars;
   return vars && Object.keys(vars).length > 0 ? vars : undefined;

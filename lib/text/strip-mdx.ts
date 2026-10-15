@@ -12,7 +12,20 @@ interface TextNode {
   attributes?: { name?: string; value?: unknown }[];
 }
 
-function text(node: TextNode): string {
+const TEXT_SEPARATORS: Record<string, string> = {
+  root: '\n\n',
+  blockquote: '\n\n',
+  list: '\n\n',
+  mdxJsxFlowElement: '\n\n',
+  table: '\n',
+  tableRow: '\t',
+  listItem: '\n',
+};
+function textSeparator(type: string): string {
+  return TEXT_SEPARATORS[type] ?? '';
+}
+
+function leafText(node: TextNode): string | undefined {
   if (
     [
       'mdxjsEsm',
@@ -24,28 +37,17 @@ function text(node: TextNode): string {
     return '';
   if (['image', 'imageReference'].includes(node.type)) return node.alt ?? '';
   if (node.type === 'break') return '\n';
-  if (
-    node.type === 'text' ||
-    node.type === 'inlineCode' ||
-    node.type === 'code'
-  )
+  if (['text', 'inlineCode', 'code'].includes(node.type))
     return node.value ?? '';
+  return undefined;
+}
+
+function text(node: TextNode): string {
+  const leaf = leafText(node);
+  if (leaf !== undefined) return leaf;
   if (node.name && ['script', 'style', 'iframe'].includes(node.name)) return '';
   const children = node.children ?? [];
-  const separator = [
-    'root',
-    'blockquote',
-    'list',
-    'mdxJsxFlowElement',
-  ].includes(node.type)
-    ? '\n\n'
-    : node.type === 'table'
-      ? '\n'
-      : node.type === 'tableRow'
-        ? '\t'
-        : node.type === 'listItem'
-          ? '\n'
-          : '';
+  const separator = textSeparator(node.type);
   const body = children.map(text).filter(Boolean).join(separator);
   const descriptions =
     node.attributes

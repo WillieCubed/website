@@ -10,9 +10,17 @@ import {
   fetchPublicBytes,
   fetchPublicDocument,
 } from '../../../../lib/indieweb/public-fetch';
+import type { MicroformatRoot } from '../../../support/indieweb/microformats.mts';
 import { isMain } from '../../../support/publishing/runtime.mts';
 
 export async function runFeedMediaTests() {
+  interface ExpectedAttachment {
+    url: string;
+    mimeType: string;
+    uploadedFile: string;
+    jsonAttachment: boolean;
+  }
+
   interface Manifest {
     feedUrl: string;
     itemUrl: string;
@@ -20,12 +28,7 @@ export async function runFeedMediaTests() {
     published: string;
     updated?: string;
     author: { name: string; url: string };
-    attachments: {
-      url: string;
-      mimeType: string;
-      uploadedFile: string;
-      jsonAttachment: boolean;
-    }[];
+    attachments: ExpectedAttachment[];
   }
 
   const ORIGIN = 'https://willie-page-preview.willieechalmers-18f.workers.dev';
@@ -35,16 +38,7 @@ export async function runFeedMediaTests() {
   let phase = 'manifest validation';
   let failurePath: string | undefined;
 
-  async function main() {
-    const { values } = parseArgs({
-      options: {
-        manifest: { type: 'string' },
-        output: { type: 'string' },
-      },
-    });
-    assert(values.manifest && values.output, 'Use --manifest and --output.');
-    const manifestPath = resolve(values.manifest);
-    const manifest: Manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  function validateManifest(manifest: Manifest) {
     assert.equal(manifest.feedUrl, `${ORIGIN}/writings/feed/json`);
     assert.equal(new URL(manifest.itemUrl).origin, ORIGIN);
     assert(new URL(manifest.itemUrl).pathname.startsWith('/writings/'));
@@ -65,6 +59,18 @@ export async function runFeedMediaTests() {
       ].sort(),
       ['application', 'audio', 'image', 'video']
     );
+  }
+  async function main() {
+    const { values } = parseArgs({
+      options: {
+        manifest: { type: 'string' },
+        output: { type: 'string' },
+      },
+    });
+    assert(values.manifest && values.output, 'Use --manifest and --output.');
+    const manifestPath = resolve(values.manifest);
+    const manifest: Manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    validateManifest(manifest);
     const output = resolve(values.output);
     const outputRelative = relative(resolve('.playwright-mcp'), output);
     assert(
@@ -128,60 +134,9 @@ export async function runFeedMediaTests() {
     ).items[0];
     const media = [];
     for (const expected of manifest.attachments) {
-      phase = `JSON content and attachment metadata for ${expected.mimeType}`;
-      const url = new URL(expected.url);
-      assert.equal(url.protocol, 'https:');
-      assert(!url.username && !url.password);
-      assert.equal(url.origin, ORIGIN);
-      assert(url.pathname.startsWith('/media/'));
-      assert.equal(typeof expected.jsonAttachment, 'boolean');
-      assert(expected.jsonAttachment || expected.mimeType.startsWith('image/'));
-      const property = expected.mimeType.startsWith('image/')
-        ? 'photo'
-        : expected.mimeType.startsWith('audio/')
-          ? 'audio'
-          : expected.mimeType.startsWith('video/')
-            ? 'video'
-            : 'attachment';
-      const contentMedia = (parsedContent.properties[property] ?? []).map(
-        (value) =>
-          typeof value === 'string'
-            ? value
-            : 'value' in value
-              ? value.value
-              : undefined
+      media.push(
+        await verifyAttachment(expected, item, parsedContent, manifestPath)
       );
-      assert(contentMedia.includes(expected.url));
-      const attachments = item.attachments.filter(
-        (attachment: { url?: string }) => attachment.url === expected.url
-      );
-      assert.equal(attachments.length, expected.jsonAttachment ? 1 : 0);
-      const uploaded = await readFile(
-        resolve(dirname(manifestPath), expected.uploadedFile)
-      );
-      assert(uploaded.length > 0 && uploaded.length <= MAX_BYTES);
-      assert.equal(
-        (await fileTypeFromBuffer(uploaded))?.mime,
-        expected.mimeType
-      );
-      if (expected.jsonAttachment) {
-        assert.equal(attachments[0].mime_type, expected.mimeType);
-        assert.equal(attachments[0].size_in_bytes, uploaded.length);
-      }
-      phase = `public byte retrieval and SHA256 for ${expected.mimeType}`;
-      const downloaded = await fetchPublicBytes(expected.url, MAX_BYTES);
-      assert(downloaded, 'The actual public media could not be downloaded.');
-      assert.equal(downloaded.mimeType, expected.mimeType);
-      assert.equal(sha256(downloaded.bytes), sha256(uploaded));
-      media.push({
-        url: expected.url,
-        mimeType: expected.mimeType,
-        bytes: uploaded.length,
-        sha256: sha256(uploaded),
-        matchesUploadedBytes: true,
-        jsonAttachment: expected.jsonAttachment,
-        contentProperty: property,
-      });
     }
     const receipt = {
       at: new Date().toISOString(),
@@ -210,6 +165,76 @@ export async function runFeedMediaTests() {
       'The live JSON Feed fields and exact uploaded media hashes passed.'
     );
     console.log(`Receipt: ${output}`);
+  }
+
+  async function verifyAttachment(
+    expected: ExpectedAttachment,
+    item: {
+      attachments: {
+        url?: string;
+        mime_type?: string;
+        size_in_bytes?: number;
+      }[];
+    },
+    parsedContent: MicroformatRoot,
+    manifestPath: string
+  ) {
+    phase = `JSON content and attachment metadata for ${expected.mimeType}`;
+    const property = validateExpectedMedia(expected);
+    const contentMedia = (parsedContent.properties[property] ?? []).map(
+      (value) =>
+        typeof value === 'string'
+          ? value
+          : 'value' in value
+            ? value.value
+            : undefined
+    );
+    assert(contentMedia.includes(expected.url));
+    const attachments = item.attachments.filter(
+      (attachment: { url?: string }) => attachment.url === expected.url
+    );
+    assert.equal(attachments.length, expected.jsonAttachment ? 1 : 0);
+    const uploaded = await readFile(
+      resolve(dirname(manifestPath), expected.uploadedFile)
+    );
+    assert(uploaded.length > 0 && uploaded.length <= MAX_BYTES);
+    assert.equal((await fileTypeFromBuffer(uploaded))?.mime, expected.mimeType);
+    if (expected.jsonAttachment) {
+      assert.equal(attachments[0].mime_type, expected.mimeType);
+      assert.equal(attachments[0].size_in_bytes, uploaded.length);
+    }
+    phase = `public byte retrieval and SHA256 for ${expected.mimeType}`;
+    const downloaded = await fetchPublicBytes(expected.url, MAX_BYTES);
+    assert(downloaded, 'The actual public media could not be downloaded.');
+    assert.equal(downloaded.mimeType, expected.mimeType);
+    assert.equal(sha256(downloaded.bytes), sha256(uploaded));
+    return {
+      url: expected.url,
+      mimeType: expected.mimeType,
+      bytes: uploaded.length,
+      sha256: sha256(uploaded),
+      matchesUploadedBytes: true,
+      jsonAttachment: expected.jsonAttachment,
+      contentProperty: property,
+    };
+  }
+
+  function validateExpectedMedia(expected: ExpectedAttachment): string {
+    const url = new URL(expected.url);
+    assert.equal(url.protocol, 'https:');
+    assert(!url.username && !url.password);
+    assert.equal(url.origin, ORIGIN);
+    assert(url.pathname.startsWith('/media/'));
+    assert.equal(typeof expected.jsonAttachment, 'boolean');
+    assert(expected.jsonAttachment || expected.mimeType.startsWith('image/'));
+    const property = expected.mimeType.startsWith('image/')
+      ? 'photo'
+      : expected.mimeType.startsWith('audio/')
+        ? 'audio'
+        : expected.mimeType.startsWith('video/')
+          ? 'video'
+          : 'attachment';
+    return property;
   }
 
   await main().catch(async (error) => {

@@ -1,7 +1,10 @@
-export interface Snapshot {
-  uri: string;
+export interface RecordSnapshot {
   cid: string;
   value: Record<string, unknown>;
+}
+
+export interface Snapshot extends RecordSnapshot {
+  uri: string;
 }
 
 export interface Owned {
@@ -82,3 +85,45 @@ export interface Thread {
   post?: PostView | undefined;
   replies?: Thread[] | undefined;
 }
+
+export interface RuntimeExpectation {
+  revision: string;
+  did: string;
+  slug: string;
+  nonce: string;
+  publishedAt: string;
+  documentRkey: string;
+  sourceSha256: string;
+}
+export interface RuntimeSourceJournal {
+  version: number;
+  workspace: string;
+  slug: string;
+  cleanup: string;
+  original: string;
+  sha256: string;
+  removed?: boolean;
+  source?: string;
+  deployedRevision?: string;
+}
+export interface PublicationJournal {
+  version: number;
+  did: string;
+  publicationUri: string;
+  publicationRkey: string;
+  slug: string;
+  publishedAt: string;
+  documentRkey: string;
+  expectedPath: string;
+  inventoryComplete: boolean;
+  cleanup: string;
+  documentRemoved?: boolean;
+  publicationRestored?: boolean;
+  syncedDocument?: RecordSnapshot | null;
+  syncedPublication?: RecordSnapshot | null;
+}
+
+export type CompletePublicationJournal = PublicationJournal & {
+  syncedDocument: RecordSnapshot;
+  syncedPublication: RecordSnapshot;
+};

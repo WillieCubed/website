@@ -8,16 +8,19 @@ import {
   blueskyProfileUrl,
 } from '@/lib/atproto/bluesky';
 import { type CurrentResponseRecord } from '@/lib/atproto/response-records';
-import type { Post, Profile } from '@/lib/atproto/responses/types';
+import type {
+  Post,
+  PostEmbed,
+  Profile,
+  ResponseVisibility,
+} from '@/lib/atproto/responses/types';
 import type {
   PublishingResponse,
   ResponseMedia,
+  WebmentionAuthor,
 } from '@/lib/indieweb/webmention/types';
 
-export function allowed(value: {
-  labels?: Profile['labels'];
-  viewer?: Profile['viewer'];
-}): boolean {
+export function allowed(value: ResponseVisibility): boolean {
   return (
     !!value &&
     !value.viewer?.blockedBy &&
@@ -59,68 +62,83 @@ export function validProfile(profile: Profile): boolean {
     !!profile.handle
   );
 }
-export function author(profile: Profile) {
+export function author(profile: Profile): WebmentionAuthor {
   return {
     name: profile.displayName || profile.handle,
     url: blueskyProfileUrl(profile.did),
     photo: webUrl(profile.avatar),
   };
 }
-function media(embed: Post['embed']): ResponseMedia[] {
-  if (!embed) return [];
-  if (embed.$type === 'app.bsky.embed.recordWithMedia#view')
-    return media(embed.media);
-  if (embed.$type === 'app.bsky.embed.gallery#view')
-    return (embed.items ?? []).flatMap((item) => {
-      const url =
-        item.$type === 'app.bsky.embed.gallery#viewImage'
-          ? webUrl(item.fullsize)
-          : undefined;
-      return url
-        ? [{ kind: 'image' as const, url, description: item.alt }]
-        : [];
-    });
-  if (embed.$type === 'app.bsky.embed.images#view')
-    return (embed.images ?? []).flatMap((image) => {
-      const url = webUrl(image.fullsize);
-      return url
-        ? [{ kind: 'image' as const, url, description: image.alt }]
-        : [];
-    });
-  if (embed.$type === 'app.bsky.embed.video#view') {
-    const url = webUrl(embed.playlist);
-    return url
-      ? [
-          {
-            kind: 'video',
-            url,
-            description: embed.alt,
-            poster: webUrl(embed.thumbnail),
-          },
-        ]
-      : [];
-  }
-  if (embed.$type === 'app.bsky.embed.external#view') {
-    const url = webUrl(embed.external?.uri);
-    return url
-      ? [{ kind: 'file', url, description: embed.external?.title }]
-      : [];
-  }
-  return [];
+function mediaAttachment(
+  kind: ResponseMedia['kind'],
+  source: string | undefined,
+  description?: string,
+  poster?: string
+): ResponseMedia[] {
+  const url = webUrl(source);
+  if (!url) return [];
+  const attachment = { kind, url, description };
+  return [
+    kind === 'video' ? { ...attachment, poster: webUrl(poster) } : attachment,
+  ];
 }
+
+function externalMedia(embed: PostEmbed): ResponseMedia[] {
+  return mediaAttachment('file', embed.external?.uri, embed.external?.title);
+}
+
+function media(embed: PostEmbed | undefined): ResponseMedia[] {
+  if (!embed) return [];
+  switch (embed.$type) {
+    case 'app.bsky.embed.recordWithMedia#view':
+      return media(embed.media);
+    case 'app.bsky.embed.gallery#view':
+      return (embed.items ?? []).flatMap((item) =>
+        item.$type === 'app.bsky.embed.gallery#viewImage'
+          ? mediaAttachment('image', item.fullsize, item.alt)
+          : []
+      );
+    case 'app.bsky.embed.images#view':
+      return (embed.images ?? []).flatMap((image) =>
+        mediaAttachment('image', image.fullsize, image.alt)
+      );
+    case 'app.bsky.embed.video#view':
+      return mediaAttachment(
+        'video',
+        embed.playlist,
+        embed.alt,
+        embed.thumbnail
+      );
+    case 'app.bsky.embed.external#view':
+      return externalMedia(embed);
+    default:
+      return [];
+  }
+}
+
+function validPost(post: Post): boolean {
+  return (
+    validProfile(post?.author) &&
+    safeParse(AppBskyFeedPost.mainSchema, post.record).ok &&
+    Number.isFinite(Date.parse(post.indexedAt)) &&
+    /^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[^/]+$/.test(post.uri)
+  );
+}
+
+function parentPostUrl(post: Post): string | undefined {
+  const uri = post.record.reply?.parent?.uri;
+  return uri && /^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[^/]+$/.test(uri)
+    ? blueskyPostUrl(uri)
+    : undefined;
+}
+
 export function normalizeBlueskyPost(
   post: Post,
   target: string,
   type: 'reply' | 'mention',
   hidden: Set<string> = new Set()
 ): PublishingResponse | null {
-  if (
-    !validProfile(post?.author) ||
-    !safeParse(AppBskyFeedPost.mainSchema, post.record).ok ||
-    !Number.isFinite(Date.parse(post.indexedAt)) ||
-    !/^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[^/]+$/.test(post.uri)
-  )
-    return null;
+  if (!validPost(post)) return null;
   if (hidden.has(post.uri) || !allowed(post) || !allowed(post.author))
     return null;
   return {
@@ -139,18 +157,12 @@ export function normalizeBlueskyPost(
       : undefined,
     receivedAt: new Date(post.indexedAt),
     media: media(post.embed),
-    parentUrl:
-      post.record.reply?.parent?.uri &&
-      /^at:\/\/did:[^/]+\/app\.bsky\.feed\.post\/[^/]+$/.test(
-        post.record.reply.parent.uri
-      )
-        ? blueskyPostUrl(post.record.reply.parent.uri)
-        : undefined,
+    parentUrl: parentPostUrl(post),
   };
 }
 export function currentMediaView(
   current: CurrentResponseRecord
-): Post['embed'] {
+): PostEmbed | undefined {
   function blobUrl(blob: Blob | LegacyBlob): string {
     const url = new URL('/xrpc/com.atproto.sync.getBlob', current.pds);
     url.search = new URLSearchParams({

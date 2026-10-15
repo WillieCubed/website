@@ -8,7 +8,7 @@ import { StudioError } from '@/lib/studio/errors';
 export const maxDuration = 300;
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: RouteContext<'/api/studio/music/publications/[id]'>
 ) {
   return musicRoute(request, async () => {
     const { id } = await params;

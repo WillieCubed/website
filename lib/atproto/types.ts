@@ -26,6 +26,17 @@ export interface DesiredRecord {
   removeFields?: string[];
 }
 
+/** The identity of one immutable revision of a repository record. */
+export interface RepoRecordReference {
+  uri: string;
+  cid: string;
+}
+
+/** A record read from its repository, before its value has been validated. */
+export interface RepoRecord extends RepoRecordReference {
+  value: Record<string, unknown>;
+}
+
 /** A record as the PDS lists it. */
 export interface ExistingRecord {
   collection: Collection;
@@ -59,19 +70,12 @@ export interface RepoClient {
   applyWrites(writes: Write[]): Promise<void>;
   uploadBlob(blob: LocalBlob): Promise<void>;
   close(): Promise<void>;
-  getRecord?(
-    collection: string,
-    rkey: string
-  ): Promise<{
-    uri: string;
-    cid: string;
-    value: Record<string, unknown>;
-  } | null>;
+  getRecord?(collection: string, rkey: string): Promise<RepoRecord | null>;
   createRecord?(
     collection: string,
     rkey: string,
     value: Record<string, unknown>
-  ): Promise<{ uri: string; cid: string }>;
+  ): Promise<RepoRecordReference>;
   putRecord?(
     collection: string,
     rkey: string,

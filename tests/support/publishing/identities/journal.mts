@@ -61,6 +61,10 @@ export function validate(journal: Journal, path: string) {
     assert(
       /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(journal.tunnel.upstream)
     );
+  validateStorageOwnership(journal);
+}
+
+function validateStorageOwnership(journal: Journal): void {
   if (journal.storage) {
     const prefix = `dev-williecubed-website-pds-${journal.run}`;
     assert(

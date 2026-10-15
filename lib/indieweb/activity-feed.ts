@@ -94,15 +94,7 @@ export function buildActivityFeedItems(
         title: `${author} ${activityVerb(activity.type)} "${targetTitle}"`,
         description: activitySummary(activity),
         author: activity.author,
-        content:
-          (activity.contentHtml
-            ? sanitizeCommentHtml(activity.contentHtml, activity.sourceUrl)
-            : activity.media?.length
-              ? plainTextHtml(activity.content || '')
-              : '') +
-            (activity.media?.length
-              ? responseMediaHtml(activity.media, activity.sourceUrl)
-              : '') || undefined,
+        content: activityContent(activity),
         attachments: activity.media
           ?.filter((media) => media.mimeType)
           .map((media) => ({
@@ -151,4 +143,16 @@ function hostnameForUrl(url: string): string {
   } catch {
     return 'Someone';
   }
+}
+
+function activityContent(activity: ResponseActivity): string | undefined {
+  const body = activity.contentHtml
+    ? sanitizeCommentHtml(activity.contentHtml, activity.sourceUrl)
+    : activity.media?.length
+      ? plainTextHtml(activity.content || '')
+      : '';
+  const media = activity.media?.length
+    ? responseMediaHtml(activity.media, activity.sourceUrl)
+    : '';
+  return body + media || undefined;
 }

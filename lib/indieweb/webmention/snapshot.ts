@@ -69,12 +69,7 @@ export async function readPublicWebmentionSnapshot(
       const object = await bucket.get(KEY);
       if (object) {
         const snapshot = JSON.parse(await object.text()) as Snapshot;
-        if (
-          snapshot.generation === generation &&
-          Number.isFinite(snapshot.expiresAt) &&
-          snapshot.expiresAt > now &&
-          Array.isArray(snapshot.mentions)
-        ) {
+        if (isCurrentSnapshot(snapshot, generation, now)) {
           return snapshot.mentions.map(deserialize);
         }
       }
@@ -104,4 +99,17 @@ export async function invalidatePublicWebmentionSnapshot(
   bucket: SnapshotBucket | undefined
 ): Promise<void> {
   await bucket?.put(GENERATION_KEY, crypto.randomUUID());
+}
+
+function isCurrentSnapshot(
+  snapshot: Snapshot,
+  generation: string,
+  now: number
+): boolean {
+  return (
+    snapshot.generation === generation &&
+    Number.isFinite(snapshot.expiresAt) &&
+    snapshot.expiresAt > now &&
+    Array.isArray(snapshot.mentions)
+  );
 }

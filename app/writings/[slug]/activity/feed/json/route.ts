@@ -1,7 +1,6 @@
 import { writingActivityFeedConfig } from '@/lib/indieweb/activity-feed-config';
 import { getActivityFeedItemsForPost } from '@/lib/indieweb/activity-feed-data';
 import { createActivityFeedResponse } from '@/lib/indieweb/activity-feed-route';
-import type { WritingActivityFeedRouteProps } from '@/lib/indieweb/webmention/types';
 import { getPublishedWriting } from '@/lib/writings/index';
 
 /**
@@ -10,7 +9,7 @@ import { getPublishedWriting } from '@/lib/writings/index';
  */
 export async function GET(
   _request: Request,
-  props: WritingActivityFeedRouteProps
+  props: RouteContext<'/writings/[slug]/activity/feed/json'>
 ) {
   const { slug } = await props.params;
   // A draft or missing writing has no public activity to syndicate.

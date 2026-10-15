@@ -1,23 +1,11 @@
 import type {} from '@atcute/atproto';
 import assert from 'node:assert/strict';
 
+import type { CaptureOptions } from './types.mts';
+
 interface Context {
   settings: Record<string, string>;
-  values: {
-    workspace?: string | undefined;
-    slug?: string | undefined;
-    env: string;
-    output: string;
-    'refresh-wait-seconds': string;
-    'cleanup-only': boolean;
-    'defer-bluesky': boolean;
-    'authorization-only': boolean;
-    'cookie-delivery-failure': boolean;
-    'social-only': boolean;
-    'fixture-source-journal'?: string | undefined;
-    'fixture-publication-journal'?: string | undefined;
-    'social-runtime-revision'?: string | undefined;
-  };
+  values: CaptureOptions;
 }
 
 export async function graphFor(

@@ -1,8 +1,10 @@
 import { timingSafeEqual } from 'node:crypto';
 
-import { syncAtproto } from '@/lib/atproto/sync';
+import { type SyncReport, syncAtproto } from '@/lib/atproto/sync';
 import { sendChangedWebmentions } from '@/lib/indieweb/webmention/publisher';
+import type { WebmentionPublishResult } from '@/lib/indieweb/webmention/types';
 import {
+  type WebSubPublishResult,
   pingWebSubHub,
   publishedTopicPaths,
 } from '@/lib/indieweb/websub-publisher';
@@ -14,11 +16,16 @@ function equalSecret(actual: string, expected: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+export interface AtprotoNotificationResult {
+  status: SyncReport['status'] | 'failed';
+  reason?: string;
+}
+
 export interface NotifyServices {
   topics(): Promise<string[]>;
-  hub(topics: string[]): Promise<{ ok: boolean }>;
-  mentions(): Promise<{ failed: number }>;
-  sync(): Promise<{ status: string; reason?: string }>;
+  hub(topics: string[]): Promise<WebSubPublishResult>;
+  mentions(): Promise<Pick<WebmentionPublishResult, 'failed'>>;
+  sync(): Promise<AtprotoNotificationResult>;
 }
 
 export async function publishNotification(
@@ -53,20 +60,32 @@ export async function publishNotification(
       console.error('AT Protocol sync failed.');
       return { status: 'failed' as const };
     });
+    const successful = notificationSucceeded(
+      websub,
+      webmentions,
+      atproto,
+      body.atprotoRequired
+    );
     return Response.json(
       { websub, webmentions, atproto },
-      {
-        status:
-          websub.ok &&
-          webmentions.failed === 0 &&
-          atproto.status !== 'failed' &&
-          (body.atprotoRequired !== true || atproto.status === 'synced')
-            ? 200
-            : 502,
-      }
+      { status: successful ? 200 : 502 }
     );
   } catch (error) {
     console.error('IndieWeb publish notification failed:', error);
     return Response.json({ error: 'notification_failed' }, { status: 502 });
   }
+}
+
+function notificationSucceeded(
+  websub: WebSubPublishResult,
+  webmentions: Pick<WebmentionPublishResult, 'failed'>,
+  atproto: AtprotoNotificationResult,
+  atprotoRequired: unknown
+): boolean {
+  return (
+    websub.ok &&
+    webmentions.failed === 0 &&
+    atproto.status !== 'failed' &&
+    (atprotoRequired !== true || atproto.status === 'synced')
+  );
 }

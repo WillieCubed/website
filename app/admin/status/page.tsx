@@ -32,9 +32,7 @@ async function Editor(query: string) {
 
 export default async function StatusAdminPage({
   searchParams,
-}: {
-  searchParams: Promise<Record<string, string | undefined>>;
-}) {
+}: PageProps<'/admin/status'>) {
   const params = await searchParams;
   const query = new URLSearchParams(
     Object.entries(params).filter(

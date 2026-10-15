@@ -262,6 +262,35 @@ export async function sampleRoute(browser: MetricsBrowser, path: string) {
   };
 }
 
+function startLocalPreview(root: string, configPath: string): ChildProcess {
+  return spawn(
+    'pnpm',
+    [
+      'exec',
+      'opennextjs-cloudflare',
+      'preview',
+      '--config',
+      configPath,
+      '--ip',
+      '127.0.0.1',
+      '--port',
+      '8787',
+    ],
+    {
+      cwd: root,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: process.platform !== 'win32',
+      env: {
+        ...process.env,
+        CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
+          process.env
+            .CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE ??
+          'postgresql://preview:preview@127.0.0.1:5432/preview',
+      },
+    }
+  );
+}
+
 export async function runCloudflarePreviewMetrics() {
   const root = process.cwd();
   const configPath = join(root, `.wrangler.metrics-${process.pid}.jsonc`);
@@ -283,32 +312,7 @@ export async function runCloudflarePreviewMetrics() {
     });
     configCreated = true;
 
-    preview = spawn(
-      'pnpm',
-      [
-        'exec',
-        'opennextjs-cloudflare',
-        'preview',
-        '--config',
-        configPath,
-        '--ip',
-        '127.0.0.1',
-        '--port',
-        '8787',
-      ],
-      {
-        cwd: root,
-        stdio: ['ignore', 'pipe', 'pipe'],
-        detached: process.platform !== 'win32',
-        env: {
-          ...process.env,
-          CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-            process.env
-              .CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE ??
-            'postgresql://preview:preview@127.0.0.1:5432/preview',
-        },
-      }
-    );
+    preview = startLocalPreview(root, configPath);
     preview.on('error', (error) => {
       spawnError = error;
     });

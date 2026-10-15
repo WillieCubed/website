@@ -18,6 +18,7 @@ import { intent as intentWithContext } from './intent.mts';
 import { observed as observedWithContext } from './observed.mts';
 import { publicRecord as publicRecordWithContext } from './records.mts';
 import type { Receipt } from './types.mts';
+import { verifyPublishedWriting } from './verify.mts';
 
 interface RunContext {
   verificationFailurePath: string | undefined;
@@ -30,54 +31,7 @@ export async function runStandardSiteAcceptance() {
     verificationPhase: 'argument validation',
   };
   async function main(runState: RunContext) {
-    const OWNER = 'did:plc:iyn6nc3ffqm2e3555exyrgvv';
-    const ORIGIN = 'https://indieweb-acceptance.vercel.app';
-    const { values } = parseArgs({
-      options: {
-        env: { type: 'string', default: '.env.standard-test.local' },
-        receipt: {
-          type: 'string',
-          default: `.playwright-mcp/standard-site-live-${Date.now()}.json`,
-        },
-        write: { type: 'boolean', default: false },
-        cleanup: { type: 'boolean', default: false },
-        verify: { type: 'string' },
-      },
-    });
-    if (values.verify !== undefined) {
-      runState.verificationFailurePath = `${values.receipt}.failure.json`;
-      runState.verificationPhase = 'isolated credential and origin validation';
-    }
-
-    try {
-      Object.assign(process.env, parseEnv(await readFile(values.env!, 'utf8')));
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-    }
-    if (values.write && !values.cleanup) {
-      try {
-        await readFile(values.receipt!, 'utf8');
-        throw new Error(
-          'The receipt already exists. Choose another --receipt path or resume --cleanup first.'
-        );
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-      }
-    }
-    const did = process.env.NEXT_PUBLIC_ATPROTO_DID;
-    assert(
-      did && did !== OWNER,
-      'Configure a separate acceptance DID with scripts/publishing-acceptance-setup.mts. The production owner is forbidden.'
-    );
-    assert.equal(
-      process.env.NEXT_PUBLIC_SITE_ORIGIN?.replace(/\/$/, ''),
-      ORIGIN,
-      'Only the isolated acceptance origin is allowed.'
-    );
-    assert(
-      process.env.ATPROTO_PUBLICATION_RKEY,
-      'Acceptance publication key is missing.'
-    );
+    const { values, did, ORIGIN } = await readStandardSiteArguments(runState);
 
     if (runState.verificationFailurePath)
       runState.verificationPhase = 'publishing module loading';
@@ -111,121 +65,17 @@ export async function runStandardSiteAcceptance() {
       );
     }
 
-    async function html(url: string) {
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(15000),
-        redirect: 'error',
-      });
-      assert(
-        response.ok,
-        `Public verification request failed (${response.status}).`
-      );
-      return response.text();
-    }
-
     if (values.verify) {
-      runState.verificationPhase = 'verification slug validation';
-      assert(
-        /^[a-z0-9-]+$/.test(values.verify),
-        'Verification requires a writing slug.'
-      );
-      runState.verificationPhase = 'verification module loading';
-      const [{ loadWriting }, { documentRkey }, verification, { parse }] =
-        await Promise.all([
-          import('../../../../lib/writings/load'),
-          import('../../../../lib/atproto/keys'),
-          import('../../../../lib/atproto/verification'),
-          import('parse5'),
-        ]);
-      runState.verificationPhase = 'published writing source loading';
-      const { writing } = await loadWriting(values.verify);
-      assert(!writing.draft, 'A draft cannot be verified as published.');
-      const path = `/writings/${values.verify}`;
-      runState.verificationPhase = 'public publication PDS HTTP read';
-      const publication = await publicRecord(
+      await verifyPublishedWriting({
+        slug: values.verify,
+        ORIGIN,
+        publicationUri,
+        publicationRkey,
         PUBLICATION_COLLECTION,
-        publicationRkey
-      );
-      runState.verificationPhase =
-        'public publication verification endpoint HTTP read';
-      const endpoint = await html(
-        `${ORIGIN}/.well-known/site.standard.publication`
-      );
-      runState.verificationPhase = 'public document PDS HTTP read';
-      const document = await publicRecord(
         DOCUMENT_COLLECTION,
-        documentRkey(path, writing.published)
-      );
-      runState.verificationPhase = 'public writing page HTTP read';
-      const page = await html(ORIGIN + path);
-      runState.verificationPhase = 'publication record and endpoint agreement';
-      assert(
-        verification.publicationIsVerified(
-          publication.value,
-          ORIGIN,
-          publicationUri,
-          endpoint
-        ),
-        'The publication record must be valid and match the site origin and public verification endpoint.'
-      );
-      runState.verificationPhase = 'writing document head link retention';
-      assert(
-        verification.hasDocumentVerification(page, document.uri),
-        'The writing head must retain its exact document verification link.'
-      );
-      runState.verificationPhase =
-        'document record and writing verification agreement';
-      assert(
-        verification.documentIsVerified(
-          document.value,
-          publicationUri,
-          path,
-          document.uri,
-          page
-        ),
-        'The document record must be valid and match the publication, writing path and document verification link.'
-      );
-      runState.verificationPhase = 'writing publication head link retention';
-      const tree = parse(page);
-      const head = tree.childNodes.find((node) => node.nodeName === 'html');
-      const headNode =
-        head && 'childNodes' in head
-          ? head.childNodes.find((node) => node.nodeName === 'head')
-          : undefined;
-      assert(
-        headNode &&
-          'childNodes' in headNode &&
-          headNode.childNodes.some(
-            (node) =>
-              'attrs' in node &&
-              node.nodeName === 'link' &&
-              node.attrs.some(
-                (attr) =>
-                  attr.name === 'rel' &&
-                  attr.value.split(/\s+/).includes('site.standard.publication')
-              ) &&
-              node.attrs.some(
-                (attr) => attr.name === 'href' && attr.value === publicationUri
-              )
-          ),
-        'The writing head must retain its publication verification link.'
-      );
-      console.log(
-        JSON.stringify(
-          {
-            status: 'passed',
-            checkedAt: new Date().toISOString(),
-            origin: ORIGIN,
-            publication: { uri: publication.uri, cid: publication.cid },
-            document: { uri: document.uri, cid: document.cid },
-            independentValidator:
-              'pending: use the authorized browser; this script does not access or replace site-validator.fly.dev',
-          },
-          null,
-          2
-        )
-      );
-      process.exit(0);
+        publicRecord,
+        progress: runState,
+      });
     }
 
     if (!values.write && !values.cleanup) {
@@ -420,31 +270,38 @@ export async function runStandardSiteAcceptance() {
       });
     }
 
-    try {
-      if (values.cleanup) {
-        receipt = JSON.parse(
-          await readFile(values.receipt!, 'utf8')
-        ) as Receipt;
-        assert.equal(receipt.version, 1);
-        assert.equal(receipt.did, did);
-        assert.equal(receipt.publicationUri, publicationUri);
-        assert(
-          receipt.owned.every(
-            (record) =>
-              [
-                PUBLICATION_COLLECTION,
-                DOCUMENT_COLLECTION,
-                'app.bsky.feed.post',
-              ].includes(record.collection) &&
-              /^[234567a-z]{13}$/.test(record.rkey)
-          ),
-          'Invalid cleanup journal.'
-        );
-        await cleanup();
-        console.log(
-          'Cleanup passed. The original publication is restored and every reserved record is absent.'
-        );
-      } else {
+    async function resumeCleanup() {
+      receipt = JSON.parse(await readFile(values.receipt!, 'utf8')) as Receipt;
+      assert.equal(receipt.version, 1);
+      assert.equal(receipt.did, did);
+      assert.equal(receipt.publicationUri, publicationUri);
+      assert(
+        receipt.owned.every(
+          (record) =>
+            [
+              PUBLICATION_COLLECTION,
+              DOCUMENT_COLLECTION,
+              'app.bsky.feed.post',
+            ].includes(record.collection) &&
+            /^[234567a-z]{13}$/.test(record.rkey)
+        ),
+        'Invalid cleanup journal.'
+      );
+      await cleanup();
+      console.log(
+        'Cleanup passed. The original publication is restored and every reserved record is absent.'
+      );
+    }
+    async function runLifecycle() {
+      const {
+        started,
+        slug,
+        path,
+        rkey,
+        foreignPublicationKey,
+        foreignDocumentKey,
+      } = await initializeLifecycleReceipt();
+      async function initializeLifecycleReceipt() {
         console.log(
           'Step 2: Refuse existing documents before running a destructive synchronization test.'
         );
@@ -500,178 +357,190 @@ export async function runStandardSiteAcceptance() {
             rkey: publicationRkey,
           });
         await save();
-        let failure: unknown;
-        const originalSettings = process.env.ATPROTO_PUBLICATION_SETTINGS;
-        try {
-          const foreignUri = `at://${did}/${PUBLICATION_COLLECTION}/${foreignPublicationKey}`;
-          await client.applyWrites([
+        return {
+          started,
+          slug,
+          path,
+          rkey,
+          foreignPublicationKey,
+          foreignDocumentKey,
+        };
+      }
+      let failure: unknown;
+      const originalSettings = process.env.ATPROTO_PUBLICATION_SETTINGS;
+      try {
+        const foreignUri = `at://${did}/${PUBLICATION_COLLECTION}/${foreignPublicationKey}`;
+        await client.applyWrites([
+          {
+            $type: 'com.atproto.repo.applyWrites#create',
+            collection: PUBLICATION_COLLECTION,
+            rkey: foreignPublicationKey,
+            value: {
+              $type: PUBLICATION_COLLECTION,
+              url: 'https://example.com',
+              name: 'Disposable foreign-publication preservation check',
+            },
+          },
+          {
+            $type: 'com.atproto.repo.applyWrites#create',
+            collection: DOCUMENT_COLLECTION,
+            rkey: foreignDocumentKey,
+            value: {
+              $type: DOCUMENT_COLLECTION,
+              site: foreignUri,
+              title: 'Disposable foreign document',
+              publishedAt: started.toISOString(),
+            },
+          },
+        ]);
+        const foreignBefore = [
+          await get(PUBLICATION_COLLECTION, foreignPublicationKey),
+          await get(DOCUMENT_COLLECTION, foreignDocumentKey),
+        ];
+        const icon = await localBlob(
+          await readFile('public/brand/social/avatar-400.png'),
+          'image/png'
+        );
+        const fetchImage = async (url: string) =>
+          url.endsWith('/brand/social/avatar-400.png') ? icon : null;
+        console.log(
+          'Step 3: Run the actual content loader and prove authored drafts stay absent.'
+        );
+        const { getWritingSlugs, loadWriting } =
+          await import('../../../../lib/writings/load');
+        const writings = await Promise.all(
+          (await getWritingSlugs()).map(loadWriting)
+        );
+        assert(
+          writings.every(({ writing }) => writing.draft),
+          'Lifecycle fixture requires a checkout containing only authored drafts.'
+        );
+        const drafts = await syncAtproto({ client, fetchImage });
+        assert.equal(drafts.status, 'synced');
+        assert(
+          !(await client.listRecords(DOCUMENT_COLLECTION)).some(
+            (record) => record.value.site === publicationUri
+          )
+        );
+        await checked('Actual loader excludes every authored draft', {
+          drafts: writings.length,
+        });
+        process.env.ATPROTO_PUBLICATION_SETTINGS = JSON.stringify({
+          labels: {
+            $type: 'com.atproto.label.defs#selfLabels',
+            values: [{ val: 'test-label' }],
+          },
+          preferences: { showInDiscover: false },
+        });
+        const source = {
+          slug,
+          title: 'Disposable Standard.site lifecycle check',
+          description:
+            'This record exists only on the isolated account during acceptance.',
+          published: started,
+          lastUpdated: started,
+          tags: ['acceptance'],
+          image: '/brand/social/avatar-400.png',
+          photos: [
             {
-              $type: 'com.atproto.repo.applyWrites#create',
-              collection: PUBLICATION_COLLECTION,
-              rkey: foreignPublicationKey,
-              value: {
-                $type: PUBLICATION_COLLECTION,
-                url: 'https://example.com',
-                name: 'Disposable foreign-publication preservation check',
-              },
+              url: ORIGIN + '/brand/social/avatar-400.png',
+              alt: 'Authored photo description',
             },
-            {
-              $type: 'com.atproto.repo.applyWrites#create',
-              collection: DOCUMENT_COLLECTION,
-              rkey: foreignDocumentKey,
-              value: {
-                $type: DOCUMENT_COLLECTION,
-                site: foreignUri,
-                title: 'Disposable foreign document',
-                publishedAt: started.toISOString(),
-              },
-            },
-          ]);
-          const foreignBefore = [
-            await get(PUBLICATION_COLLECTION, foreignPublicationKey),
-            await get(DOCUMENT_COLLECTION, foreignDocumentKey),
-          ];
-          const icon = await localBlob(
-            await readFile('public/brand/social/avatar-400.png'),
-            'image/png'
-          );
-          const fetchImage = async (url: string) =>
-            url.endsWith('/brand/social/avatar-400.png') ? icon : null;
-          console.log(
-            'Step 3: Run the actual content loader and prove authored drafts stay absent.'
-          );
-          const { getWritingSlugs, loadWriting } =
-            await import('../../../../lib/writings/load');
-          const writings = await Promise.all(
-            (await getWritingSlugs()).map(loadWriting)
-          );
-          assert(
-            writings.every(({ writing }) => writing.draft),
-            'Lifecycle fixture requires a checkout containing only authored drafts.'
-          );
-          const drafts = await syncAtproto({ client, fetchImage });
-          assert.equal(drafts.status, 'synced');
-          assert(
-            !(await client.listRecords(DOCUMENT_COLLECTION)).some(
-              (record) => record.value.site === publicationUri
-            )
-          );
-          await checked('Actual loader excludes every authored draft', {
-            drafts: writings.length,
-          });
-          process.env.ATPROTO_PUBLICATION_SETTINGS = JSON.stringify({
-            labels: {
-              $type: 'com.atproto.label.defs#selfLabels',
-              values: [{ val: 'test-label' }],
-            },
-            preferences: { showInDiscover: false },
-          });
-          const source = {
-            slug,
-            title: 'Disposable Standard.site lifecycle check',
-            description:
-              'This record exists only on the isolated account during acceptance.',
-            published: started,
-            lastUpdated: started,
-            tags: ['acceptance'],
-            image: '/brand/social/avatar-400.png',
-            photos: [
-              {
-                url: ORIGIN + '/brand/social/avatar-400.png',
-                alt: 'Authored photo description',
-              },
-            ],
-            micropub: {
-              type: ['h-entry'],
-              properties: {
-                audio: [
-                  {
-                    value: 'https://example.com/audio.mp3',
-                    alt: 'Authored audio description',
-                  },
-                ],
-                video: [
-                  {
-                    value: 'https://example.com/video.mp4',
-                    alt: 'Authored video description',
-                  },
-                ],
-                attachment: [
-                  {
-                    value: 'https://example.com/document.pdf',
-                    alt: 'Authored file description',
-                  },
-                ],
-              },
-            },
-            body: 'Prose with `inline code`.\n\n```ts\nconst answer = 42;\n```\n\n> Quoted words.\n\n- List item\n\n| Column | Value |\n| --- | --- |\n| Row | Cell |\n\n![An image description](https://example.com/image.png)',
-            atproto: undefined as
-              | import('../../../../lib/atproto/metadata').DocumentMetadata
-              | undefined,
-          };
-          const extensions = {
-            contributors: [
-              {
-                $type: 'site.standard.document#contributor' as const,
-                did: did as Did,
-                displayName: 'Acceptance author',
-                role: 'author',
-              },
-            ],
-            labels: {
-              $type: 'com.atproto.label.defs#selfLabels' as const,
-              values: [{ val: 'test-label' }],
-            },
-            content: {
-              $type: 'dev.williecubed.acceptance.content',
-              text: 'Typed content payload',
-              nested: { retained: true },
-            },
-            links: {
-              $type: 'dev.williecubed.acceptance.links',
-              entries: [
+          ],
+          micropub: {
+            type: ['h-entry'],
+            properties: {
+              audio: [
                 {
-                  href: 'https://example.com/reference',
-                  title: 'Typed reference',
+                  value: 'https://example.com/audio.mp3',
+                  alt: 'Authored audio description',
+                },
+              ],
+              video: [
+                {
+                  value: 'https://example.com/video.mp4',
+                  alt: 'Authored video description',
+                },
+              ],
+              attachment: [
+                {
+                  value: 'https://example.com/document.pdf',
+                  alt: 'Authored file description',
                 },
               ],
             },
-          };
-          const { parseDocumentMetadata } =
-            await import('../../../../lib/atproto/metadata');
-          const postKey = now();
-          assert.equal(await get('app.bsky.feed.post', postKey), null);
-          receipt.owned.push({
-            collection: 'app.bsky.feed.post',
-            rkey: postKey,
-          });
-          await save();
-          const associated = await client.createRecord!(
-            'app.bsky.feed.post',
-            postKey,
+          },
+          body: 'Prose with `inline code`.\n\n```ts\nconst answer = 42;\n```\n\n> Quoted words.\n\n- List item\n\n| Column | Value |\n| --- | --- |\n| Row | Cell |\n\n![An image description](https://example.com/image.png)',
+          atproto: undefined as
+            | import('../../../../lib/atproto/metadata').DocumentMetadata
+            | undefined,
+        };
+        const extensions = {
+          contributors: [
             {
-              $type: 'app.bsky.feed.post',
-              text: 'Disposable explicit Standard.site association.',
-              createdAt: started.toISOString(),
-              embed: {
-                $type: 'app.bsky.embed.external',
-                external: {
-                  uri: ORIGIN + path,
-                  title: source.title,
-                  description: source.description,
-                },
+              $type: 'site.standard.document#contributor' as const,
+              did: did as Did,
+              displayName: 'Acceptance author',
+              role: 'author',
+            },
+          ],
+          labels: {
+            $type: 'com.atproto.label.defs#selfLabels' as const,
+            values: [{ val: 'test-label' }],
+          },
+          content: {
+            $type: 'dev.williecubed.acceptance.content',
+            text: 'Typed content payload',
+            nested: { retained: true },
+          },
+          links: {
+            $type: 'dev.williecubed.acceptance.links',
+            entries: [
+              {
+                href: 'https://example.com/reference',
+                title: 'Typed reference',
               },
-            }
-          );
-          const postRef = {
-            uri: associated.uri as import('@atcute/atproto').ComAtprotoRepoStrongRef.Main['uri'],
-            cid: associated.cid as import('@atcute/atproto').ComAtprotoRepoStrongRef.Main['cid'],
-          };
-          const completeExtensions = { ...extensions, bskyPostRef: postRef };
-          source.atproto = parseDocumentMetadata(completeExtensions);
-          console.log(
-            'Step 4: Create, read, update, omit and explicitly remove extension fields on the real PDS.'
-          );
+            ],
+          },
+        };
+        const { parseDocumentMetadata } =
+          await import('../../../../lib/atproto/metadata');
+        const postKey = now();
+        assert.equal(await get('app.bsky.feed.post', postKey), null);
+        receipt.owned.push({
+          collection: 'app.bsky.feed.post',
+          rkey: postKey,
+        });
+        await save();
+        const associated = await client.createRecord!(
+          'app.bsky.feed.post',
+          postKey,
+          {
+            $type: 'app.bsky.feed.post',
+            text: 'Disposable explicit Standard.site association.',
+            createdAt: started.toISOString(),
+            embed: {
+              $type: 'app.bsky.embed.external',
+              external: {
+                uri: ORIGIN + path,
+                title: source.title,
+                description: source.description,
+              },
+            },
+          }
+        );
+        const postRef = {
+          uri: associated.uri as import('@atcute/atproto').ComAtprotoRepoStrongRef.Main['uri'],
+          cid: associated.cid as import('@atcute/atproto').ComAtprotoRepoStrongRef.Main['cid'],
+        };
+        const completeExtensions = { ...extensions, bskyPostRef: postRef };
+        source.atproto = parseDocumentMetadata(completeExtensions);
+        console.log(
+          'Step 4: Create, read, update, omit and explicitly remove extension fields on the real PDS.'
+        );
+        const { document, publication, expectedTheme, rgb } =
+          await verifyCreatedRecords();
+        async function verifyCreatedRecords() {
           const created = await syncAtproto({
             client,
             writings: [source],
@@ -753,38 +622,36 @@ export async function runStandardSiteAcceptance() {
               publicationCid: publication.cid,
             }
           );
-          const repeated = await syncAtproto({
-            client,
-            writings: [source],
-            fetchImage,
-          });
-          assert(repeated.status === 'synced' && repeated.writes.length === 0);
-          assert.equal(
-            (await get(DOCUMENT_COLLECTION, rkey))?.cid,
-            document.cid
-          );
-          await checked('Repeated sync changes no records');
-          const changed = {
-            ...source,
-            title: 'Edited disposable Standard.site check',
-            lastUpdated: new Date(started.getTime() + 1000),
-            atproto: parseDocumentMetadata({
-              ...completeExtensions,
-              content: { ...extensions.content, text: 'Edited typed payload' },
-            }),
-          };
-          await syncAtproto({ client, writings: [changed], fetchImage });
-          const edited = await publicRecord(DOCUMENT_COLLECTION, rkey);
-          assert.equal(edited.value.title, changed.title);
-          assert.equal(
-            edited.value.updatedAt,
-            changed.lastUpdated.toISOString()
-          );
-          assert.deepEqual(edited.value.content, changed.atproto?.content);
-          await checked(
-            'Update preserves the document key and updates author content',
-            { uri: edited.uri, cid: edited.cid }
-          );
+          return { document, publication, expectedTheme, rgb };
+        }
+        const repeated = await syncAtproto({
+          client,
+          writings: [source],
+          fetchImage,
+        });
+        assert(repeated.status === 'synced' && repeated.writes.length === 0);
+        assert.equal((await get(DOCUMENT_COLLECTION, rkey))?.cid, document.cid);
+        await checked('Repeated sync changes no records');
+        const changed = {
+          ...source,
+          title: 'Edited disposable Standard.site check',
+          lastUpdated: new Date(started.getTime() + 1000),
+          atproto: parseDocumentMetadata({
+            ...completeExtensions,
+            content: { ...extensions.content, text: 'Edited typed payload' },
+          }),
+        };
+        await syncAtproto({ client, writings: [changed], fetchImage });
+        const edited = await publicRecord(DOCUMENT_COLLECTION, rkey);
+        assert.equal(edited.value.title, changed.title);
+        assert.equal(edited.value.updatedAt, changed.lastUpdated.toISOString());
+        assert.deepEqual(edited.value.content, changed.atproto?.content);
+        await checked(
+          'Update preserves the document key and updates author content',
+          { uri: edited.uri, cid: edited.cid }
+        );
+        await verifyTypedUnions();
+        async function verifyTypedUnions() {
           const members = [
             {
               $type: 'app.bsky.feed.post',
@@ -831,30 +698,33 @@ export async function runStandardSiteAcceptance() {
             'Every supported known union member round trips through both typed fields',
             { types: members.map((member) => member.$type) }
           );
-          await syncAtproto({ client, writings: [changed], fetchImage });
-          const stable = await publicRecord(DOCUMENT_COLLECTION, rkey);
-          process.env.ATPROTO_PUBLICATION_SETTINGS = JSON.stringify({
-            labels: extensions.labels,
-            preferences: { showInDiscover: true },
-          });
-          await syncAtproto({ client, writings: [changed], fetchImage });
-          assert.deepEqual(
-            (await publicRecord(PUBLICATION_COLLECTION, publicationRkey)).value
-              .preferences,
-            { showInDiscover: true }
-          );
-          process.env.ATPROTO_PUBLICATION_SETTINGS = JSON.stringify({
-            labels: extensions.labels,
-            preferences: { showInDiscover: false },
-          });
-          await syncAtproto({ client, writings: [changed], fetchImage });
-          await checked(
-            'Publication discovery preference accepts both configured values'
-          );
-          const publicationStable = await publicRecord(
-            PUBLICATION_COLLECTION,
-            publicationRkey
-          );
+        }
+        await syncAtproto({ client, writings: [changed], fetchImage });
+        const stable = await publicRecord(DOCUMENT_COLLECTION, rkey);
+        process.env.ATPROTO_PUBLICATION_SETTINGS = JSON.stringify({
+          labels: extensions.labels,
+          preferences: { showInDiscover: true },
+        });
+        await syncAtproto({ client, writings: [changed], fetchImage });
+        assert.deepEqual(
+          (await publicRecord(PUBLICATION_COLLECTION, publicationRkey)).value
+            .preferences,
+          { showInDiscover: true }
+        );
+        process.env.ATPROTO_PUBLICATION_SETTINGS = JSON.stringify({
+          labels: extensions.labels,
+          preferences: { showInDiscover: false },
+        });
+        await syncAtproto({ client, writings: [changed], fetchImage });
+        await checked(
+          'Publication discovery preference accepts both configured values'
+        );
+        const publicationStable = await publicRecord(
+          PUBLICATION_COLLECTION,
+          publicationRkey
+        );
+        await verifyRejectedPublishing();
+        async function verifyRejectedPublishing() {
           const uploadedBefore = uploads;
           const invalidMime = await localBlob(
             new TextEncoder().encode('Not an image'),
@@ -939,6 +809,9 @@ export async function runStandardSiteAcceptance() {
               recordSafeMaxBytes: 900_000,
             }
           );
+        }
+        await verifyHostedImages();
+        async function verifyHostedImages() {
           const { fetchImageBlob } =
             await import('../../../../lib/atproto/blobs');
           const validRemote = await fetchImageBlob(
@@ -983,72 +856,75 @@ export async function runStandardSiteAcceptance() {
               scope: 'Actual public acceptance HTTP image responses',
             }
           );
-          const clipped = {
-            ...changed,
-            title: 't'.repeat(501),
-            description: 'd'.repeat(3001),
-            tags: ['#acceptance', 'g'.repeat(129)],
-          };
-          await syncAtproto({ client, writings: [clipped], fetchImage });
-          const bounded = await publicRecord(DOCUMENT_COLLECTION, rkey);
-          assert.equal(String(bounded.value.title).length, 500);
-          assert.equal(String(bounded.value.description).length, 3000);
-          assert.deepEqual(bounded.value.tags, [
-            'acceptance',
-            'g'.repeat(127) + '…',
-          ]);
-          await checked(
-            'Title, description and tag schema boundaries produce valid real records',
-            {
-              uri: bounded.uri,
-              cid: bounded.cid,
-              titleGraphemes: 500,
-              descriptionGraphemes: 3000,
-              tagGraphemes: 128,
-            }
-          );
-          await syncAtproto({ client, writings: [changed], fetchImage });
-          const invalidAuthoring = [
-            {
-              content: {
-                $type: 'app.bsky.feed.post',
-                text: 'Missing required timestamp',
-              },
+        }
+        const clipped = {
+          ...changed,
+          title: 't'.repeat(501),
+          description: 'd'.repeat(3001),
+          tags: ['#acceptance', 'g'.repeat(129)],
+        };
+        await syncAtproto({ client, writings: [clipped], fetchImage });
+        const bounded = await publicRecord(DOCUMENT_COLLECTION, rkey);
+        assert.equal(String(bounded.value.title).length, 500);
+        assert.equal(String(bounded.value.description).length, 3000);
+        assert.deepEqual(bounded.value.tags, [
+          'acceptance',
+          'g'.repeat(127) + '…',
+        ]);
+        await checked(
+          'Title, description and tag schema boundaries produce valid real records',
+          {
+            uri: bounded.uri,
+            cid: bounded.cid,
+            titleGraphemes: 500,
+            descriptionGraphemes: 3000,
+            tagGraphemes: 128,
+          }
+        );
+        await syncAtproto({ client, writings: [changed], fetchImage });
+        const invalidAuthoring = [
+          {
+            content: {
+              $type: 'app.bsky.feed.post',
+              text: 'Missing required timestamp',
             },
-            {
-              links: {
-                $type: 'site.standard.theme.color#rgb',
-                r: 256,
-                g: 0,
-                b: 0,
-              },
+          },
+          {
+            links: {
+              $type: 'site.standard.theme.color#rgb',
+              r: 256,
+              g: 0,
+              b: 0,
             },
-            { content: { $type: 'invalid' } },
-            { contributors: [{ did: 'invalid-did' }] },
-            { contributors: [{ did, displayName: 'a'.repeat(101) }] },
-            { contributors: [{ did, role: 'a'.repeat(101) }] },
-            {
-              labels: {
-                $type: 'com.atproto.label.defs#selfLabels',
-                values: Array.from({ length: 11 }, () => ({
-                  val: 'test-label',
-                })),
-              },
+          },
+          { content: { $type: 'invalid' } },
+          { contributors: [{ did: 'invalid-did' }] },
+          { contributors: [{ did, displayName: 'a'.repeat(101) }] },
+          { contributors: [{ did, role: 'a'.repeat(101) }] },
+          {
+            labels: {
+              $type: 'com.atproto.label.defs#selfLabels',
+              values: Array.from({ length: 11 }, () => ({
+                val: 'test-label',
+              })),
             },
-          ];
-          for (const metadata of invalidAuthoring)
-            assert.throws(() => parseDocumentMetadata(metadata));
-          assert.equal(
-            (await publicRecord(DOCUMENT_COLLECTION, rkey)).cid,
-            stable.cid
-          );
-          await checked(
-            'Malformed known unions, contributors and label limits fail authoring without changing PDS records',
-            {
-              scope: 'Authoring validation with independent PDS unchanged read',
-              cases: invalidAuthoring.length,
-            }
-          );
+          },
+        ];
+        for (const metadata of invalidAuthoring)
+          assert.throws(() => parseDocumentMetadata(metadata));
+        assert.equal(
+          (await publicRecord(DOCUMENT_COLLECTION, rkey)).cid,
+          stable.cid
+        );
+        await checked(
+          'Malformed known unions, contributors and label limits fail authoring without changing PDS records',
+          {
+            scope: 'Authoring validation with independent PDS unchanged read',
+            cases: invalidAuthoring.length,
+          }
+        );
+        await verifyRetentionAndRestoration();
+        async function verifyRetentionAndRestoration() {
           const external: Record<string, unknown> = {
             ...edited.value,
             content: {
@@ -1183,15 +1059,17 @@ export async function runStandardSiteAcceptance() {
           );
           await syncAtproto({ client, writings: [], fetchImage });
           assert.equal(await get(DOCUMENT_COLLECTION, rkey), null);
-        } catch (error) {
-          failure = error;
-          receipt.error =
-            error instanceof Error ? error.message : String(error);
-        } finally {
-          if (originalSettings === undefined)
-            delete process.env.ATPROTO_PUBLICATION_SETTINGS;
-          else process.env.ATPROTO_PUBLICATION_SETTINGS = originalSettings;
         }
+      } catch (error) {
+        failure = error;
+        receipt.error = error instanceof Error ? error.message : String(error);
+      } finally {
+        if (originalSettings === undefined)
+          delete process.env.ATPROTO_PUBLICATION_SETTINGS;
+        else process.env.ATPROTO_PUBLICATION_SETTINGS = originalSettings;
+      }
+      await finishLifecycle();
+      async function finishLifecycle() {
         console.log(
           'Step 6: Remove reserved test records and restore the original publication.'
         );
@@ -1210,6 +1088,13 @@ export async function runStandardSiteAcceptance() {
         console.log(
           `Real PDS lifecycle passed. Receipt: ${values.receipt}. Public deployed-page verification and the independent browser validator remain separate gates.`
         );
+      }
+    }
+    try {
+      if (values.cleanup) {
+        await resumeCleanup();
+      } else {
+        await runLifecycle();
       }
     } finally {
       try {
@@ -1261,3 +1146,56 @@ export async function runStandardSiteAcceptance() {
 }
 
 if (isMain(import.meta.url)) await runStandardSiteAcceptance();
+
+async function readStandardSiteArguments(runState: RunContext) {
+  const OWNER = 'did:plc:iyn6nc3ffqm2e3555exyrgvv';
+  const ORIGIN = 'https://indieweb-acceptance.vercel.app';
+  const { values } = parseArgs({
+    options: {
+      env: { type: 'string', default: '.env.standard-test.local' },
+      receipt: {
+        type: 'string',
+        default: `.playwright-mcp/standard-site-live-${Date.now()}.json`,
+      },
+      write: { type: 'boolean', default: false },
+      cleanup: { type: 'boolean', default: false },
+      verify: { type: 'string' },
+    },
+  });
+  if (values.verify !== undefined) {
+    runState.verificationFailurePath = `${values.receipt}.failure.json`;
+    runState.verificationPhase = 'isolated credential and origin validation';
+  }
+
+  try {
+    Object.assign(process.env, parseEnv(await readFile(values.env!, 'utf8')));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  if (values.write && !values.cleanup) {
+    try {
+      await readFile(values.receipt!, 'utf8');
+      throw new Error(
+        'The receipt already exists. Choose another --receipt path or resume --cleanup first.'
+      );
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+  }
+  const did = process.env.NEXT_PUBLIC_ATPROTO_DID;
+  assert(
+    did && did !== OWNER,
+    'Configure a separate acceptance DID with scripts/publishing-acceptance-setup.mts. The production owner is forbidden.'
+  );
+  assert.equal(
+    process.env.NEXT_PUBLIC_SITE_ORIGIN?.replace(/\/$/, ''),
+    ORIGIN,
+    'Only the isolated acceptance origin is allowed.'
+  );
+  assert(
+    process.env.ATPROTO_PUBLICATION_RKEY,
+    'Acceptance publication key is missing.'
+  );
+
+  return { values, did, ORIGIN };
+}

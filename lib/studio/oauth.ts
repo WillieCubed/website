@@ -109,14 +109,17 @@ async function persist(grant: Grant): Promise<void> {
     [seal(grant)]
   );
 }
+function flowCookie(request: Request): string | undefined {
+  return request.headers
+    .get('cookie')
+    ?.split(';')
+    .map((v) => v.trim())
+    .find((v) => v.startsWith('studio_lattice_flow='))
+    ?.slice('studio_lattice_flow='.length);
+}
 export async function completeOAuth(request: Request): Promise<string> {
-  const url = new URL(request.url),
-    cookie = request.headers
-      .get('cookie')
-      ?.split(';')
-      .map((v) => v.trim())
-      .find((v) => v.startsWith('studio_lattice_flow='))
-      ?.slice('studio_lattice_flow='.length);
+  const url = new URL(request.url);
+  const cookie = flowCookie(request);
   if (
     !cookie ||
     !url.searchParams.get('code') ||

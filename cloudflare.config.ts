@@ -52,22 +52,7 @@ export default defineConfig((context) => {
             }
           : {}),
         STUDIO_GITHUB_TOKEN: bindings.secret(),
-        ...(preview
-          ? {
-              STUDIO_ORIGIN: bindings.text('https://preview.willie.page'),
-              STUDIO_LATTICE_ISSUER: bindings.text(
-                'https://auth.uselovelace.com'
-              ),
-              STUDIO_LATTICE_CLIENT_ID: bindings.text(
-                'https://willie.page/.well-known/lattice-client.json'
-              ),
-              STUDIO_LATTICE_GATEWAY: bindings.text(
-                'https://lattice.uselovelace.com'
-              ),
-              STUDIO_TOKEN_ENCRYPTION_KEY: bindings.secret(),
-              MUSIC_TOKEN_ENCRYPTION_KEY: bindings.secret(),
-            }
-          : {}),
+        ...studioIdentityBindings(preview),
         ATPROTO_PUBLICATION_RKEY: bindings.text('3mwxne5td6lid'),
         HYPERDRIVE: bindings.hyperdrive({
           id: preview
@@ -123,3 +108,20 @@ export default defineConfig((context) => {
     },
   };
 });
+
+function studioIdentityBindings(preview: boolean) {
+  return preview
+    ? {
+        STUDIO_ORIGIN: bindings.text('https://preview.willie.page'),
+        STUDIO_LATTICE_ISSUER: bindings.text('https://auth.uselovelace.com'),
+        STUDIO_LATTICE_CLIENT_ID: bindings.text(
+          'https://willie.page/.well-known/lattice-client.json'
+        ),
+        STUDIO_LATTICE_GATEWAY: bindings.text(
+          'https://lattice.uselovelace.com'
+        ),
+        STUDIO_TOKEN_ENCRYPTION_KEY: bindings.secret(),
+        MUSIC_TOKEN_ENCRYPTION_KEY: bindings.secret(),
+      }
+    : {};
+}

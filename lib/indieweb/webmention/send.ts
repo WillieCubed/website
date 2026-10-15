@@ -1,10 +1,14 @@
 import { type DefaultTreeAdapterMap, parse } from 'parse5';
 
 import {
+  type PublicDocument,
   type PublicFetchOptions,
   fetchPublicDocument,
 } from '@/lib/indieweb/public-fetch';
-import type { WebmentionSourceWriting } from '@/lib/indieweb/webmention/types';
+import type {
+  WebmentionSendResult,
+  WebmentionSourceWriting,
+} from '@/lib/indieweb/webmention/types';
 import { site } from '@/lib/site/identity';
 
 const SITE_URL = site.origin;
@@ -16,14 +20,6 @@ export function targetsForUpdatedPost(
   previous: string[]
 ): string[] {
   return [...new Set([...current, ...previous])];
-}
-
-interface SendResult {
-  targetUrl: string;
-  success: boolean;
-  endpoint?: string;
-  statusCode?: number;
-  error?: string;
 }
 
 /**
@@ -81,15 +77,7 @@ async function discoverEndpoint(
         status: 'failed',
         error: `Webmention endpoint discovery failed: HTTP ${document.status}.`,
       };
-    const link = document.headers.get('link');
-    const declared = link ? parseLinkHeader(link, 'webmention') : null;
-    const endpoint =
-      declared !== null
-        ? resolveUrl(declared, document.url)
-        : parseHtmlForWebmentionEndpoint(document.body, document.url);
-    return endpoint === null
-      ? { status: 'absent' }
-      : { status: 'found', endpoint };
+    return endpointFromDocument(document);
   } catch (error) {
     console.error('Endpoint discovery failed:', error);
     return {
@@ -161,15 +149,7 @@ export function parseHtmlForWebmentionEndpoint(
   pageUrl: string
 ): string | null {
   const document = parse(html);
-  let base = pageUrl;
-  // Only the first <base> with an href sets the document's base URL.
-  for (const element of elements(document)) {
-    if (element.tagName !== 'base') continue;
-    const href = attribute(element, 'href');
-    if (href === undefined) continue;
-    if (URL.canParse(href, pageUrl)) base = new URL(href, pageUrl).href;
-    break;
-  }
+  const base = documentBase(document, pageUrl);
 
   for (const element of elements(document)) {
     if (element.tagName !== 'link' && element.tagName !== 'a') continue;
@@ -202,7 +182,7 @@ export async function sendWebmention(
   sourceUrl: string,
   targetUrl: string,
   network: Pick<PublicFetchOptions, 'resolve' | 'fetch'> = {}
-): Promise<SendResult> {
+): Promise<WebmentionSendResult> {
   const discovery = await discoverEndpoint(targetUrl, network);
 
   if (discovery.status !== 'found') {
@@ -358,9 +338,9 @@ export async function sendWebmentionsForPost(
   writing: WebmentionSourceWriting,
   content: string,
   network: Pick<PublicFetchOptions, 'resolve' | 'fetch'> = {}
-): Promise<SendResult[]> {
+): Promise<WebmentionSendResult[]> {
   const sourceUrl = `${SITE_URL}/writings/${writing.slug}`;
-  const results: SendResult[] = [];
+  const results: WebmentionSendResult[] = [];
 
   for (const targetUrl of webmentionTargetsForWriting(writing, content)) {
     const result = await sendWebmention(sourceUrl, targetUrl, network);
@@ -371,4 +351,29 @@ export async function sendWebmentionsForPost(
   }
 
   return results;
+}
+
+function endpointFromDocument(document: PublicDocument): EndpointDiscovery {
+  const link = document.headers.get('link');
+  const declared = link ? parseLinkHeader(link, 'webmention') : null;
+  const endpoint =
+    declared !== null
+      ? resolveUrl(declared, document.url)
+      : parseHtmlForWebmentionEndpoint(document.body, document.url);
+  return endpoint === null
+    ? { status: 'absent' }
+    : { status: 'found', endpoint };
+}
+
+function documentBase(document: ParentNode, pageUrl: string): string {
+  let base = pageUrl;
+  // Only the first <base> with an href sets the document's base URL.
+  for (const element of elements(document)) {
+    if (element.tagName !== 'base') continue;
+    const href = attribute(element, 'href');
+    if (href === undefined) continue;
+    if (URL.canParse(href, pageUrl)) base = new URL(href, pageUrl).href;
+    break;
+  }
+  return base;
 }

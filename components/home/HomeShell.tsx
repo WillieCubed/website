@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 
+import type { BrandSchemes } from '@/lib/brand/scheme';
 import type { FocusId } from '@/lib/home/focuses';
 import { entries } from '@/lib/home/ventures';
 
@@ -19,7 +20,7 @@ const LEAVE_DEBOUNCE_MS = 120;
 
 interface HomeShellProps {
   initialDetail?: string;
-  brands: Record<string, Record<string, string>>;
+  brands: BrandSchemes;
   /** The server-rendered LVBT countdown for the detail view. */
   detailCountdown: React.ReactNode;
   /** Focuses for tiles that are not ventures, such as featured initiatives. */

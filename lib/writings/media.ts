@@ -7,6 +7,34 @@ import type { ResponseMedia } from '@/lib/indieweb/webmention/types';
 import { propertyText, propertyUrl } from './properties';
 import type { WritingData } from './types';
 
+type MediaKind = ResponseMedia['kind'];
+type Element = DefaultTreeAdapterMap['element'];
+
+function elementMediaKind(
+  element: Element,
+  parentMedia?: 'audio' | 'video'
+): MediaKind | undefined {
+  if (element.tagName === 'source') return parentMedia;
+  switch (element.tagName) {
+    case 'audio':
+      return 'audio';
+    case 'video':
+      return 'video';
+    case 'img':
+      return 'image';
+    case 'a':
+      return 'file';
+    default:
+      return undefined;
+  }
+}
+
+function mediaPropertyClass(kind: MediaKind): string {
+  if (kind === 'file') return 'u-attachment';
+  if (kind === 'image') return 'u-photo';
+  return `u-${kind}`;
+}
+
 export function prepareWritingHtmlMedia(
   content: string,
   media: ResponseMedia[],
@@ -47,42 +75,31 @@ export function prepareWritingHtmlMedia(
   const fragment = parseFragment(
     sanitizeCommentHtml(serialize(original), base)
   );
+  function markRepresentedMedia(
+    child: Element,
+    kind: MediaKind,
+    url: string
+  ): void {
+    if (!media.some((item) => item.kind === kind && identity(item.url) === url))
+      return;
+    represented.add(`${kind}:${url}`);
+    const propertyClass = mediaPropertyClass(kind);
+    const classes = child.attrs.find((item) => item.name === 'class');
+    if (classes) classes.value = propertyClass;
+    else child.attrs.push({ name: 'class', value: propertyClass });
+  }
   function visit(
     node: DefaultTreeAdapterMap['parentNode'],
     parentMedia?: 'audio' | 'video'
   ): void {
     for (const child of node.childNodes) {
       if (!('tagName' in child)) continue;
-      const kind =
-        child.tagName === 'audio' || child.tagName === 'video'
-          ? child.tagName
-          : child.tagName === 'source'
-            ? parentMedia
-            : child.tagName === 'img'
-              ? 'image'
-              : child.tagName === 'a'
-                ? 'file'
-                : undefined;
+      const kind = elementMediaKind(child, parentMedia);
       const attribute = child.attrs.find(
         (item) => item.name === (kind === 'file' ? 'href' : 'src')
       );
       const url = attribute && identity(attribute.value);
-      if (
-        kind &&
-        url &&
-        media.some((item) => item.kind === kind && identity(item.url) === url)
-      ) {
-        represented.add(`${kind}:${url}`);
-        const propertyClass =
-          kind === 'file'
-            ? 'u-attachment'
-            : kind === 'image'
-              ? 'u-photo'
-              : `u-${kind}`;
-        const classes = child.attrs.find((item) => item.name === 'class');
-        if (classes) classes.value = propertyClass;
-        else child.attrs.push({ name: 'class', value: propertyClass });
-      }
+      if (kind && url) markRepresentedMedia(child, kind, url);
       visit(
         child,
         child.tagName === 'audio' || child.tagName === 'video'
@@ -100,6 +117,26 @@ export function prepareWritingHtmlMedia(
   };
 }
 
+type AttachmentSource = Pick<WritingData, 'micropub' | 'audio' | 'video'>;
+function attachmentValues(
+  writing: AttachmentSource,
+  property: 'audio' | 'video' | 'file' | 'attachment'
+) {
+  const supplied = writing.micropub?.properties[property];
+  if (supplied != null) return supplied;
+  if (property === 'audio') return writing.audio ?? [];
+  if (property === 'video') return writing.video ?? [];
+  return [];
+}
+
+function attachmentDescription(value: unknown): string | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const item = value as Record<string, unknown>;
+  if (typeof item.alt === 'string') return item.alt || undefined;
+  const properties = item.properties as Record<string, unknown[]> | undefined;
+  return propertyText(properties?.name?.[0]) || undefined;
+}
+
 export function writingAttachments(
   writing: Pick<WritingData, 'micropub' | 'audio' | 'video'>
 ): ResponseMedia[] {
@@ -110,27 +147,11 @@ export function writingAttachments(
     ['file', 'file'],
     ['attachment', 'file'],
   ] as const) {
-    const supplied = writing.micropub?.properties[property];
-    const values =
-      supplied ??
-      (property === 'audio'
-        ? writing.audio
-        : property === 'video'
-          ? writing.video
-          : []) ??
-      [];
+    const values = attachmentValues(writing, property);
     for (const value of values) {
       const url = propertyUrl(value);
       if (!url || result.some((item) => item.url === url)) continue;
-      const item = typeof value === 'object' ? value : undefined;
-      const description =
-        item &&
-        (typeof item.alt === 'string'
-          ? item.alt
-          : propertyText(
-              (item.properties as Record<string, unknown[]> | undefined)
-                ?.name?.[0]
-            ));
+      const description = attachmentDescription(value);
       result.push({
         kind,
         url,

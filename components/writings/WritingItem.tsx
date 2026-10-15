@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/site/dates';
 import { WritingData } from '@/lib/writings/index';
 import { writingAttachments } from '@/lib/writings/media';
 import { locationText } from '@/lib/writings/properties';
+import type { WritingTarget } from '@/lib/writings/types';
 
 import {
   TARGET_ICON,
@@ -28,6 +29,100 @@ interface WritingItemProps {
    * its first sentence, so the whole text rides along hidden as e-content.
    */
   contentHtml?: string;
+}
+
+function EventProperties({ writing }: { writing: WritingData }) {
+  const location = locationText(writing.event?.location ?? writing.location);
+  return (
+    <>
+      {writing.event?.start && (
+        <time className="dt-start hidden" dateTime={writing.event.start} />
+      )}
+      {writing.event?.end && (
+        <time className="dt-end hidden" dateTime={writing.event.end} />
+      )}
+      {location && <span className="p-location hidden">{location}</span>}
+    </>
+  );
+}
+
+function EntryProperties({
+  writing,
+  contentHtml,
+  targets,
+}: {
+  writing: WritingData;
+  contentHtml?: string;
+  targets: WritingTarget[];
+}) {
+  return (
+    <>
+      {targets.map((target) => (
+        <a
+          key={`${target.kind}:${target.url}`}
+          href={target.url}
+          className={`${TARGET_PROPERTY[target.kind]} h-cite hidden`}
+        >
+          {hostOf(target.url)}
+        </a>
+      ))}
+      {writing.rsvp && (
+        <data className="p-rsvp hidden" value={writing.rsvp.status}>
+          {writing.rsvp.status}
+        </data>
+      )}
+      {writing.photos?.map((photo) => (
+        <data key={photo.url} className="u-photo hidden" value={photo.url} />
+      ))}
+      {writingAttachments(writing).map((media) => (
+        <data
+          key={media.url}
+          className={`${media.kind === 'file' ? 'u-attachment' : `u-${media.kind}`} hidden`}
+          value={media.url}
+        />
+      ))}
+      <EventProperties writing={writing} />
+      {contentHtml && (
+        <div
+          className="e-content hidden"
+          dangerouslySetInnerHTML={{ __html: contentHtml }}
+        />
+      )}
+    </>
+  );
+}
+
+function SeriesDetails({
+  writing,
+  seriesName,
+  seriesHref,
+  showSeriesInfo,
+}: WritingItemProps) {
+  return (
+    <>
+      {writing.hasExplicitTitle && (
+        <span
+          className={`flex items-center gap-x-2 whitespace-nowrap medium:col-start-2 medium:row-start-1 medium:self-end ${showSeriesInfo && writing.series ? 'medium:row-span-2' : ''}`}
+        >
+          <span aria-hidden="true" className="medium:hidden">
+            ·
+          </span>
+          <span>{writing.readingTime} min read</span>
+        </span>
+      )}
+      {showSeriesInfo && writing.series && (
+        <p className="basis-full medium:col-start-1 medium:row-start-2">
+          Part {writing.series.part} of{' '}
+          <SiteLink
+            href={seriesHref ?? '/writings'}
+            className="link-animated pointer-events-auto relative z-20 font-medium text-ink"
+          >
+            {seriesName || writing.series.slug}
+          </SiteLink>
+        </p>
+      )}
+    </>
+  );
 }
 
 /**
@@ -59,47 +154,11 @@ export default function WritingItem({
         className="u-url absolute inset-0 z-10 rounded-2xl"
         aria-label={writing.title}
       />
-      {targets.map((target) => (
-        <a
-          key={`${target.kind}:${target.url}`}
-          href={target.url}
-          className={`${TARGET_PROPERTY[target.kind]} h-cite hidden`}
-        >
-          {hostOf(target.url)}
-        </a>
-      ))}
-      {writing.rsvp && (
-        <data className="p-rsvp hidden" value={writing.rsvp.status}>
-          {writing.rsvp.status}
-        </data>
-      )}
-      {writing.photos?.map((photo) => (
-        <data key={photo.url} className="u-photo hidden" value={photo.url} />
-      ))}
-      {writingAttachments(writing).map((media) => (
-        <data
-          key={media.url}
-          className={`${media.kind === 'file' ? 'u-attachment' : `u-${media.kind}`} hidden`}
-          value={media.url}
-        />
-      ))}
-      {writing.event?.start && (
-        <time className="dt-start hidden" dateTime={writing.event.start} />
-      )}
-      {writing.event?.end && (
-        <time className="dt-end hidden" dateTime={writing.event.end} />
-      )}
-      {locationText(writing.event?.location ?? writing.location) && (
-        <span className="p-location hidden">
-          {locationText(writing.event?.location ?? writing.location)}
-        </span>
-      )}
-      {contentHtml && (
-        <div
-          className="e-content hidden"
-          dangerouslySetInnerHTML={{ __html: contentHtml }}
-        />
-      )}
+      <EntryProperties
+        writing={writing}
+        contentHtml={contentHtml}
+        targets={targets}
+      />
 
       <div className="pointer-events-none relative space-y-2">
         {writing.hasExplicitTitle ? (
@@ -145,27 +204,12 @@ export default function WritingItem({
               </span>
             )}
           </p>
-          {writing.hasExplicitTitle && (
-            <span
-              className={`flex items-center gap-x-2 whitespace-nowrap medium:col-start-2 medium:row-start-1 medium:self-end ${showSeriesInfo && writing.series ? 'medium:row-span-2' : ''}`}
-            >
-              <span aria-hidden="true" className="medium:hidden">
-                ·
-              </span>
-              <span>{writing.readingTime} min read</span>
-            </span>
-          )}
-          {showSeriesInfo && writing.series && (
-            <p className="basis-full medium:col-start-1 medium:row-start-2">
-              Part {writing.series.part} of{' '}
-              <SiteLink
-                href={seriesHref ?? '/writings'}
-                className="link-animated pointer-events-auto relative z-20 font-medium text-ink"
-              >
-                {seriesName || writing.series.slug}
-              </SiteLink>
-            </p>
-          )}
+          <SeriesDetails
+            writing={writing}
+            seriesName={seriesName}
+            seriesHref={seriesHref}
+            showSeriesInfo={showSeriesInfo}
+          />
         </div>
       </div>
     </article>

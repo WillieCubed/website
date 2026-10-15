@@ -32,6 +32,11 @@ import {
 } from './records';
 import type { DesiredRecord, LocalBlob, RepoClient } from './types';
 
+export interface SyncWriteSummary {
+  action: 'create' | 'update' | 'delete';
+  uri: string;
+}
+
 export type SyncReport =
   | { status: 'skipped'; reason: string }
   | {
@@ -41,7 +46,7 @@ export type SyncReport =
       deleted: number;
       unchanged: number;
       announced: BlueskyCopyResult[];
-      writes: { action: 'create' | 'update' | 'delete'; uri: string }[];
+      writes: SyncWriteSummary[];
     };
 
 export interface SyncOptions {
@@ -152,6 +157,27 @@ function assertValid(records: DesiredRecord[]): void {
   }
 }
 
+async function preparePublication(client: RepoClient, options: SyncOptions) {
+  const writings = options.writings ?? (await publishedWritings());
+  await validateExplicitBlueskyCopies(client, writings);
+  const desired = await desiredRecords(
+    writings,
+    options.fetchImage ??
+      ((url) =>
+        fetchImageBlob(url, { icon: url === absoluteUrl(site.author.photo) }))
+  );
+  return { writings, desired };
+}
+
+async function syncClient(
+  options: SyncOptions
+): Promise<RepoClient | undefined> {
+  if (options.client) return options.client;
+  const password = appPassword();
+  if (!password) return undefined;
+  return (options.createClient ?? createRepoClient)(password);
+}
+
 /**
  * Make the repo match the published content: the publication record and
  * one document per writing. Runs after a production deploy, once the
@@ -168,25 +194,13 @@ export async function syncAtproto(
       reason: 'NEXT_PUBLIC_ATPROTO_DID or ATPROTO_PUBLICATION_RKEY is not set',
     };
   }
-  let client = options.client;
-  if (!client) {
-    const password = appPassword();
-    if (!password) {
-      return { status: 'skipped', reason: 'ATPROTO_APP_PASSWORD is not set' };
-    }
-    client = await (options.createClient ?? createRepoClient)(password);
-  }
+  const client = await syncClient(options);
+  if (!client)
+    return { status: 'skipped', reason: 'ATPROTO_APP_PASSWORD is not set' };
   const { did } = publishingIdentity();
 
   try {
-    const writings = options.writings ?? (await publishedWritings());
-    await validateExplicitBlueskyCopies(client, writings);
-    const desired = await desiredRecords(
-      writings,
-      options.fetchImage ??
-        ((url) =>
-          fetchImageBlob(url, { icon: url === absoluteUrl(site.author.photo) }))
-    );
+    const { writings, desired } = await preparePublication(client, options);
     assertValid(desired);
     const existing = [
       ...(await client.listRecords(PUBLICATION_COLLECTION)),

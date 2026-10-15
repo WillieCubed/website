@@ -3,7 +3,7 @@ import { parseDraftContent } from '@/lib/studio/document';
 import { StudioError } from '@/lib/studio/errors';
 import { getStudioStore } from '@/lib/studio/store';
 
-type Context = { params: Promise<{ id: string }> };
+type Context = RouteContext<'/api/studio/documents/[id]'>;
 export async function GET(request: Request, context: Context) {
   return studioRoute(request, async () => {
     const value = await getStudioStore().get((await context.params).id);

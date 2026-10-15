@@ -1,6 +1,6 @@
-import type { ResponseGroup as WebmentionGroup } from '@/lib/indieweb/webmention/types';
+import type { ResponseGroup } from '@/lib/indieweb/webmention/types';
 
-export const emptyResponses = (): WebmentionGroup => ({
+export const emptyResponses = (): ResponseGroup => ({
   likes: [],
   reposts: [],
   replies: [],
@@ -9,9 +9,9 @@ export const emptyResponses = (): WebmentionGroup => ({
   rsvps: [],
 });
 export function mergeResponses(
-  indieweb: WebmentionGroup | null,
-  atmosphere: WebmentionGroup
-): WebmentionGroup {
+  indieweb: ResponseGroup | null,
+  atmosphere: ResponseGroup
+): ResponseGroup {
   const output = emptyResponses();
   const aliases = new Map<string, string>();
   const canonical = (url: string) => {
@@ -27,7 +27,7 @@ export function mergeResponses(
     for (const url of [response.sourceUrl, ...(response.sourceAliases ?? [])])
       aliases.set(canonical(url), canonical(response.sourceUrl));
   }
-  for (const key of Object.keys(output) as (keyof WebmentionGroup)[]) {
+  for (const key of Object.keys(output) as (keyof ResponseGroup)[]) {
     const seen = new Set<string>();
     output[key] = [...(indieweb?.[key] ?? []), ...atmosphere[key]].filter(
       (response) => {

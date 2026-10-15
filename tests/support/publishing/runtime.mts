@@ -68,59 +68,10 @@ export async function sourceManifest(
     const bytes = await readFile(actual);
     entries.set(key, createHash('sha256').update(bytes).digest('hex'));
     if (!/\.(?:[cm]?[jt]sx?)$/.test(actual)) return;
-    const tree = ts.createSourceFile(
-      actual,
-      bytes.toString('utf8'),
-      ts.ScriptTarget.Latest,
-      true
-    );
-    const references: string[] = [];
-    function collect(node: ts.Node): void {
-      if (
-        (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
-        node.moduleSpecifier &&
-        ts.isStringLiteral(node.moduleSpecifier)
-      )
-        references.push(node.moduleSpecifier.text);
-      if (
-        ts.isCallExpression(node) &&
-        node.expression.kind === ts.SyntaxKind.ImportKeyword &&
-        node.arguments[0] &&
-        ts.isStringLiteral(node.arguments[0])
-      )
-        references.push(node.arguments[0].text);
-      ts.forEachChild(node, collect);
-    }
-    collect(tree);
+    const references = sourceReferences(actual, bytes.toString('utf8'));
     for (const reference of references) {
-      if (!reference.startsWith('.') && !reference.startsWith('@/')) continue;
-      const target = reference.startsWith('@/')
-        ? resolve(root, reference.slice(2))
-        : resolve(dirname(actual), reference);
-      let found: string | undefined;
-      for (const candidate of [
-        target,
-        ...[
-          '.ts',
-          '.tsx',
-          '.mts',
-          '.mjs',
-          '.js',
-          '/index.ts',
-          '/index.mts',
-        ].map((suffix) => target + suffix),
-      ]) {
-        try {
-          if ((await stat(candidate)).isFile()) {
-            found = candidate;
-            break;
-          }
-        } catch (error) {
-          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-        }
-      }
-      if (!found)
-        throw new Error(`Source dependency cannot be found: ${reference}`);
+      const found = await localDependency(reference, actual, root);
+      if (!found) continue;
       await visit(found);
     }
   }
@@ -128,4 +79,62 @@ export async function sourceManifest(
   return Object.fromEntries(
     [...entries].sort(([a], [b]) => a.localeCompare(b))
   );
+}
+
+function sourceReferences(actual: string, source: string): string[] {
+  const tree = ts.createSourceFile(
+    actual,
+    source,
+    ts.ScriptTarget.Latest,
+    true
+  );
+  const references: string[] = [];
+  function collect(node: ts.Node): void {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    )
+      references.push(node.moduleSpecifier.text);
+    if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      node.arguments[0] &&
+      ts.isStringLiteral(node.arguments[0])
+    )
+      references.push(node.arguments[0].text);
+    ts.forEachChild(node, collect);
+  }
+  collect(tree);
+  return references;
+}
+async function localDependency(
+  reference: string,
+  actual: string,
+  root: string
+): Promise<string | undefined> {
+  if (!reference.startsWith('.') && !reference.startsWith('@/'))
+    return undefined;
+  const target = reference.startsWith('@/')
+    ? resolve(root, reference.slice(2))
+    : resolve(dirname(actual), reference);
+  let found: string | undefined;
+  for (const candidate of [
+    target,
+    ...['.ts', '.tsx', '.mts', '.mjs', '.js', '/index.ts', '/index.mts'].map(
+      (suffix) => target + suffix
+    ),
+  ]) {
+    try {
+      if ((await stat(candidate)).isFile()) {
+        found = candidate;
+        break;
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+  }
+  if (!found)
+    throw new Error(`Source dependency cannot be found: ${reference}`);
+  return found;
 }

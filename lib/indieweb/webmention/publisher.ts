@@ -9,15 +9,18 @@ import {
   targetsForUpdatedPost,
   webmentionTargetsForWriting,
 } from './send';
-import type { WebmentionSourceWriting } from './types';
+import type {
+  WebmentionDeliveryStatus,
+  WebmentionPublishResult,
+  WebmentionSendResult,
+  WebmentionSourceDocument,
+  WebmentionSourceWriting,
+} from './types';
 
 export interface WebmentionPublisherServices {
   getWritingSlugs(): Promise<string[]>;
-  loadWriting(slug: string): Promise<{
-    writing: WebmentionSourceWriting & { draft: boolean };
-    content: string;
-  }>;
-  send: typeof sendWebmention;
+  loadWriting(slug: string): Promise<WebmentionSourceDocument>;
+  send(sourceUrl: string, targetUrl: string): Promise<WebmentionSendResult>;
 }
 
 function unchangedTerminalDelivery(
@@ -37,7 +40,9 @@ function unchangedTerminalDelivery(
   );
 }
 
-function deliveryStatus(result: Awaited<ReturnType<typeof sendWebmention>>) {
+function deliveryStatus(
+  result: WebmentionSendResult
+): WebmentionDeliveryStatus {
   return result.success
     ? 'sent'
     : result.error === 'No webmention endpoint found'
@@ -47,11 +52,7 @@ function deliveryStatus(result: Awaited<ReturnType<typeof sendWebmention>>) {
 
 export async function sendChangedWebmentions(
   services?: WebmentionPublisherServices
-): Promise<{
-  sent: number;
-  failed: number;
-  unsupported: number;
-}> {
+): Promise<WebmentionPublishResult> {
   if (process.env.SKIP_WEBMENTIONS === 'true')
     return { sent: 0, failed: 0, unsupported: 0 };
   if (!hasDatabase()) {
@@ -61,38 +62,93 @@ export async function sendChangedWebmentions(
   const { getWritingSlugs, loadWriting } =
     services ?? (await import('../../writings/load'));
   const send = services?.send ?? sendWebmention;
-  let sent = 0;
-  let failed = 0;
-  let unsupported = 0;
+  const counts = { sent: 0, failed: 0, unsupported: 0 };
   const published = new Set<string>();
   for (const slug of await getWritingSlugs()) {
     const { writing, content } = await loadWriting(slug);
     if (writing.draft) continue;
     published.add(slug);
 
-    const sourceUrl = absoluteUrl(`/writings/${slug}`);
-    const currentTargets = webmentionTargetsForWriting(writing, content);
-    const contentHash = createHash('sha256')
-      .update(JSON.stringify({ content, currentTargets }))
-      .digest('hex');
-    const previous = await sql`
+    await publishWritingMentions({ sql, send, counts }, slug, writing, content);
+  }
+  const former =
+    await sql<DeliveryRow>`SELECT source_url, target_url, post_slug, content_hash, status, response_code FROM outgoing_webmentions`;
+  for (const row of former.rows) {
+    if (!published.has(String(row.post_slug)))
+      await deliverUnpublishedTarget({ sql, send, counts }, row);
+  }
+  console.log(
+    `Webmentions sent: ${counts.sent}; failed: ${counts.failed}; unsupported: ${counts.unsupported}`
+  );
+  return counts;
+}
+
+type DeliveryContext = {
+  sql: typeof import('@/lib/db/postgres').sql;
+  send: WebmentionPublisherServices['send'];
+  counts: WebmentionPublishResult;
+};
+interface DeliveryRow extends DeliveryState {
+  source_url: string;
+  post_slug: string;
+}
+interface DeliveryState extends Readonly<Record<string, unknown>> {
+  target_url: string;
+  content_hash: string;
+  status: string;
+  response_code: number | null;
+}
+async function publishWritingMentions(
+  context: DeliveryContext,
+  slug: string,
+  writing: WebmentionSourceWriting,
+  content: string
+) {
+  const { sql, send, counts } = context;
+  const sourceUrl = absoluteUrl(`/writings/${slug}`);
+  const currentTargets = webmentionTargetsForWriting(writing, content);
+  const contentHash = createHash('sha256')
+    .update(JSON.stringify({ content, currentTargets }))
+    .digest('hex');
+  const previous = await sql<DeliveryState>`
       SELECT target_url, content_hash, status, response_code FROM outgoing_webmentions
       WHERE post_slug = ${slug}
     `;
-    const targets = targetsForUpdatedPost(
-      currentTargets,
-      previous.rows.map((row) => String(row.target_url))
-    );
+  const targets = targetsForUpdatedPost(
+    currentTargets,
+    previous.rows.map((row) => String(row.target_url))
+  );
 
-    for (const targetUrl of targets) {
-      const old = previous.rows.find((row) => row.target_url === targetUrl);
-      if (unchangedTerminalDelivery(old, contentHash)) {
-        if (old?.status === 'no_endpoint') unsupported++;
-        continue;
-      }
-      const result = await send(sourceUrl, targetUrl);
-      const status = deliveryStatus(result);
-      await sql`
+  for (const targetUrl of targets) {
+    await deliverPublishedTarget(
+      { sql, send, counts },
+      { sourceUrl, targetUrl, slug, contentHash },
+      previous.rows.find((row) => row.target_url === targetUrl)
+    );
+  }
+}
+async function deliverPublishedTarget(
+  { sql, send, counts }: DeliveryContext,
+  {
+    sourceUrl,
+    targetUrl,
+    slug,
+    contentHash,
+  }: {
+    sourceUrl: string;
+    targetUrl: string;
+    slug: string;
+    contentHash: string;
+  },
+  old?: DeliveryState
+) {
+  if (unchangedTerminalDelivery(old, contentHash)) {
+    if (old?.status === 'no_endpoint') counts.unsupported++;
+    return;
+  }
+  const result = await send(sourceUrl, targetUrl);
+  const status = deliveryStatus(result);
+  await sql`
         INSERT INTO outgoing_webmentions
           (source_url, target_url, post_slug, content_hash, status, endpoint_url,
            response_code, error_message, sent_at)
@@ -108,32 +164,28 @@ export async function sendChangedWebmentions(
           error_message = EXCLUDED.error_message,
           sent_at = EXCLUDED.sent_at
       `;
-      if (status === 'sent') sent++;
-      else if (status === 'no_endpoint') unsupported++;
-      else failed++;
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
+  countDelivery(counts, status);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+}
+async function deliverUnpublishedTarget(
+  { sql, send, counts }: DeliveryContext,
+  row: DeliveryRow
+) {
+  const hash = createHash('sha256')
+    .update(`unpublished:${row.source_url}`)
+    .digest('hex');
+  if (unchangedTerminalDelivery(row, hash)) {
+    if (row.status === 'no_endpoint') counts.unsupported++;
+    return;
   }
-  const former =
-    await sql`SELECT source_url, target_url, post_slug, content_hash, status, response_code FROM outgoing_webmentions`;
-  for (const row of former.rows) {
-    if (published.has(String(row.post_slug))) continue;
-    const hash = createHash('sha256')
-      .update(`unpublished:${row.source_url}`)
-      .digest('hex');
-    if (unchangedTerminalDelivery(row, hash)) {
-      if (row.status === 'no_endpoint') unsupported++;
-      continue;
-    }
-    const result = await send(String(row.source_url), String(row.target_url));
-    const status = deliveryStatus(result);
-    await sql`UPDATE outgoing_webmentions SET content_hash = ${hash}, status = ${status}, endpoint_url = ${result.endpoint ?? null}, response_code = ${result.statusCode ?? null}, error_message = ${result.error ?? null}, sent_at = ${result.success ? new Date().toISOString() : null} WHERE source_url = ${row.source_url} AND target_url = ${row.target_url}`;
-    if (status === 'sent') sent++;
-    else if (status === 'no_endpoint') unsupported++;
-    else failed++;
-  }
-  console.log(
-    `Webmentions sent: ${sent}; failed: ${failed}; unsupported: ${unsupported}`
-  );
-  return { sent, failed, unsupported };
+  const result = await send(String(row.source_url), String(row.target_url));
+  const status = deliveryStatus(result);
+  await sql`UPDATE outgoing_webmentions SET content_hash = ${hash}, status = ${status}, endpoint_url = ${result.endpoint ?? null}, response_code = ${result.statusCode ?? null}, error_message = ${result.error ?? null}, sent_at = ${result.success ? new Date().toISOString() : null} WHERE source_url = ${row.source_url} AND target_url = ${row.target_url}`;
+  countDelivery(counts, status);
+}
+function countDelivery(
+  counts: WebmentionPublishResult,
+  status: WebmentionDeliveryStatus
+) {
+  counts[status === 'no_endpoint' ? 'unsupported' : status]++;
 }

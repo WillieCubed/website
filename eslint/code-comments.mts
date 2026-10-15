@@ -28,57 +28,11 @@ export const stylesheetComments: Linter.Processor<string> = {
 /** Expose hash comments without inspecting quoted values or heredoc bodies. */
 export const hashComments: Linter.Processor<string> = {
   preprocess(source) {
-    let quote: '"' | "'" | undefined;
-    const heredocs: { delimiter: string; tabs: boolean }[] = [];
+    const scanner = new HashCommentScanner();
     return [
       source
         .split('\n')
-        .map((line) => {
-          if (heredocs.length) {
-            const { delimiter, tabs } = heredocs[0];
-            if (
-              (tabs ? line.replace(/^\t+/, '') : line).replace(/\r$/, '') ===
-              delimiter
-            )
-              heredocs.shift();
-            return blank(line);
-          }
-          for (let index = 0; index < line.length; index++) {
-            const character = line[index];
-            if (character === '\\' && quote !== "'") {
-              index++;
-              continue;
-            }
-            if (quote) {
-              if (character === quote) quote = undefined;
-              continue;
-            }
-            if (character === "'" || character === '"') {
-              quote = character;
-              continue;
-            }
-            if (
-              character === '#' &&
-              (index === 0 || /[\s;|&()]/.test(line[index - 1]))
-            ) {
-              if (index === 0 && line.startsWith('#!')) return blank(line);
-              return blank(line.slice(0, index)) + '//' + line.slice(index + 1);
-            }
-            if (line.startsWith('<<', index)) {
-              const heredoc = /^<<(-?)\s*(?:'([^']+)'|"([^"]+)"|([\w-]+))/.exec(
-                line.slice(index)
-              );
-              if (heredoc) {
-                heredocs.push({
-                  delimiter: heredoc[2] ?? heredoc[3] ?? heredoc[4],
-                  tabs: Boolean(heredoc[1]),
-                });
-                index += heredoc[0].length - 1;
-              }
-            }
-          }
-          return blank(line);
-        })
+        .map((line) => scanner.line(line))
         .join('\n'),
     ];
   },
@@ -90,3 +44,64 @@ export const hashComments: Linter.Processor<string> = {
     }));
   },
 };
+
+class HashCommentScanner {
+  quote: '"' | "'" | undefined;
+  heredocs: { delimiter: string; tabs: boolean }[] = [];
+
+  line(line: string) {
+    if (this.heredocs.length) {
+      const { delimiter, tabs } = this.heredocs[0];
+      if (
+        (tabs ? line.replace(/^\t+/, '') : line).replace(/\r$/, '') ===
+        delimiter
+      )
+        this.heredocs.shift();
+      return blank(line);
+    }
+    for (let index = 0; index < line.length; index++) {
+      const quoted = this.consumeQuoted(line[index]);
+      if (quoted === 'escape') index++;
+      if (quoted) continue;
+      const comment = this.commentSuffix(line, index);
+      if (comment !== null) return comment;
+      index += this.consumeHeredoc(line, index);
+    }
+    return blank(line);
+  }
+
+  consumeQuoted(character: string) {
+    if (character === '\\' && this.quote !== "'") return 'escape';
+    if (this.quote) {
+      if (character === this.quote) this.quote = undefined;
+      return 'quoted';
+    }
+    if (character === "'" || character === '"') {
+      this.quote = character;
+      return 'quoted';
+    }
+    return null;
+  }
+
+  commentSuffix(line: string, index: number) {
+    if (
+      line[index] !== '#' ||
+      !(index === 0 || /[\s;|&()]/.test(line[index - 1]))
+    )
+      return null;
+    if (index === 0 && line.startsWith('#!')) return blank(line);
+    return blank(line.slice(0, index)) + '//' + line.slice(index + 1);
+  }
+
+  consumeHeredoc(line: string, index: number) {
+    const heredoc = /^<<(-?)\s*(?:'([^']+)'|"([^"]+)"|([\w-]+))/.exec(
+      line.slice(index)
+    );
+    if (!heredoc) return 0;
+    this.heredocs.push({
+      delimiter: heredoc[2] ?? heredoc[3] ?? heredoc[4],
+      tabs: Boolean(heredoc[1]),
+    });
+    return heredoc[0].length - 1;
+  }
+}

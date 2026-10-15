@@ -56,18 +56,9 @@ function* articleImages(value: unknown): Generator<string> {
 
 export function discoverImages(html: string, articleUrl: string): Candidate[] {
   const nodes = [...elements(parse(html))];
-  let base = articleUrl;
-  const baseElement = nodes.find((node) => node.tagName === 'base');
-  const href = baseElement?.attrs.find((attr) => attr.name === 'href')?.value;
-  if (href) {
-    try {
-      base = new URL(href, articleUrl).href;
-    } catch {
-      // Invalid publisher markup must not hide the other candidates.
-    }
-  }
+  const base = articleBase(nodes, articleUrl);
   const candidates = new Map<string, Candidate>();
-  const add = (raw: string, alt = '', caption = '') => {
+  const add = (raw: string, alt?: string, caption?: string) => {
     let source: URL;
     try {
       source = new URL(raw, base);
@@ -86,52 +77,9 @@ export function discoverImages(html: string, articleUrl: string): Candidate[] {
     const attrs = Object.fromEntries(
       node.attrs.map(({ name, value }) => [name, value])
     );
-    if (node.tagName === 'img' || node.tagName === 'source') {
-      let parent = node.parentNode;
-      while (parent && !('tagName' in parent && parent.tagName === 'figure')) {
-        parent = 'parentNode' in parent ? parent.parentNode : null;
-      }
-      const caption = parent
-        ? nodeText(parent).replace(/\s+/g, ' ').trim()
-        : '';
-      for (const raw of [
-        attrs.src,
-        attrs['data-src'],
-        attrs['data-original'],
-      ]) {
-        if (raw) add(raw, attrs.alt, caption);
-      }
-      for (const srcset of [attrs.srcset, attrs['data-srcset']]) {
-        for (const entry of srcset?.split(',') ?? []) {
-          const raw = entry.trim().split(/\s+/)[0];
-          if (raw) add(raw, attrs.alt, caption);
-        }
-      }
-    }
-    if (node.tagName === 'video' && attrs.poster) add(attrs.poster);
-    if (
-      node.tagName === 'meta' &&
-      ['og:image', 'twitter:image'].includes(attrs.property ?? attrs.name) &&
-      attrs.content
-    ) {
-      add(attrs.content);
-    }
-    if (node.tagName === 'script') {
-      const text = nodeText(node);
-      // Arc publishes its article as JSON inside an assignment; never execute it.
-      const json =
-        attrs.type === 'application/ld+json'
-          ? text
-          : text.match(
-              /Fusion\.globalContent\s*=\s*([\s\S]*?);\s*Fusion\.globalContentConfig\s*=/
-            )?.[1];
-      if (!json) continue;
-      try {
-        for (const raw of articleImages(JSON.parse(json))) add(raw);
-      } catch {
-        // One malformed metadata block must not discard HTML image candidates.
-      }
-    }
+    if (node.tagName === 'img' || node.tagName === 'source')
+      addResponsiveImages(node, attrs, add);
+    addPublisherMetadata(node, attrs, add);
   }
   return [...candidates.values()];
 }
@@ -177,17 +125,7 @@ export async function fetchMentionImage(
 }
 
 export async function runMediaFetch() {
-  const [command, argument, ...extra] = process.argv.slice(2);
-  if (
-    !['discover', 'fetch'].includes(command) ||
-    !argument ||
-    extra.length ||
-    (command === 'discover' && argument === '--all')
-  ) {
-    throw new Error(
-      'Usage: pnpm media:discover <id> | pnpm media:fetch <id|--all>'
-    );
-  }
+  const { command, argument } = mediaFetchArguments(process.argv.slice(2));
   const mentions =
     argument === '--all'
       ? getMediaMentions({ includeDrafts: true }).filter(
@@ -216,4 +154,96 @@ if (
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 ) {
   await runMediaFetch();
+}
+
+function articleBase(nodes: Element[], articleUrl: string) {
+  let base = articleUrl;
+  const baseElement = nodes.find((node) => node.tagName === 'base');
+  const href = baseElement?.attrs.find((attr) => attr.name === 'href')?.value;
+  if (href) {
+    try {
+      base = new URL(href, articleUrl).href;
+    } catch {
+      // Invalid publisher markup must not hide the other candidates.
+    }
+  }
+  return base;
+}
+
+function figureCaption(node: Element) {
+  let parent = node.parentNode;
+  while (parent && !('tagName' in parent && parent.tagName === 'figure')) {
+    parent = 'parentNode' in parent ? parent.parentNode : null;
+  }
+  return parent ? nodeText(parent).replace(/\s+/g, ' ').trim() : '';
+}
+
+type AddImage = (raw: string, alt?: string, caption?: string) => void;
+function addResponsiveImages(
+  node: Element,
+  attrs: Record<string, string>,
+  add: AddImage
+) {
+  const caption = figureCaption(node);
+  for (const raw of [attrs.src, attrs['data-src'], attrs['data-original']]) {
+    if (raw) add(raw, attrs.alt, caption);
+  }
+  for (const srcset of [attrs.srcset, attrs['data-srcset']]) {
+    for (const entry of srcset?.split(',') ?? []) {
+      const raw = entry.trim().split(/\s+/)[0];
+      if (raw) add(raw, attrs.alt, caption);
+    }
+  }
+}
+
+function addPublisherMetadata(
+  node: Element,
+  attrs: Record<string, string>,
+  add: AddImage
+) {
+  if (node.tagName === 'video' && attrs.poster) add(attrs.poster);
+  if (
+    node.tagName === 'meta' &&
+    ['og:image', 'twitter:image'].includes(attrs.property ?? attrs.name) &&
+    attrs.content
+  ) {
+    add(attrs.content);
+  }
+  if (node.tagName === 'script') addStructuredMetadata(node, attrs, add);
+}
+
+function mediaFetchArguments(args: string[]) {
+  const [command, argument, ...extra] = args;
+  if (
+    !['discover', 'fetch'].includes(command) ||
+    !argument ||
+    extra.length ||
+    (command === 'discover' && argument === '--all')
+  ) {
+    throw new Error(
+      'Usage: pnpm media:discover <id> | pnpm media:fetch <id|--all>'
+    );
+  }
+  return { command, argument };
+}
+
+function addStructuredMetadata(
+  node: Element,
+  attrs: Record<string, string>,
+  add: AddImage
+) {
+  const text = nodeText(node);
+  // Arc publishes its article as JSON inside an assignment; never execute it.
+  const json =
+    attrs.type === 'application/ld+json'
+      ? text
+      : text.match(
+          /Fusion\.globalContent\s*=\s*([\s\S]*?);\s*Fusion\.globalContentConfig\s*=/
+        )?.[1];
+  if (!json) return;
+  try {
+    for (const raw of articleImages(JSON.parse(json))) add(raw);
+  } catch {
+    // One malformed metadata block must not discard HTML image candidates.
+  }
 }

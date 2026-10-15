@@ -11,7 +11,7 @@ import { readWritingFile } from '@/lib/writings/load';
  */
 export async function GET(
   _request: Request,
-  context: { params: Promise<{ slug: string }> }
+  context: RouteContext<'/api/studio-publication/[slug]'>
 ) {
   if (process.env.SITE_MODE === 'preview')
     return new Response('Not found', { status: 404 });

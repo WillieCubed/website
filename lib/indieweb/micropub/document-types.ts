@@ -1,3 +1,5 @@
+import type { Mf2Properties } from './types';
+
 /*
  * A writing file seen as a Micropub post: its frontmatter and body read as
  * mf2 properties for q=source, and edited in place for an update. An edit
@@ -13,8 +15,8 @@ export class MicropubRequestError extends Error {
     this.name = 'MicropubRequestError';
   }
 }
-export type Mf2Value = string | { [key: string]: unknown };
-export type Mf2Properties = Record<string, Mf2Value[]>;
+
+export type { Mf2Value, Mf2Properties } from './types';
 export interface Mf2Entry {
   type?: string[];
   properties: Mf2Properties;

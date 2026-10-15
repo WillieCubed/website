@@ -7,7 +7,7 @@ import {
 import { getStudioStore } from '@/lib/studio/store';
 
 export const maxDuration = 180;
-type Context = { params: Promise<{ id: string }> };
+type Context = RouteContext<'/api/studio/generations/[id]'>;
 export async function GET(request: Request, context: Context) {
   return studioRoute(request, async () => {
     const generation = await getStudioStore().getGeneration(

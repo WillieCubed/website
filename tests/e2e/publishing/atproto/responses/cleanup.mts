@@ -28,71 +28,8 @@ export async function cleanup(dependencies: Context) {
   assert(dependencies.receipt);
   for (const entry of [...dependencies.receipt.owned].reverse())
     await dependencies.remove(entry);
-  const current = await dependencies.get(
-    dependencies.config.DOCUMENT_COLLECTION,
-    dependencies.receipt.document.rkey
-  );
-  assert(current, 'Do not recreate a fixture deleted by someone else.');
-  if (
-    !isDeepStrictEqual(
-      current.value,
-      dependencies.receipt.document.original.value
-    )
-  ) {
-    assert(
-      dependencies.receipt.document.expected &&
-        isDeepStrictEqual(
-          current.value,
-          dependencies.receipt.document.expected
-        ),
-      'The fixture document changed outside this runner.'
-    );
-    await dependencies.client.putRecord!(
-      dependencies.config.DOCUMENT_COLLECTION,
-      dependencies.receipt.document.rkey,
-      dependencies.receipt.document.original.value,
-      current.cid
-    );
-  }
-  assert(
-    isDeepStrictEqual(
-      (
-        await dependencies.get(
-          dependencies.config.DOCUMENT_COLLECTION,
-          dependencies.receipt.document.rkey
-        )
-      )?.value,
-      dependencies.receipt.document.original.value
-    )
-  );
-  assert(
-    (
-      await dependencies.get(
-        dependencies.config.DOCUMENT_COLLECTION,
-        dependencies.receipt.document.rkey
-      )
-    )?.cid === dependencies.receipt.document.original.cid
-  );
-  dependencies.receipt.document.restored = true;
-  await dependencies.save();
-  const original = dependencies.receipt.source.original,
-    temporary = dependencies.receipt.source.temporary;
-  const source = await readFile(dependencies.receipt.source.path, 'utf8');
-  assert(
-    source === original ||
-      source === temporary ||
-      !!dependencies.receipt.source.versions?.includes(source),
-    'The fixture source changed outside this runner.'
-  );
-  if (source !== original)
-    await writeFile(dependencies.receipt.source.path, original);
-  if (temporary && !dependencies.receipt.source.deployed) {
-    await dependencies.deploy();
-    dependencies.receipt.source.deployed = true;
-    await dependencies.save();
-  }
-  dependencies.receipt.source.restored = true;
-  await dependencies.save();
+  await restoreDocument(dependencies, dependencies.receipt);
+  await restoreSource(dependencies, dependencies.receipt);
   const documents = await dependencies.client.listRecords(
     dependencies.config.DOCUMENT_COLLECTION
   );
@@ -114,5 +51,67 @@ export async function cleanup(dependencies: Context) {
     await db.end();
   }
   dependencies.receipt.cleanup = 'passed';
+  await dependencies.save();
+}
+
+async function restoreDocument(dependencies: Context, receipt: Receipt) {
+  const current = await dependencies.get(
+    dependencies.config.DOCUMENT_COLLECTION,
+    receipt.document.rkey
+  );
+  assert(current, 'Do not recreate a fixture deleted by someone else.');
+  if (!isDeepStrictEqual(current.value, receipt.document.original.value)) {
+    assert(
+      receipt.document.expected &&
+        isDeepStrictEqual(current.value, receipt.document.expected),
+      'The fixture document changed outside this runner.'
+    );
+    await dependencies.client.putRecord!(
+      dependencies.config.DOCUMENT_COLLECTION,
+      receipt.document.rkey,
+      receipt.document.original.value,
+      current.cid
+    );
+  }
+  assert(
+    isDeepStrictEqual(
+      (
+        await dependencies.get(
+          dependencies.config.DOCUMENT_COLLECTION,
+          receipt.document.rkey
+        )
+      )?.value,
+      receipt.document.original.value
+    )
+  );
+  assert(
+    (
+      await dependencies.get(
+        dependencies.config.DOCUMENT_COLLECTION,
+        receipt.document.rkey
+      )
+    )?.cid === receipt.document.original.cid
+  );
+  receipt.document.restored = true;
+  await dependencies.save();
+}
+
+async function restoreSource(dependencies: Context, receipt: Receipt) {
+  const original = receipt.source.original,
+    temporary = receipt.source.temporary;
+  const source = await readFile(receipt.source.path, 'utf8');
+  assert(
+    source === original ||
+      source === temporary ||
+      !!receipt.source.versions?.includes(source),
+    'The fixture source changed outside this runner.'
+  );
+  if (source !== original) await writeFile(receipt.source.path, original);
+  if (temporary && !receipt.source.deployed) {
+    await dependencies.deploy();
+    receipt.source.deployed = true;
+    await dependencies.save();
+  }
+  receipt.source.restored = true;
   await dependencies.save();
 }

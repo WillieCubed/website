@@ -64,6 +64,25 @@ export type RSVPData = {
   status: RSVPStatus;
 };
 
+export type WritingTargetKind =
+  | 'reply'
+  | 'like'
+  | 'repost'
+  | 'bookmark'
+  | 'rsvp';
+
+/** A public page this writing replies to or otherwise responds to. */
+export interface WritingTarget {
+  url: string;
+  kind: WritingTargetKind;
+}
+
+export interface WritingEvent {
+  start?: string;
+  end?: string;
+  location?: unknown;
+}
+
 export type WritingData = {
   slug: string;
   /** Headline, or the first sentence of the body for posts that have none. */
@@ -100,7 +119,7 @@ export type WritingData = {
   };
   audio?: string[];
   video?: string[];
-  event?: { start?: string; end?: string; location?: unknown };
+  event?: WritingEvent;
   location?: unknown;
   /** Type of post for IndieWeb h-entry classification */
   postType: PostType;
@@ -124,5 +143,12 @@ export type TOCHeading = {
   text: string;
   level: 2 | 3 | 4;
 };
+
+/** A writing's source together with its parsed metadata and heading outline. */
+export interface WritingDocument {
+  content: string;
+  writing: WritingData;
+  headings: TOCHeading[];
+}
 
 // Retained type re-export for existing callers.

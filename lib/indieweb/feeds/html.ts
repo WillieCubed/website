@@ -120,95 +120,127 @@ export function auditPortableContent(source: string): string[] {
   return issues;
 }
 
+type ComponentRenderer = (
+  node: MdastLike,
+  inline: boolean,
+  originalUrl?: string
+) => MdastLike[];
+const COMPONENT_RENDERERS = new Map<string, ComponentRenderer>([
+  ['Ref', reference],
+  ['Callout', callout],
+  ['Figure', figure],
+  ['ImageWithCaption', figure],
+  ['Scene', figure],
+  [
+    'Spotify',
+    (node, inline) => embed(attr(node, 'url'), 'Listen on Spotify', inline),
+  ],
+  [
+    'SpotifyEmbed',
+    (node, inline) => embed(attr(node, 'url'), 'Listen on Spotify', inline),
+  ],
+  [
+    'SoundCloud',
+    (node, inline) => embed(attr(node, 'url'), 'Listen on SoundCloud', inline),
+  ],
+  [
+    'SoundCloudEmbed',
+    (node, inline) => embed(attr(node, 'url'), 'Listen on SoundCloud', inline),
+  ],
+  ['YouTube', youtube],
+  ['YouTubeEmbed', youtube],
+  [
+    'StudioBlock',
+    (node, _inline, originalUrl) => portableBlock(node, originalUrl),
+  ],
+  [
+    'PortableBlock',
+    (node, _inline, originalUrl) => portableBlock(node, originalUrl),
+  ],
+  [
+    'Gallery',
+    (node, _inline, originalUrl) => interactivePlaceholder(node, originalUrl),
+  ],
+  [
+    'RouteMap',
+    (node, _inline, originalUrl) => interactivePlaceholder(node, originalUrl),
+  ],
+]);
+
 /** Embeds become links; interactive components retain a portable alternative. */
 function replaceComponent(
   node: MdastLike,
   inline: boolean,
   originalUrl?: string
 ): MdastLike[] {
-  const embed = (url: string | undefined, label: string) => {
-    if (!url) return [];
-    const anchor = link(url, label);
-    return [inline ? anchor : { type: 'paragraph', children: [anchor] }];
-  };
-
-  switch (node.name) {
-    case 'Ref': {
-      const href = attr(node, 'href');
-      return href
-        ? [{ type: 'link', url: href, title: null, children: node.children }]
-        : (node.children ?? []);
-    }
-    case 'Callout': {
-      const title = attr(node, 'title');
-      const heading = title
-        ? [
-            {
-              type: 'paragraph',
-              children: [{ type: 'strong', children: [text(title)] }],
-            },
-          ]
-        : [];
-      return [block('aside', [...heading, ...(node.children ?? [])])];
-    }
-    case 'Figure':
-    case 'ImageWithCaption':
-    case 'Scene':
-      return figure(node);
-    case 'Spotify':
-    case 'SpotifyEmbed':
-      return embed(attr(node, 'url'), 'Listen on Spotify');
-    case 'SoundCloud':
-    case 'SoundCloudEmbed':
-      return embed(attr(node, 'url'), 'Listen on SoundCloud');
-    case 'YouTube':
-    case 'YouTubeEmbed': {
-      const videoId = attr(node, 'videoId');
-      return embed(
-        videoId && `https://www.youtube.com/watch?v=${videoId}`,
-        attr(node, 'title') ?? 'Watch on YouTube'
-      );
-    }
-    case 'StudioBlock':
-    case 'PortableBlock': {
-      const portable = portableMarkdown(node);
-      if (!portable)
-        throw new Error(`${node.name} is missing valid portable Markdown`);
-      return [
-        ...portable,
-        ...(node.name === 'StudioBlock' && originalUrl
-          ? [
-              block('p', [
-                link(
-                  originalUrl,
-                  'Open interactive version on the original page'
-                ),
-              ]),
-            ]
-          : []),
-      ];
-    }
-    case 'Gallery':
-    case 'RouteMap': {
-      const label =
-        attr(node, 'title') ||
-        (node.name === 'Gallery' ? 'Photo gallery' : 'Route map');
-      return [
-        block('p', [
-          ...(originalUrl
-            ? [link(originalUrl, `${label}: view on the original page`)]
-            : [
-                text(
-                  `${label}. View this interactive content on the original page.`
-                ),
-              ]),
-        ]),
-        ...(node.children ?? []),
-      ];
-    }
-    default:
-      return node.children ?? [];
-  }
+  const render = COMPONENT_RENDERERS.get(node.name ?? '');
+  return render ? render(node, inline, originalUrl) : (node.children ?? []);
+}
+function embed(
+  url: string | undefined,
+  label: string,
+  inline: boolean
+): MdastLike[] {
+  if (!url) return [];
+  const anchor = link(url, label);
+  return [inline ? anchor : { type: 'paragraph', children: [anchor] }];
+}
+function reference(node: MdastLike): MdastLike[] {
+  const href = attr(node, 'href');
+  return href
+    ? [{ type: 'link', url: href, title: null, children: node.children }]
+    : (node.children ?? []);
+}
+function callout(node: MdastLike): MdastLike[] {
+  const title = attr(node, 'title');
+  const heading = title
+    ? [
+        {
+          type: 'paragraph',
+          children: [{ type: 'strong', children: [text(title)] }],
+        },
+      ]
+    : [];
+  return [block('aside', [...heading, ...(node.children ?? [])])];
+}
+function youtube(node: MdastLike, inline: boolean): MdastLike[] {
+  const videoId = attr(node, 'videoId');
+  return embed(
+    videoId && `https://www.youtube.com/watch?v=${videoId}`,
+    attr(node, 'title') ?? 'Watch on YouTube',
+    inline
+  );
+}
+function portableBlock(node: MdastLike, originalUrl?: string): MdastLike[] {
+  const portable = portableMarkdown(node);
+  if (!portable)
+    throw new Error(`${node.name} is missing valid portable Markdown`);
+  return [
+    ...portable,
+    ...(node.name === 'StudioBlock' && originalUrl
+      ? [
+          block('p', [
+            link(originalUrl, 'Open interactive version on the original page'),
+          ]),
+        ]
+      : []),
+  ];
+}
+function interactivePlaceholder(
+  node: MdastLike,
+  originalUrl?: string
+): MdastLike[] {
+  const label =
+    attr(node, 'title') ||
+    (node.name === 'Gallery' ? 'Photo gallery' : 'Route map');
+  return [
+    block('p', [
+      originalUrl
+        ? link(originalUrl, `${label}: view on the original page`)
+        : text(`${label}. View this interactive content on the original page.`),
+    ]),
+    ...(node.children ?? []),
+  ];
 }
 
 /** Replaces MDX components, imports, and expressions with plain markdown. */

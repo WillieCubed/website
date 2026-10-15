@@ -159,26 +159,7 @@ export default function StudioLibrary() {
               </article>
             ))}
           {documents.map((draft) => {
-            const state =
-              draft.liveRevisionId === draft.head.id
-                ? 'Published'
-                : draft.liveRevisionId
-                  ? 'Unpublished changes'
-                  : 'Draft';
-            const excerpt =
-              noteExcerpt(draft.head.body.document) ||
-              draft.head.body.description ||
-              draft.head.body.title ||
-              (draft.head.body.postType === 'note'
-                ? 'Untitled note'
-                : 'Untitled writing');
-            const sentence = excerpt.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? excerpt;
-            const identity =
-              (draft.head.body.postType === 'article' &&
-                draft.head.body.title) ||
-              (sentence.length > 120
-                ? `${sentence.slice(0, 117).trimEnd()}…`
-                : sentence);
+            const { state, identity } = writingCardIdentity(draft);
             return (
               <article
                 key={draft.id}
@@ -232,4 +213,34 @@ export default function StudioLibrary() {
       </main>
     </>
   );
+}
+
+function writingCardIdentity(draft: Draft): {
+  state: string;
+  identity: string;
+} {
+  const state =
+    draft.liveRevisionId === draft.head.id
+      ? 'Published'
+      : draft.liveRevisionId
+        ? 'Unpublished changes'
+        : 'Draft';
+  const identity = writingCardTitle(draft);
+  return { state, identity };
+}
+
+function writingCardTitle(draft: Draft): string {
+  const excerpt =
+    noteExcerpt(draft.head.body.document) ||
+    draft.head.body.description ||
+    draft.head.body.title ||
+    (draft.head.body.postType === 'note'
+      ? 'Untitled note'
+      : 'Untitled writing');
+  const sentence = excerpt.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? excerpt;
+  const identity =
+    (draft.head.body.postType === 'article' && draft.head.body.title) ||
+    (sentence.length > 120 ? `${sentence.slice(0, 117).trimEnd()}…` : sentence);
+
+  return identity;
 }

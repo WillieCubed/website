@@ -18,13 +18,22 @@ export interface MicropubPostTypeConfig {
   name: string;
 }
 
+export type Mf2Value = string | Record<string, unknown>;
+export type Mf2Properties = Record<string, Mf2Value[]>;
+
+export interface MicropubEvent {
+  start?: string;
+  end?: string;
+  location?: unknown;
+}
+
 export interface RawMicropubEntry {
-  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  properties?: Mf2Properties;
   contentFormat?: 'text' | 'html';
   postStatus?: 'draft' | 'published';
   audio?: string[];
   video?: string[];
-  event?: { start?: string; end?: string; location?: unknown };
+  event?: MicropubEvent;
   h: string;
   content?: string;
   name?: string;
@@ -49,12 +58,12 @@ export interface MicropubPhoto {
 }
 
 export interface MicropubPostTypeSource {
-  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  properties?: Mf2Properties;
   contentFormat?: 'text' | 'html';
   postStatus?: 'draft' | 'published';
   audio?: string[];
   video?: string[];
-  event?: { start?: string; end?: string; location?: unknown };
+  event?: MicropubEvent;
   name?: string;
   photos?: MicropubPhoto[];
   inReplyTo?: string;
@@ -65,12 +74,12 @@ export interface MicropubPostTypeSource {
 }
 
 export interface MicropubCreateRequest {
-  properties?: Record<string, (string | Record<string, unknown>)[]>;
+  properties?: Mf2Properties;
   contentFormat?: 'text' | 'html';
   postStatus?: 'draft' | 'published';
   audio?: string[];
   video?: string[];
-  event?: { start?: string; end?: string; location?: unknown };
+  event?: MicropubEvent;
   h: 'entry' | 'event';
   content: string;
   name?: string;

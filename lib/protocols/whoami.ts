@@ -11,6 +11,11 @@ function text(value: unknown): string | undefined {
   return undefined;
 }
 
+function connectingAddress(headers: Headers): string | undefined {
+  const forwarded = headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  return headers.get('cf-connecting-ip') ?? forwarded ?? undefined;
+}
+
 /**
  * What Cloudflare says about the request, in the order it reads best.
  * A line the host does not provide is left out rather than guessed.
@@ -19,7 +24,6 @@ export function whoamiLines(
   headers: Headers,
   cf: CloudflareProperties = {}
 ): WhoamiLine[] {
-  const forwarded = headers.get('x-forwarded-for')?.split(',')[0]?.trim();
   const tls = [text(cf.tlsVersion), text(cf.tlsCipher)]
     .filter(Boolean)
     .join(' ');
@@ -27,7 +31,7 @@ export function whoamiLines(
   const rtt = text(cf.clientTcpRtt);
 
   const candidates: Array<[string, string | undefined]> = [
-    ['ip', headers.get('cf-connecting-ip') ?? forwarded ?? undefined],
+    ['ip', connectingAddress(headers)],
     ['agent', headers.get('user-agent') ?? undefined],
     ['country', text(cf.country)],
     ['region', text(cf.region)],

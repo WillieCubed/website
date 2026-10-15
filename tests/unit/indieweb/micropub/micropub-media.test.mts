@@ -243,3 +243,13 @@ test('the media endpoint checks bearer scopes, size, and signatures before stori
   assert.equal(failed.headers.get('location'), null);
   assert.equal((await failed.json()).error, 'server_error');
 });
+
+test('media signature dispatch rejects MIME names inherited from Object.prototype', async () => {
+  for (const type of ['constructor', '__proto__']) {
+    await assert.rejects(
+      parseMediaUpload(upload(new File(['bytes'], 'file', { type }))),
+      (error: unknown) =>
+        error instanceof MediaUploadError && error.status === 400
+    );
+  }
+});

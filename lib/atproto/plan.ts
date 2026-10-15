@@ -56,6 +56,55 @@ const CARRIED_FIELDS = [
   'preferences',
 ] as const;
 
+function assertUniqueKeys(desired: DesiredRecord[]): void {
+  const seen = new Map<string, string>();
+  for (const record of desired) {
+    const path = 'path' in record.value ? record.value.path : record.rkey;
+    const clash = seen.get(key(record));
+    if (clash) {
+      throw new Error(
+        `${clash} and ${path} compute the same record key ${record.rkey}.`
+      );
+    }
+    seen.set(key(record), String(path));
+  }
+}
+
+const MANAGED_FIELDS = new Set([
+  '$type',
+  'url',
+  'name',
+  'description',
+  'basicTheme',
+  'preferences',
+  'site',
+  'path',
+  'title',
+  'publishedAt',
+  'updatedAt',
+  'tags',
+  'textContent',
+  ...CARRIED_FIELDS,
+]);
+
+function mergeRecordFields(
+  want: DesiredRecord,
+  prior: ExistingRecord | undefined
+): Record<string, unknown> {
+  const previous = prior?.value ?? {};
+  const extensions = Object.fromEntries(
+    Object.entries(previous).filter(([field]) => !MANAGED_FIELDS.has(field))
+  );
+  const value: Record<string, unknown> = { ...extensions, ...want.value };
+  const removed = new Set(want.removeFields ?? []);
+  for (const field of CARRIED_FIELDS) {
+    if (value[field] === undefined && previous[field] && !removed.has(field))
+      value[field] = previous[field];
+  }
+  for (const field of removed) delete value[field];
+  return value;
+}
+
 /**
  * What it takes to make the repo match the content: create what is
  * missing, update what differs, and delete this site's records that no
@@ -69,17 +118,7 @@ export function planSync(
   desired: DesiredRecord[],
   existing: ExistingRecord[]
 ): SyncPlan {
-  const seen = new Map<string, string>();
-  for (const record of desired) {
-    const path = 'path' in record.value ? record.value.path : record.rkey;
-    const clash = seen.get(key(record));
-    if (clash) {
-      throw new Error(
-        `${clash} and ${path} compute the same record key ${record.rkey}.`
-      );
-    }
-    seen.set(key(record), String(path));
-  }
+  assertUniqueKeys(desired);
 
   const ours = existing.filter(isOurs);
   const byKey = new Map(ours.map((record) => [key(record), record]));
@@ -99,36 +138,7 @@ export function planSync(
     const prior =
       current ??
       ('path' in want.value ? byPath.get(want.value.path) : undefined);
-    const known = new Set([
-      '$type',
-      'url',
-      'name',
-      'description',
-      'basicTheme',
-      'preferences',
-      'site',
-      'path',
-      'title',
-      'publishedAt',
-      'updatedAt',
-      'tags',
-      'textContent',
-      ...CARRIED_FIELDS,
-    ]);
-    const extensions = Object.fromEntries(
-      Object.entries(prior?.value ?? {}).filter(([field]) => !known.has(field))
-    );
-    const value: Record<string, unknown> = { ...extensions, ...want.value };
-    for (const field of CARRIED_FIELDS) {
-      if (
-        value[field] === undefined &&
-        prior?.value[field] &&
-        !want.removeFields?.includes(field)
-      ) {
-        value[field] = prior.value[field];
-      }
-    }
-    for (const field of want.removeFields ?? []) delete value[field];
+    const value = mergeRecordFields(want, prior);
 
     if (current) {
       kept.add(key(current));

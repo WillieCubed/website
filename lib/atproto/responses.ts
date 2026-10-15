@@ -17,37 +17,50 @@ import {
   normalizeBlueskyReposts,
   refreshBlueskyCandidates,
 } from '@/lib/atproto/responses/refresh';
-import type { Post, Profile, Thread } from '@/lib/atproto/responses/types';
-import type { ResponseGroup as WebmentionGroup } from '@/lib/indieweb/webmention/types';
+import type {
+  BlueskyLike,
+  BlueskyResponseResult,
+  Post,
+  Profile,
+  ResponseCandidate,
+  Thread,
+} from '@/lib/atproto/responses/types';
+import type { ResponseGroup } from '@/lib/indieweb/webmention/types';
 import { absoluteUrl } from '@/lib/site/urls';
 import type { WritingData } from '@/lib/writings/types';
 
-export interface ResponseCandidate {
-  post: Post;
-  type: 'reply' | 'mention' | 'copy';
-  parentUri?: string;
+interface ResponseThread {
+  thread: Thread;
+  threadgate?: { record?: { hiddenReplies?: string[] } };
 }
+
+function visibleThreadPost(thread: Thread): Post | undefined {
+  const post = thread.post;
+  return post && allowed(post) && allowed(post.author) ? post : undefined;
+}
+
+function linkedReply(node: Thread, child: Thread): Post | undefined {
+  const post = child.post;
+  if (!post || post.record?.reply?.parent?.uri !== node.post?.uri)
+    return undefined;
+  return post;
+}
+
+export type {
+  BlueskyResponseResult,
+  ResponseCandidate,
+} from '@/lib/atproto/responses/types';
 export async function loadBlueskyResponses(
   writing: WritingData,
   signal?: AbortSignal
-): Promise<{
-  groups: WebmentionGroup;
-  copyUrl?: string;
-  replyUrl?: string;
-  incomplete?: boolean;
-}> {
+): Promise<BlueskyResponseResult> {
   return fetchBlueskyResponses(writing, signal);
 }
 /** Uncached importer for fresh AppView reads and acceptance checks. */
 export async function fetchBlueskyResponses(
   writing: WritingData,
   signal = AbortSignal.timeout(20000)
-): Promise<{
-  groups: WebmentionGroup;
-  copyUrl?: string;
-  replyUrl?: string;
-  incomplete?: boolean;
-}> {
+): Promise<BlueskyResponseResult> {
   const groups = emptyResponses();
   if (writing.draft) return { groups };
   let copyUrl: string | undefined;
@@ -64,10 +77,7 @@ export async function fetchBlueskyResponses(
     const uri = ref.uri;
     const target = absoluteUrl(`/writings/${writing.slug}`);
     copyUrl = blueskyPostUrl(uri);
-    const thread = await query<{
-      thread: Thread;
-      threadgate?: { record?: { hiddenReplies?: string[] } };
-    }>(
+    const thread = await query<ResponseThread>(
       'app.bsky.feed.getPostThread',
       {
         uri,
@@ -76,120 +86,124 @@ export async function fetchBlueskyResponses(
       },
       signal
     );
-    if (
-      !thread?.thread.post ||
-      !allowed(thread.thread.post) ||
-      !allowed(thread.thread.post.author)
-    )
-      return { groups, copyUrl };
-    const [quotes, likes, reposts] = await Promise.all([
-      pages<Post>('app.bsky.feed.getQuotes', uri, 'posts', signal),
-      pages<{ actor: Profile; createdAt: string; indexedAt: string }>(
-        'app.bsky.feed.getLikes',
-        uri,
-        'likes',
-        signal
-      ),
-      pages<Profile>('app.bsky.feed.getRepostedBy', uri, 'repostedBy', signal),
-    ]);
-    const hidden = new Set(thread.threadgate?.record?.hiddenReplies ?? []);
-    const candidates: ResponseCandidate[] = [
-      { post: thread.thread.post, type: 'copy' },
-    ];
-    function discover(node: Thread, depth = 0) {
-      for (const child of node.replies ?? []) {
-        if (
-          !child.post ||
-          !normalizeBlueskyPost(child.post, target, 'reply', hidden) ||
-          child.post.record.reply?.parent?.uri !== node.post?.uri
-        )
-          continue;
-        candidates.push({
-          post: child.post,
-          type: 'reply',
-          parentUri: node.post?.uri,
-        });
-        if (depth < 99) discover(child, depth + 1);
-      }
-    }
-    discover(thread.thread);
-    candidates.push(
-      ...quotes.map((post) => ({ post, type: 'mention' as const }))
-    );
-    const current = await refreshBlueskyCandidates(
-      candidates,
+    const root = thread && visibleThreadPost(thread.thread);
+    if (!root) return { groups, copyUrl };
+    return await collectResponses(
+      thread!,
+      root,
       uri,
       target,
-      hidden,
-      { signal }
-    );
-    if (!current.posts.has(uri))
-      return {
-        groups,
-        copyUrl,
-        ...(current.incomplete && { incomplete: true }),
-      };
-    function replies(node: Thread, depth = 0) {
-      for (const child of node.replies ?? []) {
-        if (!child.post) continue;
-        const refreshed = current.posts.get(child.post.uri);
-        if (!refreshed) continue;
-        const response = normalizeBlueskyPost(
-          refreshed,
-          target,
-          'reply',
-          hidden
-        );
-        if (
-          !response ||
-          child.post.record.reply?.parent?.uri !== node.post?.uri
-        )
-          continue;
-        groups.replies.push({ ...response, threadDepth: depth });
-        if (depth < 99) replies(child, depth + 1);
-      }
-    }
-    if (
-      thread.thread.post &&
-      allowed(thread.thread.post) &&
-      allowed(thread.thread.post.author)
-    )
-      replies(thread.thread);
-    groups.mentions = quotes.flatMap((post) => {
-      const refreshed = current.posts.get(post.uri);
-      return refreshed
-        ? (normalizeBlueskyPost(refreshed, target, 'mention') ?? [])
-        : [];
-    });
-    groups.likes = likes
-      .filter(
-        (like) =>
-          like &&
-          validProfile(like.actor) &&
-          allowed(like.actor) &&
-          Number.isFinite(Date.parse(like.createdAt)) &&
-          Number.isFinite(Date.parse(like.indexedAt))
-      )
-      .map((like) => ({
-        id: `like:${like.actor.did}:${uri}`,
-        sourceUrl: blueskyProfileUrl(like.actor.did),
-        targetUrl: target,
-        type: 'like',
-        origin: 'atproto',
-        sourceAliases: [blueskyProfileUrl(like.actor.handle)],
-        author: author(like.actor),
-        publishedAt: new Date(like.createdAt),
-        receivedAt: new Date(like.indexedAt),
-      }));
-    groups.reposts = await normalizeBlueskyReposts(reposts, target, uri);
-    return {
       groups,
       copyUrl,
-      replyUrl: copyUrl,
-      ...(current.incomplete && { incomplete: true }),
-    };
+      signal
+    );
   } catch (error) {
     console.error('Could not refresh Bluesky responses:', error);
     return { groups, ...(copyUrl && { copyUrl }), incomplete: true };
   }
+}
+
+/** Select visible replies without letting a malformed branch discard its siblings. */
+export function discoverReplyCandidates(
+  thread: Thread,
+  target: string,
+  hidden: Set<string>
+): ResponseCandidate[] {
+  const candidates: ResponseCandidate[] = [];
+  function discover(node: Thread, depth = 0) {
+    for (const child of node.replies ?? []) {
+      const post = linkedReply(node, child);
+      if (!post || !normalizeBlueskyPost(post, target, 'reply', hidden))
+        continue;
+      candidates.push({
+        post,
+        type: 'reply',
+        parentUri: node.post?.uri,
+      });
+      if (depth < 99) discover(child, depth + 1);
+    }
+  }
+  discover(thread);
+  return candidates;
+}
+
+async function collectResponses(
+  thread: ResponseThread,
+  root: Post,
+  uri: string,
+  target: string,
+  groups: ResponseGroup,
+  copyUrl: string,
+  signal: AbortSignal
+): Promise<BlueskyResponseResult> {
+  const [quotes, likes, reposts] = await Promise.all([
+    pages<Post>('app.bsky.feed.getQuotes', uri, 'posts', signal),
+    pages<BlueskyLike>('app.bsky.feed.getLikes', uri, 'likes', signal),
+    pages<Profile>('app.bsky.feed.getRepostedBy', uri, 'repostedBy', signal),
+  ]);
+  const hidden = new Set(thread.threadgate?.record?.hiddenReplies ?? []);
+  const candidates: ResponseCandidate[] = [{ post: root, type: 'copy' }];
+  candidates.push(...discoverReplyCandidates(thread.thread, target, hidden));
+  candidates.push(
+    ...quotes.map((post) => ({ post, type: 'mention' as const }))
+  );
+  const current = await refreshBlueskyCandidates(
+    candidates,
+    uri,
+    target,
+    hidden,
+    { signal }
+  );
+  if (!current.posts.has(uri))
+    return {
+      groups,
+      copyUrl,
+      ...(current.incomplete && { incomplete: true }),
+    };
+  function replies(node: Thread, depth = 0) {
+    for (const child of node.replies ?? []) {
+      const post = linkedReply(node, child);
+      if (!post) continue;
+      const refreshed = current.posts.get(post.uri);
+      if (!refreshed) continue;
+      const response = normalizeBlueskyPost(refreshed, target, 'reply', hidden);
+      if (!response) continue;
+      groups.replies.push({ ...response, threadDepth: depth });
+      if (depth < 99) replies(child, depth + 1);
+    }
+  }
+  replies(thread.thread);
+  groups.mentions = quotes.flatMap((post) => {
+    const refreshed = current.posts.get(post.uri);
+    return refreshed
+      ? (normalizeBlueskyPost(refreshed, target, 'mention') ?? [])
+      : [];
+  });
+  groups.likes = likes
+    .filter(
+      (like) =>
+        like &&
+        validProfile(like.actor) &&
+        allowed(like.actor) &&
+        Number.isFinite(Date.parse(like.createdAt)) &&
+        Number.isFinite(Date.parse(like.indexedAt))
+    )
+    .map((like) => ({
+      id: `like:${like.actor.did}:${uri}`,
+      sourceUrl: blueskyProfileUrl(like.actor.did),
+      targetUrl: target,
+      type: 'like',
+      origin: 'atproto',
+      sourceAliases: [blueskyProfileUrl(like.actor.handle)],
+      author: author(like.actor),
+      publishedAt: new Date(like.createdAt),
+      receivedAt: new Date(like.indexedAt),
+    }));
+  groups.reposts = await normalizeBlueskyReposts(reposts, target, uri);
+  return {
+    groups,
+    copyUrl,
+    replyUrl: copyUrl,
+    ...(current.incomplete && { incomplete: true }),
+  };
 }

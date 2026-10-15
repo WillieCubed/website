@@ -105,12 +105,7 @@ export function makeCatalogBlock(
   }: NodeViewProps) {
     const catalog = useContext(StudioCatalogContext);
     const catalogStatus = useContext(StudioCatalogStatusContext);
-    const entry = (
-      catalog ?? (typeof entries === 'function' ? entries() : entries)
-    ).find(
-      (item) => item.id === node.attrs.id && item.version === node.attrs.version
-    );
-    const props = node.attrs.props as Record<string, unknown>;
+    const entry = catalogBlockEntry(catalog, entries, node.attrs);
     const generated = ![
       'figure',
       'callout',
@@ -123,9 +118,7 @@ export function makeCatalogBlock(
     const [editing, setEditing] = useState(false);
     const fieldsId = useId();
     const editButton = useRef<HTMLButtonElement>(null);
-    const name = (entry?.name || (generated ? 'Widget' : String(node.attrs.id)))
-      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-      .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+    const name = catalogBlockName(entry, generated, node.attrs.id);
     useEffect(() => {
       const change = (event: Event) => {
         if ((event as CustomEvent<string>).detail !== fieldsId)
@@ -193,26 +186,12 @@ export function makeCatalogBlock(
         >
           <BlockPreview attrs={node.attrs} />
         </div>
-        {generated && !editing && !reviewed && (
-          <p className="studio-block-guidance" role="status">
-            Static alternative needs review. Choose Edit block to review it.
-          </p>
-        )}
-        {!['callout', 'reference'].includes(String(node.attrs.id)) &&
-          String(node.attrs.children || '').trim() && (
-            <details className="studio-block-details">
-              <summary>Previously saved text</summary>
-              <p>
-                This widget does not display this text. It is preserved here so
-                you can copy it into your writing.
-              </p>
-              <textarea
-                aria-label="Previously saved widget text"
-                readOnly
-                value={String(node.attrs.children)}
-              />
-            </details>
-          )}
+        <WidgetReviewGuidance
+          generated={generated}
+          editing={editing}
+          reviewed={reviewed}
+        />
+        <RetainedWidgetText attrs={node.attrs} />
         {editing && (
           <WidgetInspector
             id={fieldsId}
@@ -224,86 +203,20 @@ export function makeCatalogBlock(
               editor.commands.focus();
             }}
           >
-            <div className="studio-widget-settings">
-              {!entry && (
-                <div className="site-field">
-                  <p role="status">
-                    {catalogStatus.message ||
-                      'Widget settings are unavailable.'}
-                  </p>
-                  {catalogStatus.retry && (
-                    <Button
-                      onClick={() => {
-                        document
-                          .getElementById(fieldsId)
-                          ?.querySelector('h2')
-                          ?.focus({ preventScroll: true });
-                        catalogStatus.retry?.();
-                      }}
-                    >
-                      Retry widget settings
-                    </Button>
-                  )}
-                </div>
-              )}
-              {entry && (
-                <CatalogFields
-                  entry={entry}
-                  props={props}
-                  fieldsId={fieldsId}
-                  onChange={updateAttributes}
-                />
-              )}
-              {['callout', 'reference'].includes(String(node.attrs.id)) &&
-                node.attrs.children !== null && (
-                  <label className="site-field">
-                    Content
-                    <textarea
-                      value={String(node.attrs.children || '')}
-                      onChange={(event) =>
-                        updateAttributes({ children: event.target.value })
-                      }
-                    />
-                  </label>
-                )}
-            </div>
+            <WidgetFields
+              entry={entry}
+              catalogStatus={catalogStatus}
+              attrs={node.attrs}
+              fieldsId={fieldsId}
+              updateAttributes={updateAttributes}
+            />
             {generated && (
-              <details className="studio-portable-settings">
-                <summary>
-                  <span id={`${fieldsId}-portable-label`}>
-                    Feed alternative
-                  </span>
-                  <span className="studio-alternative-status" role="status">
-                    {reviewed ? 'Reviewed' : 'Needs review'}
-                  </span>
-                </summary>
-                <section aria-labelledby={`${fieldsId}-portable-label`}>
-                  <div className="site-field">
-                    <textarea
-                      id={`${fieldsId}-portable`}
-                      aria-labelledby={`${fieldsId}-portable-label`}
-                      placeholder="Describe what this widget shows."
-                      value={String(node.attrs.portable ?? '')}
-                      rows={5}
-                      onChange={(event) =>
-                        updateAttributes({ portable: event.target.value })
-                      }
-                    />
-                  </div>
-                  <Button
-                    disabled={
-                      !String(node.attrs.portable ?? '').trim() || reviewed
-                    }
-                    onClick={() =>
-                      updateAttributes({
-                        portableReview: portableReview(node.attrs),
-                      })
-                    }
-                  >
-                    Confirm alternative
-                  </Button>
-                </section>
-              </details>
+              <PortableSettings
+                attrs={node.attrs}
+                fieldsId={fieldsId}
+                reviewed={reviewed}
+                updateAttributes={updateAttributes}
+              />
             )}
           </WidgetInspector>
         )}
@@ -340,4 +253,164 @@ export function makeCatalogBlock(
           ),
       }),
   });
+}
+
+type WidgetAttributes = Record<string, unknown>;
+type WidgetSettingsProps = {
+  attrs: WidgetAttributes;
+  fieldsId: string;
+  updateAttributes: NodeViewProps['updateAttributes'];
+};
+function WidgetFields({
+  entry,
+  catalogStatus,
+  attrs,
+  fieldsId,
+  updateAttributes,
+}: WidgetSettingsProps & {
+  entry?: CatalogEntry;
+  catalogStatus: { message: string; retry?: () => void };
+}) {
+  return (
+    <div className="studio-widget-settings">
+      {!entry && (
+        <div className="site-field">
+          <p role="status">
+            {catalogStatus.message || 'Widget settings are unavailable.'}
+          </p>
+          {catalogStatus.retry && (
+            <Button
+              onClick={() => {
+                document
+                  .getElementById(fieldsId)
+                  ?.querySelector('h2')
+                  ?.focus({ preventScroll: true });
+                catalogStatus.retry?.();
+              }}
+            >
+              Retry widget settings
+            </Button>
+          )}
+        </div>
+      )}
+      {entry && (
+        <CatalogFields
+          entry={entry}
+          props={attrs.props as Record<string, unknown>}
+          fieldsId={fieldsId}
+          onChange={updateAttributes}
+        />
+      )}
+      {['callout', 'reference'].includes(String(attrs.id)) &&
+        attrs.children !== null && (
+          <label className="site-field">
+            Content
+            <textarea
+              value={String(attrs.children || '')}
+              onChange={(event) =>
+                updateAttributes({ children: event.target.value })
+              }
+            />
+          </label>
+        )}
+    </div>
+  );
+}
+
+function PortableSettings({
+  attrs,
+  fieldsId,
+  reviewed,
+  updateAttributes,
+}: WidgetSettingsProps & { reviewed: boolean }) {
+  return (
+    <details className="studio-portable-settings">
+      <summary>
+        <span id={`${fieldsId}-portable-label`}>Feed alternative</span>
+        <span className="studio-alternative-status" role="status">
+          {reviewed ? 'Reviewed' : 'Needs review'}
+        </span>
+      </summary>
+      <section aria-labelledby={`${fieldsId}-portable-label`}>
+        <div className="site-field">
+          <textarea
+            id={`${fieldsId}-portable`}
+            aria-labelledby={`${fieldsId}-portable-label`}
+            placeholder="Describe what this widget shows."
+            value={String(attrs.portable ?? '')}
+            rows={5}
+            onChange={(event) =>
+              updateAttributes({ portable: event.target.value })
+            }
+          />
+        </div>
+        <Button
+          disabled={!String(attrs.portable ?? '').trim() || reviewed}
+          onClick={() =>
+            updateAttributes({
+              portableReview: portableReview(attrs),
+            })
+          }
+        >
+          Confirm alternative
+        </Button>
+      </section>
+    </details>
+  );
+}
+
+function RetainedWidgetText({ attrs }: { attrs: WidgetAttributes }) {
+  return (
+    !['callout', 'reference'].includes(String(attrs.id)) &&
+    String(attrs.children || '').trim() && (
+      <details className="studio-block-details">
+        <summary>Previously saved text</summary>
+        <p>
+          This widget does not display this text. It is preserved here so you
+          can copy it into your writing.
+        </p>
+        <textarea
+          aria-label="Previously saved widget text"
+          readOnly
+          value={String(attrs.children)}
+        />
+      </details>
+    )
+  );
+}
+
+function catalogBlockEntry(
+  catalog: CatalogEntry[] | null,
+  entries: CatalogEntry[] | (() => CatalogEntry[]),
+  attrs: WidgetAttributes
+): CatalogEntry | undefined {
+  return (
+    catalog ?? (typeof entries === 'function' ? entries() : entries)
+  ).find((item) => item.id === attrs.id && item.version === attrs.version);
+}
+function catalogBlockName(
+  entry: CatalogEntry | undefined,
+  generated: boolean,
+  id: unknown
+): string {
+  return (entry?.name || (generated ? 'Widget' : String(id)))
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+}
+
+function WidgetReviewGuidance({
+  generated,
+  editing,
+  reviewed,
+}: {
+  generated: boolean;
+  editing: boolean;
+  reviewed: boolean;
+}) {
+  if (!generated || editing || reviewed) return null;
+  return (
+    <p className="studio-block-guidance" role="status">
+      Static alternative needs review. Choose Edit block to review it.
+    </p>
+  );
 }

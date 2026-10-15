@@ -20,56 +20,8 @@ export function parseComponent(
   } catch {
     throw new StudioError(422, 'The component response must be valid JSON.');
   }
-  for (const key of [
-    'name',
-    'description',
-    'version',
-    'source',
-    'portableHtml',
-    'portableText',
-    'accessibility',
-  ])
-    if (typeof value[key] !== 'string' || !(value[key] as string).trim())
-      throw new StudioError(422, `Component ${key} is required.`);
-  if (
-    !/^[A-Z][A-Za-z0-9]{1,60}$/.test(String(value.name)) ||
-    !/^\d+\.\d+\.\d+$/.test(String(value.version))
-  )
-    throw new StudioError(422, 'Component name or version is invalid.');
-  for (const key of ['properties', 'example'])
-    if (
-      !value[key] ||
-      typeof value[key] !== 'object' ||
-      Array.isArray(value[key])
-    )
-      throw new StudioError(422, `Component ${key} must be an object.`);
-  for (const [name, property] of Object.entries(
-    value.properties as Record<string, unknown>
-  )) {
-    if (
-      !/^[A-Za-z][A-Za-z0-9_]*$/.test(name) ||
-      !property ||
-      typeof property !== 'object' ||
-      Array.isArray(property)
-    )
-      throw new StudioError(422, 'Component property schema is invalid.');
-    const field = property as Record<string, unknown>;
-    if (
-      !['string', 'number', 'boolean'].includes(String(field.type)) ||
-      typeof field.description !== 'string' ||
-      (field.required !== undefined && typeof field.required !== 'boolean')
-    )
-      throw new StudioError(422, 'Component property schema is invalid.');
-    const example = (value.example as Record<string, unknown>)[name];
-    if (
-      (field.required || example !== undefined) &&
-      typeof example !== field.type
-    )
-      throw new StudioError(
-        422,
-        'Component example does not match its properties.'
-      );
-  }
+  validateComponentFields(value);
+  validateComponentProperties(value);
   if (
     String(value.source).length > 200_000 ||
     String(value.portableHtml).length > 200_000
@@ -87,16 +39,118 @@ export function parseComponent(
     status: 'proposed',
   } as unknown as ComponentProposal;
 }
+const runtimeModules: Record<string, string> = {
+  react: '__studioReact',
+  'react/jsx-runtime': '__studioJSXRuntime',
+  'react-dom': '__studioReactDOM',
+  'react-dom/client': '__studioReactDOMClient',
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+function validateComponentFields(value: Record<string, unknown>): void {
+  for (const key of [
+    'name',
+    'description',
+    'version',
+    'source',
+    'portableHtml',
+    'portableText',
+    'accessibility',
+  ])
+    if (typeof value[key] !== 'string' || !(value[key] as string).trim())
+      throw new StudioError(422, `Component ${key} is required.`);
+  if (
+    !/^[A-Z][A-Za-z0-9]{1,60}$/.test(String(value.name)) ||
+    !/^\d+\.\d+\.\d+$/.test(String(value.version))
+  )
+    throw new StudioError(422, 'Component name or version is invalid.');
+  for (const key of ['properties', 'example'])
+    if (!isRecord(value[key]))
+      throw new StudioError(422, `Component ${key} must be an object.`);
+}
+function componentProperty(
+  name: string,
+  property: unknown
+): Record<string, unknown> {
+  if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(name) || !isRecord(property))
+    throw new StudioError(422, 'Component property schema is invalid.');
+  const field = property as Record<string, unknown>;
+  if (
+    !['string', 'number', 'boolean'].includes(String(field.type)) ||
+    typeof field.description !== 'string' ||
+    (field.required !== undefined && typeof field.required !== 'boolean')
+  )
+    throw new StudioError(422, 'Component property schema is invalid.');
+
+  return field;
+}
+function validateComponentProperties(value: Record<string, unknown>): void {
+  for (const [name, property] of Object.entries(
+    value.properties as Record<string, unknown>
+  )) {
+    const field = componentProperty(name, property);
+    const example = (value.example as Record<string, unknown>)[name];
+    if (
+      (field.required || example !== undefined) &&
+      typeof example !== field.type
+    )
+      throw new StudioError(
+        422,
+        'Component example does not match its properties.'
+      );
+  }
+}
+
+function validateImports(program: object): void {
+  const nodes: object[] = [program];
+  while (nodes.length) {
+    const node = nodes.pop() as SyntaxNode;
+    if (isUnsupportedImport(node) || isDynamicImport(node))
+      throw new StudioError(422, 'Components may only import React.');
+    for (const value of Object.values(node)) {
+      const children = Array.isArray(value) ? value : [value];
+      for (const child of children) {
+        if (isSyntaxNode(child)) nodes.push(child);
+      }
+    }
+  }
+}
+function isSyntaxNode(value: unknown): value is object {
+  return !!value && typeof value === 'object' && 'type' in value;
+}
+type SyntaxNode = { type?: string; [key: string]: unknown };
+function isUnsupportedImport(node: SyntaxNode): boolean {
+  if (
+    ![
+      'ImportDeclaration',
+      'ExportNamedDeclaration',
+      'ExportAllDeclaration',
+    ].includes(node.type ?? '')
+  )
+    return false;
+  if (!node.source || node.importKind === 'type' || node.exportKind === 'type')
+    return false;
+  return !Object.hasOwn(
+    runtimeModules,
+    (node.source as { value: string }).value
+  );
+}
+function isDynamicImport(node: SyntaxNode): boolean {
+  if (node.type === 'ImportExpression') return true;
+  if (node.type !== 'CallExpression') return false;
+  const callee = node.callee as { type?: string; name?: string } | undefined;
+  return (
+    callee?.type === 'Import' ||
+    (callee?.type === 'Identifier' && callee.name === 'require')
+  );
+}
+
 export async function compileSandbox(
   proposal: ComponentProposal,
   props: Record<string, unknown> = proposal.example
 ): Promise<string> {
-  const runtimeModules: Record<string, string> = {
-    react: '__studioReact',
-    'react/jsx-runtime': '__studioJSXRuntime',
-    'react-dom': '__studioReactDOM',
-    'react-dom/client': '__studioReactDOMClient',
-  };
   let parsed: ReturnType<typeof parse>;
   try {
     parsed = parse(proposal.source, {
@@ -112,39 +166,7 @@ export async function compileSandbox(
     )
   )
     throw new StudioError(422, 'Component source needs a default export.');
-  const nodes: object[] = [parsed.program];
-  while (nodes.length) {
-    const node = nodes.pop() as { type?: string; [key: string]: unknown };
-    if (
-      (node.type === 'ImportDeclaration' ||
-        node.type === 'ExportNamedDeclaration' ||
-        node.type === 'ExportAllDeclaration') &&
-      node.source &&
-      (node as { importKind?: string; exportKind?: string }).importKind !==
-        'type' &&
-      (node as { exportKind?: string }).exportKind !== 'type' &&
-      !Object.hasOwn(runtimeModules, (node.source as { value: string }).value)
-    )
-      throw new StudioError(422, 'Components may only import React.');
-    if (
-      node.type === 'ImportExpression' ||
-      (node.type === 'CallExpression' &&
-        ((node.callee as { type?: string; name?: string })?.type === 'Import' ||
-          ((node.callee as { type?: string; name?: string })?.type ===
-            'Identifier' &&
-            (node.callee as { name?: string }).name === 'require')))
-    )
-      throw new StudioError(422, 'Components may only import React.');
-    for (const value of Object.values(node)) {
-      if (Array.isArray(value)) {
-        for (const child of value)
-          if (child && typeof child === 'object' && 'type' in child)
-            nodes.push(child);
-      } else if (value && typeof value === 'object' && 'type' in value) {
-        nodes.push(value);
-      }
-    }
-  }
+  validateImports(parsed.program);
   let source: string;
   try {
     source = transform(proposal.source, {

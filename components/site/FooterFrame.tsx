@@ -100,15 +100,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       scrollHeight = document.documentElement.scrollHeight;
     };
 
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      p = footerProgress({
-        scrollY: window.scrollY,
-        viewportHeight: window.innerHeight,
-        scrollHeight,
-        footerHeight,
-      });
+    const updateFocusAvailability = () => {
       // A clipped or transparent control cannot receive keyboard focus.
       if (pages) pages.inert = p < 0.9;
       if (feedButton) feedButton.inert = p < 0.6;
@@ -119,6 +111,18 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       extraProfiles.forEach((profile) => {
         profile.inert = !compact.matches && p < 0.5;
       });
+    };
+
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      p = footerProgress({
+        scrollY: window.scrollY,
+        viewportHeight: window.innerHeight,
+        scrollHeight,
+        footerHeight,
+      });
+      updateFocusAvailability();
       footer.style.setProperty('--p', p.toFixed(4));
       root.style.setProperty('--footer-p', p.toFixed(4));
       // The page becomes a sheet only as far as the visitor has scrolled:

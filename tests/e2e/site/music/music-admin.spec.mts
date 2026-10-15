@@ -262,9 +262,9 @@ test('publication feedback stays out of the page layout', async ({
   });
   await page.goto('/studio/music');
   await page.evaluate(() => document.fonts.ready);
-  await page
-    .getByRole('button', { name: 'Review changes' })
-    .scrollIntoViewIfNeeded();
+  const review = page.getByRole('button', { name: 'Review changes' });
+  await expect(review).toBeEnabled();
+  await review.scrollIntoViewIfNeeded();
   const composition = () =>
     page.evaluate(() =>
       Array.from(
@@ -282,10 +282,10 @@ test('publication feedback stays out of the page layout', async ({
       })
     );
   const before = await composition();
-  await page.getByRole('button', { name: 'Review changes' }).click();
+  await review.click();
   await page.getByRole('button', { name: 'Publish collection' }).click();
   const notice = page.locator('.music-admin-notice[role="status"]');
-  await expect(notice).toContainText('Your collection is live.');
+  await expect(notice).toContainText('The collection is live.');
   await expect(page.getByText('Live collection')).toBeVisible();
   const bar = await page.locator('header[data-column]').boundingBox();
   const message = await notice.boundingBox();
@@ -337,4 +337,143 @@ test('anonymous access and foreign-origin changes fail', async ({
       })
     ).status()
   ).toBe(403);
+});
+
+test('edits queued during an in-flight save survive the next revision', async ({
+  page,
+  request,
+}) => {
+  const initial = await (await request.get('/api/studio/music/catalog')).json();
+  const reset = await request.put('/api/studio/music/catalog', {
+    headers: { origin: process.env.STUDIO_TEST_ORIGIN! },
+    data: {
+      expectedRevisionId: initial.revision?.id ?? null,
+      catalog: {
+        version: 1,
+        order: ids,
+        selected: [ids[1]],
+        lead: null,
+        series: [],
+        notes: {},
+      },
+    },
+  });
+  expect(reset.ok()).toBeTruthy();
+  let releaseSave!: () => void;
+  const released = new Promise<void>((resolve) => {
+    releaseSave = resolve;
+  });
+  let savedFirst!: () => void;
+  const firstSaved = new Promise<void>((resolve) => {
+    savedFirst = resolve;
+  });
+  let writes = 0;
+  await page.route('**/api/studio/music/catalog', async (route) => {
+    if (route.request().method() !== 'PUT' || ++writes !== 1)
+      return route.continue();
+    const response = await route.fetch();
+    savedFirst();
+    await released;
+    await route.fulfill({ response });
+  });
+  await page.goto('/studio/music');
+  await page
+    .getByRole('checkbox', {
+      name: 'Include A long playlist title that preserves the sequence across several evenings',
+      exact: true,
+    })
+    .check();
+  try {
+    await firstSaved;
+    await page
+      .getByRole('checkbox', {
+        name: 'Include An empty collection',
+        exact: true,
+      })
+      .check();
+    await expect(
+      page.getByRole('button', { name: 'Review changes', exact: true })
+    ).toBeDisabled();
+  } finally {
+    releaseSave();
+  }
+  await expect(
+    page.getByText('Saved privately', { exact: true }).first()
+  ).toBeVisible();
+  const saved = await (await request.get('/api/studio/music/catalog')).json();
+  expect(saved.revision.body.selected).toEqual([ids[1], ids[0], ids[2]]);
+  expect(writes).toBe(2);
+  await page.reload();
+  await expect(
+    page.getByRole('checkbox', {
+      name: 'Include An empty collection',
+      exact: true,
+    })
+  ).toBeChecked();
+});
+
+test('restoring an older revision reloads the saved collection and curation selection', async ({
+  page,
+  request,
+}) => {
+  const initial = await (await request.get('/api/studio/music/catalog')).json();
+  const catalog = {
+    version: 1,
+    order: ids,
+    selected: [ids[1]],
+    lead: null,
+    series: [],
+    notes: {},
+  };
+  const olderResponse = await request.put('/api/studio/music/catalog', {
+    headers: { origin: process.env.STUDIO_TEST_ORIGIN! },
+    data: { expectedRevisionId: initial.revision?.id ?? null, catalog },
+  });
+  expect(olderResponse.ok()).toBeTruthy();
+  const older = await olderResponse.json();
+  const currentResponse = await request.put('/api/studio/music/catalog', {
+    headers: { origin: process.env.STUDIO_TEST_ORIGIN! },
+    data: {
+      expectedRevisionId: older.revision.id,
+      catalog: { ...catalog, selected: [ids[1], ids[2]] },
+    },
+  });
+  expect(currentResponse.ok()).toBeTruthy();
+  const current = await currentResponse.json();
+  await page.goto('/studio/music');
+  const emptySelection = page.getByRole('checkbox', {
+    name: 'Include An empty collection',
+    exact: true,
+  });
+  await expect(emptySelection).toBeChecked();
+  const history = await (await request.get('/api/studio/music/history')).json();
+  const targetIndex = history.revisions.findIndex(
+    (revision: { id: string }) => revision.id === older.revision.id
+  );
+  expect(targetIndex).toBeGreaterThanOrEqual(0);
+  await page
+    .getByRole('button', { name: 'Open menu for Music', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Saved revisions' });
+  await expect(dialog).toBeVisible();
+  await dialog
+    .locator('li')
+    .nth(targetIndex)
+    .getByRole('button', { name: 'Restore', exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  await expect(emptySelection).not.toBeChecked();
+  await expect(
+    page.getByRole('checkbox', {
+      name: 'Include Summer in the city',
+      exact: true,
+    })
+  ).toBeChecked();
+  const restored = await (
+    await request.get('/api/studio/music/catalog')
+  ).json();
+  expect(restored.revision.body).toEqual(catalog);
+  expect(restored.revision.id).not.toBe(current.revision.id);
+  expect(restored.revision.id).not.toBe(older.revision.id);
 });

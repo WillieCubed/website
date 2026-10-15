@@ -7,12 +7,14 @@ import {
   createResponseRecordReader,
   parseCurrentResponsePost,
 } from '@/lib/atproto/response-records';
+import { discoverReplyCandidates } from '@/lib/atproto/responses';
 import { emptyResponses, mergeResponses } from '@/lib/atproto/responses/merge';
 import { normalizeBlueskyPost } from '@/lib/atproto/responses/normalize';
 import {
   normalizeBlueskyReposts,
   refreshBlueskyCandidates,
 } from '@/lib/atproto/responses/refresh';
+import type { Thread } from '@/lib/atproto/responses/types';
 import { site } from '@/lib/site/identity';
 
 const uri =
@@ -624,15 +626,17 @@ test('current media rebuilds playable MP4, gallery descriptions and contained li
       target,
       'reply'
     );
-    assert.equal(response?.media?.[0]?.kind, expected[i]);
+    assert.ok(response);
+    const media = response.media?.[0];
+    assert.equal(media?.kind, expected[i]);
     if (i < 2)
       assert.equal(
         new URL(response!.media![0].url).origin,
         'https://pds.example'
       );
-    if (i === 0) assert.equal(response?.media?.[0].poster, undefined);
-    if (i === 2) assert.equal(response?.media?.[0].description, 'Current PDF');
-    if (i === 3) assert.deepEqual(response?.media, []);
+    if (i === 0) assert.equal(media?.poster, undefined);
+    if (i === 2) assert.equal(media?.description, 'Current PDF');
+    if (i === 3) assert.deepEqual(response.media, []);
   }
 });
 
@@ -687,9 +691,11 @@ test('legacy image and video replies retain prose and current blob media without
       target,
       'reply'
     );
-    assert.equal(response?.content, replyValue.text);
+    assert.ok(response);
+    assert.ok(response.media);
+    assert.equal(response.content, replyValue.text);
     assert.equal(
-      response?.media?.[0].kind,
+      response.media[0].kind,
       mimeType === 'image/png' ? 'image' : 'video'
     );
     assert.equal(
@@ -755,4 +761,31 @@ test('legacy CID/MIME failures and forged modern unknown sizes are rejected befo
     );
     assert.equal(result.posts.size, 0);
   }
+});
+
+test('malformed AppView replies are skipped while valid sibling replies remain discoverable', () => {
+  const rootUri =
+    'at://did:plc:abcdefghijklmnopqrstuvwx/app.bsky.feed.post/3mwa5ei54c22h';
+  const reply = {
+    ...post,
+    record: {
+      ...post.record,
+      reply: {
+        root: { uri: rootUri, cid: originalCid },
+        parent: { uri: rootUri, cid: originalCid },
+      },
+    },
+  };
+  const thread = {
+    post: { ...post, uri: rootUri },
+    replies: [
+      { post: { ...reply, record: null } },
+      { post: { ...reply, record: undefined } },
+      { post: reply },
+    ],
+  } as unknown as Thread;
+  const candidates = discoverReplyCandidates(thread, target, new Set());
+  assert.deepEqual(candidates, [
+    { post: reply, type: 'reply', parentUri: rootUri },
+  ]);
 });

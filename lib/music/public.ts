@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
 import { readFileSync } from '../content/runtime-files';
-import { createPool } from '../db/postgres';
+import { type PostgresPool, createPool } from '../db/postgres';
 import { optionalWithin } from '../http/optional';
 import { isPrivatePreview } from '../studio/config';
 import { StudioError } from '../studio/errors';
@@ -11,8 +11,8 @@ import { parseCatalog, publicCatalog } from './schema';
 import { musicStore } from './store';
 import type { MusicPlaylist } from './types';
 
-let pool: ReturnType<typeof createPool> | undefined;
-let writer: ReturnType<typeof createPool> | undefined;
+let pool: PostgresPool | undefined;
+let writer: PostgresPool | undefined;
 function musicDatabaseUrl(name: string) {
   const url = process.env[name];
   if (!url) throw new Error(`${name} is not configured.`);

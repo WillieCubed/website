@@ -67,11 +67,16 @@ function privateSource(draft: Draft): string {
   });
 }
 
+export interface PrivateMicropubWriting {
+  draft: Draft;
+  commit: string;
+}
+
 export async function createPrivateMicropubWriting(
   slug: string,
   source: string,
   options: PrivateMicropubOptions = {}
-): Promise<{ draft: Draft; commit: string }> {
+): Promise<PrivateMicropubWriting> {
   const store = privateMicropubStore(options);
   if (!store)
     throw new StudioError(503, 'Private draft storage is not configured.');
@@ -198,16 +203,7 @@ export async function saveStoredWriting(
   if (isDraft || writing.privateDocumentId) {
     if (!store)
       throw new StudioError(503, 'Private draft storage is not configured.');
-    const body = parseDraftContent(importMdx(source, writing.sha));
-    const draft =
-      writing.privateDocumentId && writing.privateRevisionId
-        ? await store.save(
-            writing.privateDocumentId,
-            writing.privateRevisionId,
-            body
-          )
-        : await store.create(writing.slug, body);
-    return isDraft ? '' : publishPrivate(draft, privateOptions);
+    return savePrivateWriting(store, writing, source, isDraft, privateOptions);
   }
   if (usesGitHub(environment)) {
     return putGitHubFile(
@@ -257,18 +253,7 @@ export async function deleteStoredWriting(
       'Import this draft into private storage before deleting it.'
     );
   if (usesGitHub(environment)) {
-    const response = await fetchImpl(contentsUrl(writing.path, environment), {
-      method: 'DELETE',
-      headers: githubHeaders(environment),
-      body: JSON.stringify({
-        branch: environment.defaultBranch,
-        message,
-        sha: writing.sha,
-      }),
-    });
-    if (!response.ok) throw await githubError(response);
-    const data = (await response.json()) as GitHubContentsCommitResponse;
-    return data.commit?.sha ?? '';
+    return deleteGitHubFile(writing, message, environment, fetchImpl);
   }
   try {
     await assertUnchanged(writing);
@@ -451,4 +436,43 @@ export async function createLocalWriting(
   } finally {
     await unlink(temporary).catch(() => {});
   }
+}
+
+async function savePrivateWriting(
+  store: PrivateMicropubStore,
+  writing: StoredWriting,
+  source: string,
+  isDraft: boolean,
+  privateOptions: PrivateMicropubOptions
+): Promise<string> {
+  const body = parseDraftContent(importMdx(source, writing.sha));
+  const draft =
+    writing.privateDocumentId && writing.privateRevisionId
+      ? await store.save(
+          writing.privateDocumentId,
+          writing.privateRevisionId,
+          body
+        )
+      : await store.create(writing.slug, body);
+  return isDraft ? '' : publishPrivate(draft, privateOptions);
+}
+
+async function deleteGitHubFile(
+  writing: StoredWriting,
+  message: string,
+  environment: MicropubRouteEnvironment,
+  fetchImpl: typeof fetch
+): Promise<string> {
+  const response = await fetchImpl(contentsUrl(writing.path, environment), {
+    method: 'DELETE',
+    headers: githubHeaders(environment),
+    body: JSON.stringify({
+      branch: environment.defaultBranch,
+      message,
+      sha: writing.sha,
+    }),
+  });
+  if (!response.ok) throw await githubError(response);
+  const data = (await response.json()) as GitHubContentsCommitResponse;
+  return data.commit?.sha ?? '';
 }

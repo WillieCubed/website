@@ -28,6 +28,18 @@ export interface ReplyContext {
   fetchedAt: Date;
 }
 
+interface ReplyContextRow {
+  target_url: string;
+  author_name: string | null;
+  author_url: string | null;
+  author_photo: string | null;
+  title: string | null;
+  content_preview: string | null;
+  published_at: string | Date | null;
+  site_name: string | null;
+  fetched_at: string | Date;
+}
+
 /**
  * Initialize the reply context cache table.
  * This should be run during database setup/migrations.
@@ -64,7 +76,7 @@ export async function getCachedReplyContext(
   maxAgeHours = 168 // 7 days default
 ): Promise<ReplyContext | null> {
   if (!hasDatabase()) return null;
-  const result = await sql`
+  const result = await sql<ReplyContextRow>`
     SELECT
       target_url,
       author_name,
@@ -84,18 +96,7 @@ export async function getCachedReplyContext(
     return null;
   }
 
-  const row = result.rows[0];
-  return {
-    url: row.target_url,
-    authorName: row.author_name || undefined,
-    authorUrl: row.author_url || undefined,
-    authorPhoto: row.author_photo || undefined,
-    title: row.title || undefined,
-    contentPreview: row.content_preview || undefined,
-    publishedAt: row.published_at ? new Date(row.published_at) : undefined,
-    siteName: row.site_name || undefined,
-    fetchedAt: new Date(row.fetched_at),
-  };
+  return contextFromRow(result.rows[0]);
 }
 
 /**
@@ -106,6 +107,15 @@ export async function cacheReplyContext(
   rawMf2?: object
 ): Promise<void> {
   if (!hasDatabase()) return;
+  const [authorName, authorUrl, authorPhoto, title, contentPreview, siteName] =
+    [
+      context.authorName,
+      context.authorUrl,
+      context.authorPhoto,
+      context.title,
+      context.contentPreview,
+      context.siteName,
+    ].map((value) => value || null);
   await sql`
     INSERT INTO reply_context_cache (
       target_url,
@@ -120,13 +130,13 @@ export async function cacheReplyContext(
       raw_mf2_json
     ) VALUES (
       ${context.url},
-      ${context.authorName || null},
-      ${context.authorUrl || null},
-      ${context.authorPhoto || null},
-      ${context.title || null},
-      ${context.contentPreview || null},
+      ${authorName},
+      ${authorUrl},
+      ${authorPhoto},
+      ${title},
+      ${contentPreview},
       ${context.publishedAt?.toISOString() || null},
-      ${context.siteName || null},
+      ${siteName},
       NOW(),
       ${JSON.stringify(rawMf2 || {})}
     )
@@ -369,16 +379,7 @@ export function extractMicroformats(
     if (!Number.isNaN(date.getTime())) context.publishedAt = date;
   }
 
-  const author = props.author?.[0];
-  if (typeof author === 'string') {
-    context.authorName = author;
-  } else if (author && typeof author === 'object' && 'properties' in author) {
-    const card = (author as { properties: Record<string, unknown[]> })
-      .properties;
-    context.authorName = firstString(card.name);
-    context.authorUrl = firstString(card.url);
-    context.authorPhoto = firstString(card.photo);
-  }
+  Object.assign(context, authorContext(props.author?.[0]));
 
   return context;
 }
@@ -427,4 +428,32 @@ export async function clearStaleContextCache(
     RETURNING id
   `;
   return result.rowCount || 0;
+}
+
+function contextFromRow(row: ReplyContextRow): ReplyContext {
+  return {
+    url: row.target_url,
+    authorName: row.author_name || undefined,
+    authorUrl: row.author_url || undefined,
+    authorPhoto: row.author_photo || undefined,
+    title: row.title || undefined,
+    contentPreview: row.content_preview || undefined,
+    publishedAt: row.published_at ? new Date(row.published_at) : undefined,
+    siteName: row.site_name || undefined,
+    fetchedAt: new Date(row.fetched_at),
+  };
+}
+
+function authorContext(author: unknown): Partial<ReplyContext> {
+  const context: Partial<ReplyContext> = {};
+  if (typeof author === 'string') {
+    context.authorName = author;
+  } else if (author && typeof author === 'object' && 'properties' in author) {
+    const card = (author as { properties: Record<string, unknown[]> })
+      .properties;
+    context.authorName = firstString(card.name);
+    context.authorUrl = firstString(card.url);
+    context.authorPhoto = firstString(card.photo);
+  }
+  return context;
 }

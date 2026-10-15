@@ -214,58 +214,13 @@ export default function StudioWidgetGenerator({
         {message}
       </p>
       {generation && (
-        <div className="studio-generation">
-          <strong>
-            {
-              {
-                pending: 'Preparing your request…',
-                running: 'Generating widget…',
-                waiting: 'Waiting for your device…',
-                ready: 'Widget ready to review',
-                failed: 'Your request needs attention',
-                accepted: 'Proposal accepted',
-                rejected: 'Proposal dismissed',
-              }[generation.status]
-            }
-          </strong>
-          {generation.error && <p>{generation.error}</p>}
-          {generation.result && (
-            <details className="studio-block-details">
-              <summary>View device output</summary>
-              <pre className="studio-proposal-text">{generation.result}</pre>
-            </details>
-          )}
-          {generation.status === 'ready' && (
-            <div>
-              <button
-                className="feeds-button"
-                disabled={busy}
-                onClick={buildComponent}
-              >
-                Build isolated preview
-              </button>
-              <button
-                className="feeds-button"
-                disabled={busy}
-                onClick={() => decide('reject')}
-              >
-                Reject
-              </button>
-            </div>
-          )}
-          {(['failed', 'waiting'].includes(generation.status) ||
-            (generation.status === 'running' &&
-              Date.parse(generation.startedAt ?? '') <
-                Date.now() - 180_000)) && (
-            <button
-              className="feeds-button"
-              disabled={busy || !runtimeReady}
-              onClick={() => decide('retry')}
-            >
-              Retry request
-            </button>
-          )}
-        </div>
+        <GenerationResult
+          generation={generation}
+          busy={busy}
+          runtimeReady={runtimeReady}
+          buildComponent={buildComponent}
+          decide={decide}
+        />
       )}
       {proposal && (
         <div>
@@ -294,5 +249,73 @@ export default function StudioWidgetGenerator({
         </div>
       )}
     </section>
+  );
+}
+
+function GenerationResult({
+  generation,
+  busy,
+  runtimeReady,
+  buildComponent,
+  decide,
+}: {
+  generation: Generation;
+  busy: boolean;
+  runtimeReady: boolean;
+  buildComponent: () => void;
+  decide: (action: 'reject' | 'retry') => void;
+}) {
+  return (
+    <div className="studio-generation">
+      <strong>
+        {
+          {
+            pending: 'Preparing your request…',
+            running: 'Generating widget…',
+            waiting: 'Waiting for your device…',
+            ready: 'Widget ready to review',
+            failed: 'Your request needs attention',
+            accepted: 'Proposal accepted',
+            rejected: 'Proposal dismissed',
+          }[generation.status]
+        }
+      </strong>
+      {generation.error && <p>{generation.error}</p>}
+      {generation.result && (
+        <details className="studio-block-details">
+          <summary>View device output</summary>
+          <pre className="studio-proposal-text">{generation.result}</pre>
+        </details>
+      )}
+      {generation.status === 'ready' && (
+        <div>
+          <button
+            className="feeds-button"
+            disabled={busy}
+            onClick={buildComponent}
+          >
+            Build isolated preview
+          </button>
+          <button
+            className="feeds-button"
+            disabled={busy}
+            onClick={() => decide('reject')}
+          >
+            Reject
+          </button>
+        </div>
+      )}
+      {(['failed', 'waiting'].includes(generation.status) ||
+        (generation.status === 'running' &&
+          Date.parse(generation.startedAt ?? '') < Date.now() - 180_000)) && (
+        <button
+          className="feeds-button"
+          disabled={busy || !runtimeReady}
+          onClick={() => decide('retry')}
+        >
+          Retry request
+        </button>
+      )}
+    </div>
   );
 }

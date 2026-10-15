@@ -3,16 +3,19 @@ import { mf2 } from 'microformats-parser';
 import { fetchPublicDocument } from '@/lib/indieweb/public-fetch';
 import type { ExtractedWebmentionAuthor } from '@/lib/indieweb/webmention/types';
 
-type ParsedDocument = ReturnType<typeof mf2>;
-type MicroformatRoot = ParsedDocument['items'][number];
-type MicroformatProperty = MicroformatRoot['properties'][string][number];
+export type ParsedDocument = ReturnType<typeof mf2>;
+export type MicroformatRoot = ParsedDocument['items'][number];
+export type MicroformatProperty = MicroformatRoot['properties'][string][number];
 
 const AUTHOR_PAGE_TIMEOUT_MS = 5000;
 
 /** An author page fetched and parsed, or null when it could not be read. */
-export type AuthorPageFetcher = (
-  url: string
-) => Promise<{ url: string; html: string } | null>;
+export interface AuthorPage {
+  url: string;
+  html: string;
+}
+
+export type AuthorPageFetcher = (url: string) => Promise<AuthorPage | null>;
 
 /**
  * The author page comes from a stranger's markup, so it is fetched only from
@@ -32,11 +35,16 @@ export const fetchAuthorPage: AuthorPageFetcher = async (url) => {
   return { url: document.url, html: document.body };
 };
 
+export interface AuthoredEntry {
+  entry: MicroformatRoot;
+  feed?: MicroformatRoot;
+}
+
 /** The first h-entry in a document, and the h-feed it sits in, if any. */
 export function findEntry(
   items: MicroformatRoot[],
   feed?: MicroformatRoot
-): { entry: MicroformatRoot; feed?: MicroformatRoot } | null {
+): AuthoredEntry | null {
   for (const item of items) {
     if (item.type?.includes('h-entry')) return { entry: item, feed };
     if (item.children) {
@@ -201,29 +209,32 @@ export interface AuthorshipOptions {
  */
 export async function discoverAuthor(
   document: ParsedDocument,
-  { entry, feed }: { entry: MicroformatRoot; feed?: MicroformatRoot },
+  { entry, feed }: AuthoredEntry,
   pageUrl: string,
   { fetchAuthorPage: fetchPage = fetchAuthorPage }: AuthorshipOptions = {}
 ): Promise<ExtractedWebmentionAuthor> {
-  const property = entry.properties.author?.length
-    ? entry.properties.author[0]
-    : feed?.properties.author?.[0];
-
-  let authorPage: string | undefined;
-  let named = false;
-  if (property !== undefined) {
-    if (isCard(property)) return cardAuthor(property);
-    const value = text(property);
-    if (value && !isWebUrl(value)) return { name: value };
-    authorPage = value;
-    named = Boolean(value);
-  }
-
-  if (!authorPage && isPermalinkPage(document, entry, pageUrl)) {
-    authorPage = document.rels.author?.[0];
-  }
+  const property = authorProperty(entry, feed);
+  const explicit = explicitAuthor(property);
+  if (explicit.author) return explicit.author;
+  const named = Boolean(explicit.page);
+  const authorPage =
+    explicit.page || linkedAuthorPage(document, entry, pageUrl);
   if (!authorPage) return {};
 
+  const discovered = await authorFromPage(authorPage, fetchPage);
+  if (discovered) return discovered;
+
+  const onEntryPage = cards(document.items).find((card) =>
+    card.properties.url?.some((url) => sameUrl(text(url), authorPage))
+  );
+  if (onEntryPage) return cardAuthor(onEntryPage);
+  return named ? { url: authorPage } : {};
+}
+
+async function authorFromPage(
+  authorPage: string,
+  fetchPage: AuthorPageFetcher
+): Promise<ExtractedWebmentionAuthor | undefined> {
   try {
     const page = await fetchPage(authorPage);
     if (page) {
@@ -238,9 +249,35 @@ export async function discoverAuthor(
     console.error('Fetching a webmention author page failed:', error);
   }
 
-  const onEntryPage = cards(document.items).find((card) =>
-    card.properties.url?.some((url) => sameUrl(text(url), authorPage))
-  );
-  if (onEntryPage) return cardAuthor(onEntryPage);
-  return named ? { url: authorPage } : {};
+  return undefined;
+}
+
+function explicitAuthor(property: MicroformatProperty | undefined): {
+  author?: ExtractedWebmentionAuthor;
+  page?: string;
+} {
+  if (property === undefined) return {};
+  if (isCard(property)) return { author: cardAuthor(property) };
+  const value = text(property);
+  if (value && !isWebUrl(value)) return { author: { name: value } };
+  return { page: value };
+}
+
+function authorProperty(
+  entry: MicroformatRoot,
+  feed?: MicroformatRoot
+): MicroformatProperty | undefined {
+  return entry.properties.author?.length
+    ? entry.properties.author[0]
+    : feed?.properties.author?.[0];
+}
+
+function linkedAuthorPage(
+  document: ParsedDocument,
+  entry: MicroformatRoot,
+  pageUrl: string
+): string | undefined {
+  return isPermalinkPage(document, entry, pageUrl)
+    ? document.rels.author?.[0]
+    : undefined;
 }

@@ -16,6 +16,12 @@ interface RequestLogProps {
   paths: string[];
 }
 
+function resolveRequest(pathname: string, paths: string[], ready: boolean) {
+  const parked = ready && isParkedPath(pathname);
+  const match = ready && !parked ? closestPath(pathname, paths) : null;
+  return { parked, match };
+}
+
 /**
  * The failed request printed as a server log, one line at a time. The
  * last frame of the trace is the visitor: where they came from if the
@@ -44,8 +50,7 @@ export default function RequestLog({ paths }: RequestLogProps) {
   // path waits for the browser, the same as their frame, so the server HTML
   // and the first client render match.
   const ready = origin !== null;
-  const parked = ready && isParkedPath(pathname);
-  const match = ready && !parked ? closestPath(pathname, paths) : null;
+  const { parked, match } = resolveRequest(pathname, paths, ready);
 
   let line = 0;
   const next = () => ({ '--line': line++ }) as React.CSSProperties;

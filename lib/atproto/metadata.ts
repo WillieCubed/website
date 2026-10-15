@@ -46,6 +46,17 @@ function object(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function validateTypedMember(member: unknown, field: string): void {
+  const typed = object(member);
+  if (typeof typed.$type !== 'string' || !TYPE.test(typed.$type))
+    throw new Error(`atproto.${field} needs a valid lexicon $type.`);
+  const schema = knownMembers[typed.$type as keyof typeof knownMembers];
+  if (!schema) return;
+  const result = safeParse(schema, member, { strict: true });
+  if (!result.ok)
+    throw new Error(`Invalid ${typed.$type} metadata: ${result.message}`);
+}
+
 export function parseDocumentMetadata(
   value: unknown
 ): DocumentMetadata | undefined {
@@ -59,21 +70,9 @@ export function parseDocumentMetadata(
       output[field] = null;
       continue;
     }
-    if (field === 'content' || field === 'links') {
-      const typed = object(member);
-      if (typeof typed.$type !== 'string' || !TYPE.test(typed.$type))
-        throw new Error(`atproto.${field} needs a valid lexicon $type.`);
-    }
+    if (field === 'content' || field === 'links')
+      validateTypedMember(member, field);
     if (field === 'bskyPostRef') assertOwnerCopy(member);
-    if (field === 'content' || field === 'links') {
-      const type = (member as { $type: string }).$type;
-      const schema = knownMembers[type as keyof typeof knownMembers];
-      if (schema) {
-        const result = safeParse(schema, member, { strict: true });
-        if (!result.ok)
-          throw new Error(`Invalid ${type} metadata: ${result.message}`);
-      }
-    }
     output[field] = member;
   }
   const checked = safeParse(

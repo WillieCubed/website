@@ -1,13 +1,15 @@
-import type { publicLocation } from './location';
+import type { PublicLocation } from './location';
 
-export type PublicStatus = {
+export interface WeatherObservation {
+  temperature: number;
+  unit: string;
+  code: number;
+  isDay: boolean;
+  observedAt: string;
+}
+
+export interface PublicStatus {
   unavailable?: boolean;
-  location: ReturnType<typeof publicLocation>;
-  weather: {
-    temperature: number;
-    unit: string;
-    code: number;
-    isDay: boolean;
-    observedAt: string;
-  } | null;
-};
+  location: PublicLocation;
+  weather: WeatherObservation | null;
+}

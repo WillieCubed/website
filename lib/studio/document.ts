@@ -11,9 +11,9 @@ import {
   renderFeedHtml,
 } from '@/lib/indieweb/feeds/html';
 
-import { catalogEntry } from './catalog';
+import { type CatalogEntry, catalogEntry } from './catalog';
 import { StudioError } from './errors';
-import type { DraftContent, EditorNode } from './types';
+import type { DraftContent, EditorMark, EditorNode } from './types';
 
 const MAX_SOURCE_BYTES = 1_000_000;
 export function parseDraftContent(value: unknown): DraftContent {
@@ -28,71 +28,76 @@ export function parseDraftContent(value: unknown): DraftContent {
     typeof body.title !== 'string' ||
     typeof body.description !== 'string' ||
     !['article', 'note'].includes(body.postType) ||
-    !Array.isArray(body.tags) ||
-    body.tags.some((x) => typeof x !== 'string') ||
+    !isStringList(body.tags) ||
     body.document?.type !== 'doc'
   )
     throw new StudioError(400, 'Invalid writing fields.');
-  const allowed = new Set([
-    'doc',
-    'paragraph',
-    'text',
-    'heading',
-    'blockquote',
-    'bulletList',
-    'orderedList',
-    'listItem',
-    'codeBlock',
-    'hardBreak',
-    'horizontalRule',
-    'image',
-    'table',
-    'tableRow',
-    'tableCell',
-    'tableHeader',
-    'mdxSource',
-    'catalogBlock',
-  ]);
-  function check(node: EditorNode, depth: number) {
-    if (
-      depth > 50 ||
-      !node ||
-      typeof node.type !== 'string' ||
-      !allowed.has(node.type)
-    )
-      throw new StudioError(400, 'Unsupported document node.');
-    if (
-      node.attrs !== undefined &&
-      (!node.attrs ||
-        typeof node.attrs !== 'object' ||
-        Array.isArray(node.attrs))
-    )
-      throw new StudioError(400, 'Invalid document attributes.');
-    if (
-      node.marks !== undefined &&
-      (!Array.isArray(node.marks) ||
-        node.marks.some(
-          (mark) =>
-            !mark ||
-            typeof mark !== 'object' ||
-            !['bold', 'italic', 'strike', 'code', 'link', 'underline'].includes(
-              mark.type
-            ) ||
-            (mark.attrs !== undefined &&
-              (!mark.attrs ||
-                typeof mark.attrs !== 'object' ||
-                Array.isArray(mark.attrs)))
-        ))
-    )
-      throw new StudioError(400, 'Invalid text formatting.');
-    if (node.text !== undefined && typeof node.text !== 'string')
-      throw new StudioError(400, 'Invalid text.');
-    if (node.content !== undefined && !Array.isArray(node.content))
-      throw new StudioError(400, 'Invalid document structure.');
-    for (const child of node.content ?? []) check(child, depth + 1);
-  }
-  check(body.document, 0);
+
+  validateDocumentNode(body.document, 0);
   return structuredClone(body);
+}
+
+function isStringList(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === 'string')
+  );
+}
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+const allowedNodes = new Set([
+  'doc',
+  'paragraph',
+  'text',
+  'heading',
+  'blockquote',
+  'bulletList',
+  'orderedList',
+  'listItem',
+  'codeBlock',
+  'hardBreak',
+  'horizontalRule',
+  'image',
+  'table',
+  'tableRow',
+  'tableCell',
+  'tableHeader',
+  'mdxSource',
+  'catalogBlock',
+]);
+function validMark(mark: EditorMark): boolean {
+  return (
+    isRecord(mark) &&
+    ['bold', 'italic', 'strike', 'code', 'link', 'underline'].includes(
+      mark.type
+    ) &&
+    (mark.attrs === undefined || isRecord(mark.attrs))
+  );
+}
+function validateDocumentNode(node: EditorNode, depth: number): void {
+  if (
+    depth > 50 ||
+    !node ||
+    typeof node.type !== 'string' ||
+    !allowedNodes.has(node.type)
+  )
+    throw new StudioError(400, 'Unsupported document node.');
+  validateNodeFields(node);
+  for (const child of node.content ?? [])
+    validateDocumentNode(child, depth + 1);
+}
+function validateNodeFields(node: EditorNode): void {
+  if (node.attrs !== undefined && !isRecord(node.attrs))
+    throw new StudioError(400, 'Invalid document attributes.');
+  if (
+    node.marks !== undefined &&
+    (!Array.isArray(node.marks) || !node.marks.every(validMark))
+  )
+    throw new StudioError(400, 'Invalid text formatting.');
+  if (node.text !== undefined && typeof node.text !== 'string')
+    throw new StudioError(400, 'Invalid text.');
+  if (node.content !== undefined && !Array.isArray(node.content))
+    throw new StudioError(400, 'Invalid document structure.');
 }
 
 export function importMdx(source: string, baseFileSha?: string): DraftContent {
@@ -135,115 +140,155 @@ const attr = (name: string, value: unknown) =>
     .replaceAll('{', '&#123;')}"`;
 
 export function documentSource(node: EditorNode): string {
-  const children = () => (node.content ?? []).map(documentSource).join('');
-  const a = node.attrs ?? {};
-  switch (node.type) {
-    case 'doc':
-      return (node.content ?? []).map(documentSource).join('\n\n');
-    case 'text': {
-      let text = literal(node.text ?? '');
-      for (const mark of node.marks ?? []) {
-        if (mark.type === 'bold') text = `**${text}**`;
-        if (mark.type === 'italic') text = `*${text}*`;
-        if (mark.type === 'strike') text = `~~${text}~~`;
-        if (mark.type === 'code')
-          text = '`' + (node.text ?? '').replaceAll('`', '\\`') + '`';
-        if (mark.type === 'link' && safeUrl(mark.attrs?.href))
-          text = `[${text}](${safeUrl(mark.attrs?.href).replaceAll(')', '%29')})`;
-      }
-      return text;
+  const render = Object.hasOwn(sourceRenderers, node.type)
+    ? sourceRenderers[node.type]
+    : undefined;
+  if (!render)
+    throw new StudioError(422, `Unsupported writing node: ${node.type}`);
+  return render(node);
+}
+const joinedSource =
+  (separator: string) =>
+  (node: EditorNode): string =>
+    (node.content ?? []).map(documentSource).join(separator);
+const sourceRenderers: Record<string, (node: EditorNode) => string> = {
+  doc: joinedSource('\n\n'),
+  paragraph: joinedSource(''),
+  listItem: joinedSource('\n\n'),
+  tableCell: joinedSource(' '),
+  tableHeader: joinedSource(' '),
+  hardBreak: () => '  \n',
+  horizontalRule: () => '---',
+  mdxSource: (node) => String(node.attrs?.source ?? ''),
+  text: textSource,
+  codeBlock: codeSource,
+  catalogBlock: catalogSource,
+  table: tableSource,
+  blockquote: quoteSource,
+  bulletList: bulletListSource,
+  orderedList: orderedListSource,
+  image: imageSource,
+  heading: headingSource,
+};
+function textSource(node: EditorNode): string {
+  let text = literal(node.text ?? '');
+  for (const mark of node.marks ?? [])
+    text = applyTextMark(text, node.text ?? '', mark);
+  return text;
+}
+
+function applyTextMark(
+  text: string,
+  original: string,
+  mark: EditorMark
+): string {
+  switch (mark.type) {
+    case 'bold':
+      return `**${text}**`;
+    case 'italic':
+      return `*${text}*`;
+    case 'strike':
+      return `~~${text}~~`;
+    case 'code':
+      return '`' + original.replaceAll('`', '\\`') + '`';
+    case 'link': {
+      const href = safeUrl(mark.attrs?.href);
+      return href ? `[${text}](${href.replaceAll(')', '%29')})` : text;
     }
-    case 'paragraph':
-      return children();
-    case 'heading':
-      return (
-        '#'.repeat(Math.max(2, Math.min(6, Number(a.level) || 2))) +
-        ' ' +
-        children()
-      );
-    case 'hardBreak':
-      return '  \n';
-    case 'horizontalRule':
-      return '---';
-    case 'blockquote':
-      return (node.content ?? [])
-        .map(documentSource)
-        .join('\n\n')
-        .split('\n')
-        .map((line) => '> ' + line)
-        .join('\n');
-    case 'bulletList':
-      return (node.content ?? [])
-        .map((item) => '- ' + documentSource(item).replaceAll('\n', '\n  '))
-        .join('\n');
-    case 'orderedList':
-      return (node.content ?? [])
-        .map(
-          (item, i) =>
-            `${i + (Number(a.start) || 1)}. ` +
-            documentSource(item).replaceAll('\n', '\n   ')
-        )
-        .join('\n');
-    case 'listItem':
-      return (node.content ?? []).map(documentSource).join('\n\n');
-    case 'codeBlock': {
-      const source = (node.content ?? []).map((x) => x.text ?? '').join('');
-      const fence = '`'.repeat(
-        Math.max(
-          3,
-          ...Array.from(source.matchAll(/`+/g), (m) => m[0].length + 1)
-        )
-      );
-      return `${fence}${String(a.language ?? '').replace(/[^\w+-]/g, '')}\n${source}\n${fence}`;
-    }
-    case 'image':
-      return `<Figure${attr('src', safeUrl(a.src))}${attr('alt', a.alt)}${a.title ? attr('caption', a.title) : ''} />`;
-    case 'mdxSource':
-      return String(a.source ?? '');
-    case 'catalogBlock': {
-      const props = (a.props ?? {}) as Record<string, unknown>;
-      const entry = catalogEntry(String(a.id), String(a.version));
-      if (!entry)
-        return `<StudioBlock${attr('id', a.id)}${attr('version', a.version)}${attr('src', a.src)}${attr('portable', Buffer.from(String(a.portable ?? '').trim()).toString('base64url'))} />`;
-      const attributes = Object.keys(entry.properties)
-        .filter((key) => props[key] !== undefined && key !== 'transcript')
-        .map((key) => attr(key, props[key]))
-        .join('');
-      const inner = String(a.children ?? '');
-      const element = inner
-        ? `<${entry.component}${attributes}>${inner}</${entry.component}>`
-        : `<${entry.component}${attributes} />`;
-      return (
-        element +
-        (props.transcript ? '\n\n' + literal(String(props.transcript)) : '')
-      );
-    }
-    case 'table': {
-      const rows = node.content ?? [];
-      return rows
-        .map(
-          (row, i) =>
-            '| ' +
-            (row.content ?? [])
-              .map((cell) =>
-                documentSource(cell)
-                  .replaceAll('|', '\\|')
-                  .replaceAll('\n', '<br />')
-              )
-              .join(' | ') +
-            ' |' +
-            (i === 0
-              ? '\n| ' + (row.content ?? []).map(() => '---').join(' | ') + ' |'
-              : '')
-        )
-        .join('\n');
-    }
-    case 'tableCell':
-    case 'tableHeader':
-      return (node.content ?? []).map(documentSource).join(' ');
     default:
-      throw new StudioError(422, `Unsupported writing node: ${node.type}`);
+      return text;
   }
+}
+
+function codeSource(node: EditorNode): string {
+  const a = node.attrs ?? {};
+  const source = (node.content ?? []).map((x) => x.text ?? '').join('');
+  const fence = '`'.repeat(
+    Math.max(3, ...Array.from(source.matchAll(/`+/g), (m) => m[0].length + 1))
+  );
+  return `${fence}${String(a.language ?? '').replace(/[^\w+-]/g, '')}\n${source}\n${fence}`;
+}
+
+function catalogSource(node: EditorNode): string {
+  const a = node.attrs ?? {};
+  const props = (a.props ?? {}) as Record<string, unknown>;
+  const entry = catalogEntry(String(a.id), String(a.version));
+  if (!entry)
+    return `<StudioBlock${attr('id', a.id)}${attr('version', a.version)}${attr('src', a.src)}${attr('portable', Buffer.from(String(a.portable ?? '').trim()).toString('base64url'))} />`;
+  const attributes = Object.keys(entry.properties)
+    .filter((key) => props[key] !== undefined && key !== 'transcript')
+    .map((key) => attr(key, props[key]))
+    .join('');
+  const inner = String(a.children ?? '');
+  const element = inner
+    ? `<${entry.component}${attributes}>${inner}</${entry.component}>`
+    : `<${entry.component}${attributes} />`;
+  return (
+    element +
+    (props.transcript ? '\n\n' + literal(String(props.transcript)) : '')
+  );
+}
+
+function tableSource(node: EditorNode): string {
+  const rows = node.content ?? [];
+  return rows
+    .map(
+      (row, i) =>
+        '| ' +
+        (row.content ?? [])
+          .map((cell) =>
+            documentSource(cell)
+              .replaceAll('|', '\\|')
+              .replaceAll('\n', '<br />')
+          )
+          .join(' | ') +
+        ' |' +
+        (i === 0
+          ? '\n| ' + (row.content ?? []).map(() => '---').join(' | ') + ' |'
+          : '')
+    )
+    .join('\n');
+}
+
+function quoteSource(node: EditorNode): string {
+  return (node.content ?? [])
+    .map(documentSource)
+    .join('\n\n')
+    .split('\n')
+    .map((line) => '> ' + line)
+    .join('\n');
+}
+
+function bulletListSource(node: EditorNode): string {
+  return (node.content ?? [])
+    .map((item) => '- ' + documentSource(item).replaceAll('\n', '\n  '))
+    .join('\n');
+}
+
+function orderedListSource(node: EditorNode): string {
+  const a = node.attrs ?? {};
+  return (node.content ?? [])
+    .map(
+      (item, i) =>
+        `${i + (Number(a.start) || 1)}. ` +
+        documentSource(item).replaceAll('\n', '\n   ')
+    )
+    .join('\n');
+}
+
+function imageSource(node: EditorNode): string {
+  const a = node.attrs ?? {};
+  return `<Figure${attr('src', safeUrl(a.src))}${attr('alt', a.alt)}${a.title ? attr('caption', a.title) : ''} />`;
+}
+
+function headingSource(node: EditorNode): string {
+  const a = node.attrs ?? {};
+  const children = () => (node.content ?? []).map(documentSource).join('');
+  return (
+    '#'.repeat(Math.max(2, Math.min(6, Number(a.level) || 2))) +
+    ' ' +
+    children()
+  );
 }
 
 export function exportMdx(
@@ -284,29 +329,8 @@ export async function validatePublication(
   issues.push(...auditPortableContent(source));
   if (/\/api\/studio\/assets\//.test(source))
     issues.push('Private assets must be promoted before publication.');
-  function check(node: EditorNode) {
-    if (node.type === 'catalogBlock') {
-      const attrs = node.attrs ?? {};
-      const entry = catalogEntry(String(attrs.id), String(attrs.version));
-      if (!entry && !attrs.portable)
-        issues.push(
-          'Use an approved catalog version with a portable alternative.'
-        );
-      if (entry)
-        for (const [key, property] of Object.entries(entry.properties)) {
-          const value = (attrs.props as Record<string, unknown> | undefined)?.[
-            key
-          ];
-          if (
-            property.required &&
-            (typeof value !== property.type || String(value).trim() === '')
-          )
-            issues.push(`${entry.name}: ${key} is required.`);
-        }
-    }
-    for (const child of node.content ?? []) check(child);
-  }
-  check(body.document);
+  collectCatalogIssues(body.document, issues);
+
   try {
     const tree = unified().use(remarkParse).use(remarkMdx).parse(source);
     visit(tree, (node) => {
@@ -323,68 +347,110 @@ export async function validatePublication(
         if (!safeUrl(target))
           issues.push('Use a safe public URL for media and links.');
       }
-      if (
-        node.type === 'mdxJsxFlowElement' ||
-        node.type === 'mdxJsxTextElement'
-      ) {
-        const element = node as unknown as {
-          name: string;
-          attributes: { type: string; name?: string; value?: unknown }[];
-        };
-        const safeElements = new Set([
-          'Figure',
-          'Callout',
-          'Ref',
-          'YouTube',
-          'Spotify',
-          'SoundCloud',
-          'StudioBlock',
-          'br',
-          'strong',
-          'em',
-          'sup',
-          'sub',
-          'kbd',
-          'mark',
-          'details',
-          'summary',
-          'p',
-          'span',
-          'div',
-          'a',
-          'img',
-          'figure',
-          'figcaption',
-          'blockquote',
-        ]);
-        if (!safeElements.has(element.name))
-          issues.push(
-            'Imported components need an approved catalog version before publication.'
-          );
-        for (const attribute of element.attributes ?? []) {
-          if (
-            attribute.type !== 'mdxJsxAttribute' ||
-            (attribute.value !== null && typeof attribute.value !== 'string') ||
-            /^on/i.test(attribute.name ?? '') ||
-            attribute.name === 'dangerouslySetInnerHTML' ||
-            attribute.name === 'style'
-          )
-            issues.push(
-              'Executable MDX attributes need an approved catalog component before publication.'
-            );
-          if (
-            ['href', 'src'].includes(attribute.name ?? '') &&
-            typeof attribute.value === 'string' &&
-            !safeUrl(attribute.value)
-          )
-            issues.push('Use a safe public URL for media and links.');
-        }
-      }
+      mdxElementIssues(node, issues);
     });
   } catch {
     issues.push('The MDX source is invalid.');
   }
   return [...new Set(issues)];
+}
+
+function collectCatalogIssues(node: EditorNode, issues: string[]): void {
+  catalogIssues(node, issues);
+  for (const child of node.content ?? []) collectCatalogIssues(child, issues);
+}
+function catalogIssues(node: EditorNode, issues: string[]): void {
+  if (node.type !== 'catalogBlock') return;
+  const attrs = node.attrs ?? {};
+  const entry = catalogEntry(String(attrs.id), String(attrs.version));
+  if (!entry && !attrs.portable)
+    issues.push('Use an approved catalog version with a portable alternative.');
+  if (!entry) return;
+  catalogPropertyIssues(
+    entry,
+    attrs.props as Record<string, unknown> | undefined,
+    issues
+  );
+}
+
+function catalogPropertyIssues(
+  entry: CatalogEntry,
+  props: Record<string, unknown> | undefined,
+  issues: string[]
+): void {
+  for (const [key, property] of Object.entries(entry.properties)) {
+    const value = props?.[key];
+    if (
+      property.required &&
+      (typeof value !== property.type || String(value).trim() === '')
+    )
+      issues.push(`${entry.name}: ${key} is required.`);
+  }
+}
+
+function mdxElementIssues(node: { type: string }, issues: string[]): void {
+  if (!['mdxJsxFlowElement', 'mdxJsxTextElement'].includes(node.type)) return;
+  const element = node as unknown as {
+    name: string;
+    attributes: { type: string; name?: string; value?: unknown }[];
+  };
+  const safeElements = new Set([
+    'Figure',
+    'Callout',
+    'Ref',
+    'YouTube',
+    'Spotify',
+    'SoundCloud',
+    'StudioBlock',
+    'br',
+    'strong',
+    'em',
+    'sup',
+    'sub',
+    'kbd',
+    'mark',
+    'details',
+    'summary',
+    'p',
+    'span',
+    'div',
+    'a',
+    'img',
+    'figure',
+    'figcaption',
+    'blockquote',
+  ]);
+  if (!safeElements.has(element.name))
+    issues.push(
+      'Imported components need an approved catalog version before publication.'
+    );
+  for (const attribute of element.attributes ?? [])
+    mdxAttributeIssues(attribute, issues);
+}
+function mdxAttributeIssues(
+  attribute: { type: string; name?: string; value?: unknown },
+  issues: string[]
+): void {
+  if (
+    attribute.type !== 'mdxJsxAttribute' ||
+    (attribute.value !== null && typeof attribute.value !== 'string') ||
+    executableAttributeName(attribute.name)
+  )
+    issues.push(
+      'Executable MDX attributes need an approved catalog component before publication.'
+    );
+  if (
+    ['href', 'src'].includes(attribute.name ?? '') &&
+    typeof attribute.value === 'string' &&
+    !safeUrl(attribute.value)
+  )
+    issues.push('Use a safe public URL for media and links.');
+}
+
+function executableAttributeName(name = ''): boolean {
+  return (
+    /^on/i.test(name) || ['dangerouslySetInnerHTML', 'style'].includes(name)
+  );
 }
 
 export async function portablePreview(body: DraftContent, slug: string) {

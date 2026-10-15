@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 
+import type { BrandKey, BrandSchemes } from '@/lib/brand/scheme';
 import type { FocusId } from '@/lib/home/focuses';
 
 /**
@@ -42,7 +43,7 @@ export interface HomeContextValue {
   /** Open an entry's detail view, morphing from the element that was used. */
   openDetail: (id: string, from: HTMLElement | null) => void;
   /** Material 3 custom properties per brand key, computed on the server. */
-  brands: Record<string, Record<string, string>>;
+  brands: BrandSchemes;
 }
 
 export const HomeContext = createContext<HomeContextValue | null>(null);
@@ -69,8 +70,8 @@ export function usePreviewHandlers(value: Exclude<Preview, null>) {
  * properties in style objects, but CSSProperties does not name them.
  */
 export function brandStyle(
-  brands: Record<string, Record<string, string>>,
-  brand: string | undefined
+  brands: BrandSchemes,
+  brand: BrandKey | undefined
 ): React.CSSProperties | undefined {
   const vars = brand ? brands[brand] : undefined;
   return vars && Object.keys(vars).length > 0

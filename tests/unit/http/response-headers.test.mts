@@ -33,37 +33,42 @@ const METADATA_FILES: Record<string, string> = {
   'sitemap.ts': 'sitemap.xml',
 };
 
+function routeSegments(name: string): string[] {
+  if (name.startsWith('(')) return [];
+  const dynamic = /^\[(.+)\]$/.exec(name)?.[1];
+  if (!dynamic) return [name];
+  return [dynamic === 'part' ? 'part-1' : 'a-slug'];
+}
+
+type AppRoute = { path: string; kind: 'page' | 'handler' };
+
+function routeFile(name: string, segments: string[]): AppRoute[] {
+  const path = (extra: string[] = []) =>
+    `/${[...segments, ...extra].join('/')}`;
+  if (name === 'page.tsx') return [{ path: path(), kind: 'page' }];
+  if (name === 'route.ts') return [{ path: path(), kind: 'handler' }];
+  if (name in METADATA_FILES)
+    return [{ path: path([METADATA_FILES[name]]), kind: 'handler' }];
+  return [];
+}
+
 /**
  * Every active route as a request path. Private folders are not
  * routed and route groups leave no segment. A dynamic segment gets a value
  * a real request would carry.
  */
 function appRoutes(dir = 'app', segments: string[] = []) {
-  const routes: Array<{ path: string; kind: 'page' | 'handler' }> = [];
+  const routes: AppRoute[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       if (entry.name.startsWith('_')) continue;
-      const dynamic = /^\[(.+)\]$/.exec(entry.name)?.[1];
-      const segment = entry.name.startsWith('(')
-        ? []
-        : [dynamic ? (dynamic === 'part' ? 'part-1' : 'a-slug') : entry.name];
+      const segment = routeSegments(entry.name);
       routes.push(
         ...appRoutes(join(dir, entry.name), [...segments, ...segment])
       );
       continue;
     }
-    const path = (extra: string[] = []) =>
-      `/${[...segments, ...extra].join('/')}`;
-    if (entry.name === 'page.tsx') routes.push({ path: path(), kind: 'page' });
-    if (entry.name === 'route.ts') {
-      routes.push({ path: path(), kind: 'handler' });
-    }
-    if (entry.name in METADATA_FILES) {
-      routes.push({
-        path: path([METADATA_FILES[entry.name]]),
-        kind: 'handler',
-      });
-    }
+    routes.push(...routeFile(entry.name, segments));
   }
   return routes;
 }

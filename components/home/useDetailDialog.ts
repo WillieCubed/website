@@ -21,6 +21,12 @@ const setName = (el: HTMLElement | null, value: string) => {
   if (el) el.style.viewTransitionName = value;
 };
 
+function restoreDetailFocus(element: HTMLElement | null) {
+  if (element?.isConnected && !document.querySelector('dialog[open]')) {
+    element.focus({ preventScroll: true });
+  }
+}
+
 // Every DOM change happens inside the transition callback so the browser can
 // morph the old and new snapshots. Without the API, or under reduced motion,
 // the change just applies. A transition the browser abandons, such as one
@@ -212,9 +218,7 @@ export function useDetailDialog(
     setOpenId(null);
     const returnFocus = returnFocusRef.current;
     returnFocusRef.current = null;
-    if (returnFocus?.isConnected && !document.querySelector('dialog[open]')) {
-      returnFocus.focus({ preventScroll: true });
-    }
+    restoreDetailFocus(returnFocus);
   };
 
   // Once the dialog shows what the visitor picked, the URL follows. A view

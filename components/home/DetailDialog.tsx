@@ -7,7 +7,7 @@ import { useDetailDialog } from '@/components/home/useDetailDialog';
 import SiteLink from '@/components/link/SiteLink';
 
 import { isPlainClick } from '@/lib/dom/click';
-import { entries } from '@/lib/home/ventures';
+import { type Entry, entries } from '@/lib/home/ventures';
 
 interface DetailDialogProps {
   initialId?: string;
@@ -17,7 +17,55 @@ interface DetailDialogProps {
   ) => void;
   countdown: React.ReactNode;
 }
-/** A router call this view made whose result the URL does not show yet. */
+
+function DetailBody({
+  entry,
+  onOpen,
+}: {
+  entry: Entry | null;
+  onOpen: (id: string) => void;
+}) {
+  return (
+    <div className="d-content scroller">
+      <span className="d-kicker">{entry?.parent ?? ''}</span>
+      <h2 className="d-title" id="d-title">
+        {entry?.name}
+      </h2>
+      {entry && <Body detail={entry.detail} onOpen={onOpen} />}
+    </div>
+  );
+}
+
+function DetailContents({
+  openId,
+  mediaRef,
+  countdown,
+  onOpen,
+}: {
+  openId: string | null;
+  mediaRef: React.RefObject<HTMLDivElement | null>;
+  countdown: React.ReactNode;
+  onOpen: (id: string) => void;
+}) {
+  const entry = openId ? entries[openId] : null;
+  const media = entry?.detail.media;
+  return (
+    <div className="d-inner" key={openId ?? 'empty'}>
+      <div
+        className={
+          media?.kind === 'image' && media.framed ? 'd-media framed' : 'd-media'
+        }
+        ref={mediaRef}
+      >
+        {media && openId && (
+          <Media id={openId} media={media} countdown={countdown} />
+        )}
+      </div>
+      <DetailBody entry={entry} onOpen={onOpen} />
+    </div>
+  );
+}
+
 /**
  * The detail view. What it shows and the `?detail=<id>` search param mirror
  * each other, so the back gesture, the close button, and a shared link all
@@ -49,7 +97,6 @@ export function DetailDialog({
   } = useDetailDialog(registerOpener, initialId);
   const entry = openId ? entries[openId] : null;
   const style = brandStyle(brands, entry?.brand);
-  const media = entry?.detail.media;
 
   return (
     <dialog
@@ -90,35 +137,15 @@ export function DetailDialog({
           <Icon name="close" />
         </SiteLink>
       </div>
-      <div className="d-inner" key={openId ?? 'empty'}>
-        <div
-          className={
-            media?.kind === 'image' && media.framed
-              ? 'd-media framed'
-              : 'd-media'
-          }
-          ref={mediaRef}
-        >
-          {media && openId && (
-            <Media id={openId} media={media} countdown={countdown} />
-          )}
-        </div>
-        <div className="d-content scroller">
-          <span className="d-kicker">{entry?.parent ?? ''}</span>
-          <h2 className="d-title" id="d-title">
-            {entry?.name}
-          </h2>
-          {entry && (
-            <Body
-              detail={entry.detail}
-              onOpen={(id) => {
-                wantRef.current = id;
-                void settle();
-              }}
-            />
-          )}
-        </div>
-      </div>
+      <DetailContents
+        openId={openId}
+        mediaRef={mediaRef}
+        countdown={countdown}
+        onOpen={(id) => {
+          wantRef.current = id;
+          void settle();
+        }}
+      />
     </dialog>
   );
 }

@@ -1,4 +1,4 @@
-import { materialSchemeVars } from './material-scheme';
+import { type BrandSchemeVars, materialSchemeVars } from './material-scheme';
 import seeds from './seeds.json';
 
 /** A venture whose site the resolver script has read for a brand color. */
@@ -10,9 +10,11 @@ export interface BrandSeed {
   source: string;
 }
 
+export type BrandSchemes = Partial<Record<BrandKey, BrandSchemeVars>>;
+
 export const brandSeeds: Record<BrandKey, BrandSeed> = seeds;
 
-const cache = new Map<string, Record<string, string>>();
+const cache = new Map<string, BrandSchemeVars>();
 
 /**
  * The CSS custom properties (`--b-primary`, `--b-on-surface`, and so on) for
@@ -20,7 +22,7 @@ const cache = new Map<string, Record<string, string>>();
  *
  * A key with no seed returns an empty object so the element stays neutral.
  */
-export function brandVars(brandKey: string): Record<string, string> {
+export function brandVars(brandKey: string): BrandSchemeVars {
   const cached = cache.get(brandKey);
   if (cached) return cached;
   const seed = (brandSeeds as Record<string, BrandSeed | undefined>)[brandKey];
@@ -31,8 +33,8 @@ export function brandVars(brandKey: string): Record<string, string> {
 }
 
 /** Brand vars for every seeded venture, keyed by brand. */
-export function allBrandVars(): Record<BrandKey, Record<string, string>> {
+export function allBrandVars(): Record<BrandKey, BrandSchemeVars> {
   return Object.fromEntries(
     (Object.keys(brandSeeds) as BrandKey[]).map((key) => [key, brandVars(key)])
-  ) as Record<BrandKey, Record<string, string>>;
+  ) as Record<BrandKey, BrandSchemeVars>;
 }

@@ -775,6 +775,9 @@ test('dragging changes the authored order without changing the live gallery', as
   );
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page
+    .getByRole('button', { name: 'Reorder playlists', exact: true })
+    .click();
+  await page
     .locator('[data-playlist="summer"]')
     .dragTo(page.locator('[data-playlist="fall-1"]'));
   await expect(page.locator('.mp-card').first()).toHaveAttribute(
@@ -999,15 +1002,18 @@ test('the first screen shows a collection preview or a working scroll cue', asyn
           const cue = document.querySelector('.mp-scroll-cue');
           if (!cue) return true;
           const box = cue.getBoundingClientRect();
-          const caption = document
-            .querySelector('.mp-card-lead .mp-card-caption')!
-            .getBoundingClientRect();
-          return (
-            box.right <= caption.left ||
-            box.left >= caption.right ||
-            box.bottom <= caption.top ||
-            box.top >= caption.bottom
+          const content = document.querySelectorAll(
+            '.mp-card-lead .mp-card-caption, .mp-card-lead .mp-feature-details'
           );
+          return Array.from(content).every((element) => {
+            const text = element.getBoundingClientRect();
+            return (
+              box.right <= text.left ||
+              box.left >= text.right ||
+              box.bottom <= text.top ||
+              box.top >= text.bottom
+            );
+          });
         })
       )
       .toBe(true);
@@ -1016,12 +1022,21 @@ test('the first screen shows a collection preview or a working scroll cue', asyn
         .poll(() =>
           page.evaluate(() => {
             const cue = document.querySelector('.mp-scroll-cue');
-            if (!cue) return null;
+            if (!cue) {
+              const next = document
+                .querySelector('.mp-card:not(.mp-card-lead)')!
+                .getBoundingClientRect();
+              return (
+                next.top + 56 <= (window.visualViewport?.height ?? innerHeight)
+              );
+            }
             const box = cue.getBoundingClientRect();
-            return Math.min(innerHeight - box.bottom, box.top);
+            return Math.min(innerHeight - box.bottom, box.top) >= 20;
           })
         )
-        .toBeGreaterThanOrEqual(20);
+        // Classic scrollbars can wrap the text into the bottom cue zone.
+        // Keep the minimum clearance while allowing it to rise above text.
+        .toBe(true);
     }
   }
   const cue = page.getByRole('button', { name: 'Scroll to more playlists' });
@@ -1044,7 +1059,7 @@ test('the first screen shows a collection preview or a working scroll cue', asyn
 test('the scroll cue leaves authored playlist notes readable', async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 390, height: 900 });
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page
     .getByRole('link', { name: 'Open Fall Tour 2026, Part 1', exact: true })

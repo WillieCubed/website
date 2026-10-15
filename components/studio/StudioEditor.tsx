@@ -70,9 +70,10 @@ export default function StudioEditor({ id }: { id: string }) {
       );
     }
   }
+  const activeDraft = draft?.id === id ? draft : null;
   return (
     <StudioDocumentFrame>
-      {draft?.id === id && error && (
+      {activeDraft && error && (
         <section className="studio-notice" role="alert">
           <p>
             Could not refresh this writing. Your open draft is still available.
@@ -85,17 +86,17 @@ export default function StudioEditor({ id }: { id: string }) {
       )}
       <StudioDocumentTransition
         key={id}
-        ready={draft?.id === id && readyDocument === id}
+        ready={Boolean(activeDraft && readyDocument === id)}
         pending={
           <StudioDocumentPendingContent
-            error={draft?.id === id ? undefined : error}
+            error={activeDraft ? undefined : error}
           />
         }
       >
-        {draft?.id === id && (
+        {activeDraft && (
           <Writing
             key={id}
-            initial={draft}
+            initial={activeDraft}
             onReady={editorReady}
             interactive={readyDocument === id}
             entries={entries}

@@ -3,7 +3,7 @@
 import Button from '@/components/site/Button';
 
 import { formatDate } from '@/lib/site/dates';
-import type { DraftContent } from '@/lib/studio/types';
+import type { DraftContent, Revision } from '@/lib/studio/types';
 
 import { type CatalogEntry } from './StudioNodes';
 import StudioWidgetGenerator from './StudioWidgetGenerator';
@@ -63,13 +63,8 @@ export default function WritingTasks({
             </h2>
             <Button onClick={returnToWriting}>Back to writing</Button>
           </div>
-          {task === 'components' && catalogStatus && (
-            <div>
-              <p role="status">{catalogStatus}</p>
-              {retryCatalog && (
-                <Button onClick={retryCatalog}>Retry widgets</Button>
-              )}
-            </div>
+          {task === 'components' && (
+            <WidgetCatalogStatus message={catalogStatus} retry={retryCatalog} />
           )}
           {task === 'details' && (
             <div className="studio-task-form">
@@ -122,41 +117,15 @@ export default function WritingTasks({
                 <p>No earlier revisions yet.</p>
               )}
               {revisions.map((revision) => (
-                <div key={revision.id} className="studio-revision">
-                  <details className="studio-history-inspection">
-                    <summary>
-                      Revision {revision.number} ·{' '}
-                      {formatDate(revision.createdAt)}
-                    </summary>
-                    {revision.body.title && (
-                      <h3 className="mt-4 text-title-medium">
-                        {revision.body.title}
-                      </h3>
-                    )}
-                    {revision.body.description && (
-                      <p className="mt-2 text-body-medium text-muted">
-                        {revision.body.description}
-                      </p>
-                    )}
-                    <p className="mt-4 whitespace-pre-wrap text-body-medium">
-                      {proseText(revision.body.document)}
-                    </p>
-                    {revision.body.originalSource && (
-                      <p className="mt-2 text-body-small text-muted">
-                        Imported source is retained in this revision.
-                      </p>
-                    )}
-                  </details>
-                  <Button
-                    onClick={() => {
-                      editor?.commands.setContent(revision.body.document);
-                      update(revision.body);
-                      returnToWriting();
-                    }}
-                  >
-                    Restore as draft
-                  </Button>
-                </div>
+                <RevisionCard
+                  key={revision.id}
+                  revision={revision}
+                  onRestore={() => {
+                    editor?.commands.setContent(revision.body.document);
+                    update(revision.body);
+                    returnToWriting();
+                  }}
+                />
               ))}
             </>
           )}
@@ -182,5 +151,56 @@ export default function WritingTasks({
         />
       </div>
     </>
+  );
+}
+
+function RevisionCard({
+  revision,
+  onRestore,
+}: {
+  revision: Revision;
+  onRestore: () => void;
+}) {
+  return (
+    <div className="studio-revision">
+      <details className="studio-history-inspection">
+        <summary>
+          Revision {revision.number} · {formatDate(revision.createdAt)}
+        </summary>
+        {revision.body.title && (
+          <h3 className="mt-4 text-title-medium">{revision.body.title}</h3>
+        )}
+        {revision.body.description && (
+          <p className="mt-2 text-body-medium text-muted">
+            {revision.body.description}
+          </p>
+        )}
+        <p className="mt-4 whitespace-pre-wrap text-body-medium">
+          {proseText(revision.body.document)}
+        </p>
+        {revision.body.originalSource && (
+          <p className="mt-2 text-body-small text-muted">
+            Imported source is retained in this revision.
+          </p>
+        )}
+      </details>
+      <Button onClick={onRestore}>Restore as draft</Button>
+    </div>
+  );
+}
+
+function WidgetCatalogStatus({
+  message,
+  retry,
+}: {
+  message?: string;
+  retry?: () => void;
+}) {
+  if (!message) return null;
+  return (
+    <div>
+      <p role="status">{message}</p>
+      {retry && <Button onClick={retry}>Retry widgets</Button>}
+    </div>
   );
 }

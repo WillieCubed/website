@@ -1,19 +1,43 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import { ViewTransition } from '@/components/site/view-transition';
 
 import { useHydrated } from '@/lib/dom/hydrated';
-import { fetchWithDeadline } from '@/lib/http/fetch';
-import type { PublicStatus } from '@/lib/status/types';
+import type { PublicLocation } from '@/lib/status/location';
+import type { PublicStatus, WeatherObservation } from '@/lib/status/types';
 
 import TimeZoneChooser from './TimeZoneChooser';
 import WeatherPicture, { weatherLabel } from './WeatherPicture';
 import './status.css';
+import { type StatusController, useStatus } from './useStatus';
+
+function Temperature({
+  weather,
+  celsius,
+}: {
+  weather: WeatherObservation | null;
+  celsius: boolean;
+}) {
+  if (!weather) return null;
+  return (
+    <ViewTransition
+      name="status-temperature"
+      share="status-detail"
+      default="none"
+    >
+      <span className="temperature">
+        {Math.round(
+          celsius ? ((weather.temperature - 32) * 5) / 9 : weather.temperature
+        )}
+        °<span className="unit">{celsius ? 'C' : 'F'}</span>
+      </span>
+    </ViewTransition>
+  );
+}
 
 export default function Status({
   initial,
@@ -22,99 +46,9 @@ export default function Status({
   initial: PublicStatus;
   expanded?: boolean;
 }) {
-  const hydrated = useHydrated();
-  const pathname = usePathname();
-  const [data, setData] = useState(initial);
-  const [refreshing, setRefreshing] = useState(true);
-  const [celsius, setCelsius] = useState(false);
-  const [now, setNow] = useState<Date>();
-  const [selectedTimezone, setSelectedTimezone] = useState('local');
-  const [deviceTimezone, setDeviceTimezone] = useState('UTC');
-  const weatherGroup = useRef<HTMLDivElement>(null);
-  const reaction = useRef<Animation | null>(null);
-  const toggleTemperature = () => {
-    setCelsius((value) => !value);
-    reaction.current?.cancel();
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const graphic = weatherGroup.current?.querySelector('.sky-glyph');
-    if (!graphic) return;
-    reaction.current = graphic.animate(
-      [
-        { translate: '0 0', scale: '1' },
-        { translate: '0 2px', scale: '1.04 0.96', offset: 0.18 },
-        { translate: '0 -10px', scale: '0.98 1.02', offset: 0.46 },
-        { translate: '0 1px', scale: '1.02 0.98', offset: 0.78 },
-        { translate: '0 0', scale: '1' },
-      ],
-      { duration: 460, easing: 'ease-in-out' }
-    );
-  };
-  useEffect(() => {
-    if (!expanded && pathname === '/status') return;
-    setDeviceTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    const tick = () => setNow(new Date());
-    tick();
-    const clock = setInterval(tick, 30000);
-    const abort = new AbortController();
-    let inFlight = false;
-    const refresh = async () => {
-      if (document.hidden || inFlight) return;
-      inFlight = true;
-      setRefreshing(true);
-      try {
-        const response = await fetchWithDeadline('/api/status', {
-          cache: 'no-store',
-          signal: abort.signal,
-        });
-        if (response.ok) setData(await response.json());
-      } catch {
-        /* Keep the city available during a connection failure. */
-      } finally {
-        inFlight = false;
-        if (!abort.signal.aborted) setRefreshing(false);
-      }
-      tick();
-    };
-    const interval = setInterval(refresh, 900000);
-    document.addEventListener('visibilitychange', refresh);
-    void refresh();
-    return () => {
-      reaction.current?.cancel();
-      clearInterval(clock);
-      clearInterval(interval);
-      abort.abort();
-      document.removeEventListener('visibilitychange', refresh);
-    };
-  }, [expanded, pathname]);
-  if (!expanded && pathname === '/status') return null;
-  const { location } = data;
-  const weather =
-    data.weather &&
-    (!now ||
-      Math.abs(now.getTime() - Date.parse(data.weather.observedAt)) < 3600000)
-      ? data.weather
-      : null;
-  const timezone =
-    !expanded || selectedTimezone === 'local'
-      ? location.timezone
-      : selectedTimezone === 'device'
-        ? deviceTimezone
-        : selectedTimezone;
-  const time = now
-    ? new Intl.DateTimeFormat('en-US', {
-        timeZone: timezone,
-        hour: 'numeric',
-        minute: '2-digit',
-      }).format(now)
-    : '—';
-  const zone = now
-    ? new Intl.DateTimeFormat('en-US', {
-        timeZone: timezone,
-        timeZoneName: 'short',
-      })
-        .formatToParts(now)
-        .find((part) => part.type === 'timeZoneName')?.value
-    : '';
+  const view = useStatus(initial, expanded);
+  if (!view.visible) return null;
+  const { location, weather, now, time } = view;
   const city = (
     <ViewTransition name="status-city" share="status-detail" default="none">
       <span className="status-city">{location.city}</span>
@@ -130,53 +64,109 @@ export default function Status({
       <WeatherPicture weather={weather} compact={!expanded} />
     </ViewTransition>
   );
-  const temperature = weather && (
-    <ViewTransition
-      name="status-temperature"
-      share="status-detail"
-      default="none"
-    >
-      <span className="temperature">
-        {Math.round(
-          expanded && celsius
-            ? ((weather.temperature - 32) * 5) / 9
-            : weather.temperature
-        )}
-        °<span className="unit">{expanded && celsius ? 'C' : 'F'}</span>
-      </span>
-    </ViewTransition>
+  const temperature = (
+    <Temperature weather={weather} celsius={expanded && view.celsius} />
   );
   if (!expanded)
     return (
-      <SiteLink
-        preview={false}
-        href="/status"
-        className="microstatus"
-        aria-label={
-          data.unavailable
-            ? 'Current status unavailable'
-            : `Willie's status in ${location.city}${weather ? `, ${Math.round(weather.temperature)} degrees Fahrenheit, ${weatherLabel(weather)}` : ''}`
-        }
-      >
-        <span className="microstatus-place">
-          <Icon name="map-pin" />
-          {data.unavailable ? 'Status unavailable' : city}
-        </span>
-        <span
-          className="microstatus-clock"
-          style={data.unavailable ? { visibility: 'hidden' } : undefined}
-        >
-          <Icon name="clock" />
-          {clock}
-        </span>
-        {weather && (
-          <span className="microstatus-weather">
-            {picture}
-            {temperature}
-          </span>
-        )}
-      </SiteLink>
+      <CompactStatus
+        location={location}
+        weather={weather}
+        unavailable={view.data.unavailable}
+        city={city}
+        clock={clock}
+        picture={picture}
+        temperature={temperature}
+      />
     );
+  return (
+    <StatusDetails
+      view={view}
+      city={city}
+      clock={clock}
+      picture={picture}
+      temperature={temperature}
+    />
+  );
+}
+
+interface CompactStatusProps {
+  location: PublicLocation;
+  weather: WeatherObservation | null;
+  unavailable?: boolean;
+  city: ReactNode;
+  clock: ReactNode;
+  picture: ReactNode;
+  temperature: ReactNode;
+}
+function CompactStatus({
+  location,
+  weather,
+  unavailable,
+  city,
+  clock,
+  picture,
+  temperature,
+}: CompactStatusProps) {
+  return (
+    <SiteLink
+      preview={false}
+      href="/status"
+      className="microstatus"
+      aria-label={
+        unavailable
+          ? 'Current status unavailable'
+          : `Willie's status in ${location.city}${weather ? `, ${Math.round(weather.temperature)} degrees Fahrenheit, ${weatherLabel(weather)}` : ''}`
+      }
+    >
+      <span className="microstatus-place">
+        <Icon name="map-pin" />
+        {unavailable ? 'Status unavailable' : city}
+      </span>
+      <span
+        className="microstatus-clock"
+        style={unavailable ? { visibility: 'hidden' } : undefined}
+      >
+        <Icon name="clock" />
+        {clock}
+      </span>
+      {weather && (
+        <span className="microstatus-weather">
+          {picture}
+          {temperature}
+        </span>
+      )}
+    </SiteLink>
+  );
+}
+
+function StatusDetails({
+  view,
+  city,
+  clock,
+  picture,
+  temperature,
+}: {
+  view: StatusController;
+  city: ReactNode;
+  clock: ReactNode;
+  picture: ReactNode;
+  temperature: ReactNode;
+}) {
+  const hydrated = useHydrated();
+  const {
+    location,
+    selectedTimezone,
+    deviceTimezone,
+    zone,
+    now,
+    weatherGroup,
+    weather,
+    celsius,
+    refreshing,
+    toggleTemperature,
+    setSelectedTimezone,
+  } = view;
   return (
     <>
       <section
@@ -185,7 +175,7 @@ export default function Status({
       >
         <div className="status-place">
           <h1 className="status-heading">
-            {data.unavailable ? (
+            {view.data.unavailable ? (
               'Willie’s current location is unavailable.'
             ) : (
               <>Willie is currently in {city}.</>
@@ -193,7 +183,7 @@ export default function Status({
           </h1>
           <div
             className="clock"
-            style={data.unavailable ? { visibility: 'hidden' } : undefined}
+            style={view.data.unavailable ? { visibility: 'hidden' } : undefined}
           >
             {clock}
             <TimeZoneChooser

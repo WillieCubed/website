@@ -245,20 +245,7 @@ export async function handleConsentDecision(
       400
     );
   }
-  const params = new URLSearchParams();
-  for (const key of [
-    'response_type',
-    'client_id',
-    'redirect_uri',
-    'state',
-    'code_challenge',
-    'code_challenge_method',
-    'scope',
-  ]) {
-    for (const value of body.getAll(key)) {
-      if (typeof value === 'string') params.append(key, value);
-    }
-  }
+  const params = consentParameters(body);
 
   const checked = await checkAuthorizationRequest(params, options);
   if (checked.kind === 'page') return checked.response;
@@ -387,25 +374,7 @@ export async function handleTokenRequest(
     );
   }
 
-  const redemption = await redeemAuthorizationCode(options.store, form, now);
-  if (!redemption.ok) {
-    return oauthError(redemption.error, 400, redemption.description);
-  }
-  if (redemption.record.scope.length === 0) {
-    return jsonResponse(profileResponse(redemption.record), {
-      headers: TOKEN_HEADERS,
-    });
-  }
-
-  const token = await issueAccessToken(options.store, redemption.record, now);
-  if (!token) {
-    return oauthError(
-      'invalid_grant',
-      400,
-      'The authorization code was reused.'
-    );
-  }
-  return jsonResponse(token, { headers: TOKEN_HEADERS });
+  return redeemTokenGrant(form, options, now);
 }
 
 /**
@@ -511,4 +480,48 @@ export async function handleRevocation(
   }
   await revokeAccessToken(options.store, token, clock(options));
   return new Response(null, { status: 200, headers: TOKEN_HEADERS });
+}
+
+function consentParameters(body: FormData): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const key of [
+    'response_type',
+    'client_id',
+    'redirect_uri',
+    'state',
+    'code_challenge',
+    'code_challenge_method',
+    'scope',
+  ]) {
+    for (const value of body.getAll(key)) {
+      if (typeof value === 'string') params.append(key, value);
+    }
+  }
+  return params;
+}
+
+async function redeemTokenGrant(
+  form: URLSearchParams,
+  options: IndieAuthEndpointOptions,
+  now: Date
+): Promise<Response> {
+  const redemption = await redeemAuthorizationCode(options.store, form, now);
+  if (!redemption.ok) {
+    return oauthError(redemption.error, 400, redemption.description);
+  }
+  if (redemption.record.scope.length === 0) {
+    return jsonResponse(profileResponse(redemption.record), {
+      headers: TOKEN_HEADERS,
+    });
+  }
+
+  const token = await issueAccessToken(options.store, redemption.record, now);
+  if (!token) {
+    return oauthError(
+      'invalid_grant',
+      400,
+      'The authorization code was reused.'
+    );
+  }
+  return jsonResponse(token, { headers: TOKEN_HEADERS });
 }

@@ -59,19 +59,9 @@ export interface LoadOptions {
   now?: Date;
 }
 
-export function loadAllProjects({
-  dir = PROJECTS_DIR,
-  includeDrafts = false,
-  now = new Date(),
-}: LoadOptions = {}): Project[] {
-  if (!existsSync(dir)) return [];
-  const all = markdownFiles(dir, ['.mdx']).map((file) =>
-    readProject(join(dir, file), file.replace(/\.mdx$/, ''), now)
-  );
-  // References are checked against every file, hidden and draft included,
-  // so hiding a parent never breaks the build of its children.
-  const slugs = new Set(all.map((project) => project.slug));
-  for (const project of all) {
+function validateRelationships(projects: Project[]): void {
+  const slugs = new Set(projects.map((project) => project.slug));
+  for (const project of projects) {
     if (
       project.parent &&
       (project.parent === project.slug || !slugs.has(project.parent))
@@ -90,6 +80,20 @@ export function loadAllProjects({
       );
     }
   }
+}
+
+export function loadAllProjects({
+  dir = PROJECTS_DIR,
+  includeDrafts = false,
+  now = new Date(),
+}: LoadOptions = {}): Project[] {
+  if (!existsSync(dir)) return [];
+  const all = markdownFiles(dir, ['.mdx']).map((file) =>
+    readProject(join(dir, file), file.replace(/\.mdx$/, ''), now)
+  );
+  // References are checked against every file, hidden and draft included,
+  // so hiding a parent never breaks the build of its children.
+  validateRelationships(all);
   return sortProjects(
     all.filter(
       (project) =>

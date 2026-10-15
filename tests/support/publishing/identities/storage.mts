@@ -10,9 +10,37 @@ import { save } from './journal.mts';
 import { request } from './pds.mts';
 import { command } from './process.mts';
 import { PDS_COMMAND } from './shared.mts';
-import type { Journal } from './types.mts';
+import type { Journal, StorageFile, StorageHelper } from './types.mts';
 
-export function inspectedContainer(name: string) {
+interface ContainerMount {
+  Type: string;
+  Destination: string;
+  Source?: string;
+  Name?: string;
+  RW: boolean;
+}
+
+interface ContainerInspection {
+  Config: {
+    Labels: Record<string, string>;
+    Image: string;
+    Env: string[];
+    Cmd: unknown;
+    Entrypoint: unknown;
+  };
+  State: { Running: boolean };
+  HostConfig: {
+    PortBindings: Record<string, { HostIp: string; HostPort: string }[]>;
+    Memory: number;
+    MemorySwap: number;
+    NanoCpus: number;
+    NetworkMode: string;
+    ReadonlyRootfs: boolean;
+  };
+  Mounts: ContainerMount[];
+}
+
+export function inspectedContainer(name: string): ContainerInspection | null {
   const result = spawnSync('docker', ['inspect', name], { encoding: 'utf8' });
   if (result.status !== 0) {
     assert(/no such object/i.test(result.stderr));
@@ -45,9 +73,9 @@ export function pdsEnvironment(journal: Journal): Record<string, string> {
 }
 export function assertPdsContainer(
   journal: Journal,
-  container: ReturnType<typeof inspectedContainer>,
+  container: ContainerInspection | null,
   volume: boolean
-) {
+): asserts container is ContainerInspection {
   assert(container);
   assert(
     container.Config.Labels['dev.williecubed.website.acceptance'] ===
@@ -83,16 +111,7 @@ export function assertPdsContainer(
     isDeepStrictEqual(container.Config.Entrypoint, image.Config.Entrypoint),
     'The owned PDS entrypoint changed.'
   );
-  const mounts = container.Mounts.filter(
-    (entry: { Destination: string }) => entry.Destination === '/pds'
-  );
-  assert(mounts.length === 1);
-  assert(
-    volume
-      ? mounts[0].Type === 'volume' &&
-          mounts[0].Name === journal.storage?.volume
-      : mounts[0].Type === 'bind' && mounts[0].Source === journal.data
-  );
+  assertPdsMount(journal, container, volume);
   const ports = container.HostConfig.PortBindings['3000/tcp'];
   assert(
     ports.length === 1 &&
@@ -105,10 +124,26 @@ export function assertPdsContainer(
       container.HostConfig.NanoCpus === 1000000000
   );
 }
+function assertPdsMount(
+  journal: Journal,
+  container: ContainerInspection,
+  volume: boolean
+): void {
+  const mounts = container.Mounts.filter(
+    (entry) => entry.Destination === '/pds'
+  );
+  assert(mounts.length === 1);
+  assert(
+    volume
+      ? mounts[0].Type === 'volume' &&
+          mounts[0].Name === journal.storage?.volume
+      : mounts[0].Type === 'bind' && mounts[0].Source === journal.data
+  );
+}
 export function assertStorageHelper(
   journal: Journal,
-  container: ReturnType<typeof inspectedContainer>,
-  helper: NonNullable<Journal['storage']>['helpers'][number]
+  container: ContainerInspection | null,
+  helper: StorageHelper
 ) {
   assert(container && journal.storage);
   assert(
@@ -135,12 +170,7 @@ export function assertStorageHelper(
   assert(container.Mounts.length === (helper.source ? 2 : 1));
   assert(
     container.Mounts.some(
-      (mount: {
-        Type: string;
-        Name: string;
-        Destination: string;
-        RW: boolean;
-      }) =>
+      (mount) =>
         mount.Type === 'volume' &&
         mount.Name === journal.storage!.volume &&
         mount.Destination === '/pds' &&
@@ -150,12 +180,7 @@ export function assertStorageHelper(
   if (helper.source)
     assert(
       container.Mounts.some(
-        (mount: {
-          Type: string;
-          Source: string;
-          Destination: string;
-          RW: boolean;
-        }) =>
+        (mount) =>
           mount.Type === 'bind' &&
           mount.Source === helper.source &&
           mount.Destination === '/source' &&
@@ -259,7 +284,7 @@ export async function volumeCommand(
   ]);
 }
 export async function sourceManifest(data: string) {
-  const files: NonNullable<NonNullable<Journal['storage']>['manifest']> = [];
+  const files: StorageFile[] = [];
   async function walk(relative: string) {
     for (const name of await readdir(resolve(data, relative))) {
       const path = relative ? `${relative}/${name}` : name;

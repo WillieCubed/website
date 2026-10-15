@@ -1,38 +1,48 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { Draft, Publication } from '@/lib/studio/types';
 
 import { studioRequest } from './api';
-import type { WritingPreview, WritingState } from './useWritingState';
+import type { WritingDocument } from './writing-contracts';
+
+export type WritingPreview = {
+  html: string;
+  contentHtml: string;
+  portableHtml: string;
+  portableText: string;
+  issues: unknown[];
+};
 
 /** Review and publish an immutable saved revision while the working document stays editable. */
 export function useWritingPublication(
-  state: WritingState,
+  document: WritingDocument,
   initial: Draft,
-  save: () => Promise<boolean>,
   rememberRange: () => void
 ) {
-  const {
-    draft,
-    setDraft,
-    setPublicationConnectionError,
-    publicationPollRetry,
-    setPublicationPollRetry,
-    setReviewedRevision,
-    bodyRef,
-    headRef,
-    reviewedBody,
-    reviewedRevisionId,
-    setStatus,
-    setMode,
-    setPreview,
-    setReview,
-    publication,
-    setPublication,
-    setBusy,
-  } = state;
+  const { draft, setDraft, bodyRef, headRef, setStatus, save } = document;
+  const [publicationConnectionError, setPublicationConnectionError] =
+    useState('');
+  const [publicationPollRetry, setPublicationPollRetry] = useState(0);
+  const [reviewedRevision, setReviewedRevision] = useState<number | null>(null);
+  const reviewedBody = useRef<string | null>(null);
+  const reviewedRevisionId = useRef<string | null>(null);
+  const [mode, setMode] = useState<'write' | 'read' | 'portable'>('write');
+  const [preview, setPreview] = useState<WritingPreview | null>(null);
+  const [review, setReview] = useState(false);
+  const [publication, setPublication] = useState<Publication | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [previewBody, setPreviewBody] = useState<string | null>(null);
+  const currentSnapshot = JSON.stringify(document.body);
+  useEffect(() => {
+    // An edit retires review authorization even when a later undo restores its bytes.
+    reviewedBody.current = null;
+    reviewedRevisionId.current = null;
+    setPreview(null);
+    setPreviewBody(null);
+    setReview(false);
+  }, [document.body]);
   useEffect(() => {
     try {
       const retained = sessionStorage.getItem(
@@ -134,6 +144,7 @@ export function useWritingPublication(
         return;
       }
       reviewedBody.current = publishing ? snapshot : null;
+      setPreviewBody(snapshot);
       setPreview(next);
       setMode(nextMode);
       setReview(publishing);
@@ -182,5 +193,17 @@ export function useWritingPublication(
     }
   }
 
-  return { generatePreview, publish };
+  return {
+    generatePreview,
+    publish,
+    mode,
+    setMode,
+    preview: previewBody === currentSnapshot ? preview : null,
+    review: previewBody === currentSnapshot && review,
+    setReview,
+    busy,
+    reviewedRevision,
+    publication,
+    publicationConnectionError,
+  };
 }

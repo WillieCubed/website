@@ -8,6 +8,7 @@ export default function StudioWritingLayout({
   children,
   compact = false,
   pending = false,
+  hidden = false,
 }: {
   heading: ReactNode;
   metadata: ReactNode;
@@ -15,10 +16,12 @@ export default function StudioWritingLayout({
   children: ReactNode;
   compact?: boolean;
   pending?: boolean;
+  hidden?: boolean;
 }) {
   return (
     <>
       <header
+        hidden={hidden}
         className="studio-writing-header pb-4"
         data-compact={compact || undefined}
         aria-hidden={pending || undefined}
@@ -26,7 +29,7 @@ export default function StudioWritingLayout({
         {heading}
         <div className="studio-document-metadata">{metadata}</div>
       </header>
-      <div className="studio-writing-workspace">
+      <div className="studio-writing-workspace" hidden={hidden}>
         <div
           className="studio-document-toolbar"
           aria-hidden={pending || undefined}

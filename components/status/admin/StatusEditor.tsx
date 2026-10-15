@@ -1,22 +1,27 @@
 'use client';
 
+import { useCallback, useState } from 'react';
+
 import SiteLink from '@/components/link/SiteLink';
 
 import { useHydrated } from '@/lib/dom/hydrated';
 import type { AdminState } from '@/lib/status/admin-state';
 import type { City } from '@/lib/status/location';
 
-import {
-  type StatusEditorController,
-  useStatusEditor,
-} from './useStatusEditor';
+import { useStatusEditor } from './useStatusEditor';
 
 const regionLabel = (city?: City) =>
   [city?.region, city?.country === 'United States' ? 'US' : city?.country]
     .filter(Boolean)
     .join(', ');
 
-function LocationEditor({ view }: { view: StatusEditorController }) {
+function LocationEditor({
+  initial,
+  onAccessExpired,
+}: {
+  initial: AdminState;
+  onAccessExpired: (message: string, configured: boolean) => void;
+}) {
   const hydrated = useHydrated();
   const {
     editing,
@@ -33,7 +38,7 @@ function LocationEditor({ view }: { view: StatusEditorController }) {
     save,
     changeQuery,
     onKeyDown,
-  } = view;
+  } = useStatusEditor(initial, onAccessExpired);
   return (
     <section
       className="editor"
@@ -155,17 +160,27 @@ function LocationEditor({ view }: { view: StatusEditorController }) {
 }
 
 export default function StatusEditor({ initial }: { initial: AdminState }) {
-  const view = useStatusEditor(initial);
-  const { state, message } = view;
+  const [access, setAccess] = useState({
+    configured: initial.configured,
+    signedIn: initial.signedIn,
+  });
+  const [message, setMessage] = useState(initial.message || '');
+  const onAccessExpired = useCallback(
+    (message: string, configured: boolean) => {
+      setAccess({ configured, signedIn: false });
+      setMessage(message);
+    },
+    []
+  );
 
   return (
     <>
       <div className="admin-heading">
         <h1>Status</h1>
       </div>
-      {!state.configured ? (
+      {!access.configured ? (
         <p>Sign-in is unavailable.</p>
-      ) : !state.signedIn ? (
+      ) : !access.signedIn ? (
         <>
           {message && (
             <p className="message" role="status">
@@ -179,7 +194,7 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
           </p>
         </>
       ) : (
-        <LocationEditor view={view} />
+        <LocationEditor initial={initial} onAccessExpired={onAccessExpired} />
       )}
     </>
   );

@@ -97,21 +97,48 @@ together so the view and controller describe the same operation. Brand sections 
 components. Keep client directives on controllers and interactive views; keep
 filesystem and provider modules out of their import trees.
 
+State belongs to the lowest common owner that reads and changes it, with a
+lifetime long enough to preserve the user's work. Keep form fields, dialog DOM
+refs, and focus handling near their consumers. Keep a shared document, autosave
+queue, and recovery state alive for the document's lifetime. Moving state closer
+to a view must not reset a mounted editor or a native file draft when the user
+opens a preview, visits a task, or moves through setup. Selection and the return
+from a task stay with the common owner that coordinates those transitions.
+
+Studio composes `useWritingDocument`, editor and navigation behavior, and
+publication directly where those workflows meet. The document owns the draft,
+autosave, and recovery; the writing canvas owns media selection, uploads, and
+geometry tied to its rendered editor. Tasks own revision history, while
+publication keeps its retry bookkeeping private. These boundaries let a panel
+manage its own interaction without shortening the lifetime of the writing it
+edits.
+
 Music's admin controller composes draft persistence and recovery, library
 imports, revision history, and publication tracking. The draft owner keeps
 the optimistic revision, pending edits, and save queue together; views use
 commands such as recovering a draft or restoring a revision. They do not
 receive mutable save refs. The browsing experience separates catalog editing
-and prototype storage from setup and review transitions. Playlist navigation
-keeps URL history, modal focus, and motion together. Cards receive prepared
-playlist and series previews rather than the complete library and catalog.
+and prototype storage from setup and review transitions. Its rail owns series
+text editing, and its review dialog owns its DOM and focus lifecycle. Their
+common owner coordinates opening across siblings so those local interactions
+share one consistent view of which surface is open. Playlist navigation keeps
+URL history, modal focus, and motion together. Cards receive prepared playlist
+and series previews rather than the complete library and catalog.
+
+Status follows the same distinction between editing and access. `LocationEditor`
+calls its editor hook locally, keeping location fields and save behavior with
+the form. The access root controls the authentication view; an explicit
+access-expiry callback lets the editor report lost access without giving that
+root ownership of the form.
 
 Keep hook interfaces cohesive. A catalog document exposes edits to its live and
 draft values; prototype storage reports readiness and storage errors; a modal
 owns opening, dismissal, and focus. Compose these owners where their workflows
 meet. Do not flatten unrelated state, setters, refs, and commands into a single
-hook result or conceal that result under a few broad object keys. Pure catalog
-transformations belong in the music domain rather than inside a state hook.
+hook result or conceal that result under a few broad object keys. Each interface
+should express a domain responsibility that its consumers can understand on its
+own. Pure catalog transformations belong in the music domain rather than inside
+a state hook.
 
 The palette's search hook owns request progress, timeouts, and stale-query
 results. Its session composes those results with commands and owns keyboard

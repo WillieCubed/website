@@ -1,31 +1,43 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { Draft } from '@/lib/studio/types';
+import type { Draft, DraftContent } from '@/lib/studio/types';
 
 import { studioRequest } from './api';
-import type { WritingState } from './useWritingState';
 
 /** Autosave snapshots against the expected revision; newer local edits remain queued. */
-export function useWritingPersistence(state: WritingState, initial: Draft) {
-  const {
-    draft,
-    setDraft,
-    body,
-    bodyRef,
-    headRef,
-    saved,
-    saving,
-    saveQueue,
-    setSaveQueue,
-    setStatus,
-    setConflict,
-    conflictRef,
-    recovery,
-    setRecovery,
-    recoveryKey,
-  } = state;
+export function useWritingDocument(initial: Draft) {
+  const [draft, setDraft] = useState(initial);
+  const [body, setBody] = useState(initial.head.body);
+  const bodyRef = useRef(body);
+  const headRef = useRef(initial.head.id);
+  const saved = useRef(JSON.stringify(body));
+  const saving = useRef(false);
+  const [saveQueue, setSaveQueue] = useState(0);
+  const [status, setStatus] = useState('All changes saved');
+  const [conflict, setConflict] = useState(false);
+  const conflictRef = useRef(false);
+  const [recovery, setRecovery] = useState<DraftContent | null>(null);
+  const recoveryKey = `studio-draft:${initial.id}`;
+  const update = useCallback(
+    (next: DraftContent) => {
+      bodyRef.current = next;
+      setBody(next);
+      setStatus(
+        navigator.onLine
+          ? 'Unsaved changes'
+          : 'Offline · changes kept in this tab'
+      );
+      try {
+        sessionStorage.setItem(recoveryKey, JSON.stringify(next));
+      } catch {
+        setStatus('Unsaved changes · browser recovery storage is unavailable');
+      }
+    },
+    [recoveryKey]
+  );
+
   useEffect(() => {
     try {
       const local = sessionStorage.getItem(recoveryKey);
@@ -129,5 +141,21 @@ export function useWritingPersistence(state: WritingState, initial: Draft) {
     }
   }
 
-  return { save, reloadHead };
+  return {
+    draft,
+    setDraft,
+    body,
+    bodyRef,
+    headRef,
+    saved,
+    status,
+    setStatus,
+    conflict,
+    recovery,
+    setRecovery,
+    recoveryKey,
+    update,
+    save,
+    reloadHead,
+  };
 }

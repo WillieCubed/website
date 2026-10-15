@@ -1,5 +1,5 @@
 'use client';
-import { type RefObject, useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import Button from '@/components/site/Button';
@@ -15,7 +15,6 @@ interface Props {
   saveStatus?: string;
   loading: boolean;
   canReview?: boolean;
-  reviewTrigger: RefObject<HTMLButtonElement | null>;
   onReview: () => void;
 }
 export default function MusicPublicationBar({
@@ -27,7 +26,6 @@ export default function MusicPublicationBar({
   saveStatus,
   loading,
   canReview = true,
-  reviewTrigger,
   onReview,
 }: Props) {
   const publicationBar = useRef<HTMLDivElement>(null);
@@ -84,9 +82,12 @@ export default function MusicPublicationBar({
       />
       <Button
         variant={changed ? 'primary' : 'tonal'}
-        ref={reviewTrigger}
         disabled={loading || (mode === 'prototype' ? !changed : !canReview)}
-        onClick={onReview}
+        onClick={(event) => {
+          // Pointer activation does not focus buttons on every platform.
+          event.currentTarget.focus({ preventScroll: true });
+          onReview();
+        }}
       >
         Review changes
         <Icon name="arrow-right" />

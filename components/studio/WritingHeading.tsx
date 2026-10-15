@@ -1,22 +1,28 @@
 'use client';
-
+import type { RefObject } from 'react';
 import { useId } from 'react';
 
+import type { DraftContent } from '@/lib/studio/types';
+
 import { StudioHeadingFields } from './StudioWritingLayout';
-import type { WritingController } from './useWritingController';
 
 export default function WritingHeading({
-  controller,
+  showHeading,
+  titleField,
+  body,
+  bodyRef,
+  update,
 }: {
-  controller: Pick<
-    WritingController,
-    'showHeading' | 'titleField' | 'body' | 'bodyRef' | 'update'
-  >;
+  showHeading: boolean;
+  titleField: RefObject<HTMLTextAreaElement | null>;
+  body: DraftContent;
+  bodyRef: RefObject<DraftContent>;
+  update: (body: DraftContent) => void;
 }) {
   const fieldId = useId();
   const titleId = `${fieldId}-title`;
   const descriptionId = `${fieldId}-description`;
-  const { showHeading, titleField, body, bodyRef, update } = controller;
+
   return (
     <>
       <h1 className="sr-only">{body.title || 'Untitled writing'}</h1>

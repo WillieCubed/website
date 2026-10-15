@@ -1,5 +1,5 @@
 'use client';
-import type { FormEvent, ReactNode } from 'react';
+import { type FormEvent, type ReactNode, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import Button from '@/components/site/Button';
@@ -9,19 +9,25 @@ interface Props {
   loading: boolean;
   publicEmpty: boolean;
   seriesNavigation: ReactNode;
-  newSeries: string | null;
-  setNewSeries: (value: string | null) => void;
-  addSeries: (event: FormEvent) => void;
+  onCreateSeries: (title: string) => void;
 }
 export default function MusicRail({
   editing,
   loading,
   publicEmpty,
   seriesNavigation,
-  newSeries,
-  setNewSeries,
-  addSeries,
+  onCreateSeries,
 }: Props) {
+  const [newSeries, setNewSeries] = useState<string | null>(null);
+
+  function addSeries(event: FormEvent) {
+    event.preventDefault();
+    const title = newSeries?.trim();
+    if (!title) return;
+    setNewSeries(null);
+    onCreateSeries(title);
+  }
+
   return (
     <aside className="mp-rail">
       <div className="mp-heading">

@@ -1,31 +1,26 @@
 'use client';
-
 import SiteLink from '@/components/link/SiteLink';
 import Button from '@/components/site/Button';
 
 import { site } from '@/lib/site/identity';
-
-import type { WritingController } from './useWritingController';
+import type { Draft, Publication } from '@/lib/studio/types';
 
 export default function WritingPublicationNotice({
-  controller,
+  draft,
+  publicationConnectionError,
+  publication,
+  busy,
+  generatePreview,
 }: {
-  controller: Pick<
-    WritingController,
-    | 'draft'
-    | 'publicationConnectionError'
-    | 'publication'
-    | 'busy'
-    | 'generatePreview'
-  >;
+  draft: Draft;
+  publicationConnectionError: string;
+  publication: Publication | null;
+  busy: boolean;
+  generatePreview: (
+    mode: 'read' | 'portable',
+    publishing?: boolean
+  ) => Promise<void>;
 }) {
-  const {
-    draft,
-    publicationConnectionError,
-    publication,
-    busy,
-    generatePreview,
-  } = controller;
   if (!publication) return null;
   return (
     <section className="studio-notice" role="status">

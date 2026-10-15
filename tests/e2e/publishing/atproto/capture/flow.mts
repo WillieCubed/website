@@ -78,6 +78,11 @@ interface Context {
   deliveryWithheld: Error;
 }
 
+interface ProviderCallbackOutcome {
+  response: BrowserResponse;
+  wrongBrowserRejected: boolean;
+}
+
 export async function flow(
   dependencies: Context,
   context: BrowserContext,
@@ -134,7 +139,6 @@ export async function flow(
     pendingGrant.callbackCompleted = true;
     await dependencies.journalPendingGrants();
   }
-  let wrongBrowserRejected = false;
   if (automatedIdentity) {
     assert(ownedIdentities);
     assert.equal(issuedState.issuer, ownedIdentities.origin);
@@ -215,9 +219,16 @@ export async function flow(
     }
     return currentSession;
   }
-  const response = await completeProviderCallback();
+  let callbackOutcome: ProviderCallbackOutcome;
+  let currentSession: string | undefined;
+  try {
+    callbackOutcome = await completeProviderCallback();
+  } finally {
+    // Record owned resources even when authorization or response delivery fails.
+    currentSession = await captureSession();
+  }
   const { file, ownedSocialRecords, sessionHash, stateHash } =
-    await proveCallback();
+    await proveCallback(callbackOutcome, currentSession);
   await verifyReturnedPage();
   return {
     file,
@@ -455,8 +466,9 @@ export async function flow(
 
     return { flowCookie, own, issuedStateHash, issuedState, url };
   }
-  async function completeProviderCallback(): Promise<BrowserResponse> {
+  async function completeProviderCallback(): Promise<ProviderCallbackOutcome> {
     let response: BrowserResponse;
+    let wrongBrowserRejected = false;
     const originalFlowCookie = (
       await context.cookies(dependencies.ORIGIN)
     ).find(
@@ -544,11 +556,9 @@ export async function flow(
       if (error !== dependencies.deliveryWithheld)
         await dependencies.recordOperationFailure(error).catch(() => {});
       throw error;
-    } finally {
-      await captureSession();
     }
 
-    return response;
+    return { response, wrongBrowserRejected };
   }
   async function withholdCallbackDelivery(
     rejectedCallback: URL
@@ -683,8 +693,10 @@ export async function flow(
     });
     throw dependencies.deliveryWithheld;
   }
-  async function proveCallback() {
-    const currentSession = await captureSession();
+  async function proveCallback(
+    { response, wrongBrowserRejected }: ProviderCallbackOutcome,
+    currentSession: string | undefined
+  ) {
     const callback = new URL(response.url());
     const headers = await response.allHeaders();
     assert.equal(response.status(), 303);

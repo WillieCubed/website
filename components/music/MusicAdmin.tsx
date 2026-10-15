@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
+import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 
 import { emptyCatalog } from '@/lib/music/types';
 import type {
@@ -11,12 +12,12 @@ import type {
   MusicRevision,
 } from '@/lib/music/types';
 
-import MusicAdminCollection from './MusicAdminCollection';
 import {
   MusicPublicationNotice,
   MusicRecoveryNotice,
   MusicSaveNotice,
 } from './MusicAdminNotices';
+import MusicExperience from './MusicExperience';
 import MusicRevisionHistory from './MusicRevisionHistory';
 import { adminCollectionView } from './music-admin-collection';
 import { canPublishMusic } from './music-draft-guards';
@@ -150,6 +151,17 @@ export default function MusicAdmin() {
     currentDraft.pending,
     draft.state.saving
   );
+  const adminMenuItems: BreadcrumbMenuItem[] = [
+    { label: 'History', onSelect: history.openHistory },
+    ...(!connected
+      ? [
+          {
+            label: 'Reconnect Spotify',
+            onSelect: () => void library.connect(),
+          },
+        ]
+      : []),
+  ];
   return (
     <>
       <noscript>
@@ -186,23 +198,24 @@ export default function MusicAdmin() {
           onDismiss={publication.dismissNotice}
         />
       </div>
-      <MusicAdminCollection
+      <MusicExperience
+        key={collection.generation}
+        mode="admin"
         playlists={playlists}
         initialCatalog={initialCatalog}
         loading={loading}
         connected={connected}
         setupInitially={setupInitially}
-        generation={collection.generation}
-        status={status}
-        error={error}
-        busy={busy}
+        saveStatus={status}
+        loadError={error}
+        interactionLocked={busy}
         canReview={canReview}
         published={published}
         onChange={draft.change}
         onPublish={publication.publish}
         onConnect={library.connect}
         onRefresh={library.refresh}
-        onOpenHistory={history.openHistory}
+        adminMenuItems={adminMenuItems}
         onRetry={retryLoad}
       />
       <MusicRevisionHistory

@@ -1,5 +1,7 @@
 'use client';
 
+import type { RefObject } from 'react';
+
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import LoadingIndicator from '@/components/site/LoadingIndicator';
@@ -9,11 +11,13 @@ import { site } from '@/lib/site/identity';
 
 import StandardSignInDialog from './StandardSignInDialog';
 import styles from './StandardSocialControls.module.css';
-import { type SocialAction, socialButton } from './standard-social';
 import {
-  type StandardSocialController,
-  useStandardSocialControls,
-} from './useStandardSocialControls';
+  type SocialAction,
+  type SocialButtonDisplay,
+  type SocialFeedback,
+  socialButton,
+} from './standard-social';
+import { useStandardSocialControls } from './useStandardSocialControls';
 
 interface Props {
   action: SocialAction;
@@ -21,60 +25,27 @@ interface Props {
   compact?: boolean;
 }
 
-function SocialActionButton({
-  action,
-  compact,
-  control,
-}: {
-  action: SocialAction;
-  compact: boolean;
-  control: StandardSocialController;
-}) {
-  const display = socialButton(
-    action,
-    control.active,
-    control.pending === 'action',
-    compact,
-    control.feedback
-  );
-  return (
-    <button
-      ref={control.actionButton}
-      type="button"
-      className={styles.action}
-      disabled={control.busy || display.blocked}
-      aria-pressed={control.active}
-      aria-busy={control.pending === 'action'}
-      data-retry={(compact && display.retry) || undefined}
-      aria-label={display.ariaLabel}
-      aria-haspopup={control.state?.signedIn ? undefined : 'dialog'}
-      aria-controls={control.id}
-      title={display.title}
-      onClick={control.toggle}
-    >
-      {control.pending === 'action' ? (
-        <LoadingIndicator />
-      ) : (
-        <Icon name={display.icon} size={17} />
-      )}
-      <span>{display.label}</span>
-    </button>
-  );
-}
-
 function SubscriptionOptions({
-  control,
+  visible,
+  pending,
+  feedback,
+  buttonRef,
+  onSignOut,
 }: {
-  control: StandardSocialController;
+  visible: boolean;
+  pending: 'action' | 'logout' | null;
+  feedback: SocialFeedback | null;
+  buttonRef: RefObject<HTMLButtonElement | null>;
+  onSignOut: () => Promise<void>;
 }) {
-  const failure =
-    control.feedback?.retry === 'logout' ? control.feedback : null;
+  if (!visible) return null;
+  const failure = feedback?.retry === 'logout' ? feedback : null;
   let label = failure ? 'Try again' : 'Sign out';
-  if (control.pending === 'logout') label = 'Signing out…';
+  if (pending === 'logout') label = 'Signing out…';
   return (
     <Popover
       label="Subscription options"
-      disabled={control.pending === 'action'}
+      disabled={pending === 'action'}
       trigger={<Icon name="chevron-down" size={22} />}
       triggerClassName={styles.arrow}
       panelClassName={styles.menu}
@@ -82,16 +53,16 @@ function SubscriptionOptions({
       width={156}
     >
       <button
-        ref={control.logoutButton}
+        ref={buttonRef}
         type="button"
-        disabled={control.busy}
-        aria-busy={control.pending === 'logout'}
+        disabled={pending !== null}
+        aria-busy={pending === 'logout'}
         className={styles.signOut}
         title={failure?.message}
         aria-label={failure ? 'Try again to sign out' : undefined}
-        onClick={control.signOut}
+        onClick={onSignOut}
       >
-        {control.pending === 'logout' ? (
+        {pending === 'logout' ? (
           <LoadingIndicator />
         ) : (
           <Icon name="log-out" size={18} />
@@ -102,23 +73,97 @@ function SubscriptionOptions({
   );
 }
 
+function SocialActionButton({
+  display,
+  pending,
+  active,
+  signedIn,
+  compact,
+  dialogId,
+  buttonRef,
+  onToggle,
+}: {
+  display: SocialButtonDisplay;
+  pending: 'action' | 'logout' | null;
+  active: boolean;
+  signedIn: boolean;
+  compact: boolean;
+  dialogId: string;
+  buttonRef: RefObject<HTMLButtonElement | null>;
+  onToggle: () => Promise<void>;
+}) {
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      className={styles.action}
+      disabled={pending !== null || display.blocked}
+      aria-pressed={active}
+      aria-busy={pending === 'action'}
+      data-retry={(compact && display.retry) || undefined}
+      aria-label={display.ariaLabel}
+      aria-haspopup={signedIn ? undefined : 'dialog'}
+      aria-controls={dialogId}
+      title={display.title}
+      onClick={onToggle}
+    >
+      {pending === 'action' ? (
+        <LoadingIndicator />
+      ) : (
+        <Icon name={display.icon} size={17} />
+      )}
+      <span>{display.label}</span>
+    </button>
+  );
+}
+
 export default function StandardSocialControls({
   action,
   slug,
   compact = false,
 }: Props) {
   const control = useStandardSocialControls({ action, slug });
+  const signedIn = Boolean(control.state?.signedIn);
+  const split = signedIn && action === 'subscription';
+  const display = socialButton(
+    action,
+    control.active,
+    control.pending === 'action',
+    compact,
+    control.feedback
+  );
   return (
     <div
       className={`${styles.root} ${compact ? styles.compact : ''}`}
       data-standard-social={action}
     >
-      <SocialActions
-        action={action}
-        slug={slug}
-        compact={compact}
-        control={control}
-      />
+      {control.available ? (
+        <div
+          className={styles.actions}
+          data-split={split || undefined}
+          data-active={control.active}
+        >
+          <SocialActionButton
+            display={display}
+            pending={control.pending}
+            active={control.active}
+            signedIn={signedIn}
+            compact={compact}
+            dialogId={control.id}
+            buttonRef={control.actionButton}
+            onToggle={control.toggle}
+          />
+          <SubscriptionOptions
+            visible={split}
+            pending={control.pending}
+            feedback={control.feedback}
+            buttonRef={control.logoutButton}
+            onSignOut={control.signOut}
+          />
+        </div>
+      ) : (
+        <SocialFallback action={action} slug={slug} />
+      )}
       <StandardSignInDialog
         action={action}
         slug={slug}
@@ -137,26 +182,6 @@ export default function StandardSocialControls({
           {control.feedback.message}
         </span>
       )}
-    </div>
-  );
-}
-
-function SocialActions({
-  action,
-  slug,
-  compact,
-  control,
-}: Props & { compact: boolean; control: StandardSocialController }) {
-  if (!control.available) return <SocialFallback action={action} slug={slug} />;
-  const split = control.state?.signedIn && action === 'subscription';
-  return (
-    <div
-      className={styles.actions}
-      data-split={split || undefined}
-      data-active={control.active}
-    >
-      <SocialActionButton action={action} compact={compact} control={control} />
-      {split && <SubscriptionOptions control={control} />}
     </div>
   );
 }

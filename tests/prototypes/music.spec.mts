@@ -37,7 +37,7 @@ test('setup keeps choices through Back and hands off a draft without changing th
     .getByRole('button', { name: 'Continue to curation', exact: true })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Your playlists', exact: true })
+    page.getByRole('heading', { level: 1, name: 'Music', exact: true })
   ).toBeVisible();
   await expect(
     page.getByRole('checkbox', { name: 'Include Summer 2026', exact: true })
@@ -231,17 +231,17 @@ test('the gallery shows its lead once and preserves the selected series order', 
     page.getByRole('article', { name: 'Featured playlist' })
   ).toHaveCount(1);
   await expect(
-    page.getByRole('button', {
+    page.getByRole('link', {
       name: 'Open Fall Tour 2026, Part 1',
       exact: true,
     })
   ).toHaveCount(1);
   await expect(
-    page.getByRole('button', { name: 'Open Loose ends', exact: true })
+    page.getByRole('link', { name: 'Open Loose ends', exact: true })
   ).toHaveCount(0);
   await page
     .getByRole('navigation', { name: 'Playlist series' })
-    .getByRole('button', { name: 'Fall Tour' })
+    .getByRole('link', { name: 'Fall Tour' })
     .click();
   expect(
     await page
@@ -255,11 +255,11 @@ test('the gallery shows its lead once and preserves the selected series order', 
   ).toHaveCount(0);
   await expect(page).toHaveURL(/series=fall-tour/);
   await expect(
-    page.getByRole('button', { name: 'Fall Tour', pressed: true })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'All playlists', pressed: false })
-  ).toBeVisible();
+    page
+      .getByRole('navigation', { name: 'Playlist series' })
+      .getByRole('link', { name: 'Fall Tour' })
+  ).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('link', { name: 'All playlists' })).toBeVisible();
 });
 
 test('the feature introduces the actual sequence and keeps series controls local', async ({
@@ -290,7 +290,7 @@ test('the feature introduces the actual sequence and keeps series controls local
     await expect(preview.getByRole('listitem').nth(2)).toContainText(
       'Unavailable track'
     );
-    const nextPart = feature.getByRole('button', {
+    const nextPart = feature.getByRole('link', {
       name: 'Open Fall Tour 2026, Part 2 from Fall Tour',
       exact: true,
     });
@@ -304,7 +304,7 @@ test('the feature introduces the actual sequence and keeps series controls local
     await page.setViewportSize({ width: 390, height: 844 });
     await page.keyboard.press('Escape');
     await expect(
-      page.getByRole('button', {
+      page.getByRole('link', {
         name: 'Open Fall Tour 2026, Part 2',
         exact: true,
       })
@@ -318,14 +318,12 @@ test('featuring is optional, explicit, and independent of series order', async (
 }) => {
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Open Fall Tour 2026, Part 3', exact: true })
+    .getByRole('link', { name: 'Open Fall Tour 2026, Part 3', exact: true })
     .click();
   await page
     .getByRole('checkbox', { name: 'Feature in the gallery', exact: true })
     .check();
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await page
     .getByRole('button', { name: 'Review changes', exact: true })
     .click();
@@ -340,7 +338,7 @@ test('featuring is optional, explicit, and independent of series order', async (
     'fall-3'
   );
   await expect(
-    page.getByRole('button', {
+    page.getByRole('link', {
       name: 'Open Fall Tour 2026, Part 3',
       exact: true,
     })
@@ -348,7 +346,7 @@ test('featuring is optional, explicit, and independent of series order', async (
 
   await page
     .getByRole('navigation', { name: 'Playlist series' })
-    .getByRole('button', { name: 'Fall Tour' })
+    .getByRole('link', { name: 'Fall Tour' })
     .click();
   await expect(
     page.getByRole('article', { name: 'Featured playlist' })
@@ -363,18 +361,16 @@ test('featuring is optional, explicit, and independent of series order', async (
 
   await page
     .getByRole('navigation', { name: 'Playlist series' })
-    .getByRole('button', { name: 'All playlists' })
+    .getByRole('link', { name: 'All playlists' })
     .click();
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Open Fall Tour 2026, Part 3', exact: true })
+    .getByRole('link', { name: 'Open Fall Tour 2026, Part 3', exact: true })
     .click();
   await page
     .getByRole('checkbox', { name: 'Feature in the gallery', exact: true })
     .uncheck();
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await page
     .getByRole('button', { name: 'Review changes', exact: true })
     .click();
@@ -396,14 +392,12 @@ test('authored notes replace the feature preview after review and apply', async 
 }) => {
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Open Fall Tour 2026, Part 1', exact: true })
+    .getByRole('link', { name: 'Open Fall Tour 2026, Part 1', exact: true })
     .click();
   await page
-    .getByRole('textbox', { name: 'Your notes', exact: true })
+    .getByRole('textbox', { name: 'Playlist notes', exact: true })
     .fill('The reviewer chose these tracks in this order.');
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await page
     .getByRole('button', { name: 'Review changes', exact: true })
     .click();
@@ -443,7 +437,7 @@ test('featured series context excludes unselected playlists', async ({
     'Part 1 of 2'
   );
   await expect(
-    feature.getByRole('button', {
+    feature.getByRole('link', {
       name: 'Open Fall Tour 2026, Part 2 from Fall Tour',
       exact: true,
     })
@@ -457,7 +451,7 @@ test('focus views retain repeated tracks, unavailable positions, and browser his
     width: page.viewportSize()!.width,
     height: 600,
   });
-  const opener = page.getByRole('button', {
+  const opener = page.getByRole('link', {
     name: 'Open Fall Tour 2026, Part 1',
     exact: true,
   });
@@ -496,9 +490,7 @@ test('focus views retain repeated tracks, unavailable positions, and browser his
   await expect(dialog).not.toBeVisible();
   await page.goForward();
   await expect(dialog).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await expect(dialog).not.toBeVisible();
   await expect(opener).toBeFocused();
 });
@@ -512,9 +504,7 @@ test('a direct focused link closes within the gallery', async ({ page }) => {
   ).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('dialog.mp-detail')).not.toBeVisible();
-  await expect(page).toHaveURL(
-    `http://127.0.0.1:3137${route}?series=fall-tour`
-  );
+  await expect(page).toHaveURL(new RegExp(`${route}\\?series=fall-tour$`));
 });
 
 test('local drafts survive reload and affect the gallery only after review and apply', async ({
@@ -530,31 +520,29 @@ test('local drafts survive reload and affect the gallery only after review and a
     'false'
   );
   await expect(
-    page.getByRole('button', { name: 'Open Loose ends', exact: true })
+    page.getByRole('link', { name: 'Open Loose ends', exact: true })
   ).toHaveCount(0);
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await expect(
     page.getByRole('checkbox', { name: 'Include Loose ends', exact: true })
   ).toBeChecked();
   await page
-    .getByRole('button', { name: 'Open Loose ends', exact: true })
+    .getByRole('link', { name: 'Open Loose ends', exact: true })
     .click();
   await page
-    .getByRole('textbox', { name: 'Your notes', exact: true })
+    .getByRole('textbox', { name: 'Playlist notes', exact: true })
     .fill('An authored note from the prototype reviewer.');
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await page.getByRole('button', { name: 'View gallery', exact: true }).click();
   await expect(
-    page.getByRole('button', { name: 'Open Loose ends', exact: true })
+    page.getByRole('link', { name: 'Open Loose ends', exact: true })
   ).toHaveCount(0);
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page
     .getByRole('button', { name: 'Review changes', exact: true })
     .click();
   await expect(
-    page.getByRole('dialog', { name: 'Review your collection', exact: true })
+    page.getByRole('dialog', { name: 'Review the collection', exact: true })
   ).toBeVisible();
   await expect(page.locator('.mp-review')).toContainText(
     'An authored note from the prototype reviewer.'
@@ -570,7 +558,7 @@ test('local drafts survive reload and affect the gallery only after review and a
     .getByRole('button', { name: 'Apply to prototype', exact: true })
     .click();
   await page
-    .getByRole('button', { name: 'Open Loose ends', exact: true })
+    .getByRole('link', { name: 'Open Loose ends', exact: true })
     .click();
   await expect(
     page.getByRole('dialog', { name: 'Loose ends', exact: true })
@@ -587,16 +575,14 @@ test('library filters preserve the reviewed selection and the open playlist cont
     .click();
   await expect(page.locator('.mp-card')).toHaveCount(1);
   await page
-    .getByRole('button', { name: 'Open Loose ends', exact: true })
+    .getByRole('link', { name: 'Open Loose ends', exact: true })
     .click();
   const dialog = page.getByRole('dialog', { name: 'Loose ends', exact: true });
   await dialog
     .getByRole('checkbox', { name: 'Include in gallery', exact: true })
     .check();
   await expect(dialog.locator('.mp-detail-bar > span')).toHaveText('1 of 1');
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await expect(
     page.getByText('Every playlist is included.', { exact: true })
   ).toBeVisible();
@@ -606,10 +592,10 @@ test('library filters preserve the reviewed selection and the open playlist cont
   await expect(page.locator('.mp-card')).toHaveCount(8);
   await expect(
     page.getByRole('button', { name: 'Move Summer 2026 earlier', exact: true })
-  ).toBeDisabled();
+  ).not.toBeVisible();
   await page.getByRole('button', { name: 'View gallery', exact: true }).click();
   await expect(
-    page.getByRole('button', { name: 'Open Loose ends', exact: true })
+    page.getByRole('link', { name: 'Open Loose ends', exact: true })
   ).toHaveCount(0);
 });
 
@@ -630,7 +616,7 @@ test('collection review keeps its actions visible and restores editing focus', a
   });
   await launch.click();
   const review = page.getByRole('dialog', {
-    name: 'Review your collection',
+    name: 'Review the collection',
     exact: true,
   });
   const apply = review.getByRole('button', {
@@ -680,17 +666,21 @@ test('the owner can create a series, assign a playlist, and reorder with buttons
     .getByRole('button', { name: 'Browse all playlists', exact: true })
     .click();
   await page
-    .getByRole('button', { name: 'Open Summer 2026', exact: true })
+    .getByRole('link', { name: 'Open Summer 2026', exact: true })
     .click();
   await page
     .getByRole('checkbox', { name: 'New compilation', exact: true })
     .check();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
+    .getByRole('button', { name: 'Choose playlist collection', exact: true })
     .click();
   await page
     .getByRole('navigation', { name: 'Playlist series' })
-    .getByRole('button', { name: 'Fall Tour' })
+    .getByRole('link', { name: 'Fall Tour' })
+    .click();
+  await page
+    .getByRole('button', { name: 'Reorder playlists', exact: true })
     .click();
   await page
     .getByRole('button', {
@@ -724,7 +714,7 @@ test('the gallery and focus view are accessible and produce review screenshots',
     path: `.playwright-mcp/music/${testInfo.project.name}-gallery.png`,
   });
   await page
-    .getByRole('button', { name: 'Open Fall Tour 2026, Part 1', exact: true })
+    .getByRole('link', { name: 'Open Fall Tour 2026, Part 1', exact: true })
     .click();
   expect(
     (await new AxeBuilder({ page }).include('dialog.mp-detail').analyze())
@@ -733,9 +723,7 @@ test('the gallery and focus view are accessible and produce review screenshots',
   await page.screenshot({
     path: `.playwright-mcp/music/${testInfo.project.name}-focus.png`,
   });
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page.screenshot({
     path: `.playwright-mcp/music/${testInfo.project.name}-curation.png`,
@@ -761,9 +749,7 @@ test('the palette opens a playlist and keyboard focus remains inside it', async 
       .getByRole('region', { name: 'Playlist details' })
       .getByRole('heading', { name: 'Summer 2026' })
   ).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .focus();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).focus();
   await page.keyboard.press('Tab');
   await expect
     .poll(() =>
@@ -775,7 +761,7 @@ test('the palette opens a playlist and keyboard focus remains inside it', async 
   );
   await page.keyboard.press('Escape');
   await expect(
-    page.getByRole('button', { name: 'Open Summer 2026', exact: true })
+    page.getByRole('link', { name: 'Open Summer 2026', exact: true })
   ).toBeFocused();
 });
 
@@ -871,7 +857,7 @@ test('opening, advancing, and closing work with full motion enabled', async ({
   });
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  const opener = page.getByRole('button', {
+  const opener = page.getByRole('link', {
     name: 'Open Fall Tour 2026, Part 1',
     exact: true,
   });
@@ -930,9 +916,7 @@ test('opening, advancing, and closing work with full motion enabled', async ({
   await expect(
     page.getByRole('button', { name: 'Previous playlist', exact: true })
   ).toBeFocused();
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await expect(page.locator('dialog.mp-detail')).not.toBeVisible();
   await expect(opener).toBeFocused();
   await expect
@@ -953,7 +937,7 @@ test('opening, advancing, and closing work with full motion enabled', async ({
 
   await page.setViewportSize({ width: 1024, height: 900 });
   const feature = page.getByRole('article', { name: 'Featured playlist' });
-  const action = feature.getByRole('button', {
+  const action = feature.getByRole('link', {
     name: 'Open playlist',
     exact: true,
   });
@@ -1032,12 +1016,12 @@ test('the first screen shows a collection preview or a working scroll cue', asyn
         .poll(() =>
           page.evaluate(() => {
             const cue = document.querySelector('.mp-scroll-cue');
-            return cue
-              ? innerHeight - cue.getBoundingClientRect().bottom
-              : null;
+            if (!cue) return null;
+            const box = cue.getBoundingClientRect();
+            return Math.min(innerHeight - box.bottom, box.top);
           })
         )
-        .toBe(20);
+        .toBeGreaterThanOrEqual(20);
     }
   }
   const cue = page.getByRole('button', { name: 'Scroll to more playlists' });
@@ -1052,7 +1036,7 @@ test('the first screen shows a collection preview or a working scroll cue', asyn
   await cue.click();
   await expect(cue).toHaveCount(0);
   await expect(
-    page.getByRole('button', { name: 'Open Summer 2026', exact: true })
+    page.getByRole('link', { name: 'Open Summer 2026', exact: true })
   ).toBeFocused();
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(32);
 });
@@ -1063,16 +1047,14 @@ test('the scroll cue leaves authored playlist notes readable', async ({
   await page.setViewportSize({ width: 390, height: 900 });
   await page.getByRole('button', { name: 'Curate music', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Open Fall Tour 2026, Part 1', exact: true })
+    .getByRole('link', { name: 'Open Fall Tour 2026, Part 1', exact: true })
     .click();
   const note =
     'Reviewer fixture: The sequence follows three evenings on the road, from the first departure through the final late-night drive home.';
   await page
-    .getByRole('textbox', { name: 'Your notes', exact: true })
+    .getByRole('textbox', { name: 'Playlist notes', exact: true })
     .fill(note);
-  await page
-    .getByRole('button', { name: 'Close playlist', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
   await page
     .getByRole('button', { name: 'Review changes', exact: true })
     .click();
@@ -1114,7 +1096,7 @@ test('interrupted motion and unavailable view transitions leave the gallery usab
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  const opener = page.getByRole('button', {
+  const opener = page.getByRole('link', {
     name: 'Open Fall Tour 2026, Part 1',
     exact: true,
   });

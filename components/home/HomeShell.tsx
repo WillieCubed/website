@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type { FocusId } from '@/lib/home/focuses';
 import { entries } from '@/lib/home/ventures';
@@ -18,6 +18,7 @@ import {
 const LEAVE_DEBOUNCE_MS = 120;
 
 interface HomeShellProps {
+  initialDetail?: string;
   brands: Record<string, Record<string, string>>;
   /** The server-rendered LVBT countdown for the detail view. */
   detailCountdown: React.ReactNode;
@@ -32,13 +33,14 @@ interface HomeShellProps {
  */
 export function HomeShell({
   brands,
+  initialDetail,
   detailCountdown,
   extraEntries = {},
   children,
 }: HomeShellProps) {
   const [preview, setPreviewState] = useState<Preview>(null);
   const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const opener = useRef<HomeContextValue['openDetail']>(() => {});
+  const opener = useRef<HomeContextValue['openDetail'] | null>(null);
 
   const cancelClear = () => {
     if (clearTimer.current) clearTimeout(clearTimer.current);
@@ -79,7 +81,10 @@ export function HomeShell({
       clearPreviewNow,
       matches,
       lit,
-      openDetail: (id, from) => opener.current(id, from),
+      openDetail: (id, from) => {
+        if (opener.current) opener.current(id, from);
+        else window.location.assign(`/?detail=${encodeURIComponent(id)}`);
+      },
       brands,
     };
   }, [
@@ -105,14 +110,13 @@ export function HomeShell({
         >
           {children}
         </div>
-        <Suspense fallback={null}>
-          <DetailDialog
-            registerOpener={(open) => {
-              opener.current = open;
-            }}
-            countdown={detailCountdown}
-          />
-        </Suspense>
+        <DetailDialog
+          initialId={initialDetail}
+          registerOpener={(open) => {
+            opener.current = open;
+          }}
+          countdown={detailCountdown}
+        />
       </div>
     </HomeContext>
   );

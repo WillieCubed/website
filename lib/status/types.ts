@@ -1,6 +1,7 @@
 import type { publicLocation } from './location';
 
 export type PublicStatus = {
+  unavailable?: boolean;
   location: ReturnType<typeof publicLocation>;
   weather: {
     temperature: number;

@@ -1,3 +1,5 @@
+import { fetchWithDeadline } from '@/lib/http/fetch';
+
 /**
  * Palette search through Pagefind's browser API and the generated index.
  * Nothing loads until the palette first opens; the index and its WASM
@@ -65,9 +67,9 @@ function isPreviewBrowser(): boolean {
 let loading: Promise<PagefindApi> | null = null;
 
 /**
- * Loads Pagefind once. The import is left to the browser, not the bundler,
- * because the file only exists after the index build. A failed load is
- * forgotten so the next query can try again.
+ * Loads Pagefind once in the browser because it exists only after indexing.
+ * Failed imports can remain in the browser's module map; the palette always
+ * offers native search as recovery.
  */
 export function loadPagefind(): Promise<PagefindApi> {
   if (isPreviewBrowser())
@@ -150,7 +152,7 @@ export function toSearchRow(data: PagefindResultData): SearchRow {
  */
 export async function searchSite(query: string): Promise<SearchRow[] | null> {
   if (isPreviewBrowser()) {
-    const response = await fetch(
+    const response = await fetchWithDeadline(
       `/api/search?q=${encodeURIComponent(query)}&limit=${LIMIT}`,
       {
         cache: 'no-store',

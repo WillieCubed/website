@@ -115,7 +115,7 @@ export async function captureMusicPrototype() {
           .getByRole('button', { name: 'All', exact: true })
           .click();
         await page
-          .getByRole('button', {
+          .getByRole('link', {
             name: 'Open Fall Tour 2026, Part 1',
             exact: true,
           })
@@ -126,7 +126,7 @@ export async function captureMusicPrototype() {
         });
         await capture('editor-lower');
         await page
-          .getByRole('button', { name: 'Close playlist', exact: true })
+          .getByRole('link', { name: 'Close playlist', exact: true })
           .click();
         await page
           .getByRole('textbox', { name: 'Find a playlist', exact: true })

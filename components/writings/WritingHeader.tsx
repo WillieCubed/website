@@ -1,5 +1,6 @@
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
+import StableImage from '@/components/media/StableImage';
 import SharedTitle from '@/components/site/SharedTitle';
 
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
@@ -124,8 +125,8 @@ export default function WritingHeader({
           {photos.map((photo) => (
             // A plain img: uploads live on the media store's host, which
             // the image optimizer does not allow, and their size is unknown.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+
+            <StableImage
               key={photo.url}
               src={photo.url}
               alt={photo.alt}

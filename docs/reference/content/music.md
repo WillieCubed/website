@@ -10,6 +10,37 @@ playlists. Setup saves privately. Review and Publish bind the public catalog to
 one immutable saved revision, a snapshot retained unchanged. Spotify imports
 never change playlists or publish new selections.
 
+## Public showcase and discoveries
+
+The public page introduces Willie's listening through playlists. Its voice can
+use first person without treating the visitor as the collection's owner. When
+the collection is empty or unavailable, an explicit recovery notice occupies
+the normal content column beside the Music heading on desktop and below it on
+mobile, with its contents centered. These are exceptions to the populated
+gallery, rather than a Spotify landing page or onboarding flow. An unavailable
+collection offers a native GET retry; Spotify remains an alternate destination.
+
+Music's contextual command-palette entries recognize three unlisted aliases:
+
+| Phrase           | Playlist                                                   |
+| ---------------- | ---------------------------------------------------------- |
+| main character   | The bildungsroman/train-window playlist                    |
+| roll credits     | Songs that would make for great ending montages or credits |
+| get to the point | Songs with unusually long entrances                        |
+
+Aliases attach to stable playlist identities and are registered only for the
+playlists available in the current experience. They find the normal playlist
+destination; they do not start playback or open an animation automatically.
+
+The ending-montage playlist offers an optional **Roll credits** disclosure beside
+its normal track list. It presents the actual songs and artists in their
+original order, followed by the music-supervision credit. Opening the disclosure
+can start a finite, pausable roll. Taking over scrolling pauses it; leaving the
+viewport or hiding the page suspends it. Reduced motion stops rolling, including
+when the preference changes while it is running. Without scripts or motion
+support, the native disclosure and manually scrollable credits remain readable.
+No audio or additional provider request is started by either discovery.
+
 ## Storage and approval
 
 Private Music tables share the studio database. Immutable revisions preserve
@@ -17,6 +48,12 @@ both sides of concurrent edits. A separate database role can read only the
 approved provider cache. The public page intersects that cache with the
 committed `content/music/catalog.json` selection and excludes records older than
 24 hours.
+
+Eligible approved playlists render on the public page by default, including
+without JavaScript. A missing or expired cache is unavailable, with a native
+retry, rather than an empty collection. Empty means there are no approved
+selections or every selection is known to be excluded. If some approved
+playlists are still available, show them instead of replacing the gallery.
 
 The private Studio holds working selections, while the public Worker serves only
 approved data. GitHub carries the reviewed catalog between them:
@@ -98,6 +135,12 @@ Run `STUDIO_TEST_DATABASE_URL=... pnpm test` for database integration checks.
 Run `MUSIC_E2E=1 node scripts/studio-e2e.mjs` for authenticated admin browser
 checks and full desktop/phone captures in both themes. The local harness uses
 signed JWTs and an isolated PostgreSQL schema; it has no auth bypass.
+
+For public Music interactions, run
+`MUSIC_E2E=1 STUDIO_TEST_SITE_MODE=public STUDIO_TEST_CONFIG=tests/music-public.config.mts pnpm exec tsx tests/support/studio/run.mts`.
+This serves the actual public route against an isolated approved cache, keeps
+Studio routes disabled, and checks the aliases, native credits, motion controls,
+and empty-state alignment on mobile and desktop in both themes.
 
 ## Hosted acceptance remains required
 

@@ -1,5 +1,6 @@
 import SiteLink from '@/components/link/SiteLink';
 import YouTubeEmbed from '@/components/mdx/YouTubeEmbed';
+import StableImage from '@/components/media/StableImage';
 
 import type { ProjectMedia as Media } from '@/lib/projects';
 
@@ -18,9 +19,17 @@ export default function ProjectMedia({
         <figure className={className}>
           {/* Project captures come in any size, so they are laid out by CSS
               rather than given fixed next/image dimensions. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <StableImage
             src={media.src}
+            style={
+              hero
+                ? {
+                    aspectRatio: '16 / 9',
+                    objectFit: 'cover',
+                    objectPosition: 'left top',
+                  }
+                : undefined
+            }
             alt={media.alt}
             aria-hidden={media.decorative ? true : undefined}
           />

@@ -169,9 +169,10 @@
   margin: var(--spacing-xl) 0;
 }
 .studio-generation {
-  border-top: 1px solid var(--color-line);
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
   margin-top: var(--spacing-xl);
-  padding-top: var(--spacing-xl);
+  padding: var(--spacing-xl);
 }
 .studio-editor .studio-source {
   background: var(--color-surface-container);
@@ -247,8 +248,10 @@
   align-items: center;
   gap: var(--spacing-md);
   justify-content: space-between;
-  padding: var(--spacing-md) 0;
-  border-bottom: 1px solid var(--color-line);
+  padding: var(--spacing-md);
+  margin-block: var(--spacing-sm);
+  border-radius: 16px;
+  background: var(--color-surface-container);
 }
 .studio-editor pre {
   white-space: pre-wrap;

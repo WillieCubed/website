@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
-import { Suspense } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
+import CollectionLayout from '@/components/site/CollectionLayout';
 import TopBar from '@/components/site/TopBar';
 import ImportWriting from '@/components/studio/ImportWriting';
 import WritingContent from '@/components/writings/WritingContent';
@@ -173,8 +173,8 @@ async function Reading({ params }: Props) {
   return (
     <>
       <TopBar column="content" crumbs={crumbs} />
-      <main id="main" className="mx-auto max-w-[840px] px-5 pb-8">
-        <header className="mt-6 space-y-4 pb-lg">
+      <CollectionLayout>
+        <header className="collection-header space-y-4 pb-lg">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h1 className="text-display-small">{title}</h1>
             <SiteLink
@@ -187,7 +187,7 @@ async function Reading({ params }: Props) {
           </div>
           {status}
         </header>
-        <div className="space-y-3 pb-6">
+        <div className="collection-items space-y-3 pb-6">
           {await Promise.all(
             items.map(async (entry) => {
               const writing = readingWritingData(
@@ -228,7 +228,7 @@ async function Reading({ params }: Props) {
               : undefined
           }
         />
-      </main>
+      </CollectionLayout>
     </>
   );
 }
@@ -297,16 +297,6 @@ function Tags({
     </ul>
   ) : null;
 }
-export default function Page(props: Props) {
-  return (
-    <Suspense
-      fallback={
-        <main id="main" className="mx-auto max-w-[840px] px-5 py-10">
-          <p role="status">Opening your writings…</p>
-        </main>
-      }
-    >
-      <Reading {...props} />
-    </Suspense>
-  );
+export default async function Page(props: Props) {
+  return await Reading(props);
 }

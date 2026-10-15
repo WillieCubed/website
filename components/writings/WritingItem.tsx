@@ -50,7 +50,7 @@ export default function WritingItem({
 
   return (
     <article
-      className={`${writing.postType === 'event' ? 'h-entry h-event' : 'h-entry'} group relative -mx-3 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent`}
+      className={`${writing.postType === 'event' ? 'h-entry h-event' : 'h-entry'} group relative rounded-2xl border border-line bg-card px-3 py-4 medium:px-5 transition-colors hover:border-accent`}
     >
       {/* Main link covers the entire card */}
       <SiteLink

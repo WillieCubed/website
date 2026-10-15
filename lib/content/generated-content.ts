@@ -1,4 +1,326 @@
 // Generated runtime content manifest.
+export const imageDimensions: Record<
+  string,
+  { width: number; height: number }
+> = {
+  '/apple-touch-icon.png': { width: 180, height: 180 },
+  '/assets/headshot.jpg': { width: 1157, height: 1157 },
+  '/assets/home/curfew-lockout.webp': { width: 1544, height: 960 },
+  '/assets/home/docket-app.webp': { width: 1600, height: 928 },
+  '/assets/home/icon-atlas.webp': { width: 96, height: 96 },
+  '/assets/home/icon-diaries.webp': { width: 96, height: 96 },
+  '/assets/home/icon-docket.webp': { width: 96, height: 96 },
+  '/assets/home/icon-hypertext.webp': { width: 96, height: 96 },
+  '/assets/home/icon-logdate.webp': { width: 96, height: 96 },
+  '/assets/home/icon-lovelace.webp': { width: 96, height: 96 },
+  '/assets/home/icon-lvbt.webp': { width: 96, height: 96 },
+  '/assets/home/icon-transitmapper.webp': { width: 96, height: 96 },
+  '/assets/home/logdate-phone.webp': { width: 948, height: 1852 },
+  '/assets/home/lovelace-ada.webp': { width: 1350, height: 580 },
+  '/assets/home/transit-mapper.webp': { width: 1200, height: 630 },
+  '/assets/home/week-without-driving-las-vegas.webp': {
+    width: 960,
+    height: 540,
+  },
+  '/assets/initiatives/fall-tour-2026/cover.svg': { width: 1200, height: 800 },
+  '/assets/initiatives/fall-tour-2026/part-1.svg': { width: 1200, height: 800 },
+  '/assets/initiatives/fall-tour-2026/part-2.svg': { width: 1200, height: 800 },
+  '/assets/initiatives/fall-tour-2026/part-3.svg': { width: 1200, height: 800 },
+  '/assets/initiatives/fall-tour-2026/part-4.svg': { width: 1200, height: 800 },
+  '/assets/initiatives/superbloom/cover.svg': { width: 1200, height: 800 },
+  '/assets/initiatives/twd/cover.svg': { width: 1200, height: 800 },
+  '/assets/media/college-tour-keep-utd-nerdy.jpg': { width: 1280, height: 720 },
+  '/assets/media/college-tour-ut-dallas-coverage.png': {
+    width: 753,
+    height: 997,
+  },
+  '/assets/media/fox5-week-without-driving.png': { width: 1920, height: 1080 },
+  '/assets/media/las-vegas-sun-da-vinci.jpg': { width: 650, height: 433 },
+  '/assets/media/las-vegas-sun-fares.jpg': { width: 1200, height: 762 },
+  '/assets/media/mercury-campus-town-hall.png': { width: 1200, height: 1174 },
+  '/assets/media/mercury-clark-program-cancellation.jpg': {
+    width: 2560,
+    height: 1707,
+  },
+  '/assets/media/mercury-de-densification.jpg': { width: 1200, height: 802 },
+  '/assets/media/mercury-diversity-equity-committee.jpg': {
+    width: 1200,
+    height: 675,
+  },
+  '/assets/media/mercury-ecs-advising.jpg': { width: 1240, height: 566 },
+  '/assets/media/mercury-heartbeat-of-utd.jpg': { width: 1200, height: 800 },
+  '/assets/media/mercury-nebula-labs.jpg': { width: 1200, height: 1200 },
+  '/assets/media/mercury-student-government-update.jpg': {
+    width: 300,
+    height: 300,
+  },
+  '/assets/media/mercury-taco-bell.jpg': { width: 800, height: 533 },
+  '/assets/media/ut-dallas-anniversary.jpg': { width: 1000, height: 667 },
+  '/assets/media/ut-dallas-clark-scholars.jpg': { width: 1024, height: 739 },
+  '/assets/media/ut-dallas-eweek.jpg': { width: 1920, height: 1280 },
+  '/assets/media/ut-dallas-robotics-lecture.jpg': { width: 1127, height: 751 },
+  '/assets/media/ut-dallas-sweet-connections.jpg': { width: 1300, height: 867 },
+  '/assets/projects/parlipro/feature-companion-view.png': {
+    width: 1920,
+    height: 1080,
+  },
+  '/assets/projects/parlipro/project-hero-graphic.webp': {
+    width: 1919,
+    height: 1066,
+  },
+  '/brand/android/play-store-512.png': { width: 512, height: 512 },
+  '/brand/android/res/mipmap-hdpi/ic_launcher.png': { width: 72, height: 72 },
+  '/brand/android/res/mipmap-mdpi/ic_launcher.png': { width: 48, height: 48 },
+  '/brand/android/res/mipmap-xhdpi/ic_launcher.png': { width: 96, height: 96 },
+  '/brand/android/res/mipmap-xxhdpi/ic_launcher.png': {
+    width: 144,
+    height: 144,
+  },
+  '/brand/android/res/mipmap-xxxhdpi/ic_launcher.png': {
+    width: 192,
+    height: 192,
+  },
+  '/brand/apple/AppIcon.appiconset/icon-1024.png': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/apple/WillieCubed.icon/Assets/facet-left.svg': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/apple/WillieCubed.icon/Assets/facet-right.svg': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/apple/WillieCubed.icon/Assets/facet-top.svg': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/apple/liquid-glass/williecubed-ios-dark.png': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/apple/liquid-glass/williecubed-ios-default.png': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/apple/liquid-glass/williecubed-ios-tinted.png': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/apple/liquid-glass/williecubed-macos-default.png': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/guide/williecubed-mark-16.png': { width: 16, height: 16 },
+  '/brand/lockups/png/willie-chalmers-iii-lockup-ink@2x.png': {
+    width: 3627,
+    height: 360,
+  },
+  '/brand/lockups/png/willie-chalmers-iii-lockup-paper@2x.png': {
+    width: 3627,
+    height: 360,
+  },
+  '/brand/lockups/png/williecubed-lockup-ink@2x.png': {
+    width: 2327,
+    height: 360,
+  },
+  '/brand/lockups/png/williecubed-lockup-paper@2x.png': {
+    width: 2327,
+    height: 360,
+  },
+  '/brand/lockups/png/williecubed-wordmark-ink@2x.png': {
+    width: 1018,
+    height: 146,
+  },
+  '/brand/lockups/png/williecubed-wordmark-paper@2x.png': {
+    width: 1018,
+    height: 146,
+  },
+  '/brand/lockups/willie-chalmers-iii-lockup-ink.svg': {
+    width: 1813,
+    height: 180,
+  },
+  '/brand/lockups/willie-chalmers-iii-lockup-paper.svg': {
+    width: 1813,
+    height: 180,
+  },
+  '/brand/lockups/williecubed-lockup-ink.svg': { width: 1164, height: 180 },
+  '/brand/lockups/williecubed-lockup-paper.svg': { width: 1164, height: 180 },
+  '/brand/lockups/williecubed-wordmark-ink.svg': { width: 509, height: 73 },
+  '/brand/lockups/williecubed-wordmark-paper.svg': { width: 509, height: 73 },
+  '/brand/mark/png/williecubed-cube-black-1024.png': {
+    width: 948,
+    height: 1024,
+  },
+  '/brand/mark/png/williecubed-cube-black-2048.png': {
+    width: 1896,
+    height: 2048,
+  },
+  '/brand/mark/png/williecubed-cube-black-256.png': { width: 237, height: 256 },
+  '/brand/mark/png/williecubed-cube-black-512.png': { width: 474, height: 512 },
+  '/brand/mark/png/williecubed-cube-black-small-16.png': {
+    width: 15,
+    height: 16,
+  },
+  '/brand/mark/png/williecubed-cube-black-small-32.png': {
+    width: 30,
+    height: 32,
+  },
+  '/brand/mark/png/williecubed-cube-black-small-48.png': {
+    width: 44,
+    height: 48,
+  },
+  '/brand/mark/png/williecubed-cube-black-small-96.png': {
+    width: 89,
+    height: 96,
+  },
+  '/brand/mark/png/williecubed-cube-on-dark-1024.png': {
+    width: 948,
+    height: 1024,
+  },
+  '/brand/mark/png/williecubed-cube-on-dark-2048.png': {
+    width: 1896,
+    height: 2048,
+  },
+  '/brand/mark/png/williecubed-cube-on-dark-256.png': {
+    width: 237,
+    height: 256,
+  },
+  '/brand/mark/png/williecubed-cube-on-dark-512.png': {
+    width: 474,
+    height: 512,
+  },
+  '/brand/mark/png/williecubed-cube-on-dark-small-16.png': {
+    width: 15,
+    height: 16,
+  },
+  '/brand/mark/png/williecubed-cube-on-dark-small-32.png': {
+    width: 30,
+    height: 32,
+  },
+  '/brand/mark/png/williecubed-cube-on-dark-small-48.png': {
+    width: 44,
+    height: 48,
+  },
+  '/brand/mark/png/williecubed-cube-on-dark-small-96.png': {
+    width: 89,
+    height: 96,
+  },
+  '/brand/mark/png/williecubed-cube-on-light-1024.png': {
+    width: 948,
+    height: 1024,
+  },
+  '/brand/mark/png/williecubed-cube-on-light-2048.png': {
+    width: 1896,
+    height: 2048,
+  },
+  '/brand/mark/png/williecubed-cube-on-light-256.png': {
+    width: 237,
+    height: 256,
+  },
+  '/brand/mark/png/williecubed-cube-on-light-512.png': {
+    width: 474,
+    height: 512,
+  },
+  '/brand/mark/png/williecubed-cube-on-light-small-16.png': {
+    width: 15,
+    height: 16,
+  },
+  '/brand/mark/png/williecubed-cube-on-light-small-32.png': {
+    width: 30,
+    height: 32,
+  },
+  '/brand/mark/png/williecubed-cube-on-light-small-48.png': {
+    width: 44,
+    height: 48,
+  },
+  '/brand/mark/png/williecubed-cube-on-light-small-96.png': {
+    width: 89,
+    height: 96,
+  },
+  '/brand/mark/png/williecubed-cube-white-1024.png': {
+    width: 948,
+    height: 1024,
+  },
+  '/brand/mark/png/williecubed-cube-white-2048.png': {
+    width: 1896,
+    height: 2048,
+  },
+  '/brand/mark/png/williecubed-cube-white-256.png': { width: 237, height: 256 },
+  '/brand/mark/png/williecubed-cube-white-512.png': { width: 474, height: 512 },
+  '/brand/mark/png/williecubed-cube-white-small-16.png': {
+    width: 15,
+    height: 16,
+  },
+  '/brand/mark/png/williecubed-cube-white-small-32.png': {
+    width: 30,
+    height: 32,
+  },
+  '/brand/mark/png/williecubed-cube-white-small-48.png': {
+    width: 44,
+    height: 48,
+  },
+  '/brand/mark/png/williecubed-cube-white-small-96.png': {
+    width: 89,
+    height: 96,
+  },
+  '/brand/mark/png/williecubed-mark-1024.png': { width: 1024, height: 1024 },
+  '/brand/mark/png/williecubed-mark-2048.png': { width: 2048, height: 2048 },
+  '/brand/mark/png/williecubed-mark-256.png': { width: 256, height: 256 },
+  '/brand/mark/png/williecubed-mark-512.png': { width: 512, height: 512 },
+  '/brand/mark/png/williecubed-mark-small-16.png': { width: 16, height: 16 },
+  '/brand/mark/png/williecubed-mark-small-32.png': { width: 32, height: 32 },
+  '/brand/mark/png/williecubed-mark-small-48.png': { width: 48, height: 48 },
+  '/brand/mark/png/williecubed-mark-small-96.png': { width: 96, height: 96 },
+  '/brand/mark/png/williecubed-mark-square-1024.png': {
+    width: 1024,
+    height: 1024,
+  },
+  '/brand/mark/png/williecubed-mark-square-2048.png': {
+    width: 2048,
+    height: 2048,
+  },
+  '/brand/mark/png/williecubed-mark-square-256.png': {
+    width: 256,
+    height: 256,
+  },
+  '/brand/mark/png/williecubed-mark-square-512.png': {
+    width: 512,
+    height: 512,
+  },
+  '/brand/mark/williecubed-cube-black-small.svg': { width: 386, height: 416 },
+  '/brand/mark/williecubed-cube-black.svg': { width: 404, height: 436 },
+  '/brand/mark/williecubed-cube-on-dark-small.svg': { width: 386, height: 416 },
+  '/brand/mark/williecubed-cube-on-dark.svg': { width: 404, height: 436 },
+  '/brand/mark/williecubed-cube-on-light-small.svg': {
+    width: 386,
+    height: 416,
+  },
+  '/brand/mark/williecubed-cube-on-light.svg': { width: 404, height: 436 },
+  '/brand/mark/williecubed-cube-white-small.svg': { width: 386, height: 416 },
+  '/brand/mark/williecubed-cube-white.svg': { width: 404, height: 436 },
+  '/brand/mark/williecubed-mark-small.svg': { width: 512, height: 512 },
+  '/brand/mark/williecubed-mark-square.svg': { width: 512, height: 512 },
+  '/brand/mark/williecubed-mark.svg': { width: 512, height: 512 },
+  '/brand/social/avatar-1024.png': { width: 1024, height: 1024 },
+  '/brand/social/avatar-400.png': { width: 400, height: 400 },
+  '/brand/social/og-image.png': { width: 1200, height: 630 },
+  '/brand/social/og-image.svg': { width: 1200, height: 630 },
+  '/brand/web/apple-touch-icon.png': { width: 180, height: 180 },
+  '/brand/web/favicon.svg': { width: 512, height: 512 },
+  '/brand/web/icon-144.png': { width: 144, height: 144 },
+  '/brand/web/icon-192.png': { width: 192, height: 192 },
+  '/brand/web/icon-48.png': { width: 48, height: 48 },
+  '/brand/web/icon-512.png': { width: 512, height: 512 },
+  '/brand/web/icon-72.png': { width: 72, height: 72 },
+  '/brand/web/icon-96.png': { width: 96, height: 96 },
+  '/brand/web/icon-maskable-192.png': { width: 192, height: 192 },
+  '/brand/web/icon-maskable-512.png': { width: 512, height: 512 },
+  '/brand/web/icon-monochrome-512.png': { width: 512, height: 512 },
+  '/brand/web/icon-monochrome.svg': { width: 512, height: 512 },
+  '/icon.svg': { width: 512, height: 512 },
+};
 export const runtimeFiles: Record<string, string> = {
   'content/initiatives/fall-tour-2026/index.mdx':
     "---\ntitle: Fall Tour 2026\ndraft: true\ntagline: The most insane thing I've done, again.\ndescription: A four-part campaign across Dallas, New York, Los Angeles, Chicago, the Bay Area, San Antonio, and Honolulu to make friends, keep them, and come home with stories.\nkind: campaign\nparent: twd\nbrand: '#c9552e'\npartLabel: Part\ncover:\n  src: /assets/initiatives/fall-tour-2026/cover.svg\n  alt: ''\n  decorative: true\n  aspect: 1.5\ntrailer:\n  title: Fall Tour 2026 trailer\nfeature:\n  weight: 60\n  size: w3 h3\n  hint: Follow the tour\n  focuses: [diaries]\nlinks:\n  - label: The Willie Diaries\n    href: /initiatives/twd\n  - label: '@thewilliediaries on Instagram'\n    href: https://instagram.com/thewilliediaries\n---\n\nEvery fall I leave Las Vegas for a few weeks and stuff as much life as I can\ninto them. Fall Tour answers one question: what's stopping me from visiting\nfive cities in the span of a few weeks and meeting a hundred new people?\n\nThis year is the biggest one yet. I've committed to staying in Las Vegas until\nat least 2028, so I need ways of breaking up the year that remind me what\nkind of world I'm working for. The tour is not a vacation. It's a campaign of\nsmall objectives inside one story, and each leg below is one act of it.\n\n## What I'm after\n\n- Check in with people I already know, starting with five friends from UT\n  Dallas and someone from a previous tour.\n- Talk to fifty strangers and come home with three new friends.\n- Make five memories with other people that outlast the trip, and one that\n  justifies the whole thing.\n- Bring back media for Las Vegans for Better Transit, for the Rebuilding\n  America Project, and for The Willie Diaries.\n\n## How it works\n\nEvery day has one primary objective and blocks of unstructured time so that\nserendipity has room. Travel is mostly by train and bus, because that's how I\nmeet people, and because frugality is a good excuse for adventure.\n",

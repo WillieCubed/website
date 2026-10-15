@@ -48,6 +48,7 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
 - [Accessibility contract](./reference/design/accessibility.md): image
   descriptions, interaction rules, publication gates, and the limits of recorded
   audit evidence.
+- [Loading and continuity](./reference/design/loading.md): content-first rendering, persistent layouts, motion, bounded waits, and recovery.
 - [Links and hover cards](./reference/design/links.md): `SiteLink`, raw-anchor
   exceptions, entity previews, and lint rules.
 - [Brand kit and logo rules](./reference/design/brand.md): generated assets and

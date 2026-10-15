@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
+import { useHydrated } from '@/lib/dom/hydrated';
+
 export default function CopyHex({
   name,
   value,
@@ -11,6 +13,7 @@ export default function CopyHex({
   name: string;
   value: string;
 }) {
+  const hydrated = useHydrated();
   const [status, setStatus] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -32,6 +35,7 @@ export default function CopyHex({
         <code>{value}</code>
         <button
           type="button"
+          disabled={!hydrated}
           aria-label={`Copy ${name} hex value`}
           onClick={copy}
         >

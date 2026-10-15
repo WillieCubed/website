@@ -78,6 +78,9 @@ const nextConfig: NextConfig = {
   },
   allowedDevOrigins: ['williecubed.localhost', '127.0.0.1'],
   images: {
+    // The optimizer does not forward Access credentials to protected sources.
+    // Let the authenticated browser request preview images directly.
+    unoptimized: process.env.SITE_MODE === 'preview',
     // Bound Cloudflare Images transformations. Current content image sizes
     // top out at 1200px, so 2400px preserves a 2x source; fewer widths leave
     // room under Images Free's monthly allowance.

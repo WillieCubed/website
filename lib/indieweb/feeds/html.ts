@@ -8,6 +8,7 @@ import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
+import { imageMetadata } from '@/lib/media/geometry';
 import { absoluteUrl } from '@/lib/site/urls';
 import { remarkMentions } from '@/lib/writings/remark-mentions';
 
@@ -251,6 +252,14 @@ function remarkPlainMdx(options: { originalUrl?: string } = {}) {
 function rehypeAbsoluteUrls() {
   return (tree: HastRoot) => {
     visit(tree, 'element', (node: Element) => {
+      if (node.tagName === 'img' && typeof node.properties.src === 'string') {
+        const size = imageMetadata(
+          node.properties.src,
+          node.properties.width,
+          node.properties.height
+        );
+        if (size) Object.assign(node.properties, size);
+      }
       for (const property of ['href', 'src'] as const) {
         const value = node.properties[property];
         if (typeof value === 'string' && /^\/(?!\/)/.test(value)) {

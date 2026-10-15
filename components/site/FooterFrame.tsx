@@ -49,6 +49,9 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
   useEffect(() => {
     const footer = ref.current;
     if (!docked || !footer) return;
+    // Keep the server layout when the visitor has reached its footer.
+    // Normal visits still get the complete scroll-driven dock.
+    if (footer.getBoundingClientRect().top < window.innerHeight) return;
     footer.dataset.dock = '';
 
     const contact = footer.querySelector<HTMLElement>('[data-footer-contact]');
@@ -89,7 +92,10 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     const root = document.documentElement;
     root.dataset.footerDock = '';
     const measure = () => {
-      root.style.setProperty('--page-w', String(root.clientWidth));
+      root.style.setProperty(
+        '--page-w',
+        String(document.body.getBoundingClientRect().width)
+      );
       footerHeight = footer.offsetHeight;
       scrollHeight = document.documentElement.scrollHeight;
     };

@@ -8,7 +8,7 @@ export default defineConfig({
   retries: 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://127.0.0.1:3137',
+    baseURL: process.env.MUSIC_TEST_ORIGIN ?? 'http://127.0.0.1:3137',
     reducedMotion: 'reduce',
     trace: 'retain-on-failure',
   },

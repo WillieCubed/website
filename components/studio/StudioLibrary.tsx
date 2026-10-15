@@ -9,6 +9,7 @@ import Button from '@/components/site/Button';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
+import { useHydrated } from '@/lib/dom/hydrated';
 import { formatDate } from '@/lib/site/dates';
 import type { Draft, EditorNode } from '@/lib/studio/types';
 
@@ -21,16 +22,37 @@ function noteExcerpt(node: EditorNode): string {
 
 export default function StudioLibrary() {
   const router = useRouter();
+  const hydrated = useHydrated();
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [documents, setDocuments] = useState<Draft[]>([]);
   const [status, setStatus] = useState('Loading your writings…');
   const [creating, setCreating] = useState(false);
-  useEffect(() => {
-    studioRequest<{ documents: Draft[] }>('/documents')
-      .then((data) => {
+  async function load(signal?: AbortSignal) {
+    setLoading(true);
+    setFailed(false);
+    setStatus('Loading your writings…');
+    try {
+      const data = await studioRequest<{ documents: Draft[] }>('/documents', {
+        signal,
+      });
+      if (!signal?.aborted) {
         setDocuments(data.documents);
         setStatus('');
-      })
-      .catch((error) => setStatus(error.message));
+      }
+    } catch {
+      if (!signal?.aborted) {
+        setFailed(true);
+        setStatus('Your writings could not load. Try again.');
+      }
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
+  }
+  useEffect(() => {
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
   }, []);
   async function create() {
     setCreating(true);
@@ -50,8 +72,7 @@ export default function StudioLibrary() {
           },
         }),
       });
-      setCreating(false);
-      setStatus('');
+      setStatus('Opening your writing…');
       router.push(`/studio/${draft.id}?compose=1`);
     } catch (error) {
       setStatus((error as Error).message);
@@ -70,11 +91,15 @@ export default function StudioLibrary() {
       >
         <section className="mt-6">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4">
-            <h1 className="text-display-small">Your writings</h1>
+            <h1 className="text-headline-medium medium:text-display-small">
+              Your writings
+            </h1>
             <Button
               className="site-button site-button-surface site-button-tonal min-h-11"
               type="button"
-              disabled={creating}
+              disabled={creating || !hydrated}
+              aria-busy={creating}
+              style={{ minWidth: 134 }}
               onClick={() => void create()}
             >
               <Icon name="pen-line" size={16} />
@@ -102,11 +127,37 @@ export default function StudioLibrary() {
         <p
           role="status"
           aria-live="polite"
-          className="mt-4 text-label-large text-muted"
+          className="mt-3 min-h-6 text-body-medium text-muted"
         >
-          {status}
+          {status ||
+            `${documents.length} ${documents.length === 1 ? 'writing' : 'writings'}`}
         </p>
-        <section aria-label="Your writings" className="space-y-3 pb-6 pt-lg">
+        {failed && <Button onClick={() => void load()}>Try again</Button>}
+        <noscript>
+          <p>
+            This editor needs JavaScript. You can still{' '}
+            <SiteLink href="/writings">read your writings</SiteLink>.
+          </p>
+        </noscript>
+        <section
+          aria-label="Your writings"
+          aria-busy={loading}
+          className="space-y-3 pb-6 pt-2"
+          style={{ minHeight: 440 }}
+        >
+          {loading &&
+            !documents.length &&
+            Array.from({ length: 3 }, (_, i) => (
+              <article
+                key={i}
+                aria-hidden="true"
+                className="-mx-3 min-h-32 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5"
+              >
+                <div className="studio-opening-line studio-opening-title" />
+                <div className="studio-opening-line studio-opening-description" />
+                <div className="studio-opening-line studio-opening-date" />
+              </article>
+            ))}
           {documents.map((draft) => {
             const state =
               draft.liveRevisionId === draft.head.id
@@ -131,7 +182,7 @@ export default function StudioLibrary() {
             return (
               <article
                 key={draft.id}
-                className="group relative -mx-3 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent"
+                className="group relative -mx-3 min-h-32 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent"
               >
                 <SiteLink
                   href={`/studio/${draft.id}`}

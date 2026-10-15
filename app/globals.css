@@ -44,6 +44,7 @@
   --color-brand-cube-left: light-dark(#2f6f5e, #8fd1b8);
   --color-brand-cube-right: light-dark(#1c231e, #2f6f5e);
   --color-scrim: #000000;
+  --color-on-scrim: #ffffff;
 
   /* Site-language aliases. Every alias resolves through a Material role. */
   --color-ground: var(--color-surface);
@@ -385,9 +386,9 @@ h4 {
   --scrollbar-thumb: color-mix(in srgb, var(--color-outline) 50%, transparent);
   --scrollbar-thumb-hover: var(--color-outline);
   scrollbar-color: var(--scrollbar-thumb) transparent;
-  /* Opening the detail view hides the page scrollbar. Where scrollbars take
-     up space, the reserved gutter keeps the page from jumping sideways. */
-  scrollbar-gutter: stable;
+  /* Reserve matching inline rails, as in Studio's inspector. Classic
+     scrollbars must neither shift a modal's page nor offset its centre. */
+  scrollbar-gutter: stable both-edges;
 }
 
 /* An inner scroller: a thin bar that draws its thumb fully while the
@@ -446,5 +447,30 @@ h4 {
   :root {
     --rail-w: 300px;
     --rail-gap: 32px;
+  }
+}
+
+/* HTML imports without metadata retain a bounded slot before/after decode. */
+:is(.prose, .e-content) img:not([width][height]) {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+}
+
+/* Raw HTML writing and Markdown use surfaces instead of edge-only quote/table borders. */
+@layer components {
+  .prose :where(blockquote) {
+    border: 0;
+    border-radius: 16px;
+    padding: 20px;
+    background: var(--color-surface-container);
+  }
+  .prose :where(thead, tr, th, td) {
+    border: 0;
+  }
+  .prose :where(tbody tr:nth-child(odd)) {
+    background: var(--color-surface-container);
   }
 }

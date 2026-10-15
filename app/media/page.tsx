@@ -1,5 +1,6 @@
 import SiteLink from '@/components/link/SiteLink';
 import MediaMention from '@/components/media/MediaMention';
+import CollectionLayout from '@/components/site/CollectionLayout';
 import TopBar from '@/components/site/TopBar';
 
 import {
@@ -32,16 +33,16 @@ export default function MediaPage() {
   return (
     <>
       <TopBar
-        column="media"
+        column="content"
         crumbs={[{ label: mediaPage.label, href: mediaPage.path }]}
       />
-      <main id="main" className="media-page">
-        <div className="media-page__heading">
+      <CollectionLayout className="media-page">
+        <header className="collection-header media-page__heading">
           <h1 className="text-display-small">{mediaPage.label}</h1>
           <p className="text-body-large text-muted">
             A few places you might have seen me.
           </p>
-        </div>
+        </header>
         {[...mentionsByYear].map(([year, mentions]) => (
           <section
             key={year}
@@ -54,7 +55,7 @@ export default function MediaPage() {
             >
               {year}
             </h2>
-            <div className="media-page__mentions">
+            <div className="collection-items media-page__mentions">
               {mentions
                 .sort((a, b) => Number(b.featured) - Number(a.featured))
                 .map((mention) => (
@@ -72,7 +73,7 @@ export default function MediaPage() {
             {site.emails.hello}
           </SiteLink>
         </p>
-      </main>
+      </CollectionLayout>
     </>
   );
 }

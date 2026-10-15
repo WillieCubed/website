@@ -179,7 +179,9 @@ test('the open homepage detail view passes axe and returns focus', async ({
   await waitForHomeDetailHydration(page);
   const dialog = page.locator('dialog.detail');
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('button', { name: 'Close' })).toBeFocused();
+  await expect(
+    dialog.getByRole('link', { name: 'Close', exact: true })
+  ).toBeFocused();
   await expectNoAxeViolations(page);
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();

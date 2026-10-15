@@ -1,0 +1,18 @@
+.site-loading-indicator {
+  display: inline-block;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  color: var(--color-ink);
+  animation: loading-rotate 1400ms linear infinite;
+}
+@keyframes loading-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-loading-indicator {
+    animation: none;
+  }
+}

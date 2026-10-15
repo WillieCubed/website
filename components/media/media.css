@@ -1,17 +1,5 @@
-.media-page {
-  max-width: 896px;
-  margin-inline: auto;
-  padding: 0 24px 32px;
-}
-
-.media-page__heading,
-.media-page__year > h2,
-.media-page__contact {
-  padding-inline: 20px;
-}
-
 .media-page__heading {
-  padding-block: 24px 26px;
+  margin-bottom: 24px;
 }
 
 .media-page__heading p {
@@ -42,7 +30,7 @@
 
 .media-mention__content {
   min-width: 0;
-  padding: 17px 19px;
+  padding: 16px 12px;
 }
 
 .media-mention__title {
@@ -177,19 +165,8 @@
 }
 
 @media (min-width: 600px) {
-  .media-page {
-    max-width: 896px;
-    padding-inline: 48px;
-  }
-
-  .media-page__heading,
-  .media-page__year > h2,
-  .media-page__contact {
-    padding-inline: 24px;
-  }
-
   .media-mention__content {
-    padding-inline: 23px;
+    padding-inline: 20px;
   }
 
   .media-mention--image {

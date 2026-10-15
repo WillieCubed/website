@@ -1,3 +1,4 @@
+import { imageSize } from 'image-size';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import prettier from 'prettier';
@@ -8,6 +9,28 @@ export async function generateContentManifest() {
   const root = process.cwd();
   const files: Record<string, string> = {};
   const binaryFiles: Record<string, string> = {};
+  const imageDimensions: Record<string, { width: number; height: number }> = {};
+  function images(directory: string) {
+    for (const entry of readdirSync(join(root, directory), {
+      withFileTypes: true,
+    })) {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) images(path);
+      else if (/\.(?:png|jpe?g|webp|gif|avif|svg)$/i.test(entry.name)) {
+        try {
+          const size = imageSize(readFileSync(join(root, path)));
+          if (size.width && size.height)
+            imageDimensions['/' + relative('public', path)] = {
+              width: size.width,
+              height: size.height,
+            };
+        } catch {
+          /* Unsupported assets use a bounded presentation slot. */
+        }
+      }
+    }
+  }
+  images('public');
 
   function visit(directory: string) {
     for (const entry of readdirSync(join(root, directory), {
@@ -36,7 +59,7 @@ export async function generateContentManifest() {
       binaryFiles[path] = readFileSync(join(root, path)).toString('base64');
     }
   }
-  const source = `// Generated runtime content manifest.\nexport const runtimeFiles: Record<string, string> = ${JSON.stringify(files)};\nexport const runtimeBinaryFiles: Record<string, string> = ${JSON.stringify(binaryFiles)};\n`;
+  const source = `// Generated runtime content manifest.\nexport const imageDimensions: Record<string, { width: number; height: number }> = ${JSON.stringify(imageDimensions)};\nexport const runtimeFiles: Record<string, string> = ${JSON.stringify(files)};\nexport const runtimeBinaryFiles: Record<string, string> = ${JSON.stringify(binaryFiles)};\n`;
   const output = join(root, 'lib/content/generated-content.ts');
   writeFileSync(
     output,

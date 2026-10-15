@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
+import { fetchWithDeadline } from '@/lib/http/fetch';
 import { WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
 
 /**
@@ -46,6 +47,8 @@ export default function WebmentionForm({ target }: { target: string }) {
       )}
       <form
         className="space-y-2"
+        action={WEBMENTION_ENDPOINT}
+        method="post"
         onSubmit={async (event) => {
           event.preventDefault();
           const form = event.currentTarget;
@@ -53,7 +56,7 @@ export default function WebmentionForm({ target }: { target: string }) {
           if (typeof source !== 'string' || !source) return;
           setState('sending');
           try {
-            const response = await fetch(WEBMENTION_ENDPOINT, {
+            const response = await fetchWithDeadline(WEBMENTION_ENDPOINT, {
               method: 'POST',
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
               body: new URLSearchParams({ source, target }),
@@ -65,6 +68,7 @@ export default function WebmentionForm({ target }: { target: string }) {
           }
         }}
       >
+        <input type="hidden" name="target" value={target} />
         <label
           htmlFor="webmention-source"
           className="block text-label-large font-medium text-ink"
@@ -84,6 +88,8 @@ export default function WebmentionForm({ target }: { target: string }) {
           />
           <button
             type="submit"
+            aria-busy={state === 'sending'}
+            style={{ minWidth: 120 }}
             disabled={state === 'sending'}
             className="rounded-full bg-primary px-4 py-2 text-label-large font-semibold text-on-primary disabled:opacity-60"
           >

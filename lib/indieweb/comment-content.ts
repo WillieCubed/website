@@ -89,7 +89,7 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
     allowedAttributes: {
       '*': ['dir'],
       a: ['href', 'rel', 'class'],
-      img: ['src', 'alt', 'loading'],
+      img: ['src', 'alt', 'loading', 'width', 'height'],
       audio: ['src', 'controls', 'preload'],
       video: ['src', 'poster', 'controls', 'preload', 'playsinline'],
       source: ['src', 'type'],
@@ -128,6 +128,13 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
         if (tagName === 'video' || tagName === 'audio')
           Object.assign(attributes, { controls: '', preload: 'none' });
         if (tagName === 'img') {
+          for (const dimension of ['width', 'height']) {
+            if (
+              !/^[1-9]\d{0,4}$/.test(attributes[dimension] ?? '') ||
+              Number(attributes[dimension]) > 16384
+            )
+              delete attributes[dimension];
+          }
           attributes.loading = 'lazy';
           attributes.alt ??= '';
         }

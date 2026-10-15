@@ -4,10 +4,13 @@ import { Body, Media } from '@/components/home/DetailContent.tsx';
 import { brandStyle } from '@/components/home/HomeContext';
 import { Icon } from '@/components/home/Icon';
 import { useDetailDialog } from '@/components/home/useDetailDialog';
+import SiteLink from '@/components/link/SiteLink';
 
+import { isPlainClick } from '@/lib/dom/click';
 import { entries } from '@/lib/home/ventures';
 
 interface DetailDialogProps {
+  initialId?: string;
   /** Lets the shell hand `openDetail` calls from tiles and rows here. */
   registerOpener: (
     open: (id: string, from: HTMLElement | null) => void
@@ -28,7 +31,11 @@ interface DetailDialogProps {
  * and `settle` morphs toward it one step at a time, so a request made
  * mid-morph waits for the morph instead of being lost.
  */
-export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
+export function DetailDialog({
+  registerOpener,
+  countdown,
+  initialId,
+}: DetailDialogProps) {
   const {
     brands,
     openId,
@@ -39,7 +46,7 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
     requestClose,
     backdrop,
     settle,
-  } = useDetailDialog(registerOpener);
+  } = useDetailDialog(registerOpener, initialId);
   const entry = openId ? entries[openId] : null;
   const style = brandStyle(brands, entry?.brand);
   const media = entry?.detail.media;
@@ -47,6 +54,7 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
   return (
     <dialog
       ref={dialogRef}
+      open={Boolean(openId)}
       className="detail scroller"
       aria-labelledby="d-title"
       data-brand={entry?.brand}
@@ -68,14 +76,19 @@ export function DetailDialog({ registerOpener, countdown }: DetailDialogProps) {
       {...backdrop}
     >
       <div className="d-bar">
-        <button
+        <SiteLink
+          href="/"
+          preview={false}
           className="d-close"
-          type="button"
           aria-label="Close"
-          onClick={requestClose}
+          onClick={(event) => {
+            if (!isPlainClick(event)) return;
+            event.preventDefault();
+            requestClose();
+          }}
         >
           <Icon name="close" />
-        </button>
+        </SiteLink>
       </div>
       <div className="d-inner" key={openId ?? 'empty'}>
         <div

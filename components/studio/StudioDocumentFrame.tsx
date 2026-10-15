@@ -84,6 +84,7 @@ export function StudioDocumentPendingContent({ error }: { error?: string }) {
           </Button>
           <Button disabled tabIndex={-1} className="studio-control-placeholder">
             <Icon name="more-horizontal" size={20} />
+            <span className="sr-only">More options</span>
           </Button>
         </nav>
       }

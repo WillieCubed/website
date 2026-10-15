@@ -56,7 +56,7 @@ export default function Callout({
 
   return (
     <div
-      className={`my-6 rounded-lg border-l-4 p-4 ${styles.container}`}
+      className={`my-6 rounded-2xl border p-4 ${styles.container}`}
       role="note"
     >
       <div className="flex items-start gap-3">

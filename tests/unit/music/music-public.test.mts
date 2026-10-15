@@ -77,3 +77,33 @@ test('public Music refuses unscoped read and write connections', async () => {
       process.env.MUSIC_CACHE_WRITE_DATABASE_URL = previousWriter;
   }
 });
+
+test('missing or expired approved content is unavailable, while known exclusions are empty', () => {
+  const catalog = { ...emptyCatalog, order: [a, b], selected: [a, b] };
+  assert.equal(visibleCollection(catalog, [], now).unavailable, true);
+  assert.equal(
+    visibleCollection(catalog, [make(a, { eligible: false })], now).unavailable,
+    true
+  );
+  assert.equal(
+    visibleCollection(
+      catalog,
+      [
+        make(a, { checkedAt: '2026-10-12T11:00:00Z' }),
+        make(b, { eligible: false }),
+      ],
+      now
+    ).unavailable,
+    true
+  );
+  assert.equal(
+    visibleCollection(
+      catalog,
+      [make(a, { eligible: false }), make(b, { eligible: false })],
+      now
+    ).unavailable,
+    false
+  );
+  assert.equal(visibleCollection(emptyCatalog, [], now).unavailable, false);
+  assert.equal(visibleCollection(catalog, [make(a)], now).unavailable, false);
+});

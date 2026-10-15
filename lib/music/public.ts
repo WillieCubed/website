@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { readFileSync } from '../content/runtime-files';
 import { createPool } from '../db/postgres';
+import { optionalWithin } from '../http/optional';
 import { isPrivatePreview } from '../studio/config';
 import { StudioError } from '../studio/errors';
 import { visibleCollection } from './public-projection';
@@ -53,16 +54,36 @@ export async function approvedManifest() {
 export async function publicCollection() {
   const manifest = await approvedManifest();
   if (!manifest.catalog.selected.length) return { ...manifest, playlists: [] };
-  const rows = await publicMusicPool().query(
-    "SELECT body FROM music_approved_cache WHERE id=ANY($1::text[]) AND eligible=true AND checked_at>now()-interval '24 hours'",
-    [manifest.catalog.selected]
+  const rows = await optionalWithin(
+    Promise.resolve().then(() =>
+      publicMusicPool().query(
+        'SELECT body, eligible, checked_at FROM music_approved_cache WHERE id=ANY($1::text[])',
+        [manifest.catalog.selected]
+      )
+    ),
+    null,
+    3000
+  );
+  const collection = visibleCollection(
+    manifest.catalog,
+    rows?.rows.map((r) => {
+      const body = r.body as MusicPlaylist;
+      const checkedAt = new Date(r.checked_at).toISOString();
+      return {
+        ...body,
+        eligible: r.eligible && body.eligible,
+        // Honor both cache timestamps; neither may extend the other’s life.
+        checkedAt:
+          Date.parse(checkedAt) < Date.parse(body.checkedAt)
+            ? checkedAt
+            : body.checkedAt,
+      };
+    }) ?? []
   );
   return {
     ...manifest,
-    ...visibleCollection(
-      manifest.catalog,
-      rows.rows.map((r) => r.body as MusicPlaylist)
-    ),
+    ...collection,
+    unavailable: rows === null || collection.unavailable,
   };
 }
 export async function cacheApproved(playlists: MusicPlaylist[]) {

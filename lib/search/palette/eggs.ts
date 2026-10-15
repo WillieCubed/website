@@ -1,3 +1,4 @@
+import { fetchWithDeadline } from '@/lib/http/fetch';
 import { randomlyChooseTagline } from '@/lib/site/taglines';
 import { absoluteUrl } from '@/lib/site/urls';
 
@@ -57,7 +58,7 @@ async function exchange(
   path: string,
   init: RequestInit = {}
 ): Promise<{ response: Response; text: string }> {
-  const response = await fetch(path, {
+  const response = await fetchWithDeadline(path, {
     ...init,
     method,
     cache: 'no-store',
@@ -120,7 +121,7 @@ export async function clacks(): Promise<Readout> {
   // the server nothing to answer.
   const request = 'HEAD /robots.txt';
   try {
-    const response = await fetch('/robots.txt', {
+    const response = await fetchWithDeadline('/robots.txt', {
       method: 'HEAD',
       cache: 'no-store',
     });

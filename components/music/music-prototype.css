@@ -30,6 +30,8 @@ html[data-music-motion] {
   --mp-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --mp-page-width: 1600px;
   --mp-page-gutter: clamp(20px, 3vw, 48px);
+  --mp-gallery-title-leading: 23px;
+  --mp-gallery-caption-padding: 12px;
   padding-bottom: 56px;
 }
 .music-prototype > header[data-column] {
@@ -102,15 +104,8 @@ html[data-music-motion] {
   margin: 48px auto 0;
   padding: 0 var(--mp-page-gutter);
 }
-.mp-shell-public-empty {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0;
-}
 .mp-shell-public-empty .mp-rail {
   position: static;
-}
-.mp-shell-public-empty .mp-heading h1 {
-  margin-bottom: 32px;
 }
 .mp-rail {
   align-self: start;
@@ -129,7 +124,7 @@ html[data-music-motion] {
   flex-direction: column;
   gap: 6px;
 }
-.mp-series-nav > button {
+.mp-series-nav > :is(button, a) {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -146,30 +141,33 @@ html[data-music-motion] {
     border-radius 350ms var(--mp-spatial),
     scale 350ms var(--mp-spatial);
 }
-.mp-series-nav > button:active {
+.mp-series-nav > :is(button, a):active {
   scale: 0.97;
   border-radius: 10px;
 }
-.mp-series-nav > button > span:last-child {
+.mp-series-nav > :is(button, a) > span:last-child {
   color: var(--color-muted);
   font-family: var(--font-mono);
   font-size: 12px;
   flex-shrink: 0;
+  text-align: right;
 }
-.mp-series-nav > button > span:first-child {
+.mp-series-nav > :is(button, a) > span:first-child {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.mp-series-nav > button[aria-pressed='true'] {
+.mp-series-nav > :is(button, a):is([aria-pressed='true'], [data-selected]) {
   background: var(--color-primary-container);
   color: var(--color-on-primary-container);
   font-weight: 600;
   border-radius: 24px;
 }
-.mp-series-nav > button[aria-pressed='true'] > span:last-child {
+.mp-series-nav
+  > :is(button, a):is([aria-pressed='true'], [data-selected])
+  > span:last-child {
   color: inherit;
 }
-.mp-series-nav > button:first-child {
+.mp-series-nav > :is(button, a):first-child {
   margin-bottom: 18px;
 }
 .mp-series-nav > .mp-new-series {
@@ -207,11 +205,80 @@ html[data-music-motion] {
   gap: 48px 32px;
   align-items: start;
 }
+.mp-grid:not(.mp-grid-editing) {
+  --mp-gallery-title-leading: 23px;
+  --mp-gallery-caption-padding: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 20px 24px;
+  align-items: stretch;
+}
+.mp-grid:not(.mp-grid-editing) > .mp-card {
+  padding: 12px;
+  border-radius: 20px;
+  background: var(--color-surface-container);
+  transition:
+    background-color 160ms var(--mp-effects),
+    border-radius 350ms var(--mp-spatial),
+    transform 350ms var(--mp-spatial),
+    box-shadow 220ms var(--mp-effects);
+}
+.mp-grid:not(.mp-grid-editing) .mp-card-open {
+  border-radius: 12px;
+}
+.mp-grid:not(.mp-grid-editing) .mp-card:not(.mp-card-lead) .mp-card-open {
+  height: 100%;
+}
+.mp-grid:not(.mp-grid-editing) .mp-art-frame {
+  border-radius: 12px;
+}
+.mp-grid:not(.mp-grid-editing) .mp-art {
+  border-radius: inherit;
+}
+.mp-grid:not(.mp-grid-editing) .mp-open-icon {
+  background: var(--color-surface-container-high);
+}
+.mp-grid:not(.mp-grid-editing) .mp-card:not(.mp-card-lead) .mp-card-caption {
+  grid-template-rows: auto 36px;
+  row-gap: 8px;
+  padding-top: var(--mp-gallery-caption-padding);
+}
+.mp-grid:not(.mp-grid-editing) .mp-card:not(.mp-card-lead) .mp-card-caption h3 {
+  font-size: clamp(16px, 1.2vw, 18px);
+}
+.mp-grid:not(.mp-grid-editing) .mp-card-caption .mp-small {
+  font-size: 12px;
+}
+.mp-grid:not(.mp-grid-editing) > .mp-card:has(> .mp-card-open:focus-visible) {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 4px;
+  background: color-mix(
+    in srgb,
+    var(--color-on-surface) 10%,
+    var(--color-surface-container)
+  );
+}
+.mp-grid:not(.mp-grid-editing) .mp-card-open:focus-visible .mp-art-frame {
+  outline: none;
+  box-shadow: none;
+}
+.mp-grid:not(.mp-grid-editing) > .mp-card:has(> .mp-card-open:active) {
+  border-radius: 16px;
+  transform: scale(0.985);
+  background: color-mix(
+    in srgb,
+    var(--color-on-surface) 10%,
+    var(--color-surface-container)
+  );
+}
+.mp-grid:not(.mp-grid-editing) .mp-card-open:active .mp-art-frame {
+  transform: none;
+}
 .mp-card {
   min-width: 0;
   border-radius: 4px;
 }
 .mp-card-open {
+  display: block;
   width: 100%;
   text-align: left;
   border-radius: 4px;
@@ -290,6 +357,63 @@ html[data-music-motion] {
   color: var(--color-on-primary-container);
   border-radius: 12px;
 }
+/* Standard cards share full-width titles and a metadata/arrow row in both states. */
+.mp-grid:not(.mp-grid-editing) .mp-card:not(.mp-card-lead) {
+  max-inline-size: 460px;
+  /* Artwork fills the evenly inset card; titles can use up to four lines. */
+  max-block-size: calc(
+    460px + 4 * var(--mp-gallery-title-leading) + 8px + 36px +
+      var(--mp-gallery-caption-padding)
+  );
+}
+:where(.mp-card:not(.mp-card-lead)) .mp-card-caption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px;
+  grid-template-rows: calc(4 * var(--mp-gallery-title-leading) + 8px) 40px;
+  align-items: center;
+  gap: 0 12px;
+  padding-top: var(--mp-gallery-caption-padding);
+}
+:where(.mp-card:not(.mp-card-lead)) .mp-card-caption > div {
+  display: contents;
+}
+:where(.mp-card:not(.mp-card-lead))
+  .mp-card-caption
+  > div
+  > :is(h3, .mp-pending-line) {
+  grid-column: 1 / -1;
+  align-self: start;
+}
+.mp-grid:not(.mp-grid-editing) .mp-card:not(.mp-card-lead) .mp-card-caption h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-block-size: calc(4 * var(--mp-gallery-title-leading));
+  margin-bottom: 0;
+  line-height: var(--mp-gallery-title-leading);
+}
+.mp-grid:not(.mp-grid-editing)
+  .mp-card-pending
+  .mp-card-caption
+  > div
+  > .mp-pending-line {
+  height: calc(4 * var(--mp-gallery-title-leading));
+  margin-block: 0;
+  mask-image: repeating-linear-gradient(
+    to bottom,
+    var(--color-scrim) 0 12px,
+    transparent 12px var(--mp-gallery-title-leading)
+  );
+}
+:where(.mp-card:not(.mp-card-lead)) .mp-card-caption .mp-small {
+  grid-column: 1;
+  grid-row: 2;
+}
+:where(.mp-card:not(.mp-card-lead)) .mp-card-caption .mp-open-icon {
+  grid-column: 2;
+  grid-row: 2;
+}
 .mp-card-lead {
   container: music-feature / inline-size;
   display: grid;
@@ -308,6 +432,11 @@ html[data-music-motion] {
   padding: 0;
 }
 .mp-card-lead .mp-card-caption h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-block-size: 4lh;
   max-width: 13ch;
   margin: 0;
   font-size: clamp(40px, 6.2cqw, 72px);
@@ -671,10 +800,10 @@ html[data-music-motion] {
 .mp-public-placeholder {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
+  text-align: center;
   width: 100%;
-  max-width: 1040px;
   min-height: 360px;
   padding: clamp(32px, 4vw, 56px);
   border-radius: 24px;
@@ -704,8 +833,16 @@ html[data-music-motion] {
   font-size: 17px;
   line-height: 1.5;
 }
-.mp-public-placeholder-link {
+.mp-public-placeholder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   margin-top: 28px;
+}
+.mp-public-placeholder-actions > * {
+  flex-shrink: 0;
 }
 .mp-notice {
   padding: 16px;
@@ -851,6 +988,20 @@ html:has(dialog.mp-detail[open], dialog.mp-review[open]) {
 .mp-detail-scroll:focus,
 #mp-detail-title:focus {
   outline: none;
+}
+/* Match Studio's inspector: scrollports and their chrome reserve the same
+   thin track on both sides, even when a particular region does not overflow. */
+.mp-detail-bar,
+.mp-detail-scroll,
+.mp-review-header,
+.mp-review-body,
+.mp-review-actions {
+  scrollbar-gutter: stable both-edges;
+}
+.mp-detail-bar,
+.mp-review-header,
+.mp-review-actions {
+  overflow: hidden;
 }
 .mp-detail-art-column {
   grid-column: 1;
@@ -1227,7 +1378,24 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   .mp-card-open:hover .mp-card-caption h3 {
     color: var(--color-primary);
   }
-  .mp-series-nav > button:hover:not([aria-pressed='true']),
+  .mp-grid:not(.mp-grid-editing)
+    > .mp-card:not(.mp-card-pending):has(> .mp-card-open:hover:not(:active)) {
+    transform: translateY(-3px);
+    border-radius: 18px;
+    background: color-mix(
+      in srgb,
+      var(--color-on-surface) 8%,
+      var(--color-surface-container)
+    );
+    box-shadow: 0 6px 16px -8px
+      color-mix(in srgb, var(--color-scrim) 28%, transparent);
+  }
+  .mp-grid:not(.mp-grid-editing) .mp-card-open:hover .mp-art-frame {
+    transform: none;
+    box-shadow: none;
+  }
+  .mp-series-nav
+    > :is(button, a):hover:not(:is([aria-pressed='true'], [data-selected])),
   .mp-text-button:hover {
     background: var(--color-surface-container-highest);
   }
@@ -1269,14 +1437,15 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     gap: 24px;
     margin-top: 28px;
   }
-  .mp-shell.mp-shell-public-empty {
-    gap: 0;
-  }
-  .mp-shell-public-empty .mp-heading h1 {
-    margin-bottom: 24px;
-  }
   .mp-public-placeholder {
     min-height: 300px;
+    padding-inline: 20px;
+  }
+  .music-prototype:has(.mp-shell-public-empty) {
+    padding-bottom: 0;
+  }
+  html:has(.mp-shell-public-empty) .site-footer {
+    margin-top: 32px;
   }
   .mp-rail {
     position: static;
@@ -1294,7 +1463,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     flex-wrap: wrap;
     gap: 8px;
   }
-  .mp-series-nav > button {
+  .mp-series-nav > :is(button, a) {
     margin: 0;
     gap: 8px;
     padding: 10px 14px;
@@ -1316,7 +1485,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   .mp-collection-header h2 {
     font-size: 21px;
   }
-  .mp-series-nav > button:first-child {
+  .mp-series-nav > :is(button, a):first-child {
     margin-bottom: 0;
   }
   .mp-card-lead .mp-card-caption h3 {
@@ -1324,7 +1493,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   }
   dialog.mp-detail {
     --mp-detail-inset: 24px;
-    width: 100vw;
+    width: 100%;
     height: 100svh;
     max-height: 100svh;
     border-radius: 0;
@@ -1359,6 +1528,10 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   }
 }
 @media (max-width: 599px) {
+  .music-prototype {
+    --mp-gallery-title-leading: 21px;
+    --mp-gallery-caption-padding: 10px;
+  }
   .music-prototype > header[data-column] {
     padding-block: 8px;
   }
@@ -1385,7 +1558,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   .mp-heading h1 {
     font-size: 52px;
     margin-top: 0;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
   }
   .mp-collection-header {
     flex-wrap: wrap;
@@ -1540,29 +1713,67 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   ::view-transition-group(music-prototype-cover) {
     animation: none;
   }
+  .mp-grid:not(.mp-grid-editing) > .mp-card {
+    transform: none !important;
+  }
 }
 
 /* Curation gives decisions their own surfaces without changing the public gallery. */
 .music-prototype[data-editing] {
-  padding-bottom: 110px;
+  padding-bottom: max(40px, env(safe-area-inset-bottom));
 }
 .music-prototype[data-editing] .mp-collection-header h2 {
   font-size: 38px;
   line-height: 1.12;
   letter-spacing: -0.035em;
 }
-.music-prototype[data-editing] .mp-collection-header .mp-small {
-  font-size: 15px;
-  margin-top: 10px;
-}
 .music-prototype[data-editing] .mp-collection-header {
-  margin-bottom: 24px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 44px;
+  margin-bottom: 12px;
+}
+.music-prototype[data-editing] .mp-series-nav > :is(button, a) {
+  border-radius: 16px;
+  background: var(--color-surface-container-low);
+  font-size: 15px;
+}
+.music-prototype[data-editing] .mp-series-nav > a[data-selected] {
+  border-radius: 24px;
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+}
+.music-prototype[data-editing] .mp-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.music-prototype[data-editing] .mp-heading h1 {
+  margin-bottom: 0;
+}
+.music-prototype[data-editing] .mp-series-nav > a:first-child {
+  margin-bottom: 0;
+}
+.mp-heading .mp-new-series {
+  flex-shrink: 0;
+  min-height: 48px;
+  padding: 10px 16px;
+  white-space: nowrap;
+}
+.music-prototype .mp-series-nav[inert] > a {
+  color: var(--color-muted);
+  opacity: 0.45;
+  cursor: default;
 }
 .mp-library-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 .mp-library-filters button {
   display: inline-flex;
@@ -1577,16 +1788,17 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     background 160ms var(--mp-effects),
     border-radius 250ms var(--mp-spatial);
 }
-.mp-library-filters button[aria-pressed='true'] {
+.mp-library-filters button:is([aria-pressed='true'], [data-selected]) {
   background: var(--color-secondary-container);
   color: var(--color-on-secondary-container);
   font-weight: 600;
   border-radius: 24px;
 }
-.mp-library-filters button:hover {
+.mp-library-filters button:hover:not(:disabled) {
   background: var(--color-surface-container-high);
 }
-.mp-library-filters button[aria-pressed='true']:hover {
+.mp-library-filters
+  button:is([aria-pressed='true'], [data-selected]):hover:not(:disabled) {
   background: var(--color-primary-container);
 }
 .mp-library-filters button span {
@@ -1600,46 +1812,137 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   margin-bottom: 28px;
 }
 .mp-grid-editing {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px 24px;
+  grid-template-columns: minmax(0, 1fr);
+  /* Keep empty tracks so a filtered or final card matches the loading grid. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 16px 24px;
 }
 .mp-grid-editing .mp-card {
+  container: music-curation-card / inline-size;
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-block-size: 220px;
   padding: 12px;
-  border-radius: 20px;
+  border-radius: 24px;
   background: var(--color-surface-container);
 }
 .mp-grid-editing .mp-card-open {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  min-height: 148px;
+  margin-bottom: 0;
   border-radius: 10px;
 }
 .mp-grid-editing .mp-art-frame {
-  border-radius: 10px;
+  border-radius: 16px;
 }
 .mp-grid-editing .mp-card-caption {
-  min-height: 76px;
-  gap: 8px;
+  padding: 0;
+  min-height: 148px;
+  grid-template-rows: 96px 44px;
+  align-items: center;
+  gap: 8px 4px;
 }
 .mp-grid-editing .mp-card-caption h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-block-size: 96px;
+  margin-bottom: 0;
   font-size: 18px;
   line-height: 24px;
 }
+.mp-grid-editing .mp-card-caption .mp-small {
+  font-size: 14px;
+  line-height: 20px;
+}
+.mp-grid-editing .mp-order-buttons[hidden] {
+  display: none;
+}
 .mp-grid-editing .mp-open-icon {
-  width: 32px;
-  height: 32px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
 }
 .mp-grid-editing .mp-card-controls {
-  margin-top: 12px;
-  gap: 12px;
+  position: absolute;
+  inset-inline: 12px;
+  bottom: 12px;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-rows: 44px;
+  margin: 0;
+  min-height: 44px;
+  gap: 4px 16px;
+  pointer-events: none;
+}
+.mp-grid-editing .mp-card-controls > * {
+  pointer-events: auto;
+}
+.mp-grid-editing .mp-card-controls .mp-check {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: max-content;
+}
+.mp-grid-editing .mp-card-controls .mp-order-buttons {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: start;
+}
+/* Ordering is a deliberate mode; its controls never take title width. */
+.music-prototype[data-reordering] .mp-card-open {
+  margin-bottom: 48px;
+}
+.music-prototype[data-reordering] .mp-card-controls {
+  grid-template-rows: 44px 44px;
+}
+@container music-curation-card (min-width: 316px) {
+  .music-prototype[data-reordering] .mp-card-open {
+    margin-bottom: 0;
+  }
+  .music-prototype[data-reordering] .mp-card-caption {
+    grid-template-columns: minmax(0, 1fr) 36px 92px;
+  }
+  .music-prototype[data-reordering] .mp-card-controls {
+    display: flex;
+    justify-content: space-between;
+  }
 }
 .mp-grid-editing .mp-check {
-  min-height: 48px;
-  padding: 4px 8px;
-  border-radius: 14px;
-  background: var(--color-surface-container-high);
+  min-height: 44px;
+  padding: 4px 0;
+  border-radius: 12px;
+  background: transparent;
   font-size: 14px;
 }
 .mp-grid-editing .mp-check:has(input:checked) {
-  background: var(--color-primary-container);
-  color: var(--color-on-primary-container);
+  background: transparent;
+  color: var(--color-ink);
+}
+.mp-grid-editing .mp-selection-state {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+.mp-grid-editing .mp-selection-control {
+  width: 28px;
+  height: 28px;
+}
+.mp-grid-editing .mp-selection-control:has(input:checked) .mp-selection-state {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.mp-grid-editing .mp-check:has(input:disabled) {
+  cursor: default;
+}
+.mp-grid-editing .mp-check:has(input:disabled):active {
+  scale: 1;
 }
 .mp-grid-editing .mp-order-buttons {
   gap: 4px;
@@ -1661,15 +1964,100 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
 .mp-grid-editing .mp-card-unselected .mp-art {
   opacity: 0.55;
 }
-.music-prototype[data-editing] .mp-draft-note {
-  padding: 18px;
-  border-radius: 20px;
-  background: var(--color-surface-container);
-  gap: 6px 10px;
-  font-size: 14px;
+/* Pin within Music, then let the same surface leave with its workspace.
+   Its in-flow seat precedes the footer, so it can never sit beneath it. */
+.music-prototype[data-editing] {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-bottom: 0;
 }
-.music-prototype[data-editing] .mp-draft-note .mp-button {
-  justify-self: stretch;
+.music-prototype[data-editing] .mp-shell {
+  width: 100%;
+  min-width: 0;
+  flex: 1 0 auto;
+  align-content: start;
+}
+.music-prototype[data-editing] > header {
+  width: 100%;
+  min-width: 0;
+}
+html:has(.music-prototype[data-editing] .mp-draft-note) {
+  /* Keep the floating panel's travel clear while compact geometry takes over,
+     including when a playlist control has focus during the transition. */
+  --music-publication-clearance-bottom: max(24px, env(safe-area-inset-bottom));
+  --music-publication-bottom: var(--music-publication-clearance-bottom);
+  --music-publication-min-height: 80px;
+  scroll-padding-bottom: calc(
+    var(--music-publication-height, var(--music-publication-min-height)) +
+      var(--music-publication-clearance-bottom) + 16px
+  );
+}
+.music-prototype[data-editing] .mp-draft-note {
+  position: sticky;
+  flex-shrink: 0;
+  z-index: 40;
+  bottom: var(--music-publication-bottom, 24px);
+  width: min(520px, calc(100% - 48px));
+  max-width: 100%;
+  min-height: 80px;
+  grid-template-columns: 7px minmax(0, 1fr) auto;
+  align-content: center;
+  margin: 24px auto var(--music-publication-bottom, 24px);
+  padding: 16px;
+  border-radius: 28px;
+  background: var(--color-surface-container-high);
+  box-shadow: 0 4px 28px color-mix(in srgb, var(--color-scrim) 20%, transparent);
+  gap: 4px 10px;
+  font-size: 14px;
+  line-height: 20px;
+  transition:
+    width 360ms var(--mp-spatial),
+    bottom 360ms var(--mp-spatial),
+    margin-bottom 360ms var(--mp-spatial),
+    border-radius 360ms var(--mp-spatial),
+    padding 360ms var(--mp-spatial),
+    background-color 200ms var(--mp-effects);
+}
+.music-prototype[data-editing] .mp-draft-note small {
+  line-height: 16px;
+}
+.music-prototype[data-editing] .mp-draft-note .site-button {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  align-self: center;
+  margin: 0;
+  min-height: 48px;
+  white-space: nowrap;
+}
+.music-prototype[data-editing] .mp-card :is(a, button, input) {
+  scroll-margin-block: 16px;
+}
+html:has(.music-prototype[data-editing] .mp-draft-note) .music-admin-notices {
+  bottom: calc(
+    var(--music-publication-height, var(--music-publication-min-height)) +
+      var(--music-publication-clearance-bottom) + 12px
+  );
+}
+@media (max-width: 599px) {
+  html:has(.music-prototype[data-editing] .mp-draft-note) {
+    --music-publication-bottom: 0px;
+    --music-publication-min-height: calc(80px + env(safe-area-inset-bottom));
+  }
+  .music-prototype[data-editing] .mp-draft-note {
+    width: 100%;
+    min-height: calc(80px + env(safe-area-inset-bottom));
+    border-radius: 24px 24px 0 0;
+    padding: 12px max(20px, env(safe-area-inset-right))
+      calc(12px + env(safe-area-inset-bottom))
+      max(20px, env(safe-area-inset-left));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .music-prototype[data-editing] .mp-draft-note {
+    transition: none;
+  }
 }
 dialog.mp-detail[data-editing] .mp-detail-scroll {
   grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
@@ -1879,37 +2267,54 @@ dialog.mp-review[open] {
   margin-right: auto;
   font-size: 13px;
 }
-@media (max-width: 1199px) {
-  .mp-grid-editing {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 @media (max-width: 839px) {
   dialog.mp-detail[data-editing] .mp-detail-scroll {
     grid-template-columns: 112px minmax(0, 1fr);
     gap: 24px;
   }
-  .music-prototype[data-editing] .mp-draft-note {
-    position: fixed;
-    z-index: 25;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: 12px;
-    right: 12px;
+  .music-prototype[data-editing] .mp-heading {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .music-prototype[data-editing] .mp-series-nav {
+    flex-wrap: nowrap;
+    align-items: stretch;
+    height: 44px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    mask-image: linear-gradient(
+      to right,
+      var(--color-scrim) calc(100% - 16px),
+      transparent
+    );
+  }
+  .music-prototype[data-editing] .mp-series-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .music-prototype[data-editing] .mp-series-nav > a {
+    flex: 0 0 auto;
+    max-width: 280px;
+  }
+  .music-prototype[data-editing] .mp-series-nav > a > span:first-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mp-order-label {
+    display: none;
+  }
+  .mp-grid-editing .mp-order-buttons {
     margin: 0;
-    grid-template-columns: 6px minmax(0, 1fr) auto;
-    padding: 12px 16px;
-    box-shadow: 0 6px 30px
-      color-mix(in srgb, var(--color-scrim) 18%, transparent);
   }
   .music-prototype[data-editing] .mp-draft-note .mp-button {
-    grid-column: 3;
-    grid-row: 1 / 3;
-    margin: 0;
-    font-size: 13px;
     padding: 10px 12px;
+    font-size: 13px;
   }
   dialog.mp-review {
-    width: 100vw;
+    width: 100%;
     height: 100svh;
     border-radius: 0;
   }
@@ -1977,29 +2382,13 @@ dialog.mp-review[open] {
     gap: 8px;
     font-size: 13px;
   }
-  .mp-grid-editing {
-    gap: 20px 14px;
-  }
   .mp-grid-editing .mp-card {
-    padding: 9px;
+    padding: 12px;
     border-radius: 16px;
   }
   .mp-grid-editing .mp-card-caption h3 {
-    font-size: 15px;
-    line-height: 21px;
-  }
-  .mp-grid-editing .mp-open-icon {
-    display: none;
-  }
-  .mp-grid-editing .mp-card-controls {
-    display: grid;
-    gap: 8px;
-  }
-  .mp-grid-editing .mp-order-buttons {
-    margin: 0;
-  }
-  .mp-order-label {
-    display: inline;
+    font-size: 17px;
+    line-height: 23px;
   }
   dialog.mp-detail[data-editing] .mp-detail-scroll {
     grid-template-columns: 96px minmax(0, 1fr);
@@ -2037,6 +2426,15 @@ dialog.mp-review[open] {
   padding-inline: 14px;
 }
 @media (max-width: 359px) {
+  .music-prototype[data-editing] .mp-heading {
+    gap: 8px;
+  }
+  .music-prototype[data-editing] .mp-heading h1 {
+    font-size: 48px;
+  }
+  .mp-heading .mp-new-series {
+    padding-inline: 12px;
+  }
   .mp-order-label {
     display: none;
   }
@@ -2211,4 +2609,105 @@ img.mp-cover {
 .mp-cover-missing > svg {
   width: min(40%, 64px);
   height: auto;
+}
+
+/* Pending data occupies the gallery's own art and caption geometry. */
+.mp-card-pending .mp-art {
+  background: var(--color-surface-container-high);
+}
+.mp-pending-line {
+  display: block;
+  height: 1em;
+  width: 75%;
+  margin-block: 4px 8px;
+  border-radius: 4px;
+  background: var(--color-surface-container-highest);
+}
+.mp-pending-line-short {
+  width: 45%;
+}
+.mp-loading-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--color-on-surface-variant);
+}
+.mp-pending-count {
+  display: inline-block;
+  width: 2ch;
+  height: 0.65em;
+  border-radius: 3px;
+  background: var(--color-on-surface-variant);
+}
+.mp-loading-status:empty {
+  visibility: hidden;
+}
+
+.mp-card-pending .mp-card-caption > div {
+  width: 100%;
+}
+.mp-card-pending .mp-pending-control {
+  width: 5ch;
+  margin: 0;
+}
+.mp-library-filters button > span {
+  min-width: 3ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.music-prototype[data-editing]
+  .mp-series-nav
+  > :is(button, a)
+  > span:last-child {
+  min-width: 3ch;
+}
+
+/* Older selector engines retain the readable inline summary. */
+@supports not selector(:has(*)) {
+  .music-prototype[data-editing] .mp-draft-note {
+    position: static;
+    translate: none;
+    width: auto;
+    margin-top: 24px;
+    border-radius: 24px;
+  }
+}
+
+/* One collection context and count; filters express inclusion only. */
+.mp-collection-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  max-width: calc(100% - 104px);
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: var(--color-surface-container);
+  color: var(--color-ink);
+}
+.mp-collection-picker > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mp-collection-picker > :not(:first-child) {
+  flex-shrink: 0;
+}
+.mp-reorder-toggle {
+  margin-inline-start: auto;
+  min-height: 44px;
+  padding: 8px 12px;
+}
+.mp-collection-menu .mp-series-nav {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+.mp-collection-menu .mp-series-nav > a {
+  width: 100%;
 }

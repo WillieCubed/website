@@ -27,16 +27,22 @@ export interface ResponseCandidate {
   type: 'reply' | 'mention' | 'copy';
   parentUri?: string;
 }
-export async function loadBlueskyResponses(writing: WritingData): Promise<{
+export async function loadBlueskyResponses(
+  writing: WritingData,
+  signal?: AbortSignal
+): Promise<{
   groups: WebmentionGroup;
   copyUrl?: string;
   replyUrl?: string;
   incomplete?: boolean;
 }> {
-  return fetchBlueskyResponses(writing);
+  return fetchBlueskyResponses(writing, signal);
 }
 /** Uncached importer for fresh AppView reads and acceptance checks. */
-export async function fetchBlueskyResponses(writing: WritingData): Promise<{
+export async function fetchBlueskyResponses(
+  writing: WritingData,
+  signal = AbortSignal.timeout(20000)
+): Promise<{
   groups: WebmentionGroup;
   copyUrl?: string;
   replyUrl?: string;
@@ -51,7 +57,7 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
       writing.published
     );
     if (!document) return { groups };
-    const record = await publicRecord(document);
+    const record = await publicRecord(document, signal);
     const ref = record?.value.bskyPostRef;
     if (!ref) return { groups };
     assertOwnerCopy(ref);
@@ -61,11 +67,15 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
     const thread = await query<{
       thread: Thread;
       threadgate?: { record?: { hiddenReplies?: string[] } };
-    }>('app.bsky.feed.getPostThread', {
-      uri,
-      depth: '100',
-      parentHeight: '0',
-    });
+    }>(
+      'app.bsky.feed.getPostThread',
+      {
+        uri,
+        depth: '100',
+        parentHeight: '0',
+      },
+      signal
+    );
     if (
       !thread?.thread.post ||
       !allowed(thread.thread.post) ||
@@ -73,13 +83,14 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
     )
       return { groups, copyUrl };
     const [quotes, likes, reposts] = await Promise.all([
-      pages<Post>('app.bsky.feed.getQuotes', uri, 'posts'),
+      pages<Post>('app.bsky.feed.getQuotes', uri, 'posts', signal),
       pages<{ actor: Profile; createdAt: string; indexedAt: string }>(
         'app.bsky.feed.getLikes',
         uri,
-        'likes'
+        'likes',
+        signal
       ),
-      pages<Profile>('app.bsky.feed.getRepostedBy', uri, 'repostedBy'),
+      pages<Profile>('app.bsky.feed.getRepostedBy', uri, 'repostedBy', signal),
     ]);
     const hidden = new Set(thread.threadgate?.record?.hiddenReplies ?? []);
     const candidates: ResponseCandidate[] = [
@@ -109,7 +120,8 @@ export async function fetchBlueskyResponses(writing: WritingData): Promise<{
       candidates,
       uri,
       target,
-      hidden
+      hidden,
+      { signal }
     );
     if (!current.posts.has(uri))
       return {

@@ -64,7 +64,10 @@ export function parseBlueskyPostUrl(
   }
 }
 
-export async function publicRecord(uri: string): Promise<{
+export async function publicRecord(
+  uri: string,
+  signal?: AbortSignal
+): Promise<{
   uri: string;
   cid: string;
   value: Record<string, unknown>;
@@ -80,7 +83,8 @@ export async function publicRecord(uri: string): Promise<{
     collection: match[2],
     rkey: match[3],
   }).toString();
-  const response = await oauthFetch(url);
+  signal?.throwIfAborted();
+  const response = await oauthFetch(url, { signal });
   if (response.status === 400 || response.status === 404) return null;
   if (!response.ok)
     throw new Error(`PDS record fetch failed (${response.status}).`);

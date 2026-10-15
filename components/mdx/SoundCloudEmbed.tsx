@@ -16,7 +16,7 @@ export default function SoundCloudEmbed({
   const src = `https://w.soundcloud.com/player/?url=${encodedUrl}&color=%23${color}&auto_play=false&hide_related=true&show_comments=${showComments}&show_user=true&show_reposts=false&show_teaser=false${visual ? '&visual=true' : ''}`;
 
   return (
-    <div className="my-6 w-full overflow-hidden rounded-lg">
+    <figure className="my-6 w-full overflow-hidden rounded-lg">
       <iframe
         width="100%"
         height={height}
@@ -27,6 +27,9 @@ export default function SoundCloudEmbed({
         loading="lazy"
         title="SoundCloud player"
       />
-    </div>
+      <figcaption>
+        <a href={url}>{'Open on SoundCloud'}</a>
+      </figcaption>
+    </figure>
   );
 }

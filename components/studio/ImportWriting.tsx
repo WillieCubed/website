@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { fetchWithDeadline } from '@/lib/http/fetch';
+
 export default function ImportWriting({ slug }: { slug: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -11,7 +13,7 @@ export default function ImportWriting({ slug }: { slug: string }) {
     setPending(true);
     setError('');
     try {
-      const response = await fetch('/api/studio/documents', {
+      const response = await fetchWithDeadline('/api/studio/documents', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
@@ -37,6 +39,8 @@ export default function ImportWriting({ slug }: { slug: string }) {
       <button
         type="button"
         disabled={pending}
+        aria-busy={pending}
+        style={{ minWidth: 130 }}
         onClick={openEditor}
         className="link-animated text-label-large text-accent disabled:opacity-60"
       >

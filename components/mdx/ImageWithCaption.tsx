@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import StableImage from '@/components/media/StableImage';
 
 type ImageSize = 'default' | 'wide' | 'full';
 
@@ -28,8 +28,8 @@ export default function ImageWithCaption({
   src,
   alt,
   caption,
-  width = 800,
-  height = 600,
+  width,
+  height,
   priority = false,
   size = 'default',
 }: ImageWithCaptionProps) {
@@ -38,12 +38,13 @@ export default function ImageWithCaption({
   return (
     <figure className={`my-8 ${sizeClasses[size]}`}>
       <div className={`overflow-hidden ${isFullBleed ? '' : 'rounded-lg'}`}>
-        <Image
+        <StableImage
           src={src}
           alt={alt}
           width={width}
           height={height}
-          priority={priority}
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : undefined}
           className="h-auto w-full object-cover"
         />
       </div>

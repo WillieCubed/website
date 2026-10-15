@@ -96,7 +96,8 @@ interface PendingUrl {
 }
 
 export function useDetailDialog(
-  registerOpener: DetailDialogProps['registerOpener']
+  registerOpener: DetailDialogProps['registerOpener'],
+  initialId?: string
 ) {
   const router = useRouter();
   const pathname = usePathname();
@@ -106,9 +107,10 @@ export function useDetailDialog(
   const { brands, clearPreviewNow } = useHome();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const shownRef = useRef<string | null>(null);
-  const wantRef = useRef<string | null>(null);
+  const initial = initialId && entries[initialId] ? initialId : null;
+  const [openId, setOpenId] = useState<string | null>(initial);
+  const shownRef = useRef<string | null>(initial);
+  const wantRef = useRef<string | null>(initial);
   // The element the next opening grows out of, when a click asked for it.
   const fromRef = useRef<HTMLElement | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -149,7 +151,13 @@ export function useDetailDialog(
       media = source.media && mediaIn(mediaRef.current, id);
       setName(dialog, 'card');
       setName(media, 'media');
-      if (!dialog.open) dialog.showModal();
+      if (!dialog.matches(':modal')) {
+        if (dialog.open) {
+          selfClosedRef.current = true;
+          dialog.close();
+        }
+        dialog.showModal();
+      }
       dialog.scrollTop = 0;
     });
     // Names only matter while a transition captures them. Left on, the open
@@ -278,6 +286,15 @@ export function useDetailDialog(
   };
 
   const backdrop = useBackdropDismiss(requestClose);
+
+  useEffect(() => {
+    const modal = dialogRef.current;
+    if (!initial || !modal || modal.matches(':modal')) return;
+    // The server's open dialog is already readable. Upgrade the same node.
+    selfClosedRef.current = true;
+    modal.close();
+    modal.showModal();
+  }, []);
 
   useEffect(() => {
     registerOpener((id, from) => {

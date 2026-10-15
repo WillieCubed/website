@@ -42,7 +42,11 @@ export function usePaletteSession({
   const listboxId = `${id}-listbox`;
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchRow[]>([]);
+  const [search, setSearch] = useState<{
+    query: string;
+    rows: SearchRow[];
+    status: 'pending' | 'ready' | 'failed';
+  }>({ query: '', rows: [], status: 'ready' });
   const [searchError, setSearchError] = useState<string | null>(null);
   // The readout belongs to the input that produced it and goes when it
   // changes; `pending` holds the command still waiting on its request.
@@ -61,6 +65,11 @@ export function usePaletteSession({
   // The theme commands read the page's scheme, so the list is worked out
   // on every render rather than memoised against the query alone.
   const matched = matchCommands(commands, query);
+  const searching =
+    typed.length >= 2 &&
+    (search.query !== typed || search.status === 'pending');
+  const results =
+    search.query === typed && search.status === 'ready' ? search.rows : [];
   const sections = readout || pending ? [] : sectionsFor(matched, results);
   const rows = sections.flatMap((section) => section.rows);
   const activeRow = active >= 0 ? rows[active] : undefined;
@@ -72,30 +81,36 @@ export function usePaletteSession({
   }, []);
 
   useEffect(() => {
-    if (typed.length < 2) {
-      setResults([]);
-      setSearchError(null);
-      return;
-    }
+    setSearchError(null);
+    if (typed.length < 2) return;
     let current = true;
+    setSearch({ query: typed, rows: [], status: 'pending' });
+    const timer = setTimeout(() => {
+      if (!current) return;
+      current = false;
+      setSearch({ query: typed, rows: [], status: 'failed' });
+      setSearchError(
+        'Instant search is taking too long. Use the search page to continue.'
+      );
+    }, 10_000);
     searchSite(typed).then(
       (found) => {
         if (!current || found === null) return;
-        setResults(found);
-        setSearchError(null);
+        clearTimeout(timer);
+        setSearch({ query: typed, rows: found, status: 'ready' });
       },
-      (error: unknown) => {
+      () => {
         if (!current) return;
-        setResults([]);
+        clearTimeout(timer);
+        setSearch({ query: typed, rows: [], status: 'failed' });
         setSearchError(
-          `Search could not load /pagefind/pagefind.js (${
-            error instanceof Error ? error.message : String(error)
-          }).`
+          'Instant search is unavailable. Use the search page to continue.'
         );
       }
     );
     return () => {
       current = false;
+      clearTimeout(timer);
     };
   }, [typed]);
 
@@ -198,7 +213,8 @@ export function usePaletteSession({
     listboxId,
     inputRef,
     query,
-    searchError,
+    searchError: search.query === typed ? searchError : null,
+    searching,
     readout,
     pending,
     announcement,

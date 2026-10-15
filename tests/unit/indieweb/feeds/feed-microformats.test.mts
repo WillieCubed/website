@@ -1,17 +1,26 @@
 import { mf2 } from 'microformats-parser';
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { HomeContext } from '@/components/home/HomeContext';
-import { ProductScroller } from '@/components/home/ProductScroller';
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
 
 import { products } from '@/lib/home/ventures';
 import { site } from '@/lib/site/identity';
 
 import type { MicroformatRoot } from '../../../support/indieweb/microformats.mts';
+
+registerHooks({
+  load(url, context, nextLoad) {
+    return url.endsWith('.css')
+      ? { format: 'module', source: '', shortCircuit: true }
+      : nextLoad(url, context);
+  },
+});
+const { ProductScroller } = await import('@/components/home/ProductScroller');
 
 const feedUrl = `${site.origin}/writings`;
 

@@ -14,15 +14,22 @@ export default function YouTubeEmbed({
     : `https://www.youtube.com/embed/${videoId}`;
 
   return (
-    <div className="my-6 aspect-video w-full overflow-hidden rounded-lg">
-      <iframe
-        src={src}
-        title={title}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        loading="lazy"
-        className="h-full w-full border-0"
-      />
-    </div>
+    <figure className="my-6 w-full">
+      <div className="aspect-video overflow-hidden rounded-lg">
+        <iframe
+          src={src}
+          title={title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          className="h-full w-full border-0"
+        />
+      </div>
+      <figcaption>
+        <a
+          href={`https://www.youtube.com/watch?v=${videoId}`}
+        >{`Watch ${title} on YouTube`}</a>
+      </figcaption>
+    </figure>
   );
 }

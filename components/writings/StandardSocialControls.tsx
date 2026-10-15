@@ -1,7 +1,11 @@
 'use client';
 
 import Icon from '@/components/icons/Icon';
+import SiteLink from '@/components/link/SiteLink';
+import LoadingIndicator from '@/components/site/LoadingIndicator';
 import Popover from '@/components/site/Popover';
+
+import { site } from '@/lib/site/identity';
 
 import StandardSignInDialog from './StandardSignInDialog';
 import styles from './StandardSocialControls.module.css';
@@ -21,6 +25,7 @@ export default function StandardSocialControls({
   const control = useStandardSocialControls({ action, slug });
   const {
     busy,
+    announcement,
     state,
     signIn,
     pending,
@@ -35,13 +40,39 @@ export default function StandardSocialControls({
     signOut,
   } = control;
   const available = state?.enabled && state.ready;
-  if (!available) return null;
+
   const retryAction = feedback && feedback.retry !== 'logout';
   return (
     <div
       className={`${styles.root} ${compact ? styles.compact : ''}`}
       data-standard-social={action}
     >
+      {!available && (
+        <div className={styles.actions}>
+          <SiteLink
+            preview={false}
+            className={styles.action}
+            href={
+              action === 'subscription'
+                ? '/writings/feed.xml'
+                : `https://bsky.app/intent/compose?text=${encodeURIComponent(`${site.origin}/writings/${slug ?? ''}`)}`
+            }
+            aria-label={
+              action === 'subscription'
+                ? 'Subscribe by RSS'
+                : 'Share this writing'
+            }
+          >
+            <Icon
+              name={action === 'subscription' ? 'rss' : 'heart'}
+              size={24}
+            />
+            <span>
+              {action === 'subscription' ? 'Subscribe by RSS' : 'Share writing'}
+            </span>
+          </SiteLink>
+        </div>
+      )}
       {available && (
         <div
           className={styles.actions}
@@ -54,7 +85,7 @@ export default function StandardSocialControls({
             className={styles.action}
             disabled={busy || Boolean(retryAction && feedback.retry === null)}
             aria-pressed={Boolean(active)}
-            aria-busy={busy}
+            aria-busy={pending === 'action'}
             data-retry={compact && retryAction ? true : undefined}
             aria-label={
               retryAction && feedback.retry !== null
@@ -77,7 +108,7 @@ export default function StandardSocialControls({
             onClick={toggle}
           >
             {pending === 'action' ? (
-              <span className={styles.spinner} aria-hidden="true" />
+              <LoadingIndicator />
             ) : (
               <Icon
                 name={
@@ -128,6 +159,7 @@ export default function StandardSocialControls({
                 ref={logoutButton}
                 type="button"
                 disabled={busy}
+                aria-busy={pending === 'logout'}
                 className={styles.signOut}
                 title={
                   feedback?.retry === 'logout' ? feedback.message : undefined
@@ -140,7 +172,7 @@ export default function StandardSocialControls({
                 onClick={signOut}
               >
                 {pending === 'logout' ? (
-                  <span className={styles.spinner} aria-hidden="true" />
+                  <LoadingIndicator />
                 ) : (
                   <Icon name="log-out" size={18} />
                 )}
@@ -155,8 +187,11 @@ export default function StandardSocialControls({
         </div>
       )}
       <StandardSignInDialog action={action} slug={slug} control={control} />
+      <span className="sr-only" role="status">
+        {announcement}
+      </span>
       {feedback && !signIn && (
-        <span role="alert" className="sr-only">
+        <span role="alert" className={available ? 'sr-only' : undefined}>
           {feedback.message}
         </span>
       )}

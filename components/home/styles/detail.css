@@ -220,8 +220,10 @@
     list-style: none;
   }
   .d-list li {
-    padding-block: 12px;
-    border-top: 1px solid var(--color-line);
+    padding: 12px;
+    margin-block: 8px;
+    border-radius: 16px;
+    background: var(--color-surface-container);
   }
   .d-list b {
     display: block;
@@ -231,7 +233,7 @@
     color: var(--color-muted);
     font-size: 15px;
   }
-  .d-list button {
+  .d-list :is(button, a) {
     display: grid;
     width: 100%;
     padding: 0;
@@ -240,12 +242,12 @@
     text-align: left;
     cursor: pointer;
   }
-  .d-list button b {
+  .d-list :is(button, a) b {
     display: inline-flex;
     align-items: center;
     gap: 6px;
   }
-  .d-list button b .icon {
+  .d-list :is(button, a) b .icon {
     font-size: 16px;
     opacity: 0;
     translate: -4px 0;
@@ -253,8 +255,8 @@
       opacity 200ms var(--ease-site),
       translate 280ms var(--ease-site);
   }
-  .d-list button:hover b .icon,
-  .d-list button:focus-visible b .icon {
+  .d-list :is(button, a):hover b .icon,
+  .d-list :is(button, a):focus-visible b .icon {
     opacity: 1;
     translate: 0 0;
   }

@@ -76,7 +76,7 @@
        into its corners. */
     dialog.detail {
       --dh: 100svh;
-      width: 100vw;
+      width: 100%;
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior: contain;

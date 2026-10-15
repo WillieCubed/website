@@ -224,6 +224,12 @@ visitor can recognize and explore. A generic productivity banner would leave
 them with little sense of whose site they had found, even in the right colors.
 Choose the material and its treatment together.
 
+One-sided borders and inset edge stripes are prohibited. Group content with
+spacing, tonal surfaces, or complete outlines. Use shared expressive button
+styles for actions, with visible enabled, pressed, focus, and disabled states.
+Creation actions use contained buttons; do not turn them into uncontained
+text merely to simplify a layout.
+
 ### Fluid: make state changes understandable
 
 When something on the page changes, it moves there. Sections reorder, expand,

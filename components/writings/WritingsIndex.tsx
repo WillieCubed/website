@@ -1,6 +1,7 @@
 import Icon from '@/components/icons/Icon';
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
 import SiteLink from '@/components/link/SiteLink';
+import CollectionLayout from '@/components/site/CollectionLayout';
 import WritingItem from '@/components/writings/WritingItem';
 
 import { socialSettings } from '@/lib/atproto/config';
@@ -40,7 +41,7 @@ export default async function WritingsIndex({
   const published = await getAllWritings();
 
   return (
-    <main id="main" className="h-feed mx-auto max-w-[840px] px-5 pb-8">
+    <CollectionLayout className="h-feed">
       {/* WebSub discovery: the root layout names the hub, and this names
           the topic a reader subscribes to. React hoists it into <head>. */}
       <link rel="self" href={absoluteUrl(path)} />
@@ -48,14 +49,14 @@ export default async function WritingsIndex({
           p-author so they know whose it is */}
       <a href={absoluteUrl(path)} className="u-url hidden" />
       <FeedAuthor />
-      <section className="mt-6">
+      <header className="collection-header">
         <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4">
           <h1 className="p-name text-display-small">{name}</h1>
           {path === '/writings' && socialSettings() && (
             <StandardSocialControls action="subscription" />
           )}
         </div>
-      </section>
+      </header>
       {/* No Suspense around the entries: a boundary streams its content
           after the shell, outside this h-feed, and parsers that read the
           HTML without running scripts then find a feed with no entries. */}
@@ -67,7 +68,7 @@ export default async function WritingsIndex({
           <TagFilter currentTag={currentTag} />
         </section>
       )}
-    </main>
+    </CollectionLayout>
   );
 }
 
@@ -101,7 +102,7 @@ async function WritingsList({ writings }: { writings: WritingData[] }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="collection-items space-y-3">
       {writings.map((writing) => (
         <WritingItem
           key={writing.slug}

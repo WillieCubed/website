@@ -60,7 +60,7 @@
   pointer-events: none;
 }
 .studio-document-reveal[data-ready] {
-  animation: studio-document-in var(--duration-theme) var(--ease-site);
+  opacity: 1;
 }
 .studio-document-opening:not([data-leaving])
   :is(.studio-opening-line, .studio-control-placeholder) {

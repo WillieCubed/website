@@ -8,8 +8,12 @@ import type { MusicTrack } from '@/lib/music/types';
 import './playlist-credits.css';
 import { usePlaylistCredits } from './usePlaylistCredits';
 
+interface PlaylistCreditsProps {
+  tracks: MusicTrack[];
+}
+
 /** Native liner notes first; scrolling is an optional, interruptible enhancement. */
-export default function PlaylistCredits({ tracks }: { tracks: MusicTrack[] }) {
+export default function PlaylistCredits({ tracks }: PlaylistCreditsProps) {
   const {
     reader,
     enhanced,

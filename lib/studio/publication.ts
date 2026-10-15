@@ -1,12 +1,13 @@
 import { createHash } from 'node:crypto';
 
 import { promoteAssets } from './assets';
-import { catalogEntry } from './catalog';
+import { type CatalogProperty, catalogEntry } from './catalog';
 import { compileSandbox } from './components';
 import { required } from './config';
 import { exportMdx, validatePublication } from './document';
 import { StudioError } from './errors';
 import { GitHubError, github } from './github';
+import { effectivePortable } from './portable';
 import { getStudioPool, getStudioStore } from './store';
 import type {
   ComponentProposal,
@@ -17,15 +18,33 @@ import type {
   Revision,
 } from './types';
 
+interface PublicationArtifactFile {
+  path: string;
+  content: string;
+}
+interface PublicationArtifacts {
+  body: DraftContent;
+  files: PublicationArtifactFile[];
+}
+interface GitObject {
+  sha: string;
+}
+interface GitTreeEntry extends GitObject {
+  path: string;
+}
+
 const messageFor = (id: string) =>
   `feat(writings): publish studio revision ${id}`;
+interface PublicationArtifactOptions {
+  compileBundles?: boolean;
+}
+
 async function artifacts(
   body: DraftContent,
-  compileBundles = true,
-  preservePortable = false
-): Promise<{ body: DraftContent; files: { path: string; content: string }[] }> {
+  { compileBundles = true }: PublicationArtifactOptions = {}
+): Promise<PublicationArtifacts> {
   const copy = structuredClone(body),
-    files: { path: string; content: string }[] = [],
+    files: PublicationArtifactFile[] = [],
     store = getStudioStore();
   async function resolveBlock(node: EditorNode): Promise<void> {
     if (node.type !== 'catalogBlock') return;
@@ -70,7 +89,7 @@ async function artifacts(
     node.attrs = {
       ...attrs,
       src,
-      portable: preservePortable ? attrs.portable : proposal.portableText,
+      portable: effectivePortable(attrs, proposal.portableText),
     };
   }
   async function walk(node: EditorNode): Promise<void> {
@@ -91,7 +110,7 @@ function approvedProperties(
   if (!props || typeof props !== 'object' || Array.isArray(props))
     throw new StudioError(422, 'Component properties must be an object.');
   for (const [name, definition] of Object.entries(proposal.properties)) {
-    const property = definition as { type: string; required?: boolean };
+    const property = definition as CatalogProperty;
     if (
       (property.required || props[name] !== undefined) &&
       typeof props[name] !== property.type
@@ -104,7 +123,7 @@ function approvedProperties(
 export async function preparePublicationPreview(
   body: DraftContent
 ): Promise<DraftContent> {
-  return (await artifacts(body, false)).body;
+  return (await artifacts(body, { compileBundles: false })).body;
 }
 
 async function optionalGithub(path: string) {
@@ -130,7 +149,7 @@ async function sourceBlob(
 ): Promise<string | null> {
   const object = await github(`git/commits/${commit}`);
   const tree = await github(
-    `git/trees/${(object.tree as { sha: string }).sha}?recursive=1`
+    `git/trees/${(object.tree as GitObject).sha}?recursive=1`
   );
   if (tree.truncated)
     throw new StudioError(
@@ -138,9 +157,8 @@ async function sourceBlob(
       'Repository tree is too large to validate safely.'
     );
   return (
-    (tree.tree as { path: string; sha: string }[]).find(
-      (entry) => entry.path === path
-    )?.sha ?? null
+    (tree.tree as GitTreeEntry[]).find((entry) => entry.path === path)?.sha ??
+    null
   );
 }
 
@@ -183,7 +201,7 @@ async function completeRebase(
   const current = await github(
     `git/ref/heads/${encodeURIComponent(privateBranch)}`
   );
-  const currentSha = (current.object as { sha: string }).sha;
+  const currentSha = (current.object as GitObject).sha;
   if (currentSha !== pending.after) {
     if (currentSha !== pending.before)
       throw new StudioError(
@@ -201,7 +219,7 @@ async function completeRebase(
     const updated = await github(
       `git/ref/heads/${encodeURIComponent(privateBranch)}`
     );
-    if ((updated.object as { sha: string }).sha !== pending.after)
+    if ((updated.object as GitObject).sha !== pending.after)
       throw new StudioError(
         409,
         'The publication branch could not be rebased. Review the pull request and retry.'
@@ -219,21 +237,24 @@ async function rebaseArtifacts(
   base: string,
   protectedBranch: string
 ): Promise<void> {
-  if (!publication.artifactManifest?.length)
+  if (
+    publication.artifactManifest === undefined ||
+    publication.artifactManifest.length === 0
+  )
     throw new StudioError(
       409,
       'The publication branch needs a rebase. Review and rebase its pull request before retrying.'
     );
   const baseCommit = await github(`git/commits/${base}`);
   const currentTree = await github(
-    `git/trees/${(baseCommit.tree as { sha: string }).sha}?recursive=1`
+    `git/trees/${(baseCommit.tree as GitObject).sha}?recursive=1`
   );
   if (currentTree.truncated)
     throw new StudioError(
       502,
       'Repository tree is too large to validate safely.'
     );
-  const currentEntries = currentTree.tree as { path: string; sha: string }[];
+  const currentEntries = currentTree.tree as GitTreeEntry[];
   for (const entry of publication.artifactManifest) {
     const actual =
       currentEntries.find((file) => file.path === entry.path)?.sha ?? null;
@@ -244,7 +265,7 @@ async function rebaseArtifacts(
       );
   }
   const tree = await github('git/trees', 'POST', {
-    base_tree: (baseCommit.tree as { sha: string }).sha,
+    base_tree: (baseCommit.tree as GitObject).sha,
     tree: publication.artifactManifest.map(({ path, sha }) => ({
       path,
       sha,
@@ -322,7 +343,7 @@ async function reconcilePullRequest(
 ): Promise<void> {
   const store = getStudioStore();
   const pr = await publicationPullRequest(publication, branch);
-  if ((pr.head as { sha: string }).sha !== publication.proposalCommit)
+  if ((pr.head as GitObject).sha !== publication.proposalCommit)
     throw new StudioError(
       409,
       'The publication proposal changed. Review it before retrying.'
@@ -354,21 +375,28 @@ async function reconcilePullRequest(
   if (
     pr.mergeable !== true ||
     pr.mergeable_state !== 'clean' ||
-    (pr.base as { sha: string }).sha !== base.sha
+    (pr.base as GitObject).sha !== base.sha
   )
     return;
   if (!(await publicationBaseUnchanged(publication, branch, base.sha))) return;
   await mergePublication(publication, pr);
 }
 
-type PublicationBase = { kind: 'current'; sha: string } | { kind: 'rebased' };
+interface CurrentPublicationBase {
+  kind: 'current';
+  sha: string;
+}
+interface RebasedPublicationBase {
+  kind: 'rebased';
+}
+type PublicationBase = CurrentPublicationBase | RebasedPublicationBase;
 
 async function reconcilePublicationBase(
   publication: Publication,
   branch: string
 ): Promise<PublicationBase> {
   const current = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  const base = (current.object as { sha: string }).sha;
+  const base = (current.object as GitObject).sha;
   if (
     (await sourceBlob(base, publication.sourcePath!)) !==
     publication.sourceFileSha
@@ -394,7 +422,7 @@ async function publicationBaseUnchanged(
   // if source changed while checks were being inspected. GitHub's protected
   // merge remains the atomic authority for required up-to-date checks/reviews.
   const latest = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  const latestBase = (latest.object as { sha: string }).sha;
+  const latestBase = (latest.object as GitObject).sha;
   if (latestBase !== base) {
     if (
       (await sourceBlob(latestBase, publication.sourcePath!)) !==
@@ -515,7 +543,7 @@ async function preparePublicationProposal(
     `git/ref/heads/${encodeURIComponent(publicationBranch)}`
   );
   if (proposalRef) {
-    const sha = (proposalRef.object as { sha: string }).sha;
+    const sha = (proposalRef.object as GitObject).sha;
     const proposal = await github(`git/commits/${sha}`);
     if (
       proposal.message !== messageFor(publication.id) ||
@@ -568,32 +596,33 @@ async function createPublicationTree(
 ): Promise<void> {
   const revisionId = revision.id;
   const ref = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  const base = (ref.object as { sha: string }).sha;
+  const base = (ref.object as GitObject).sha;
   const existing = await sourceBlob(base, path);
   await validateSourceHistory(draft.id, revision, existing, base);
-  const resolved = await artifacts(revision.body, false);
+  const resolved = await artifacts(revision.body, { compileBundles: false });
   const initialIssues = (await validatePublication(resolved.body)).filter(
     (issue) => issue !== 'Private assets must be promoted before publication.'
   );
-  if (initialIssues.length) throw new StudioError(422, initialIssues.join(' '));
+  if (initialIssues.length > 0)
+    throw new StudioError(422, initialIssues.join(' '));
   const promoted = await promoteAssets(resolved.body, publication.id);
-  const final = await artifacts(promoted, true, true);
+  const final = await artifacts(promoted);
   const issues = await validatePublication(final.body);
-  if (issues.length) throw new StudioError(422, issues.join(' '));
+  if (issues.length > 0) throw new StudioError(422, issues.join(' '));
   const source = exportMdx(final.body, draft.slug, revisionId);
   const files = [...final.files, { path, content: source }];
   const baseCommit = await github(`git/commits/${base}`);
   const baseTree = await github(
-    `git/trees/${(baseCommit.tree as { sha: string }).sha}?recursive=1`
+    `git/trees/${(baseCommit.tree as GitObject).sha}?recursive=1`
   );
   if (baseTree.truncated)
     throw new StudioError(
       502,
       'Repository tree is too large to validate safely.'
     );
-  const baseEntries = baseTree.tree as { path: string; sha: string }[];
+  const baseEntries = baseTree.tree as GitTreeEntry[];
   const tree = await github('git/trees', 'POST', {
-    base_tree: (baseCommit.tree as { sha: string }).sha,
+    base_tree: (baseCommit.tree as GitObject).sha,
     tree: files.map((file) => ({
       ...file,
       mode: '100644',
@@ -676,10 +705,16 @@ export async function publicationStatus(id: string): Promise<Publication> {
   return publication;
 }
 
+interface DeployedPublicationMarker {
+  commit?: unknown;
+  revisionId?: unknown;
+  sourceSha?: unknown;
+}
+
 async function deployedPublicationMatches(
   publication: Publication,
   ok: boolean,
-  result: { commit?: unknown; revisionId?: unknown; sourceSha?: unknown }
+  result: DeployedPublicationMarker
 ): Promise<boolean> {
   let commitMatches = result.commit === publication.commit;
   if (

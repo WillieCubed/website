@@ -1,4 +1,9 @@
 import { fetchWithDeadline } from '@/lib/http/fetch';
+import type { MusicRevision } from '@/lib/music/types';
+
+export interface MusicRevisionResponse {
+  revision: MusicRevision;
+}
 
 /** A received HTTP failure cannot be recovered as a lost import response. */
 export class MusicAdminRequestError extends Error {

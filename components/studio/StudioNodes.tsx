@@ -29,10 +29,13 @@ import WidgetInspector from './WidgetInspector';
 
 export type { CatalogEntry } from '@/lib/studio/catalog';
 export const StudioCatalogContext = createContext<CatalogEntry[] | null>(null);
-export const StudioCatalogStatusContext = createContext<{
+interface CatalogLoadStatus {
   message: string;
   retry?: () => void;
-}>({ message: '' });
+}
+export const StudioCatalogStatusContext = createContext<CatalogLoadStatus>({
+  message: '',
+});
 // Decorations are editor-only: the active block never changes the saved document.
 export const ActiveWritingBlock = Extension.create({
   name: 'activeWritingBlock',
@@ -256,21 +259,23 @@ export function makeCatalogBlock(
 }
 
 type WidgetAttributes = Record<string, unknown>;
-type WidgetSettingsProps = {
+interface WidgetSettingsProps {
   attrs: WidgetAttributes;
   fieldsId: string;
-  updateAttributes: NodeViewProps['updateAttributes'];
-};
+  updateAttributes: (attributes: WidgetAttributes) => void;
+}
+interface WidgetFieldsProps extends WidgetSettingsProps {
+  entry?: CatalogEntry;
+  catalogStatus: CatalogLoadStatus;
+}
+
 function WidgetFields({
   entry,
   catalogStatus,
   attrs,
   fieldsId,
   updateAttributes,
-}: WidgetSettingsProps & {
-  entry?: CatalogEntry;
-  catalogStatus: { message: string; retry?: () => void };
-}) {
+}: WidgetFieldsProps) {
   return (
     <div className="studio-widget-settings">
       {!entry && (
@@ -317,12 +322,16 @@ function WidgetFields({
   );
 }
 
+interface PortableSettingsProps extends WidgetSettingsProps {
+  reviewed: boolean;
+}
+
 function PortableSettings({
   attrs,
   fieldsId,
   reviewed,
   updateAttributes,
-}: WidgetSettingsProps & { reviewed: boolean }) {
+}: PortableSettingsProps) {
   return (
     <details className="studio-portable-settings">
       <summary>
@@ -359,7 +368,11 @@ function PortableSettings({
   );
 }
 
-function RetainedWidgetText({ attrs }: { attrs: WidgetAttributes }) {
+interface RetainedWidgetTextProps {
+  attrs: WidgetAttributes;
+}
+
+function RetainedWidgetText({ attrs }: RetainedWidgetTextProps) {
   return (
     !['callout', 'reference'].includes(String(attrs.id)) &&
     String(attrs.children || '').trim() && (
@@ -398,15 +411,17 @@ function catalogBlockName(
     .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
 }
 
+interface WidgetReviewGuidanceProps {
+  generated: boolean;
+  editing: boolean;
+  reviewed: boolean;
+}
+
 function WidgetReviewGuidance({
   generated,
   editing,
   reviewed,
-}: {
-  generated: boolean;
-  editing: boolean;
-  reviewed: boolean;
-}) {
+}: WidgetReviewGuidanceProps) {
   if (!generated || editing || reviewed) return null;
   return (
     <p className="studio-block-guidance" role="status">

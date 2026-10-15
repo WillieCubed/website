@@ -3,9 +3,17 @@
 import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table';
 import { Markdown } from '@tiptap/markdown';
-import { useEditor } from '@tiptap/react';
+import { type Editor, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
+import type { DraftContent } from '@/lib/studio/types';
 
 import {
   ActiveWritingBlock,
@@ -13,34 +21,44 @@ import {
   MdxSource,
   makeCatalogBlock,
 } from './StudioNodes';
-import type { DraftEditing, WritingMode } from './writing-contracts';
-import type { WritingTask } from './writing-task-definitions';
+import type {
+  DraftEditing,
+  WritingInsertionBounds,
+  WritingMode,
+  WritingPreviewMode,
+  WritingReturnPoint,
+  WritingTextSelection,
+} from './writing-contracts';
+import type { WritingPanelTask, WritingTask } from './writing-task-definitions';
+
+export interface WritingInteraction {
+  editor: Editor | null;
+  mode: WritingMode;
+  task: WritingTask;
+  taskHeading: RefObject<HTMLHeadingElement | null>;
+  cursor: RefObject<number>;
+  insertAnchor: RefObject<WritingInsertionBounds | null>;
+  insertionRect: () => WritingInsertionBounds | null;
+  taskRange: RefObject<WritingReturnPoint>;
+  selection: WritingTextSelection | null;
+  rememberRange: () => void;
+  openTask: (task: WritingPanelTask) => void;
+  showPreview: (mode: WritingPreviewMode) => void;
+  returnToWriting: () => void;
+  replaceDocument: (body: DraftContent) => void;
+  insert: (entry: CatalogEntry) => void;
+  closePopover: (event: React.MouseEvent) => void;
+}
 
 /** Keep one editor, its catalog extensions, and the selection used when returning from tasks. */
 export function useWritingInteraction(
   document: DraftEditing,
-  entries: CatalogEntry[],
-  mode: WritingMode,
-  leaveReview: () => void,
+  readCatalog: () => CatalogEntry[],
   onReady: () => void,
   interactive: boolean
-) {
-  const { body, bodyRef, update } = document;
-  const [catalog, setCatalog] = useState(entries);
-  useEffect(() => {
-    setCatalog((current) => [
-      ...entries,
-      ...current.filter(
-        (entry) =>
-          !entries.some(
-            (incoming) =>
-              incoming.id === entry.id && incoming.version === entry.version
-          )
-      ),
-    ]);
-  }, [entries]);
-  const catalogRef = useRef(catalog);
-  catalogRef.current = catalog;
+): WritingInteraction {
+  const { body, update, captureSnapshot } = document;
+  const [mode, setMode] = useState<WritingMode>('write');
   const [task, setTask] = useState<WritingTask>('write');
   useEffect(() => {
     const address = new URL(window.location.href);
@@ -56,18 +74,11 @@ export function useWritingInteraction(
       );
   }, [mode]);
   const cursor = useRef(1);
-  const insertAnchor = useRef<Pick<
-    DOMRect,
-    'left' | 'right' | 'top' | 'bottom'
-  > | null>(null);
+  const insertAnchor = useRef<WritingInsertionBounds | null>(null);
   const insertionRect = useCallback(() => insertAnchor.current, []);
-  const taskRange = useRef({ from: 1, to: 1, scroll: 0 });
+  const taskRange = useRef<WritingReturnPoint>({ from: 1, to: 1, scroll: 0 });
   const taskHeading = useRef<HTMLHeadingElement>(null);
-  const [selection, setSelection] = useState<{
-    from: number;
-    to: number;
-    text: string;
-  } | null>(null);
+  const [selection, setSelection] = useState<WritingTextSelection | null>(null);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -77,10 +88,10 @@ export function useWritingInteraction(
       Markdown,
       MdxSource,
       ActiveWritingBlock,
-      makeCatalogBlock(() => catalogRef.current),
+      makeCatalogBlock(readCatalog),
     ],
     // Activity may recreate Tiptap when returning to a cached route.
-    content: bodyRef.current.document,
+    content: captureSnapshot().body.document,
     editorProps: {
       handleKeyDown: (_view, event) => {
         if ((event.metaKey || event.ctrlKey) && event.key === '/') {
@@ -102,7 +113,7 @@ export function useWritingInteraction(
       },
     },
     onUpdate: ({ editor }) =>
-      update({ ...bodyRef.current, document: editor.getJSON() }),
+      update((current) => ({ ...current, document: editor.getJSON() })),
     onSelectionUpdate: ({ editor }) => {
       const { from, to, $from, $to } = editor.state.selection;
       cursor.current = from;
@@ -144,7 +155,7 @@ export function useWritingInteraction(
         scroll: window.scrollY,
       };
   }
-  function openTask(next: Exclude<WritingTask, 'write'>) {
+  function openTask(next: WritingPanelTask) {
     // Native keyboard selection may precede ProseMirror's selectionchange read.
     const native = window.getSelection();
     if (
@@ -174,7 +185,7 @@ export function useWritingInteraction(
   }
   function returnToWriting() {
     setTask('write');
-    leaveReview();
+    setMode('write');
     requestAnimationFrame(() => {
       if (!editor) return;
       editor.view.focus();
@@ -184,6 +195,13 @@ export function useWritingInteraction(
       });
       window.scrollTo({ top: taskRange.current.scroll });
     });
+  }
+  function showPreview(nextMode: WritingPreviewMode) {
+    setMode(nextMode);
+  }
+  function replaceDocument(next: DraftContent) {
+    editor?.commands.setContent(next.document, { emitUpdate: false });
+    update(next);
   }
   useEffect(() => {
     if (interactive && task !== 'write') taskHeading.current?.focus();
@@ -214,9 +232,8 @@ export function useWritingInteraction(
   }
 
   return {
-    catalog,
-    setCatalog,
-    catalogRef,
+    mode,
+    showPreview,
     task,
     taskHeading,
     cursor,
@@ -228,6 +245,7 @@ export function useWritingInteraction(
     rememberRange,
     openTask,
     returnToWriting,
+    replaceDocument,
     insert,
     closePopover,
   };

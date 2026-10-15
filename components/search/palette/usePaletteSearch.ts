@@ -12,12 +12,18 @@ interface PaletteSearch {
   searching: boolean;
   error: string | null;
 }
+interface PaletteSearchState {
+  query: string;
+  rows: SearchRow[];
+  status: 'pending' | 'ready' | 'failed';
+}
+
 export function usePaletteSearch(typed: string): PaletteSearch {
-  const [search, setSearch] = useState<{
-    query: string;
-    rows: SearchRow[];
-    status: 'pending' | 'ready' | 'failed';
-  }>({ query: '', rows: [], status: 'ready' });
+  const [search, setSearch] = useState<PaletteSearchState>({
+    query: '',
+    rows: [],
+    status: 'ready',
+  });
   const [searchError, setSearchError] = useState<string | null>(null);
   // The script and its index start loading as the palette first opens, so
   // the first query does not wait on them.

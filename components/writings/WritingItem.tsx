@@ -31,7 +31,11 @@ interface WritingItemProps {
   contentHtml?: string;
 }
 
-function EventProperties({ writing }: { writing: WritingData }) {
+interface EventPropertiesProps {
+  writing: WritingData;
+}
+
+function EventProperties({ writing }: EventPropertiesProps) {
   const location = locationText(writing.event?.location ?? writing.location);
   return (
     <>
@@ -46,15 +50,17 @@ function EventProperties({ writing }: { writing: WritingData }) {
   );
 }
 
+interface EntryPropertiesProps {
+  writing: WritingData;
+  contentHtml?: string;
+  targets: WritingTarget[];
+}
+
 function EntryProperties({
   writing,
   contentHtml,
   targets,
-}: {
-  writing: WritingData;
-  contentHtml?: string;
-  targets: WritingTarget[];
-}) {
+}: EntryPropertiesProps) {
   return (
     <>
       {targets.map((target) => (

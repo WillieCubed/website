@@ -356,7 +356,7 @@ test(
         })
       );
       await store.saveProposal(component);
-      const blockDraft = await store.save(draft.id, third.head.id, {
+      let blockDraft = await store.save(draft.id, third.head.id, {
         ...third.head.body,
         document: {
           type: 'doc',
@@ -397,6 +397,30 @@ test(
         undefined
       );
       assert.equal(writeCount, 2);
+      blockDraft = await store.save(draft.id, blockDraft.head.id, {
+        ...blockDraft.head.body,
+        document: {
+          ...blockDraft.head.body.document,
+          content: blockDraft.head.body.document.content!.map((node) =>
+            node.type === 'catalogBlock'
+              ? {
+                  ...node,
+                  attrs: {
+                    ...node.attrs,
+                    portable: 'The counter currently shows five.',
+                  },
+                }
+              : node
+          ),
+        },
+      });
+      const authoredPreview = await preparePublicationPreview(
+        blockDraft.head.body
+      );
+      assert.equal(
+        authoredPreview.document.content?.[1].attrs?.portable,
+        'The counter currently shows five.'
+      );
       const blockPublication = await publishRevision(
         draft.id,
         blockDraft.head.id
@@ -405,6 +429,12 @@ test(
       assert.equal(writeCount, 3);
       assert.match(source, /StudioBlock/);
       assert.match(source, /generated-blocks/);
+      const exportedAlternative = source.match(/ portable="([^"]*)"/)?.[1];
+      assert.ok(exportedAlternative);
+      assert.equal(
+        Buffer.from(exportedAlternative, 'base64url').toString('utf8'),
+        'The counter currently shows five.'
+      );
       const assetId = randomUUID(),
         privateUrl = `/api/studio/assets/${assetId}`,
         publicUrl = 'https://media.example/published.png';

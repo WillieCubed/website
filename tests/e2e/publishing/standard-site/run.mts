@@ -53,12 +53,8 @@ export async function runStandardSiteAcceptance() {
     async function publicRecord(collection: string, rkey: string) {
       return publicRecordWithContext(
         {
-          get pds() {
-            return pds;
-          },
-          get did() {
-            return did;
-          },
+          pds,
+          did,
         },
         collection,
         rkey
@@ -66,7 +62,7 @@ export async function runStandardSiteAcceptance() {
     }
 
     if (values.verify) {
-      await verifyPublishedWriting({
+      const verification = await verifyPublishedWriting({
         slug: values.verify,
         ORIGIN,
         publicationUri,
@@ -76,6 +72,8 @@ export async function runStandardSiteAcceptance() {
         publicRecord,
         progress: runState,
       });
+      console.log(JSON.stringify(verification, null, 2));
+      return;
     }
 
     if (!values.write && !values.cleanup) {
@@ -138,24 +136,11 @@ export async function runStandardSiteAcceptance() {
     ) {
       return intentWithContext(
         {
-          get receipt() {
-            return receipt;
-          },
-          set receipt(value: Receipt) {
-            receipt = value;
-          },
-          get PUBLICATION_COLLECTION() {
-            return PUBLICATION_COLLECTION;
-          },
-          get publicationRkey() {
-            return publicationRkey;
-          },
-          get get() {
-            return get;
-          },
-          get save() {
-            return save;
-          },
+          receipt,
+          PUBLICATION_COLLECTION,
+          publicationRkey,
+          get,
+          save,
         },
         collection,
         rkey,
@@ -165,18 +150,9 @@ export async function runStandardSiteAcceptance() {
     async function observed(collection: string, rkey: string) {
       return observedWithContext(
         {
-          get receipt() {
-            return receipt;
-          },
-          set receipt(value: Receipt) {
-            receipt = value;
-          },
-          get get() {
-            return get;
-          },
-          get save() {
-            return save;
-          },
+          receipt,
+          get,
+          save,
         },
         collection,
         rkey
@@ -240,33 +216,14 @@ export async function runStandardSiteAcceptance() {
     }
     async function cleanup() {
       return cleanupWithContext({
-        get receipt() {
-          return receipt;
-        },
-        set receipt(value: Receipt) {
-          receipt = value;
-        },
-        get get() {
-          return get;
-        },
-        get rpc() {
-          return rpc;
-        },
-        get did() {
-          return did;
-        },
-        get PUBLICATION_COLLECTION() {
-          return PUBLICATION_COLLECTION;
-        },
-        get publicationRkey() {
-          return publicationRkey;
-        },
-        get rawClient() {
-          return rawClient;
-        },
-        get save() {
-          return save;
-        },
+        receipt,
+        get,
+        rpc,
+        did,
+        PUBLICATION_COLLECTION,
+        publicationRkey,
+        rawClient,
+        save,
       });
     }
 

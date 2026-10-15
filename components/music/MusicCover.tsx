@@ -5,7 +5,11 @@ import Icon from '@/components/icons/Icon';
 
 import type { PlaylistView } from '@/lib/music/presentation';
 
-export default function MusicCover({ playlist }: { playlist: PlaylistView }) {
+export interface MusicCoverProps {
+  playlist: PlaylistView;
+}
+
+export default function MusicCover({ playlist }: MusicCoverProps) {
   const [failed, setFailed] = useState(false);
   return playlist.image && !failed ? (
     // Spotify artwork is rendered uncropped and unmodified.

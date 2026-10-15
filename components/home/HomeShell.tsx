@@ -18,13 +18,17 @@ import {
 // gap between tiles. The clear waits long enough for the next enter.
 const LEAVE_DEBOUNCE_MS = 120;
 
+interface HomeFocusEntry {
+  focuses: FocusId[];
+}
+
 interface HomeShellProps {
   initialDetail?: string;
   brands: BrandSchemes;
   /** The server-rendered LVBT countdown for the detail view. */
   detailCountdown: React.ReactNode;
   /** Focuses for tiles that are not ventures, such as featured initiatives. */
-  extraEntries?: Record<string, { focuses: FocusId[] }>;
+  extraEntries?: Record<string, HomeFocusEntry>;
   children: React.ReactNode;
 }
 

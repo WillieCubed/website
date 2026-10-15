@@ -14,6 +14,7 @@ import type {
 } from '@/lib/music/presentation';
 import type { MusicSeries, MusicTrack } from '@/lib/music/types';
 
+import type { MusicCoverProps } from './MusicCover';
 import MusicSelectionControl from './MusicSelectionControl';
 import PlaylistCredits from './PlaylistCredits';
 
@@ -82,7 +83,7 @@ export function MusicDetailNavigation({
 }
 interface ArtworkProps {
   playlist: PlaylistView;
-  Cover: ComponentType<{ playlist: PlaylistView }>;
+  Cover: ComponentType<MusicCoverProps>;
   series: MusicSeries[];
 }
 export function MusicPlaylistArtwork({
@@ -218,15 +219,17 @@ export function MusicPlaylistEditor({
     </div>
   );
 }
+interface MusicPlaylistTracksProps {
+  tracks: MusicTrack[];
+  playlistId: string;
+  editing: boolean;
+}
+
 export function MusicPlaylistTracks({
   tracks: sampleTracks,
   playlistId,
   editing,
-}: {
-  tracks: MusicTrack[];
-  playlistId: string;
-  editing: boolean;
-}) {
+}: MusicPlaylistTracksProps) {
   return (
     <div className="mp-detail-tracks">
       {!editing && offersCredits(playlistId) && sampleTracks.length > 0 && (

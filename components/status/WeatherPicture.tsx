@@ -32,11 +32,11 @@ function weatherIcon(weather: WeatherObservation): IconName {
   return icons[label as keyof typeof icons] ?? 'cloud';
 }
 
-function CompactWeatherPicture({
-  weather,
-}: {
+interface CompactWeatherPictureProps {
   weather: WeatherObservation | null;
-}) {
+}
+
+function CompactWeatherPicture({ weather }: CompactWeatherPictureProps) {
   if (!weather) return null;
   const name = weatherIcon(weather);
   return (
@@ -49,7 +49,12 @@ function CompactWeatherPicture({
   );
 }
 
-function SunOrMoon({ clear, night }: { clear: boolean; night: boolean }) {
+interface SunOrMoonProps {
+  clear: boolean;
+  night: boolean;
+}
+
+function SunOrMoon({ clear, night }: SunOrMoonProps) {
   return night ? (
     <path
       d="M83 18a34 34 0 1 0 34 43A31 31 0 0 1 83 18"
@@ -72,13 +77,15 @@ function SunOrMoon({ clear, night }: { clear: boolean; night: boolean }) {
   );
 }
 
+interface WeatherPictureProps {
+  compact?: boolean;
+  weather: WeatherObservation | null;
+}
+
 export default function WeatherPicture({
   weather,
   compact = false,
-}: {
-  compact?: boolean;
-  weather: WeatherObservation | null;
-}) {
+}: WeatherPictureProps) {
   if (compact) return <CompactWeatherPicture weather={weather} />;
   const clear = weather && weather.code <= 1;
   const night = weather && !weather.isDay;

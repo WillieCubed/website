@@ -2,11 +2,157 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 
+import type { MusicPublication } from '../../../../lib/music/types';
+
 test.skip(
   process.env.MUSIC_E2E !== '1',
   'Requires the isolated signed-JWT Music harness.'
 );
 const ids = ['1', '2', '3'].map((n) => n.repeat(22));
+
+const pollingPublication: MusicPublication = {
+  id: 'pending-feedback',
+  revisionId: 'reviewed-feedback',
+  status: 'publishing',
+  error: null,
+  createdAt: '2026-10-15T12:00:00.000Z',
+};
+
+test('publication polling does not erase a failed history request', async ({
+  page,
+  request,
+}) => {
+  const initial = await (await request.get('/api/studio/music/catalog')).json();
+  await page.route('**/api/studio/music/catalog', async (route) => {
+    await route.fulfill({
+      json: {
+        ...initial,
+        revision: {
+          ...initial.revision,
+          id: pollingPublication.revisionId,
+          createdAt: pollingPublication.createdAt,
+          conflict: false,
+          body: {
+            version: 1,
+            order: ids,
+            selected: [ids[0]],
+            lead: null,
+            series: [],
+            notes: {},
+          },
+        },
+        publication: pollingPublication,
+      },
+    });
+  });
+  await page.route('**/api/studio/music/history', (route) =>
+    route.fulfill({
+      status: 503,
+      json: { error: 'History could not load.' },
+    })
+  );
+  let releasePoll!: () => void;
+  const released = new Promise<void>((resolve) => {
+    releasePoll = resolve;
+  });
+  await page.route(
+    '**/api/studio/music/publications/pending-feedback',
+    async (route) => {
+      await released;
+      await route.fulfill({ json: { ...pollingPublication, status: 'live' } });
+    }
+  );
+  await page.goto('/studio/music');
+  await page
+    .getByRole('button', { name: 'Open menu for Music', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  const historyError = page.getByText('History could not load.', {
+    exact: true,
+  });
+  await expect(historyError).toBeVisible();
+  releasePoll();
+  await expect(
+    page.getByText('The collection is live.', { exact: true })
+  ).toBeVisible({ timeout: 15000 });
+  await expect(historyError).toBeVisible();
+});
+
+test('a publication response from before an edit cannot replace failed save feedback', async ({
+  page,
+  request,
+}) => {
+  const initial = await (await request.get('/api/studio/music/catalog')).json();
+  await page.route('**/api/studio/music/catalog', async (route) => {
+    if (route.request().method() === 'PUT') {
+      return route.fulfill({
+        status: 503,
+        json: { error: 'Save needs a retry.' },
+      });
+    }
+    await route.fulfill({
+      json: {
+        ...initial,
+        revision: {
+          ...initial.revision,
+          id: pollingPublication.revisionId,
+          createdAt: pollingPublication.createdAt,
+          conflict: false,
+          body: {
+            version: 1,
+            order: ids,
+            selected: [ids[0]],
+            lead: null,
+            series: [],
+            notes: {},
+          },
+        },
+        publication: pollingPublication,
+      },
+    });
+  });
+  let releasePoll!: () => void;
+  let pollStarted!: () => void;
+  const released = new Promise<void>((resolve) => {
+    releasePoll = resolve;
+  });
+  const started = new Promise<void>((resolve) => {
+    pollStarted = resolve;
+  });
+  await page.route(
+    '**/api/studio/music/publications/pending-feedback',
+    async (route) => {
+      pollStarted();
+      await released;
+      await route.fulfill({ json: { ...pollingPublication, status: 'live' } });
+    }
+  );
+  await page.goto('/studio/music');
+  await started;
+  await page
+    .getByRole('checkbox', { name: 'Include An empty collection', exact: true })
+    .check();
+  const saveError = page.getByText('Save needs a retry.', { exact: true });
+  await expect(saveError).toBeVisible();
+  const response = page.waitForResponse(
+    '**/api/studio/music/publications/pending-feedback'
+  );
+  releasePoll();
+  await response;
+  await page.evaluate(
+    () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  );
+  await expect(saveError).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Retry save', exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByText('The collection is live.', { exact: true })
+  ).toHaveCount(0);
+  await expect(page.getByText('Live collection', { exact: true })).toHaveCount(
+    0
+  );
+});
 
 test('the public Music gallery loads, passes axe, and fits the viewport', async ({
   page,

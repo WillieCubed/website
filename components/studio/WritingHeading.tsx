@@ -5,20 +5,21 @@ import { useId } from 'react';
 import type { DraftContent } from '@/lib/studio/types';
 
 import { StudioHeadingFields } from './StudioWritingLayout';
+import type { DraftUpdate } from './writing-contracts';
+
+interface WritingHeadingProps {
+  showHeading: boolean;
+  titleField: RefObject<HTMLTextAreaElement | null>;
+  body: DraftContent;
+  update: (change: DraftUpdate) => void;
+}
 
 export default function WritingHeading({
   showHeading,
   titleField,
   body,
-  bodyRef,
   update,
-}: {
-  showHeading: boolean;
-  titleField: RefObject<HTMLTextAreaElement | null>;
-  body: DraftContent;
-  bodyRef: RefObject<DraftContent>;
-  update: (body: DraftContent) => void;
-}) {
+}: WritingHeadingProps) {
   const fieldId = useId();
   const titleId = `${fieldId}-title`;
   const descriptionId = `${fieldId}-description`;
@@ -41,10 +42,10 @@ export default function WritingHeading({
                 value={body.title}
                 placeholder="Untitled writing"
                 onChange={(event) =>
-                  update({
-                    ...bodyRef.current,
+                  update((current) => ({
+                    ...current,
                     title: event.target.value.replace(/\n/g, ' '),
-                  })
+                  }))
                 }
               />
             </div>
@@ -59,10 +60,10 @@ export default function WritingHeading({
                 value={body.description}
                 placeholder="Add a description"
                 onChange={(event) =>
-                  update({
-                    ...bodyRef.current,
+                  update((current) => ({
+                    ...current,
                     description: event.target.value,
-                  })
+                  }))
                 }
               />
             </div>

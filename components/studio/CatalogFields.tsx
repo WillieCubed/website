@@ -1,20 +1,19 @@
 'use client';
 
-import type { CatalogEntry } from '@/lib/studio/catalog';
+import type { CatalogEntry, CatalogProperty } from '@/lib/studio/catalog';
 
-type Property = CatalogEntry['properties'][string];
-type FieldProps = {
+interface FieldProps {
   name: string;
-  property: Property;
+  property: CatalogProperty;
   value: unknown;
   fieldsId: string;
   change: (value: unknown) => void;
-};
+}
 
-function fieldOptions(property: Property) {
+function fieldOptions(property: CatalogProperty) {
   const options = property.options;
   // Old stored proposals may predate schema validation. Keep their settings editable.
-  if (!Array.isArray(options) || !options.length) return undefined;
+  if (!Array.isArray(options) || options.length === 0) return undefined;
   return options.every(
     (option) =>
       option &&
@@ -24,7 +23,7 @@ function fieldOptions(property: Property) {
     ? options
     : undefined;
 }
-function fieldLabel(name: string, property: Property): string {
+function fieldLabel(name: string, property: CatalogProperty): string {
   return (
     property.label ||
     name
@@ -80,7 +79,7 @@ function FieldControl({ name, property, value, fieldsId, change }: FieldProps) {
     />
   );
 }
-function fieldValue(property: Property, value: string): unknown {
+function fieldValue(property: CatalogProperty, value: string): unknown {
   if (property.type !== 'number') return value;
   return value === '' ? undefined : Number(value);
 }
@@ -102,17 +101,19 @@ function CatalogField(props: FieldProps) {
   );
 }
 /** Native controls for a versioned catalog schema; document attrs stay with the node. */
+interface CatalogFieldsProps {
+  entry: CatalogEntry;
+  props: Record<string, unknown>;
+  fieldsId: string;
+  onChange: (attrs: Record<string, unknown>) => void;
+}
+
 export default function CatalogFields({
   entry,
   props,
   fieldsId,
   onChange,
-}: {
-  entry: CatalogEntry;
-  props: Record<string, unknown>;
-  fieldsId: string;
-  onChange: (attrs: Record<string, unknown>) => void;
-}) {
+}: CatalogFieldsProps) {
   return Object.entries(entry.properties).map(([name, property]) => (
     <CatalogField
       key={name}
@@ -125,7 +126,11 @@ export default function CatalogFields({
   ));
 }
 
-function accessibleField(property: Property, name: string, fieldsId: string) {
+function accessibleField(
+  property: CatalogProperty,
+  name: string,
+  fieldsId: string
+) {
   const descriptionVisible =
     property.description && !['heading', 'title'].includes(name);
   return {

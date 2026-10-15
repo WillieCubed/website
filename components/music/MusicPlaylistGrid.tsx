@@ -1,10 +1,8 @@
 'use client';
 import type { ComponentType, RefObject } from 'react';
 
-import type { PlaylistView } from '@/lib/music/presentation';
-
 import MusicCard from './MusicCard';
-import MusicCover from './MusicCover';
+import MusicCover, { type MusicCoverProps } from './MusicCover';
 import MusicScrollCue from './MusicScrollCue';
 import MusicSelectionControl from './MusicSelectionControl';
 import type { MusicGalleryItem } from './music-gallery';
@@ -17,7 +15,7 @@ interface Props {
   href: (id: string) => string;
   collectionKey: string;
   gallery: RefObject<HTMLDivElement | null>;
-  Cover?: ComponentType<{ playlist: PlaylistView }>;
+  Cover?: ComponentType<MusicCoverProps>;
   onDragStart: (id: string) => void;
   onDrop: (id: string) => void;
   openPlaylist: (id: string, source?: HTMLElement) => void;
@@ -71,7 +69,11 @@ export default function MusicPlaylistGrid({
   );
 }
 
-function MusicPendingCards({ editing }: { editing: boolean }) {
+interface MusicPendingCardsProps {
+  editing: boolean;
+}
+
+function MusicPendingCards({ editing }: MusicPendingCardsProps) {
   return Array.from({ length: 6 }, (_, index) => (
     <article className="mp-card mp-card-pending" key={index} aria-hidden="true">
       <div className="mp-card-open">

@@ -25,19 +25,21 @@ interface Props {
   compact?: boolean;
 }
 
+interface SubscriptionOptionsProps {
+  visible: boolean;
+  pending: 'action' | 'logout' | null;
+  feedback: SocialFeedback | null;
+  buttonRef: RefObject<HTMLButtonElement | null>;
+  onSignOut: () => Promise<void>;
+}
+
 function SubscriptionOptions({
   visible,
   pending,
   feedback,
   buttonRef,
   onSignOut,
-}: {
-  visible: boolean;
-  pending: 'action' | 'logout' | null;
-  feedback: SocialFeedback | null;
-  buttonRef: RefObject<HTMLButtonElement | null>;
-  onSignOut: () => Promise<void>;
-}) {
+}: SubscriptionOptionsProps) {
   if (!visible) return null;
   const failure = feedback?.retry === 'logout' ? feedback : null;
   let label = failure ? 'Try again' : 'Sign out';
@@ -73,6 +75,17 @@ function SubscriptionOptions({
   );
 }
 
+interface SocialActionButtonProps {
+  display: SocialButtonDisplay;
+  pending: 'action' | 'logout' | null;
+  active: boolean;
+  signedIn: boolean;
+  compact: boolean;
+  dialogId: string;
+  buttonRef: RefObject<HTMLButtonElement | null>;
+  onToggle: () => Promise<void>;
+}
+
 function SocialActionButton({
   display,
   pending,
@@ -82,16 +95,7 @@ function SocialActionButton({
   dialogId,
   buttonRef,
   onToggle,
-}: {
-  display: SocialButtonDisplay;
-  pending: 'action' | 'logout' | null;
-  active: boolean;
-  signedIn: boolean;
-  compact: boolean;
-  dialogId: string;
-  buttonRef: RefObject<HTMLButtonElement | null>;
-  onToggle: () => Promise<void>;
-}) {
+}: SocialActionButtonProps) {
   return (
     <button
       ref={buttonRef}
@@ -186,13 +190,12 @@ export default function StandardSocialControls({
   );
 }
 
-function SocialFallback({
-  action,
-  slug,
-}: {
+interface SocialFallbackProps {
   action: SocialAction;
   slug?: string;
-}) {
+}
+
+function SocialFallback({ action, slug }: SocialFallbackProps) {
   const subscription = action === 'subscription';
   return (
     <div className={styles.actions}>

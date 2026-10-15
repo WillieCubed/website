@@ -8,31 +8,33 @@ import Popover from '@/components/site/Popover';
 import { formatDate } from '@/lib/site/dates';
 import type { Draft, DraftContent } from '@/lib/studio/types';
 
+import type { DraftUpdate } from './writing-contracts';
+
+interface WritingMetadataProps {
+  draft: Draft;
+  showHeading: boolean;
+  setShowHeading: (show: boolean) => void;
+  titleField: RefObject<HTMLTextAreaElement | null>;
+  body: DraftContent;
+  dirty: boolean;
+  status: string;
+  update: (change: DraftUpdate) => void;
+  published: string;
+  minutes: number;
+}
+
 export default function WritingMetadata({
   draft,
   showHeading,
   setShowHeading,
   titleField,
   body,
-  bodyRef,
-  saved,
+  dirty,
   status,
   update,
   published,
   minutes,
-}: {
-  draft: Draft;
-  showHeading: boolean;
-  setShowHeading: (show: boolean) => void;
-  titleField: RefObject<HTMLTextAreaElement | null>;
-  body: DraftContent;
-  bodyRef: RefObject<DraftContent>;
-  saved: RefObject<string>;
-  status: string;
-  update: (body: DraftContent) => void;
-  published: string;
-  minutes: number;
-}) {
+}: WritingMetadataProps) {
   const [announcement, setAnnouncement] = useState(status);
   useEffect(() => {
     if (status === 'Unsaved changes' || status === 'Saving…') return;
@@ -55,13 +57,13 @@ export default function WritingMetadata({
               type="date"
               value={published.slice(0, 10)}
               onChange={(event) =>
-                update({
-                  ...bodyRef.current,
+                update((current) => ({
+                  ...current,
                   frontmatter: {
-                    ...bodyRef.current.frontmatter,
+                    ...current.frontmatter,
                     published: event.target.value,
                   },
-                })
+                }))
               }
             />
           </label>
@@ -73,12 +75,7 @@ export default function WritingMetadata({
           </>
         )}
         <span aria-hidden="true">·</span>
-        <span>
-          {writingPublicationState(
-            draft,
-            JSON.stringify(body) === saved.current
-          )}
-        </span>
+        <span>{writingPublicationState(draft, !dirty)}</span>
         <AddWritingTitle
           body={body}
           showHeading={showHeading}
@@ -124,10 +121,10 @@ export default function WritingMetadata({
             <input
               value={body.tags.join(', ')}
               onChange={(event) =>
-                update({
-                  ...bodyRef.current,
+                update((current) => ({
+                  ...current,
                   tags: event.target.value.split(',').map((tag) => tag.trim()),
-                })
+                }))
               }
               placeholder="Ideas, places, projects"
             />
@@ -148,15 +145,13 @@ function writingPublicationState(draft: Draft, saved: boolean): string {
     : 'Unpublished changes';
 }
 
-function AddWritingTitle({
-  body,
-  showHeading,
-  onAdd,
-}: {
+interface AddWritingTitleProps {
   body: DraftContent;
   showHeading: boolean;
   onAdd: () => void;
-}) {
+}
+
+function AddWritingTitle({ body, showHeading, onAdd }: AddWritingTitleProps) {
   if (
     body.postType !== 'article' ||
     showHeading ||

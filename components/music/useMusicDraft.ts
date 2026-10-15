@@ -1,11 +1,16 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 
-import type { MusicCatalog, MusicRevision } from '@/lib/music/types';
+import type {
+  MusicAdminCollectionData,
+  MusicCatalog,
+  MusicRevision,
+} from '@/lib/music/types';
 import { emptyCatalog } from '@/lib/music/types';
 
 import {
   MusicAdminRequestError,
+  type MusicRevisionResponse,
   musicAdminRequest,
 } from './music-admin-request';
 import type { MusicDraftSnapshot } from './music-draft-guards';
@@ -15,17 +20,16 @@ interface Options {
   onStaged: (catalog: MusicCatalog, revisionId: string | null) => void;
   onSaved: (revision: MusicRevision) => void;
   onSettled: () => void;
-  setError: (message: string) => void;
   setStatus: (message: string) => void;
 }
 export function useMusicDraft({
   busy,
-  setError,
   setStatus,
   onStaged,
   onSaved,
   onSettled,
 }: Options) {
+  const [error, setError] = useState('');
   const [conflict, setConflict] = useState(false);
   const [saving, setSaving] = useState(false);
   const base = useRef<string | null>(null);
@@ -53,6 +57,7 @@ export function useMusicDraft({
     blocked.current = false;
     setConflict(false);
     setSaving(false);
+    setError('');
   }
   function inspect(): MusicDraftSnapshot {
     return {
@@ -73,7 +78,7 @@ export function useMusicDraft({
         const body = pending.current;
         inFlight = body;
         pending.current = null;
-        const result = await musicAdminRequest<{ revision: MusicRevision }>(
+        const result = await musicAdminRequest<MusicRevisionResponse>(
           '/catalog',
           {
             method: 'PUT',
@@ -104,9 +109,8 @@ export function useMusicDraft({
   async function retrySave() {
     try {
       if (conflict) {
-        const latest = await musicAdminRequest<{
-          revision: MusicRevision | null;
-        }>('/catalog');
+        const latest =
+          await musicAdminRequest<MusicAdminCollectionData>('/catalog');
         base.current = latest.revision?.id ?? null;
       }
       blocked.current = false;
@@ -127,7 +131,8 @@ export function useMusicDraft({
   }
 
   return {
-    state: { saving, conflict },
+    state: { saving, conflict, error },
+    dismissError: () => setError(''),
     change,
     retry: retrySave,
     adopt,

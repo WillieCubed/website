@@ -97,3 +97,52 @@ test('the first public selection names the gallery publication', () => {
   );
   assert.match(result.message, /Added: Fall Tour 2026, Part 1, Late hours/);
 });
+
+test('notes on a playlist named with series punctuation remain a notes update', () => {
+  const result = musicPublicationMessage(
+    base,
+    { ...base, notes: { [a]: 'New listening context.' } },
+    [{ id: a, title: 'My series: Favorites' }],
+    revision
+  );
+  assert.equal(
+    result.title,
+    'feat(music): Update notes for My series: Favorites'
+  );
+});
+
+test('a rename of the second series names the changed series', () => {
+  const first = { id: 'first', title: 'First series', playlistIds: [a] };
+  const second = { id: 'second', title: 'Late hours', playlistIds: [b] };
+  const result = musicPublicationMessage(
+    { ...base, series: [first, second] },
+    { ...base, series: [first, { ...second, title: 'After midnight' }] },
+    titles,
+    revision
+  );
+  assert.equal(result.title, 'feat(music): Update the After midnight series');
+  assert.match(result.message, /Renamed series: Late hours → After midnight/);
+});
+
+test('removing the second series names the removed series', () => {
+  const first = { id: 'first', title: 'First series', playlistIds: [a] };
+  const second = { id: 'second', title: 'Late hours', playlistIds: [b] };
+  const result = musicPublicationMessage(
+    { ...base, series: [first, second] },
+    { ...base, series: [first] },
+    titles,
+    revision
+  );
+  assert.equal(result.title, 'feat(music): Update the Late hours series');
+  assert.match(result.message, /Removed series: Late hours/);
+});
+
+test('an unchanged collection does not invent publication changes', () => {
+  const catalog = {
+    ...base,
+    series: [{ id: 'tour', title: 'Fall Tour', playlistIds: [a, b] }],
+  };
+  const result = musicPublicationMessage(catalog, catalog, titles, revision);
+  assert.equal(result.title, 'feat(music): Republish the music collection');
+  assert.match(result.message, /The approved collection is unchanged\./);
+});

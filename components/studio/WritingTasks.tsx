@@ -1,5 +1,4 @@
 'use client';
-import type { Editor } from '@tiptap/react';
 import { useEffect, useState } from 'react';
 import type { RefObject } from 'react';
 
@@ -7,55 +6,59 @@ import Button from '@/components/site/Button';
 
 import { formatDate } from '@/lib/site/dates';
 import type { Draft } from '@/lib/studio/types';
-import type { DraftContent, Revision } from '@/lib/studio/types';
+import type {
+  ComponentProposal,
+  DraftContent,
+  Revision,
+} from '@/lib/studio/types';
 
-import { type CatalogEntry } from './StudioNodes';
 import StudioWidgetGenerator from './StudioWidgetGenerator';
 import { studioRequest } from './api';
+import type { DraftUpdate } from './writing-contracts';
 import type { WritingTask } from './writing-task-definitions';
 import { WRITING_TASKS } from './writing-task-definitions';
 import { proseText } from './writingText';
 
-export default function WritingTasks({
-  draft,
-  setCatalog,
-  catalogRef,
-  task,
-  taskHeading,
-  body,
-  bodyRef,
-  update,
-  editor,
-  returnToWriting,
-  insert,
-  save,
-  catalogStatus,
-  retryCatalog,
-  setStatus,
-}: {
+interface WritingRevisionHistory {
+  revisions: Revision[];
+}
+
+interface WritingTasksProps {
   draft: Draft;
-  setCatalog: (entries: CatalogEntry[]) => void;
-  catalogRef: RefObject<CatalogEntry[]>;
   task: WritingTask;
   taskHeading: RefObject<HTMLHeadingElement | null>;
   body: DraftContent;
-  bodyRef: RefObject<DraftContent>;
-  update: (body: DraftContent) => void;
-  editor: Editor | null;
+  update: (change: DraftUpdate) => void;
   returnToWriting: () => void;
-  insert: (entry: CatalogEntry) => void;
+  onRestore: (revision: Revision) => void;
+  onApproved: (proposal: ComponentProposal) => Promise<void>;
   save: () => Promise<boolean>;
   catalogStatus?: string;
   retryCatalog?: () => void;
-  setStatus: (status: string) => void;
-}) {
+  reportStatus: (message: string) => void;
+}
+
+export default function WritingTasks({
+  draft,
+  task,
+  taskHeading,
+  body,
+  update,
+  returnToWriting,
+  onRestore,
+  onApproved,
+  save,
+  catalogStatus,
+  retryCatalog,
+  reportStatus,
+}: WritingTasksProps) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   useEffect(() => {
     if (task !== 'history') return;
     let current = true;
     setHistoryLoading(true);
-    studioRequest<Revision[] | { revisions: Revision[] }>(
+    studioRequest<Revision[] | WritingRevisionHistory>(
       `/documents/${draft.id}/revisions`
     )
       .then((result) => {
@@ -63,7 +66,7 @@ export default function WritingTasks({
           setRevisions(Array.isArray(result) ? result : result.revisions);
       })
       .catch((error) => {
-        if (current) setStatus(error.message);
+        if (current) reportStatus(error.message);
       })
       .finally(() => {
         if (current) setHistoryLoading(false);
@@ -71,7 +74,7 @@ export default function WritingTasks({
     return () => {
       current = false;
     };
-  }, [task, draft.id, setStatus]);
+  }, [task, draft.id, reportStatus]);
   return (
     <>
       {task !== 'write' && (
@@ -92,10 +95,10 @@ export default function WritingTasks({
                 <select
                   value={body.postType}
                   onChange={(event) =>
-                    update({
-                      ...bodyRef.current,
+                    update((current) => ({
+                      ...current,
                       postType: event.target.value as DraftContent['postType'],
-                    })
+                    }))
                   }
                 >
                   <option value="article">Article</option>
@@ -112,10 +115,10 @@ export default function WritingTasks({
                   <input
                     value={body.title}
                     onChange={(event) =>
-                      update({
-                        ...bodyRef.current,
+                      update((current) => ({
+                        ...current,
                         title: event.target.value,
-                      })
+                      }))
                     }
                   />
                 </label>
@@ -139,11 +142,7 @@ export default function WritingTasks({
                 <RevisionCard
                   key={revision.id}
                   revision={revision}
-                  onRestore={() => {
-                    editor?.commands.setContent(revision.body.document);
-                    update(revision.body);
-                    returnToWriting();
-                  }}
+                  onRestore={() => onRestore(revision)}
                 />
               ))}
             </>
@@ -155,31 +154,19 @@ export default function WritingTasks({
           documentId={draft.id}
           revisionId={draft.head.id}
           save={save}
-          onApproved={async (proposal) => {
-            const result = await studioRequest<{
-              entries: CatalogEntry[];
-            }>('/catalog');
-            catalogRef.current = result.entries;
-            setCatalog(result.entries);
-            const entry = result.entries.find(
-              (item) =>
-                item.id === proposal.id && item.version === proposal.version
-            );
-            if (entry) insert(entry);
-          }}
+          onApproved={onApproved}
         />
       </div>
     </>
   );
 }
 
-function RevisionCard({
-  revision,
-  onRestore,
-}: {
+interface RevisionCardProps {
   revision: Revision;
   onRestore: () => void;
-}) {
+}
+
+function RevisionCard({ revision, onRestore }: RevisionCardProps) {
   return (
     <div className="studio-revision">
       <details className="studio-history-inspection">
@@ -208,13 +195,12 @@ function RevisionCard({
   );
 }
 
-function WidgetCatalogStatus({
-  message,
-  retry,
-}: {
+interface WidgetCatalogStatusProps {
   message?: string;
   retry?: () => void;
-}) {
+}
+
+function WidgetCatalogStatus({ message, retry }: WidgetCatalogStatusProps) {
   if (!message) return null;
   return (
     <div>

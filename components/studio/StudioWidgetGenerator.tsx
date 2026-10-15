@@ -6,17 +6,19 @@ import type { ComponentProposal, Draft, Generation } from '@/lib/studio/types';
 import StudioRuntimePicker from './StudioRuntimePicker';
 import { studioRequest } from './api';
 
+interface StudioWidgetGeneratorProps {
+  documentId: string;
+  revisionId: string;
+  save: () => Promise<boolean>;
+  onApproved: (proposal: ComponentProposal) => Promise<void>;
+}
+
 export default function StudioWidgetGenerator({
   documentId,
   revisionId,
   save,
   onApproved,
-}: {
-  documentId: string;
-  revisionId: string;
-  save: () => Promise<boolean>;
-  onApproved: (proposal: ComponentProposal) => Promise<void>;
-}) {
+}: StudioWidgetGeneratorProps) {
   const requestKey = `studio-request:${documentId}`;
   const [restored, setRestored] = useState(false);
   const restoredRequest = useRef(false);
@@ -252,19 +254,21 @@ export default function StudioWidgetGenerator({
   );
 }
 
+interface GenerationResultProps {
+  generation: Generation;
+  busy: boolean;
+  runtimeReady: boolean;
+  buildComponent: () => void;
+  decide: (action: 'reject' | 'retry') => void;
+}
+
 function GenerationResult({
   generation,
   busy,
   runtimeReady,
   buildComponent,
   decide,
-}: {
-  generation: Generation;
-  busy: boolean;
-  runtimeReady: boolean;
-  buildComponent: () => void;
-  decide: (action: 'reject' | 'retry') => void;
-}) {
+}: GenerationResultProps) {
   return (
     <div className="studio-generation">
       <strong>

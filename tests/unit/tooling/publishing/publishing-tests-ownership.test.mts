@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { CaptureLedger } from '../../../e2e/publishing/atproto/capture/ledger.mts';
 import { settleUiMutation } from '../../../e2e/publishing/atproto/capture/settle-mutation.mts';
-import type { OwnedBrowser } from '../../../e2e/publishing/atproto/capture/types.mts';
 import {
   ACCOUNT,
   DOMAIN,
@@ -87,73 +88,87 @@ test('private journal replacement recovers a stale temporary write and retains p
 });
 
 const publisher = 'did:plc:aaaaaaaaaaaaaaaaaaaaaaaa';
-function browserOwner(): OwnedBrowser {
-  return {
-    did: 'did:plc:bbbbbbbbbbbbbbbbbbbbbbbb',
-    sessionHash: 'fixture',
-    grantCreated: true,
-    inventoryComplete: true,
-    records: [
-      {
-        uri: 'at://reader/record/key',
-        cid: 'known',
-        kind: 'subscription',
-        target: 'fixture',
-      },
-    ],
-    pendingMutation: {
-      kind: 'subscription',
-      before: [],
-      dispatchedAt: '2000-01-01T00:00:00.000Z',
-      target: `at://${publisher}/site.standard.publication/key`,
-    },
+async function ownedBrowser() {
+  const output = await mkdtemp(join(tmpdir(), 'capture-mutation-'));
+  const ledger = new CaptureLedger({
+    output,
+    origin: 'https://fixture.example',
+    publisher,
+    forbiddenOwner: OWNER,
+  });
+  const token = 'a'.repeat(64);
+  const sessionHash = createHash('sha256').update(token).digest('hex');
+  const did = 'did:plc:bbbbbbbbbbbbbbbbbbbbbbbb';
+  const record = {
+    uri: `at://${did}/site.standard.graph.subscription/owned`,
+    cid: 'known',
+    kind: 'subscription' as const,
+    target: `at://${publisher}/site.standard.publication/key`,
   };
+  await ledger.beginInventory({ did, sessionHash, grantCreated: true }, token);
+  await ledger.completeInventory(sessionHash, [record]);
+  await ledger.beginMutation(sessionHash, 'subscription', record.target, []);
+  await ledger.markMutationDispatched(
+    sessionHash,
+    'subscription',
+    '2000-01-01T00:00:00.000Z'
+  );
+  return { output, ledger, owner: ledger.browser(sessionHash)! };
 }
 
 test('interrupted mutation recovery journals only a stable, already owned record', async () => {
-  const owner = browserOwner();
-  const locks: string[] = [];
-  let saved = 0;
-  await settleUiMutation(
-    {
-      settings: { NEXT_PUBLIC_ATPROTO_DID: publisher },
-      graphFor: async () => [
-        { uri: owner.records[0].uri, cid: 'known', value: {} },
-      ],
-      journalOwnership: async () => {
-        saved++;
-      },
-      lock: async (key, work) => {
-        locks.push(key);
-        return work();
-      },
-    },
-    owner
-  );
-  assert.equal(saved, 1);
-  assert.equal(locks.length, 1);
-  assert.ok(owner.pendingMutation?.quiescedAt);
-});
-
-test('interrupted mutation recovery refuses adoption or revocation of an unjournaled result', async () => {
-  const owner = browserOwner();
-  let saved = false;
-  await assert.rejects(
-    settleUiMutation(
+  const { output, ledger, owner } = await ownedBrowser();
+  try {
+    await settleUiMutation(
       {
         settings: { NEXT_PUBLIC_ATPROTO_DID: publisher },
         graphFor: async () => [
-          { uri: 'at://reader/record/foreign', cid: 'foreign', value: {} },
+          { uri: owner.records[0].uri, cid: 'known', value: {} },
         ],
-        journalOwnership: async () => {
-          saved = true;
+        ledger,
+        lock: async (key, work) => {
+          assert.equal(
+            key,
+            `social:${owner.did}:subscription:at://${publisher}/site.standard.publication/key`
+          );
+          return work();
         },
-        lock: async (_key, work) => work(),
       },
       owner
-    ),
-    /unjournaled/
-  );
-  assert.equal(saved, false);
-  assert.equal(owner.pendingMutation?.quiescedAt, undefined);
+    );
+    const saved = JSON.parse(
+      await readFile(join(output, 'cleanup-ownership.json'), 'utf8')
+    );
+    assert(saved.owned[0].pendingMutation.quiescedAt);
+    assert.equal(owner.pendingMutation?.quiescedAt, undefined);
+  } finally {
+    await rm(output, { recursive: true, force: true });
+  }
+});
+
+test('interrupted mutation recovery refuses adoption or revocation of an unjournaled result', async () => {
+  const { output, ledger, owner } = await ownedBrowser();
+  try {
+    await assert.rejects(
+      settleUiMutation(
+        {
+          settings: { NEXT_PUBLIC_ATPROTO_DID: publisher },
+          graphFor: async () => [
+            { uri: 'at://reader/record/foreign', cid: 'foreign', value: {} },
+          ],
+          ledger,
+          lock: async (_key, work) => work(),
+        },
+        owner
+      ),
+      /unjournaled/
+    );
+    const saved = JSON.parse(
+      await readFile(join(output, 'cleanup-ownership.json'), 'utf8')
+    );
+    assert.equal(saved.owned[0].pendingMutation.quiescedAt, undefined);
+    assert.equal(ledger.browser(owner.sessionHash)?.grantRevoked, undefined);
+  } finally {
+    await rm(output, { recursive: true, force: true });
+  }
 });

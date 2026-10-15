@@ -7,41 +7,31 @@ import { resolve } from 'node:path';
 import type { PostgresPool } from '../../../../../lib/db/postgres';
 import { loadOwnedAcceptanceIdentities } from '../../../../support/publishing/identities/run.mts';
 import type { AcceptanceIdentities } from '../../../../support/publishing/identities/types.mts';
+import type { CaptureLedger } from './ledger.mts';
 import type {
   AuthorizationBaseline,
+  CaptureGraphReader,
   CaptureOptions,
   OwnedBrowser,
+  PendingCallbackReceipt,
   PendingGrant,
 } from './types.mts';
 
 interface Context {
   ownedIdentities: AcceptanceIdentities | undefined;
   settings: Record<string, string>;
-  authorizationStates: {
-    key: string;
-    did: string;
-    encryptedHash: string;
-    flowHash: string;
-  }[];
-  ownership: OwnedBrowser[];
+  ledger: CaptureLedger;
   authorizationBaseline: AuthorizationBaseline | undefined;
   hash: (value: string) => string;
   values: CaptureOptions;
-  journalPendingGrants: () => Promise<void>;
   db: PostgresPool;
   assertGrantBinding: (intent: PendingGrant, stored: StoredSession) => void;
   decryptOAuthValue: <T>(value: string, key: string) => T;
-  browserTokens: Map<string, string>;
-  journalOwnership: () => Promise<void>;
-  graphFor: (
-    did: string,
-    action?: 'subscription' | 'recommendation',
-    targetOnly?: boolean
-  ) => Promise<{ uri: string; cid: string; value: Record<string, unknown> }[]>;
+  graphFor: CaptureGraphReader;
 }
 
 export async function recoverPendingGrant(
-  dependencies: Context,
+  dependencies: Readonly<Context>,
   intent: PendingGrant
 ) {
   const identities =
@@ -77,16 +67,16 @@ export async function recoverPendingGrant(
     intent.callbackCompleted && intent.responseSessionHash,
     'An unfinished callback or missing server response cannot authorize browser/record cleanup.'
   );
-  const known = dependencies.ownership.find(
-    (owner) => owner.sessionHash === intent.responseSessionHash
-  );
+  const known = dependencies.ledger
+    .browsers()
+    .find((owner) => owner.sessionHash === intent.responseSessionHash);
   if (known) assert.equal(known.dpopSpkiSha256, intent.dpopSpkiSha256);
   if (known?.inventoryComplete && stored.rows.length) return;
   await recoverBrowserInventory();
   function revokedGrantAlreadyClean(): boolean {
-    const terminal = dependencies.ownership.find(
-      (owner) => owner.sessionHash === intent.responseSessionHash
-    );
+    const terminal = dependencies.ledger
+      .browsers()
+      .find((owner) => owner.sessionHash === intent.responseSessionHash);
     if (terminal?.grantRevoked) {
       assert(
         terminal.recordsClean &&
@@ -112,13 +102,15 @@ export async function recoverPendingGrant(
           intent.dpopSpkiSha256,
         ].every((value) => /^[a-f0-9]{64}$/.test(value)) &&
         intent.beforeRecords.length === 0 &&
-        dependencies.authorizationStates.some(
-          (state) =>
-            state.key === intent.stateHash &&
-            state.did === intent.did &&
-            state.flowHash === intent.flowHash &&
-            state.encryptedHash === intent.encryptedStateHash
-        ),
+        dependencies.ledger
+          .issuedStates()
+          .some(
+            (state) =>
+              state.key === intent.stateHash &&
+              state.did === intent.did &&
+              state.flowHash === intent.flowHash &&
+              state.encryptedHash === intent.encryptedStateHash
+          ),
       'Pending grant must match this run’s preexchange state and isolated provider.'
     );
   }
@@ -132,12 +124,7 @@ export async function recoverPendingGrant(
           ),
           'utf8'
         )
-      ) as {
-        callbackCompleted: boolean;
-        stateHash: string;
-        actualStatus: number;
-        setCookie: string;
-      };
+      ) as PendingCallbackReceipt;
       assert(
         completed.callbackCompleted &&
           completed.stateHash === intent.stateHash &&
@@ -147,9 +134,10 @@ export async function recoverPendingGrant(
         /^atproto_session=([a-f0-9]{64})(?:;|$)/
       )?.[1];
       assert(token);
-      intent.callbackCompleted = true;
-      intent.responseSessionHash = dependencies.hash(token);
-      await dependencies.journalPendingGrants();
+      intent = await dependencies.ledger.recordCallback(
+        intent.stateHash,
+        completed
+      );
     }
   }
   async function recoverBrowserInventory(): Promise<void> {
@@ -183,10 +171,8 @@ export async function recoverPendingGrant(
       inventoryComplete: false,
       records: [],
     };
-    if (!known) dependencies.ownership.push(owner);
-    dependencies.browserTokens.set(owner.sessionHash, token);
-    await dependencies.journalOwnership();
-    owner.records = (await dependencies.graphFor(intent.did, intent.kind))
+    await dependencies.ledger.beginInventory(owner, token);
+    const records = (await dependencies.graphFor(intent.did, intent.kind))
       .filter(
         (record) =>
           !intent.beforeRecords.some((before) => before.uri === record.uri)
@@ -199,7 +185,6 @@ export async function recoverPendingGrant(
           intent.kind === 'subscription' ? 'publication' : 'document'
         ] as string,
       }));
-    owner.inventoryComplete = true;
-    await dependencies.journalOwnership();
+    await dependencies.ledger.completeInventory(owner.sessionHash, records);
   }
 }

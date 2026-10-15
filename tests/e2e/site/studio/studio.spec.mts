@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
+import type { EditorNode } from '@/lib/studio/types';
+
 test.skip(
   process.env.STUDIO_E2E !== '1',
   'Requires the isolated signed-JWT local studio harness.'
@@ -366,44 +368,53 @@ test('edits made during an in-flight save are saved in the next revision', async
     .toBe('The second change');
 });
 
-test('a preview response for an older draft cannot enable publication', async ({
-  page,
-  request,
-}) => {
-  const draft = await createWriting(request, 'A preview in progress');
-  await page.goto(`/studio/${draft.id}`);
-  await expect(page.getByLabel('Title', { exact: true })).toHaveValue(
-    'A preview in progress'
-  );
-  let releasePreview!: () => void;
-  const pendingPreview = new Promise<void>((resolve) => {
-    releasePreview = resolve;
+for (const scenario of [
+  {
+    name: 'a preview response for an older draft cannot enable publication',
+    finalTitle: 'A newer unreviewed thought',
+  },
+  {
+    name: 'editing back to identical content still retires an in-flight publication review',
+    finalTitle: 'A preview in progress',
+  },
+]) {
+  test(scenario.name, async ({ page, request }) => {
+    const draft = await createWriting(request, 'A preview in progress');
+    await page.goto(`/studio/${draft.id}`);
+    await expect(page.getByLabel('Title', { exact: true })).toHaveValue(
+      'A preview in progress'
+    );
+    let releasePreview!: () => void;
+    const pendingPreview = new Promise<void>((resolve) => {
+      releasePreview = resolve;
+    });
+    await page.route('**/api/studio/preview', async (route) => {
+      await pendingPreview;
+      await route.continue();
+    });
+    const requested = page.waitForRequest(
+      (request) =>
+        request.url().endsWith('/api/studio/preview') &&
+        request.method() === 'POST'
+    );
+    await writingAction(page, 'Review publication');
+    await requested;
+    await page
+      .getByLabel('Title', { exact: true })
+      .fill('An intermediate unreviewed thought');
+    await page.getByLabel('Title', { exact: true }).fill(scenario.finalTitle);
+    await expect(
+      page.getByRole('status').filter({ hasText: 'All changes saved' })
+    ).toBeVisible();
+    releasePreview();
+    await expect(
+      page.getByRole('status').filter({ hasText: 'Review it again' })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Publish this revision', exact: true })
+    ).toHaveCount(0);
   });
-  await page.route('**/api/studio/preview', async (route) => {
-    await pendingPreview;
-    await route.continue();
-  });
-  const requested = page.waitForRequest(
-    (request) =>
-      request.url().endsWith('/api/studio/preview') &&
-      request.method() === 'POST'
-  );
-  await writingAction(page, 'Review publication');
-  await requested;
-  await page
-    .getByLabel('Title', { exact: true })
-    .fill('A newer unreviewed thought');
-  await expect(
-    page.getByRole('status').filter({ hasText: 'All changes saved' })
-  ).toBeVisible();
-  releasePreview();
-  await expect(
-    page.getByRole('status').filter({ hasText: 'Review it again' })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Publish this revision', exact: true })
-  ).toHaveCount(0);
-});
+}
 
 test('catalog blocks retain their editable properties and imported MDX on reload', async ({
   page,
@@ -1435,4 +1446,93 @@ test('an unfinished image retains its file and description across tasks and prev
       file.evaluate((input: HTMLInputElement) => input.files?.[0]?.name)
     )
     .toBe('retained.png');
+});
+
+test('an image upload follows edits without taking focus from a preview', async ({
+  page,
+  request,
+}) => {
+  const draft = await createWriting(request, 'An image in progress');
+  let markStarted!: () => void;
+  const started = new Promise<void>((resolve) => {
+    markStarted = resolve;
+  });
+  let finishUpload!: () => void;
+  const complete = new Promise<void>((resolve) => {
+    finishUpload = resolve;
+  });
+  const imageURL = '/brand/lockups/png/williecubed-wordmark-ink@2x.png';
+  await page.route('**/api/studio/assets', async (route) => {
+    expect(route.request().method()).toBe('POST');
+    markStarted();
+    await complete;
+    await route.fulfill({ json: { url: imageURL } });
+  });
+  await page.goto(`/studio/${draft.id}`);
+  const editor = page.getByRole('textbox', { name: 'Writing content' });
+  const original = 'The paragraph before the image.';
+  await editor.fill(original);
+  await editor.press('End');
+  await page.getByRole('button', { name: 'Insert block', exact: true }).click();
+  await page.getByRole('button', { name: 'Image', exact: true }).click();
+  await page.getByLabel('Image file', { exact: true }).setInputFiles({
+    name: 'in-progress.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('local client upload fixture'),
+  });
+  await page
+    .getByLabel('Image description', { exact: true })
+    .fill('A mapped image');
+  await page.getByRole('button', { name: 'Insert image', exact: true }).click();
+  await started;
+
+  try {
+    await editor.focus();
+    await editor.evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.collapse(true);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+    await page.keyboard.type('Added during upload. ');
+    await expect(editor).toHaveText(`Added during upload. ${original}`);
+    await page
+      .getByRole('button', { name: 'Read preview', exact: true })
+      .click();
+    const heading = page.getByRole('heading', {
+      name: 'Read your writing',
+      exact: true,
+    });
+    await expect(heading).toBeFocused();
+    finishUpload();
+
+    await expect
+      .poll(async () => {
+        const response = await request.get(`/api/studio/documents/${draft.id}`);
+        const saved = await response.json();
+        const nodes = saved.head.body.document.content;
+        return {
+          text: nodes[0]?.content
+            ?.map((node: EditorNode) => node.text || '')
+            .join(''),
+          image: nodes[1]?.attrs?.props?.src,
+          description: nodes[1]?.attrs?.props?.alt,
+        };
+      })
+      .toEqual({
+        text: `Added during upload. ${original}`,
+        image: imageURL,
+        description: 'A mapped image',
+      });
+    await expect(heading).toBeFocused();
+    await page
+      .getByRole('button', { name: 'Back to writing', exact: true })
+      .click();
+    await expect(editor).toBeFocused();
+    await expect(page.getByLabel('Image file', { exact: true })).toHaveCount(0);
+  } finally {
+    finishUpload();
+  }
 });

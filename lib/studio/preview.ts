@@ -6,6 +6,7 @@ import { imageMetadata } from '@/lib/media/geometry';
 import { catalogEntry } from './catalog';
 import { compileSandbox } from './components';
 import { documentSource } from './document';
+import { effectivePortable } from './portable';
 import { getStudioStore } from './store';
 import type { ComponentProposal, DraftContent, EditorNode } from './types';
 
@@ -39,11 +40,12 @@ function clean(html: string) {
 /** Renders data-only website blocks. Imported MDX passes through the feed parser,
  * never a JavaScript compiler. Only explicitly approved component source is bundled,
  * and its output runs inside an opaque sandbox with its own network-denying CSP. */
+type ProposalLookup = (id: string) => Promise<ComponentProposal | null>;
+
 export async function websitePreviewBody(
   body: DraftContent,
   slug: string,
-  lookupProposal: (id: string) => Promise<ComponentProposal | null> = (id) =>
-    getStudioStore().proposal(id)
+  lookupProposal: ProposalLookup = (id) => getStudioStore().proposal(id)
 ): Promise<string> {
   const canonical = `https://willie.page/writings/${encodeURIComponent(slug)}`;
   async function prose(source: string) {
@@ -91,11 +93,13 @@ export async function websitePreviewBody(
 
 /** Compatibility document for isolated previews. The native Read view uses body HTML. */
 export async function websitePreview(
-  ...args: Parameters<typeof websitePreviewBody>
+  body: DraftContent,
+  slug: string,
+  lookupProposal?: ProposalLookup
 ): Promise<string> {
   return (
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-    (await websitePreviewBody(...args))
+    (await websitePreviewBody(body, slug, lookupProposal))
   );
 }
 
@@ -122,7 +126,7 @@ function figureHtml(props: Record<string, unknown>): string {
 async function generatedHtml(
   attrs: Record<string, unknown>,
   props: Record<string, unknown>,
-  lookupProposal: (id: string) => Promise<ComponentProposal | null>
+  lookupProposal: ProposalLookup
 ): Promise<string> {
   const proposal = await lookupProposal(String(attrs.id));
   if (
@@ -133,7 +137,7 @@ async function generatedHtml(
     return '<p class="fallback">This component needs an approved matching version before it can run.</p>';
   try {
     const sandbox = await compileSandbox(proposal, props);
-    return `<figure class="my-6 space-y-3"><iframe class="generated h-96 w-full rounded-lg border border-outline-variant" title="${escape(proposal.name)}" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escape(sandbox)}"></iframe><figcaption class="space-y-2 text-body-medium leading-relaxed text-on-surface"><p class="whitespace-pre-wrap">${escape(proposal.portableText)}</p></figcaption></figure>`;
+    return `<figure class="my-6 space-y-3"><iframe class="generated h-96 w-full rounded-lg border border-outline-variant" title="${escape(proposal.name)}" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escape(sandbox)}"></iframe><figcaption class="space-y-2 text-body-medium leading-relaxed text-on-surface"><p class="whitespace-pre-wrap">${escape(effectivePortable(attrs, proposal.portableText))}</p></figcaption></figure>`;
   } catch (error) {
     console.error('Studio component preview compilation failed', error);
     return `<p class="fallback">${escape(proposal.name)} could not be previewed. Its saved source is preserved.</p>`;

@@ -74,9 +74,7 @@ export async function runHostedResponses() {
   async function saveFailure(error: unknown) {
     return saveFailureWithContext(
       {
-        get runState() {
-          return runState;
-        },
+        runState,
       },
       error
     );
@@ -119,33 +117,13 @@ export async function runHostedResponses() {
     let runtimeExpectation: RuntimeExpectation = RETAINED;
     async function verifyRetainedHttp() {
       return verifyRetainedHttpWithContext({
-        get ORIGIN() {
-          return ORIGIN;
-        },
-        get runtimeExpectation() {
-          return runtimeExpectation;
-        },
-        set runtimeExpectation(value: RuntimeExpectation) {
-          runtimeExpectation = value;
-        },
-        get slug() {
-          return slug;
-        },
-        get did() {
-          return did;
-        },
-        get identity() {
-          return identity;
-        },
-        get values() {
-          return values;
-        },
-        get retainedDocument() {
-          return retainedDocument;
-        },
-        set retainedDocument(value: Snapshot | undefined) {
-          retainedDocument = value;
-        },
+        ORIGIN,
+        runtimeExpectation,
+        slug,
+        did,
+        identity,
+        values,
+        retainedDocument,
       });
     }
     function validateReusedSourceJournal(sourceJournal: RuntimeSourceJournal) {
@@ -644,38 +622,14 @@ export async function runHostedResponses() {
     }
     async function cleanup() {
       return cleanupWithContext({
-        get receipt() {
-          return receipt;
-        },
-        set receipt(value: Receipt | undefined) {
-          receipt = value;
-        },
-        get remove() {
-          return remove;
-        },
-        get get() {
-          return get;
-        },
-        get config() {
-          return config;
-        },
-        get client() {
-          return client;
-        },
-        set client(
-          value: import('../../../../../lib/atproto/types.ts').RepoClient
-        ) {
-          client = value;
-        },
-        get save() {
-          return save;
-        },
-        get deploy() {
-          return deploy;
-        },
-        get did() {
-          return did;
-        },
+        receipt,
+        remove,
+        get,
+        config,
+        client,
+        save,
+        deploy,
+        did,
       });
     }
     function validateRecoveryIdentity(receipt: Receipt): boolean {

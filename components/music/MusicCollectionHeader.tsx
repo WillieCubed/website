@@ -70,13 +70,12 @@ export default function MusicCollectionHeader({
     </header>
   );
 }
-function CollectionTitle({
-  series,
-  editing,
-}: {
+interface CollectionTitleProps {
   series: MusicSeries | undefined;
   editing: boolean;
-}) {
+}
+
+function CollectionTitle({ series, editing }: CollectionTitleProps) {
   return (
     <h2
       id="mp-collection-title"

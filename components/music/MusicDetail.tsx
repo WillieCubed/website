@@ -11,7 +11,7 @@ import {
 } from '@/lib/music/presentation';
 import type { MusicSeries } from '@/lib/music/types';
 
-import MusicCover from './MusicCover';
+import MusicCover, { type MusicCoverProps } from './MusicCover';
 import {
   MusicDetailNavigation,
   MusicPlaylistArtwork,
@@ -43,7 +43,7 @@ interface Props extends PlaylistDetailsContext {
   closeHref: string;
   current: PlaylistView | undefined;
   dialog: RefObject<HTMLDialogElement | null>;
-  Cover?: ComponentType<{ playlist: PlaylistView }>;
+  Cover?: ComponentType<MusicCoverProps>;
   backdrop: DialogBackdropHandlers;
 }
 export default function MusicDetail({

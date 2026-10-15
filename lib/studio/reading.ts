@@ -8,6 +8,11 @@ import { writingText } from '@/lib/writings/content';
 import { documentSource } from './document';
 import type { Draft } from './types';
 
+interface ReadingSeries {
+  slug: string;
+  part: number;
+}
+
 export interface ReadingEntry {
   slug: string;
   title: string;
@@ -19,7 +24,7 @@ export interface ReadingEntry {
   status: 'Draft' | 'Unpublished changes' | null;
   editorId?: string;
   source?: string;
-  series?: { slug: string; part: number };
+  series?: ReadingSeries;
 }
 
 function date(value: unknown, fallback: Date): Date {

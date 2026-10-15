@@ -7,10 +7,12 @@ import SiteLink from '@/components/link/SiteLink';
 import { isPlainClick } from '@/lib/dom/click';
 import type { PlaylistView } from '@/lib/music/presentation';
 
+import type { MusicCoverProps } from './MusicCover';
+
 interface OpeningProps {
   href: string;
   playlist: PlaylistView;
-  Cover: ComponentType<{ playlist: PlaylistView }>;
+  Cover: ComponentType<MusicCoverProps>;
   onOpen: (id: string, source?: HTMLElement) => void;
   children: ReactNode;
 }

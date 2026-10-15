@@ -24,7 +24,7 @@ interface Context {
 }
 
 export async function verifyExistingRuntime(
-  dependencies: Context
+  dependencies: Readonly<Context>
 ): Promise<VerifiedRuntime> {
   const { resolvePds } = await import('../../../../../lib/atproto/identity');
   const { documentIsVerified, publicationIsVerified } =

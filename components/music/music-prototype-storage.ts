@@ -7,13 +7,22 @@ export interface StoredMusicCatalog {
   draft: Catalog;
 }
 
+interface PrototypeCatalogStorage {
+  getItem(key: string): string | null;
+}
+
+interface UncheckedStoredMusicCatalog {
+  live: unknown;
+  draft: unknown;
+}
+
 export function readPrototypeCatalog(
-  storage: Pick<Storage, 'getItem'>,
+  storage: PrototypeCatalogStorage,
   validate?: (value: unknown) => value is Catalog
 ): StoredMusicCatalog | null {
   const saved = JSON.parse(
     storage.getItem(MUSIC_PROTOTYPE_STORAGE_KEY) ?? 'null'
-  ) as { live: unknown; draft: unknown } | null;
+  ) as UncheckedStoredMusicCatalog | null;
   if (saved && validate?.(saved.live) && validate(saved.draft))
     return { live: saved.live, draft: saved.draft };
   return null;

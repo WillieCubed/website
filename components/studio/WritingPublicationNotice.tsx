@@ -5,22 +5,26 @@ import Button from '@/components/site/Button';
 import { site } from '@/lib/site/identity';
 import type { Draft, Publication } from '@/lib/studio/types';
 
+import type { WritingPreviewMode } from './writing-contracts';
+
+interface WritingPublicationNoticeProps {
+  draft: Draft;
+  publicationConnectionError: string;
+  publication: Publication | null;
+  busy: boolean;
+  generatePreview: (
+    mode: WritingPreviewMode,
+    publishing?: boolean
+  ) => Promise<void>;
+}
+
 export default function WritingPublicationNotice({
   draft,
   publicationConnectionError,
   publication,
   busy,
   generatePreview,
-}: {
-  draft: Draft;
-  publicationConnectionError: string;
-  publication: Publication | null;
-  busy: boolean;
-  generatePreview: (
-    mode: 'read' | 'portable',
-    publishing?: boolean
-  ) => Promise<void>;
-}) {
+}: WritingPublicationNoticeProps) {
   if (!publication) return null;
   return (
     <section className="studio-notice" role="status">

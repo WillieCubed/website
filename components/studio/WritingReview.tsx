@@ -8,7 +8,24 @@ import type { Draft, DraftContent } from '@/lib/studio/types';
 
 import StudioPreview from './StudioPreview';
 import type { WritingPreview } from './useWritingPublication';
-import type { WritingMode } from './writing-contracts';
+import type { WritingMode, WritingPreviewMode } from './writing-contracts';
+
+interface WritingReviewProps {
+  draft: Draft;
+  reviewedRevision: number | null;
+  body: DraftContent;
+  status: string;
+  conflict: boolean;
+  mode: WritingMode;
+  onViewChange: (mode: WritingPreviewMode) => void;
+  preview: WritingPreview | null;
+  review: boolean;
+  busy: boolean;
+  returnToWriting: () => void;
+  publish: () => Promise<void>;
+  published: string;
+  minutes: number;
+}
 
 export default function WritingReview({
   draft,
@@ -17,7 +34,7 @@ export default function WritingReview({
   status,
   conflict,
   mode,
-  setMode,
+  onViewChange,
   preview,
   review,
   busy,
@@ -25,22 +42,7 @@ export default function WritingReview({
   publish,
   published,
   minutes,
-}: {
-  draft: Draft;
-  reviewedRevision: number | null;
-  body: DraftContent;
-  status: string;
-  conflict: boolean;
-  mode: WritingMode;
-  setMode: (mode: WritingMode) => void;
-  preview: WritingPreview | null;
-  review: boolean;
-  busy: boolean;
-  returnToWriting: () => void;
-  publish: () => Promise<void>;
-  published: string;
-  minutes: number;
-}) {
+}: WritingReviewProps) {
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     reviewHeading.current?.focus();
@@ -80,7 +82,7 @@ export default function WritingReview({
             <Button
               key={item}
               aria-pressed={mode === item}
-              onClick={() => setMode(item)}
+              onClick={() => onViewChange(item)}
             >
               {item === 'read' ? 'Read' : 'Portable preview'}
             </Button>
@@ -122,18 +124,19 @@ export default function WritingReview({
   );
 }
 
+interface ReviewArticleProps {
+  body: DraftContent;
+  published: string;
+  minutes: number;
+  preview: WritingPreview;
+}
+
 function ReviewArticle({
   body,
   preview,
   published,
   minutes,
-}: {
-  body: DraftContent;
-  published: string;
-  minutes: number;
-} & {
-  preview: WritingPreview;
-}) {
+}: ReviewArticleProps) {
   return (
     <article>
       <header className="pb-10 pt-4">
@@ -171,22 +174,23 @@ function ReviewArticle({
   );
 }
 
+interface PublicationChecksProps {
+  busy: boolean;
+  conflict: boolean;
+  publish: () => Promise<void>;
+  preview: WritingPreview;
+}
+
 function PublicationChecks({
   preview,
   busy,
   conflict,
   publish,
-}: {
-  busy: boolean;
-  conflict: boolean;
-  publish: () => Promise<void>;
-} & {
-  preview: WritingPreview;
-}) {
+}: PublicationChecksProps) {
   return (
     <section className="studio-review mt-8">
       <h2 className="text-title-large">Publication checks</h2>
-      {preview.issues.length ? (
+      {preview.issues.length > 0 ? (
         <>
           <p>Resolve these issues first:</p>
           <ul>

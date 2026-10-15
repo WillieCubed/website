@@ -17,7 +17,11 @@ import type {
 
 import './palette.css';
 
-function ReadoutView({ readout }: { readout: Readout }) {
+interface ReadoutViewProps {
+  readout: Readout;
+}
+
+function ReadoutView({ readout }: ReadoutViewProps) {
   return (
     <section
       className="palette-readout scroller min-h-0 overflow-y-auto overscroll-contain rounded-2xl bg-card p-5 font-mono text-[14px]/[22px] [overflow-wrap:anywhere]"
@@ -47,7 +51,12 @@ function ReadoutView({ readout }: { readout: Readout }) {
     </section>
   );
 }
-function Excerpt({ parts }: { parts: ExcerptPart[] }) {
+
+interface ExcerptProps {
+  parts: ExcerptPart[];
+}
+
+function Excerpt({ parts }: ExcerptProps) {
   return (
     <span className="palette-option__detail palette-option__excerpt overflow-hidden text-ellipsis whitespace-normal text-sm leading-5 text-muted">
       {parts.map((part, index) =>
@@ -60,13 +69,13 @@ function Excerpt({ parts }: { parts: ExcerptPart[] }) {
     </span>
   );
 }
-function PendingReadout({
-  readout,
-  pending,
-}: {
+
+interface PendingReadoutProps {
   readout: Readout | null;
   pending: string | null;
-}) {
+}
+
+function PendingReadout({ readout, pending }: PendingReadoutProps) {
   if (!readout && !pending) return null;
   return (
     <ReadoutView

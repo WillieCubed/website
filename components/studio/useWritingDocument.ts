@@ -5,12 +5,22 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Draft, DraftContent } from '@/lib/studio/types';
 
 import { studioRequest } from './api';
+import type {
+  DraftUpdate,
+  WritingDocument,
+  WritingSnapshot,
+} from './writing-contracts';
 
 /** Autosave snapshots against the expected revision; newer local edits remain queued. */
-export function useWritingDocument(initial: Draft) {
+interface SaveFailure extends Error {
+  status?: number;
+}
+
+export function useWritingDocument(initial: Draft): WritingDocument {
   const [draft, setDraft] = useState(initial);
   const [body, setBody] = useState(initial.head.body);
   const bodyRef = useRef(body);
+  const editVersion = useRef(0);
   const headRef = useRef(initial.head.id);
   const saved = useRef(JSON.stringify(body));
   const saving = useRef(false);
@@ -21,7 +31,10 @@ export function useWritingDocument(initial: Draft) {
   const [recovery, setRecovery] = useState<DraftContent | null>(null);
   const recoveryKey = `studio-draft:${initial.id}`;
   const update = useCallback(
-    (next: DraftContent) => {
+    (change: DraftUpdate) => {
+      const next =
+        typeof change === 'function' ? change(bodyRef.current) : change;
+      editVersion.current += 1;
       bodyRef.current = next;
       setBody(next);
       setStatus(
@@ -36,6 +49,17 @@ export function useWritingDocument(initial: Draft) {
       }
     },
     [recoveryKey]
+  );
+  const captureSnapshot = useCallback(
+    (): WritingSnapshot => ({
+      body: bodyRef.current,
+      editVersion: editVersion.current,
+    }),
+    []
+  );
+  const isCurrent = useCallback(
+    (snapshot: WritingSnapshot) => snapshot.editVersion === editVersion.current,
+    []
   );
 
   useEffect(() => {
@@ -52,7 +76,7 @@ export function useWritingDocument(initial: Draft) {
     }
   }, [recoveryKey]);
   function handleSaveError(error: unknown): void {
-    if ((error as { status?: number }).status === 409) {
+    if ((error as SaveFailure).status === 409) {
       conflictRef.current = true;
       setConflict(true);
       setStatus(
@@ -64,7 +88,10 @@ export function useWritingDocument(initial: Draft) {
     if (saving.current || conflictRef.current) return false;
     const snapshot = bodyRef.current;
     const serialized = JSON.stringify(snapshot);
-    if (serialized === saved.current) return true;
+    if (serialized === saved.current) {
+      setStatus('All changes saved');
+      return true;
+    }
     if (!navigator.onLine) {
       setStatus('Offline · changes kept in this tab');
       return false;
@@ -125,7 +152,7 @@ export function useWritingDocument(initial: Draft) {
       window.removeEventListener('beforeunload', leave);
     };
   }, [save]);
-  async function reloadHead() {
+  async function rebaseChanges() {
     try {
       const remote = await studioRequest<Draft>(`/documents/${draft.id}`);
       headRef.current = remote.head.id;
@@ -141,21 +168,80 @@ export function useWritingDocument(initial: Draft) {
     }
   }
 
+  function recoverChanges(replaceDocument: (body: DraftContent) => void) {
+    if (!recovery) return;
+    replaceDocument(recovery);
+    setRecovery(null);
+  }
+  function discardRecovery() {
+    try {
+      sessionStorage.removeItem(recoveryKey);
+      setRecovery(null);
+    } catch {
+      setStatus(
+        'Browser recovery storage is unavailable. Your saved revision is still available.'
+      );
+    }
+  }
+  async function selectSavedRevision(snapshot: WritingSnapshot) {
+    if (!(await save())) {
+      setStatus('Save your changes before reviewing publication.');
+      return null;
+    }
+    if (!isCurrent(snapshot)) {
+      setStatus('Your writing changed. Review it again.');
+      return null;
+    }
+    try {
+      const current = await studioRequest<Draft>(`/documents/${initial.id}`);
+      if (!isCurrent(snapshot)) {
+        setStatus('Your writing changed. Review it again.');
+        return null;
+      }
+      if (current.head.id !== headRef.current) {
+        setStatus(
+          'A newer revision exists. Load it before reviewing publication.'
+        );
+        return null;
+      }
+      return current.head;
+    } catch (error) {
+      setStatus((error as Error).message);
+      return null;
+    }
+  }
+  const refreshPublicationMetadata = useCallback(async () => {
+    try {
+      const remote = await studioRequest<Draft>(`/documents/${initial.id}`);
+      // Publication completion must not adopt another tab's head or replace local edits.
+      setDraft((current) => ({
+        ...current,
+        liveRevisionId: remote.liveRevisionId,
+      }));
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
+  }, [initial.id]);
+  const reportStatus = useCallback((message: string) => {
+    setStatus(message);
+  }, []);
+
   return {
     draft,
-    setDraft,
     body,
-    bodyRef,
-    headRef,
-    saved,
+    dirty: JSON.stringify(body) !== saved.current,
     status,
-    setStatus,
+    reportStatus,
     conflict,
     recovery,
-    setRecovery,
-    recoveryKey,
+    recoverChanges,
+    discardRecovery,
     update,
+    captureSnapshot,
+    isCurrent,
     save,
-    reloadHead,
+    rebaseChanges,
+    selectSavedRevision,
+    refreshPublicationMetadata,
   };
 }

@@ -15,7 +15,9 @@ import {
 import { captureSocialState } from '../../../../support/publishing/social-browser.mts';
 import type {
   AuthorizationBaseline,
+  AuthorizationDatabaseInventory,
   AuthorizationFlow,
+  CaptureGraphReader,
   CaptureOptions,
   CapturedFlow,
   LocalVerifier,
@@ -35,14 +37,10 @@ interface Context {
   db: PostgresPool;
   decryptOAuthValue: <T>(value: string, key: string) => T;
   settings: Record<string, string>;
-  graphFor: (
-    did: string,
-    action?: 'subscription' | 'recommendation',
-    targetOnly?: boolean
-  ) => Promise<{ uri: string; cid: string; value: Record<string, unknown> }[]>;
+  graphFor: CaptureGraphReader;
   databaseInventory: (
     pool?: PostgresPool
-  ) => Promise<{ [k: string]: { key: string; rowHash: string }[] }>;
+  ) => Promise<AuthorizationDatabaseInventory>;
   visitorGraphs: () => Promise<
     { uri: string; cid: string; value: Record<string, unknown> }[]
   >;
@@ -54,7 +52,7 @@ interface Context {
 }
 
 export async function verifyAuthorizationOnly(
-  dependencies: Context,
+  dependencies: Readonly<Context>,
   granted: CapturedFlow,
   grantedSecond: CapturedFlow,
   cancelled: CapturedFlow,

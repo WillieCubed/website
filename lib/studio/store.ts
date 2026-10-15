@@ -1,11 +1,8 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { randomUUID } from 'node:crypto';
+import type { QueryResult, QueryResultRow } from 'pg';
 
-import {
-  type PostgresPool,
-  type PostgresPoolClient,
-  createPool,
-} from '@/lib/db/postgres';
+import { type PostgresPool, createPool } from '@/lib/db/postgres';
 
 import { StudioError } from './errors';
 import type {
@@ -19,9 +16,21 @@ import type {
   StudioStore,
 } from './types';
 
-type StudioPool = Pick<PostgresPool, 'query'> & {
-  connect(): Promise<Pick<PostgresPoolClient, 'query' | 'release'>>;
-};
+interface StudioQuery {
+  query<T extends QueryResultRow = QueryResultRow>(
+    text: string,
+    values?: unknown[]
+  ): Promise<QueryResult<T>>;
+}
+interface StudioConnection extends StudioQuery {
+  release(destroy?: boolean): void | Promise<void>;
+}
+interface StudioPool extends StudioQuery {
+  connect(): Promise<StudioConnection>;
+}
+interface PostgresFailure extends Error {
+  code?: string;
+}
 
 let pool: PostgresPool | undefined;
 export function getStudioPool(): PostgresPool {
@@ -133,7 +142,7 @@ export class PostgresStudioStore implements StudioStore {
       await client.query('COMMIT');
     } catch (error) {
       await client.query('ROLLBACK');
-      if ((error as { code?: string }).code === '23505')
+      if ((error as PostgresFailure).code === '23505')
         throw new StudioError(409, 'A writing already uses that address.');
       throw error;
     } finally {

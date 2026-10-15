@@ -37,8 +37,9 @@ import { authorizeOwnedProvider as authorizeOwnedProviderWithContext } from './a
 import { captureSetup } from './config.mts';
 import { assertDeliveryProbe } from './delivery-proof.mts';
 import { finishCapture } from './finish.mts';
-import { flow as flowWithContext } from './flow.mts';
+import { CallbackDeliveryWithheld, flow as flowWithContext } from './flow.mts';
 import { graphFor as graphForWithContext } from './graphs.mts';
+import { CaptureLedger } from './ledger.mts';
 import { run } from './process.mts';
 import { recoverPendingGrant as recoverPendingGrantWithContext } from './recover-grant.mts';
 import { verifyExistingRuntime as verifyExistingRuntimeWithContext } from './runtime-proof.mts';
@@ -67,7 +68,7 @@ export async function runSocialCapture() {
   };
   async function main(runState: RunContext) {
     const setup = await captureSetup(runState);
-    let { settings, socialOnly, socialRevision, authorizationOnly } = setup;
+    const { settings, socialOnly, socialRevision, authorizationOnly } = setup;
     const {
       ORIGIN,
       OWNER,
@@ -84,45 +85,16 @@ export async function runSocialCapture() {
     } = setup;
     async function verifyExistingRuntime() {
       return verifyExistingRuntimeWithContext({
-        get settings() {
-          return settings;
-        },
-        set settings(value: Record<string, string>) {
-          settings = value;
-        },
-        get ORIGIN() {
-          return ORIGIN;
-        },
-        get runtimeRevision() {
-          return runtimeRevision;
-        },
-        get socialOnly() {
-          return socialOnly;
-        },
-        set socialOnly(value: boolean) {
-          socialOnly = value;
-        },
-        get values() {
-          return values;
-        },
-        get currentSocialFixture() {
-          return currentSocialFixture;
-        },
-        get workspace() {
-          return workspace;
-        },
-        get socialRevision() {
-          return socialRevision;
-        },
-        set socialRevision(value: string) {
-          socialRevision = value;
-        },
-        get root() {
-          return root;
-        },
-        get fixturePublicationJournal() {
-          return fixturePublicationJournal;
-        },
+        settings,
+        ORIGIN,
+        runtimeRevision,
+        socialOnly,
+        values,
+        currentSocialFixture,
+        workspace,
+        socialRevision,
+        root,
+        fixturePublicationJournal,
       });
     }
     let verifierPaths: string[] = [];
@@ -323,15 +295,8 @@ export async function runSocialCapture() {
     ) {
       return graphForWithContext(
         {
-          get settings() {
-            return settings;
-          },
-          set settings(value: Record<string, string>) {
-            settings = value;
-          },
-          get values() {
-            return values;
-          },
+          settings,
+          values,
         },
         did,
         action,
@@ -339,32 +304,24 @@ export async function runSocialCapture() {
       );
     }
 
-    const ownership: OwnedBrowser[] = [];
-    const browserTokens = new Map<string, string>();
+    const ledger = new CaptureLedger({
+      output: values.output!,
+      origin: ORIGIN,
+      publisher: settings.NEXT_PUBLIC_ATPROTO_DID,
+      forbiddenOwner: OWNER,
+      providerOrigin: settings.ATPROTO_ACCEPTANCE_PROVIDER_ORIGIN,
+    });
     async function settleUiMutation(owner: OwnedBrowser) {
       return settleUiMutationWithContext(
         {
-          get settings() {
-            return settings;
-          },
-          set settings(value: Record<string, string>) {
-            settings = value;
-          },
-          get graphFor() {
-            return graphFor;
-          },
-          get journalOwnership() {
-            return journalOwnership;
-          },
+          settings,
+          graphFor,
+          ledger,
         },
         owner
       );
     }
 
-    const pendingGrants: PendingGrant[] = [];
-    const deliveryWithheld = new Error(
-      'The real callback response was withheld.'
-    );
     let deliveryFailureObserved = false;
     const publicDpopHash = (key: StoredState['dpopKey']) =>
       createHash('sha256')
@@ -375,13 +332,6 @@ export async function runSocialCapture() {
           })
         )
         .digest('hex');
-    async function journalPendingGrants() {
-      await save('pending-grants.json', {
-        origin: ORIGIN,
-        publisher: settings.NEXT_PUBLIC_ATPROTO_DID,
-        pending: pendingGrants,
-      });
-    }
     function assertGrantBinding(intent: PendingGrant, stored: StoredSession) {
       assert.equal(stored.tokenSet.sub, intent.did);
       assert.equal(stored.tokenSet.iss, intent.issuer);
@@ -391,54 +341,16 @@ export async function runSocialCapture() {
     async function recoverPendingGrant(intent: PendingGrant) {
       return recoverPendingGrantWithContext(
         {
-          get ownedIdentities() {
-            return ownedIdentities;
-          },
-          get settings() {
-            return settings;
-          },
-          set settings(value: Record<string, string>) {
-            settings = value;
-          },
-          get authorizationStates() {
-            return authorizationStates;
-          },
-          get ownership() {
-            return ownership;
-          },
-          get authorizationBaseline() {
-            return authorizationBaseline;
-          },
-          set authorizationBaseline(value: AuthorizationBaseline | undefined) {
-            authorizationBaseline = value;
-          },
-          get hash() {
-            return hash;
-          },
-          get values() {
-            return values;
-          },
-          get journalPendingGrants() {
-            return journalPendingGrants;
-          },
-          get db() {
-            return db;
-          },
-          get assertGrantBinding() {
-            return assertGrantBinding;
-          },
-          get decryptOAuthValue() {
-            return decryptOAuthValue;
-          },
-          get browserTokens() {
-            return browserTokens;
-          },
-          get journalOwnership() {
-            return journalOwnership;
-          },
-          get graphFor() {
-            return graphFor;
-          },
+          ownedIdentities,
+          settings,
+          authorizationBaseline,
+          hash,
+          values,
+          db,
+          assertGrantBinding,
+          decryptOAuthValue,
+          graphFor,
+          ledger,
         },
         intent
       );
@@ -507,12 +419,6 @@ export async function runSocialCapture() {
       );
     }
     let authorizationBaseline: AuthorizationBaseline | undefined;
-    const authorizationStates: {
-      key: string;
-      did: string;
-      encryptedHash: string;
-      flowHash: string;
-    }[] = [];
     async function verifyAuthorizationOnly(
       granted: CapturedFlow,
       grantedSecond: CapturedFlow,
@@ -522,72 +428,26 @@ export async function runSocialCapture() {
     ) {
       return verifyAuthorizationOnlyWithContext(
         {
-          get flow() {
-            return flow;
-          },
-          get existingRuntime() {
-            return existingRuntime;
-          },
-          get localVerifier() {
-            return localVerifier;
-          },
-          get authorizationBaseline() {
-            return authorizationBaseline;
-          },
-          set authorizationBaseline(value: AuthorizationBaseline | undefined) {
-            authorizationBaseline = value;
-          },
-          get save() {
-            return save;
-          },
-          get first() {
-            return first;
-          },
-          get second() {
-            return second;
-          },
-          get ORIGIN() {
-            return ORIGIN;
-          },
-          get hash() {
-            return hash;
-          },
-          get db() {
-            return db;
-          },
-          get decryptOAuthValue() {
-            return decryptOAuthValue;
-          },
-          get settings() {
-            return settings;
-          },
-          set settings(value: Record<string, string>) {
-            settings = value;
-          },
-          get graphFor() {
-            return graphFor;
-          },
-          get databaseInventory() {
-            return databaseInventory;
-          },
-          get visitorGraphs() {
-            return visitorGraphs;
-          },
-          get root() {
-            return root;
-          },
-          get values() {
-            return values;
-          },
-          get env() {
-            return env;
-          },
-          get verifyExistingRuntime() {
-            return verifyExistingRuntime;
-          },
-          get verifierHashes() {
-            return verifierHashes;
-          },
+          flow,
+          existingRuntime,
+          localVerifier,
+          authorizationBaseline,
+          save,
+          first,
+          second,
+          ORIGIN,
+          hash,
+          db,
+          decryptOAuthValue,
+          settings,
+          graphFor,
+          databaseInventory,
+          visitorGraphs,
+          root,
+          values,
+          env,
+          verifyExistingRuntime,
+          verifierHashes,
         },
         granted,
         grantedSecond,
@@ -595,16 +455,6 @@ export async function runSocialCapture() {
         expired,
         signedOutCancellation
       );
-    }
-    async function journalOwnership() {
-      await save('cleanup-ownership.json', {
-        origin: ORIGIN,
-        publisher: settings.NEXT_PUBLIC_ATPROTO_DID,
-        owned: ownership,
-      });
-      await save('cleanup-credentials.json', {
-        browserTokens: Object.fromEntries(browserTokens),
-      });
     }
     async function authorizeOwnedProvider(
       page: Page,
@@ -614,18 +464,10 @@ export async function runSocialCapture() {
     ) {
       return authorizeOwnedProviderWithContext(
         {
-          get first() {
-            return first;
-          },
-          get ownedIdentities() {
-            return ownedIdentities;
-          },
-          get OWNER() {
-            return OWNER;
-          },
-          get ORIGIN() {
-            return ORIGIN;
-          },
+          first,
+          ownedIdentities,
+          OWNER,
+          ORIGIN,
         },
         page,
         identity,
@@ -643,105 +485,27 @@ export async function runSocialCapture() {
     ) {
       return flowWithContext(
         {
-          get first() {
-            return first;
-          },
-          get resolveHandle() {
-            return resolveHandle;
-          },
-          get ownedIdentities() {
-            return ownedIdentities;
-          },
-          get db() {
-            return db;
-          },
-          get hash() {
-            return hash;
-          },
-          get graphFor() {
-            return graphFor;
-          },
-          get ORIGIN() {
-            return ORIGIN;
-          },
-          get values() {
-            return values;
-          },
-          get authorizationOnly() {
-            return authorizationOnly;
-          },
-          set authorizationOnly(value: boolean) {
-            authorizationOnly = value;
-          },
-          get recordOperationFailure() {
-            return recordOperationFailure;
-          },
-          get save() {
-            return save;
-          },
-          get decryptOAuthValue() {
-            return decryptOAuthValue;
-          },
-          get settings() {
-            return settings;
-          },
-          set settings(value: Record<string, string>) {
-            settings = value;
-          },
-          get existingOnly() {
-            return existingOnly;
-          },
-          get authorizationBaseline() {
-            return authorizationBaseline;
-          },
-          set authorizationBaseline(value: AuthorizationBaseline | undefined) {
-            authorizationBaseline = value;
-          },
-          get authorizationStates() {
-            return authorizationStates;
-          },
-          get publicDpopHash() {
-            return publicDpopHash;
-          },
-          get pendingGrants() {
-            return pendingGrants;
-          },
-          get journalPendingGrants() {
-            return journalPendingGrants;
-          },
-          get ownership() {
-            return ownership;
-          },
-          get browserTokens() {
-            return browserTokens;
-          },
-          get journalOwnership() {
-            return journalOwnership;
-          },
-          get authorizeOwnedProvider() {
-            return authorizeOwnedProvider;
-          },
-          get assertGrantBinding() {
-            return assertGrantBinding;
-          },
-          get recoverPendingGrant() {
-            return recoverPendingGrant;
-          },
-          get deliveryFailureObserved() {
-            return deliveryFailureObserved;
-          },
-          set deliveryFailureObserved(value: boolean) {
-            deliveryFailureObserved = value;
-          },
-          get authorizationRevision() {
-            return authorizationRevision;
-          },
-          get localVerifier() {
-            return localVerifier;
-          },
-          get deliveryWithheld() {
-            return deliveryWithheld;
-          },
+          resolveHandle,
+          ownedIdentities,
+          db,
+          hash,
+          graphFor,
+          ORIGIN,
+          values,
+          authorizationOnly,
+          recordOperationFailure,
+          save,
+          decryptOAuthValue,
+          settings,
+          existingOnly,
+          authorizationBaseline,
+          publicDpopHash,
+          authorizeOwnedProvider,
+          assertGrantBinding,
+          recoverPendingGrant,
+          authorizationRevision,
+          localVerifier,
+          ledger,
         },
         context,
         handle,
@@ -755,11 +519,14 @@ export async function runSocialCapture() {
     let captureFailurePhase: string | undefined;
     try {
       await prepareAuthorizationBaseline();
-      if (!values['cleanup-only']) await journalOwnership();
+      if (!values['cleanup-only']) await ledger.initialize();
       await restoreCaptureOwnership();
       await captureAuthorizedVisitors();
     } catch (error) {
-      if (error === deliveryWithheld) return;
+      if (error instanceof CallbackDeliveryWithheld) {
+        deliveryFailureObserved = true;
+        return;
+      }
       captureFailurePhase = runState.phase;
       await recordOperationFailure(error).catch(() => {});
       throw error;
@@ -1465,14 +1232,7 @@ export async function runSocialCapture() {
               'utf8'
             )
           ) as AuthorizationBaseline;
-          authorizationStates.push(
-            ...JSON.parse(
-              await readFile(
-                resolve(values.output!, 'authorization-states.json'),
-                'utf8'
-              )
-            )
-          );
+          await ledger.restoreIssuedStates();
         } else {
           const baselineAt = Date.now();
           const states =
@@ -1505,7 +1265,7 @@ export async function runSocialCapture() {
             'Use fresh owned provider grants so cleanup never rotates or revokes an unrelated grant.'
           );
           await save('authorization-baseline.json', authorizationBaseline);
-          await save('authorization-states.json', authorizationStates);
+          await save('authorization-states.json', ledger.issuedStates());
         }
         assert.equal(authorizationBaseline.origin, ORIGIN);
         assert.equal(
@@ -1516,71 +1276,24 @@ export async function runSocialCapture() {
       }
     }
     async function restoreCaptureOwnership(): Promise<void> {
-      if (values['cleanup-only']) {
-        await restorePendingGrantLedger();
-        const journal = JSON.parse(
-          await readFile(
-            resolve(values.output!, 'cleanup-ownership.json'),
-            'utf8'
-          )
-        ) as {
-          origin: string;
-          publisher: string;
-          owned: OwnedBrowser[];
-        };
-        assert(
-          journal.origin === ORIGIN &&
-            journal.publisher === settings.NEXT_PUBLIC_ATPROTO_DID
-        );
-        const credentials = JSON.parse(
-          await readFile(
-            resolve(values.output!, 'cleanup-credentials.json'),
-            'utf8'
-          )
-        ) as {
-          browserTokens: Record<string, string>;
-        };
-        for (const owner of journal.owned) {
-          assert(
-            owner.did !== OWNER && /^[a-f0-9]{64}$/.test(owner.sessionHash)
-          );
-          const token = credentials.browserTokens[owner.sessionHash];
-          assert(token && hash(token) === owner.sessionHash);
-          ownership.push(owner);
-          browserTokens.set(owner.sessionHash, token);
-        }
-        recoveryVerified = true;
-      }
-      async function restorePendingGrantLedger(): Promise<void> {
-        try {
-          const ledger = JSON.parse(
+      if (!values['cleanup-only']) return;
+      try {
+        await ledger.restorePendingGrants();
+        if (ledger.pendingGrants().length > 0) {
+          const probe = JSON.parse(
             await readFile(
-              resolve(values.output!, 'pending-grants.json'),
+              resolve(values.output!, 'cookie-delivery-receipt.json'),
               'utf8'
             )
-          ) as {
-            origin: string;
-            publisher: string;
-            pending: PendingGrant[];
-          };
-          assert.equal(ledger.origin, ORIGIN);
-          assert.equal(ledger.publisher, settings.NEXT_PUBLIC_ATPROTO_DID);
-          assert(Array.isArray(ledger.pending));
-          pendingGrants.push(...ledger.pending);
-          if (pendingGrants.length) {
-            const probe = JSON.parse(
-              await readFile(
-                resolve(values.output!, 'cookie-delivery-receipt.json'),
-                'utf8'
-              )
-            );
-            assertDeliveryProbe(probe, pendingGrants);
-            deliveryFailureObserved = true;
-          }
-        } catch (error) {
-          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+          );
+          assertDeliveryProbe(probe, ledger.pendingGrants());
+          deliveryFailureObserved = true;
         }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
       }
+      await ledger.restoreBrowsers();
+      recoveryVerified = true;
     }
     async function captureAuthorizedVisitors(): Promise<void> {
       if (values['cleanup-only']) return;
@@ -1821,39 +1534,26 @@ export async function runSocialCapture() {
         primaryDid: string
       ): Promise<void> {
         if (ownedIdentities) {
-          const owner = ownership.find(
-            (entry) => entry.sessionHash === granted.grant.sessionHash
-          );
-          assert(owner);
+          const captured = ledger.browser(granted.grant.sessionHash);
+          assert(captured);
+          let owner = captured;
           async function finishUiMutation(
             kind: 'subscription' | 'recommendation'
           ) {
             assert(owner);
             await settleUiMutation(owner);
             const records = await graphFor(owner.did, kind);
-            for (const record of records) {
-              const known: OwnedSocialRecord | undefined = owner.records.find(
-                (entry) => entry.uri === record.uri
-              );
-              if (known)
-                assert.equal(
-                  known.cid,
-                  record.cid,
-                  'An owned graph record changed outside this run.'
-                );
-              else
-                owner.records.push({
-                  uri: record.uri,
-                  cid: record.cid,
-                  kind,
-                  target: record.value[
-                    kind === 'subscription' ? 'publication' : 'document'
-                  ] as string,
-                });
-            }
-            owner.pendingMutation = undefined;
-            owner.inventoryComplete = true;
-            await journalOwnership();
+            owner = await ledger.completeMutation(
+              owner.sessionHash,
+              records.map((record) => ({
+                uri: record.uri,
+                cid: record.cid,
+                kind,
+                target: record.value[
+                  kind === 'subscription' ? 'publication' : 'document'
+                ] as string,
+              }))
+            );
           }
           try {
             await socialUiFailures({
@@ -1878,27 +1578,28 @@ export async function runSocialCapture() {
                 const { documentRkey } =
                   await import('../../../../../lib/atproto/keys');
                 const { writing } = await loadWriting(values.slug!);
-                owner.pendingMutation = {
+                const target =
+                  kind === 'subscription'
+                    ? `at://${settings.NEXT_PUBLIC_ATPROTO_DID}/site.standard.publication/${settings.ATPROTO_PUBLICATION_RKEY}`
+                    : `at://${settings.NEXT_PUBLIC_ATPROTO_DID}/site.standard.document/${documentRkey(`/writings/${values.slug}`, writing.published)}`;
+                owner = await ledger.beginMutation(
+                  owner.sessionHash,
                   kind,
-                  before: before.map(({ uri, cid }) => ({ uri, cid })),
-                  target:
-                    kind === 'subscription'
-                      ? `at://${settings.NEXT_PUBLIC_ATPROTO_DID}/site.standard.publication/${settings.ATPROTO_PUBLICATION_RKEY}`
-                      : `at://${settings.NEXT_PUBLIC_ATPROTO_DID}/site.standard.document/${documentRkey(`/writings/${values.slug}`, writing.published)}`,
-                };
-                owner.inventoryComplete = false;
-                await journalOwnership();
+                  target,
+                  before.map(({ uri, cid }) => ({ uri, cid }))
+                );
               },
               dispatchedMutation: async (kind) => {
-                assert(owner.pendingMutation?.kind === kind);
-                owner.pendingMutation.dispatchedAt = new Date().toISOString();
-                await journalOwnership();
+                owner = await ledger.markMutationDispatched(
+                  owner.sessionHash,
+                  kind
+                );
               },
               afterMutation: async (kind) => {
-                assert(owner.pendingMutation?.kind === kind);
-                owner.pendingMutation.responseCompletedAt =
-                  new Date().toISOString();
-                await journalOwnership();
+                owner = await ledger.markMutationResponse(
+                  owner.sessionHash,
+                  kind
+                );
                 await finishUiMutation(kind);
               },
             });
@@ -1976,7 +1677,7 @@ export async function runSocialCapture() {
           await reconcileRunnerOwnership();
           const { withOAuthLock } =
             await import('../../../../../lib/atproto/oauth-storage');
-          for (const intent of pendingGrants) {
+          for (const intent of ledger.pendingGrants()) {
             try {
               await withOAuthLock(`oauth-session-${intent.did}`, () =>
                 recoverPendingGrant(intent)
@@ -1988,13 +1689,14 @@ export async function runSocialCapture() {
             }
           }
           const revoked = new Set<string>();
-          for (const owner of ownership) await cleanupOwner(owner, revoked);
+          for (const owner of ledger.browsers())
+            await cleanupOwner(owner, revoked);
           await restoreAuthorizationBaseline();
           await save('capture-cleanup.json', {
             checkedAt: new Date().toISOString(),
             status: pending.length ? 'pending' : 'passed',
             pending,
-            owned: ownership,
+            owned: ledger.browsers(),
             providerRevocation:
               'SDK request and local deletion; independent owned-provider inventory must confirm remote invalidation.',
           });
@@ -2046,7 +1748,7 @@ export async function runSocialCapture() {
               checkedAt: new Date().toISOString(),
               status: 'pending',
               pending,
-              owned: ownership,
+              owned: ledger.browsers(),
             });
         }
       }
@@ -2054,18 +1756,22 @@ export async function runSocialCapture() {
         const { unlink } = await import('node:fs/promises');
         if (pending.length === 0)
           for (const name of [
-            ...pendingGrants
+            ...ledger
+              .pendingGrants()
               .filter((intent) =>
-                ownership.some(
-                  (owner) =>
-                    owner.sessionHash === intent.responseSessionHash &&
-                    owner.grantRevoked &&
-                    owner.recordsClean &&
-                    owner.inventoryComplete
-                )
+                ledger
+                  .browsers()
+                  .some(
+                    (owner) =>
+                      owner.sessionHash === intent.responseSessionHash &&
+                      owner.grantRevoked &&
+                      owner.recordsClean &&
+                      owner.inventoryComplete
+                  )
               )
               .map((intent) => `pending-callback-${intent.stateHash}.json`),
-            ...ownership
+            ...ledger
+              .browsers()
               .filter((owner) => owner.grantRevoked && !owner.dpopSpkiSha256)
               .map((owner) => `provider-grant-${hash(owner.did)}.json`),
             'cleanup-credentials.json',
@@ -2094,16 +1800,17 @@ export async function runSocialCapture() {
           await import('../../../../../lib/atproto/oauth-storage');
 
         assert(owner.did !== OWNER);
-        const grantIntent = pendingGrants.find(
-          (intent) =>
-            intent.did === owner.did &&
-            intent.dpopSpkiSha256 === owner.dpopSpkiSha256
-        );
+        const grantIntent = ledger
+          .pendingGrants()
+          .find(
+            (intent) =>
+              intent.did === owner.did &&
+              intent.dpopSpkiSha256 === owner.dpopSpkiSha256
+          );
         if (!(await verifyGrantIdentity())) return;
         if (!(await recoverInFlightMutation())) return;
         const recordsClean = await cleanupOwnedRecords();
-        owner.recordsClean = recordsClean;
-        await journalOwnership();
+        owner = await ledger.markRecordsClean(owner.sessionHash, recordsClean);
         await logoutOwnedBrowser();
         await revokeOwnedGrant();
         async function verifyGrantIdentity(): Promise<boolean> {
@@ -2145,26 +1852,17 @@ export async function runSocialCapture() {
                 )
               );
               const records = await graphFor(owner.did, intent.kind);
-              for (const record of records) {
-                const known: OwnedSocialRecord | undefined = owner.records.find(
-                  (entry) => entry.uri === record.uri
-                );
-                if (known) assert.equal(known.cid, record.cid);
-                else
-                  owner.records.push({
-                    uri: record.uri,
-                    cid: record.cid,
-                    kind: intent.kind,
-                    target: record.value[
-                      intent.kind === 'subscription'
-                        ? 'publication'
-                        : 'document'
-                    ] as string,
-                  });
-              }
-              owner.inventoryComplete = true;
-              owner.pendingMutation = undefined;
-              await journalOwnership();
+              owner = await ledger.completeMutation(
+                owner.sessionHash,
+                records.map((record) => ({
+                  uri: record.uri,
+                  cid: record.cid,
+                  kind: intent.kind,
+                  target: record.value[
+                    intent.kind === 'subscription' ? 'publication' : 'document'
+                  ] as string,
+                }))
+              );
             } catch {
               pending.push(
                 `An in-flight mutation needs owned recovery for ${owner.did}. Credentials remain private.`
@@ -2347,8 +2045,7 @@ export async function runSocialCapture() {
           }
         }
         async function logoutOwnedBrowser(): Promise<void> {
-          const token = browserTokens.get(owner.sessionHash);
-          if (token) {
+          await ledger.withBrowserToken(owner.sessionHash, async (token) => {
             try {
               const ended = await fetch(`${ORIGIN}/api/atproto/logout`, {
                 method: 'POST',
@@ -2372,7 +2069,7 @@ export async function runSocialCapture() {
                 `Owned browser session cleanup needs recovery for ${owner.did}.`
               );
             }
-          }
+          });
         }
 
         async function revokeOwnedGrant(): Promise<void> {
@@ -2406,8 +2103,7 @@ export async function runSocialCapture() {
                 });
                 await oauthClient().revoke(owner.did as Did);
                 revoked.add(owner.did);
-                owner.grantRevoked = true;
-                await journalOwnership();
+                owner = await ledger.markGrantRevoked(owner.sessionHash);
                 const { unlink } = await import('node:fs/promises');
                 if (!owner.dpopSpkiSha256)
                   await unlink(resolve(values.output!, backupName));
@@ -2429,17 +2125,11 @@ export async function runSocialCapture() {
               'utf8'
             )
           ) as { visitor: string; owned: OwnedSocialRecord[] };
-          const owner = ownership.find((entry) => entry.did === runner.visitor);
+          const owner = ledger
+            .browsers()
+            .find((entry) => entry.did === runner.visitor);
           if (owner) {
-            for (const record of runner.owned ?? []) {
-              assert(
-                record.uri.startsWith(`at://${owner.did}/site.standard.graph.`)
-              );
-              assert(['subscription', 'recommendation'].includes(record.kind));
-              if (!owner.records.some((known) => known.uri === record.uri))
-                owner.records.push(record);
-            }
-            await journalOwnership();
+            await ledger.mergeRecords(owner.sessionHash, runner.owned ?? []);
           }
         } catch (error) {
           if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -2458,7 +2148,7 @@ export async function runSocialCapture() {
               settings.ATPROTO_ACCEPTANCE_IDENTITIES_JOURNAL,
               settings.NEXT_PUBLIC_ATPROTO_DID
             );
-            for (const state of authorizationStates) {
+            for (const state of ledger.issuedStates()) {
               assert(/^[a-f0-9]{64}$/.test(state.key));
               assert(
                 [identities.publisher.did, identities.visitor.did].includes(

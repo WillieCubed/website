@@ -10,7 +10,7 @@ import {
   type PlaylistView,
 } from '@/lib/music/presentation';
 
-import MusicCover from './MusicCover';
+import MusicCover, { type MusicCoverProps } from './MusicCover';
 import { scrollDialogContent } from './music-dialog';
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
   onEditOrder: () => void;
   draft: Catalog;
   playlists: PlaylistView[];
-  Cover?: ComponentType<{ playlist: PlaylistView }>;
+  Cover?: ComponentType<MusicCoverProps>;
   mode: MusicMode;
   canReview?: boolean;
   applyReview: () => Promise<void>;

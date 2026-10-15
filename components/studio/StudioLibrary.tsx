@@ -15,6 +15,15 @@ import type { Draft, EditorNode } from '@/lib/studio/types';
 
 import { studioRequest } from './api';
 
+interface StudioDocumentsResponse {
+  documents: Draft[];
+}
+
+interface WritingCardIdentity {
+  state: string;
+  identity: string;
+}
+
 function noteExcerpt(node: EditorNode): string {
   const text = node.text ?? (node.content ?? []).map(noteExcerpt).join(' ');
   return text.replace(/\s+/g, ' ').trim();
@@ -33,7 +42,7 @@ export default function StudioLibrary() {
     setFailed(false);
     setStatus('Loading your writings…');
     try {
-      const data = await studioRequest<{ documents: Draft[] }>('/documents', {
+      const data = await studioRequest<StudioDocumentsResponse>('/documents', {
         signal,
       });
       if (!signal?.aborted) {
@@ -215,10 +224,7 @@ export default function StudioLibrary() {
   );
 }
 
-function writingCardIdentity(draft: Draft): {
-  state: string;
-  identity: string;
-} {
+function writingCardIdentity(draft: Draft): WritingCardIdentity {
   const state =
     draft.liveRevisionId === draft.head.id
       ? 'Published'

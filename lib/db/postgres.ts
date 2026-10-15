@@ -16,7 +16,7 @@ export interface PostgresPoolClient {
   release(destroy?: boolean): void | Promise<void>;
 }
 
-interface PoolFacade {
+export interface PostgresPool {
   sql: SqlTag;
   query<T extends QueryResultRow = QueryResultRow>(
     text: string,
@@ -89,7 +89,7 @@ export function createPool(
     connectionString?: string;
     hyperdriveBinding?: DatabaseBinding;
   } = {}
-): PoolFacade {
+): PostgresPool {
   const workerUrl = () =>
     workerConnectionString(config.hyperdriveBinding, config.connectionString);
   const query = async (text: string, values?: unknown[]) => {

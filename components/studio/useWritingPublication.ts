@@ -81,6 +81,36 @@ export function useWritingPublication(
         .then(setDraft)
         .catch((error) => setStatus(error.message));
   }, [publication?.status, initial.id]);
+  async function selectPublicationRevision(snapshot: string): Promise<boolean> {
+    if (!(await save())) {
+      setStatus('Save your changes before reviewing publication.');
+      return false;
+    }
+    if (snapshot !== JSON.stringify(bodyRef.current)) {
+      setStatus('Your writing changed. Review it again.');
+      return false;
+    }
+    try {
+      const current = await studioRequest<Draft>(`/documents/${draft.id}`);
+      if (snapshot !== JSON.stringify(bodyRef.current)) {
+        setStatus('Your writing changed. Review it again.');
+        return false;
+      }
+      if (current.head.id !== headRef.current) {
+        setStatus(
+          'A newer revision exists. Load it before reviewing publication.'
+        );
+        return false;
+      }
+      setReviewedRevision(current.head.number);
+      reviewedRevisionId.current = current.head.id;
+    } catch (error) {
+      setStatus((error as Error).message);
+      return false;
+    }
+
+    return true;
+  }
   async function generatePreview(
     nextMode: 'read' | 'portable',
     publishing = false
@@ -88,38 +118,9 @@ export function useWritingPublication(
     rememberRange();
     const snapshot = JSON.stringify(bodyRef.current);
     setBusy(true);
-    if (publishing) {
-      if (!(await save())) {
-        setStatus('Save your changes before reviewing publication.');
-        setBusy(false);
-        return;
-      }
-      if (snapshot !== JSON.stringify(bodyRef.current)) {
-        setStatus('Your writing changed. Review it again.');
-        setBusy(false);
-        return;
-      }
-      try {
-        const current = await studioRequest<Draft>(`/documents/${draft.id}`);
-        if (snapshot !== JSON.stringify(bodyRef.current)) {
-          setStatus('Your writing changed. Review it again.');
-          setBusy(false);
-          return;
-        }
-        if (current.head.id !== headRef.current) {
-          setStatus(
-            'A newer revision exists. Load it before reviewing publication.'
-          );
-          setBusy(false);
-          return;
-        }
-        setReviewedRevision(current.head.number);
-        reviewedRevisionId.current = current.head.id;
-      } catch (error) {
-        setStatus((error as Error).message);
-        setBusy(false);
-        return;
-      }
+    if (publishing && !(await selectPublicationRevision(snapshot))) {
+      setBusy(false);
+      return;
     }
     try {
       const next = await studioRequest<WritingPreview>('/preview', {

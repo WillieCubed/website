@@ -6,57 +6,23 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { type IncomingMessage, createServer } from 'node:http';
+import {
+  type IncomingMessage,
+  type ServerResponse,
+  createServer,
+} from 'node:http';
 import { dirname, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 import { type DefaultTreeAdapterTypes, parse } from 'parse5';
 
-import { createPool } from '../../../../lib/db/postgres';
+import { type PostgresPool, createPool } from '../../../../lib/db/postgres';
 import { pingWebSubHub } from '../../../../lib/indieweb/websub-publisher';
 import { isMain } from '../../../support/publishing/runtime.mts';
 
 export async function runWebSubTests() {
-  const { values } = parseArgs({
-    options: {
-      topic: {
-        type: 'string',
-        default:
-          'https://willie-page-preview.willieechalmers-18f.workers.dev/writings/feed.xml',
-      },
-      expect: { type: 'string' },
-      output: {
-        type: 'string',
-        default: '.playwright-mcp/websub-receipt.json',
-      },
-      'wait-seconds': { type: 'string', default: '1200' },
-      publish: { type: 'boolean', default: false },
-      hosted: { type: 'boolean', default: false },
-    },
-  });
-  const topicUrl = new URL(values.topic);
-  if (
-    topicUrl.origin !==
-      'https://willie-page-preview.willieechalmers-18f.workers.dev' ||
-    topicUrl.username ||
-    topicUrl.password ||
-    topicUrl.hash ||
-    topicUrl.search
-  )
-    throw new Error('This check accepts only the isolated acceptance site.');
-  if (!values.expect)
-    throw new Error(
-      'Pass --expect with a marker that the next isolated publication will add.'
-    );
-  const marker = values.expect;
-  const waitSeconds = Number(values['wait-seconds']);
-  if (
-    !Number.isSafeInteger(waitSeconds) ||
-    waitSeconds < 10 ||
-    waitSeconds > 3600
-  )
-    throw new Error('--wait-seconds must be between 10 and 3600.');
-  const output = resolve(values.output);
+  const { values, topicUrl, marker, waitSeconds, output } =
+    readWebSubArguments();
   const abort = new AbortController();
   const abortRun = () => abort.abort(new Error('Receipt check interrupted.'));
   process.once('SIGINT', abortRun);
@@ -105,6 +71,11 @@ export async function runWebSubTests() {
   function embeddedRelations(body: string, base: string) {
     const result: Array<{ href: string; relations: string[] }> = [];
     function visit(node: DefaultTreeAdapterTypes.Node) {
+      collectLink(node);
+      if ('childNodes' in node)
+        for (const child of node.childNodes) visit(child);
+    }
+    function collectLink(node: DefaultTreeAdapterTypes.Node) {
       if (node.nodeName === 'link' || node.nodeName === 'atom:link') {
         const attrs = 'attrs' in node ? node.attrs : undefined;
         const href = attrs?.find((attr) => attr.name === 'href')?.value;
@@ -115,8 +86,6 @@ export async function runWebSubTests() {
             relations: rel.split(/\s+/),
           });
       }
-      if ('childNodes' in node)
-        for (const child of node.childNodes) visit(child);
     }
     visit(parse(body));
     return result;
@@ -135,7 +104,7 @@ export async function runWebSubTests() {
   const secret = randomBytes(32).toString('hex');
   const callbackPath = `/websub/${randomBytes(24).toString('hex')}`;
   const hostedId = randomBytes(24).toString('hex');
-  let database: ReturnType<typeof createPool> | undefined;
+  let database: PostgresPool | undefined;
   let pendingMode: 'subscribe' | 'unsubscribe' | null = null;
   let active = false;
   let subscribed = false;
@@ -153,78 +122,61 @@ export async function runWebSubTests() {
       return;
     }
     if (request.method === 'GET') {
-      const mode = url.searchParams.get('hub.mode');
-      const challenge = url.searchParams.get('hub.challenge');
-      const lease = url.searchParams.get('hub.lease_seconds');
-      if (
-        mode === 'denied' &&
-        url.searchParams.get('hub.topic') === topicUrl.href
-      ) {
-        record.denied = {
-          at: timestamp(),
-          reason: url.searchParams.get('hub.reason'),
-        };
-        abort.abort(new Error('Hub denied the subscription.'));
-        response
-          .writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
-          .end();
-        return;
-      }
-      if (
-        mode !== pendingMode ||
-        url.searchParams.get('hub.topic') !== topicUrl.href ||
-        !challenge ||
-        !/^[+\-\d./=A-Z_a-z]+$/.test(challenge) ||
-        (mode === 'subscribe' &&
-          (!lease || !/^\d+$/.test(lease) || Number(lease) <= 0))
-      ) {
-        response.writeHead(404).end();
-        return;
-      }
-      pendingMode = null;
-      active = mode === 'subscribe';
-      record[
-        mode === 'subscribe'
-          ? 'subscriptionVerification'
-          : 'unsubscribeVerification'
-      ] = {
-        at: timestamp(),
-        challengeSha256: sha256(challenge),
-        leaseSeconds: mode === 'subscribe' ? Number(lease) : undefined,
-      };
-      log(`${mode}-verified`, { topic: topicUrl.href });
-      response
-        .writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
-        .end(challenge);
+      verifySubscription(url, response);
       return;
     }
     if (request.method !== 'POST' || !active) {
       response.writeHead(404).end();
       return;
     }
+    await processDelivery(request, response);
+  });
+  function verifySubscription(url: URL, response: ServerResponse) {
+    const mode = url.searchParams.get('hub.mode');
+    const challenge = url.searchParams.get('hub.challenge');
+    const lease = url.searchParams.get('hub.lease_seconds');
+    if (
+      mode === 'denied' &&
+      url.searchParams.get('hub.topic') === topicUrl.href
+    ) {
+      record.denied = {
+        at: timestamp(),
+        reason: url.searchParams.get('hub.reason'),
+      };
+      abort.abort(new Error('Hub denied the subscription.'));
+      response
+        .writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
+        .end();
+      return;
+    }
+    if (invalidChallenge(url, mode, challenge, lease)) {
+      response.writeHead(404).end();
+      return;
+    }
+    pendingMode = null;
+    active = mode === 'subscribe';
+    record[
+      mode === 'subscribe'
+        ? 'subscriptionVerification'
+        : 'unsubscribeVerification'
+    ] = {
+      at: timestamp(),
+      challengeSha256: sha256(challenge!),
+      leaseSeconds: mode === 'subscribe' ? Number(lease) : undefined,
+    };
+    log(`${mode}-verified`, { topic: topicUrl.href });
+    response
+      .writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
+      .end(challenge);
+    return;
+  }
+  async function processDelivery(
+    request: IncomingMessage,
+    response: ServerResponse
+  ) {
     try {
       const payload = await readDelivery(request);
-      const signatures = String(request.headers['x-hub-signature'] ?? '').split(
-        ','
-      );
-      let algorithm: string | undefined;
-      for (const signature of signatures) {
-        const parsed = /^(sha1|sha256|sha384|sha512)=([a-f\d]+)$/i.exec(
-          signature.trim()
-        );
-        if (!parsed) continue;
-        const digest = createHmac(parsed[1].toLowerCase(), secret)
-          .update(payload)
-          .digest();
-        const received = Buffer.from(parsed[2], 'hex');
-        if (
-          received.length === digest.length &&
-          timingSafeEqual(received, digest)
-        ) {
-          algorithm = parsed[1].toLowerCase();
-          break;
-        }
-      }
+      const algorithm = verifiedSignature(request, payload);
       if (!algorithm) {
         log('delivery-rejected', { reason: 'missing-or-invalid-signature' });
         response.writeHead(403).end();
@@ -273,7 +225,49 @@ export async function runWebSubTests() {
       });
       response.writeHead(413).end();
     }
-  });
+  }
+  function verifiedSignature(
+    request: IncomingMessage,
+    payload: Buffer
+  ): string | undefined {
+    const signatures = String(request.headers['x-hub-signature'] ?? '').split(
+      ','
+    );
+    let algorithm: string | undefined;
+    for (const signature of signatures) {
+      const parsed = /^(sha1|sha256|sha384|sha512)=([a-f\d]+)$/i.exec(
+        signature.trim()
+      );
+      if (!parsed) continue;
+      const digest = createHmac(parsed[1].toLowerCase(), secret)
+        .update(payload)
+        .digest();
+      const received = Buffer.from(parsed[2], 'hex');
+      if (
+        received.length === digest.length &&
+        timingSafeEqual(received, digest)
+      ) {
+        algorithm = parsed[1].toLowerCase();
+        break;
+      }
+    }
+    return algorithm;
+  }
+  function invalidChallenge(
+    url: URL,
+    mode: string | null,
+    challenge: string | null,
+    lease: string | null
+  ): boolean {
+    return (
+      mode !== pendingMode ||
+      url.searchParams.get('hub.topic') !== topicUrl.href ||
+      !challenge ||
+      !/^[+\-\d./=A-Z_a-z]+$/.test(challenge) ||
+      (mode === 'subscribe' &&
+        (!lease || !/^\d+$/.test(lease) || Number(lease) <= 0))
+    );
+  }
   async function waitFor(
     predicate: () => boolean,
     seconds: number,
@@ -364,7 +358,7 @@ export async function runWebSubTests() {
     record.callbackOrigin = topicUrl.origin;
     record.callbackKind = 'temporary-hosted-acceptance-route';
   }
-  try {
+  async function discoverTopic() {
     log('discovering', { topic: topicUrl.href });
     const initial = await fetchTopic();
     if (initial.body.includes(marker))
@@ -400,6 +394,8 @@ export async function runWebSubTests() {
       baselineSha256: baselineHash,
       contentType,
     });
+  }
+  async function prepareSubscriber() {
     if (values.hosted) {
       await prepareHosted();
     } else {
@@ -472,14 +468,8 @@ export async function runWebSubTests() {
         await delay(1000, undefined, { signal: abort.signal });
       }
     }
-    log('subscriber-ready', {
-      callbackOrigin: record.callbackOrigin,
-      topic: topicUrl.href,
-    });
-    await requestSubscription('subscribe');
-    subscribed = true;
-    await waitFor(() => active, 90);
-    await persist();
+  }
+  async function waitForDelivery() {
     log('waiting-for-publication', { marker, seconds: waitSeconds });
     const deadline = Date.now() + waitSeconds * 1000;
     let published = false;
@@ -512,12 +502,8 @@ export async function runWebSubTests() {
       completedAt: timestamp(),
     });
     log('delivery-confirmed', { output });
-  } catch (error) {
-    record.result = 'failed';
-    record.error = error instanceof Error ? error.message : String(error);
-    process.exitCode = 1;
-    log('check-failed', { reason: record.error });
-  } finally {
+  }
+  async function cleanupSubscriber() {
     if (subscribed && callback && hub) {
       try {
         await requestSubscription('unsubscribe');
@@ -557,6 +543,70 @@ export async function runWebSubTests() {
     process.removeListener('SIGINT', abortRun);
     process.removeListener('SIGTERM', abortRun);
   }
+  try {
+    await discoverTopic();
+    await prepareSubscriber();
+    log('subscriber-ready', {
+      callbackOrigin: record.callbackOrigin,
+      topic: topicUrl.href,
+    });
+    await requestSubscription('subscribe');
+    subscribed = true;
+    await waitFor(() => active, 90);
+    await persist();
+    await waitForDelivery();
+  } catch (error) {
+    record.result = 'failed';
+    record.error = error instanceof Error ? error.message : String(error);
+    process.exitCode = 1;
+    log('check-failed', { reason: record.error });
+  } finally {
+    await cleanupSubscriber();
+  }
 }
 
 if (isMain(import.meta.url)) await runWebSubTests();
+
+function readWebSubArguments() {
+  const { values } = parseArgs({
+    options: {
+      topic: {
+        type: 'string',
+        default:
+          'https://willie-page-preview.willieechalmers-18f.workers.dev/writings/feed.xml',
+      },
+      expect: { type: 'string' },
+      output: {
+        type: 'string',
+        default: '.playwright-mcp/websub-receipt.json',
+      },
+      'wait-seconds': { type: 'string', default: '1200' },
+      publish: { type: 'boolean', default: false },
+      hosted: { type: 'boolean', default: false },
+    },
+  });
+  const topicUrl = new URL(values.topic);
+  if (
+    topicUrl.origin !==
+      'https://willie-page-preview.willieechalmers-18f.workers.dev' ||
+    topicUrl.username ||
+    topicUrl.password ||
+    topicUrl.hash ||
+    topicUrl.search
+  )
+    throw new Error('This check accepts only the isolated acceptance site.');
+  if (!values.expect)
+    throw new Error(
+      'Pass --expect with a marker that the next isolated publication will add.'
+    );
+  const marker = values.expect;
+  const waitSeconds = Number(values['wait-seconds']);
+  if (
+    !Number.isSafeInteger(waitSeconds) ||
+    waitSeconds < 10 ||
+    waitSeconds > 3600
+  )
+    throw new Error('--wait-seconds must be between 10 and 3600.');
+  const output = resolve(values.output);
+  return { values, topicUrl, marker, waitSeconds, output };
+}

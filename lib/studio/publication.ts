@@ -8,7 +8,14 @@ import { exportMdx, validatePublication } from './document';
 import { StudioError } from './errors';
 import { GitHubError, github } from './github';
 import { getStudioPool, getStudioStore } from './store';
-import type { DraftContent, EditorNode, Publication } from './types';
+import type {
+  ComponentProposal,
+  Draft,
+  DraftContent,
+  EditorNode,
+  Publication,
+  Revision,
+} from './types';
 
 const messageFor = (id: string) =>
   `feat(writings): publish studio revision ${id}`;
@@ -20,63 +27,54 @@ async function artifacts(
   const copy = structuredClone(body),
     files: { path: string; content: string }[] = [],
     store = getStudioStore();
+  async function resolveBlock(node: EditorNode): Promise<void> {
+    if (node.type !== 'catalogBlock') return;
+    const attrs = node.attrs ?? {},
+      id = String(attrs.id ?? '');
+    const proposal = /^[a-f0-9-]{36}$/i.test(id)
+      ? await store.proposal(id)
+      : null;
+    if (!proposal && !catalogEntry(id, String(attrs.version)))
+      throw new StudioError(422, 'Unknown or unapproved catalog block.');
+    if (proposal) await resolveGenerated(node, attrs, proposal);
+  }
+  async function resolveGenerated(
+    node: EditorNode,
+    attrs: Record<string, unknown>,
+    proposal: ComponentProposal
+  ): Promise<void> {
+    if (
+      proposal.status !== 'approved' ||
+      proposal.version !== String(attrs.version)
+    )
+      throw new StudioError(
+        422,
+        'Generated block must use an explicitly approved version.'
+      );
+    const props = approvedProperties(attrs, proposal);
+    const hash = createHash('sha256')
+      .update(JSON.stringify(props))
+      .digest('hex')
+      .slice(0, 20);
+    const src = `/generated-blocks/${proposal.id}/${proposal.version}-${hash}.html`;
+    if (/\/api\/studio\/assets\//.test(proposal.source))
+      throw new StudioError(
+        422,
+        'Generated components must receive media through their properties.'
+      );
+    if (compileBundles)
+      files.push({
+        path: `public${src}`,
+        content: await compileSandbox(proposal, props),
+      });
+    node.attrs = {
+      ...attrs,
+      src,
+      portable: preservePortable ? attrs.portable : proposal.portableText,
+    };
+  }
   async function walk(node: EditorNode): Promise<void> {
-    if (node.type === 'catalogBlock') {
-      const attrs = node.attrs ?? {},
-        id = String(attrs.id ?? '');
-      const proposal = /^[a-f0-9-]{36}$/i.test(id)
-        ? await store.proposal(id)
-        : null;
-      if (!proposal && !catalogEntry(id, String(attrs.version)))
-        throw new StudioError(422, 'Unknown or unapproved catalog block.');
-      if (proposal) {
-        if (
-          proposal.status !== 'approved' ||
-          proposal.version !== String(attrs.version)
-        )
-          throw new StudioError(
-            422,
-            'Generated block must use an explicitly approved version.'
-          );
-        const props = (attrs.props ?? proposal.example) as Record<
-          string,
-          unknown
-        >;
-        if (!props || typeof props !== 'object' || Array.isArray(props))
-          throw new StudioError(422, 'Component properties must be an object.');
-        for (const [name, definition] of Object.entries(proposal.properties)) {
-          const property = definition as { type: string; required?: boolean };
-          if (
-            (property.required || props[name] !== undefined) &&
-            typeof props[name] !== property.type
-          )
-            throw new StudioError(
-              422,
-              `Component property ${name} is invalid.`
-            );
-        }
-        const hash = createHash('sha256')
-          .update(JSON.stringify(props))
-          .digest('hex')
-          .slice(0, 20);
-        const src = `/generated-blocks/${proposal.id}/${proposal.version}-${hash}.html`;
-        if (/\/api\/studio\/assets\//.test(proposal.source))
-          throw new StudioError(
-            422,
-            'Generated components must receive media through their properties.'
-          );
-        if (compileBundles)
-          files.push({
-            path: `public${src}`,
-            content: await compileSandbox(proposal, props),
-          });
-        node.attrs = {
-          ...attrs,
-          src,
-          portable: preservePortable ? attrs.portable : proposal.portableText,
-        };
-      }
-    }
+    await resolveBlock(node);
     await Promise.all((node.content ?? []).map(walk));
   }
   await walk(copy.document);
@@ -84,6 +82,24 @@ async function artifacts(
     body: copy,
     files: [...new Map(files.map((file) => [file.path, file])).values()],
   };
+}
+function approvedProperties(
+  attrs: Record<string, unknown>,
+  proposal: ComponentProposal
+): Record<string, unknown> {
+  const props = (attrs.props ?? proposal.example) as Record<string, unknown>;
+  if (!props || typeof props !== 'object' || Array.isArray(props))
+    throw new StudioError(422, 'Component properties must be an object.');
+  for (const [name, definition] of Object.entries(proposal.properties)) {
+    const property = definition as { type: string; required?: boolean };
+    if (
+      (property.required || props[name] !== undefined) &&
+      typeof props[name] !== property.type
+    )
+      throw new StudioError(422, `Component property ${name} is invalid.`);
+  }
+
+  return props;
 }
 export async function preparePublicationPreview(
   body: DraftContent
@@ -270,11 +286,10 @@ Verify the deployed revision and merged commit through the Studio publication st
 `;
 }
 
-async function reconcilePullRequest(
+async function publicationPullRequest(
   publication: Publication,
   branch: string
-): Promise<void> {
-  const store = getStudioStore();
+): Promise<Record<string, unknown>> {
   let pr: Record<string, unknown>;
   if (publication.pullRequestNumber) {
     pr = await github(`pulls/${publication.pullRequestNumber}`);
@@ -297,6 +312,16 @@ async function reconcilePullRequest(
     });
     pr = await github(`pulls/${pr.number}`);
   }
+
+  return pr;
+}
+
+async function reconcilePullRequest(
+  publication: Publication,
+  branch: string
+): Promise<void> {
+  const store = getStudioStore();
+  const pr = await publicationPullRequest(publication, branch);
   if ((pr.head as { sha: string }).sha !== publication.proposalCommit)
     throw new StudioError(
       409,
@@ -320,6 +345,26 @@ async function reconcilePullRequest(
       409,
       'The publication pull request was closed without merging.'
     );
+  const base = await currentPublicationBase(publication, branch);
+  if (!base) return;
+  // GitHub's protected merge is authoritative for required checks, reviews,
+  // rulesets and permissions. Fine-grained repository tokens cannot call the
+  // Checks API, so never make a separate check-run request here. An
+  // unknown/blocked/behind state never initiates a merge.
+  if (
+    pr.mergeable !== true ||
+    pr.mergeable_state !== 'clean' ||
+    (pr.base as { sha: string }).sha !== base
+  )
+    return;
+  if (!(await publicationBaseUnchanged(publication, branch, base))) return;
+  await mergePublication(publication, pr);
+}
+
+async function currentPublicationBase(
+  publication: Publication,
+  branch: string
+): Promise<string | null> {
   const current = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
   const base = (current.object as { sha: string }).sha;
   if (
@@ -332,18 +377,17 @@ async function reconcilePullRequest(
     );
   if (publication.proposalInput?.parent !== base) {
     await rebaseArtifacts(publication, base, branch);
-    return; // The same PR now reruns required checks on its new head.
+    return null; // The same PR now reruns required checks on its new head.
   }
-  // GitHub's protected merge is authoritative for required checks, reviews,
-  // rulesets and permissions. Fine-grained repository tokens cannot call the
-  // Checks API, so never make a separate check-run request here. An
-  // unknown/blocked/behind state never initiates a merge.
-  if (
-    pr.mergeable !== true ||
-    pr.mergeable_state !== 'clean' ||
-    (pr.base as { sha: string }).sha !== base
-  )
-    return;
+
+  return base;
+}
+
+async function publicationBaseUnchanged(
+  publication: Publication,
+  branch: string,
+  base: string
+): Promise<boolean> {
   // Re-read after polling checks: they can take time, and publication must stop
   // if source changed while checks were being inspected. GitHub's protected
   // merge remains the atomic authority for required up-to-date checks/reviews.
@@ -358,8 +402,15 @@ async function reconcilePullRequest(
         409,
         'The published source changed. Reimport it before publishing.'
       );
-    return;
+    return false;
   }
+  return true;
+}
+async function mergePublication(
+  publication: Publication,
+  pr: Record<string, unknown>
+): Promise<void> {
+  const store = getStudioStore();
   try {
     const result = await github(`pulls/${pr.number}/merge`, 'PUT', {
       sha: publication.proposalCommit,
@@ -400,153 +451,14 @@ export async function publishRevision(
     await lock.query('SELECT pg_advisory_lock(hashtext($1))', [
       `studio-publish:${documentId}`,
     ]);
-    let publication = (await store.getPublication(initial.id))!;
+    const publication = (await store.getPublication(initial.id))!;
     if (publication.commit) return publication;
-    const newer = await getStudioPool().query(
-      `SELECT 1 FROM studio_publications p JOIN studio_revisions r ON r.id=p.revision_id WHERE p.document_id=$1 AND p.body->>'commit' IS NOT NULL AND r.number > $2 LIMIT 1`,
-      [documentId, revision.number]
-    );
-    const latestDraft = await store.get(documentId);
-    const live = latestDraft?.liveRevisionId
-      ? await store.revision(latestDraft.liveRevisionId)
-      : null;
-    if (newer.rowCount || (live && live.number > revision.number))
-      throw new StudioError(
-        409,
-        'Restore this earlier revision as a new working revision before publishing it.'
-      );
+    await requireLatestPublication(documentId, revision);
     await store.updatePublication(publication.id, {
       status: 'publishing',
       error: null,
     });
-    const branch = required('STUDIO_GITHUB_BRANCH');
-    const publicationBranch = `codex/studio-publish-${publication.id}`;
-    const path = `content/writings/${draft.slug}.mdx`;
-    await remember(publication.id, { publicationBranch, sourcePath: path });
-    publication = (await store.getPublication(initial.id))!;
-    if (publication.rebaseInput) {
-      await completeRebase(publication, branch);
-      publication = (await store.getPublication(initial.id))!;
-    }
-    const proposalRef = await optionalGithub(
-      `git/ref/heads/${encodeURIComponent(publicationBranch)}`
-    );
-    if (proposalRef) {
-      const sha = (proposalRef.object as { sha: string }).sha;
-      const proposal = await github(`git/commits/${sha}`);
-      if (
-        proposal.message !== messageFor(publication.id) ||
-        (publication.proposalCommit && publication.proposalCommit !== sha)
-      )
-        throw new StudioError(
-          409,
-          'The publication branch changed. Review it before retrying.'
-        );
-      await remember(publication.id, { proposalCommit: sha });
-    } else {
-      // GitHub can delete the private head branch after a successful merge.
-      // Reconcile the durable PR before considering a new proposal.
-      if (publication.pullRequestNumber) {
-        await reconcilePullRequest(publication, branch);
-        return (await store.getPublication(initial.id))!;
-      }
-      if (!publication.proposalCommit && !publication.proposalInput) {
-        const ref = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-        const base = (ref.object as { sha: string }).sha;
-        const existing = await sourceBlob(base, path);
-        if (existing !== (revision.body.baseFileSha ?? null)) {
-          const prior = await getStudioPool().query(
-            `SELECT p.body FROM studio_publications p JOIN studio_revisions r ON r.id=p.revision_id WHERE p.document_id=$1 AND p.body->>'publishedFileSha'=$2 AND p.body->>'commit' IS NOT NULL AND r.number <= $3 ORDER BY r.number DESC LIMIT 1`,
-            [documentId, existing ?? '', revision.number]
-          );
-          const previous = prior.rows[0]?.body as Publication | undefined;
-          if (!previous?.commit)
-            throw new StudioError(
-              409,
-              'The published source changed. Reimport it before publishing.'
-            );
-          const comparison = await github(
-            `compare/${previous.commit}...${base}`
-          );
-          if (!['ahead', 'identical'].includes(String(comparison.status)))
-            throw new StudioError(
-              409,
-              'The publication history changed. Reimport the published source.'
-            );
-        }
-        const resolved = await artifacts(revision.body, false);
-        const initialIssues = (await validatePublication(resolved.body)).filter(
-          (issue) =>
-            issue !== 'Private assets must be promoted before publication.'
-        );
-        if (initialIssues.length)
-          throw new StudioError(422, initialIssues.join(' '));
-        const promoted = await promoteAssets(resolved.body, publication.id);
-        const final = await artifacts(promoted, true, true);
-        const issues = await validatePublication(final.body);
-        if (issues.length) throw new StudioError(422, issues.join(' '));
-        const source = exportMdx(final.body, draft.slug, revisionId);
-        const files = [...final.files, { path, content: source }];
-        const baseCommit = await github(`git/commits/${base}`);
-        const baseTree = await github(
-          `git/trees/${(baseCommit.tree as { sha: string }).sha}?recursive=1`
-        );
-        if (baseTree.truncated)
-          throw new StudioError(
-            502,
-            'Repository tree is too large to validate safely.'
-          );
-        const baseEntries = baseTree.tree as { path: string; sha: string }[];
-        const tree = await github('git/trees', 'POST', {
-          base_tree: (baseCommit.tree as { sha: string }).sha,
-          tree: files.map((file) => ({
-            ...file,
-            mode: '100644',
-            type: 'blob',
-          })),
-        });
-        const fileSha = createHash('sha1')
-          .update(`blob ${Buffer.byteLength(source)}\0`)
-          .update(source)
-          .digest('hex');
-        await remember(publication.id, {
-          proposalInput: { tree: String(tree.sha), parent: base },
-          artifactManifest: files.map((file) => ({
-            path: file.path,
-            sha: createHash('sha1')
-              .update(`blob ${Buffer.byteLength(file.content)}\0`)
-              .update(file.content)
-              .digest('hex'),
-            baseSha:
-              baseEntries.find((entry) => entry.path === file.path)?.sha ??
-              null,
-          })),
-          sourceFileSha: existing,
-          publishedFileSha: fileSha,
-        });
-        publication = (await store.getPublication(initial.id))!;
-      }
-      if (!publication.proposalCommit) {
-        const identity = commitIdentity(publication);
-        // Persisted tree, parent and timestamp make object creation idempotent
-        // even when GitHub accepted the request but its response was lost.
-        const commit = await github('git/commits', 'POST', {
-          message: messageFor(publication.id),
-          tree: publication.proposalInput!.tree,
-          parents: [publication.proposalInput!.parent],
-          author: identity,
-          committer: identity,
-        });
-        await remember(publication.id, { proposalCommit: String(commit.sha) });
-        publication = (await store.getPublication(initial.id))!;
-      }
-      await github('git/refs', 'POST', {
-        ref: `refs/heads/${publicationBranch}`,
-        sha: publication.proposalCommit,
-      });
-    }
-    publication = (await store.getPublication(initial.id))!;
-    await reconcilePullRequest(publication, branch);
+    await preparePublicationProposal(publication, draft, revision);
   } catch (error) {
     await store.updatePublication(initial.id, {
       status: 'failed',
@@ -562,6 +474,172 @@ export async function publishRevision(
     lock.release();
   }
   return (await store.getPublication(initial.id))!;
+}
+async function requireLatestPublication(
+  documentId: string,
+  revision: Revision
+): Promise<void> {
+  const store = getStudioStore();
+  const newer = await getStudioPool().query(
+    `SELECT 1 FROM studio_publications p JOIN studio_revisions r ON r.id=p.revision_id WHERE p.document_id=$1 AND p.body->>'commit' IS NOT NULL AND r.number > $2 LIMIT 1`,
+    [documentId, revision.number]
+  );
+  const latestDraft = await store.get(documentId);
+  const live = latestDraft?.liveRevisionId
+    ? await store.revision(latestDraft.liveRevisionId)
+    : null;
+  if (newer.rowCount || (live && live.number > revision.number))
+    throw new StudioError(
+      409,
+      'Restore this earlier revision as a new working revision before publishing it.'
+    );
+}
+async function preparePublicationProposal(
+  publication: Publication,
+  draft: Draft,
+  revision: Revision
+): Promise<void> {
+  const store = getStudioStore();
+  const branch = required('STUDIO_GITHUB_BRANCH');
+  const publicationBranch = `codex/studio-publish-${publication.id}`;
+  const path = `content/writings/${draft.slug}.mdx`;
+  await remember(publication.id, { publicationBranch, sourcePath: path });
+  publication = (await store.getPublication(publication.id))!;
+  if (publication.rebaseInput) {
+    await completeRebase(publication, branch);
+    publication = (await store.getPublication(publication.id))!;
+  }
+  const proposalRef = await optionalGithub(
+    `git/ref/heads/${encodeURIComponent(publicationBranch)}`
+  );
+  if (proposalRef) {
+    const sha = (proposalRef.object as { sha: string }).sha;
+    const proposal = await github(`git/commits/${sha}`);
+    if (
+      proposal.message !== messageFor(publication.id) ||
+      (publication.proposalCommit && publication.proposalCommit !== sha)
+    )
+      throw new StudioError(
+        409,
+        'The publication branch changed. Review it before retrying.'
+      );
+    await remember(publication.id, { proposalCommit: sha });
+  } else {
+    // GitHub can delete the private head branch after a successful merge.
+    // Reconcile the durable PR before considering a new proposal.
+    if (publication.pullRequestNumber) {
+      await reconcilePullRequest(publication, branch);
+      return;
+    }
+    if (!publication.proposalCommit && !publication.proposalInput) {
+      await createPublicationTree(publication, draft, revision, branch, path);
+      publication = (await store.getPublication(publication.id))!;
+    }
+    if (!publication.proposalCommit) {
+      const identity = commitIdentity(publication);
+      // Persisted tree, parent and timestamp make object creation idempotent
+      // even when GitHub accepted the request but its response was lost.
+      const commit = await github('git/commits', 'POST', {
+        message: messageFor(publication.id),
+        tree: publication.proposalInput!.tree,
+        parents: [publication.proposalInput!.parent],
+        author: identity,
+        committer: identity,
+      });
+      await remember(publication.id, { proposalCommit: String(commit.sha) });
+      publication = (await store.getPublication(publication.id))!;
+    }
+    await github('git/refs', 'POST', {
+      ref: `refs/heads/${publicationBranch}`,
+      sha: publication.proposalCommit,
+    });
+  }
+  publication = (await store.getPublication(publication.id))!;
+  await reconcilePullRequest(publication, branch);
+}
+async function createPublicationTree(
+  publication: Publication,
+  draft: Draft,
+  revision: Revision,
+  branch: string,
+  path: string
+): Promise<void> {
+  const revisionId = revision.id;
+  const ref = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
+  const base = (ref.object as { sha: string }).sha;
+  const existing = await sourceBlob(base, path);
+  await validateSourceHistory(draft.id, revision, existing, base);
+  const resolved = await artifacts(revision.body, false);
+  const initialIssues = (await validatePublication(resolved.body)).filter(
+    (issue) => issue !== 'Private assets must be promoted before publication.'
+  );
+  if (initialIssues.length) throw new StudioError(422, initialIssues.join(' '));
+  const promoted = await promoteAssets(resolved.body, publication.id);
+  const final = await artifacts(promoted, true, true);
+  const issues = await validatePublication(final.body);
+  if (issues.length) throw new StudioError(422, issues.join(' '));
+  const source = exportMdx(final.body, draft.slug, revisionId);
+  const files = [...final.files, { path, content: source }];
+  const baseCommit = await github(`git/commits/${base}`);
+  const baseTree = await github(
+    `git/trees/${(baseCommit.tree as { sha: string }).sha}?recursive=1`
+  );
+  if (baseTree.truncated)
+    throw new StudioError(
+      502,
+      'Repository tree is too large to validate safely.'
+    );
+  const baseEntries = baseTree.tree as { path: string; sha: string }[];
+  const tree = await github('git/trees', 'POST', {
+    base_tree: (baseCommit.tree as { sha: string }).sha,
+    tree: files.map((file) => ({
+      ...file,
+      mode: '100644',
+      type: 'blob',
+    })),
+  });
+  const fileSha = createHash('sha1')
+    .update(`blob ${Buffer.byteLength(source)}\0`)
+    .update(source)
+    .digest('hex');
+  await remember(publication.id, {
+    proposalInput: { tree: String(tree.sha), parent: base },
+    artifactManifest: files.map((file) => ({
+      path: file.path,
+      sha: createHash('sha1')
+        .update(`blob ${Buffer.byteLength(file.content)}\0`)
+        .update(file.content)
+        .digest('hex'),
+      baseSha:
+        baseEntries.find((entry) => entry.path === file.path)?.sha ?? null,
+    })),
+    sourceFileSha: existing,
+    publishedFileSha: fileSha,
+  });
+}
+async function validateSourceHistory(
+  documentId: string,
+  revision: Revision,
+  existing: string | null,
+  base: string
+): Promise<void> {
+  if (existing === (revision.body.baseFileSha ?? null)) return;
+  const prior = await getStudioPool().query(
+    `SELECT p.body FROM studio_publications p JOIN studio_revisions r ON r.id=p.revision_id WHERE p.document_id=$1 AND p.body->>'publishedFileSha'=$2 AND p.body->>'commit' IS NOT NULL AND r.number <= $3 ORDER BY r.number DESC LIMIT 1`,
+    [documentId, existing ?? '', revision.number]
+  );
+  const previous = prior.rows[0]?.body as Publication | undefined;
+  if (!previous?.commit)
+    throw new StudioError(
+      409,
+      'The published source changed. Reimport it before publishing.'
+    );
+  const comparison = await github(`compare/${previous.commit}...${base}`);
+  if (!['ahead', 'identical'].includes(String(comparison.status)))
+    throw new StudioError(
+      409,
+      'The publication history changed. Reimport the published source.'
+    );
 }
 export async function publicationStatus(id: string): Promise<Publication> {
   const store = getStudioStore(),
@@ -586,26 +664,7 @@ export async function publicationStatus(id: string): Promise<Publication> {
       signal: AbortSignal.timeout(10_000),
     });
     const result = await response.json();
-    let commitMatches = result.commit === publication.commit;
-    if (
-      response.ok &&
-      result.revisionId === publication.revisionId &&
-      !commitMatches &&
-      /^[a-f0-9]{40}$/.test(String(result.commit))
-    ) {
-      const comparison = await github(
-        `compare/${publication.commit}...${result.commit}`
-      );
-      commitMatches =
-        comparison.status === 'ahead' || comparison.status === 'identical';
-    }
-    if (
-      response.ok &&
-      result.revisionId === publication.revisionId &&
-      Boolean(publication.publishedFileSha) &&
-      result.sourceSha === publication.publishedFileSha &&
-      commitMatches
-    ) {
+    if (await deployedPublicationMatches(publication, response.ok, result)) {
       await store.updatePublication(id, { status: 'live', error: null });
       return { ...publication, status: 'live', error: null };
     }
@@ -613,4 +672,32 @@ export async function publicationStatus(id: string): Promise<Publication> {
     /* A deployment still starting remains deploying. */
   }
   return publication;
+}
+
+async function deployedPublicationMatches(
+  publication: Publication,
+  ok: boolean,
+  result: { commit?: unknown; revisionId?: unknown; sourceSha?: unknown }
+): Promise<boolean> {
+  let commitMatches = result.commit === publication.commit;
+  if (
+    ok &&
+    result.revisionId === publication.revisionId &&
+    !commitMatches &&
+    /^[a-f0-9]{40}$/.test(String(result.commit))
+  ) {
+    const comparison = await github(
+      `compare/${publication.commit}...${result.commit}`
+    );
+    commitMatches =
+      comparison.status === 'ahead' || comparison.status === 'identical';
+  }
+
+  return (
+    ok &&
+    result.revisionId === publication.revisionId &&
+    Boolean(publication.publishedFileSha) &&
+    result.sourceSha === publication.publishedFileSha &&
+    commitMatches
+  );
 }

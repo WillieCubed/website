@@ -46,6 +46,19 @@ function webHref(href: string | undefined, baseUrl: string): string | null {
   }
 }
 
+/** Keep bounded integer dimensions while making imported images safe to display. */
+function prepareCommentImage(attributes: sanitizeHtml.Attributes): void {
+  for (const dimension of ['width', 'height']) {
+    if (
+      !/^[1-9]\d{0,4}$/.test(attributes[dimension] ?? '') ||
+      Number(attributes[dimension]) > 16384
+    )
+      delete attributes[dimension];
+  }
+  attributes.loading = 'lazy';
+  attributes.alt ??= '';
+}
+
 /** Directional markup retains the author's chosen base direction in Micropub HTML. */
 export function sanitizeCommentHtml(html: string, baseUrl: string): string {
   return sanitizeHtml(html, {
@@ -127,17 +140,7 @@ export function sanitizeCommentHtml(html: string, baseUrl: string): string {
         }
         if (tagName === 'video' || tagName === 'audio')
           Object.assign(attributes, { controls: '', preload: 'none' });
-        if (tagName === 'img') {
-          for (const dimension of ['width', 'height']) {
-            if (
-              !/^[1-9]\d{0,4}$/.test(attributes[dimension] ?? '') ||
-              Number(attributes[dimension]) > 16384
-            )
-              delete attributes[dimension];
-          }
-          attributes.loading = 'lazy';
-          attributes.alt ??= '';
-        }
+        if (tagName === 'img') prepareCommentImage(attributes);
         return { tagName, attribs: attributes };
       },
       a: (_tagName, attribs): sanitizeHtml.Tag => {

@@ -158,72 +158,26 @@ async function micropubPost(
 
   try {
     if (action.action === 'create') return await create(request, options);
-    const slug = writingSlugForUrl(action.url);
-    if (!slug) return postNotFound();
-    const permalink = absoluteRoute`/writings/${slug}`;
-    const environment = options.environment ?? micropubEnvironment();
-    // Studio revisions already use transactional compare-and-swap. Private
-    // source never enters the public Micropub archive database.
-    if (privateMicropubStore(options) && action.action === 'update') {
-      const stored = await findStoredWriting(
-        permalink,
-        environment,
-        options.fetch,
-        options
-      );
-      if (stored?.privateDocumentId)
-        return update(permalink, action.update, options);
-    }
-    if (privateMicropubStore(options) && action.action === 'delete') {
-      const stored = await findStoredWriting(
-        permalink,
-        environment,
-        options.fetch,
-        options
-      );
-      if (stored?.privateDocumentId) return remove(permalink, options);
-    }
-    const archives = options.archives ?? micropubArchiveStore;
-    return await archives.runExclusive(
-      micropubMutationKey(environment, permalink),
-      async () => {
-        if (action.action === 'update')
-          return update(permalink, action.update, options);
-        if (action.action === 'undelete') return restore(permalink, options);
-        return remove(permalink, options);
-      }
-    );
+    return await mutateWriting(action, options);
   } catch (error) {
     return errorResponse(error);
   }
 }
 
+export type MicropubAccessTokenResult =
+  | { token: string }
+  | { error: 'unauthorized' | 'invalid_request' };
+
 export async function readMicropubAccessToken(
   request: Request
-): Promise<{ token: string } | { error: 'unauthorized' | 'invalid_request' }> {
+): Promise<MicropubAccessTokenResult> {
   const headerToken = getBearerToken(request);
   const queryToken = new URL(request.url).searchParams.getAll('access_token');
-  const contentType = request.headers.get('content-type') ?? '';
-  let bodyTokens: FormDataEntryValue[] = [];
-  let jsonToken = false;
-  if (
-    contentType.includes('application/x-www-form-urlencoded') ||
-    contentType.includes('multipart/form-data')
-  ) {
-    try {
-      bodyTokens = (await request.clone().formData()).getAll('access_token');
-    } catch {
-      return { error: 'invalid_request' };
-    }
-  } else if (contentType.includes('application/json')) {
-    try {
-      const body = await request.clone().json();
-      jsonToken = Boolean(
-        body && typeof body === 'object' && 'access_token' in body
-      );
-    } catch {
-      return { error: 'invalid_request' };
-    }
+  let bodyTokens: FormDataEntryValue[], jsonToken: boolean;
+  try {
+    ({ bodyTokens, jsonToken } = await readBodyCredentials(request));
+  } catch {
+    return { error: 'invalid_request' };
   }
   if (
     queryToken.length ||
@@ -560,4 +514,80 @@ export function authorizationError(
       : `Bearer error="${error}"${scope ? `, scope="${Array.isArray(scope) ? scope.join(' ') : scope}"` : ''}`;
   response.headers.set('WWW-Authenticate', challenge);
   return response;
+}
+
+type MutationAction = Exclude<MicropubAction, { action: 'create' }>;
+async function isPrivateMutation(
+  action: MutationAction,
+  permalink: string,
+  environment: MicropubRouteEnvironment,
+  options: MicropubEndpointOptions
+): Promise<boolean> {
+  // Studio revisions use transactional compare-and-swap, keeping private source out of public archives.
+  if (
+    !privateMicropubStore(options) ||
+    !['update', 'delete'].includes(action.action)
+  )
+    return false;
+  const stored = await findStoredWriting(
+    permalink,
+    environment,
+    options.fetch,
+    options
+  );
+  return Boolean(stored?.privateDocumentId);
+}
+function dispatchMutation(
+  action: MutationAction,
+  permalink: string,
+  options: MicropubEndpointOptions
+): Promise<Response> {
+  if (action.action === 'update')
+    return update(permalink, action.update, options);
+  if (action.action === 'undelete') return restore(permalink, options);
+  return remove(permalink, options);
+}
+
+async function readBodyCredentials(request: Request) {
+  const contentType = request.headers.get('content-type') ?? '';
+  let bodyTokens: FormDataEntryValue[] = [];
+  let jsonToken = false;
+  if (
+    contentType.includes('application/x-www-form-urlencoded') ||
+    contentType.includes('multipart/form-data')
+  ) {
+    try {
+      bodyTokens = (await request.clone().formData()).getAll('access_token');
+    } catch {
+      throw new Error('invalid_request');
+    }
+  } else if (contentType.includes('application/json')) {
+    try {
+      const body = await request.clone().json();
+      jsonToken = Boolean(
+        body && typeof body === 'object' && 'access_token' in body
+      );
+    } catch {
+      throw new Error('invalid_request');
+    }
+  }
+  return { bodyTokens, jsonToken };
+}
+
+async function mutateWriting(
+  action: MutationAction,
+  options: MicropubEndpointOptions
+): Promise<Response> {
+  const slug = writingSlugForUrl(action.url);
+  if (!slug) return postNotFound();
+  const permalink = absoluteRoute`/writings/${slug}`;
+  const environment = options.environment ?? micropubEnvironment();
+  if (await isPrivateMutation(action, permalink, environment, options)) {
+    return dispatchMutation(action, permalink, options);
+  }
+  const archives = options.archives ?? micropubArchiveStore;
+  return await archives.runExclusive(
+    micropubMutationKey(environment, permalink),
+    () => dispatchMutation(action, permalink, options)
+  );
 }

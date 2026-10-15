@@ -8,26 +8,14 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 
+import type { CaptureOptions, VerifiedRuntime } from './types.mts';
+
 interface Context {
   settings: Record<string, string>;
   ORIGIN: string;
   runtimeRevision: string;
   socialOnly: boolean;
-  values: {
-    workspace?: string | undefined;
-    slug?: string | undefined;
-    env: string;
-    output: string;
-    'refresh-wait-seconds': string;
-    'cleanup-only': boolean;
-    'defer-bluesky': boolean;
-    'authorization-only': boolean;
-    'cookie-delivery-failure': boolean;
-    'social-only': boolean;
-    'fixture-source-journal'?: string | undefined;
-    'fixture-publication-journal'?: string | undefined;
-    'social-runtime-revision'?: string | undefined;
-  };
+  values: CaptureOptions;
   currentSocialFixture: boolean;
   workspace: string;
   socialRevision: string;
@@ -35,7 +23,9 @@ interface Context {
   fixturePublicationJournal: string;
 }
 
-export async function verifyExistingRuntime(dependencies: Context) {
+export async function verifyExistingRuntime(
+  dependencies: Context
+): Promise<VerifiedRuntime> {
   const { resolvePds } = await import('../../../../../lib/atproto/identity');
   const { documentIsVerified, publicationIsVerified } =
     await import('../../../../../lib/atproto/verification');
@@ -86,15 +76,17 @@ export async function verifyExistingRuntime(dependencies: Context) {
       endpoint
     )
   );
-  let document:
-    | {
-        uri: string;
-        cid: string;
-        sourceHash: string;
-        dirtyFixtureOverlay?: true;
-      }
-    | undefined;
-  if (dependencies.socialOnly) {
+  const document = dependencies.socialOnly
+    ? await verifyFixtureDocument()
+    : undefined;
+  return {
+    revision: dependencies.runtimeRevision,
+    ...(dependencies.currentSocialFixture && { dirtyFixtureOverlay: true }),
+    publication,
+    cid: record.cid as string,
+    ...(document && { document }),
+  };
+  async function verifyFixtureDocument() {
     assert.equal(
       dependencies.values.slug,
       dependencies.currentSocialFixture
@@ -136,65 +128,9 @@ export async function verifyExistingRuntime(dependencies: Context) {
       ),
       source.original
     );
-    if (dependencies.currentSocialFixture) {
-      assert(source.removed === false && source.cleanup === 'pending');
-      assert.equal(
-        execFileSync('git', ['rev-parse', 'HEAD'], {
-          cwd: dependencies.workspace,
-          encoding: 'utf8',
-        }).trim(),
-        dependencies.socialRevision
-      );
-      for (const directory of [dependencies.workspace, dependencies.root]) {
-        assert.equal(
-          execFileSync(
-            'git',
-            [
-              'diff',
-              dependencies.socialRevision,
-              '--',
-              'app',
-              'components',
-              'lib',
-            ],
-            {
-              cwd: directory,
-              encoding: 'utf8',
-            }
-          ),
-          '',
-          'The deployed runtime and both working sources must match exactly.'
-        );
-        assert.equal(
-          execFileSync(
-            'git',
-            [
-              'ls-files',
-              '--others',
-              '--exclude-standard',
-              '--',
-              'app',
-              'components',
-              'lib',
-            ],
-            {
-              cwd: directory,
-              encoding: 'utf8',
-            }
-          ),
-          '',
-          'Untracked runtime source cannot be verified against the deployment.'
-        );
-      }
-    }
+    await verifyCurrentFixtureSource(source);
     const metadata = matter(source.original).data;
-    if (dependencies.currentSocialFixture)
-      assert.equal(
-        new Date(metadata.published).toISOString(),
-        '2026-10-09T09:22:45.696Z'
-      );
-    assert.equal(metadata.draft, false);
-    assert(!metadata.syndicateTo?.length && !metadata.syndication?.length);
+    verifyFixtureMetadata(metadata);
     const { documentRkey } = await import('../../../../../lib/atproto/keys');
     const path = `/writings/${dependencies.values.slug}`;
     const rkey = documentRkey(path, new Date(metadata.published));
@@ -251,6 +187,89 @@ export async function verifyExistingRuntime(dependencies: Context) {
         'The hosted fixture must retain its exact published time.'
       );
     }
+    await verifyFixturePublication(
+      record,
+      writing,
+      publication,
+      metadata.published,
+      rkey,
+      path
+    );
+    return {
+      uri,
+      cid: writing.cid as string,
+      sourceHash: source.sha256,
+      ...(dependencies.currentSocialFixture && {
+        dirtyFixtureOverlay: true as const,
+      }),
+    };
+  }
+
+  async function verifyCurrentFixtureSource(source: {
+    removed?: boolean;
+    cleanup?: string;
+  }): Promise<void> {
+    if (dependencies.currentSocialFixture) {
+      assert(source.removed === false && source.cleanup === 'pending');
+      assert.equal(
+        execFileSync('git', ['rev-parse', 'HEAD'], {
+          cwd: dependencies.workspace,
+          encoding: 'utf8',
+        }).trim(),
+        dependencies.socialRevision
+      );
+      for (const directory of [dependencies.workspace, dependencies.root]) {
+        assert.equal(
+          execFileSync(
+            'git',
+            [
+              'diff',
+              dependencies.socialRevision,
+              '--',
+              'app',
+              'components',
+              'lib',
+            ],
+            {
+              cwd: directory,
+              encoding: 'utf8',
+            }
+          ),
+          '',
+          'The deployed runtime and both working sources must match exactly.'
+        );
+        assert.equal(
+          execFileSync(
+            'git',
+            [
+              'ls-files',
+              '--others',
+              '--exclude-standard',
+              '--',
+              'app',
+              'components',
+              'lib',
+            ],
+            {
+              cwd: directory,
+              encoding: 'utf8',
+            }
+          ),
+          '',
+          'Untracked runtime source cannot be verified against the deployment.'
+        );
+      }
+    }
+  }
+
+  async function verifyFixturePublication(
+    record: { cid: string; value: unknown },
+    writing: { cid: string; value: unknown },
+    publication: string,
+    published: string,
+    rkey: string,
+    path: string
+  ): Promise<void> {
     const fixture = JSON.parse(
       await readFile(dependencies.fixturePublicationJournal, 'utf8')
     ) as {
@@ -277,10 +296,7 @@ export async function verifyExistingRuntime(dependencies: Context) {
       dependencies.settings.ATPROTO_PUBLICATION_RKEY
     );
     assert.equal(fixture.slug, dependencies.values.slug);
-    assert.equal(
-      fixture.publishedAt,
-      new Date(metadata.published).toISOString()
-    );
+    assert.equal(fixture.publishedAt, new Date(published).toISOString());
     assert.equal(fixture.documentRkey, rkey);
     assert.equal(fixture.expectedPath, path);
     assert(fixture.inventoryComplete && fixture.cleanup === 'pending');
@@ -289,20 +305,17 @@ export async function verifyExistingRuntime(dependencies: Context) {
     assert(isDeepStrictEqual(fixture.syncedPublication?.value, record.value));
     assert.equal(fixture.syncedDocument?.cid, writing.cid);
     assert(isDeepStrictEqual(fixture.syncedDocument?.value, writing.value));
-    document = {
-      uri,
-      cid: writing.cid as string,
-      sourceHash: source.sha256,
-      ...(dependencies.currentSocialFixture && {
-        dirtyFixtureOverlay: true as const,
-      }),
-    };
   }
-  return {
-    revision: dependencies.runtimeRevision,
-    ...(dependencies.currentSocialFixture && { dirtyFixtureOverlay: true }),
-    publication,
-    cid: record.cid as string,
-    ...(document && { document }),
-  };
+  function verifyFixtureMetadata(metadata: Record<string, unknown>): void {
+    if (dependencies.currentSocialFixture)
+      assert.equal(
+        new Date(metadata.published as string).toISOString(),
+        '2026-10-09T09:22:45.696Z'
+      );
+    assert.equal(metadata.draft, false);
+    assert(
+      !(metadata.syndicateTo as unknown[] | undefined)?.length &&
+        !(metadata.syndication as unknown[] | undefined)?.length
+    );
+  }
 }

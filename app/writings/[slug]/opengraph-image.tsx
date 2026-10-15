@@ -13,9 +13,9 @@ export const contentType = 'image/png';
  * date, reading time, and available cover. Return 404 for a draft or missing
  * writing.
  */
-export default async function Image(props: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function Image(
+  props: Pick<PageProps<'/writings/[slug]'>, 'params'>
+) {
   const { slug } = await props.params;
   const { writing } = await getPublishedWriting(slug).catch(() => notFound());
   return renderEntityImage({

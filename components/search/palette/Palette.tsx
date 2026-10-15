@@ -60,6 +60,74 @@ function Excerpt({ parts }: { parts: ExcerptPart[] }) {
     </span>
   );
 }
+function PendingReadout({
+  readout,
+  pending,
+}: {
+  readout: Readout | null;
+  pending: string | null;
+}) {
+  if (!readout && !pending) return null;
+  return (
+    <ReadoutView
+      readout={readout ?? { heading: `${pending}`, body: 'Asking the server…' }}
+    />
+  );
+}
+
+function searchStatusAvailable(
+  readout: Readout | null,
+  pending: string | null,
+  typed: string,
+  egg: Command | undefined
+): boolean {
+  return !readout && !pending && typed.length >= 2 && !egg;
+}
+
+function searchStatusMessage(
+  query: string,
+  error: string | null,
+  searching: boolean,
+  count: number
+): string {
+  if (searching) return 'Searching…';
+  if (error) return error;
+  return count
+    ? `${count} results available.`
+    : `Nothing on the site matches “${query.trim()}”.`;
+}
+interface SearchStatusProps {
+  query: string;
+  error: string | null;
+  searching: boolean;
+  count: number;
+  onClose: (options?: CloseOptions) => void;
+}
+function PaletteSearchStatus({
+  query,
+  error,
+  searching,
+  count,
+  onClose,
+}: SearchStatusProps) {
+  return (
+    <div className="palette-search-status">
+      <p className="palette-empty m-0 px-5 pt-5 pb-3 text-muted" role="status">
+        {searchStatusMessage(query, error, searching, count)}
+      </p>
+      {error && (
+        <SiteLink
+          preview={false}
+          href={`/search?q=${encodeURIComponent(query.trim())}`}
+          onClick={() => onClose({ animate: false, restoreFocus: false })}
+        >
+          Search without instant search
+        </SiteLink>
+      )}
+    </div>
+  );
+}
+
 interface PaletteBodyProps {
   data: PaletteData;
   contextCommands: Command[];
@@ -130,13 +198,7 @@ function PaletteBody({
       </div>
 
       <div className="palette-body flex h-[min(320px,45dvh)] min-h-0 flex-1 flex-col gap-3">
-        {(readout || pending) && (
-          <ReadoutView
-            readout={
-              readout ?? { heading: `${pending}`, body: 'Asking the server…' }
-            }
-          />
-        )}
+        <PendingReadout readout={readout} pending={pending} />
         {showList && (
           <div
             id={listboxId}
@@ -200,29 +262,14 @@ function PaletteBody({
             ))}
           </div>
         )}
-        {!readout && !pending && typed.length >= 2 && !egg && (
-          <div className="palette-search-status">
-            <p
-              className="palette-empty m-0 px-5 pt-5 pb-3 text-muted"
-              role="status"
-            >
-              {searching
-                ? 'Searching…'
-                : (searchError ??
-                  (!showList
-                    ? `Nothing on the site matches “${query.trim()}”.`
-                    : `${rows.length} results available.`))}
-            </p>
-            {searchError && (
-              <SiteLink
-                preview={false}
-                href={`/search?q=${encodeURIComponent(query.trim())}`}
-                onClick={() => onClose({ animate: false, restoreFocus: false })}
-              >
-                Search without instant search
-              </SiteLink>
-            )}
-          </div>
+        {searchStatusAvailable(readout, pending, typed, egg) && (
+          <PaletteSearchStatus
+            query={query}
+            error={searchError}
+            searching={searching}
+            count={rows.length}
+            onClose={onClose}
+          />
         )}
       </div>
 

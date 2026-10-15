@@ -18,7 +18,7 @@ export type {
   SeriesMetadata,
   SeriesWithWritings,
 } from '../collections';
-export type { TOCHeading, WritingData } from './types';
+export type { TOCHeading, WritingData, WritingDocument } from './types';
 
 /**
  * Fetches the data for a writing.

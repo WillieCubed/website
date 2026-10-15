@@ -193,85 +193,102 @@ async function boundedUploadBody(
   return bytes;
 }
 
-function matchesSignature(bytes: Uint8Array, mime: string): boolean {
-  const ascii = (offset: number, length: number) =>
-    String.fromCharCode(...bytes.slice(offset, offset + length));
-  const starts = (...values: number[]) =>
-    values.every((value, index) => bytes[index] === value);
-  const riff = ascii(0, 4) === 'RIFF';
-  const iso = bytes.length >= 12 && ascii(4, 4) === 'ftyp';
-  const brands = [
-    ascii(8, 4),
+const BYTE_SIGNATURES = new Map<string, number[]>(
+  Object.entries({
+    'image/jpeg': [0xff, 0xd8, 0xff],
+    'image/png': [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+    'audio/webm': [0x1a, 0x45, 0xdf, 0xa3],
+    'video/webm': [0x1a, 0x45, 0xdf, 0xa3],
+  })
+);
+const TEXT_SIGNATURES = new Map<string, string[]>(
+  Object.entries({
+    'image/gif': ['GIF87a', 'GIF89a'],
+    'audio/flac': ['fLaC'],
+    'audio/ogg': ['OggS'],
+    'video/ogg': ['OggS'],
+    'application/pdf': ['%PDF-'],
+  })
+);
+const ISO_BRANDS = new Map<string, string[]>(
+  Object.entries({
+    'image/avif': ['avif', 'avis'],
+    'image/heic': ['heic', 'heix', 'hevc', 'hevx'],
+    'image/heif': ['mif1', 'msf1', 'heic', 'heix'],
+    'video/quicktime': ['qt  '],
+    'audio/mp4': [
+      'isom',
+      'iso2',
+      'mp41',
+      'mp42',
+      'M4A ',
+      'M4B ',
+      'M4V ',
+      'avc1',
+      'dash',
+    ],
+    'video/mp4': [
+      'isom',
+      'iso2',
+      'mp41',
+      'mp42',
+      'M4A ',
+      'M4B ',
+      'M4V ',
+      'avc1',
+      'dash',
+    ],
+  })
+);
+const RIFF_SIGNATURES = new Map([
+  ['image/webp', 'WEBP'],
+  ['audio/wav', 'WAVE'],
+]);
+function signatureText(
+  bytes: Uint8Array,
+  offset: number,
+  length: number
+): string {
+  return String.fromCharCode(...bytes.slice(offset, offset + length));
+}
+function matchesIsoSignature(bytes: Uint8Array, brands: string[]): boolean {
+  if (bytes.length < 12 || signatureText(bytes, 4, 4) !== 'ftyp') return false;
+  const fileBrands = [
+    signatureText(bytes, 8, 4),
     ...Array.from(
       { length: Math.max(0, Math.floor((bytes.length - 16) / 4)) },
-      (_, index) => ascii(16 + index * 4, 4)
+      (_, index) => signatureText(bytes, 16 + index * 4, 4)
     ),
   ];
-  switch (mime) {
-    case 'image/jpeg':
-      return starts(0xff, 0xd8, 0xff);
-    case 'image/png':
-      return starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
-    case 'image/gif':
-      return ['GIF87a', 'GIF89a'].includes(ascii(0, 6));
-    case 'image/webp':
-      return riff && ascii(8, 4) === 'WEBP';
-    case 'image/avif':
-      return iso && brands.some((brand) => ['avif', 'avis'].includes(brand));
-    case 'image/heic':
-      return (
-        iso &&
-        brands.some((brand) => ['heic', 'heix', 'hevc', 'hevx'].includes(brand))
-      );
-    case 'image/heif':
-      return (
-        iso &&
-        brands.some((brand) => ['mif1', 'msf1', 'heic', 'heix'].includes(brand))
-      );
-    case 'audio/mpeg':
-      return (
-        ascii(0, 3) === 'ID3' ||
-        (bytes[0] === 0xff &&
-          (bytes[1] & 0xe0) === 0xe0 &&
-          (bytes[1] & 0x06) !== 0)
-      );
-    case 'audio/aac':
-      return bytes[0] === 0xff && (bytes[1] & 0xf6) === 0xf0;
-    case 'audio/wav':
-      return riff && ascii(8, 4) === 'WAVE';
-    case 'audio/flac':
-      return ascii(0, 4) === 'fLaC';
-    case 'audio/ogg':
-    case 'video/ogg':
-      return ascii(0, 4) === 'OggS';
-    case 'audio/webm':
-    case 'video/webm':
-      return starts(0x1a, 0x45, 0xdf, 0xa3);
-    case 'video/quicktime':
-      return iso && brands.includes('qt  ');
-    case 'audio/mp4':
-    case 'video/mp4':
-      return (
-        iso &&
-        brands.some((brand) =>
-          [
-            'isom',
-            'iso2',
-            'mp41',
-            'mp42',
-            'M4A ',
-            'M4B ',
-            'M4V ',
-            'avc1',
-            'dash',
-          ].includes(brand)
-        )
-      );
-    case 'application/pdf':
-      return ascii(0, 5) === '%PDF-';
-    default:
-      return false;
-  }
+  return fileBrands.some((brand) => brands.includes(brand));
+}
+function matchesAudioSignature(bytes: Uint8Array, mime: string): boolean {
+  if (mime === 'audio/aac')
+    return bytes[0] === 0xff && (bytes[1] & 0xf6) === 0xf0;
+  return (
+    signatureText(bytes, 0, 3) === 'ID3' ||
+    (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0 && (bytes[1] & 0x06) !== 0)
+  );
+}
+function matchesSignature(bytes: Uint8Array, mime: string): boolean {
+  const prefix = BYTE_SIGNATURES.get(mime);
+  if (prefix) return prefix.every((value, index) => bytes[index] === value);
+  const text = TEXT_SIGNATURES.get(mime);
+  if (text)
+    return text.some(
+      (value) => signatureText(bytes, 0, value.length) === value
+    );
+  const brands = ISO_BRANDS.get(mime);
+  if (brands) return matchesIsoSignature(bytes, brands);
+  if (mime === 'audio/mpeg' || mime === 'audio/aac')
+    return matchesAudioSignature(bytes, mime);
+  const riffType = RIFF_SIGNATURES.get(mime);
+  if (riffType)
+    return (
+      signatureText(bytes, 0, 4) === 'RIFF' &&
+      signatureText(bytes, 8, 4) === riffType
+    );
+  return false;
 }
 
 export function mediaKindForType(

@@ -1,6 +1,6 @@
 import { posix, resolve } from 'node:path';
 
-import { createPool } from '@/lib/db/postgres';
+import { type PostgresPool, createPool } from '@/lib/db/postgres';
 import {
   MicropubConflictError,
   type StoredWriting,
@@ -37,8 +37,8 @@ export function micropubMutationKey(
   ]);
 }
 
-let lockPool: ReturnType<typeof createPool> | undefined;
-let archivePool: ReturnType<typeof createPool> | undefined;
+let lockPool: PostgresPool | undefined;
+let archivePool: PostgresPool | undefined;
 function queryStore() {
   return (archivePool ??= createPool({ max: 2 }));
 }

@@ -12,6 +12,14 @@ interface LiteYouTubeProps {
   className?: string;
 }
 
+type PlayerState = 'poster' | 'loading' | 'ready' | 'failed';
+const playerMessage: Record<PlayerState, string> = {
+  poster: '',
+  loading: 'Opening player… ',
+  ready: '',
+  failed: 'The player could not open. ',
+};
+
 /** Keep the poster and a usable source link throughout player startup. */
 export default function LiteYouTube({
   videoId,
@@ -19,14 +27,12 @@ export default function LiteYouTube({
   poster,
   className = '',
 }: LiteYouTubeProps) {
-  const [playing, setPlaying] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [state, setState] = useState<PlayerState>('poster');
   useEffect(() => {
-    if (!playing || loaded || failed) return;
-    const timer = setTimeout(() => setFailed(true), 10_000);
+    if (state !== 'loading') return;
+    const timer = setTimeout(() => setState('failed'), 10_000);
     return () => clearTimeout(timer);
-  }, [playing, loaded, failed]);
+  }, [state]);
   const source = `https://www.youtube.com/watch?v=${videoId}`;
   const posterSrc =
     poster ?? `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
@@ -34,7 +40,7 @@ export default function LiteYouTube({
     <figure className={className}>
       <div
         className="group relative aspect-video w-full overflow-hidden rounded-2xl bg-ink"
-        aria-busy={playing && !loaded && !failed}
+        aria-busy={state === 'loading'}
       >
         <Image
           src={posterSrc}
@@ -47,13 +53,13 @@ export default function LiteYouTube({
             posterSrc.startsWith('https://') || posterSrc.endsWith('.svg')
           }
         />
-        {!playing && (
+        {state === 'poster' && (
           <a
             href={source}
             onClick={(event) => {
               if (!isPlainClick(event)) return;
               event.preventDefault();
-              setPlaying(true);
+              setState('loading');
             }}
             className="absolute inset-0 flex items-center justify-center text-ground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ground"
             aria-label={`Play ${title}`}
@@ -70,33 +76,28 @@ export default function LiteYouTube({
             </span>
           </a>
         )}
-        {playing && !failed && (
+        {(state === 'loading' || state === 'ready') && (
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
             title={title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
-            onLoad={() => setLoaded(true)}
-            onError={() => setFailed(true)}
-            className={`absolute inset-0 h-full w-full border-0 ${loaded ? '' : 'opacity-0'}`}
+            onLoad={() =>
+              setState((current) => (current === 'loading' ? 'ready' : current))
+            }
+            onError={() => setState('failed')}
+            className={`absolute inset-0 h-full w-full border-0 ${state === 'ready' ? '' : 'opacity-0'}`}
           />
         )}
       </div>
       <figcaption>
-        <span role="status">
-          {failed
-            ? 'The player could not open. '
-            : playing && !loaded
-              ? 'Opening player… '
-              : ''}
-        </span>
+        <span role="status">{playerMessage[state]}</span>
         <a href={source}>Watch {title} on YouTube</a>
-        {failed && (
+        {state === 'failed' && (
           <button
             type="button"
             onClick={() => {
-              setLoaded(false);
-              setFailed(false);
+              setState('loading');
             }}
           >
             Try player again

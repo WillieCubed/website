@@ -1,8 +1,47 @@
 /* global document, innerWidth, scrollTo */
-import { chromium } from '@playwright/test';
+import { type Page, chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 import { isMain } from '../../../support/publishing/runtime.mts';
+
+async function captureSetup(
+  page: Page,
+  capture: (name: string) => Promise<void>
+) {
+  await page.getByRole('button', { name: 'Show setup', exact: true }).click();
+  await capture('setup-connect');
+  await page
+    .getByRole('button', { name: 'Connect Spotify', exact: true })
+    .click();
+  for (const name of ['Fall Tour 2026, Part 1', 'Summer 2026', 'Late hours']) {
+    await page
+      .getByRole('checkbox', { name: `Select ${name}`, exact: true })
+      .check();
+  }
+  await page.evaluate(() => scrollTo(0, 0));
+  await capture('setup-choose');
+  await page
+    .getByRole('button', { name: 'Preview collection', exact: true })
+    .click();
+  await page
+    .getByRole('radio', {
+      name: 'Feature Fall Tour 2026, Part 1',
+      exact: true,
+    })
+    .check();
+  await page.evaluate(() => scrollTo(0, 0));
+  await capture('setup-preview');
+  const noFeature = page.getByRole('radio', {
+    name: 'No featured playlist',
+    exact: true,
+  });
+  await noFeature.scrollIntoViewIfNeeded();
+  await noFeature.focus();
+  await page.keyboard.press('ArrowDown');
+  await capture('setup-preview-options');
+  await page.keyboard.press('ArrowUp');
+  await capture('setup-no-feature');
+}
 
 export async function captureMusicPrototype() {
   const output =
@@ -59,45 +98,7 @@ export async function captureMusicPrototype() {
         };
         await capture('gallery');
         if (process.argv[3] === '--setup') {
-          await page
-            .getByRole('button', { name: 'Show setup', exact: true })
-            .click();
-          await capture('setup-connect');
-          await page
-            .getByRole('button', { name: 'Connect Spotify', exact: true })
-            .click();
-          for (const name of [
-            'Fall Tour 2026, Part 1',
-            'Summer 2026',
-            'Late hours',
-          ]) {
-            await page
-              .getByRole('checkbox', { name: `Select ${name}`, exact: true })
-              .check();
-          }
-          await page.evaluate(() => scrollTo(0, 0));
-          await capture('setup-choose');
-          await page
-            .getByRole('button', { name: 'Preview collection', exact: true })
-            .click();
-          await page
-            .getByRole('radio', {
-              name: 'Feature Fall Tour 2026, Part 1',
-              exact: true,
-            })
-            .check();
-          await page.evaluate(() => scrollTo(0, 0));
-          await capture('setup-preview');
-          const noFeature = page.getByRole('radio', {
-            name: 'No featured playlist',
-            exact: true,
-          });
-          await noFeature.scrollIntoViewIfNeeded();
-          await noFeature.focus();
-          await page.keyboard.press('ArrowDown');
-          await capture('setup-preview-options');
-          await page.keyboard.press('ArrowUp');
-          await capture('setup-no-feature');
+          await captureSetup(page, capture);
           await context.close();
           continue;
         }

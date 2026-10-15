@@ -75,27 +75,19 @@ export default function WritingMetadata({
         )}
         <span aria-hidden="true">·</span>
         <span>
-          {!draft.liveRevisionId
-            ? 'Draft'
-            : draft.liveRevisionId === draft.head.id &&
-                JSON.stringify(body) === saved.current
-              ? 'Published'
-              : 'Unpublished changes'}
-        </span>
-        {body.postType === 'article' &&
-          !showHeading &&
-          !body.title &&
-          !body.description && (
-            <button
-              className="studio-inline-trigger"
-              onClick={() => {
-                setShowHeading(true);
-                requestAnimationFrame(() => titleField.current?.focus());
-              }}
-            >
-              Add a title
-            </button>
+          {writingPublicationState(
+            draft,
+            JSON.stringify(body) === saved.current
           )}
+        </span>
+        <AddWritingTitle
+          body={body}
+          showHeading={showHeading}
+          onAdd={() => {
+            setShowHeading(true);
+            requestAnimationFrame(() => titleField.current?.focus());
+          }}
+        />
         <div
           className={`studio-editor-context text-label-large text-muted${['All changes saved', 'Unsaved changes', 'Saving…'].includes(status) ? '' : ' studio-editor-context-expanded'}`}
         >
@@ -147,5 +139,38 @@ export default function WritingMetadata({
         </Popover>
       </div>
     </>
+  );
+}
+
+function writingPublicationState(
+  draft: WritingController['draft'],
+  saved: boolean
+): string {
+  if (!draft.liveRevisionId) return 'Draft';
+  return draft.liveRevisionId === draft.head.id && saved
+    ? 'Published'
+    : 'Unpublished changes';
+}
+
+function AddWritingTitle({
+  body,
+  showHeading,
+  onAdd,
+}: {
+  body: WritingController['body'];
+  showHeading: boolean;
+  onAdd: () => void;
+}) {
+  if (
+    body.postType !== 'article' ||
+    showHeading ||
+    body.title ||
+    body.description
+  )
+    return null;
+  return (
+    <button className="studio-inline-trigger" onClick={onAdd}>
+      Add a title
+    </button>
   );
 }

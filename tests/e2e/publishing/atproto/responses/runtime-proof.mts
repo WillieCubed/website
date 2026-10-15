@@ -3,19 +3,11 @@ import type {} from '@atcute/bluesky';
 import type { Did } from '@atcute/lexicons';
 import assert from 'node:assert/strict';
 
-import type { Snapshot } from './types.mts';
+import type { RuntimeExpectation, Snapshot } from './types.mts';
 
 interface Context {
   ORIGIN: string;
-  runtimeExpectation: {
-    revision: string;
-    did: string;
-    slug: string;
-    nonce: string;
-    publishedAt: string;
-    documentRkey: string;
-    sourceSha256: string;
-  };
+  runtimeExpectation: RuntimeExpectation;
   slug: string;
   did: string | undefined;
   identity: {

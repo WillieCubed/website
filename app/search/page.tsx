@@ -15,9 +15,7 @@ export const metadata: Metadata = pageMetadata({
   noIndex: true,
 });
 
-interface SearchPageProps {
-  searchParams: Promise<{ q?: string }>;
-}
+type SearchPageProps = PageProps<'/search'>;
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
@@ -30,7 +28,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           Press <kbd className="font-mono">⌘K</kbd> (Ctrl+K on Windows and
           Linux) for instant search.
         </p>
-        <SiteSearch query={q} />
+        <SiteSearch query={Array.isArray(q) ? q[0] : q} />
       </main>
     </>
   );

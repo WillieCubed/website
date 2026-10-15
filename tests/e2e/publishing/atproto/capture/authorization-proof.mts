@@ -1,72 +1,38 @@
 import type {} from '@atcute/atproto';
 import type { Did } from '@atcute/lexicons';
 import type { StoredSession } from '@atcute/oauth-node-client';
+import type { BrowserContext } from '@playwright/test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
+import type { PostgresPool } from '../../../../../lib/db/postgres';
 import {
   type CapturedCallback,
   verifyCallbackSignature,
 } from '../../../../support/publishing/callback-proof.mts';
 import { captureSocialState } from '../../../../support/publishing/social-browser.mts';
-import type { AuthorizationBaseline } from './types.mts';
+import type {
+  AuthorizationBaseline,
+  AuthorizationFlow,
+  CaptureOptions,
+  CapturedFlow,
+  LocalVerifier,
+  VerifiedRuntime,
+} from './types.mts';
 
 interface Context {
-  flow: (
-    context: import('@playwright/test').BrowserContext,
-    handle: string,
-    expectation: 'grant' | 'cancel' | 'expired',
-    filename: string,
-    action?: 'subscription' | 'recommendation',
-    withholdDelivery?: boolean
-  ) => Promise<{
-    file: string;
-    page: import('@playwright/test').Page;
-    ownedSocialRecords: {
-      uri: string;
-      cid: string;
-      kind: 'subscription' | 'recommendation';
-      target: unknown;
-    }[];
-    grant: {
-      did: string;
-      sessionHash: string;
-      callbackStateHash: string;
-      outcome: string;
-    };
-  }>;
-  existingRuntime:
-    | {
-        document?:
-          | {
-              uri: string;
-              cid: string;
-              sourceHash: string;
-              dirtyFixtureOverlay?: true;
-            }
-          | undefined;
-        publication: string;
-        cid: string;
-        dirtyFixtureOverlay?: boolean | undefined;
-        revision: string;
-      }
-    | undefined;
-  localVerifier:
-    | {
-        revision: string;
-        sourceHashes: Record<string, string>;
-        deployedCode: boolean;
-      }
-    | undefined;
+  flow: AuthorizationFlow;
+  existingRuntime: VerifiedRuntime | undefined;
+  localVerifier: LocalVerifier | undefined;
   authorizationBaseline: AuthorizationBaseline | undefined;
   save: (name: string, value: unknown) => Promise<string>;
-  first: import('@playwright/test').BrowserContext;
-  second: import('@playwright/test').BrowserContext;
+  first: BrowserContext;
+  second: BrowserContext;
   ORIGIN: string;
   hash: (value: string) => string;
-  db: ReturnType<typeof import('../../../../../lib/db/postgres').createPool>;
+  db: PostgresPool;
   decryptOAuthValue: <T>(value: string, key: string) => T;
   settings: Record<string, string>;
   graphFor: (
@@ -75,54 +41,25 @@ interface Context {
     targetOnly?: boolean
   ) => Promise<{ uri: string; cid: string; value: Record<string, unknown> }[]>;
   databaseInventory: (
-    pool?: ReturnType<
-      typeof import('../../../../../lib/db/postgres').createPool
-    >
+    pool?: PostgresPool
   ) => Promise<{ [k: string]: { key: string; rowHash: string }[] }>;
   visitorGraphs: () => Promise<
     { uri: string; cid: string; value: Record<string, unknown> }[]
   >;
   root: string;
-  values: {
-    workspace?: string | undefined;
-    slug?: string | undefined;
-    env: string;
-    output: string;
-    'refresh-wait-seconds': string;
-    'cleanup-only': boolean;
-    'defer-bluesky': boolean;
-    'authorization-only': boolean;
-    'cookie-delivery-failure': boolean;
-    'social-only': boolean;
-    'fixture-source-journal'?: string | undefined;
-    'fixture-publication-journal'?: string | undefined;
-    'social-runtime-revision'?: string | undefined;
-  };
+  values: CaptureOptions;
   env: NodeJS.ProcessEnv;
-  verifyExistingRuntime: () => Promise<{
-    document?:
-      | {
-          uri: string;
-          cid: string;
-          sourceHash: string;
-          dirtyFixtureOverlay?: true;
-        }
-      | undefined;
-    publication: string;
-    cid: string;
-    dirtyFixtureOverlay?: boolean | undefined;
-    revision: string;
-  }>;
+  verifyExistingRuntime: () => Promise<VerifiedRuntime>;
   verifierHashes: () => Promise<Record<string, string>>;
 }
 
 export async function verifyAuthorizationOnly(
   dependencies: Context,
-  granted: Awaited<ReturnType<typeof dependencies.flow>>,
-  grantedSecond: Awaited<ReturnType<typeof dependencies.flow>>,
-  cancelled: Awaited<ReturnType<typeof dependencies.flow>>,
-  expired: Awaited<ReturnType<typeof dependencies.flow>>,
-  signedOutCancellation: Awaited<ReturnType<typeof dependencies.flow>>
+  granted: CapturedFlow,
+  grantedSecond: CapturedFlow,
+  cancelled: CapturedFlow,
+  expired: CapturedFlow,
+  signedOutCancellation: CapturedFlow
 ) {
   assert(
     dependencies.existingRuntime &&
@@ -153,81 +90,8 @@ export async function verifyAuthorizationOnly(
   const contexts = [dependencies.first, dependencies.second];
   const grants = [granted, grantedSecond];
   const visitors: string[] = [];
-  for (const [index, result] of grants.entries()) {
-    const cookies = await contexts[index].cookies(dependencies.ORIGIN);
-    const cookie = cookies.find((entry) => entry.name === 'atproto_session');
-    assert(cookie && /^[a-f0-9]{64}$/.test(cookie.value));
-    assert(cookie.secure && cookie.httpOnly && cookie.sameSite === 'Lax');
-    assert.equal(cookie.path, '/');
-    assert.equal(
-      cookie.domain.replace(/^\./, ''),
-      new URL(dependencies.ORIGIN).hostname
-    );
-    assert.equal(dependencies.hash(cookie.value), result.grant.sessionHash);
-    const browserRow = await dependencies.db
-      .sql`SELECT did FROM atproto_browser_sessions WHERE token_hash = ${dependencies.hash(cookie.value)} AND expires_at > NOW()`;
-    assert.equal(browserRow.rows.length, 1);
-    assert.equal(browserRow.rows[0].did, result.grant.did);
-    visitors.push(result.grant.did);
-    const stored = await dependencies.db
-      .sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${dependencies.hash(result.grant.did)} AND expires_at > NOW()`;
-    assert.equal(stored.rows.length, 1);
-    const tokens = dependencies.decryptOAuthValue<StoredSession>(
-      stored.rows[0].encrypted_value as string,
-      dependencies.settings.ATPROTO_OAUTH_STORAGE_KEY
-    ).tokenSet;
-    assert.equal(tokens.sub, result.grant.did);
-    assert.equal(tokens.token_type, 'DPoP');
-    assert.equal(
-      tokens.iss,
-      dependencies.settings.ATPROTO_ACCEPTANCE_PROVIDER_ORIGIN
-    );
-    const { resolvePds } = await import('../../../../../lib/atproto/identity');
-    assert.equal(
-      new URL(tokens.aud).href,
-      new URL(await resolvePds(result.grant.did as Did)).href
-    );
-    assert(tokens.scope.split(/\s+/).includes('atproto'));
-    const scopes = tokens.scope.split(/\s+/);
-    const graphScope = scopes.find((scope) => scope.startsWith('repo?'));
-    const grantedCollections = graphScope
-      ? new URLSearchParams(graphScope.slice('repo?'.length))
-          .getAll('collection')
-          .sort()
-      : [];
-    assert(
-      scopes.includes('include:site.standard.authSocial') ||
-        JSON.stringify(grantedCollections) ===
-          JSON.stringify([
-            'site.standard.graph.recommend',
-            'site.standard.graph.subscription',
-          ]),
-      'The provider must grant both Standard.site social collections.'
-    );
-    const records = await dependencies.graphFor(result.grant.did);
-    assert.equal(records.length, 1);
-    assert.equal(records[0].uri, result.ownedSocialRecords[0].uri);
-    assert.equal(records[0].cid, result.ownedSocialRecords[0].cid);
-    const state = await contexts[index].request.get(
-      `${dependencies.ORIGIN}/api/atproto/social`
-    );
-    assert.equal(state.status(), 200);
-    const status = await state.json();
-    assert(
-      status.enabled && status.ready && status.signedIn && status.subscribed
-    );
-    await checked(
-      'Normal Subscribe UI authorization creates the expected visitor subscription and real DPoP grant',
-      {
-        visitor: result.grant.did,
-        uri: records[0].uri,
-        cid: records[0].cid,
-        issuer: tokens.iss,
-        audience: tokens.aud,
-        scope: tokens.scope,
-      }
-    );
-  }
+  for (const [index, result] of grants.entries())
+    await verifyGrantedVisitor(contexts[index], result);
   assert.notEqual(visitors[0], visitors[1]);
   assert.notEqual(granted.grant.sessionHash, grantedSecond.grant.sessionHash);
   const metadata = await fetch(
@@ -477,4 +341,89 @@ export async function verifyAuthorizationOnly(
   console.log(
     'Limited authorization and subscription checks passed. Recommendations, hosted rendering and full verification remain pending. Exact owned cleanup follows.'
   );
+  async function verifyGrantedVisitor(
+    context: Context['first'],
+    result: CapturedFlow
+  ): Promise<void> {
+    await verifyBrowserCookie(context, result);
+    visitors.push(result.grant.did);
+    const stored = await dependencies.db
+      .sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${dependencies.hash(result.grant.did)} AND expires_at > NOW()`;
+    assert.equal(stored.rows.length, 1);
+    const tokens = dependencies.decryptOAuthValue<StoredSession>(
+      stored.rows[0].encrypted_value as string,
+      dependencies.settings.ATPROTO_OAUTH_STORAGE_KEY
+    ).tokenSet;
+    assert.equal(tokens.sub, result.grant.did);
+    assert.equal(tokens.token_type, 'DPoP');
+    assert.equal(
+      tokens.iss,
+      dependencies.settings.ATPROTO_ACCEPTANCE_PROVIDER_ORIGIN
+    );
+    const { resolvePds } = await import('../../../../../lib/atproto/identity');
+    assert.equal(
+      new URL(tokens.aud).href,
+      new URL(await resolvePds(result.grant.did as Did)).href
+    );
+    assert(tokens.scope.split(/\s+/).includes('atproto'));
+    const scopes = tokens.scope.split(/\s+/);
+    const graphScope = scopes.find((scope) => scope.startsWith('repo?'));
+    const grantedCollections = graphScope
+      ? new URLSearchParams(graphScope.slice('repo?'.length))
+          .getAll('collection')
+          .sort()
+      : [];
+    assert(
+      scopes.includes('include:site.standard.authSocial') ||
+        JSON.stringify(grantedCollections) ===
+          JSON.stringify([
+            'site.standard.graph.recommend',
+            'site.standard.graph.subscription',
+          ]),
+      'The provider must grant both Standard.site social collections.'
+    );
+    const records = await dependencies.graphFor(result.grant.did);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].uri, result.ownedSocialRecords[0].uri);
+    assert.equal(records[0].cid, result.ownedSocialRecords[0].cid);
+    const state = await context.request.get(
+      `${dependencies.ORIGIN}/api/atproto/social`
+    );
+    assert.equal(state.status(), 200);
+    const status = await state.json();
+    assert(
+      status.enabled && status.ready && status.signedIn && status.subscribed
+    );
+    await checked(
+      'Normal Subscribe UI authorization creates the expected visitor subscription and real DPoP grant',
+      {
+        visitor: result.grant.did,
+        uri: records[0].uri,
+        cid: records[0].cid,
+        issuer: tokens.iss,
+        audience: tokens.aud,
+        scope: tokens.scope,
+      }
+    );
+  }
+
+  async function verifyBrowserCookie(
+    context: Context['first'],
+    result: CapturedFlow
+  ): Promise<void> {
+    const cookies = await context.cookies(dependencies.ORIGIN);
+    const cookie = cookies.find((entry) => entry.name === 'atproto_session');
+    assert(cookie && /^[a-f0-9]{64}$/.test(cookie.value));
+    assert(cookie.secure && cookie.httpOnly && cookie.sameSite === 'Lax');
+    assert.equal(cookie.path, '/');
+    assert.equal(
+      cookie.domain.replace(/^\./, ''),
+      new URL(dependencies.ORIGIN).hostname
+    );
+    assert.equal(dependencies.hash(cookie.value), result.grant.sessionHash);
+    const browserRow = await dependencies.db
+      .sql`SELECT did FROM atproto_browser_sessions WHERE token_hash = ${dependencies.hash(cookie.value)} AND expires_at > NOW()`;
+    assert.equal(browserRow.rows.length, 1);
+    assert.equal(browserRow.rows[0].did, result.grant.did);
+  }
 }

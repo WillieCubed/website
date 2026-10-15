@@ -139,7 +139,9 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(dialog).not.toBeVisible();
   await page.getByRole('button', { name: 'Subscribe', exact: true }).click();
-  await page.mouse.click(8, 8);
+  await expect(dialog).toBeVisible();
+  // The side scrollbar gutters are outside the native dialog's backdrop.
+  await page.mouse.click(page.viewportSize()!.width / 2, 8);
   await expect(dialog).not.toBeVisible();
   holdLogin = true;
   await page.getByRole('button', { name: 'Subscribe', exact: true }).click();

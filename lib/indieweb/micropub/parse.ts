@@ -1,7 +1,9 @@
 import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import { MicropubRequestError } from '@/lib/indieweb/micropub/document-types';
 import type {
+  Mf2Properties,
   MicropubCreateRequest,
+  MicropubEvent,
   MicropubJsonBody,
   MicropubPhoto,
   MicropubPostType,
@@ -39,11 +41,7 @@ function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
     throw new Error('invalid_request');
   const properties = validateProperties(body.properties ?? {});
   const types = body.type ?? ['h-entry'];
-  if (
-    !Array.isArray(types) ||
-    !types.every((value) => typeof value === 'string')
-  )
-    throw new Error('invalid_request');
+  validateTypes(types);
   const content = contentValue(properties.content);
   for (const property of [
     'in-reply-to',
@@ -53,19 +51,8 @@ function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
     'syndication',
   ])
     urlValues(properties[property], property);
-  if (properties.content)
-    properties.content = properties.content.map((value) =>
-      typeof value === 'object' && typeof value.html === 'string'
-        ? { ...value, html: sanitizeCommentHtml(value.html, site.origin) }
-        : value
-    );
+  sanitizeContentProperties(properties);
   const postStatus = parsePostStatus(properties['post-status']);
-  if (
-    postStatus !== undefined &&
-    postStatus !== 'draft' &&
-    postStatus !== 'published'
-  )
-    throw new Error('invalid_request');
   return normalizeEntry({
     h: types[0]?.replace(/^h-/, '') ?? 'entry',
     properties,
@@ -75,11 +62,7 @@ function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
     audio: urlValues(properties.audio, 'audio'),
     video: urlValues(properties.video, 'video'),
     event: types.includes('h-event')
-      ? {
-          start: firstJsonString(properties.start),
-          end: firstJsonString(properties.end),
-          location: properties.location?.[0],
-        }
+      ? readEventProperties(properties)
       : undefined,
     name: firstJsonString(properties.name),
     summary: firstJsonString(properties.summary),
@@ -132,34 +115,15 @@ function citedUrl(values: unknown[] | undefined): string | undefined {
       value?: unknown;
     };
     const [url] = Array.isArray(properties?.url) ? properties.url : [];
-    for (const candidate of [url, value]) {
-      if (typeof candidate === 'string' && candidate.trim()) {
-        return photoUrl(candidate);
-      }
-    }
+    const candidate = [url, value].find(
+      (item) => typeof item === 'string' && item.trim()
+    );
+    if (typeof candidate === 'string') return photoUrl(candidate);
   }
   throw new Error('invalid_request');
 }
 function parseFormData(formData: FormData): MicropubCreateRequest {
-  const collected = new Map<string, (string | Record<string, unknown>)[]>();
-  for (const [field, value] of formData) {
-    if (['h', 'access_token', 'action', 'url'].includes(field)) continue;
-    if (typeof value !== 'string') {
-      if (field.startsWith('photo')) parseFormPhotos(formData);
-      throw new MicropubRequestError(
-        'Upload files to /micropub/media before creating the post.'
-      );
-    }
-    const name = field.replace(/\[\]$/, '');
-    if (name === 'content[html]') {
-      collected.set('content', [
-        { html: sanitizeCommentHtml(value, site.origin) },
-      ]);
-      continue;
-    }
-    collected.set(name, [...(collected.get(name) ?? []), value]);
-  }
-  const properties = Object.fromEntries(collected);
+  const properties = collectFormProperties(formData);
   for (const property of [
     'in-reply-to',
     'like-of',
@@ -172,12 +136,6 @@ function parseFormData(formData: FormData): MicropubCreateRequest {
     properties.category = formStringList(formData, 'category');
   const content = contentValue(properties.content);
   const postStatus = parsePostStatus(formData.getAll('post-status'));
-  if (
-    postStatus !== undefined &&
-    postStatus !== 'draft' &&
-    postStatus !== 'published'
-  )
-    throw new Error('invalid_request');
   return normalizeEntry({
     properties,
     contentFormat: content.format,
@@ -232,38 +190,7 @@ function parsePostStatus(
 
 function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
   const content = entry.content?.trim() ?? '';
-  // A photo post may be the photo alone, without a caption.
-  if (
-    !['entry', 'event'].includes(entry.h) ||
-    (!content &&
-      entry.photos.length === 0 &&
-      !entry.audio?.length &&
-      !entry.video?.length &&
-      !entry.likeOf &&
-      !entry.repostOf &&
-      !entry.bookmarkOf &&
-      !entry.inReplyTo &&
-      entry.h !== 'event')
-  ) {
-    throw new Error('invalid_request');
-  }
-  assertPhotoAlts(entry.photos);
-  if (entry.rsvp && !entry.inReplyTo)
-    throw new MicropubRequestError(
-      'An RSVP needs in-reply-to naming the event.'
-    );
-  if (
-    entry.h === 'event' &&
-    !entry.name &&
-    !entry.content &&
-    !entry.event?.start
-  )
-    throw new MicropubRequestError(
-      'An event needs a name, content, or start time.'
-    );
-  for (const date of [entry.event?.start, entry.event?.end])
-    if (date !== undefined && Number.isNaN(new Date(date).getTime()))
-      throw new MicropubRequestError('Event dates must be valid dates.');
+  validateEntry(entry, content);
 
   return {
     h: entry.h as 'entry' | 'event',
@@ -314,16 +241,19 @@ function parseJsonPhotos(values: unknown): MicropubPhoto[] {
   });
 }
 function inferPostType(entry: MicropubPostTypeSource): MicropubPostType {
-  if (entry.rsvp) return 'rsvp';
-  if (entry.likeOf) return 'like';
-  if (entry.repostOf) return 'repost';
-  if (entry.bookmarkOf) return 'bookmark';
-  if (entry.inReplyTo) return 'reply';
-  if (entry.event) return 'event';
-  if (entry.video?.length) return 'video';
-  if (entry.audio?.length) return 'audio';
-  if (entry.photos?.length) return 'photo';
-  return entry.name ? 'article' : 'note';
+  const candidates: [unknown, MicropubPostType][] = [
+    [entry.rsvp, 'rsvp'],
+    [entry.likeOf, 'like'],
+    [entry.repostOf, 'repost'],
+    [entry.bookmarkOf, 'bookmark'],
+    [entry.inReplyTo, 'reply'],
+    [entry.event, 'event'],
+    [entry.video?.length, 'video'],
+    [entry.audio?.length, 'audio'],
+    [entry.photos?.length, 'photo'],
+    [entry.name, 'article'],
+  ];
+  return candidates.find(([value]) => Boolean(value))?.[1] ?? 'note';
 }
 function normalizeRsvp(
   value: string | undefined
@@ -391,4 +321,100 @@ function validDate(value: string | undefined): Date | undefined {
   if (value !== undefined && Number.isNaN(new Date(value).getTime()))
     throw new MicropubRequestError('published must be a valid date.');
   return parseOptionalDate(value);
+}
+
+function validateTypes(types: unknown): asserts types is string[] {
+  if (
+    !Array.isArray(types) ||
+    !types.every((value) => typeof value === 'string')
+  )
+    throw new Error('invalid_request');
+}
+
+function collectFormProperties(formData: FormData): Mf2Properties {
+  const collected = new Map<string, (string | Record<string, unknown>)[]>();
+  for (const [field, value] of formData) {
+    if (['h', 'access_token', 'action', 'url'].includes(field)) continue;
+    if (typeof value !== 'string') {
+      if (field.startsWith('photo')) parseFormPhotos(formData);
+      throw new MicropubRequestError(
+        'Upload files to /micropub/media before creating the post.'
+      );
+    }
+    const name = field.replace(/\[\]$/, '');
+    if (name === 'content[html]') {
+      collected.set('content', [
+        { html: sanitizeCommentHtml(value, site.origin) },
+      ]);
+      continue;
+    }
+    collected.set(name, [...(collected.get(name) ?? []), value]);
+  }
+  return Object.fromEntries(collected);
+}
+
+function validateEntry(entry: RawMicropubEntry, content: string) {
+  // A photo post may be the photo alone, without a caption.
+  if (
+    !['entry', 'event'].includes(entry.h) ||
+    !hasEntryContent(entry, content)
+  ) {
+    throw new Error('invalid_request');
+  }
+  assertPhotoAlts(entry.photos);
+  if (entry.rsvp && !entry.inReplyTo)
+    throw new MicropubRequestError(
+      'An RSVP needs in-reply-to naming the event.'
+    );
+  validateEvent(entry);
+}
+
+function hasEntryContent(entry: RawMicropubEntry, content: string): boolean {
+  return [
+    content,
+    entry.photos.length,
+    entry.audio?.length,
+    entry.video?.length,
+    entry.likeOf,
+    entry.repostOf,
+    entry.bookmarkOf,
+    entry.inReplyTo,
+    entry.h === 'event',
+  ].some(Boolean);
+}
+
+function sanitizeContentProperties(properties: Mf2Properties) {
+  if (properties.content)
+    properties.content = properties.content.map((value) =>
+      typeof value === 'object' && typeof value.html === 'string'
+        ? { ...value, html: sanitizeCommentHtml(value.html, site.origin) }
+        : value
+    );
+}
+
+function validateEvent(entry: RawMicropubEntry): void {
+  if (
+    entry.h === 'event' &&
+    !entry.name &&
+    !entry.content &&
+    !entry.event?.start
+  )
+    throw new MicropubRequestError(
+      'An event needs a name, content, or start time.'
+    );
+  validateEventDates(entry.event);
+}
+
+function readEventProperties(properties: Mf2Properties): MicropubEvent {
+  return {
+    start: firstJsonString(properties.start),
+    end: firstJsonString(properties.end),
+    location: properties.location?.[0],
+  };
+}
+
+function validateEventDates(event: RawMicropubEntry['event']): void {
+  for (const date of [event?.start, event?.end])
+    if (date !== undefined && Number.isNaN(new Date(date).getTime()))
+      throw new MicropubRequestError('Event dates must be valid dates.');
 }

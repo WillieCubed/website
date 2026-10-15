@@ -4,6 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { parseArgs, promisify } from 'node:util';
 
+import type { Journal as OwnershipJournal } from './identities/types.mts';
 import { isMain } from './runtime.mts';
 
 const IMAGE =
@@ -63,23 +64,10 @@ export async function verifyProviderTokenInventory(options: {
   baselinePath?: string;
 }): Promise<Receipt> {
   const journalPath = resolve(options.journalPath);
-  const journal = JSON.parse(await readFile(journalPath, 'utf8'));
-  assert(
-    journal.version === 1 &&
-      journal.account === '18f90fa11cf0a87145be4a1517e41217' &&
-      journal.domain === 'willieechalmers-18f.workers.dev' &&
-      journal.run === '3eafb75977' &&
-      /^[a-f0-9]{64}$/.test(journal.marker) &&
-      journal.container === CONTAINER &&
-      journal.image === IMAGE &&
-      journal.origin ===
-        'https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev' &&
-      journal.data === resolve(dirname(journalPath), 'pds') &&
-      journal.publisher.did === DIDS[0] &&
-      journal.visitor.did === DIDS[1] &&
-      !journal.cleaned,
-    'The journal does not identify the current owned official PDS.'
+  const journal: OwnershipJournal = JSON.parse(
+    await readFile(journalPath, 'utf8')
   );
+  validateOwnershipJournal(journal, journalPath);
   const inspect = async (id: string): Promise<Container> => {
     const rows = JSON.parse(await command(['inspect', id]));
     assert(rows.length === 1);
@@ -101,17 +89,7 @@ export async function verifyProviderTokenInventory(options: {
         !actual.State.Paused,
       'The owned PDS container identity or running state changed.'
     );
-    const mounts = actual.Mounts.filter(
-      (mount) => mount.Destination === '/pds'
-    );
-    assert(mounts.length === 1 && mounts[0].RW);
-    assert(
-      journal.storage?.active
-        ? mounts[0].Type === 'volume' &&
-            mounts[0].Name === journal.storage.volume
-        : mounts[0].Type === 'bind' && mounts[0].Source === journal.data,
-      'The owned PDS data mount changed.'
-    );
+    validateOwnedMount(actual, journal);
   };
   validateContainer(container);
   if (journal.storage?.active) {
@@ -129,19 +107,7 @@ export async function verifyProviderTokenInventory(options: {
     ? JSON.parse(await readFile(resolve(options.baselinePath), 'utf8'))
     : undefined;
   if (baseline) {
-    assert(
-      baseline.version === 1 &&
-        baseline.canonicalClient === CLIENT &&
-        baseline.containerId === container.Id &&
-        baseline.image === IMAGE &&
-        baseline.imageId === container.Image &&
-        baseline.tokenCounts.length === DIDS.length &&
-        baseline.tokenCounts.every((row, index) => row.did === DIDS[index]) &&
-        Number.isSafeInteger(baseline.foreignTokens.count) &&
-        baseline.foreignTokens.count >= 0 &&
-        /^[a-f0-9]{64}$/.test(baseline.foreignTokens.sha256),
-      'The foreign-token baseline belongs to another inventory.'
-    );
+    validateBaseline(baseline, container);
   }
   const script = `import fs from 'node:fs';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';import {DatabaseSync} from 'node:sqlite';
 assert.equal(fs.readFileSync('/pds/.acceptance-owner','utf8'),${JSON.stringify(journal.marker)});
@@ -164,22 +130,8 @@ console.log(JSON.stringify({tokenCounts,foreignTokens}));}finally{db.close();}`;
     ])
   );
   validateContainer(await inspect(CONTAINER));
-  assert(
-    inventory.tokenCounts.length === DIDS.length &&
-      inventory.tokenCounts.every(
-        (row, index) =>
-          row.did === DIDS[index] &&
-          Number.isSafeInteger(row.tokens) &&
-          row.tokens >= 0
-      ) &&
-      Number.isSafeInteger(inventory.foreignTokens.count) &&
-      inventory.foreignTokens.count >= 0 &&
-      /^[a-f0-9]{64}$/.test(inventory.foreignTokens.sha256)
-  );
-  const foreignTokensPreserved = baseline
-    ? baseline.foreignTokens.count === inventory.foreignTokens.count &&
-      baseline.foreignTokens.sha256 === inventory.foreignTokens.sha256
-    : undefined;
+  validateInventory(inventory);
+  const foreignTokensPreserved = compareForeignTokens(baseline, inventory);
   const passed =
     inventory.tokenCounts.every((row) => row.tokens === 0) &&
     foreignTokensPreserved !== false;
@@ -234,3 +186,87 @@ export async function runTokenInventory() {
 }
 
 if (isMain(import.meta.url)) await runTokenInventory();
+
+function validateOwnershipJournal(
+  journal: OwnershipJournal,
+  journalPath: string
+) {
+  assert(
+    journal.version === 1 &&
+      journal.account === '18f90fa11cf0a87145be4a1517e41217' &&
+      journal.domain === 'willieechalmers-18f.workers.dev' &&
+      journal.run === '3eafb75977' &&
+      /^[a-f0-9]{64}$/.test(journal.marker),
+    'The journal does not identify the current owned official PDS.'
+  );
+  validateJournalProvider(journal, journalPath);
+}
+
+function validateOwnedMount(actual: Container, journal: OwnershipJournal) {
+  const mounts = actual.Mounts.filter((mount) => mount.Destination === '/pds');
+  assert(mounts.length === 1 && mounts[0].RW);
+  assert(
+    journal.storage?.active
+      ? mounts[0].Type === 'volume' && mounts[0].Name === journal.storage.volume
+      : mounts[0].Type === 'bind' && mounts[0].Source === journal.data,
+    'The owned PDS data mount changed.'
+  );
+}
+
+function validateBaseline(baseline: Receipt, container: Container) {
+  assert(
+    baseline.version === 1 &&
+      baseline.canonicalClient === CLIENT &&
+      baseline.containerId === container.Id &&
+      baseline.image === IMAGE &&
+      baseline.imageId === container.Image &&
+      baseline.tokenCounts.length === DIDS.length &&
+      baseline.tokenCounts.every((row, index) => row.did === DIDS[index]) &&
+      Number.isSafeInteger(baseline.foreignTokens.count) &&
+      baseline.foreignTokens.count >= 0 &&
+      /^[a-f0-9]{64}$/.test(baseline.foreignTokens.sha256),
+    'The foreign-token baseline belongs to another inventory.'
+  );
+}
+
+function validateInventory(inventory: Inventory) {
+  assert(
+    inventory.tokenCounts.length === DIDS.length &&
+      inventory.tokenCounts.every(
+        (row, index) =>
+          row.did === DIDS[index] &&
+          Number.isSafeInteger(row.tokens) &&
+          row.tokens >= 0
+      ) &&
+      Number.isSafeInteger(inventory.foreignTokens.count) &&
+      inventory.foreignTokens.count >= 0 &&
+      /^[a-f0-9]{64}$/.test(inventory.foreignTokens.sha256)
+  );
+}
+
+function compareForeignTokens(
+  baseline: Receipt | undefined,
+  inventory: Inventory
+): boolean | undefined {
+  return baseline
+    ? baseline.foreignTokens.count === inventory.foreignTokens.count &&
+        baseline.foreignTokens.sha256 === inventory.foreignTokens.sha256
+    : undefined;
+}
+
+function validateJournalProvider(
+  journal: OwnershipJournal,
+  journalPath: string
+) {
+  assert(
+    journal.container === CONTAINER &&
+      journal.image === IMAGE &&
+      journal.origin ===
+        'https://willie-pds-3eafb75977.willieechalmers-18f.workers.dev' &&
+      journal.data === resolve(dirname(journalPath), 'pds') &&
+      journal.publisher.did === DIDS[0] &&
+      journal.visitor.did === DIDS[1] &&
+      !journal.cleaned,
+    'The journal does not identify the current owned official PDS.'
+  );
+}

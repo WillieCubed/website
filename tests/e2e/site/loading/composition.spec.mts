@@ -34,6 +34,35 @@ const catalog = {
   notes: {},
 };
 
+async function assertPublicationBarLeavesTargetsClear(targets: Locator[]) {
+  // Native focus scrolling and hit testing must keep visible targets reachable.
+  for (const target of targets) {
+    if (!(await target.isVisible())) continue;
+
+    await target.focus();
+    await expect
+      .poll(() =>
+        target.evaluate((node) => {
+          const box = node.getBoundingClientRect();
+          const surface = document
+            .querySelector('.mp-draft-note')!
+            .getBoundingClientRect();
+          const hit = document.elementFromPoint(
+            box.x + box.width / 2,
+            box.y + box.height / 2
+          );
+          return (
+            box.y >= 0 &&
+            (box.bottom <= surface.top - 15 ||
+              box.top >= surface.bottom + 15) &&
+            Boolean(hit && (hit === node || node.contains(hit)))
+          );
+        })
+      )
+      .toBe(true);
+  }
+}
+
 test('public music introduces Willie and retains a native destination without scripts', async ({
   browser,
   page,
@@ -462,28 +491,7 @@ test('gallery arrows share the metadata row and leave titles the full card width
         expect({ width: bounds.width, height: bounds.height }).toEqual(
           pendingSizes.get(width)
         );
-        const short = page.locator('.mp-card').nth(1);
-        const shortBounds = (await short.boundingBox())!;
-        if (Math.abs(shortBounds.y - bounds.y) < 0.1) {
-          expect(shortBounds.height).toBeCloseTo(bounds.height, 1);
-          expect(
-            (await short.locator('.mp-card-open').boundingBox())!.height
-          ).toBeCloseTo(shortBounds.height - 24, 1);
-        } else {
-          expect(shortBounds.height).toBeLessThan(bounds.height);
-        }
-        const rows = await page.locator('.mp-card').evaluateAll((nodes) =>
-          nodes.map((node) => {
-            const { y, height } = node.getBoundingClientRect();
-            return { y, height };
-          })
-        );
-        for (const row of rows) {
-          const heights = rows
-            .filter((item) => Math.abs(item.y - row.y) < 0.1)
-            .map((item) => item.height);
-          expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(0.1);
-        }
+        const short = await checkLoadedGalleryRows(bounds);
         const shortTitle = (await short.locator('h3').boundingBox())!;
         const shortMetadata = (await short.locator('.mp-small').boundingBox())!;
         expect(
@@ -521,6 +529,31 @@ test('gallery arrows share the metadata row and leave titles the full card width
         });
       }
     }
+  }
+  async function checkLoadedGalleryRows(bounds: { y: number; height: number }) {
+    const short = page.locator('.mp-card').nth(1);
+    const shortBounds = (await short.boundingBox())!;
+    if (Math.abs(shortBounds.y - bounds.y) < 0.1) {
+      expect(shortBounds.height).toBeCloseTo(bounds.height, 1);
+      expect(
+        (await short.locator('.mp-card-open').boundingBox())!.height
+      ).toBeCloseTo(shortBounds.height - 24, 1);
+    } else {
+      expect(shortBounds.height).toBeLessThan(bounds.height);
+    }
+    const rows = await page.locator('.mp-card').evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const { y, height } = node.getBoundingClientRect();
+        return { y, height };
+      })
+    );
+    for (const row of rows) {
+      const heights = rows
+        .filter((item) => Math.abs(item.y - row.y) < 0.1)
+        .map((item) => item.height);
+      expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(0.1);
+    }
+    return short;
   }
   await check('loading');
   release();
@@ -947,45 +980,20 @@ for (const count of [1, 12]) {
         path: info.outputPath(`last-playlist-${width}.png`),
         fullPage: false,
       });
-      // Native focus scrolling must keep every enabled target above the surface.
-      // Hit testing also catches an invisible overlay intercepting touch/clicks.
-      const assertClear = async (target: Locator) => {
-        await target.focus();
-        await expect
-          .poll(() =>
-            target.evaluate((node) => {
-              const box = node.getBoundingClientRect();
-              const surface = document
-                .querySelector('.mp-draft-note')!
-                .getBoundingClientRect();
-              const hit = document.elementFromPoint(
-                box.x + box.width / 2,
-                box.y + box.height / 2
-              );
-              return (
-                box.y >= 0 &&
-                (box.bottom <= surface.top - 15 ||
-                  box.top >= surface.bottom + 15) &&
-                Boolean(hit && (hit === node || node.contains(hit)))
-              );
-            })
-          )
-          .toBe(true);
-      };
-      for (const control of await lastCard
-        .locator('a[href], button:not(:disabled), input:not(:disabled)')
-        .all()) {
-        if (await control.isVisible()) await assertClear(control);
-      }
+      await assertPublicationBarLeavesTargetsClear(
+        await lastCard
+          .locator('a[href], button:not(:disabled), input:not(:disabled)')
+          .all()
+      );
       await page.evaluate(() =>
         scrollTo(0, document.documentElement.scrollHeight)
       );
       const footer = await page.locator('.site-footer').boundingBox();
       const stoppedBar = await bar.boundingBox();
       expect(stoppedBar!.y + stoppedBar!.height).toBeLessThanOrEqual(footer!.y);
-      for (const link of await page.locator('.site-footer a[href]').all()) {
-        if (await link.isVisible()) await assertClear(link);
-      }
+      await assertPublicationBarLeavesTargetsClear(
+        await page.locator('.site-footer a[href]').all()
+      );
       await page.evaluate(() =>
         scrollTo(0, document.documentElement.scrollHeight)
       );

@@ -16,6 +16,17 @@ export type OwnedAccount = {
   };
   profile?: { value: Record<string, unknown>; cid?: string; removed?: boolean };
 };
+export interface ProvisionedAccount extends OwnedAccount {
+  did: string;
+  appPassword: string;
+}
+
+export interface XrpcPost {
+  uri: string;
+  cid: string;
+  author: { did: string };
+}
+
 export type XrpcReply = {
   did?: string;
   accessJwt: string;
@@ -27,7 +38,7 @@ export type XrpcReply = {
   inviteCodeRequired?: boolean;
   availableUserDomains: string[];
   handle: string;
-  posts: { uri: string; cid: string; author: { did: string } }[];
+  posts: XrpcPost[];
   collections: string[];
   records: { uri: string; cid: string; value: Record<string, unknown> }[];
   cursor?: string;
@@ -38,6 +49,45 @@ type Worker = {
   versions: string[];
   removed?: boolean;
 };
+export interface OwnedTunnel {
+  pid: number;
+  upstream: string;
+  command: string;
+}
+
+export interface StorageFile {
+  path: string;
+  bytes: number;
+  sha256: string;
+}
+
+export interface StorageHelper {
+  name: string;
+  script: string;
+  source?: string;
+}
+
+export interface StorageMigration {
+  volume: string;
+  rollbackContainer: string;
+  volumeContainer: string;
+  active: boolean;
+  phase:
+    | 'planned'
+    | 'stopped'
+    | 'copied'
+    | 'renamed'
+    | 'verified'
+    | 'rolled-back';
+  manifest?: StorageFile[];
+  records?: { uri: string; cid: string }[];
+  sqliteChecks?: number;
+  helpers: StorageHelper[];
+  rollbackRequested?: boolean;
+  rollbackRecordsVerified?: boolean;
+  removed?: boolean;
+}
+
 export type Journal = {
   version: 1;
   account: string;
@@ -52,7 +102,7 @@ export type Journal = {
   adminPassword: string;
   jwtSecret: string;
   rotationKey: string;
-  tunnel?: { pid: number; upstream: string; command: string };
+  tunnel?: OwnedTunnel;
   retiredTunnels?: { pid: number; stoppedAt: string }[];
   repairedAt?: string;
   workers: Worker[];
@@ -67,24 +117,12 @@ export type Journal = {
   cleanupDataAuthorized?: boolean;
   containerRemoved?: boolean;
   tunnelStopped?: boolean;
-  storage?: {
-    volume: string;
-    rollbackContainer: string;
-    volumeContainer: string;
-    active: boolean;
-    phase:
-      | 'planned'
-      | 'stopped'
-      | 'copied'
-      | 'renamed'
-      | 'verified'
-      | 'rolled-back';
-    manifest?: { path: string; bytes: number; sha256: string }[];
-    records?: { uri: string; cid: string }[];
-    sqliteChecks?: number;
-    helpers: { name: string; script: string; source?: string }[];
-    rollbackRequested?: boolean;
-    rollbackRecordsVerified?: boolean;
-    removed?: boolean;
-  };
+  storage?: StorageMigration;
+};
+
+export type AcceptanceIdentities = {
+  origin: string;
+  journalPath: string;
+  publisher: ProvisionedAccount;
+  visitor: ProvisionedAccount;
 };

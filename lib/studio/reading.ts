@@ -50,40 +50,55 @@ export function overlayReadings(
   );
   for (const draft of drafts) {
     if (draft.deletedAt) continue;
-    const body = draft.head.body;
-    const existing = items.get(draft.slug);
-    const source = documentSource(body.document);
-    const plain = writingText(source, {}).replace(/\s+/g, ' ').trim();
-    const sentence = plain.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? plain;
-    const derivedTitle =
-      sentence.length > 120 ? `${sentence.slice(0, 117).trimEnd()}…` : sentence;
-    items.set(draft.slug, {
-      slug: draft.slug,
-      title: body.title.trim() || derivedTitle || 'Untitled note',
-      hasExplicitTitle: Boolean(body.title.trim()),
-      description: body.description,
-      tags: body.tags,
-      date: date(
-        body.frontmatter?.published,
-        existing?.date ?? new Date(draft.head.createdAt)
-      ),
-      postType: body.postType,
-      status:
-        draft.head.id === draft.liveRevisionId
-          ? null
-          : draft.liveRevisionId || (existing && !existing.status)
-            ? 'Unpublished changes'
-            : 'Draft',
-      editorId: draft.id,
-      source,
-      series:
-        existing?.series ??
-        (body.frontmatter?.series as ReadingEntry['series']),
-    });
+    items.set(draft.slug, draftReadingEntry(draft, items.get(draft.slug)));
   }
   return [...items.values()].sort(
     (a, b) => b.date.getTime() - a.date.getTime()
   );
+}
+
+function draftReadingStatus(
+  draft: Draft,
+  existing?: ReadingEntry
+): ReadingEntry['status'] {
+  if (draft.head.id === draft.liveRevisionId) return null;
+  return draft.liveRevisionId || (existing && !existing.status)
+    ? 'Unpublished changes'
+    : 'Draft';
+}
+function draftReadingEntry(
+  draft: Draft,
+  existing?: ReadingEntry
+): ReadingEntry {
+  const body = draft.head.body;
+
+  const source = documentSource(body.document);
+  return {
+    slug: draft.slug,
+    title: body.title.trim() || derivedReadingTitle(source),
+    hasExplicitTitle: Boolean(body.title.trim()),
+    description: body.description,
+    tags: body.tags,
+    date: date(
+      body.frontmatter?.published,
+      existing?.date ?? new Date(draft.head.createdAt)
+    ),
+    postType: body.postType,
+    status: draftReadingStatus(draft, existing),
+    editorId: draft.id,
+    source,
+    series:
+      existing?.series ?? (body.frontmatter?.series as ReadingEntry['series']),
+  };
+}
+
+function derivedReadingTitle(source: string): string {
+  const plain = writingText(source, {}).replace(/\s+/g, ' ').trim();
+  const sentence = plain.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? plain;
+  const derivedTitle =
+    sentence.length > 120 ? `${sentence.slice(0, 117).trimEnd()}…` : sentence;
+
+  return derivedTitle || 'Untitled note';
 }
 
 /** Adapt overlay metadata to the same header and index cards as the public site. */

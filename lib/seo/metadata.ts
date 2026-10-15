@@ -31,6 +31,20 @@ function toIso(value: Date | string): string {
   return new Date(value).toISOString();
 }
 
+interface SocialPreview {
+  siteName: string;
+  locale: string;
+  title: string;
+  description: string | undefined;
+  url: string;
+  images: Array<{
+    url: string;
+    width: number;
+    height: number;
+    alt: string;
+  }>;
+}
+
 /** Slack shows up to two label and value pairs under a link preview. */
 function slackLabels(labels: Array<[string, string]>): Record<string, string> {
   return Object.fromEntries(
@@ -72,6 +86,33 @@ export function bareSocialMetadata(
   };
 }
 
+function articleMetadata(
+  shared: SocialPreview,
+  {
+    publishedTime,
+    modifiedTime,
+    tags,
+    section,
+  }: Pick<
+    PageMetadataInput,
+    'publishedTime' | 'modifiedTime' | 'tags' | 'section'
+  >
+): Metadata['openGraph'] {
+  return {
+    ...shared,
+    type: 'article',
+    authors: [absoluteUrl('/')],
+    ...(publishedTime ? { publishedTime: toIso(publishedTime) } : {}),
+    ...(modifiedTime ? { modifiedTime: toIso(modifiedTime) } : {}),
+    ...(tags && tags.length > 0 ? { tags } : {}),
+    ...(section ? { section } : {}),
+  };
+}
+
+function socialDescription(title: string, description: string) {
+  return description && description !== title ? description : undefined;
+}
+
 /**
  * Build page metadata that keeps the site name out of the OpenGraph title.
  *
@@ -104,8 +145,7 @@ export function pageMetadata({
   // A note without a description falls back to its own text, which is also
   // its title. A link preview would print the same sentence twice, so the
   // social tags leave it out; search results still get the page's own text.
-  const summary =
-    description && description !== title ? description : undefined;
+  const summary = socialDescription(title, description);
   const shared = {
     siteName: site.name,
     locale: site.locale,
@@ -116,15 +156,7 @@ export function pageMetadata({
   };
   const openGraph: Metadata['openGraph'] =
     type === 'article'
-      ? {
-          ...shared,
-          type,
-          authors: [absoluteUrl('/')],
-          ...(publishedTime ? { publishedTime: toIso(publishedTime) } : {}),
-          ...(modifiedTime ? { modifiedTime: toIso(modifiedTime) } : {}),
-          ...(tags && tags.length > 0 ? { tags } : {}),
-          ...(section ? { section } : {}),
-        }
+      ? articleMetadata(shared, { publishedTime, modifiedTime, tags, section })
       : { ...shared, type };
   return {
     title,

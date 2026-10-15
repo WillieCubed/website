@@ -312,26 +312,8 @@ export async function redeemAuthorizationCode(
       description: 'The code is unknown, expired, or already used.',
     };
   }
-  // The record holds the URLs as parsed at authorization, so the form's are
-  // parsed the same way: `https://app.example` was stored as
-  // `https://app.example/`.
-  if (
-    parseClientId(clientId)?.href !== record.clientId ||
-    parseRedirectUri(redirectUri)?.href !== record.redirectUri
-  ) {
-    return {
-      ok: false,
-      error: 'invalid_grant',
-      description: 'The code was issued to a different client or redirect.',
-    };
-  }
-  if (!verifyPkce(verifier, record.codeChallenge)) {
-    return {
-      ok: false,
-      error: 'invalid_grant',
-      description: 'The code_verifier does not match the code_challenge.',
-    };
-  }
+  const mismatch = codeBindingError(record, clientId, redirectUri, verifier);
+  if (mismatch) return mismatch;
   return {
     ok: true,
     record: { ...record, authorizationCodeHash: hashSecret(code) },
@@ -484,4 +466,33 @@ export function introspectionResponse(record: IndieAuthTokenRecord | null) {
     iat: Math.floor(record.issuedAt.getTime() / 1000),
     exp: Math.floor(record.expiresAt.getTime() / 1000),
   };
+}
+
+function codeBindingError(
+  record: IndieAuthCodeRecord,
+  clientId: string,
+  redirectUri: string,
+  verifier: string
+): CodeRedemption | null {
+  // The record holds the URLs as parsed at authorization, so the form's are
+  // parsed the same way: `https://app.example` was stored as
+  // `https://app.example/`.
+  if (
+    parseClientId(clientId)?.href !== record.clientId ||
+    parseRedirectUri(redirectUri)?.href !== record.redirectUri
+  ) {
+    return {
+      ok: false,
+      error: 'invalid_grant',
+      description: 'The code was issued to a different client or redirect.',
+    };
+  }
+  if (!verifyPkce(verifier, record.codeChallenge)) {
+    return {
+      ok: false,
+      error: 'invalid_grant',
+      description: 'The code_verifier does not match the code_challenge.',
+    };
+  }
+  return null;
 }

@@ -1,17 +1,10 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 
+import type { RuntimeChoice, RuntimeSelection } from '@/lib/studio/lattice';
+
 import { studioRequest } from './api';
 
-interface RuntimeChoice {
-  connected: boolean;
-  devices: {
-    id: string;
-    name: string;
-    status: 'reachable' | 'offline' | 'unpaired' | 'revoked';
-  }[];
-  selectedRuntimeId: string | null;
-}
 const statusLabel = {
   reachable: 'Online',
   offline: 'Offline',
@@ -25,11 +18,11 @@ export default function StudioRuntimePicker({
   onReady: (ready: boolean) => void;
   returnTo?: string;
 }) {
-  const [choices, setChoices] = useState<RuntimeChoice | null>(null);
+  const [choices, setChoices] = useState<RuntimeSelection | null>(null);
   const [busy, setBusy] = useState(true);
   const [message, setMessage] = useState('Loading your personal devices…');
   const apply = useCallback(
-    (next: RuntimeChoice) => {
+    (next: RuntimeSelection) => {
       setChoices(next);
       const selected = next.devices.find(
         (device) => device.id === next.selectedRuntimeId
@@ -41,25 +34,13 @@ export default function StudioRuntimePicker({
           ['reachable', 'offline'].includes(selected.status)
         )
       );
-      setMessage(
-        !next.connected
-          ? 'Connect Lattice to choose your Lovelace device.'
-          : !next.devices.length
-            ? 'No personal devices are available. Open Lovelace on your computer and pair it with Lattice.'
-            : selected && ['revoked', 'unpaired'].includes(selected.status)
-              ? `${selected.name} is no longer paired. Choose another personal device.`
-              : selected?.status === 'offline'
-                ? `${selected.name} is offline. Your request can wait until you reconnect the device and retry.`
-                : selected
-                  ? `Using ${selected.name}.`
-                  : 'Choose the personal device that should handle your requests.'
-      );
+      setMessage(runtimeMessage(next, selected));
     },
     [onReady]
   );
   useEffect(() => {
     let active = true;
-    studioRequest<RuntimeChoice>('/lattice/runtime')
+    studioRequest<RuntimeSelection>('/lattice/runtime')
       .then((next) => {
         if (active) apply(next);
       })
@@ -79,7 +60,7 @@ export default function StudioRuntimePicker({
   async function refresh() {
     setBusy(true);
     try {
-      apply(await studioRequest<RuntimeChoice>('/lattice/runtime'));
+      apply(await studioRequest<RuntimeSelection>('/lattice/runtime'));
     } catch (error) {
       onReady(false);
       setMessage((error as Error).message);
@@ -94,7 +75,7 @@ export default function StudioRuntimePicker({
     setMessage('Saving your device choice…');
     try {
       apply(
-        await studioRequest<RuntimeChoice>('/lattice/runtime', {
+        await studioRequest<RuntimeSelection>('/lattice/runtime', {
           method: 'PATCH',
           body: JSON.stringify({ runtimeId }),
         })
@@ -143,4 +124,20 @@ export default function StudioRuntimePicker({
       </button>
     </div>
   );
+}
+
+function runtimeMessage(
+  next: RuntimeSelection,
+  selected?: RuntimeChoice
+): string {
+  if (!next.connected) return 'Connect Lattice to choose your Lovelace device.';
+  if (!next.devices.length)
+    return 'No personal devices are available. Open Lovelace on your computer and pair it with Lattice.';
+  if (!selected)
+    return 'Choose the personal device that should handle your requests.';
+  if (['revoked', 'unpaired'].includes(selected.status))
+    return `${selected.name} is no longer paired. Choose another personal device.`;
+  if (selected.status === 'offline')
+    return `${selected.name} is offline. Your request can wait until you reconnect the device and retry.`;
+  return `Using ${selected.name}.`;
 }

@@ -6,6 +6,7 @@ import {
 } from '@/lib/indieweb/webmention/storage';
 import { sitePath } from '@/lib/indieweb/webmention/targets';
 import type {
+  SentWebmentionSummary,
   Webmention,
   WebmentionSourceWriting,
 } from '@/lib/indieweb/webmention/types';
@@ -68,7 +69,7 @@ export interface SalmentionDeps {
   send: (
     sourceUrl: string,
     targetUrl: string
-  ) => Promise<{ targetUrl: string; success: boolean; error?: string }>;
+  ) => Promise<SentWebmentionSummary>;
   sleep?: (ms: number) => Promise<void>;
 }
 
@@ -87,7 +88,7 @@ export type SalmentionOutcome =
 
 export interface SalmentionResult {
   outcome: SalmentionOutcome;
-  results: { targetUrl: string; success: boolean; error?: string }[];
+  results: SentWebmentionSummary[];
 }
 
 /**
@@ -144,21 +145,18 @@ export async function sendSalmention(
   if (!reply) return none('not-found');
   if (reply.type !== 'reply') return none('not-a-reply');
   const slug = extractWritingSlugFromTarget(reply.targetUrl);
-  const writing = slug ? await deps.loadWriting(slug) : null;
-  if (!slug || !writing) return none('not-found');
+  if (!slug) return none('not-found');
+  const writing = await deps.loadWriting(slug);
+  if (!writing) return none('not-found');
 
   const targets = upstreamTargets(writing, reply.sourceUrl);
   if (targets.length === 0) return none('no-upstream');
 
   const postUrl = absoluteUrl(`/writings/${slug}`);
-  const sleep =
-    deps.sleep ??
-    ((ms: number) => new Promise<void>((done) => setTimeout(done, ms)));
-  let shown = false;
-  for (let attempt = 0; attempt < attempts && !shown; attempt++) {
-    if (attempt > 0) await sleep(delayMs);
-    shown = await deps.pageShows(postUrl, reply.sourceUrl);
-  }
+  const shown = await waitForReply(postUrl, reply.sourceUrl, deps, {
+    attempts,
+    delayMs,
+  });
   if (!shown) return none('not-shown');
   // Claimed only once the reply shows, so a page that never refreshed does
   // not use up the window for the next reply.
@@ -214,4 +212,21 @@ export function defaultSalmentionDeps(): SalmentionDeps {
     },
     send: sendWebmention,
   };
+}
+
+async function waitForReply(
+  postUrl: string,
+  sourceUrl: string,
+  deps: SalmentionDeps,
+  { attempts, delayMs }: SalmentionTiming
+): Promise<boolean> {
+  const sleep =
+    deps.sleep ??
+    ((ms: number) => new Promise<void>((done) => setTimeout(done, ms)));
+  let shown = false;
+  for (let attempt = 0; attempt < attempts && !shown; attempt++) {
+    if (attempt > 0) await sleep(delayMs);
+    shown = await deps.pageShows(postUrl, sourceUrl);
+  }
+  return shown;
 }

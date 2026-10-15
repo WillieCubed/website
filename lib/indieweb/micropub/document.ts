@@ -68,54 +68,12 @@ export function applyMicropubUpdate(
   update: MicropubUpdate,
   now = new Date()
 ): string {
-  const named = [
-    ...Object.keys(update.replace),
-    ...Object.keys(update.add),
-    ...update.deleteProperties,
-    ...Object.keys(update.deleteValues),
-  ];
-  if (named.length === 0) {
-    throw new MicropubRequestError('An update needs replace, add, or delete.');
-  }
-  const unsupported = named.find((name) =>
-    ['updated', 'url', 'access_token', 'mp-slug'].includes(name)
-  );
-  if (unsupported) {
-    throw new MicropubRequestError(
-      `The property "${unsupported}" cannot be updated on this site.`
-    );
-  }
-  if (
-    Object.hasOwn(update.add, 'post-status') ||
-    Object.hasOwn(update.deleteValues, 'post-status') ||
-    update.deleteProperties.includes('post-status')
-  ) {
-    throw new MicropubRequestError(
-      'Replace post-status with "draft" or "published"; it cannot be added or deleted.'
-    );
-  }
+  const named = validateUpdate(update);
 
   const file = splitWritingFile(source);
   const { data } = readWritingSource(source);
   const current = sourceProperties(data, file.body);
-  const next: Mf2Properties = Object.assign(Object.create(null), current);
-  for (const [name, values] of Object.entries(update.replace)) {
-    next[name] = values;
-  }
-  for (const [name, values] of Object.entries(update.add)) {
-    next[name] = uniqueValues([...(next[name] ?? []), ...values], name);
-  }
-  for (const name of update.deleteProperties) next[name] = [];
-  for (const [name, values] of Object.entries(update.deleteValues)) {
-    const drop = new Set(values.map((value) => valueKey(value, name)));
-    next[name] = (next[name] ?? []).filter(
-      (value) => !drop.has(valueKey(value, name))
-    );
-  }
-
-  if (next.content) next.content = sanitizeContentValues(next.content);
-  for (const key of Object.keys(next))
-    if (next[key].length === 0) delete next[key];
+  const next = updatedProperties(current, update);
   if (
     sameJson(next, current) &&
     (!named.includes('content') ||
@@ -170,39 +128,11 @@ function sourceProperties(data: Frontmatter, body: string): Mf2Properties {
     syndicationOf(data).map(({ url }) => url)
   );
   put('post-status', [isDraft(data) ? 'draft' : 'published']);
-  put(
-    'mp-syndicate-to',
-    Array.isArray(data.syndicateTo)
-      ? data.syndicateTo.filter((value) => typeof value === 'string')
-      : []
-  );
-  put(
-    'audio',
-    Array.isArray(data.audio)
-      ? data.audio.filter((value) => typeof value === 'string')
-      : []
-  );
-  put(
-    'video',
-    Array.isArray(data.video)
-      ? data.video.filter((value) => typeof value === 'string')
-      : []
-  );
-  const event = data.event as Record<string, unknown> | undefined;
-  if (event) {
-    put('start', text(event.start));
-    put('end', text(event.end));
-    if (event.location !== undefined)
-      put('location', [event.location as Mf2Value]);
-  }
-  const mf2 = data.micropub as { properties?: Mf2Properties } | undefined;
-  if (mf2?.properties && !Object.hasOwn(mf2.properties, 'name'))
-    delete properties.name;
-  return Object.fromEntries(
-    Object.entries({ ...properties, ...(mf2?.properties ?? {}) }).filter(
-      ([, values]) => Array.isArray(values) && values.length
-    )
-  );
+  put('mp-syndicate-to', stringList(data.syndicateTo));
+  put('audio', stringList(data.audio));
+  put('video', stringList(data.video));
+  Object.assign(properties, eventSourceProperties(data));
+  return mergeStoredProperties(data, properties);
 }
 function writeProperties(
   file: WritingFile,
@@ -210,50 +140,86 @@ function writeProperties(
   next: Mf2Properties,
   touched: Set<string>
 ) {
-  if (touched.has('name')) {
-    setString(file, data, 'title', single(next.name, 'name'));
+  const writers: Record<string, () => void> = {
+    name: () => setString(file, data, 'title', single(next.name, 'name')),
+    summary: () =>
+      setString(file, data, 'description', single(next.summary, 'summary')),
+    content: () => writeContent(file, data, next.content ?? []),
+    published: () => writePublished(file, data, next),
+    category: () => writeCategory(file, data, next.category ?? []),
+    photo: () => writePhotos(file, data, next.photo ?? []),
+    syndication: () => writeSyndication(file, data, next.syndication ?? []),
+    'mp-syndicate-to': () => writeSyndicationTargets(file, next),
+  };
+  for (const name of ['name', 'summary', 'content', 'published', 'category']) {
+    if (touched.has(name)) writers[name]();
   }
-  if (touched.has('summary')) {
-    setString(file, data, 'description', single(next.summary, 'summary'));
+  writeCitations(file, data, next, touched);
+  for (const name of ['photo', 'syndication', 'mp-syndicate-to']) {
+    if (touched.has(name)) writers[name]();
   }
-  if (touched.has('content')) writeContent(file, data, next.content ?? []);
-  if (touched.has('published')) {
-    const published = single(next.published, 'published');
-    if (!published) {
-      throw new MicropubRequestError('A post needs a published date.');
-    }
-    setDate(file, data, 'published', published);
+  writeMediaUrls(file, data, next, touched);
+  if (['start', 'end', 'location'].some((name) => touched.has(name)))
+    writeEvent(file, next);
+  if (touched.has('post-status')) writePostStatus(file, data, next);
+}
+function writePublished(
+  file: WritingFile,
+  data: Frontmatter,
+  next: Mf2Properties
+) {
+  const published = single(next.published, 'published');
+  if (!published) {
+    throw new MicropubRequestError('A post needs a published date.');
   }
-  if (touched.has('category')) writeCategory(file, data, next.category ?? []);
-  for (const [property, key] of URL_KEYS) {
-    if (!touched.has(property)) continue;
-    const urls = (next[property] ?? []).map((value) =>
-      webUrl(citationUrl(value), property)
+  setDate(file, data, 'published', published);
+}
+function writeSyndicationTargets(file: WritingFile, next: Mf2Properties) {
+  const values = next['mp-syndicate-to'] ?? [];
+  if (values.some((value) => typeof value !== 'string'))
+    throw new MicropubRequestError(
+      'Each mp-syndicate-to value needs a target URL.'
     );
-    setString(file, data, key, urls[0]);
-  }
-  if (touched.has('rsvp') || (touched.has('in-reply-to') && data.rsvp)) {
-    writeRsvp(file, data, next);
-  }
-  if (touched.has('photo')) writePhotos(file, data, next.photo ?? []);
-  if (touched.has('syndication')) {
-    writeSyndication(file, data, next.syndication ?? []);
-  }
-  if (touched.has('mp-syndicate-to')) {
-    const values = next['mp-syndicate-to'] ?? [];
-    if (values.some((value) => typeof value !== 'string'))
-      throw new MicropubRequestError(
-        'Each mp-syndicate-to value needs a target URL.'
-      );
-    const targets = resolveSyndicationTargets(values as string[]).map(
-      ({ uid }) => uid
+  const targets = resolveSyndicationTargets(values as string[]).map(
+    ({ uid }) => uid
+  );
+  setKey(
+    file,
+    'syndicateTo',
+    targets.length ? [`syndicateTo: ${JSON.stringify(targets)}`] : null
+  );
+}
+function writeEvent(file: WritingFile, next: Mf2Properties) {
+  const event = {
+    start: single(next.start, 'start'),
+    end: single(next.end, 'end'),
+    location: next.location?.[0],
+  };
+  for (const date of [event.start, event.end])
+    if (date !== undefined && Number.isNaN(new Date(date).getTime()))
+      throw new MicropubRequestError('Event dates must be valid dates.');
+  setKey(file, 'event', [`event: ${JSON.stringify(event)}`]);
+}
+function writePostStatus(
+  file: WritingFile,
+  data: Frontmatter,
+  next: Mf2Properties
+) {
+  const status = single(next['post-status'], 'post-status');
+  if (status !== 'draft' && status !== 'published') {
+    throw new MicropubRequestError(
+      'post-status is either "draft" or "published".'
     );
-    setKey(
-      file,
-      'syndicateTo',
-      targets.length ? [`syndicateTo: ${JSON.stringify(targets)}`] : null
-    );
   }
+  const draft = status === 'draft';
+  if (draft !== isDraft(data)) setKey(file, 'draft', [`draft: ${draft}`]);
+}
+function writeMediaUrls(
+  file: WritingFile,
+  data: Frontmatter,
+  next: Mf2Properties,
+  touched: Set<string>
+) {
   for (const name of ['audio', 'video']) {
     if (!touched.has(name)) continue;
     const urls = (next[name] ?? []).map((value) =>
@@ -266,48 +232,27 @@ function writeProperties(
         urls.length ? [`${name}: ${JSON.stringify(urls)}`] : null
       );
   }
-  if (['start', 'end', 'location'].some((name) => touched.has(name))) {
-    const event = {
-      start: single(next.start, 'start'),
-      end: single(next.end, 'end'),
-      location: next.location?.[0],
-    };
-    for (const date of [event.start, event.end])
-      if (date !== undefined && Number.isNaN(new Date(date).getTime()))
-        throw new MicropubRequestError('Event dates must be valid dates.');
-    setKey(file, 'event', [`event: ${JSON.stringify(event)}`]);
-  }
-  if (touched.has('post-status')) {
-    const status = single(next['post-status'], 'post-status');
-    if (status !== 'draft' && status !== 'published') {
-      throw new MicropubRequestError(
-        'post-status is either "draft" or "published".'
-      );
-    }
-    const draft = status === 'draft';
-    if (draft !== isDraft(data)) setKey(file, 'draft', [`draft: ${draft}`]);
-  }
 }
+
 function postTypeForProperties(
   properties: Mf2Properties,
   types?: string[]
 ): string {
-  if (properties.rsvp?.length) return 'rsvp';
-  if (properties['like-of']?.length) return 'like';
-  if (properties['repost-of']?.length) return 'repost';
-  if (properties['bookmark-of']?.length) return 'bookmark';
-  if (properties['in-reply-to']?.length) return 'note';
+  const citations = [
+    ['rsvp', 'rsvp'],
+    ['like-of', 'like'],
+    ['repost-of', 'repost'],
+    ['bookmark-of', 'bookmark'],
+    ['in-reply-to', 'note'],
+  ] as const;
+  for (const [property, type] of citations)
+    if (properties[property]?.length) return type;
   if (
     types?.includes('h-event') ||
-    properties.start?.length ||
-    properties.end?.length ||
-    properties.location?.length
+    ['start', 'end', 'location'].some((name) => properties[name]?.length)
   )
     return 'event';
-  if (properties.video?.length) return 'video';
-  if (properties.audio?.length) return 'audio';
-  if (properties.photo?.length) return 'photo';
-  return properties.name?.length ? 'article' : 'note';
+  return mediaPostType(properties);
 }
 /** The primary content value is literal text or sanitized HTML, never MDX. */
 function writeContent(
@@ -616,4 +561,117 @@ function checked(source: string): string {
     );
   }
   return source;
+}
+
+function validateUpdate(update: MicropubUpdate): string[] {
+  const named = [
+    ...Object.keys(update.replace),
+    ...Object.keys(update.add),
+    ...update.deleteProperties,
+    ...Object.keys(update.deleteValues),
+  ];
+  if (named.length === 0) {
+    throw new MicropubRequestError('An update needs replace, add, or delete.');
+  }
+  const unsupported = named.find((name) =>
+    ['updated', 'url', 'access_token', 'mp-slug'].includes(name)
+  );
+  if (unsupported) {
+    throw new MicropubRequestError(
+      `The property "${unsupported}" cannot be updated on this site.`
+    );
+  }
+  if (
+    Object.hasOwn(update.add, 'post-status') ||
+    Object.hasOwn(update.deleteValues, 'post-status') ||
+    update.deleteProperties.includes('post-status')
+  ) {
+    throw new MicropubRequestError(
+      'Replace post-status with "draft" or "published"; it cannot be added or deleted.'
+    );
+  }
+
+  return named;
+}
+function updatedProperties(
+  current: Mf2Properties,
+  update: MicropubUpdate
+): Mf2Properties {
+  const next: Mf2Properties = Object.assign(Object.create(null), current);
+  for (const [name, values] of Object.entries(update.replace)) {
+    next[name] = values;
+  }
+  for (const [name, values] of Object.entries(update.add)) {
+    next[name] = uniqueValues([...(next[name] ?? []), ...values], name);
+  }
+  for (const name of update.deleteProperties) next[name] = [];
+  for (const [name, values] of Object.entries(update.deleteValues)) {
+    const drop = new Set(values.map((value) => valueKey(value, name)));
+    next[name] = (next[name] ?? []).filter(
+      (value) => !drop.has(valueKey(value, name))
+    );
+  }
+
+  if (next.content) next.content = sanitizeContentValues(next.content);
+  for (const key of Object.keys(next))
+    if (next[key].length === 0) delete next[key];
+  return next;
+}
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
+}
+
+function writeCitations(
+  file: WritingFile,
+  data: Frontmatter,
+  next: Mf2Properties,
+  touched: Set<string>
+) {
+  for (const [property, key] of URL_KEYS) {
+    if (!touched.has(property)) continue;
+    const urls = (next[property] ?? []).map((value) =>
+      webUrl(citationUrl(value), property)
+    );
+    setString(file, data, key, urls[0]);
+  }
+  if (touched.has('rsvp') || (touched.has('in-reply-to') && data.rsvp))
+    writeRsvp(file, data, next);
+}
+
+function eventSourceProperties(data: Frontmatter): Mf2Properties {
+  const properties: Mf2Properties = {};
+  const put = (name: string, values: Mf2Value[]) => {
+    if (values.length > 0) properties[name] = values;
+  };
+  const event = data.event as Record<string, unknown> | undefined;
+  if (event) {
+    put('start', text(event.start));
+    put('end', text(event.end));
+    if (event.location !== undefined)
+      put('location', [event.location as Mf2Value]);
+  }
+  return properties;
+}
+
+function mediaPostType(properties: Mf2Properties): string {
+  for (const type of ['video', 'audio', 'photo'])
+    if (properties[type]?.length) return type;
+  return properties.name?.length ? 'article' : 'note';
+}
+
+function mergeStoredProperties(
+  data: Frontmatter,
+  properties: Mf2Properties
+): Mf2Properties {
+  const mf2 = data.micropub as { properties?: Mf2Properties } | undefined;
+  if (mf2?.properties && !Object.hasOwn(mf2.properties, 'name'))
+    delete properties.name;
+  return Object.fromEntries(
+    Object.entries({ ...properties, ...(mf2?.properties ?? {}) }).filter(
+      ([, values]) => Array.isArray(values) && values.length
+    )
+  );
 }

@@ -4,7 +4,7 @@ import SiteLink from '@/components/link/SiteLink';
 
 import { resultMeta } from '@/lib/search/meta';
 import { searchContent, searchResultPath } from '@/lib/search/server';
-import type { SearchResult } from '@/lib/search/types';
+import type { SearchResponse, SearchResult } from '@/lib/search/types';
 import { isPrivatePreview } from '@/lib/studio/config';
 
 interface SiteSearchProps {
@@ -62,11 +62,7 @@ export default async function SiteSearch({ query = '' }: SiteSearchProps) {
   );
 }
 
-function SearchResults({
-  response,
-}: {
-  response: Awaited<ReturnType<typeof searchContent>>;
-}) {
+function SearchResults({ response }: { response: SearchResponse }) {
   const { results, total, query } = response;
 
   return (

@@ -6,19 +6,19 @@ import InitiativeBody from '@/components/initiatives/InitiativeBody';
 import Playbill from '@/components/initiatives/Playbill';
 import RouteMap from '@/components/initiatives/RouteMap';
 import TrailerBlock from '@/components/initiatives/TrailerBlock';
+import { initiativeBreadcrumbs } from '@/components/initiatives/breadcrumbs';
 import { formatRange } from '@/components/initiatives/dates';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
-import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
 import { publishedLinks } from '@/lib/entities/registry';
 import {
+  type Initiative,
   getChildInitiatives,
   getInitiative,
   getInitiativeSlugs,
-  getInitiatives,
 } from '@/lib/initiatives/index';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
@@ -41,9 +41,9 @@ export async function generateStaticParams() {
   return slugs.length > 0 ? slugs.map((slug) => ({ slug })) : [{ slug: '_' }];
 }
 
-export async function generateMetadata(props: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: PageProps<'/initiatives/[slug]'>
+): Promise<Metadata> {
   const { slug } = await props.params;
   try {
     const initiative = await getInitiative(slug);
@@ -64,16 +64,50 @@ export async function generateMetadata(props: {
 }
 
 /** Tints the browser chrome with the initiative's brand colour. */
-export async function generateViewport(props: {
-  params: Promise<{ slug: string }>;
-}): Promise<Viewport> {
+export async function generateViewport(
+  props: PageProps<'/initiatives/[slug]'>
+): Promise<Viewport> {
   const { slug } = await props.params;
   return initiativeViewport(slug);
 }
 
-export default async function InitiativePage(props: {
-  params: Promise<{ slug: string }>;
-}) {
+function InitiativeHeading({ initiative }: { initiative: Initiative }) {
+  return (
+    <header className="mx-auto max-w-[840px]">
+      {isPrivatePreview() && initiative.draft && (
+        <p className="text-label-medium text-muted">Draft</p>
+      )}
+      <h1 className="mt-2 text-display-medium text-ink">
+        <SharedTitle id={`initiative-${initiative.slug}`} size="large">
+          <span className="inline-block">{initiative.title}</span>
+        </SharedTitle>
+      </h1>
+      <p className="mt-3 text-headline-small font-normal text-muted">
+        {initiative.tagline}
+      </p>
+      {initiative.starts && initiative.ends && (
+        <p className="mt-2 text-label-large text-muted">
+          {formatRange(initiative.starts, initiative.ends, true)}
+        </p>
+      )}
+      {initiative.website && (
+        <p className="mt-6">
+          <SiteLink
+            href={initiative.website}
+            className="initiative-site inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-label-large font-semibold"
+          >
+            Visit {new URL(initiative.website).hostname}
+            <span aria-hidden="true">↗</span>
+          </SiteLink>
+        </p>
+      )}
+    </header>
+  );
+}
+
+export default async function InitiativePage(
+  props: PageProps<'/initiatives/[slug]'>
+) {
   const { slug } = await props.params;
   let initiative;
   try {
@@ -81,48 +115,14 @@ export default async function InitiativePage(props: {
   } catch {
     notFound();
   }
-  const parent = initiative.parent
-    ? await getInitiative(initiative.parent).catch(() => null)
-    : null;
-  const parentChildren = parent ? await getChildInitiatives(parent.slug) : [];
   const children = await getChildInitiatives(slug);
-  const topLevelInitiatives = (await getInitiatives())
-    .filter((item) => !item.parent)
-    .slice(0, 8);
   const links = await publishedLinks(initiative.links);
   const places = initiative.parts
     .flatMap((part) => part.places)
     .filter(
       (place, i, all) => all.findIndex((p) => p.name === place.name) === i
     );
-  const crumbs: Array<{
-    label: string;
-    href: string;
-    menuItems?: BreadcrumbMenuItem[];
-  }> = [
-    {
-      label: 'Initiatives',
-      href: '/initiatives',
-      menuItems: topLevelInitiatives.map((item) => ({
-        label: item.title,
-        href: item.href,
-      })),
-    },
-  ];
-  if (parent) {
-    const parentCrumb: {
-      label: string;
-      href: string;
-      menuItems?: BreadcrumbMenuItem[];
-    } = { label: parent.title, href: parent.href };
-    if (parentChildren.length > 0) {
-      parentCrumb.menuItems = parentChildren.map((child) => ({
-        label: child.title,
-        href: child.href,
-      }));
-    }
-    crumbs.push(parentCrumb);
-  }
+  const crumbs = await initiativeBreadcrumbs(initiative);
 
   return (
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
@@ -144,35 +144,7 @@ export default async function InitiativePage(props: {
       />
       <TopBar crumbs={crumbs} column="content" />
       <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
-        <header className="mx-auto max-w-[840px]">
-          {isPrivatePreview() && initiative.draft && (
-            <p className="text-label-medium text-muted">Draft</p>
-          )}
-          <h1 className="mt-2 text-display-medium text-ink">
-            <SharedTitle id={`initiative-${initiative.slug}`} size="large">
-              <span className="inline-block">{initiative.title}</span>
-            </SharedTitle>
-          </h1>
-          <p className="mt-3 text-headline-small font-normal text-muted">
-            {initiative.tagline}
-          </p>
-          {initiative.starts && initiative.ends && (
-            <p className="mt-2 text-label-large text-muted">
-              {formatRange(initiative.starts, initiative.ends, true)}
-            </p>
-          )}
-          {initiative.website && (
-            <p className="mt-6">
-              <SiteLink
-                href={initiative.website}
-                className="initiative-site inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-label-large font-semibold"
-              >
-                Visit {new URL(initiative.website).hostname}
-                <span aria-hidden="true">↗</span>
-              </SiteLink>
-            </p>
-          )}
-        </header>
+        <InitiativeHeading initiative={initiative} />
 
         <div className="mx-auto mt-8 max-w-[840px]">
           <TrailerBlock initiative={initiative} />

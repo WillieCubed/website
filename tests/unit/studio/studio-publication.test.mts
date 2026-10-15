@@ -81,52 +81,134 @@ test(
         failedChecks = false,
         rebaseCount = 0;
       const history: { sha: string; commit: { message: string } }[] = [];
-      globalThis.fetch = async (input, init) => {
-        const endpoint = new URL(String(input)),
-          path = endpoint.pathname.replace('/repos/owner/site/', '');
-        if (endpoint.origin === 'https://public.example')
-          return Response.json(marker);
-        assert.equal(endpoint.origin, 'https://api.github.com');
-        if (
-          path.startsWith('git/refs/heads/codex') &&
-          init?.method === 'PATCH'
-        ) {
-          const update = JSON.parse(String(init.body));
-          assert.equal(update.force, true);
-          assert.match(
-            decodeURIComponent(path),
-            /^git\/refs\/heads\/codex\/studio-publish-/
-          );
-          const branch = decodeURIComponent(
-            path.replace('git/refs/heads/', '')
-          );
-          const pr = [...pulls.values()].find(
-            (pr) => (pr.head as { ref: string }).ref === branch
-          )!;
-          assert.equal(branches.get(branch), (pr.head as { sha: string }).sha);
-          branches.set(branch, update.sha);
-          Object.assign(pr, {
-            head: { ref: branch, sha: update.sha },
-            base: { sha: head },
-          });
-          rebaseCount++;
-          if (failRebaseResponse) {
-            failRebaseResponse = false;
-            throw new Error('Connection lost after ref update');
-          }
-          return Response.json({ object: { sha: update.sha } });
+      function writeTree(init?: RequestInit): Response {
+        const body = JSON.parse(String(init?.body));
+
+        const writing = body.tree.find(
+          (entry: { path: string }) =>
+            entry.path === 'content/writings/selected-revision.mdx'
+        );
+        assert.ok(writing);
+        if (writing.content !== undefined) source = writing.content;
+        for (const entry of body.tree.filter(
+          (entry: { path: string }) =>
+            entry.path !== 'content/writings/selected-revision.mdx'
+        )) {
+          assert.match(entry.path, /^public\/generated-blocks\//);
+          assert.match(entry.content, /connect-src 'none'/);
+          assert.doesNotMatch(entry.content, /\/api\/studio\/assets\//);
         }
-        if (path === '') return Response.json({ node_id: 'repository-node' });
-        if (path === 'git/ref/heads/main')
-          return Response.json({ object: { sha: head } });
-        if (path.startsWith('git/ref/heads/codex')) {
-          const sha = branches.get(
-            decodeURIComponent(path.replace('git/ref/heads/', ''))
-          );
-          return sha
-            ? Response.json({ object: { sha } })
-            : Response.json({}, { status: 404 });
+        return Response.json({ sha: 'tree-new' });
+      }
+      function writeCommit(init?: RequestInit): Response {
+        const body = JSON.parse(String(init?.body));
+
+        assert.equal(
+          body.author.name,
+          process.env.STUDIO_GITHUB_AUTHOR_NAME || 'WillieChalmers'
+        );
+        assert.equal(
+          body.author.email,
+          process.env.STUDIO_GITHUB_AUTHOR_EMAIL ||
+            '16641570+WillieCubed@users.noreply.github.com'
+        );
+        assert.deepEqual(body.author, body.committer);
+        writeCount++;
+        history.unshift({
+          sha: String(writeCount).repeat(40),
+          commit: { message: body.message },
+        });
+        return Response.json({ sha: history[0].sha });
+      }
+      function createBranch(init?: RequestInit): Response {
+        const body = JSON.parse(String(init?.body));
+
+        assert.match(body.ref, /^refs\/heads\/codex\/studio-publish-/);
+        branches.set(body.ref.replace('refs/heads/', ''), body.sha);
+        if (failBranchResponse) {
+          failBranchResponse = false;
+          throw new Error('Connection lost after branch creation');
         }
+        return Response.json({ object: { sha: body.sha } });
+      }
+      function createPull(init?: RequestInit): Response {
+        const body = JSON.parse(String(init?.body));
+
+        prCount++;
+        assert.match(
+          body.body,
+          /## TL;DR[\s\S]*## Changes[\s\S]*## Verification[\s\S]*## Follow-ups and Next Work/
+        );
+        assert.doesNotMatch(body.body, /<!--/);
+        const pr = {
+          number: prCount,
+          html_url: `https://github.com/owner/site/pull/${prCount}`,
+          head: { sha: branches.get(body.head), ref: body.head },
+          base: { sha: head },
+          state: 'open',
+          mergeable: true,
+          mergeable_state: 'clean',
+        };
+        pulls.set(prCount, pr);
+        if (failCreateResponse) {
+          failCreateResponse = false;
+          throw new Error('Connection lost after PR created');
+        }
+        return Response.json(pr);
+      }
+      function mergePull(path: string, init?: RequestInit): Response {
+        const body = JSON.parse(String(init?.body));
+
+        assert.equal(body.merge_method, 'rebase');
+        const pr = pulls.get(Number(path.split('/')[1]))!;
+        assert.equal(body.sha, (pr.head as { sha: string }).sha);
+        mergeCount++;
+        head = (mergeCount + 5).toString(16).repeat(40);
+        Object.assign(pr, {
+          merged: true,
+          merge_commit_sha: head,
+          state: 'closed',
+        });
+        branches.delete((pr.head as { ref: string }).ref);
+        fileSha = createHash('sha1')
+          .update(`blob ${Buffer.byteLength(source)}\0`)
+          .update(source)
+          .digest('hex');
+        if (failMergeResponse) {
+          failMergeResponse = false;
+          throw new Error('Connection lost after merge');
+        }
+        return Response.json({ merged: true, sha: head });
+      }
+      function updatePrivateBranch(path: string, init: RequestInit): Response {
+        const update = JSON.parse(String(init.body));
+        assert.equal(update.force, true);
+        assert.match(
+          decodeURIComponent(path),
+          /^git\/refs\/heads\/codex\/studio-publish-/
+        );
+        const branch = decodeURIComponent(path.replace('git/refs/heads/', ''));
+        const pr = [...pulls.values()].find(
+          (pr) => (pr.head as { ref: string }).ref === branch
+        )!;
+        assert.equal(branches.get(branch), (pr.head as { sha: string }).sha);
+        branches.set(branch, update.sha);
+        Object.assign(pr, {
+          head: { ref: branch, sha: update.sha },
+          base: { sha: head },
+        });
+        rebaseCount++;
+        if (failRebaseResponse) {
+          failRebaseResponse = false;
+          throw new Error('Connection lost after ref update');
+        }
+        return Response.json({ object: { sha: update.sha } });
+      }
+      function readPulls(
+        path: string,
+        endpoint: URL,
+        init?: RequestInit
+      ): Response | undefined {
         if (path === 'pulls' && !init?.body) {
           const branch = endpoint.searchParams.get('head')!.split(':')[1];
           return Response.json(
@@ -146,16 +228,19 @@ test(
                 : 'blocked',
           });
         }
+      }
+      function readGit(path: string, init?: RequestInit): Response | undefined {
         if (path === 'commits') return Response.json(history);
         if (path.startsWith('compare/'))
           return Response.json({ status: 'ahead' });
-        if (path.startsWith('git/commits/') && !init?.body)
+        if (init?.body) return undefined;
+        if (path.startsWith('git/commits/'))
           return Response.json({
             tree: { sha: 'tree-base' },
             message: history.find((commit) => path.endsWith(commit.sha))?.commit
               .message,
           });
-        if (path.startsWith('git/trees/') && !init?.body)
+        if (path.startsWith('git/trees/'))
           return Response.json({
             truncated: false,
             tree: fileSha
@@ -167,97 +252,43 @@ test(
                 ]
               : [],
           });
-        const body = JSON.parse(String(init?.body));
-        if (path === 'git/trees') {
-          const writing = body.tree.find(
-            (entry: { path: string }) =>
-              entry.path === 'content/writings/selected-revision.mdx'
-          );
-          assert.ok(writing);
-          if (writing.content !== undefined) source = writing.content;
-          for (const entry of body.tree.filter(
-            (entry: { path: string }) =>
-              entry.path !== 'content/writings/selected-revision.mdx'
-          )) {
-            assert.match(entry.path, /^public\/generated-blocks\//);
-            assert.match(entry.content, /connect-src 'none'/);
-            assert.doesNotMatch(entry.content, /\/api\/studio\/assets\//);
-          }
-          return Response.json({ sha: 'tree-new' });
-        }
-        if (path === 'git/commits') {
-          assert.equal(
-            body.author.name,
-            process.env.STUDIO_GITHUB_AUTHOR_NAME || 'WillieChalmers'
-          );
-          assert.equal(
-            body.author.email,
-            process.env.STUDIO_GITHUB_AUTHOR_EMAIL ||
-              '16641570+WillieCubed@users.noreply.github.com'
-          );
-          assert.deepEqual(body.author, body.committer);
-          writeCount++;
-          history.unshift({
-            sha: String(writeCount).repeat(40),
-            commit: { message: body.message },
-          });
-          return Response.json({ sha: history[0].sha });
-        }
-        if (path === 'git/refs') {
-          assert.match(body.ref, /^refs\/heads\/codex\/studio-publish-/);
-          branches.set(body.ref.replace('refs/heads/', ''), body.sha);
-          if (failBranchResponse) {
-            failBranchResponse = false;
-            throw new Error('Connection lost after branch creation');
-          }
-          return Response.json({ object: { sha: body.sha } });
-        }
-        if (path === 'pulls') {
-          prCount++;
-          assert.match(
-            body.body,
-            /## TL;DR[\s\S]*## Changes[\s\S]*## Verification[\s\S]*## Follow-ups and Next Work/
-          );
-          assert.doesNotMatch(body.body, /<!--/);
-          const pr = {
-            number: prCount,
-            html_url: `https://github.com/owner/site/pull/${prCount}`,
-            head: { sha: branches.get(body.head), ref: body.head },
-            base: { sha: head },
-            state: 'open',
-            mergeable: true,
-            mergeable_state: 'clean',
-          };
-          pulls.set(prCount, pr);
-          if (failCreateResponse) {
-            failCreateResponse = false;
-            throw new Error('Connection lost after PR created');
-          }
-          return Response.json(pr);
-        }
-        if (/^pulls\/\d+\/merge$/.test(path)) {
-          assert.equal(body.merge_method, 'rebase');
-          const pr = pulls.get(Number(path.split('/')[1]))!;
-          assert.equal(body.sha, (pr.head as { sha: string }).sha);
-          mergeCount++;
-          head = (mergeCount + 5).toString(16).repeat(40);
-          Object.assign(pr, {
-            merged: true,
-            merge_commit_sha: head,
-            state: 'closed',
-          });
-          branches.delete((pr.head as { ref: string }).ref);
-          fileSha = createHash('sha1')
-            .update(`blob ${Buffer.byteLength(source)}\0`)
-            .update(source)
-            .digest('hex');
-          if (failMergeResponse) {
-            failMergeResponse = false;
-            throw new Error('Connection lost after merge');
-          }
-          return Response.json({ merged: true, sha: head });
-        }
+      }
+      function mutateGithub(path: string, init?: RequestInit): Response {
+        if (path === 'git/trees') return writeTree(init);
+        if (path === 'git/commits') return writeCommit(init);
+        if (path === 'git/refs') return createBranch(init);
+        if (path === 'pulls') return createPull(init);
+        if (/^pulls\/\d+\/merge$/.test(path)) return mergePull(path, init);
         throw new Error(`Unexpected request: ${path}`);
+      }
+      function readReference(path: string): Response | undefined {
+        if (path === 'git/ref/heads/main')
+          return Response.json({ object: { sha: head } });
+        if (path.startsWith('git/ref/heads/codex')) {
+          const sha = branches.get(
+            decodeURIComponent(path.replace('git/ref/heads/', ''))
+          );
+          return sha
+            ? Response.json({ object: { sha } })
+            : Response.json({}, { status: 404 });
+        }
+      }
+      globalThis.fetch = async (input, init) => {
+        const endpoint = new URL(String(input)),
+          path = endpoint.pathname.replace('/repos/owner/site/', '');
+        if (endpoint.origin === 'https://public.example')
+          return Response.json(marker);
+        assert.equal(endpoint.origin, 'https://api.github.com');
+        if (path.startsWith('git/refs/heads/codex') && init?.method === 'PATCH')
+          return updatePrivateBranch(path, init);
+        if (path === '') return Response.json({ node_id: 'repository-node' });
+        const reference = readReference(path);
+        if (reference) return reference;
+        const readPullsResponse = readPulls(path, endpoint, init);
+        if (readPullsResponse) return readPullsResponse;
+        const readGitResponse = readGit(path, init);
+        if (readGitResponse) return readGitResponse;
+        return mutateGithub(path, init);
       };
       const published = await publishRevision(draft.id, draft.head.id);
       assert.equal(published.status, 'publishing');

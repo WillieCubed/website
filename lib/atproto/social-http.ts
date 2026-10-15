@@ -20,6 +20,24 @@ export interface BrowserSession {
   did: string;
   id: string;
 }
+export interface SocialAuthorization {
+  did: string;
+  intent: LoginIntent;
+}
+
+export interface SocialLoginRequest extends LoginIntent {
+  handle: string;
+}
+
+export interface SocialHandlers {
+  subscription(request: Request): Promise<Response>;
+  recommendation(request: Request): Promise<Response>;
+  login(request: Request): Promise<Response>;
+  callback(request: Request): Promise<Response>;
+  status(request: Request): Promise<Response>;
+  logout(request: Request): Promise<Response>;
+}
+
 export interface SocialServices {
   enabled: boolean;
   origin: string;
@@ -28,10 +46,7 @@ export interface SocialServices {
   logout(request: Request): Promise<void>;
   rate(key: string): Promise<boolean>;
   authorize(handle: string, intent: LoginIntent): Promise<URL>;
-  callback(
-    params: URLSearchParams,
-    flow: string
-  ): Promise<{ did: string; intent: LoginIntent }>;
+  callback(params: URLSearchParams, flow: string): Promise<SocialAuthorization>;
   target(action: SocialAction, slug?: string): Promise<string>;
   repo(did: string): Promise<GraphRepo>;
   lock<T>(name: string, fn: () => Promise<T>): Promise<T>;
@@ -104,7 +119,34 @@ function checkedSlug(value: unknown): string {
   return value;
 }
 
-export function createSocialHandlers(services: SocialServices) {
+function requestIp(request: Request): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+  );
+}
+
+function checkedLogin(input: Record<string, unknown>): SocialLoginRequest {
+  if (input.action !== 'subscription' && input.action !== 'recommendation')
+    throw new SocialHttpError('Choose Subscribe or Recommend.', 400);
+  if (
+    typeof input.handle !== 'string' ||
+    input.handle.length > 253 ||
+    !/^(?:did:(?:plc|web):[^\s]+|[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,})$/.test(
+      input.handle.trim()
+    )
+  )
+    throw new SocialHttpError('Enter your account handle.', 400);
+  const slug =
+    input.action === 'recommendation' ? checkedSlug(input.slug) : undefined;
+  return {
+    action: input.action,
+    handle: input.handle.trim(),
+    slug,
+    returnTo: slug ? `/writings/${slug}` : '/writings',
+  };
+}
+
+export function createSocialHandlers(services: SocialServices): SocialHandlers {
   function mutation(request: Request) {
     if (!services.enabled)
       throw new SocialHttpError('Sign-in is unavailable.', 503);
@@ -166,43 +208,33 @@ export function createSocialHandlers(services: SocialServices) {
     });
   }
 
+  async function readTargets(slug: string | undefined) {
+    const publication = await services.target('subscription');
+    const document = slug
+      ? await services.target('recommendation', slug)
+      : undefined;
+    return { publication, document };
+  }
+
   return {
     subscription: (request: Request) => action(request, 'subscription'),
     recommendation: (request: Request) => action(request, 'recommendation'),
     login: (request: Request) =>
       guarded(async () => {
         mutation(request);
-        const ip =
-          request.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
-          'unknown';
+        const ip = requestIp(request);
         if (!(await services.rate(`login:${ip}`)))
           throw new SocialHttpError(
             'Wait a minute before signing in again.',
             429
           );
-        const input = await body(request);
-        if (
-          input.action !== 'subscription' &&
-          input.action !== 'recommendation'
-        )
-          throw new SocialHttpError('Choose Subscribe or Recommend.', 400);
-        if (
-          typeof input.handle !== 'string' ||
-          input.handle.length > 253 ||
-          !/^(?:did:(?:plc|web):[^\s]+|[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,})$/.test(
-            input.handle.trim()
-          )
-        )
-          throw new SocialHttpError('Enter your account handle.', 400);
-        const slug =
-          input.action === 'recommendation'
-            ? checkedSlug(input.slug)
-            : undefined;
-        const returnTo = slug ? `/writings/${slug}` : '/writings';
-        await services.target(input.action, slug);
+        const { action, handle, slug, returnTo } = checkedLogin(
+          await body(request)
+        );
+        await services.target(action, slug);
         const flow = randomBytes(32).toString('hex');
-        const url = await services.authorize(input.handle.trim(), {
-          action: input.action,
+        const url = await services.authorize(handle, {
+          action,
           slug,
           returnTo,
           browserHash: digest(flow),
@@ -265,11 +297,7 @@ export function createSocialHandlers(services: SocialServices) {
     status: (request: Request) =>
       guarded(async () => {
         if (!services.enabled) return json({ enabled: false, signedIn: false });
-        if (
-          !(await services.rate(
-            `read:${request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'}`
-          ))
-        )
+        if (!(await services.rate(`read:${requestIp(request)}`)))
           throw new SocialHttpError('Wait a minute before trying again.', 429);
         const slugParam = new URL(request.url).searchParams.get('slug');
         const slug = slugParam === null ? undefined : checkedSlug(slugParam);
@@ -277,10 +305,7 @@ export function createSocialHandlers(services: SocialServices) {
         let publication: string;
         let document: string | undefined;
         try {
-          publication = await services.target('subscription');
-          document = slug
-            ? await services.target('recommendation', slug)
-            : undefined;
+          ({ publication, document } = await readTargets(slug));
         } catch (error) {
           if (
             error instanceof SocialHttpError &&

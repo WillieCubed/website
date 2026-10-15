@@ -23,21 +23,8 @@ export function rankItems(
       content: item.content.toLowerCase(),
     };
 
-    let score = 0;
-    let matchedAllTerms = true;
-    for (const term of terms) {
-      const termScore =
-        (fields.title.includes(term) ? 8 : 0) +
-        (fields.tags.includes(term) ? 5 : 0) +
-        (fields.description.includes(term) ? 3 : 0) +
-        (fields.content.includes(term) ? 1 : 0);
-      if (termScore === 0) {
-        matchedAllTerms = false;
-        break;
-      }
-      score += termScore;
-    }
-    if (!matchedAllTerms) continue;
+    const score = scoreTerms(fields, terms);
+    if (score === null) continue;
 
     scored.push({ ...item, score, snippet: snippetFor(item.content, terms) });
   }
@@ -47,6 +34,23 @@ export function rankItems(
       (b.score ?? 0) - (a.score ?? 0) ||
       new Date(b.published).getTime() - new Date(a.published).getTime()
   );
+}
+
+function scoreTerms(
+  fields: Record<'title' | 'description' | 'tags' | 'content', string>,
+  terms: string[]
+): number | null {
+  let score = 0;
+  for (const term of terms) {
+    const termScore =
+      (fields.title.includes(term) ? 8 : 0) +
+      (fields.tags.includes(term) ? 5 : 0) +
+      (fields.description.includes(term) ? 3 : 0) +
+      (fields.content.includes(term) ? 1 : 0);
+    if (termScore === 0) return null;
+    score += termScore;
+  }
+  return score;
 }
 
 export function tokenize(query: string): string[] {

@@ -4,7 +4,7 @@ import { StudioError } from '@/lib/studio/errors';
 
 export async function PATCH(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  context: RouteContext<'/api/studio/components/[id]'>
 ) {
   return studioRoute(request, async () => {
     if ((await request.json()).action !== 'approve')

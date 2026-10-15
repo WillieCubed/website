@@ -64,6 +64,37 @@ export async function publishedLinks<T extends { href: string }>(
   );
 }
 
+function initiativeCards(initiative: Initiative): EntityCard[] {
+  const cards: EntityCard[] = [];
+  const brand = initiative.brand?.startsWith('#')
+    ? initiative.brand
+    : undefined;
+  cards.push({
+    href: initiative.href,
+    kind: 'initiative',
+    title: initiative.title,
+    description: initiative.tagline,
+    cover: initiative.cover,
+    brand,
+    meta:
+      initiative.starts && initiative.ends
+        ? range(initiative.starts, initiative.ends)
+        : undefined,
+  });
+  for (const part of initiative.parts) {
+    cards.push({
+      href: `${initiative.href}/${part.slug}`,
+      kind: 'part',
+      title: part.title,
+      description: part.tagline ?? part.description ?? initiative.tagline,
+      cover: part.cover ?? initiative.cover,
+      brand,
+      meta: `${initiative.title} · ${initiative.partLabel} ${part.number} of ${initiative.parts.length} · ${range(part.starts, part.ends)}`,
+    });
+  }
+  return cards;
+}
+
 /**
  * The cards for the static pages and ventures plus the given writings, the
  * tags they carry, initiatives, and published projects. Kept apart from the
@@ -93,32 +124,7 @@ export function entityCards(
   cards.push(...tagCards(writings));
 
   for (const initiative of initiatives) {
-    const brand = initiative.brand?.startsWith('#')
-      ? initiative.brand
-      : undefined;
-    cards.push({
-      href: initiative.href,
-      kind: 'initiative',
-      title: initiative.title,
-      description: initiative.tagline,
-      cover: initiative.cover,
-      brand,
-      meta:
-        initiative.starts && initiative.ends
-          ? range(initiative.starts, initiative.ends)
-          : undefined,
-    });
-    for (const part of initiative.parts) {
-      cards.push({
-        href: `${initiative.href}/${part.slug}`,
-        kind: 'part',
-        title: part.title,
-        description: part.tagline ?? part.description ?? initiative.tagline,
-        cover: part.cover ?? initiative.cover,
-        brand,
-        meta: `${initiative.title} · ${initiative.partLabel} ${part.number} of ${initiative.parts.length} · ${range(part.starts, part.ends)}`,
-      });
-    }
+    cards.push(...initiativeCards(initiative));
   }
 
   return cards;

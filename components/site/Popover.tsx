@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 
+import { type AnchorBounds, positionPopover } from './popover-position';
 import './site.css';
 
 export default function Popover({
@@ -27,7 +28,7 @@ export default function Popover({
   placement?: 'default' | 'breadcrumb';
   width?: number;
   disabled?: boolean;
-  anchorRect?: () => Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'> | null;
+  anchorRect?: () => AnchorBounds | null;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -38,66 +39,11 @@ export default function Popover({
       const anchor = anchorRect?.() ?? button.current?.getBoundingClientRect();
       const menu = panel.current;
       if (!anchor || !menu?.matches(':popover-open')) return;
-      const horizontalInset = 16;
-      const verticalInset = 18;
-      const breadcrumb = placement === 'breadcrumb';
-      const gap = breadcrumb ? 4 : 8;
-      const anchorTop = anchor.top + (breadcrumb ? 8 : 0);
-      const anchorBottom = anchor.bottom - (breadcrumb ? 8 : 0);
-      if (breadcrumb) menu.style.width = '';
-      const menuRect = menu.getBoundingClientRect();
-      const width = breadcrumb
-        ? menuRect.width
-        : Math.min(preferredWidth, innerWidth - 32);
-      let preferredLeft =
-        align === 'start' ? anchor.left : anchor.right - width;
-      if (breadcrumb) {
-        const anchorLabel = button.current?.querySelector<HTMLElement>(
-          '.site-breadcrumb-menu__label'
-        );
-        const firstLink = menu.querySelector<HTMLElement>(
-          '.site-breadcrumb-menu__link'
-        );
-        const linkTextInset = firstLink
-          ? firstLink.getBoundingClientRect().left -
-            menuRect.left +
-            parseFloat(getComputedStyle(firstLink).paddingLeft)
-          : 0;
-        preferredLeft =
-          (anchorLabel?.getBoundingClientRect().left ?? anchor.left) -
-          linkTextInset;
-      }
-      const left = Math.min(
-        Math.max(horizontalInset, preferredLeft),
-        innerWidth - width - horizontalInset
-      );
-      // The menu can cross the Search control at narrow header widths.
-      const search = breadcrumb
-        ? button.current
-            ?.closest('header')
-            ?.querySelector<HTMLElement>('.palette-trigger--compact')
-            ?.getBoundingClientRect()
-        : undefined;
-      const belowTop = Math.max(
-        anchorBottom + gap,
-        search && left < search.right && left + width > search.left
-          ? search.bottom
-          : 0
-      );
-      const belowSpace = Math.max(0, innerHeight - verticalInset - belowTop);
-      const aboveSpace = Math.max(0, anchorTop - verticalInset - gap);
-      const desiredHeight = menu.scrollHeight;
-      const placeAbove = desiredHeight > belowSpace && aboveSpace > belowSpace;
-      const availableHeight = placeAbove ? aboveSpace : belowSpace;
-      if (!breadcrumb) menu.style.width = `${width}px`;
-      // A reserved start-side scrollbar gutter shifts the fixed containing
-      // block. Anchor rectangles use viewport coordinates, so remove that
-      // inset before assigning the menu's CSS position.
-      menu.style.left = `${left - document.documentElement.getBoundingClientRect().left}px`;
-      menu.style.maxHeight = `${availableHeight}px`;
-      menu.style.top = placeAbove
-        ? `${anchorTop - gap - Math.min(desiredHeight, availableHeight)}px`
-        : `${belowTop}px`;
+      positionPopover(menu, button.current, anchor, {
+        align,
+        placement,
+        preferredWidth,
+      });
     }
     const menu = panel.current;
     const toggle = (event: Event) => {

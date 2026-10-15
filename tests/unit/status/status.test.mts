@@ -105,3 +105,41 @@ test('failed save preserves the previous city for the owner to retry', async () 
   assert.equal(failure.snapshot.location.city, 'Las Vegas');
   assert.equal(failure.results[0].city, 'Seattle');
 });
+
+test('owner status requests convert asynchronous storage failures into a retryable response', async (context) => {
+  context.mock.method(console, 'error', () => {});
+  const handle = createAdminHandler({
+    store: {
+      read: async () => {
+        throw new Error('database offline');
+      },
+      save: async () => assert.fail('read failed first'),
+    },
+    owner: { verify: async () => ({ ok: true }) },
+    invalidate: () => assert.fail('failed requests cannot invalidate'),
+  });
+  for (const method of ['GET', 'POST']) {
+    const response = await handle(
+      new Request('https://willie.page/api/admin/status', {
+        method,
+        headers: {
+          Origin: 'https://willie.page',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        ...(method === 'POST'
+          ? {
+              body: new URLSearchParams({
+                action: 'save',
+                city: JSON.stringify(defaultLocation.location),
+              }),
+            }
+          : {}),
+      })
+    );
+    assert.equal(response.status, 503);
+    assert.equal(
+      (await response.json()).message,
+      'Status storage is unavailable. Reload before retrying.'
+    );
+  }
+});

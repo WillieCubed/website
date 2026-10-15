@@ -2,6 +2,11 @@ import { site } from '@/lib/site/identity';
 
 import type { WritingData } from './types';
 
+export interface WritingPropertyLink {
+  url: string;
+  name: string;
+}
+
 export function propertyText(value: unknown): string | undefined {
   if (typeof value === 'string') return value;
   if (!value || typeof value !== 'object') return undefined;
@@ -11,7 +16,7 @@ export function propertyText(value: unknown): string | undefined {
   return properties && propertyText(properties.name?.[0]);
 }
 
-export function propertyUrl(value: unknown): string | undefined {
+function urlCandidate(value: unknown): string | undefined {
   const item =
     value && typeof value === 'object'
       ? (value as Record<string, unknown>)
@@ -20,6 +25,11 @@ export function propertyUrl(value: unknown): string | undefined {
   const candidate = properties
     ? propertyText(properties.url?.[0])
     : propertyText(value);
+  return candidate;
+}
+
+export function propertyUrl(value: unknown): string | undefined {
+  const candidate = urlCandidate(value);
   try {
     if (
       !candidate ||
@@ -40,7 +50,7 @@ export function propertyUrl(value: unknown): string | undefined {
 export function propertyLinks(
   writing: WritingData,
   property: string
-): { url: string; name: string }[] {
+): WritingPropertyLink[] {
   return (writing.micropub?.properties[property] ?? []).flatMap((value) => {
     const url = propertyUrl(value);
     return url

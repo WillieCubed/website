@@ -5,9 +5,14 @@ import Icon, { type IconName } from '@/components/icons/Icon';
 import type { ReplyContext } from '@/lib/indieweb/reply-context';
 import { formatDate } from '@/lib/site/dates';
 import { propertyLinks } from '@/lib/writings/properties';
-import type { RSVPStatus, WritingData } from '@/lib/writings/types';
+import type {
+  RSVPStatus,
+  WritingTargetKind as TargetKind,
+  WritingData,
+  WritingTarget,
+} from '@/lib/writings/types';
 
-export type TargetKind = 'reply' | 'like' | 'repost' | 'bookmark' | 'rsvp';
+export type { WritingTargetKind as TargetKind } from '@/lib/writings/types';
 
 interface ReplyTargetProps {
   url: string;
@@ -43,10 +48,8 @@ export const TARGET_WORD: Record<TargetKind, string> = {
   rsvp: 'RSVP',
 };
 
-export function replyTargetsOf(
-  writing: WritingData
-): { url: string; kind: TargetKind }[] {
-  const targets: { url: string; kind: TargetKind }[] = [];
+export function replyTargetsOf(writing: WritingData): WritingTarget[] {
+  const targets: WritingTarget[] = [];
   for (const [property, kind, projected] of [
     ['like-of', 'like', writing.likeOf],
     ['repost-of', 'repost', writing.repostOf],
@@ -67,9 +70,7 @@ export function replyTargetsOf(
   return targets;
 }
 
-export function replyTargetOf(
-  writing: WritingData
-): { url: string; kind: TargetKind } | null {
+export function replyTargetOf(writing: WritingData): WritingTarget | null {
   return replyTargetsOf(writing)[0] ?? null;
 }
 
@@ -79,6 +80,88 @@ const RSVP_WORD: Record<RSVPStatus, string> = {
   maybe: 'Maybe going',
   interested: 'Interested',
 };
+
+function interactionWord(
+  kind: TargetKind,
+  status: RSVPStatus | undefined
+): string | null {
+  if (kind === 'rsvp') return status ? RSVP_WORD[status] : null;
+  return kind === 'reply' ? null : TARGET_WORD[kind];
+}
+
+function ReplyTargetHeading({
+  url,
+  kind,
+  context,
+  rsvpStatus,
+}: Pick<ReplyTargetProps, 'url' | 'kind' | 'context' | 'rsvpStatus'>) {
+  const host = hostOf(url);
+  const siteName = context?.siteName || host;
+  const word = interactionWord(kind, rsvpStatus);
+  return (
+    <span className="flex items-center gap-2 text-label-medium text-muted">
+      <Icon
+        name={TARGET_ICON[kind]}
+        size={14}
+        title={kind === 'reply' ? 'Replying to' : undefined}
+      />
+      {word && <span>{word}</span>}
+      {word && <span aria-hidden="true">·</span>}
+      <span>{siteName}</span>
+      {context?.publishedAt && (
+        <>
+          <span aria-hidden="true">·</span>
+          <time
+            className="dt-published"
+            dateTime={context.publishedAt.toISOString()}
+          >
+            {formatDate(context.publishedAt, 'short')}
+          </time>
+        </>
+      )}
+    </span>
+  );
+}
+
+function ReplyTargetAuthor({ context }: { context?: ReplyContext }) {
+  return (
+    <>
+      {context?.authorName && (
+        <span className="p-author h-card flex items-center gap-2 text-label-large">
+          {context.authorPhoto && (
+            <Image
+              src={context.authorPhoto}
+              alt=""
+              aria-hidden="true"
+              width={20}
+              height={20}
+              className="u-photo size-5 rounded-full object-cover"
+              unoptimized
+            />
+          )}
+          <span className="p-name font-medium">{context.authorName}</span>
+        </span>
+      )}
+    </>
+  );
+}
+
+function RsvpProperty({
+  emit,
+  kind,
+  status,
+}: {
+  emit: boolean;
+  kind: TargetKind;
+  status?: RSVPStatus;
+}) {
+  if (!emit || kind !== 'rsvp' || !status) return null;
+  return (
+    <data className="p-rsvp hidden" value={status}>
+      {status}
+    </data>
+  );
+}
 
 /**
  * The page a post answers, likes, reposts, bookmarks, or RSVPs to. It reads
@@ -94,17 +177,6 @@ export default function ReplyTarget({
   emitRsvpProperty = true,
 }: ReplyTargetProps) {
   const host = hostOf(url);
-  const siteName = context?.siteName || host;
-  const word =
-    kind === 'rsvp' && rsvpStatus
-      ? RSVP_WORD[rsvpStatus]
-      : kind === 'like'
-        ? 'Liked'
-        : kind === 'repost'
-          ? 'Reposted'
-          : kind === 'bookmark'
-            ? 'Bookmarked'
-            : null;
 
   return (
     <div className="reply-target">
@@ -113,43 +185,13 @@ export default function ReplyTarget({
         className={`${TARGET_PROPERTY[kind]} h-cite group bleed flex flex-col gap-1 rounded-2xl border border-line bg-card py-4 text-ink no-underline transition-colors hover:border-accent`}
         rel={kind === 'reply' || kind === 'rsvp' ? 'in-reply-to' : 'nofollow'}
       >
-        <span className="flex items-center gap-2 text-label-medium text-muted">
-          <Icon
-            name={TARGET_ICON[kind]}
-            size={14}
-            title={kind === 'reply' ? 'Replying to' : undefined}
-          />
-          {word && <span>{word}</span>}
-          {word && <span aria-hidden="true">·</span>}
-          <span>{siteName}</span>
-          {context?.publishedAt && (
-            <>
-              <span aria-hidden="true">·</span>
-              <time
-                className="dt-published"
-                dateTime={context.publishedAt.toISOString()}
-              >
-                {formatDate(context.publishedAt, 'short')}
-              </time>
-            </>
-          )}
-        </span>
-        {context?.authorName && (
-          <span className="p-author h-card flex items-center gap-2 text-label-large">
-            {context.authorPhoto && (
-              <Image
-                src={context.authorPhoto}
-                alt=""
-                aria-hidden="true"
-                width={20}
-                height={20}
-                className="u-photo size-5 rounded-full object-cover"
-                unoptimized
-              />
-            )}
-            <span className="p-name font-medium">{context.authorName}</span>
-          </span>
-        )}
+        <ReplyTargetHeading
+          url={url}
+          kind={kind}
+          context={context}
+          rsvpStatus={rsvpStatus}
+        />
+        <ReplyTargetAuthor context={context} />
         <span className="p-name text-title-medium font-semibold group-hover:text-accent">
           {context?.title || host}
         </span>
@@ -161,11 +203,7 @@ export default function ReplyTarget({
       </a>
       {/* Outside the h-cite: inside it, the RSVP would read as a property
           of the event rather than of this post. */}
-      {emitRsvpProperty && kind === 'rsvp' && rsvpStatus && (
-        <data className="p-rsvp hidden" value={rsvpStatus}>
-          {rsvpStatus}
-        </data>
-      )}
+      <RsvpProperty emit={emitRsvpProperty} kind={kind} status={rsvpStatus} />
       <span aria-hidden="true" className="reply-target__thread" />
     </div>
   );

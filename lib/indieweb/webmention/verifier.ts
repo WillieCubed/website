@@ -2,18 +2,22 @@ import { mf2 } from 'microformats-parser';
 
 import {
   type AuthorshipOptions,
+  type MicroformatProperty,
+  type MicroformatRoot,
   discoverAuthor,
   findEntry,
 } from '@/lib/indieweb/authorship';
 import { commentHtml, commentText } from '@/lib/indieweb/comment-content';
 import { SITE_URL } from '@/lib/indieweb/constants';
 import {
+  type ResolvedDocumentLinks,
   resolvedDocumentLinks,
   sameDocumentUrl,
 } from '@/lib/indieweb/document-links';
 import {
   type AddressResolver,
   type DocumentFetch,
+  type PublicDocument,
   fetchPublicDocument,
 } from '@/lib/indieweb/public-fetch';
 import { sameOrigin } from '@/lib/indieweb/utils';
@@ -28,11 +32,6 @@ import type {
 import type { RSVPStatus } from '@/lib/writings/types';
 
 export { extractAuthor } from '@/lib/indieweb/authorship';
-
-// Extract MicroformatRoot type from the mf2 return type
-type ParsedDocument = ReturnType<typeof mf2>;
-type MicroformatRoot = ParsedDocument['items'][number];
-type MicroformatProperty = MicroformatRoot['properties'][string][number];
 
 const SOURCE_TIMEOUT_MS = 10000;
 /** A source page larger than this is refused rather than read. */
@@ -89,32 +88,8 @@ export async function verifyWebmention(
       };
     }
 
-    // Handle 410 Gone - source explicitly deleted
-    if (document.status === 410) {
-      await markWebmentionDeleted(id);
-      return {
-        success: true,
-        isDeleted: true,
-        error: 'Source returned 410 Gone',
-      };
-    }
-
-    // Handle 404 - source no longer exists
-    if (document.status === 404) {
-      await markWebmentionDeleted(id);
-      return {
-        success: true,
-        isDeleted: true,
-        error: 'Source returned 404 Not Found',
-      };
-    }
-
-    if (document.status < 200 || document.status > 299) {
-      return {
-        success: false,
-        error: `Failed to fetch source: ${document.status}`,
-      };
-    }
+    const outcome = await sourceStatusOutcome(id, document.status);
+    if (outcome) return outcome;
 
     const html = document.body;
 
@@ -130,64 +105,13 @@ export async function verifyWebmention(
       };
     }
 
-    // Relative links resolve against where the source ended up.
-    const parsed = mf2(html, { baseUrl: links.base });
-    const citing = links.entries.find((entry) =>
-      entry.links.some((url) => sameDocumentUrl(url, verificationTarget))
+    return await verifyLinkedEntry(
+      id,
+      document,
+      links,
+      verificationTarget,
+      options
     );
-    const found = citing
-      ? findEntry(mf2(citing.html, { baseUrl: links.base }).items)
-      : null;
-    if (found) {
-      // Keep the original feed for author inheritance when selecting a later entry.
-      const original = findEntry(parsed.items);
-      found.feed = original?.feed;
-    }
-
-    if (!found) {
-      // No h-entry found, but link exists - treat as simple mention
-      await updateVerifiedWebmention(id, { type: 'mention' });
-      return { success: true, type: 'mention' };
-    }
-
-    const hEntry = found.entry;
-
-    // Determine webmention type
-    const type = determineWebmentionType(hEntry, verificationTarget);
-    const rsvp = type === 'rsvp' ? rsvpAnswer(hEntry) : undefined;
-
-    const author = await discoverAuthor(parsed, found, document.url, options);
-
-    const { text: content, html: contentHtml } = extractContent(
-      hEntry,
-      links.base
-    );
-
-    // Extract published date
-    const publishedAt = extractPublishedDate(hEntry);
-
-    // Update the webmention record
-    await updateVerifiedWebmention(id, {
-      type,
-      rsvp,
-      authorName: author.name,
-      authorUrl: author.url,
-      authorPhoto: author.photo,
-      content,
-      contentHtml,
-      publishedAt,
-      rawMf2: hEntry,
-    });
-
-    return {
-      success: true,
-      type,
-      ...(rsvp ? { rsvp } : {}),
-      author,
-      content,
-      ...(contentHtml ? { contentHtml } : {}),
-      publishedAt,
-    };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: message };
@@ -273,70 +197,20 @@ function extractContent(
   const content =
     properties.content?.[0] || properties.summary?.[0] || properties.name?.[0];
 
-  const escape = (value: string) =>
-    value.replace(
-      /[&<>"']/g,
-      (character) =>
-        ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;',
-        })[character]!
-    );
-  const value =
-    typeof content === 'string'
-      ? content
-      : content && 'value' in content && typeof content.value === 'string'
-        ? content.value
-        : '';
-  const hasMarkup =
-    content &&
-    typeof content === 'object' &&
-    'html' in content &&
-    typeof content.html === 'string';
-  let hasMedia = false;
-  let markup =
-    content &&
-    typeof content === 'object' &&
-    'html' in content &&
-    typeof content.html === 'string'
-      ? content.html
-      : `<p>${escape(value)}</p>`;
+  const value = contentText(content);
+  const originalMarkup = contentMarkup(content);
+  let markup = originalMarkup ?? `<p>${escapeMediaAttribute(value)}</p>`;
   const mediaUrls = new Set(
     resolvedDocumentLinks(commentHtml(markup, baseUrl) ?? '', baseUrl).links
   );
-  for (const property of ['photo', 'audio', 'video', 'attachment']) {
-    for (const item of properties[property] ?? []) {
-      const url = propertyUrls(item)[0];
-      if (!url) continue;
-      let identity: string;
-      try {
-        identity = new URL(url, baseUrl).href;
-      } catch {
-        continue;
-      }
-      if (mediaUrls.has(identity)) continue;
-      mediaUrls.add(identity);
-      const alt =
-        typeof item === 'object' &&
-        'alt' in item &&
-        typeof item.alt === 'string'
-          ? item.alt
-          : '';
-      hasMedia = true;
-      markup +=
-        property === 'photo'
-          ? `<img src="${escape(url)}" alt="${escape(alt)}">`
-          : property === 'attachment'
-            ? `<figure><a class="u-attachment" href="${escape(url)}">${escape(alt || 'Attachment')}</a></figure>`
-            : `<${property} src="${escape(url)}" controls preload="none"></${property}>`;
-    }
-  }
+  const media = entryMediaMarkup(properties, mediaUrls, baseUrl);
+  markup += media;
   return {
     text: commentText(value),
-    html: hasMarkup || hasMedia ? commentHtml(markup, baseUrl) : undefined,
+    html:
+      originalMarkup !== undefined || media
+        ? commentHtml(markup, baseUrl)
+        : undefined,
   };
 }
 
@@ -351,4 +225,181 @@ function extractPublishedDate(hEntry: MicroformatRoot): Date | undefined {
   }
 
   return undefined;
+}
+
+async function sourceStatusOutcome(
+  id: string,
+  status: number
+): Promise<WebmentionVerificationResult | null> {
+  // Handle 410 Gone - source explicitly deleted
+  if (status === 410) {
+    await markWebmentionDeleted(id);
+    return {
+      success: true,
+      isDeleted: true,
+      error: 'Source returned 410 Gone',
+    };
+  }
+
+  // Handle 404 - source no longer exists
+  if (status === 404) {
+    await markWebmentionDeleted(id);
+    return {
+      success: true,
+      isDeleted: true,
+      error: 'Source returned 404 Not Found',
+    };
+  }
+
+  if (status < 200 || status > 299) {
+    return {
+      success: false,
+      error: `Failed to fetch source: ${status}`,
+    };
+  }
+
+  return null;
+}
+
+async function verifyLinkedEntry(
+  id: string,
+  document: PublicDocument,
+  links: ResolvedDocumentLinks,
+  verificationTarget: string,
+  options: VerifyWebmentionOptions
+): Promise<WebmentionVerificationResult> {
+  const html = document.body;
+  // Relative links resolve against where the source ended up.
+  const parsed = mf2(html, { baseUrl: links.base });
+  const citing = links.entries.find((entry) =>
+    entry.links.some((url) => sameDocumentUrl(url, verificationTarget))
+  );
+  const found = citing
+    ? findEntry(mf2(citing.html, { baseUrl: links.base }).items)
+    : null;
+  if (found) {
+    // Keep the original feed for author inheritance when selecting a later entry.
+    const original = findEntry(parsed.items);
+    found.feed = original?.feed;
+  }
+
+  if (!found) {
+    // No h-entry found, but link exists - treat as simple mention
+    await updateVerifiedWebmention(id, { type: 'mention' });
+    return { success: true, type: 'mention' };
+  }
+
+  const hEntry = found.entry;
+
+  // Determine webmention type
+  const type = determineWebmentionType(hEntry, verificationTarget);
+  const rsvp = type === 'rsvp' ? rsvpAnswer(hEntry) : undefined;
+
+  const author = await discoverAuthor(parsed, found, document.url, options);
+
+  const { text: content, html: contentHtml } = extractContent(
+    hEntry,
+    links.base
+  );
+
+  // Extract published date
+  const publishedAt = extractPublishedDate(hEntry);
+
+  // Update the webmention record
+  await updateVerifiedWebmention(id, {
+    type,
+    rsvp,
+    authorName: author.name,
+    authorUrl: author.url,
+    authorPhoto: author.photo,
+    content,
+    contentHtml,
+    publishedAt,
+    rawMf2: hEntry,
+  });
+
+  return {
+    success: true,
+    type,
+    ...(rsvp ? { rsvp } : {}),
+    author,
+    content,
+    ...(contentHtml ? { contentHtml } : {}),
+    publishedAt,
+  };
+}
+
+function escapeMediaAttribute(value: string): string {
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[character]!
+  );
+}
+
+function contentText(value: MicroformatProperty | undefined): string {
+  if (typeof value === 'string') return value;
+  return value && 'value' in value && typeof value.value === 'string'
+    ? value.value
+    : '';
+}
+function contentMarkup(
+  value: MicroformatProperty | undefined
+): string | undefined {
+  return value &&
+    typeof value === 'object' &&
+    'html' in value &&
+    typeof value.html === 'string'
+    ? value.html
+    : undefined;
+}
+function entryMediaMarkup(
+  properties: MicroformatRoot['properties'],
+  mediaUrls: Set<string>,
+  baseUrl: string
+): string {
+  let markup = '';
+  for (const property of ['photo', 'audio', 'video', 'attachment']) {
+    for (const item of properties[property] ?? []) {
+      const url = propertyUrls(item)[0];
+      if (!url || !claimMediaUrl(url, baseUrl, mediaUrls)) continue;
+      markup += mediaMarkup(property, item, url);
+    }
+  }
+  return markup;
+}
+function claimMediaUrl(
+  url: string,
+  baseUrl: string,
+  mediaUrls: Set<string>
+): boolean {
+  try {
+    const identity = new URL(url, baseUrl).href;
+    if (mediaUrls.has(identity)) return false;
+    mediaUrls.add(identity);
+    return true;
+  } catch {
+    return false;
+  }
+}
+function mediaMarkup(
+  property: string,
+  item: MicroformatProperty,
+  url: string
+): string {
+  const alt =
+    typeof item === 'object' && 'alt' in item && typeof item.alt === 'string'
+      ? item.alt
+      : '';
+  if (property === 'photo')
+    return `<img src="${escapeMediaAttribute(url)}" alt="${escapeMediaAttribute(alt)}">`;
+  if (property === 'attachment')
+    return `<figure><a class="u-attachment" href="${escapeMediaAttribute(url)}">${escapeMediaAttribute(alt || 'Attachment')}</a></figure>`;
+  return `<${property} src="${escapeMediaAttribute(url)}" controls preload="none"></${property}>`;
 }

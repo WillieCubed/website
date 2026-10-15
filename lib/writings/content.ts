@@ -6,6 +6,29 @@ import { stripMdxSyntax } from '@/lib/text/strip-mdx';
 import { writingAttachments } from './media';
 import type { WritingData } from './types';
 
+function textSeparator(node: DefaultTreeAdapterMap['node']): string {
+  if (!('tagName' in node)) return '';
+  if (['td', 'th'].includes(node.tagName)) return '\t';
+  return [
+    'p',
+    'div',
+    'pre',
+    'li',
+    'tr',
+    'blockquote',
+    'figcaption',
+    'br',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+  ].includes(node.tagName)
+    ? '\n'
+    : '';
+}
+
 export function htmlText(html: string): string {
   const fragment = parseFragment(
     sanitizeCommentHtml(html, 'https://example.invalid/')
@@ -18,7 +41,7 @@ export function htmlText(html: string): string {
         ? (node.attrs.find((attr) => attr.name === 'alt')?.value ?? '')
         : '';
     const body = node.childNodes.map(text).join('');
-    return `${description ? `\n${description}\n` : ''}${body}${'tagName' in node && ['td', 'th'].includes(node.tagName) ? '\t' : ''}${'tagName' in node && ['p', 'div', 'pre', 'li', 'tr', 'blockquote', 'figcaption', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(node.tagName) ? '\n' : ''}`;
+    return `${description ? `\n${description}\n` : ''}${body}${textSeparator(node)}`;
   }
   return text(fragment)
     .replace(/\n{3,}/g, '\n\n')

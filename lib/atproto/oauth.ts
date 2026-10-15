@@ -33,6 +33,7 @@ import type { GraphRepo } from './social';
 import {
   type LoginIntent,
   SocialCallbackError,
+  type SocialHandlers,
   SocialHttpError,
   type SocialServices,
   createSocialHandlers,
@@ -197,7 +198,7 @@ export function socialServices(): SocialServices {
   };
 }
 
-export function socialHandlers() {
+export function socialHandlers(): SocialHandlers {
   return createSocialHandlers(socialServices());
 }
 

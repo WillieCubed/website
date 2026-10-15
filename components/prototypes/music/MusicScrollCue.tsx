@@ -4,6 +4,26 @@ import { type RefObject, useEffect, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
+function cuePosition(gallery: HTMLDivElement | null, height: number) {
+  const cover = gallery
+    ?.querySelector<HTMLElement>('.mp-card-lead .mp-art-frame')
+    ?.getBoundingClientRect();
+  const text = gallery?.querySelectorAll<HTMLElement>(
+    '.mp-card-lead .mp-feature-details'
+  );
+  const overlapsText = Array.from(text ?? []).some((element) => {
+    const box = element.getBoundingClientRect();
+    return box.top < height - 20 && box.bottom > height - 64;
+  });
+  return {
+    left: cover ? cover.left + cover.width / 2 : null,
+    bottom:
+      cover && innerWidth < 600 && overlapsText
+        ? Math.max(20, height - cover.bottom + 12)
+        : 20,
+  };
+}
+
 export default function MusicScrollCue({
   gallery,
   collection,
@@ -26,22 +46,9 @@ export default function MusicScrollCue({
       if (!next || explored) return setVisible(false);
       const box = next.getBoundingClientRect();
       const height = window.visualViewport?.height ?? innerHeight;
-      const cover = gallery.current
-        ?.querySelector<HTMLElement>('.mp-card-lead .mp-art-frame')
-        ?.getBoundingClientRect();
-      const text = gallery.current?.querySelectorAll<HTMLElement>(
-        '.mp-card-lead .mp-feature-details'
-      );
-      const overlapsText = Array.from(text ?? []).some((element) => {
-        const box = element.getBoundingClientRect();
-        return box.top < height - 20 && box.bottom > height - 64;
-      });
-      setLeft(cover ? cover.left + cover.width / 2 : null);
-      setBottom(
-        cover && innerWidth < 600 && overlapsText
-          ? Math.max(20, height - cover.bottom + 12)
-          : 20
-      );
+      const position = cuePosition(gallery.current, height);
+      setLeft(position.left);
+      setBottom(position.bottom);
       setVisible(box.top + 56 > height);
     };
     const scroll = () => {

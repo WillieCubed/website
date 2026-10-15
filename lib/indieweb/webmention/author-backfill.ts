@@ -1,3 +1,4 @@
+import type { MicroformatRoot } from '@/lib/indieweb/authorship';
 import type {
   WebmentionAuthorBackfillResult,
   WebmentionAuthorBackfillStore,
@@ -13,13 +14,11 @@ import { extractAuthor } from '@/lib/indieweb/webmention/verifier';
  * runs without a database in tests.
  */
 
-type HEntry = Parameters<typeof extractAuthor>[0];
-
 /**
  * Whether a stored `raw_mf2_json` is an h-entry `extractAuthor` can read. A
  * mention verified without an h-entry stores `{}`.
  */
-function isHEntry(value: unknown): value is HEntry {
+function isHEntry(value: unknown): value is MicroformatRoot {
   if (typeof value !== 'object' || value === null) return false;
   const { properties } = value as Record<string, unknown>;
   return (

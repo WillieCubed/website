@@ -7,20 +7,19 @@ import InitiativeBody from '@/components/initiatives/InitiativeBody';
 import PartEvent from '@/components/initiatives/PartEvent';
 import PartNav from '@/components/initiatives/PartNav';
 import RouteMap from '@/components/initiatives/RouteMap';
+import { initiativeBreadcrumbs } from '@/components/initiatives/breadcrumbs';
 import {
   formatDay,
   formatRange,
   isoDate,
 } from '@/components/initiatives/dates';
 import JsonLd from '@/components/seo/JsonLd';
-import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import TopBar from '@/components/site/TopBar';
 
 import {
-  getChildInitiatives,
+  type Part,
   getInitiative,
   getInitiativeSlugs,
-  getInitiatives,
   getPart,
 } from '@/lib/initiatives/index';
 import { partTitle } from '@/lib/initiatives/load';
@@ -54,9 +53,9 @@ export async function generateStaticParams() {
   return params.length > 0 ? params : [{ slug: '_', part: 'part-1' }];
 }
 
-export async function generateMetadata(props: {
-  params: Promise<{ slug: string; part: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: PageProps<'/initiatives/[slug]/[part]'>
+): Promise<Metadata> {
   const { slug, part: partSlug } = await props.params;
   const found = await getPart(slug, partSlug).catch(() => null);
   if (!found) notFound();
@@ -78,16 +77,43 @@ export async function generateMetadata(props: {
 }
 
 /** Tints the browser chrome with the initiative's brand colour. */
-export async function generateViewport(props: {
-  params: Promise<{ slug: string; part: string }>;
-}): Promise<Viewport> {
+export async function generateViewport(
+  props: PageProps<'/initiatives/[slug]/[part]'>
+): Promise<Viewport> {
   const { slug } = await props.params;
   return initiativeViewport(slug);
 }
 
-export default async function PartPage(props: {
-  params: Promise<{ slug: string; part: string }>;
-}) {
+function PartMilestones({ part }: { part: Part }) {
+  return (
+    <aside className="grid content-start gap-6">
+      {part.milestones.length > 0 && (
+        <section className="act-card rounded-2xl p-4" aria-label="Milestones">
+          <ol className="grid list-none gap-3 p-0">
+            {part.milestones.map((m) => (
+              <li key={m.id} className="grid gap-0.5">
+                <time
+                  dateTime={isoDate(m.date)}
+                  className="text-label-medium text-muted"
+                >
+                  {formatDay(m.date)}
+                </time>
+                <span className="text-body-medium text-ink">{m.label}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+      {part.places.length > 1 && (
+        <RouteMap places={part.places} title={`${part.title} places`} />
+      )}
+    </aside>
+  );
+}
+
+export default async function PartPage(
+  props: PageProps<'/initiatives/[slug]/[part]'>
+) {
   const { slug, part: partSlug } = await props.params;
   const found = await getPart(slug, partSlug).catch(() => null);
   if (!found) notFound();
@@ -97,44 +123,10 @@ export default async function PartPage(props: {
   const actTitle = `${initiative.partLabel} ${part.number}: ${part.title}`;
   // One trail feeds the top bar and the breadcrumb markup, and it includes a
   // parent initiative the way the initiative page does.
-  const parent = initiative.parent
-    ? await getInitiative(initiative.parent).catch(() => null)
-    : null;
   const name = partTitle(initiative, part);
   const description =
     part.description || part.tagline || initiative.description;
-  const parentChildren = parent ? await getChildInitiatives(parent.slug) : [];
-  const topLevelInitiatives = (await getInitiatives())
-    .filter((item) => !item.parent)
-    .slice(0, 8);
-  const crumbs: Array<{
-    label: string;
-    href: string;
-    menuItems?: BreadcrumbMenuItem[];
-  }> = [
-    {
-      label: 'Initiatives',
-      href: '/initiatives',
-      menuItems: topLevelInitiatives.map((item) => ({
-        label: item.title,
-        href: item.href,
-      })),
-    },
-  ];
-  if (parent) {
-    const parentCrumb: {
-      label: string;
-      href: string;
-      menuItems?: BreadcrumbMenuItem[];
-    } = { label: parent.title, href: parent.href };
-    if (parentChildren.length > 0) {
-      parentCrumb.menuItems = parentChildren.map((child) => ({
-        label: child.title,
-        href: child.href,
-      }));
-    }
-    crumbs.push(parentCrumb);
-  }
+  const crumbs = await initiativeBreadcrumbs(initiative);
   crumbs.push({
     label: initiative.title,
     href: initiative.href,
@@ -198,33 +190,7 @@ export default async function PartPage(props: {
           <article className="min-w-0">
             <InitiativeBody source={part.content} />
           </article>
-          <aside className="grid content-start gap-6">
-            {part.milestones.length > 0 && (
-              <section
-                className="act-card rounded-2xl p-4"
-                aria-label="Milestones"
-              >
-                <ol className="grid list-none gap-3 p-0">
-                  {part.milestones.map((m) => (
-                    <li key={m.id} className="grid gap-0.5">
-                      <time
-                        dateTime={isoDate(m.date)}
-                        className="text-label-medium text-muted"
-                      >
-                        {formatDay(m.date)}
-                      </time>
-                      <span className="text-body-medium text-ink">
-                        {m.label}
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
-            {part.places.length > 1 && (
-              <RouteMap places={part.places} title={`${part.title} places`} />
-            )}
-          </aside>
+          <PartMilestones part={part} />
         </div>
 
         <PageWebmentions

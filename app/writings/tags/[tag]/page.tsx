@@ -21,9 +21,7 @@ import {
   writingCount,
 } from '@/lib/writings/tags';
 
-interface TagPageProps {
-  params: Promise<{ tag: string }>;
-}
+type TagPageProps = PageProps<'/writings/tags/[tag]'>;
 
 export async function generateStaticParams() {
   return getTagParams();

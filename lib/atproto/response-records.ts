@@ -15,10 +15,9 @@ import {
 } from '@atcute/lexicons';
 
 import { oauthFetch } from './oauth-fetch';
+import type { RepoRecordReference } from './types';
 
-export interface CurrentResponseRecord {
-  uri: string;
-  cid: string;
+export interface CurrentResponseRecord extends RepoRecordReference {
   value: AppBskyFeedPost.Main;
   pds: string;
   legacyBlobCids?: readonly string[];
@@ -68,11 +67,47 @@ function knownBlobs(record: AppBskyFeedPost.Main): KnownBlob[] {
   }
 }
 
+function assertBlobMime(
+  blob: Blob | LegacyBlob,
+  mime: KnownBlob['mime']
+): void {
+  const supplied = blob.mimeType.toLowerCase();
+  const valid =
+    mime === 'image/*'
+      ? /^image\/[a-z0-9!#$&^_.+-]+$/.test(supplied)
+      : supplied === mime;
+  if (!valid) throw new Error('The response media MIME type is invalid.');
+}
+
+function assertBlobSize(blob: Blob, maximum: number): void {
+  if (!Number.isSafeInteger(blob.size) || blob.size <= 0 || blob.size > maximum)
+    throw new Error('The response media size is invalid.');
+}
+
+function validateResponseBlob(
+  { blob, mime, maximum }: KnownBlob,
+  normalizedLegacyCids: readonly string[]
+): string | undefined {
+  const cid = 'cid' in blob ? blob.cid : blob.ref.$link;
+  if (fromString(cid).codec !== CODEC_RAW)
+    throw new Error('The response media CID does not identify a raw blob.');
+  assertBlobMime(blob, mime);
+  if ('cid' in blob) return cid;
+  if (blob.size === -1 && normalizedLegacyCids.includes(cid)) return cid;
+  assertBlobSize(blob, maximum);
+  return undefined;
+}
+
 /** Legacy sizes remain unknown; only reader-normalized legacy refs may use -1. */
+export interface ParsedResponsePost {
+  value: AppBskyFeedPost.Main;
+  legacyBlobCids: string[];
+}
+
 export function parseCurrentResponsePost(
   value: unknown,
   normalizedLegacyCids: readonly string[] = []
-): { value: AppBskyFeedPost.Main; legacyBlobCids: string[] } {
+): ParsedResponsePost {
   const parsed = safeParse(AppBskyFeedPost.mainSchema, value);
   if (!parsed.ok) throw new Error('The response PDS returned an invalid post.');
   const legacy = new Set<string>();
@@ -80,27 +115,11 @@ export function parseCurrentResponsePost(
   for (const { blob, mime, maximum } of knownBlobs(
     value as AppBskyFeedPost.Main
   )) {
-    const cid = 'cid' in blob ? blob.cid : blob.ref.$link;
-    if (fromString(cid).codec !== CODEC_RAW)
-      throw new Error('The response media CID does not identify a raw blob.');
-    const suppliedMime = blob.mimeType.toLowerCase();
-    if (
-      mime === 'image/*'
-        ? !/^image\/[a-z0-9!#$&^_.+-]+$/.test(suppliedMime)
-        : suppliedMime !== mime
-    )
-      throw new Error('The response media MIME type is invalid.');
-    if ('cid' in blob) {
-      legacy.add(cid);
-    } else if (blob.size === -1 && normalizedLegacyCids.includes(cid)) {
-      legacy.add(cid);
-    } else if (
-      !Number.isSafeInteger(blob.size) ||
-      blob.size <= 0 ||
-      blob.size > maximum
-    ) {
-      throw new Error('The response media size is invalid.');
-    }
+    const cid = validateResponseBlob(
+      { blob, mime, maximum },
+      normalizedLegacyCids
+    );
+    if (cid) legacy.add(cid);
   }
   return { value: parsed.value, legacyBlobCids: [...legacy] };
 }

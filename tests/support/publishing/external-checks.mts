@@ -78,71 +78,8 @@ export async function recoverNotificationWorkflow(
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return;
     throw error;
   }
-  assert(
-    receipt.version === 1 &&
-      receipt.origin === ORIGIN &&
-      receipt.did === process.env.NEXT_PUBLIC_ATPROTO_DID &&
-      receipt.did !== 'did:plc:iyn6nc3ffqm2e3555exyrgvv'
-  );
-  assert(
-    /^codex\/publishing-compatibility-acceptance(?:-\d{8})?$/.test(
-      receipt.branch
-    ) &&
-      /^[a-f0-9]{40}$/.test(receipt.sha) &&
-      Number.isFinite(Date.parse(receipt.started))
-  );
-  assert(
-    execFileSync('git', ['branch', '--show-current'], {
-      cwd: workspace,
-      encoding: 'utf8',
-    }).trim() === receipt.branch
-  );
-  if (receipt.quiesced)
-    assert(receipt.terminalObservedAt && receipt.run?.status === 'completed');
-  const deadline = Date.now() + 120000;
-  do {
-    if (receipt.quiesced) break;
-    if (!receipt.run)
-      receipt.run = workflowRuns(workspace, receipt).find(
-        (run) =>
-          run.headSha === receipt.sha &&
-          Date.parse(run.createdAt) >= Date.parse(receipt.started) - 1000
-      );
-    if (receipt.run) {
-      const run = ghJson<WorkflowRun>(workspace, [
-        'run',
-        'view',
-        String(receipt.run.databaseId),
-        '--json',
-        'databaseId,headSha,headBranch,event,status,conclusion,url,createdAt',
-      ]);
-      assert(
-        run.headSha === receipt.sha &&
-          run.headBranch === receipt.branch &&
-          run.event === 'workflow_dispatch' &&
-          Date.parse(run.createdAt) >= Date.parse(receipt.started) - 1000
-      );
-      receipt.run = run;
-      await saveWorkflow(path, receipt);
-      if (run.status === 'completed') break;
-      execFileSync(
-        'gh',
-        [
-          'run',
-          'cancel',
-          String(run.databaseId),
-          '--repo',
-          'WillieCubed/website',
-        ],
-        { cwd: workspace, stdio: 'pipe' }
-      );
-    }
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 5000));
-  } while (Date.now() < deadline);
-  assert(
-    receipt.run?.status === 'completed',
-    'Workflow state is unknown. Preserve all owned PDS/source records until recovery establishes a terminal run.'
-  );
+  validateWorkflowRecovery(receipt, workspace);
+  await quiesceWorkflowRun(workspace, path, receipt);
   const allRuns = ghJson<WorkflowRun[]>(workspace, [
     'run',
     'list',
@@ -172,38 +109,7 @@ export async function recoverNotificationWorkflow(
     )
   )
     return;
-  receipt.quiesced = false;
-  receipt.terminalObservedAt = new Date().toISOString();
-  await saveWorkflow(path, receipt);
-  // Cancellation does not stop an HTTP handler that GitHub already invoked; its deployed limit is 60 seconds.
-  const drainedAt = Date.parse(receipt.terminalObservedAt) + 70000;
-  while (Date.now() < drainedAt)
-    await new Promise((resolvePromise) =>
-      setTimeout(resolvePromise, Math.min(5000, drainedAt - Date.now()))
-    );
-  const afterDrain = ghJson<WorkflowRun[]>(workspace, [
-    'run',
-    'list',
-    '--branch',
-    receipt.branch,
-    '--workflow',
-    'indieweb-publish.yml',
-    '--limit',
-    '100',
-    '--json',
-    'databaseId,headSha,status,conclusion,url,createdAt,updatedAt',
-  ]);
-  assert(
-    afterDrain.every(
-      (run) =>
-        run.status === 'completed' &&
-        run.updatedAt &&
-        Date.parse(run.updatedAt) <= Date.parse(receipt.terminalObservedAt!)
-    ),
-    'An acceptance notification job changed during the drain. Preserve the fixture and retry recovery.'
-  );
-  receipt.quiesced = true;
-  await saveWorkflow(path, receipt);
+  await drainWorkflowInvocations(workspace, path, receipt);
 }
 export async function externalChecks(
   output: string,
@@ -354,41 +260,7 @@ export async function checkNotificationWorkflow(
       ],
       { cwd: workspace, stdio: 'pipe' }
     );
-    const deadline = Date.now() + 900000;
-    do {
-      receipt.run = workflowRuns(workspace, receipt).find(
-        (run) =>
-          run.headSha === sha &&
-          Date.parse(run.createdAt) >= Date.parse(receipt.started) - 1000
-      );
-      await saveWorkflow(path, receipt);
-      if (receipt.run?.status === 'completed') break;
-      await new Promise((resolvePromise) => setTimeout(resolvePromise, 5000));
-    } while (Date.now() < deadline);
-    assert(
-      receipt.run?.status === 'completed' &&
-        receipt.run.conclusion === 'success',
-      'The actual acceptance workflow did not pass.'
-    );
-    const logs = execFileSync(
-      'gh',
-      [
-        'run',
-        'view',
-        String(receipt.run.databaseId),
-        '--repo',
-        'WillieCubed/website',
-        '--log',
-      ],
-      { cwd: workspace, encoding: 'utf8', stdio: 'pipe' }
-    );
-    assert(
-      /"atproto"\s*:\s*\{\s*"status"\s*:\s*"synced"/.test(logs),
-      'The workflow must report an actual synced publication.'
-    );
-    receipt.status = 'passed';
-    receipt.atproto = 'synced';
-    await saveWorkflow(path, receipt);
+    await verifyWorkflowDispatch(workspace, path, receipt);
   } finally {
     await recoverNotificationWorkflow(output, workspace, journal);
   }
@@ -442,4 +314,162 @@ export async function verifyAcceptanceVideoAccount() {
     terminal.close();
     await session.logout();
   }
+}
+
+function validateWorkflowRecovery(receipt: WorkflowReceipt, workspace: string) {
+  assert(
+    receipt.version === 1 &&
+      receipt.origin === ORIGIN &&
+      receipt.did === process.env.NEXT_PUBLIC_ATPROTO_DID &&
+      receipt.did !== 'did:plc:iyn6nc3ffqm2e3555exyrgvv'
+  );
+  assert(
+    /^codex\/publishing-compatibility-acceptance(?:-\d{8})?$/.test(
+      receipt.branch
+    ) &&
+      /^[a-f0-9]{40}$/.test(receipt.sha) &&
+      Number.isFinite(Date.parse(receipt.started))
+  );
+  assert(
+    execFileSync('git', ['branch', '--show-current'], {
+      cwd: workspace,
+      encoding: 'utf8',
+    }).trim() === receipt.branch
+  );
+  if (receipt.quiesced)
+    assert(receipt.terminalObservedAt && receipt.run?.status === 'completed');
+}
+
+async function quiesceWorkflowRun(
+  workspace: string,
+  path: string,
+  receipt: WorkflowReceipt
+) {
+  const deadline = Date.now() + 120000;
+  do {
+    if (receipt.quiesced) break;
+    if (!receipt.run)
+      receipt.run = workflowRuns(workspace, receipt).find(
+        (run) =>
+          run.headSha === receipt.sha &&
+          Date.parse(run.createdAt) >= Date.parse(receipt.started) - 1000
+      );
+    if (receipt.run) {
+      if (await cancelPendingRun(workspace, path, receipt)) break;
+    }
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 5000));
+  } while (Date.now() < deadline);
+  assert(
+    receipt.run?.status === 'completed',
+    'Workflow state is unknown. Preserve all owned PDS/source records until recovery establishes a terminal run.'
+  );
+}
+
+async function cancelPendingRun(
+  workspace: string,
+  path: string,
+  receipt: WorkflowReceipt
+): Promise<boolean> {
+  const run = ghJson<WorkflowRun>(workspace, [
+    'run',
+    'view',
+    String(receipt.run!.databaseId),
+    '--json',
+    'databaseId,headSha,headBranch,event,status,conclusion,url,createdAt',
+  ]);
+  assert(
+    run.headSha === receipt.sha &&
+      run.headBranch === receipt.branch &&
+      run.event === 'workflow_dispatch' &&
+      Date.parse(run.createdAt) >= Date.parse(receipt.started) - 1000
+  );
+  receipt.run = run;
+  await saveWorkflow(path, receipt);
+  if (run.status === 'completed') return true;
+  execFileSync(
+    'gh',
+    ['run', 'cancel', String(run.databaseId), '--repo', 'WillieCubed/website'],
+    { cwd: workspace, stdio: 'pipe' }
+  );
+  return false;
+}
+
+async function drainWorkflowInvocations(
+  workspace: string,
+  path: string,
+  receipt: WorkflowReceipt
+) {
+  receipt.quiesced = false;
+  receipt.terminalObservedAt = new Date().toISOString();
+  await saveWorkflow(path, receipt);
+  // Cancellation does not stop an HTTP handler that GitHub already invoked; its deployed limit is 60 seconds.
+  const drainedAt = Date.parse(receipt.terminalObservedAt) + 70000;
+  while (Date.now() < drainedAt)
+    await new Promise((resolvePromise) =>
+      setTimeout(resolvePromise, Math.min(5000, drainedAt - Date.now()))
+    );
+  const afterDrain = ghJson<WorkflowRun[]>(workspace, [
+    'run',
+    'list',
+    '--branch',
+    receipt.branch,
+    '--workflow',
+    'indieweb-publish.yml',
+    '--limit',
+    '100',
+    '--json',
+    'databaseId,headSha,status,conclusion,url,createdAt,updatedAt',
+  ]);
+  assert(
+    afterDrain.every(
+      (run) =>
+        run.status === 'completed' &&
+        run.updatedAt &&
+        Date.parse(run.updatedAt) <= Date.parse(receipt.terminalObservedAt!)
+    ),
+    'An acceptance notification job changed during the drain. Preserve the fixture and retry recovery.'
+  );
+  receipt.quiesced = true;
+  await saveWorkflow(path, receipt);
+}
+
+async function verifyWorkflowDispatch(
+  workspace: string,
+  path: string,
+  receipt: WorkflowReceipt
+) {
+  const deadline = Date.now() + 900000;
+  do {
+    receipt.run = workflowRuns(workspace, receipt).find(
+      (run) =>
+        run.headSha === receipt.sha &&
+        Date.parse(run.createdAt) >= Date.parse(receipt.started) - 1000
+    );
+    await saveWorkflow(path, receipt);
+    if (receipt.run?.status === 'completed') break;
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 5000));
+  } while (Date.now() < deadline);
+  assert(
+    receipt.run?.status === 'completed' && receipt.run.conclusion === 'success',
+    'The actual acceptance workflow did not pass.'
+  );
+  const logs = execFileSync(
+    'gh',
+    [
+      'run',
+      'view',
+      String(receipt.run.databaseId),
+      '--repo',
+      'WillieCubed/website',
+      '--log',
+    ],
+    { cwd: workspace, encoding: 'utf8', stdio: 'pipe' }
+  );
+  assert(
+    /"atproto"\s*:\s*\{\s*"status"\s*:\s*"synced"/.test(logs),
+    'The workflow must report an actual synced publication.'
+  );
+  receipt.status = 'passed';
+  receipt.atproto = 'synced';
+  await saveWorkflow(path, receipt);
 }

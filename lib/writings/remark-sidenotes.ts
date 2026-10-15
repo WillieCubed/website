@@ -24,6 +24,10 @@ interface ParentNode {
   children: unknown[];
 }
 
+function attributeValue(node: JsxNode, name: string): string | undefined {
+  return node.attributes?.find((attribute) => attribute.name === name)?.value;
+}
+
 const mark = (reference: Reference): JsxNode => ({
   type: 'mdxJsxTextElement',
   name: 'RefMark',
@@ -77,10 +81,9 @@ export const remarkSidenotes: Plugin<[], Root> = () => {
     visit(tree, 'mdxJsxTextElement', (visited) => {
       const node = visited as unknown as JsxNode;
       if (node.name !== 'Ref') return;
-      const href = node.attributes?.find((a) => a.name === 'href')?.value;
-      const title = node.attributes?.find((a) => a.name === 'title')?.value;
-      const id =
-        node.attributes?.find((a) => a.name === 'id')?.value ?? href ?? title;
+      const href = attributeValue(node, 'href');
+      const title = attributeValue(node, 'title');
+      const id = attributeValue(node, 'id') ?? href ?? title;
       const reference = id ? byLink.get(id) : undefined;
       if (!reference) return;
       node.attributes = [

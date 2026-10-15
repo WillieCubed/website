@@ -1,8 +1,12 @@
 import Icon, { type IconName } from '@/components/icons/Icon';
 
-import type { PublicStatus } from '@/lib/status/types';
+import type { WeatherObservation } from '@/lib/status/types';
 
-export function weatherLabel(weather: PublicStatus['weather']) {
+function snowCode(code: number): boolean {
+  return (code >= 71 && code <= 77) || code === 85 || code === 86;
+}
+
+export function weatherLabel(weather: WeatherObservation | null) {
   if (!weather) return 'Weather unavailable';
   const code = weather.code;
   if (code <= 1) return code === 0 ? 'Clear skies' : 'Mostly clear';
@@ -10,8 +14,62 @@ export function weatherLabel(weather: PublicStatus['weather']) {
   if (code === 3) return 'Overcast';
   if (code === 45 || code === 48) return 'Foggy';
   if (code >= 95) return 'Thunderstorms';
-  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'Snowy';
+  if (snowCode(code)) return 'Snowy';
   return 'Rainy';
+}
+
+function weatherIcon(weather: WeatherObservation): IconName {
+  const label = weatherLabel(weather);
+  if (label === 'Clear skies' || label === 'Mostly clear')
+    return weather.isDay ? 'sun' : 'moon';
+  const icons = {
+    'Partly cloudy': 'cloud-sun',
+    Foggy: 'fog',
+    Snowy: 'cloud-snow',
+    Thunderstorms: 'cloud-lightning',
+    Rainy: 'cloud-rain',
+  } as const;
+  return icons[label as keyof typeof icons] ?? 'cloud';
+}
+
+function CompactWeatherPicture({
+  weather,
+}: {
+  weather: WeatherObservation | null;
+}) {
+  if (!weather) return null;
+  const name = weatherIcon(weather);
+  return (
+    <span
+      className="weather-picture weather-picture--compact"
+      aria-hidden="true"
+    >
+      <Icon name={name} size={24} />
+    </span>
+  );
+}
+
+function SunOrMoon({ clear, night }: { clear: boolean; night: boolean }) {
+  return night ? (
+    <path
+      d="M83 18a34 34 0 1 0 34 43A31 31 0 0 1 83 18"
+      transform={clear ? 'translate(18 17.5)' : undefined}
+      fill="var(--sky-moon)"
+    />
+  ) : (
+    <g transform={clear ? 'translate(90 72)' : 'translate(72 52)'}>
+      <g stroke="var(--sky-ray)" strokeWidth="5" strokeLinecap="round">
+        <path
+          d={
+            clear
+              ? 'M0 -43v-8M0 43v8M-43 0h-8M43 0h8M-30 -30l-6 -6M30 30l6 6M-30 30l-6 6M30 -30l6 -6'
+              : 'M0 -43v-8M-43 0h-8M43 0h8M-30 -30l-6 -6M30 -30l6 -6'
+          }
+        />
+      </g>
+      <circle r="29" fill="var(--sky-sun)" />
+    </g>
+  );
 }
 
 export default function WeatherPicture({
@@ -19,36 +77,9 @@ export default function WeatherPicture({
   compact = false,
 }: {
   compact?: boolean;
-  weather: PublicStatus['weather'];
+  weather: WeatherObservation | null;
 }) {
-  if (compact) {
-    if (!weather) return null;
-    const label = weatherLabel(weather);
-    const name: IconName =
-      label === 'Clear skies' || label === 'Mostly clear'
-        ? weather.isDay
-          ? 'sun'
-          : 'moon'
-        : label === 'Partly cloudy'
-          ? 'cloud-sun'
-          : label === 'Foggy'
-            ? 'fog'
-            : label === 'Snowy'
-              ? 'cloud-snow'
-              : label === 'Thunderstorms'
-                ? 'cloud-lightning'
-                : label === 'Rainy'
-                  ? 'cloud-rain'
-                  : 'cloud';
-    return (
-      <span
-        className="weather-picture weather-picture--compact"
-        aria-hidden="true"
-      >
-        <Icon name={name} size={24} />
-      </span>
-    );
-  }
+  if (compact) return <CompactWeatherPicture weather={weather} />;
   const clear = weather && weather.code <= 1;
   const night = weather && !weather.isDay;
   const overcast = !weather || [3, 45, 48].includes(weather.code);
@@ -67,31 +98,9 @@ export default function WeatherPicture({
           viewBox="0 0 180 144"
           fill="none"
         >
-          {!overcast &&
-            (night ? (
-              <path
-                d="M83 18a34 34 0 1 0 34 43A31 31 0 0 1 83 18"
-                transform={clear ? 'translate(18 17.5)' : undefined}
-                fill="var(--sky-moon)"
-              />
-            ) : (
-              <g transform={clear ? 'translate(90 72)' : 'translate(72 52)'}>
-                <g
-                  stroke="var(--sky-ray)"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                >
-                  <path
-                    d={
-                      clear
-                        ? 'M0 -43v-8M0 43v8M-43 0h-8M43 0h8M-30 -30l-6 -6M30 30l6 6M-30 30l-6 6M30 -30l6 -6'
-                        : 'M0 -43v-8M-43 0h-8M43 0h8M-30 -30l-6 -6M30 -30l6 -6'
-                    }
-                  />
-                </g>
-                <circle r="29" fill="var(--sky-sun)" />
-              </g>
-            ))}
+          {!overcast && (
+            <SunOrMoon clear={Boolean(clear)} night={Boolean(night)} />
+          )}
           {!clear && (
             <g transform="translate(0.5 -17.5)">
               <path

@@ -110,7 +110,44 @@ export async function provisionAccount(
     { handle: account.handle },
     `Bearer ${auth.accessJwt}`
   );
-  if (!auth.emailConfirmed) {
+  await confirmOwnedEmail();
+  assert(
+    (
+      await request(
+        journal.origin,
+        'com.atproto.server.getSession',
+        undefined,
+        `Bearer ${auth.accessJwt}`
+      )
+    ).emailConfirmed === true
+  );
+  account.confirmed = true;
+  if (!account.appPassword) {
+    const result = await request(
+      journal.origin,
+      'com.atproto.server.createAppPassword',
+      { name: 'willie.page acceptance', privileged: false },
+      `Bearer ${auth.accessJwt}`
+    );
+    account.appPassword = result.password;
+    await save(journalPath, journal);
+  }
+  const checked = await request(
+    journal.origin,
+    'com.atproto.server.createSession',
+    { identifier: account.did, password: account.appPassword }
+  );
+  assert(checked.did === account.did);
+  await request(
+    journal.origin,
+    'com.atproto.server.deleteSession',
+    {},
+    `Bearer ${checked.refreshJwt}`
+  );
+  await save(journalPath, journal);
+  return auth;
+  async function confirmOwnedEmail(): Promise<void> {
+    if (auth.emailConfirmed) return;
     await request(
       journal.origin,
       'com.atproto.server.requestEmailConfirmation',
@@ -147,41 +184,6 @@ export async function provisionAccount(
       `Bearer ${auth.accessJwt}`
     );
   }
-  assert(
-    (
-      await request(
-        journal.origin,
-        'com.atproto.server.getSession',
-        undefined,
-        `Bearer ${auth.accessJwt}`
-      )
-    ).emailConfirmed === true
-  );
-  account.confirmed = true;
-  if (!account.appPassword) {
-    const result = await request(
-      journal.origin,
-      'com.atproto.server.createAppPassword',
-      { name: 'willie.page acceptance', privileged: false },
-      `Bearer ${auth.accessJwt}`
-    );
-    account.appPassword = result.password;
-    await save(journalPath, journal);
-  }
-  const checked = await request(
-    journal.origin,
-    'com.atproto.server.createSession',
-    { identifier: account.did, password: account.appPassword }
-  );
-  assert(checked.did === account.did);
-  await request(
-    journal.origin,
-    'com.atproto.server.deleteSession',
-    {},
-    `Bearer ${checked.refreshJwt}`
-  );
-  await save(journalPath, journal);
-  return auth;
 }
 export async function verifyIdentity(journal: Journal, account: OwnedAccount) {
   assert(account.did?.startsWith('did:plc:') && account.did !== OWNER);
@@ -239,32 +241,42 @@ export async function federation(journal: Journal, journalPath: string) {
     await removeProbes(journal, journalPath);
     return;
   }
-  await request('https://bsky.network', 'com.atproto.sync.requestCrawl', {
-    hostname: new URL(journal.origin).hostname,
-  });
-  // A newly discovered relay host starts at its current stream offset.
-  // Subscribe before writing the records that must reach AppView.
-  let relayActive = false;
-  for (let attempt = 0; attempt < 30; attempt++) {
-    try {
-      const host = (await request(
-        'https://bsky.network',
-        `com.atproto.sync.getHostStatus?hostname=${new URL(journal.origin).hostname}`
-      )) as unknown as { status?: string };
-      if (host.status === 'active') {
-        relayActive = true;
-        break;
-      }
-    } catch {
-      // The relay may not expose the newly requested host yet.
-    }
-    await pause(1000);
-  }
-  assert(relayActive, 'The relay has not subscribed to the owned PDS.');
+  await awaitRelaySubscription();
   for (const [role, account] of [
     ['publisher', journal.publisher],
     ['visitor', journal.visitor],
-  ] as const) {
+  ] as const)
+    await publishFederationProbe(role, account);
+  await awaitAppViewObservation();
+  await removeProbes(journal, journalPath);
+  async function awaitRelaySubscription(): Promise<void> {
+    await request('https://bsky.network', 'com.atproto.sync.requestCrawl', {
+      hostname: new URL(journal.origin).hostname,
+    });
+    // A newly discovered relay host starts at its current stream offset.
+    // Subscribe before writing the records that must reach AppView.
+    let relayActive = false;
+    for (let attempt = 0; attempt < 30; attempt++) {
+      try {
+        const host = (await request(
+          'https://bsky.network',
+          `com.atproto.sync.getHostStatus?hostname=${new URL(journal.origin).hostname}`
+        )) as unknown as { status?: string };
+        if (host.status === 'active') {
+          relayActive = true;
+          break;
+        }
+      } catch {
+        // The relay may not expose the newly requested host yet.
+      }
+      await pause(1000);
+    }
+    assert(relayActive, 'The relay has not subscribed to the owned PDS.');
+  }
+  async function publishFederationProbe(
+    role: string,
+    account: OwnedAccount
+  ): Promise<void> {
     await verifyIdentity(journal, account);
     const auth = await session(journal, account);
     if (!account.profile) {
@@ -346,44 +358,45 @@ export async function federation(journal: Journal, journalPath: string) {
       await save(journalPath, journal);
     }
   }
-  for (let attempt = 0; attempt < 60; attempt++) {
-    try {
-      for (const account of [journal.publisher, journal.visitor]) {
-        const profile = await request(
-          'https://public.api.bsky.app',
-          `app.bsky.actor.getProfile?actor=${account.did}`
-        );
-        assert(
-          profile.did === account.did && profile.handle === account.handle
-        );
-        if (!account.probe!.removed) {
-          const uri = `at://${account.did}/app.bsky.feed.post/${account.probe!.rkey}`;
-          const posts = await request(
+  async function awaitAppViewObservation(): Promise<void> {
+    for (let attempt = 0; attempt < 60; attempt++) {
+      try {
+        for (const account of [journal.publisher, journal.visitor]) {
+          const profile = await request(
             'https://public.api.bsky.app',
-            `app.bsky.feed.getPosts?uris=${encodeURIComponent(uri)}`
+            `app.bsky.actor.getProfile?actor=${account.did}`
           );
           assert(
-            posts.posts.some(
-              (post: XrpcReply['posts'][number]) =>
-                post.uri === uri &&
-                post.cid === account.probe!.cid &&
-                post.author.did === account.did
-            )
+            profile.did === account.did && profile.handle === account.handle
           );
+          if (!account.probe!.removed) {
+            const uri = `at://${account.did}/app.bsky.feed.post/${account.probe!.rkey}`;
+            const posts = await request(
+              'https://public.api.bsky.app',
+              `app.bsky.feed.getPosts?uris=${encodeURIComponent(uri)}`
+            );
+            assert(
+              posts.posts.some(
+                (post) =>
+                  post.uri === uri &&
+                  post.cid === account.probe!.cid &&
+                  post.author.did === account.did
+              )
+            );
+          }
         }
+        journal.federation = new Date().toISOString();
+        await save(journalPath, journal);
+        break;
+      } catch {
+        if (attempt === 59)
+          throw new Error(
+            'The public AppView has not independently observed both owned accounts and posts.'
+          );
+        await pause(5000);
       }
-      journal.federation = new Date().toISOString();
-      await save(journalPath, journal);
-      break;
-    } catch {
-      if (attempt === 59)
-        throw new Error(
-          'The public AppView has not independently observed both owned accounts and posts.'
-        );
-      await pause(5000);
     }
   }
-  await removeProbes(journal, journalPath);
 }
 async function removeProbes(journal: Journal, journalPath: string) {
   for (const account of [journal.publisher, journal.visitor]) {

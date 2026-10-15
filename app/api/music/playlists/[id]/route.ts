@@ -3,7 +3,7 @@ import { isPrivatePreview } from '@/lib/studio/config';
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: RouteContext<'/api/music/playlists/[id]'>
 ) {
   if (isPrivatePreview()) return new Response('Not found', { status: 404 });
   const { id } = await params;

@@ -11,9 +11,9 @@ export const contentType = 'image/png';
  * and public cover. Return a generic project preview when the project is
  * unavailable.
  */
-export default async function Image(props: {
-  params: Promise<{ codename: string }>;
-}) {
+export default async function Image(
+  props: Pick<PageProps<'/projects/[codename]'>, 'params'>
+) {
   const { codename } = await props.params;
   const project = await getProject(codename);
   if (!project) return renderEntityImage({ title: 'Project' });

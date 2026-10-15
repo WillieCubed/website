@@ -31,11 +31,11 @@ export async function fixtureSource(
     });
     await chmod(receipt, 0o600);
   }
-  if (recovery) {
+  async function recoverSource(): Promise<boolean> {
     try {
       journal = JSON.parse(await readFile(receipt, 'utf8')) as SourceJournal;
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return;
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false;
       throw error;
     }
     assert(
@@ -44,10 +44,12 @@ export async function fixtureSource(
         journal.slug === slug &&
         hash(journal.original) === journal.sha256
     );
-  } else {
+    return true;
+  }
+  async function createSource(): Promise<boolean> {
     try {
       await readFile(path, 'utf8');
-      return;
+      return false;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
@@ -76,7 +78,9 @@ export async function fixtureSource(
     };
     await save();
     await writeFile(path, original, { flag: 'wx' });
+    return true;
   }
+  if (!(await (recovery ? recoverSource() : createSource()))) return;
   return {
     async cleanup(deployClean: () => Promise<void>) {
       if (!journal.removed) {

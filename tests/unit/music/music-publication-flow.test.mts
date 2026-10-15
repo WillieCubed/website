@@ -77,159 +77,8 @@ test(
     });
     const store = musicStore();
     const mainFile = (await approvedManifest()).sourceSha;
-    let main = 'a'.repeat(40),
-      ready = false,
-      loseResponse = true,
-      rebases = 0,
-      merges = 0;
-    let pr: MockPullRequest | null = null;
-    let proof: Record<string, unknown> = {};
-    const refs = new Map<string, string>(),
-      commits = new Map<string, MockCommit>(),
-      trees = new Map<string, MockTreeRequest>();
-    globalThis.fetch = async (input, init = {}) => {
-      const url = new URL(String(input));
-      if (url.hostname === 'public.test') return Response.json(proof);
-      const path = decodeURIComponent(
-          url.pathname.replace('/repos/owner/site/', '')
-        ),
-        method = init.method ?? 'GET';
-      const body = <T,>() => JSON.parse(String(init.body)) as T;
-      const ok = (data: unknown) => Response.json(data),
-        missing = () => Response.json({}, { status: 404 });
-      if (url.pathname === '/graphql') {
-        const update = body<{
-          variables: {
-            input: {
-              refUpdates: {
-                name: string;
-                beforeOid: string;
-                afterOid: string;
-              }[];
-            };
-          };
-        }>().variables.input.refUpdates[0];
-        const branch = update.name.replace('refs/heads/', '');
-        assert.equal(refs.get(branch), update.beforeOid);
-        refs.set(branch, update.afterOid);
-        rebases++;
-        if (pr) pr.head.sha = update.afterOid;
-        return ok({ data: { updateRefs: {} } });
-      }
-      if (path === '') return ok({ node_id: 'repo' });
-      if (path === 'git/ref/heads/main') return ok({ object: { sha: main } });
-      if (path.startsWith('git/ref/heads/')) {
-        const value = refs.get(path.slice(14));
-        return value ? ok({ object: { sha: value } }) : missing();
-      }
-      if (path === 'git/refs') {
-        const request = body<{ ref: string; sha: string }>();
-        refs.set(request.ref.replace('refs/heads/', ''), request.sha);
-        return ok({});
-      }
-      if (path === 'git/trees') {
-        const request = body<MockTreeRequest>();
-        assert.equal(request.tree.length, 1);
-        assert.equal(request.tree[0].path, 'content/music/catalog.json');
-        const sha = createHash('sha1')
-          .update(JSON.stringify(request))
-          .digest('hex');
-        trees.set(sha, request);
-        return ok({ sha });
-      }
-      if (path === 'git/commits' && method === 'POST') {
-        const request = body<MockCommitRequest>();
-        const sha = createHash('sha1')
-          .update(JSON.stringify(request))
-          .digest('hex');
-        commits.set(sha, {
-          ...request,
-          sha,
-          parents: request.parents.map((sha: string) => ({ sha })),
-        });
-        return ok({ sha });
-      }
-      if (path.startsWith('git/commits/'))
-        return ok(
-          commits.get(path.slice(12)) ?? {
-            tree: { sha: 'base-tree' },
-            parents: [],
-          }
-        );
-      if (path.startsWith('contents/'))
-        return ok({
-          sha: mainFile,
-          encoding: 'base64',
-          content: Buffer.from(
-            JSON.stringify({ revisionId: null, catalog: emptyCatalog })
-          ).toString('base64'),
-        });
-      if (path === 'pulls' && method === 'GET') return ok(pr ? [pr] : []);
-      if (path === 'pulls' && method === 'POST') {
-        const request = body<{ title: string; body: string; head: string }>();
-        const head = refs.get(request.head);
-        assert.ok(head);
-        pr = {
-          number: 1,
-          html_url: 'https://github.com/owner/site/pull/1',
-          title: request.title,
-          body: request.body,
-          state: 'open',
-          head: { sha: head },
-          base: { sha: main },
-          merged: false,
-        };
-        if (loseResponse) {
-          loseResponse = false;
-          throw new Error('Lost after creating PR');
-        }
-        return ok(pr);
-      }
-      if (path === 'pulls/1')
-        return ok({
-          ...pr,
-          base: { sha: main },
-          mergeable: ready,
-          mergeable_state: ready ? 'unstable' : 'unknown',
-        });
-      if (path.endsWith('/check-runs'))
-        if (new Headers(init.headers).has('Authorization'))
-          return Response.json({}, { status: 403 });
-      if (path.endsWith('/check-runs'))
-        return ok({
-          total_count: 2,
-          check_runs: [
-            {
-              name: 'ci',
-              app: { id: 15368 },
-              status: ready ? 'completed' : 'in_progress',
-              conclusion: ready ? 'success' : null,
-            },
-            {
-              name: 'Vercel – website',
-              status: 'completed',
-              conclusion: 'failure',
-            },
-          ],
-        });
-      if (path.endsWith('/status'))
-        return ok({
-          state: 'failure',
-          statuses: [{ context: 'Vercel – website', state: 'failure' }],
-        });
-      if (path === 'pulls/1/merge') {
-        const request = body<{ merge_method: string; sha: string }>();
-        assert.ok(pr);
-        assert.equal(request.merge_method, 'rebase');
-        assert.equal(request.sha, pr.head.sha);
-        merges++;
-        pr.merged = true;
-        pr.merge_commit_sha = 'f'.repeat(40);
-        main = pr.merge_commit_sha;
-        return ok({ merged: true, sha: main });
-      }
-      throw new Error(`Unexpected mock path ${path}`);
-    };
+    const provider = new PublicationProvider(mainFile);
+    globalThis.fetch = provider.fetch;
     try {
       await store.pool.query(
         await readFile('lib/music/migrations/private.sql', 'utf8')
@@ -237,10 +86,10 @@ test(
       const revision = await store.save(null, emptyCatalog);
       const first = await publishMusic(revision.id);
       assert.equal(first.status, 'failed');
-      const created = pr as MockPullRequest | null;
+      const created = provider.pr as MockPullRequest | null;
       assert.ok(created);
       assert.equal(
-        commits.get(first.proposalCommit!)?.message.split('\n')[0],
+        provider.commits.get(first.proposalCommit!)?.message.split('\n')[0],
         'feat(music): Republish the music collection'
       );
       assert.match(created.title, /^feat\(music\):/);
@@ -249,31 +98,31 @@ test(
       assert.equal(recovered.id, first.id);
       assert.equal(recovered.status, 'publishing');
       assert.equal(recovered.pullRequestNumber, 1);
-      main = 'b'.repeat(40);
+      provider.main = 'b'.repeat(40);
       const rebased = await publishMusic(revision.id);
       assert.equal(rebased.status, 'publishing');
-      assert.equal(rebases, 1);
+      assert.equal(provider.rebases, 1);
       assert.equal(
         (await store.pool.query('SELECT body FROM music_publications')).rows[0]
           .body.rebase,
         null
       );
-      ready = true;
+      provider.ready = true;
       const merged = await publishMusic(revision.id);
       assert.equal(merged.status, 'deploying');
-      assert.equal(merges, 1);
+      assert.equal(provider.merges, 1);
       assert.equal(
         (await musicPublicationStatus(first.id)).status,
         'deploying'
       );
-      proof = {
+      provider.proof = {
         revisionId: revision.id,
         sourceSha: merged.sourceSha,
         commit: merged.commit,
       };
       assert.equal((await musicPublicationStatus(first.id)).status, 'live');
       assert.equal((await publishMusic(revision.id)).status, 'live');
-      assert.equal(merges, 1);
+      assert.equal(provider.merges, 1);
     } finally {
       await store.pool.end();
       await admin.query(`DROP SCHEMA ${schema} CASCADE`);
@@ -281,3 +130,185 @@ test(
     }
   }
 );
+
+const ok = (data: unknown) => Response.json(data);
+const missing = () => Response.json({}, { status: 404 });
+const requestBody = <T,>(init: RequestInit) =>
+  JSON.parse(String(init.body)) as T;
+class PublicationProvider {
+  main = 'a'.repeat(40);
+  ready = false;
+  loseResponse = true;
+  rebases = 0;
+  merges = 0;
+  pr: MockPullRequest | null = null;
+  proof: Record<string, unknown> = {};
+  refs = new Map<string, string>();
+  commits = new Map<string, MockCommit>();
+  trees = new Map<string, MockTreeRequest>();
+  constructor(readonly mainFile: string | null) {}
+  fetch: typeof fetch = async (input, init = {}) => {
+    const url = new URL(String(input));
+    if (url.hostname === 'public.test') return Response.json(this.proof);
+    const path = decodeURIComponent(
+        url.pathname.replace('/repos/owner/site/', '')
+      ),
+      method = init.method ?? 'GET';
+    if (url.pathname === '/graphql') return this.rebaseBranch(init);
+    const contentResponse = this.repositoryContent(path);
+    if (contentResponse) return contentResponse;
+    const gitResponse = this.gitRequest(path, method, init);
+    if (gitResponse) return gitResponse;
+    const pullResponse = this.pullRequest(path, method, init);
+    if (pullResponse) return pullResponse;
+    const checkResponse = this.checks(path, init);
+    if (checkResponse) return checkResponse;
+    if (path === 'pulls/1/merge') return this.mergeProposal(init);
+    throw new Error(`Unexpected mock path ${path}`);
+  };
+  repositoryContent(path: string) {
+    if (path === '') return ok({ node_id: 'repo' });
+    if (path === 'git/ref/heads/main')
+      return ok({ object: { sha: this.main } });
+    if (path.startsWith('contents/'))
+      return ok({
+        sha: this.mainFile,
+        encoding: 'base64',
+        content: Buffer.from(
+          JSON.stringify({ revisionId: null, catalog: emptyCatalog })
+        ).toString('base64'),
+      });
+  }
+  rebaseBranch(init: RequestInit) {
+    const update = requestBody<{
+      variables: {
+        input: {
+          refUpdates: {
+            name: string;
+            beforeOid: string;
+            afterOid: string;
+          }[];
+        };
+      };
+    }>(init).variables.input.refUpdates[0];
+    const branch = update.name.replace('refs/heads/', '');
+    assert.equal(this.refs.get(branch), update.beforeOid);
+    this.refs.set(branch, update.afterOid);
+    this.rebases++;
+    if (this.pr) this.pr.head.sha = update.afterOid;
+    return ok({ data: { updateRefs: {} } });
+  }
+  gitRequest(path: string, method: string, init: RequestInit) {
+    if (path.startsWith('git/ref/heads/')) {
+      const value = this.refs.get(path.slice(14));
+      return value ? ok({ object: { sha: value } }) : missing();
+    }
+    if (path === 'git/refs') {
+      const request = requestBody<{ ref: string; sha: string }>(init);
+      this.refs.set(request.ref.replace('refs/heads/', ''), request.sha);
+      return ok({});
+    }
+    if (path === 'git/trees') {
+      const request = requestBody<MockTreeRequest>(init);
+      assert.equal(request.tree.length, 1);
+      assert.equal(request.tree[0].path, 'content/music/catalog.json');
+      const sha = createHash('sha1')
+        .update(JSON.stringify(request))
+        .digest('hex');
+      this.trees.set(sha, request);
+      return ok({ sha });
+    }
+    if (path === 'git/commits' && method === 'POST') {
+      const request = requestBody<MockCommitRequest>(init);
+      const sha = createHash('sha1')
+        .update(JSON.stringify(request))
+        .digest('hex');
+      this.commits.set(sha, {
+        ...request,
+        sha,
+        parents: request.parents.map((sha: string) => ({ sha })),
+      });
+      return ok({ sha });
+    }
+    if (path.startsWith('git/commits/'))
+      return ok(
+        this.commits.get(path.slice(12)) ?? {
+          tree: { sha: 'base-tree' },
+          parents: [],
+        }
+      );
+  }
+  pullRequest(path: string, method: string, init: RequestInit) {
+    if (path === 'pulls' && method === 'GET')
+      return ok(this.pr ? [this.pr] : []);
+    if (path === 'pulls' && method === 'POST') {
+      const request = requestBody<{
+        title: string;
+        body: string;
+        head: string;
+      }>(init);
+      const head = this.refs.get(request.head);
+      assert.ok(head);
+      this.pr = {
+        number: 1,
+        html_url: 'https://github.com/owner/site/pull/1',
+        title: request.title,
+        body: request.body,
+        state: 'open',
+        head: { sha: head },
+        base: { sha: this.main },
+        merged: false,
+      };
+      if (this.loseResponse) {
+        this.loseResponse = false;
+        throw new Error('Lost after creating PR');
+      }
+      return ok(this.pr);
+    }
+    if (path === 'pulls/1')
+      return ok({
+        ...this.pr,
+        base: { sha: this.main },
+        mergeable: this.ready,
+        mergeable_state: this.ready ? 'unstable' : 'unknown',
+      });
+  }
+  checks(path: string, init: RequestInit) {
+    if (path.endsWith('/check-runs'))
+      if (new Headers(init.headers).has('Authorization'))
+        return Response.json({}, { status: 403 });
+    if (path.endsWith('/check-runs'))
+      return ok({
+        total_count: 2,
+        check_runs: [
+          {
+            name: 'ci',
+            app: { id: 15368 },
+            status: this.ready ? 'completed' : 'in_progress',
+            conclusion: this.ready ? 'success' : null,
+          },
+          {
+            name: 'Vercel – website',
+            status: 'completed',
+            conclusion: 'failure',
+          },
+        ],
+      });
+    if (path.endsWith('/status'))
+      return ok({
+        state: 'failure',
+        statuses: [{ context: 'Vercel – website', state: 'failure' }],
+      });
+  }
+  mergeProposal(init: RequestInit) {
+    const request = requestBody<{ merge_method: string; sha: string }>(init);
+    assert.ok(this.pr);
+    assert.equal(request.merge_method, 'rebase');
+    assert.equal(request.sha, this.pr.head.sha);
+    this.merges++;
+    this.pr.merged = true;
+    this.pr.merge_commit_sha = 'f'.repeat(40);
+    this.main = this.pr.merge_commit_sha;
+    return ok({ merged: true, sha: this.main });
+  }
+}

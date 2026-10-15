@@ -22,7 +22,10 @@ import {
   safeReadingHtml,
 } from '@/lib/studio/reading';
 import { getStudioStore } from '@/lib/studio/store';
+import type { Draft } from '@/lib/studio/types';
 import {
+  type WritingData,
+  type WritingDocument,
   getAllWritings,
   getSeries,
   getSeriesWithWritings,
@@ -39,7 +42,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, noarchive: true },
 };
 
-type Props = { params: Promise<{ path?: string[] }> };
+type Props = PageProps<'/studio/read/[[...path]]'>;
 
 async function Reading({ params }: Props) {
   await connection();
@@ -69,104 +72,143 @@ async function Reading({ params }: Props) {
       {storageMessage}
     </p>
   );
-  if (segments.length === 1 && !['tags', 'series'].includes(segments[0])) {
-    const entry = all.find((item) => item.slug === segments[0]);
-    if (!entry) notFound();
-    let html = '';
-    let publishedContent: Awaited<ReturnType<typeof loadWriting>> | null = null;
-    let renderingMessage = '';
-    try {
-      const privateDraft = drafts.find((draft) => draft.id === entry.editorId);
-      html = privateDraft
-        ? await websitePreviewBody(
-            await preparePublicationPreview(privateDraft.head.body),
-            entry.slug
-          )
-        : '';
-      if (!privateDraft) {
-        const loaded = await loadWriting(entry.slug);
-        if (!loaded.writing.draft) publishedContent = loaded;
-        else
-          html = await safeReadingHtml(
-            entry.source ?? loaded.content,
-            `/writings/${entry.slug}`
-          );
-      }
-    } catch {
-      renderingMessage =
-        'This writing contains a block that needs a portable alternative. Open the editor to review its retained source.';
-    }
-    const writing = readingWritingData(
-      entry,
-      writings.find((item) => item.slug === entry.slug)
-    );
-    const seriesData = entry.series
-      ? await getSeriesWithWritings(entry.series.slug).catch(() => null)
-      : null;
+  if (segments.length === 1 && !['tags', 'series'].includes(segments[0]))
     return (
-      <>
-        <TopBar column="reading" crumbs={crumbs} />
-        <main id="main">
-          <article className="mx-auto max-w-breakpoint-2xl">
-            <WritingHeader
-              writing={writing}
-              content={publishedContent?.content}
-              seriesData={seriesData}
-              canonicalUrl={absoluteUrl(`/writings/${entry.slug}`)}
-            />
-            <div className="mx-auto max-w-breakpoint-md px-lg pb-lg desktop:px-0">
-              <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-label-large text-muted">
-                {entry.status && <span>{entry.status}</span>}
-                <Edit entry={entry} />
-              </div>
-              {status}
-              {renderingMessage ? (
-                <p role="status" className="text-body-large text-muted">
-                  {renderingMessage}
-                </p>
-              ) : publishedContent ? (
-                <div className="-mx-lg desktop:mx-0">
-                  <WritingContent
-                    content={publishedContent.content}
-                    headings={publishedContent.headings}
-                    writing={writing}
-                    seriesData={seriesData}
-                  />
-                </div>
-              ) : (
-                <div className="e-content">
-                  <div
-                    dir="auto"
-                    className={`prose prose-theme max-w-none prose-headings:scroll-mt-20 [&_p]:my-4 [&_p]:leading-relaxed [&_p]:text-on-surface ${writing.postType === 'note' ? 'prose-xl [&_p]:text-body-large' : 'prose-lg [&_p]:text-body-medium'}`}
-                    dangerouslySetInnerHTML={{ __html: html }}
-                  />
-                </div>
-              )}
-              {!publishedContent && <Tags tags={entry.tags} />}
-            </div>
-          </article>
-        </main>
-      </>
+      <ReadingArticle
+        slug={segments[0]}
+        all={all}
+        drafts={drafts}
+        writings={writings}
+        crumbs={crumbs}
+        status={status}
+      />
     );
+  return (
+    <ReadingIndex
+      segments={segments}
+      all={all}
+      writings={writings}
+      crumbs={crumbs}
+      status={status}
+    />
+  );
+}
+type ReadingContext = {
+  all: ReadingEntry[];
+  writings: WritingData[];
+  crumbs: {
+    label: string;
+    href: string;
+    menuItems: { label: string; href: string }[];
+  }[];
+  status: React.ReactNode;
+};
+async function ReadingArticle({
+  slug,
+  all,
+  drafts,
+  writings,
+  crumbs,
+  status,
+}: ReadingContext & {
+  slug: string;
+  drafts: Draft[];
+}) {
+  const entry = all.find((item) => item.slug === slug);
+  if (!entry) notFound();
+  const { html, publishedContent, renderingMessage } = await readingContent(
+    entry,
+    drafts
+  );
+  const writing = readingWritingData(
+    entry,
+    writings.find((item) => item.slug === entry.slug)
+  );
+  const seriesData = entry.series
+    ? await getSeriesWithWritings(entry.series.slug).catch(() => null)
+    : null;
+  return (
+    <>
+      <TopBar column="reading" crumbs={crumbs} />
+      <main id="main">
+        <article className="mx-auto max-w-breakpoint-2xl">
+          <WritingHeader
+            writing={writing}
+            content={publishedContent?.content}
+            seriesData={seriesData}
+            canonicalUrl={absoluteUrl(`/writings/${entry.slug}`)}
+          />
+          <div className="mx-auto max-w-breakpoint-md px-lg pb-lg desktop:px-0">
+            <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-label-large text-muted">
+              {entry.status && <span>{entry.status}</span>}
+              <Edit entry={entry} />
+            </div>
+            {status}
+            {renderingMessage ? (
+              <p role="status" className="text-body-large text-muted">
+                {renderingMessage}
+              </p>
+            ) : publishedContent ? (
+              <div className="-mx-lg desktop:mx-0">
+                <WritingContent
+                  content={publishedContent.content}
+                  headings={publishedContent.headings}
+                  writing={writing}
+                  seriesData={seriesData}
+                />
+              </div>
+            ) : (
+              <div className="e-content">
+                <div
+                  dir="auto"
+                  className={`prose prose-theme max-w-none prose-headings:scroll-mt-20 [&_p]:my-4 [&_p]:leading-relaxed [&_p]:text-on-surface ${writing.postType === 'note' ? 'prose-xl [&_p]:text-body-large' : 'prose-lg [&_p]:text-body-medium'}`}
+                  dangerouslySetInnerHTML={{ __html: html }}
+                />
+              </div>
+            )}
+            {!publishedContent && <Tags tags={entry.tags} />}
+          </div>
+        </article>
+      </main>
+    </>
+  );
+}
+async function readingContent(entry: ReadingEntry, drafts: Draft[]) {
+  let html = '';
+  let publishedContent: WritingDocument | null = null;
+  let renderingMessage = '';
+  try {
+    const privateDraft = drafts.find((draft) => draft.id === entry.editorId);
+    html = privateDraft
+      ? await websitePreviewBody(
+          await preparePublicationPreview(privateDraft.head.body),
+          entry.slug
+        )
+      : '';
+    if (!privateDraft) {
+      const loaded = await loadWriting(entry.slug);
+      if (!loaded.writing.draft) publishedContent = loaded;
+      else
+        html = await safeReadingHtml(
+          entry.source ?? loaded.content,
+          `/writings/${entry.slug}`
+        );
+    }
+  } catch {
+    renderingMessage =
+      'This writing contains a block that needs a portable alternative. Open the editor to review its retained source.';
   }
-  let title = 'Writings';
-  let items = all;
-  if (segments[0] === 'tags') {
-    if (segments.length === 2) {
-      const tag = tagFromParam(segments[1]);
-      title = `#${tag}`;
-      items = all.filter((item) =>
-        item.tags.some((value) => normalizeTag(value) === tag)
-      );
-      if (!items.length) notFound();
-    } else if (segments.length !== 1) notFound();
-  } else if (segments[0] === 'series' && segments.length === 2) {
-    title = segments[1].replaceAll('-', ' ');
-    items = all
-      .filter((item) => item.series?.slug === segments[1])
-      .sort((a, b) => (a.series?.part ?? 0) - (b.series?.part ?? 0));
-    if (!items.length) notFound();
-  } else if (segments.length) notFound();
+
+  return { html, publishedContent, renderingMessage };
+}
+async function ReadingIndex({
+  segments,
+  all,
+  writings,
+  crumbs,
+  status,
+}: ReadingContext & { segments: string[] }) {
+  const { title, items } = readingCollection(segments, all);
   const tags = [
     ...new Set(all.flatMap((item) => item.tags.map(normalizeTag))),
   ].sort();
@@ -231,6 +273,32 @@ async function Reading({ params }: Props) {
       </CollectionLayout>
     </>
   );
+}
+
+function readingCollection(
+  segments: string[],
+  all: ReadingEntry[]
+): { title: string; items: ReadingEntry[] } {
+  let title = 'Writings';
+  let items = all;
+  if (segments[0] === 'tags') {
+    if (segments.length === 2) {
+      const tag = tagFromParam(segments[1]);
+      title = `#${tag}`;
+      items = all.filter((item) =>
+        item.tags.some((value) => normalizeTag(value) === tag)
+      );
+      if (!items.length) notFound();
+    } else if (segments.length !== 1) notFound();
+  } else if (segments[0] === 'series' && segments.length === 2) {
+    title = segments[1].replaceAll('-', ' ');
+    items = all
+      .filter((item) => item.series?.slug === segments[1])
+      .sort((a, b) => (a.series?.part ?? 0) - (b.series?.part ?? 0));
+    if (!items.length) notFound();
+  } else if (segments.length) notFound();
+
+  return { title, items };
 }
 
 function Edit({ entry }: { entry: ReadingEntry }) {

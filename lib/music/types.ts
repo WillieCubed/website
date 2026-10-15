@@ -1,9 +1,15 @@
+export interface MusicSeries {
+  id: string;
+  title: string;
+  playlistIds: string[];
+}
+
 export interface MusicCatalog {
   version: 1;
   order: string[];
   selected: string[];
   lead: string | null;
-  series: { id: string; title: string; playlistIds: string[] }[];
+  series: MusicSeries[];
   notes: Record<string, string>;
 }
 export interface MusicTrack {
@@ -58,3 +64,25 @@ export const emptyCatalog: MusicCatalog = {
   series: [],
   notes: {},
 };
+
+export interface MusicAdminCollectionData {
+  revision: MusicRevision | null;
+  playlists: MusicPlaylist[];
+  publication?: MusicPublication | null;
+}
+
+export interface MusicImportProgress {
+  total: number;
+  done: number;
+  failed: number;
+  running: boolean;
+  updatedAt: string;
+}
+
+export interface MusicConnection {
+  connected: boolean;
+  configured: boolean;
+  reconnect: boolean;
+  ownerId: string | null;
+  import?: MusicImportProgress | null;
+}

@@ -1,0 +1,154 @@
+'use client';
+import Icon from '@/components/icons/Icon';
+import SiteLink from '@/components/link/SiteLink';
+
+import type { MusicPublication } from '@/lib/music/types';
+
+interface SaveNoticeProps {
+  error: string;
+  blocked: boolean;
+  conflict: boolean;
+  reconnect: boolean;
+  onRetry: () => Promise<void>;
+  onUseSaved: () => Promise<void>;
+  onConnect: () => Promise<void>;
+  onDismiss: () => void;
+}
+export function MusicSaveNotice({
+  error,
+  blocked,
+  conflict,
+  reconnect,
+  onRetry,
+  onUseSaved,
+  onConnect,
+  onDismiss,
+}: SaveNoticeProps) {
+  return (
+    error && (
+      <div className="music-admin-notice" role="alert">
+        <p>{error}</p>
+        <div className="music-admin-notice__actions">
+          {blocked && (
+            <button
+              className="mp-button mp-tonal"
+              onClick={() => void onRetry()}
+            >
+              {conflict ? 'Save my version' : 'Retry save'}
+            </button>
+          )}
+          {conflict && (
+            <button
+              className="mp-button mp-tonal"
+              onClick={() => void onUseSaved()}
+            >
+              Use current saved draft
+            </button>
+          )}
+          {reconnect && (
+            <button className="mp-button" onClick={() => void onConnect()}>
+              Reconnect Spotify
+            </button>
+          )}
+          {!blocked && !reconnect && (
+            <button
+              className="music-admin-notice__close"
+              aria-label="Dismiss message"
+              onClick={() => onDismiss()}
+            >
+              <Icon name="x" size={18} />
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  );
+}
+
+interface RecoveryNoticeProps {
+  available: boolean;
+  onRecover: () => void;
+  onDiscard: () => void;
+}
+export function MusicRecoveryNotice({
+  available,
+  onRecover,
+  onDiscard,
+}: RecoveryNoticeProps) {
+  return (
+    available && (
+      <div className="music-admin-notice" role="status">
+        <p>This browser has an unsaved draft.</p>
+        <div className="music-admin-notice__actions">
+          <button className="mp-button" onClick={onRecover}>
+            Recover draft
+          </button>
+          <button className="mp-button mp-tonal" onClick={onDiscard}>
+            Use saved draft
+          </button>
+        </div>
+      </div>
+    )
+  );
+}
+
+interface PublicationNoticeProps {
+  publication: MusicPublication | null;
+  visible: boolean;
+  onRetry: () => Promise<void>;
+  onDismiss: () => void;
+}
+export function MusicPublicationNotice({
+  publication,
+  visible,
+  onRetry,
+  onDismiss,
+}: PublicationNoticeProps) {
+  return (
+    publication &&
+    visible && (
+      <div className="music-admin-notice" role="status">
+        <p>{publicationStatusMessage(publication)}</p>
+        <div className="music-admin-notice__actions">
+          {publication.status === 'failed' && (
+            <button className="mp-button" onClick={() => void onRetry()}>
+              Retry publication
+            </button>
+          )}
+          {publication.pullRequestUrl && publication.status !== 'live' && (
+            <SiteLink
+              href={publication.pullRequestUrl}
+              target="_blank"
+              preview={false}
+            >
+              View publication
+            </SiteLink>
+          )}
+          {publication.status === 'live' && (
+            <SiteLink href="https://willie.page/music" preview={false}>
+              View gallery
+            </SiteLink>
+          )}
+          {publication.status !== 'publishing' &&
+            publication.status !== 'deploying' && (
+              <button
+                className="music-admin-notice__close"
+                aria-label="Dismiss publication message"
+                onClick={() => onDismiss()}
+              >
+                <Icon name="x" size={18} />
+              </button>
+            )}
+        </div>
+      </div>
+    )
+  );
+}
+
+function publicationStatusMessage(publication: MusicPublication) {
+  if (publication.status === 'live') return 'The collection is live.';
+  if (publication.status === 'deploying') return 'Deploying the collection…';
+  if (publication.status === 'publishing')
+    return 'Publishing the reviewed collection…';
+  return publication.error ?? 'Publication failed.';
+}

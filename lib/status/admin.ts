@@ -1,7 +1,12 @@
 import type { OwnerAuthenticator } from '@/lib/indieweb/indieauth/types';
 
 import type { AdminState } from './admin-state';
-import { citySchema, resolveLocation, searchCities } from './location';
+import {
+  type City,
+  citySchema,
+  resolveLocation,
+  searchCities,
+} from './location';
 import type { StatusStore } from './store';
 
 const responseHeaders = {
@@ -27,6 +32,54 @@ function redirect(request: Request, saved = false): Response {
   });
 }
 
+function rejectMutation(request: Request): Response | undefined {
+  if (request.headers.get('origin') !== new URL(request.url).origin)
+    return new Response('Request origin rejected.', {
+      status: 403,
+      headers: responseHeaders,
+    });
+  const fetchSite = request.headers.get('sec-fetch-site');
+  if (fetchSite && !['same-origin', 'none'].includes(fetchSite))
+    return new Response('Request origin rejected.', {
+      status: 403,
+      headers: responseHeaders,
+    });
+  if (
+    !request.headers
+      .get('content-type')
+      ?.startsWith('application/x-www-form-urlencoded')
+  )
+    return new Response('Unsupported form.', {
+      status: 415,
+      headers: responseHeaders,
+    });
+  return undefined;
+}
+
+async function readForm(request: Request): Promise<FormData | null> {
+  const reader = request.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  if (reader) {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      length += value.byteLength;
+      if (length > 8192) {
+        await reader.cancel();
+        break;
+      }
+      chunks.push(value);
+    }
+  }
+  if (length > 8192) return null;
+  const form = new FormData();
+  new URLSearchParams(Buffer.concat(chunks).toString('utf8')).forEach(
+    (value, key) => form.append(key, value)
+  );
+  return form;
+}
+
 export function createAdminHandler({
   store,
   owner,
@@ -42,6 +95,69 @@ export function createAdminHandler({
 }) {
   const render = (options: AdminState, status = 200) =>
     Response.json(options, { status, headers: responseHeaders });
+  async function readAdmin(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const query = url.searchParams.get('q') ?? '';
+    let results: City[] = [];
+    let message = url.searchParams.get('saved') === '1' ? 'City updated.' : '';
+    try {
+      if (query) results = await search(query);
+    } catch {
+      message = 'Search is unavailable. Try again.';
+    }
+    return render({
+      configured: true,
+      signedIn: true,
+      snapshot: await resolveLocation(store),
+      results,
+      query,
+      editing: url.searchParams.get('edit') === '1' || !!query,
+      message,
+    });
+  }
+
+  async function saveAdmin(request: Request): Promise<Response> {
+    const form = await readForm(request);
+    if (!form)
+      return new Response('Form too large.', {
+        status: 413,
+        headers: responseHeaders,
+      });
+    if (form.get('action') !== 'save')
+      return new Response('Unknown action.', {
+        status: 400,
+        headers: responseHeaders,
+      });
+    let city;
+    try {
+      city = citySchema.parse(JSON.parse(String(form.get('city'))));
+    } catch {
+      return new Response('Invalid city. Search again and choose a result.', {
+        status: 400,
+        headers: responseHeaders,
+      });
+    }
+    const previous = await resolveLocation(store);
+    try {
+      await store.save(city);
+    } catch {
+      return render(
+        {
+          configured: true,
+          signedIn: true,
+          snapshot: previous,
+          editing: true,
+          query: city.city,
+          results: [city],
+          message: 'Could not save. Try again.',
+        },
+        503
+      );
+    }
+    invalidate();
+    return redirect(request, true);
+  }
+
   return async (request: Request): Promise<Response> => {
     if (!configured || !owner) return render({ configured: false }, 503);
     try {
@@ -52,109 +168,15 @@ export function createAdminHandler({
           401
         );
 
-      if (request.method === 'GET') {
-        const url = new URL(request.url);
-        const query = url.searchParams.get('q') ?? '';
-        let results: Awaited<ReturnType<typeof search>> = [];
-        let message =
-          url.searchParams.get('saved') === '1' ? 'City updated.' : '';
-        try {
-          if (query) results = await search(query);
-        } catch {
-          message = 'Search is unavailable. Try again.';
-        }
-        return render({
-          configured: true,
-          signedIn: true,
-          snapshot: await resolveLocation(store),
-          results,
-          query,
-          editing: url.searchParams.get('edit') === '1' || !!query,
-          message,
-        });
-      }
+      if (request.method === 'GET') return await readAdmin(request);
       if (request.method !== 'POST')
         return new Response(null, {
           status: 405,
           headers: { ...responseHeaders, Allow: 'GET, POST' },
         });
-      if (request.headers.get('origin') !== new URL(request.url).origin)
-        return new Response('Request origin rejected.', {
-          status: 403,
-          headers: responseHeaders,
-        });
-      const fetchSite = request.headers.get('sec-fetch-site');
-      if (fetchSite && !['same-origin', 'none'].includes(fetchSite))
-        return new Response('Request origin rejected.', {
-          status: 403,
-          headers: responseHeaders,
-        });
-      if (
-        !request.headers
-          .get('content-type')
-          ?.startsWith('application/x-www-form-urlencoded')
-      )
-        return new Response('Unsupported form.', {
-          status: 415,
-          headers: responseHeaders,
-        });
-      const reader = request.body?.getReader();
-      const chunks: Uint8Array[] = [];
-      let length = 0;
-      if (reader) {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          length += value.byteLength;
-          if (length > 8192) {
-            await reader.cancel();
-            break;
-          }
-          chunks.push(value);
-        }
-      }
-      if (length > 8192)
-        return new Response('Form too large.', {
-          status: 413,
-          headers: responseHeaders,
-        });
-      const form = new FormData();
-      new URLSearchParams(Buffer.concat(chunks).toString('utf8')).forEach(
-        (value, key) => form.append(key, value)
-      );
-      if (form.get('action') !== 'save')
-        return new Response('Unknown action.', {
-          status: 400,
-          headers: responseHeaders,
-        });
-      let city;
-      try {
-        city = citySchema.parse(JSON.parse(String(form.get('city'))));
-      } catch {
-        return new Response('Invalid city. Search again and choose a result.', {
-          status: 400,
-          headers: responseHeaders,
-        });
-      }
-      const previous = await resolveLocation(store);
-      try {
-        await store.save(city);
-      } catch {
-        return render(
-          {
-            configured: true,
-            signedIn: true,
-            snapshot: previous,
-            editing: true,
-            query: city.city,
-            results: [city],
-            message: 'Could not save. Try again.',
-          },
-          503
-        );
-      }
-      invalidate();
-      return redirect(request, true);
+      const rejection = rejectMutation(request);
+      if (rejection) return rejection;
+      return await saveAdmin(request);
     } catch (error) {
       console.error(
         'Status admin request failed',

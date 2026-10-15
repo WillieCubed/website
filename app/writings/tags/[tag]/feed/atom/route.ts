@@ -18,7 +18,7 @@ async function buildTagFeed(tag: string) {
  */
 export async function GET(
   _request: Request,
-  props: { params: Promise<{ tag: string }> }
+  props: RouteContext<'/writings/tags/[tag]/feed/atom'>
 ) {
   const feed = await buildTagFeed(tagFromParam((await props.params).tag));
   if (!feed) return new Response('Not found', { status: 404 });

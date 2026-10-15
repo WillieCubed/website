@@ -20,7 +20,7 @@ async function buildTagFeed(tag: string) {
  */
 export async function GET(
   _request: Request,
-  props: { params: Promise<{ tag: string }> }
+  props: RouteContext<'/writings/tags/[tag]/feed/json'>
 ) {
   const tag = tagFromParam((await props.params).tag);
   const feed = await buildTagFeed(tag);

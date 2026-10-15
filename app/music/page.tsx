@@ -8,14 +8,13 @@ import { canonicalUrl } from '@/lib/site/urls';
 
 export async function generateMetadata({
   searchParams,
-}: {
-  searchParams: Promise<{ detail?: string }>;
-}): Promise<Metadata> {
+}: PageProps<'/music'>): Promise<Metadata> {
   const { detail } = await searchParams;
+  const detailId = Array.isArray(detail) ? detail[0] : detail;
   let title = 'Music';
-  if (detail) {
+  if (detailId) {
     const collection = await publicCollection();
-    title = collection.playlists.find((p) => p.id === detail)?.title ?? title;
+    title = collection.playlists.find((p) => p.id === detailId)?.title ?? title;
   }
   return {
     title,
@@ -24,19 +23,19 @@ export async function generateMetadata({
     alternates: { canonical: canonicalUrl('/music') },
   };
 }
-export default async function Music({
-  searchParams,
-}: {
-  searchParams: Promise<{ series?: string; detail?: string }>;
-}) {
+export default async function Music({ searchParams }: PageProps<'/music'>) {
   const params = await searchParams;
   await connection();
   const data = await publicCollection();
   return (
     <MusicExperience
       playlists={data.playlists}
-      initialSeries={params.series}
-      initialDetail={params.detail}
+      initialSeries={
+        Array.isArray(params.series) ? params.series[0] : params.series
+      }
+      initialDetail={
+        Array.isArray(params.detail) ? params.detail[0] : params.detail
+      }
       initialCatalog={data.catalog}
       loadError={
         'unavailable' in data && data.unavailable

@@ -15,6 +15,7 @@ import type {
   SyndicationLink,
   TOCHeading,
   WritingData,
+  WritingDocument,
   WritingPhoto,
 } from './types';
 
@@ -118,10 +119,46 @@ export function extractHeadings(content: string): TOCHeading[] {
   return headings;
 }
 
+const INTERACTIONS = [
+  ['like', 'likeOf'],
+  ['repost', 'repostOf'],
+  ['bookmark', 'bookmarkOf'],
+  ['rsvp', 'rsvp'],
+] as const;
+
+function inferPostType(frontmatter: RawFrontmatter): PostType {
+  const declared = frontmatter.postType ?? 'article';
+  if (frontmatter.postType) return declared;
+  for (const [type, field] of INTERACTIONS) if (frontmatter[field]) return type;
+  return declared;
+}
+
+function warnFrontmatter(
+  slug: string,
+  frontmatter: RawFrontmatter,
+  postType: PostType,
+  peopleCount: number
+): void {
+  if (process.env.NODE_ENV === 'production') return;
+  for (const [type, field] of INTERACTIONS) {
+    if (postType === type && !frontmatter[field])
+      console.warn(
+        `Warning: Post "${slug}" has postType '${type}' but missing ${field} field`
+      );
+  }
+  if (
+    Array.isArray(frontmatter.people) &&
+    frontmatter.people.length !== peopleCount
+  )
+    console.warn(
+      `Warning: Post "${slug}" has people entries without a name and an absolute URL, or repeated URLs; they were skipped`
+    );
+}
+
 /**
  * Read a writing's source and derive its metadata, text statistics, and headings.
  */
-export async function loadWriting(slug: string) {
+export async function loadWriting(slug: string): Promise<WritingDocument> {
   const slugs = await getWritingSlugs();
   if (!slugs.includes(slug)) {
     throw new Error(`Writing with given codename "${slug}" cannot be found.`);
@@ -139,54 +176,9 @@ export async function loadWriting(slug: string) {
   );
   const headings = frontmatter.contentFormat ? [] : extractHeadings(content);
 
-  // Infer postType from interaction fields if not explicitly set
-  let postType: PostType = frontmatter.postType ?? 'article';
-  if (!frontmatter.postType) {
-    if (frontmatter.likeOf) postType = 'like';
-    else if (frontmatter.repostOf) postType = 'repost';
-    else if (frontmatter.bookmarkOf) postType = 'bookmark';
-    else if (frontmatter.rsvp) postType = 'rsvp';
-  }
-
-  // Validate that interaction fields match declared postType
-  if (process.env.NODE_ENV !== 'production') {
-    const hasLikeOf = !!frontmatter.likeOf;
-    const hasRepostOf = !!frontmatter.repostOf;
-    const hasBookmarkOf = !!frontmatter.bookmarkOf;
-    const hasRsvp = !!frontmatter.rsvp;
-
-    if (postType === 'like' && !hasLikeOf) {
-      console.warn(
-        `Warning: Post "${slug}" has postType 'like' but missing likeOf field`
-      );
-    }
-    if (postType === 'repost' && !hasRepostOf) {
-      console.warn(
-        `Warning: Post "${slug}" has postType 'repost' but missing repostOf field`
-      );
-    }
-    if (postType === 'bookmark' && !hasBookmarkOf) {
-      console.warn(
-        `Warning: Post "${slug}" has postType 'bookmark' but missing bookmarkOf field`
-      );
-    }
-    if (postType === 'rsvp' && !hasRsvp) {
-      console.warn(
-        `Warning: Post "${slug}" has postType 'rsvp' but missing rsvp field`
-      );
-    }
-  }
-
+  const postType = inferPostType(frontmatter);
   const people = parsePersonTags(frontmatter.people);
-  if (
-    process.env.NODE_ENV !== 'production' &&
-    Array.isArray(frontmatter.people) &&
-    frontmatter.people.length !== people.length
-  ) {
-    console.warn(
-      `Warning: Post "${slug}" has people entries without a name and an absolute URL, or repeated URLs; they were skipped`
-    );
-  }
+  warnFrontmatter(slug, frontmatter, postType, people.length);
 
   const derivedTitle = deriveTitle(frontmatter, content);
   const writing: WritingData = {

@@ -17,9 +17,9 @@ export async function generateStaticParams() {
     : [{ codename: '_' }];
 }
 
-export async function generateMetadata(props: {
-  params: Promise<{ codename: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: PageProps<'/projects/[codename]'>
+): Promise<Metadata> {
   const { codename } = await props.params;
   const project = await getProject(codename);
   if (!project) notFound();
@@ -31,9 +31,7 @@ export async function generateMetadata(props: {
   });
 }
 
-export default async function Page(props: {
-  params: Promise<{ codename: string }>;
-}) {
+export default async function Page(props: PageProps<'/projects/[codename]'>) {
   const { codename } = await props.params;
   const projects = await getProjects();
   const project = projects.find((item) => item.slug === codename);

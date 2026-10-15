@@ -150,26 +150,7 @@ export default function WidgetInspector({
         }}
         onKeyDown={(event) => {
           event.stopPropagation();
-          if (event.key === 'Tab' && event.currentTarget.matches(':modal')) {
-            const controls = Array.from(
-              event.currentTarget.querySelectorAll<HTMLElement>(
-                'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), summary, a[href], [tabindex="0"]'
-              )
-            ).filter((element) => element.getClientRects().length > 0);
-            const first = controls[0];
-            const last = controls.at(-1);
-            if (
-              event.shiftKey &&
-              (document.activeElement === first ||
-                !controls.includes(document.activeElement as HTMLElement))
-            ) {
-              event.preventDefault();
-              last?.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-              event.preventDefault();
-              first?.focus();
-            }
-          }
+          trapModalTab(event);
           if (event.key === 'Escape') {
             event.preventDefault();
             onDismiss();
@@ -207,4 +188,27 @@ export default function WidgetInspector({
       host
     )
   );
+}
+
+function trapModalTab(event: React.KeyboardEvent<HTMLDialogElement>): void {
+  if (event.key === 'Tab' && event.currentTarget.matches(':modal')) {
+    const controls = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), summary, a[href], [tabindex="0"]'
+      )
+    ).filter((element) => element.getClientRects().length > 0);
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (
+      event.shiftKey &&
+      (document.activeElement === first ||
+        !controls.includes(document.activeElement as HTMLElement))
+    ) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  }
 }

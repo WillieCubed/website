@@ -1,3 +1,5 @@
+import type { Did } from '@atcute/lexicons';
+
 import { site } from '@/lib/site/identity';
 import { absoluteUrl } from '@/lib/site/urls';
 import { loadWriting } from '@/lib/writings/load';
@@ -13,7 +15,7 @@ import { documentIsVerified, publicationIsVerified } from './verification';
 
 async function record(uri: string): Promise<unknown> {
   const [, , did, collection, rkey] = uri.split('/');
-  const pds = await resolvePds(did as Parameters<typeof resolvePds>[0]);
+  const pds = await resolvePds(did as Did);
   const url = new URL('/xrpc/com.atproto.repo.getRecord', pds);
   url.search = new URLSearchParams({ repo: did, collection, rkey }).toString();
   const response = await oauthFetch(url);

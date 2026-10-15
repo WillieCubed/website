@@ -5,6 +5,14 @@ import type {
   IndieAuthTokenRecord,
 } from '@/lib/indieweb/indieauth/types';
 
+function validRefreshScope(scope: string[], allowed: string[]) {
+  return (
+    scope.length > 0 &&
+    scope.every((s) => allowed.includes(s)) &&
+    (!scope.includes('email') || scope.includes('profile'))
+  );
+}
+
 /**
  * In-memory IndieAuth stores following the Postgres adapter's rules.
  */
@@ -96,11 +104,7 @@ export function memoryIndieAuthStore() {
       if (row.expiresAt <= rotation.now)
         return { ok: false, error: 'invalid_grant' };
       const scope = rotation.scope ?? family.grant.scope;
-      if (
-        scope.length === 0 ||
-        scope.some((s) => !family.grant.scope.includes(s)) ||
-        (scope.includes('email') && !scope.includes('profile'))
-      ) {
+      if (!validRefreshScope(scope, family.grant.scope)) {
         return { ok: false, error: 'invalid_scope' };
       }
       row.usedAt = rotation.now;

@@ -13,9 +13,9 @@ export const contentType = 'image/png';
  * Render a PNG social preview with the initiative part title, dates, places,
  * brand color, and available cover. Return 404 when the part is unavailable.
  */
-export default async function Image(props: {
-  params: Promise<{ slug: string; part: string }>;
-}) {
+export default async function Image(
+  props: Pick<PageProps<'/initiatives/[slug]/[part]'>, 'params'>
+) {
   const { slug, part: partSlug } = await props.params;
   const found = await getPart(slug, partSlug);
   if (!found) notFound();

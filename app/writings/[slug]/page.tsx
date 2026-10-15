@@ -78,9 +78,9 @@ export async function generateStaticParams() {
   return slugs.length > 0 ? slugs.map((slug) => ({ slug })) : [{ slug: '_' }];
 }
 
-export async function generateMetadata(props: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: PageProps<'/writings/[slug]'>
+): Promise<Metadata> {
   const params = await props.params;
   const { slug } = params;
   // An unknown slug has to reach notFound() here too; metadata that
@@ -119,11 +119,7 @@ export async function generateMetadata(props: {
   };
 }
 
-interface WritingDetailPageProps {
-  params: Promise<{
-    slug: string;
-  }>;
-}
+type WritingDetailPageProps = PageProps<'/writings/[slug]'>;
 
 async function fetchWritingData(slug: string) {
   const writingData = await getPublishedWriting(slug);
@@ -199,6 +195,22 @@ async function loadReplyContexts(
   );
 }
 
+function withBlueskyCopy(
+  writing: WritingData,
+  copyUrl: string | null | undefined
+): WritingData {
+  if (copyUrl && !writing.syndication?.some((copy) => copy.url === copyUrl)) {
+    return {
+      ...writing,
+      syndication: [
+        ...(writing.syndication ?? []),
+        { name: 'Bluesky', url: copyUrl },
+      ],
+    };
+  }
+  return writing;
+}
+
 export default async function WritingDetailPage(props: WritingDetailPageProps) {
   const params = await props.params;
   const { slug } = params;
@@ -239,18 +251,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
   ]);
 
   const responses = mergeResponses(webmentions, atmosphere.groups);
-  if (
-    atmosphere.copyUrl &&
-    !writing.syndication?.some((copy) => copy.url === atmosphere.copyUrl)
-  ) {
-    writing = {
-      ...writing,
-      syndication: [
-        ...(writing.syndication ?? []),
-        { name: 'Bluesky', url: atmosphere.copyUrl },
-      ],
-    };
-  }
+  writing = withBlueskyCopy(writing, atmosphere.copyUrl);
   const canonicalUrl = generateCanonicalUrl(writing.slug);
   const path = `/writings/${writing.slug}`;
   const documentAt = documentUri(documentPath(writing.slug), writing.published);

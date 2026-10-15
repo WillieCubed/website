@@ -21,6 +21,22 @@ export async function searchPrivate(
 ): Promise<SearchResponse> {
   if (!query.trim() || !tokenize(query).length)
     return { query, total: 0, results: [], backend: 'private' };
+  const items = await privateSearchItems();
+  const filtered = [...items.values()].filter(
+    (item) =>
+      !options.type || options.type === 'all' || item.type === options.type
+  );
+  const matches = rankItems(filtered, query);
+  const offset = options.offset ?? 0;
+  return {
+    query,
+    total: matches.length,
+    results: matches.slice(offset, offset + (options.limit ?? 20)),
+    backend: 'private',
+  };
+}
+
+async function privateSearchItems(): Promise<Map<string, SearchableItem>> {
   const items = new Map(
     (await collectSearchDocuments()).map((item) => [item.path, item])
   );
@@ -68,16 +84,6 @@ export async function searchPrivate(
     };
     items.set(path, item);
   }
-  const filtered = [...items.values()].filter(
-    (item) =>
-      !options.type || options.type === 'all' || item.type === options.type
-  );
-  const matches = rankItems(filtered, query);
-  const offset = options.offset ?? 0;
-  return {
-    query,
-    total: matches.length,
-    results: matches.slice(offset, offset + (options.limit ?? 20)),
-    backend: 'private',
-  };
+
+  return items;
 }

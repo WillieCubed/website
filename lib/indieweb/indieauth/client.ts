@@ -37,16 +37,9 @@ export function parseClientId(value: string | null): URL | null {
   } catch {
     return null;
   }
-  if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+  if (!validClientAuthority(url)) return null;
   if (url.hash || value.includes('#')) return null;
-  if (url.username || url.password) return null;
-  // URL parsing resolves dot segments away, so look at what was sent.
-  const rawPath = value.replace(/^[a-z]+:\/\/[^/?#]*/i, '').split(/[?#]/)[0];
-  if (rawPath.split('/').some((segment) => segment === '.' || segment === '..'))
-    return null;
-  const { hostname } = url;
-  const isIp = IPV4_PATTERN.test(hostname) || hostname.startsWith('[');
-  if (isIp && !isLoopbackHost(hostname)) return null;
+  if (hasDotSegments(value)) return null;
   return url;
 }
 
@@ -188,4 +181,22 @@ export async function fetchIndieAuthClient(
     console.error('Fetching IndieAuth client metadata failed:', error);
     return none;
   }
+}
+
+function hasDotSegments(value: string): boolean {
+  // URL parsing resolves dot segments away, so inspect the submitted path.
+  const rawPath = value.replace(/^[a-z]+:\/\/[^/?#]*/i, '').split(/[?#]/)[0];
+  return rawPath
+    .split('/')
+    .some((segment) => segment === '.' || segment === '..');
+}
+
+function validClientAuthority(url: URL): boolean {
+  const isIp = IPV4_PATTERN.test(url.hostname) || url.hostname.startsWith('[');
+  return (
+    ['https:', 'http:'].includes(url.protocol) &&
+    !url.username &&
+    !url.password &&
+    (!isIp || isLoopbackHost(url.hostname))
+  );
 }

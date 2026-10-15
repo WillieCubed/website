@@ -13,7 +13,7 @@ import { documentRkey } from './keys';
 import { oauthFetch } from './oauth-fetch';
 import { assertOwnerCopy } from './owner-copy';
 import type { DocumentSource } from './records';
-import type { RepoClient } from './types';
+import type { RepoClient, RepoRecord, RepoRecordReference } from './types';
 
 function blueskyServiceUrl(): string {
   const base =
@@ -67,11 +67,7 @@ export function parseBlueskyPostUrl(
 export async function publicRecord(
   uri: string,
   signal?: AbortSignal
-): Promise<{
-  uri: string;
-  cid: string;
-  value: Record<string, unknown>;
-} | null> {
+): Promise<RepoRecord | null> {
   const match = /^at:\/\/(did:[^/]+)\/([^/]+)\/([^/]+)$/.exec(uri);
   if (!match) return null;
   const url = new URL(
@@ -91,18 +87,13 @@ export async function publicRecord(
   return response.json();
 }
 
-interface CopyRecord {
-  uri: string;
-  cid: string;
-  value: Record<string, unknown>;
-}
 export interface BlueskyCopyResult {
   action: 'create' | 'associate' | 'recover';
   url: string;
-  post: { uri: string; cid: string } | null;
+  post: RepoRecordReference | null;
 }
 function assertCopyRecord(
-  record: CopyRecord,
+  record: RepoRecord,
   canonical: string,
   expectedUri?: string
 ): void {
@@ -114,18 +105,24 @@ function assertCopyRecord(
     !safeParse(AppBskyFeedPost.mainSchema, record.value, { strict: true }).ok
   )
     throw new Error('The copy must contain a valid Bluesky feed post.');
-  const post = record.value as {
-    embed?: {
-      $type?: string;
-      external?: { uri?: string };
-      media?: { $type?: string; external?: { uri?: string } };
-    };
-    text: string;
-    facets?: {
-      index: { byteStart: number; byteEnd: number };
-      features?: { $type?: string; uri?: string }[];
-    }[];
+  if (!linksCanonical(record.value as LinkedPost, canonical))
+    throw new Error('The Bluesky copy must link to the canonical writing.');
+}
+
+type LinkedPost = {
+  embed?: {
+    $type?: string;
+    external?: { uri?: string };
+    media?: { $type?: string; external?: { uri?: string } };
   };
+  text: string;
+  facets?: {
+    index: { byteStart: number; byteEnd: number };
+    features?: { $type?: string; uri?: string }[];
+  }[];
+};
+
+function linksCanonical(post: LinkedPost, canonical: string): boolean {
   const embed =
     post.embed?.$type === 'app.bsky.embed.recordWithMedia'
       ? post.embed.media
@@ -133,19 +130,20 @@ function assertCopyRecord(
   const external =
     embed?.$type === 'app.bsky.embed.external' &&
     embed.external?.uri === canonical;
+  if (external) return true;
   const textBytes = new TextEncoder().encode(post.text);
-  const facet = post.facets?.some(
-    (facet) =>
-      facet.index.byteStart < facet.index.byteEnd &&
-      facet.index.byteEnd <= textBytes.length &&
-      facet.features?.some(
-        (feature) =>
-          feature.$type === 'app.bsky.richtext.facet#link' &&
-          feature.uri === canonical
-      )
+  return Boolean(
+    post.facets?.some(
+      (facet) =>
+        facet.index.byteStart < facet.index.byteEnd &&
+        facet.index.byteEnd <= textBytes.length &&
+        facet.features?.some(
+          (feature) =>
+            feature.$type === 'app.bsky.richtext.facet#link' &&
+            feature.uri === canonical
+        )
+    )
   );
-  if (!external && !facet)
-    throw new Error('The Bluesky copy must link to the canonical writing.');
 }
 
 export async function validateExplicitBlueskyCopies(
@@ -175,7 +173,7 @@ async function resolveCopy(
   client: RepoClient,
   url: string,
   canonical: string
-): Promise<{ uri: string; cid: string } | null> {
+): Promise<RepoRecordReference | null> {
   const copy = parseBlueskyPostUrl(url);
   if (!copy) return null;
   let did = copy.actor;
@@ -201,6 +199,219 @@ async function resolveCopy(
   return { uri: record.uri, cid: record.cid };
 }
 
+type CopyReader = RepoClient & Required<Pick<RepoClient, 'getRecord'>>;
+interface CopyTarget {
+  rkey: string;
+  canonical: string;
+  postUri: string;
+  document: RepoRecord | null;
+}
+interface SelectedCopy {
+  action: BlueskyCopyResult['action'];
+  post: RepoRecordReference | null;
+}
+
+function assertCopyClient(
+  client: RepoClient,
+  dryRun: boolean
+): asserts client is CopyReader {
+  if (
+    !client.getRecord ||
+    (!dryRun && (!client.createRecord || !client.putRecord))
+  )
+    throw new Error('The publishing client cannot synchronize Bluesky copies.');
+}
+
+function announcement(
+  source: DocumentSource,
+  target: CopyTarget,
+  publication: RepoRecord
+) {
+  const document = target.document!;
+  return {
+    $type: 'app.bsky.feed.post',
+    text: clipText(
+      source.hasExplicitTitle === false
+        ? writingText(source.body, source)
+        : source.title,
+      300,
+      3000
+    ),
+    createdAt: source.published.toISOString(),
+    langs: [site.language],
+    embed: {
+      $type: 'app.bsky.embed.external',
+      external: {
+        uri: target.canonical,
+        title: source.title,
+        description: source.description,
+        ...(document.value.coverImage
+          ? { thumb: document.value.coverImage }
+          : {}),
+        associatedRefs: [
+          { uri: document.uri, cid: document.cid },
+          { uri: publication.uri, cid: publication.cid },
+        ],
+      },
+    },
+  };
+}
+
+async function createAnnouncement(
+  client: CopyReader,
+  source: DocumentSource,
+  target: CopyTarget
+): Promise<SelectedCopy> {
+  const publication = await client.getRecord(
+    'site.standard.publication',
+    publishingIdentity().publicationRkey
+  );
+  if (!publication) throw new Error('The publication record is missing.');
+  const record = announcement(source, target, publication);
+  const checked = safeParse(AppBskyFeedPost.mainSchema, record, {
+    strict: true,
+  });
+  if (!checked.ok)
+    throw new Error(`Invalid Bluesky announcement: ${checked.message}`);
+  try {
+    const post = await client.createRecord!(
+      'app.bsky.feed.post',
+      target.rkey,
+      record
+    );
+    assertOwnerCopy(post);
+    if (post.uri !== target.postUri)
+      throw new Error('The created copy has an unexpected identity.');
+    return { action: 'create', post };
+  } catch (error) {
+    const recovered = await client.getRecord('app.bsky.feed.post', target.rkey);
+    if (!recovered) throw error;
+    assertCopyRecord(recovered, target.canonical, target.postUri);
+    return {
+      action: 'recover',
+      post: { uri: recovered.uri, cid: recovered.cid },
+    };
+  }
+}
+
+async function selectCopy(
+  client: CopyReader,
+  source: DocumentSource,
+  target: CopyTarget,
+  listedUrl: string | undefined,
+  dryRun: boolean
+): Promise<SelectedCopy> {
+  if (listedUrl) {
+    const post = await resolveCopy(client, listedUrl, target.canonical);
+    if (!post)
+      throw new Error('The listed Bluesky copy could not be resolved.');
+    return { action: 'associate', post };
+  }
+  const existing = await client.getRecord('app.bsky.feed.post', target.rkey);
+  if (existing) {
+    try {
+      assertCopyRecord(existing, target.canonical, target.postUri);
+    } catch (error) {
+      throw new Error('The announcement key already belongs to another post.', {
+        cause: error,
+      });
+    }
+    return {
+      action: 'recover',
+      post: { uri: existing.uri, cid: existing.cid },
+    };
+  }
+  if (dryRun) return { action: 'create', post: null };
+  return createAnnouncement(client, source, target);
+}
+
+function matchesAssociation(
+  record: RepoRecord | null,
+  target: CopyTarget,
+  post: RepoRecordReference
+): boolean {
+  if (!record) return false;
+  const identity = publishingIdentity();
+  if (
+    record.uri !==
+      `at://${identity.did}/site.standard.document/${target.rkey}` ||
+    record.value.site !== identity.publicationUri
+  )
+    return false;
+  if (
+    !safeParse(SiteStandardDocument.mainSchema, record.value, { strict: true })
+      .ok
+  )
+    return false;
+  const ref = record.value.bskyPostRef as
+    | Partial<RepoRecordReference>
+    | undefined;
+  return ref?.uri === post.uri && ref?.cid === post.cid;
+}
+
+async function associateCopy(
+  client: CopyReader,
+  target: CopyTarget,
+  post: RepoRecordReference
+): Promise<void> {
+  const document = target.document!;
+  try {
+    await client.putRecord!(
+      'site.standard.document',
+      target.rkey,
+      { ...document.value, bskyPostRef: post },
+      document.cid
+    );
+  } catch (error) {
+    let associated = false;
+    try {
+      associated = matchesAssociation(
+        await client.getRecord('site.standard.document', target.rkey),
+        target,
+        post
+      );
+    } catch {
+      // A failed recovery read cannot establish that the intended association exists.
+    }
+    // A concurrent publisher may have associated this exact copy before our CID swap.
+    // Preserve its authored fields rather than retrying an overwrite with a newer CID.
+    if (!associated) throw error;
+  }
+}
+
+async function syncCopy(
+  client: CopyReader,
+  source: DocumentSource,
+  listedUrl: string | undefined,
+  dryRun: boolean
+): Promise<BlueskyCopyResult | null> {
+  const path = `/writings/${source.slug}`;
+  const rkey = documentRkey(path, source.published);
+  const document = await client.getRecord('site.standard.document', rkey);
+  if (!document && !dryRun)
+    throw new Error(
+      'Publish the Standard.site document before syndicating it.'
+    );
+  if (document?.value.bskyPostRef) {
+    assertOwnerCopy(document.value.bskyPostRef);
+    return null;
+  }
+  if (source.atproto?.bskyPostRef === null) return null;
+  const target: CopyTarget = {
+    rkey,
+    canonical: absoluteUrl(path),
+    postUri: `at://${publishingIdentity().did}/app.bsky.feed.post/${rkey}`,
+    document,
+  };
+  const selected = await selectCopy(client, source, target, listedUrl, dryRun);
+  if (!dryRun) await associateCopy(client, target, selected.post!);
+  return {
+    action: selected.action,
+    url: target.canonical,
+    post: dryRun ? null : selected.post,
+  };
+}
+
 /** A deterministic post key recovers an announcement if its later document update failed. */
 export async function syncBlueskyCopies(
   client: RepoClient,
@@ -215,154 +426,15 @@ export async function syncBlueskyCopies(
     const listed = source.syndication?.find((copy) =>
       parseBlueskyPostUrl(copy.url)
     );
-    const requested = source.syndicateTo?.includes(account.profile);
-    if (!listed && !requested) continue;
-    if (
-      !client.getRecord ||
-      (!options.dryRun && (!client.createRecord || !client.putRecord))
-    )
-      throw new Error(
-        'The publishing client cannot synchronize Bluesky copies.'
-      );
-    const path = `/writings/${source.slug}`;
-    const canonical = absoluteUrl(path);
-    const rkey = documentRkey(path, source.published);
-    const postUri = `at://${publishingIdentity().did}/app.bsky.feed.post/${rkey}`;
-    const document = await client.getRecord('site.standard.document', rkey);
-    if (!document && !options.dryRun)
-      throw new Error(
-        'Publish the Standard.site document before syndicating it.'
-      );
-    if (document?.value.bskyPostRef) {
-      assertOwnerCopy(document.value.bskyPostRef);
-      continue;
-    }
-    if (source.atproto?.bskyPostRef === null) continue;
-    let copy: { uri: string; cid: string } | null = null;
-    let action: BlueskyCopyResult['action'];
-    if (listed) {
-      copy = await resolveCopy(client, listed.url, canonical);
-      if (!copy)
-        throw new Error('The listed Bluesky copy could not be resolved.');
-      action = 'associate';
-    } else {
-      const existing = await client.getRecord('app.bsky.feed.post', rkey);
-      if (existing) {
-        try {
-          assertCopyRecord(existing, canonical, postUri);
-        } catch (error) {
-          throw new Error(
-            'The announcement key already belongs to another post.',
-            { cause: error }
-          );
-        }
-        copy = { uri: existing.uri, cid: existing.cid };
-        action = 'recover';
-      } else {
-        action = 'create';
-        if (!options.dryRun) {
-          const publication = await client.getRecord(
-            'site.standard.publication',
-            publishingIdentity().publicationRkey
-          );
-          if (!publication)
-            throw new Error('The publication record is missing.');
-          const record = {
-            $type: 'app.bsky.feed.post',
-            text: clipText(
-              source.hasExplicitTitle === false
-                ? writingText(source.body, source)
-                : source.title,
-              300,
-              3000
-            ),
-            createdAt: source.published.toISOString(),
-            langs: [site.language],
-            embed: {
-              $type: 'app.bsky.embed.external',
-              external: {
-                uri: canonical,
-                title: source.title,
-                description: source.description,
-                ...(document!.value.coverImage
-                  ? { thumb: document!.value.coverImage }
-                  : {}),
-                associatedRefs: [
-                  { uri: document!.uri, cid: document!.cid },
-                  { uri: publication.uri, cid: publication.cid },
-                ],
-              },
-            },
-          };
-          const checked = safeParse(AppBskyFeedPost.mainSchema, record, {
-            strict: true,
-          });
-          if (!checked.ok)
-            throw new Error(`Invalid Bluesky announcement: ${checked.message}`);
-          try {
-            copy = await client.createRecord!(
-              'app.bsky.feed.post',
-              rkey,
-              record
-            );
-            assertOwnerCopy(copy);
-            if (copy.uri !== postUri)
-              throw new Error('The created copy has an unexpected identity.');
-          } catch (error) {
-            const recovered = await client.getRecord(
-              'app.bsky.feed.post',
-              rkey
-            );
-            if (!recovered) throw error;
-            assertCopyRecord(recovered, canonical, postUri);
-            copy = { uri: recovered.uri, cid: recovered.cid };
-            action = 'recover';
-          }
-        }
-      }
-    }
-    if (!options.dryRun) {
-      try {
-        await client.putRecord!(
-          'site.standard.document',
-          rkey,
-          { ...document!.value, bskyPostRef: copy },
-          document!.cid
-        );
-      } catch (error) {
-        let associated = false;
-        try {
-          const current = await client.getRecord(
-            'site.standard.document',
-            rkey
-          );
-          const ref = current?.value.bskyPostRef as
-            | { uri?: unknown; cid?: unknown }
-            | undefined;
-          associated = Boolean(
-            current &&
-            current.uri ===
-              `at://${publishingIdentity().did}/site.standard.document/${rkey}` &&
-            current.value.site === publishingIdentity().publicationUri &&
-            safeParse(SiteStandardDocument.mainSchema, current.value, {
-              strict: true,
-            }).ok &&
-            ref?.uri === copy?.uri &&
-            ref?.cid === copy?.cid
-          );
-        } catch {
-          // A failed recovery read cannot establish that the intended association exists.
-        }
-        // A concurrent publisher may have associated this exact copy before our CID swap.
-        // Preserve its authored fields rather than retrying an overwrite with a newer CID.
-        if (!associated) throw error;
-      }
-    }
-    results.push({
-      action,
-      url: canonical,
-      post: options.dryRun ? null : copy,
-    });
+    if (!listed && !source.syndicateTo?.includes(account.profile)) continue;
+    assertCopyClient(client, Boolean(options.dryRun));
+    const result = await syncCopy(
+      client,
+      source,
+      listed?.url,
+      Boolean(options.dryRun)
+    );
+    if (result) results.push(result);
   }
   return results;
 }

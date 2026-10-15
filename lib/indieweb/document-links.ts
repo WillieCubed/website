@@ -11,14 +11,21 @@ function* elements(node: Parent): Generator<Element> {
 }
 const attribute = (node: Element, name: string) =>
   node.attrs.find((attr) => attr.name === name)?.value;
+export interface LinkedMicroformatEntry {
+  html: string;
+  links: string[];
+}
+
+export interface ResolvedDocumentLinks {
+  base: string;
+  links: string[];
+  entries: LinkedMicroformatEntry[];
+}
+
 export function resolvedDocumentLinks(
   html: string,
   finalUrl: string
-): {
-  base: string;
-  links: string[];
-  entries: { html: string; links: string[] }[];
-} {
+): ResolvedDocumentLinks {
   const document = parse(html);
   let base = finalUrl;
   const firstBase = [...elements(document)].find(

@@ -4,6 +4,11 @@ import { useRef } from 'react';
 
 type DialogPointer = React.MouseEvent<HTMLDialogElement>;
 
+export interface DialogBackdropHandlers {
+  onPointerDown: React.PointerEventHandler<HTMLDialogElement>;
+  onClick: React.MouseEventHandler<HTMLDialogElement>;
+}
+
 /** True when the event landed on the dialog's backdrop, outside its box. */
 function onBackdrop(event: DialogPointer): boolean {
   if (event.target !== event.currentTarget) return false;
@@ -23,7 +28,9 @@ function onBackdrop(event: DialogPointer): boolean {
  * edge, because a click goes to the element the press and the release
  * share, so the press has to have started on the backdrop too.
  */
-export function useBackdropDismiss(onDismiss: () => void) {
+export function useBackdropDismiss(
+  onDismiss: () => void
+): DialogBackdropHandlers {
   const pressedBackdrop = useRef(false);
   return {
     onPointerDown: (event: React.PointerEvent<HTMLDialogElement>) => {

@@ -1,19 +1,23 @@
 import type {} from '@atcute/atproto';
+import type { BrowserContext, Locator, Page } from '@playwright/test';
 import assert from 'node:assert/strict';
 
+import type {
+  AcceptanceIdentities,
+  ProvisionedAccount,
+} from '../../../../support/publishing/identities/types.mts';
+
 interface Context {
-  first: import('@playwright/test').BrowserContext;
-  ownedIdentities:
-    | import('../../../../support/publishing/identities/run.mts').AcceptanceIdentities
-    | undefined;
+  first: BrowserContext;
+  ownedIdentities: AcceptanceIdentities | undefined;
   OWNER: string;
   ORIGIN: string;
 }
 
 export async function authorizeOwnedProvider(
   dependencies: Context,
-  page: Awaited<ReturnType<typeof dependencies.first.newPage>>,
-  identity: NonNullable<typeof dependencies.ownedIdentities>['publisher'],
+  page: Page,
+  identity: ProvisionedAccount,
   providerOrigin: string,
   expectation: 'grant' | 'cancel' | 'expired'
 ) {
@@ -39,39 +43,10 @@ export async function authorizeOwnedProvider(
     );
     if (new URL(page.url()).origin === dependencies.ORIGIN) return;
     assert.equal(new URL(page.url()).origin, providerOrigin);
-    const deny = page.getByRole('button', {
-      name: /^(?:Deny access|Cancel)$/i,
-    });
-    if (
-      expectation === 'cancel' &&
-      (await deny.count()) === 1 &&
-      (await deny.isVisible())
-    ) {
-      await deny.click();
-      return;
-    }
+    if (await declineOwnedConsent()) return;
     const password = page.locator('input[type="password"]');
     if (await password.isVisible()) {
-      assert(
-        !submittedCredentials,
-        'The owned provider did not accept its generated credentials.'
-      );
-      const identifier = page.locator(
-        'input[name="username"], input[name="identifier"]'
-      );
-      assert.equal(await identifier.count(), 1);
-      if ((await identifier.getAttribute('readonly')) !== null)
-        assert(
-          [identity.handle, identity.did, identity.email].includes(
-            await identifier.inputValue()
-          )
-        );
-      else await identifier.fill(identity.handle);
-      assert.equal(new URL(page.url()).origin, providerOrigin);
-      await password.fill(identity.password);
-      await page.getByRole('button', { name: /^Sign in$/i }).click();
-      submittedCredentials = true;
-      await password.waitFor({ state: 'hidden', timeout: 60000 });
+      await signInWithOwnedCredentials(password);
       continue;
     }
     const account = page.getByRole('button', {
@@ -82,6 +57,49 @@ export async function authorizeOwnedProvider(
       await account.click();
       continue;
     }
+    if (await approveOwnedConsent()) return;
+    throw new Error(
+      'The owned official provider needs an unsupported interactive step. No grant was synthesized.'
+    );
+  }
+  async function declineOwnedConsent(): Promise<boolean> {
+    const deny = page.getByRole('button', {
+      name: /^(?:Deny access|Cancel)$/i,
+    });
+    if (
+      expectation === 'cancel' &&
+      (await deny.count()) === 1 &&
+      (await deny.isVisible())
+    ) {
+      await deny.click();
+      return true;
+    }
+
+    return false;
+  }
+  async function signInWithOwnedCredentials(password: Locator): Promise<void> {
+    assert(
+      !submittedCredentials,
+      'The owned provider did not accept its generated credentials.'
+    );
+    const identifier = page.locator(
+      'input[name="username"], input[name="identifier"]'
+    );
+    assert.equal(await identifier.count(), 1);
+    if ((await identifier.getAttribute('readonly')) !== null)
+      assert(
+        [identity.handle, identity.did, identity.email].includes(
+          await identifier.inputValue()
+        )
+      );
+    else await identifier.fill(identity.handle);
+    assert.equal(new URL(page.url()).origin, providerOrigin);
+    await password.fill(identity.password);
+    await page.getByRole('button', { name: /^Sign in$/i }).click();
+    submittedCredentials = true;
+    await password.waitFor({ state: 'hidden', timeout: 60000 });
+  }
+  async function approveOwnedConsent(): Promise<boolean> {
     const approve = page.getByRole('button', {
       name: /^(?:Authorize|Accept|Allow access)$/i,
     });
@@ -98,11 +116,10 @@ export async function authorizeOwnedProvider(
         'The provider consent page must identify the journaled account.'
       );
       await approve.click();
-      return;
+      return true;
     }
-    throw new Error(
-      'The owned official provider needs an unsupported interactive step. No grant was synthesized.'
-    );
+
+    return false;
   }
   throw new Error(
     'The owned provider authorization UI did not complete before its deadline.'

@@ -40,14 +40,7 @@ export async function completeSpotify(
   params: URLSearchParams,
   cookieState: string | null
 ) {
-  const state = params.get('state');
-  if (
-    !state ||
-    !cookieState ||
-    state.length !== cookieState.length ||
-    !timingSafeEqual(Buffer.from(state), Buffer.from(cookieState))
-  )
-    throw new StudioError(400, 'Spotify sign-in expired. Connect again.');
+  const state = spotifyCallbackState(params, cookieState);
   const row = (
     await musicStore().pool.query(
       'DELETE FROM music_oauth_states WHERE state_hash=$1 AND owner_email=$2 AND expires_at>now() RETURNING verifier',
@@ -107,4 +100,19 @@ export async function completeSpotify(
   } finally {
     await db.release();
   }
+}
+
+function spotifyCallbackState(
+  params: URLSearchParams,
+  cookieState: string | null
+) {
+  const state = params.get('state');
+  if (
+    !state ||
+    !cookieState ||
+    state.length !== cookieState.length ||
+    !timingSafeEqual(Buffer.from(state), Buffer.from(cookieState))
+  )
+    throw new StudioError(400, 'Spotify sign-in expired. Connect again.');
+  return state;
 }

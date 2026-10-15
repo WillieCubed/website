@@ -5,7 +5,10 @@ import assert from 'node:assert/strict';
 import { chmod, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { publishingIdentity } from '../../../lib/atproto/config';
+import {
+  type PublishingIdentity,
+  publishingIdentity,
+} from '../../../lib/atproto/config';
 import { resolvePds } from '../../../lib/atproto/identity';
 import { documentRkey } from '../../../lib/atproto/keys';
 
@@ -105,19 +108,7 @@ export async function fixtureJournal(
   try {
     if (recovery) {
       journal = JSON.parse(await readFile(path, 'utf8')) as Journal;
-      assert(
-        journal.version === 1 &&
-          journal.did === identity.did &&
-          journal.publicationUri === identity.publicationUri &&
-          journal.publicationRkey === identity.publicationRkey
-      );
-      assert(
-        journal.slug === slug && journal.expectedPath === `/writings/${slug}`
-      );
-      assert(
-        journal.documentRkey ===
-          documentRkey(journal.expectedPath, new Date(journal.publishedAt))
-      );
+      validateRecoveryJournal(journal, identity, slug);
     } else {
       await assert.rejects(
         readFile(path, 'utf8'),
@@ -171,126 +162,113 @@ export async function fixtureJournal(
       journal.publicationRkey
     );
     const document = await get('site.standard.document', journal.documentRkey);
-    if (journal.inventoryComplete) {
-      if (publication)
-        assert(
-          publication.cid === journal.syncedPublication?.cid ||
-            publication.cid === journal.originalPublication?.cid,
-          'The publication CID changed outside a journaled owned version. Refuse to adopt it during cleanup.'
-        );
-      if (document)
-        assert(
-          document.cid === journal.syncedDocument?.cid,
-          'The document CID changed outside its journaled owned version. Refuse to adopt it during cleanup.'
-        );
-    }
-    if (publication) assert(publication.value.url === ORIGIN);
-    if (document)
-      assert(
-        document.value.site === journal.publicationUri &&
-          document.value.path === journal.expectedPath
-      );
+    validateObservedRecords(journal, publication, document);
     journal.syncedPublication = publication;
     journal.syncedDocument = document;
     journal.inventoryComplete = true;
     await save();
+  }
+  async function removeOwnedDocument() {
+    if (!journal.documentRemoved) {
+      const current = await get('site.standard.document', journal.documentRkey);
+      if (current) {
+        assert(
+          journal.syncedDocument && current.cid === journal.syncedDocument.cid
+        );
+        assert(
+          current.value.site === journal.publicationUri &&
+            current.value.path === journal.expectedPath
+        );
+        await ok(
+          rpc.post('com.atproto.repo.deleteRecord', {
+            input: {
+              repo: identity.did,
+              collection: 'site.standard.document',
+              rkey: journal.documentRkey,
+              swapRecord: current.cid,
+            },
+          })
+        );
+      }
+      assert(
+        (await get('site.standard.document', journal.documentRkey)) === null
+      );
+      journal.documentRemoved = true;
+      await save();
+    } else
+      assert(
+        (await get('site.standard.document', journal.documentRkey)) === null
+      );
+  }
+  async function restoreOwnedPublication() {
+    if (!journal.publicationRestored) {
+      const current = await get(
+        'site.standard.publication',
+        journal.publicationRkey
+      );
+      if (journal.originalPublication)
+        await restoreOriginalPublication(current, journal.originalPublication);
+      else await removeCreatedPublication(current);
+      journal.publicationRestored = true;
+      await save();
+    }
+  }
+  async function restoreOriginalPublication(
+    current: RecordSnapshot | null,
+    originalPublication: RecordSnapshot
+  ) {
+    assert(current && current.value.url === ORIGIN);
+    if (current.cid !== originalPublication.cid) {
+      assert(
+        journal.syncedPublication &&
+          current.cid === journal.syncedPublication.cid
+      );
+      await ok(
+        rpc.post('com.atproto.repo.putRecord', {
+          input: {
+            repo: identity.did,
+            collection: 'site.standard.publication',
+            rkey: journal.publicationRkey,
+            record: originalPublication.value,
+            swapRecord: current.cid,
+          },
+        })
+      );
+    }
+    assert.deepEqual(
+      (await get('site.standard.publication', journal.publicationRkey))?.value,
+      originalPublication.value
+    );
+  }
+  async function removeCreatedPublication(current: RecordSnapshot | null) {
+    if (current) {
+      assert(
+        journal.syncedPublication &&
+          current.cid === journal.syncedPublication.cid &&
+          current.value.url === ORIGIN
+      );
+      await ok(
+        rpc.post('com.atproto.repo.deleteRecord', {
+          input: {
+            repo: identity.did,
+            collection: 'site.standard.publication',
+            rkey: journal.publicationRkey,
+            swapRecord: current.cid,
+          },
+        })
+      );
+    }
+    assert(
+      (await get('site.standard.publication', journal.publicationRkey)) === null
+    );
   }
   return {
     observe,
     async cleanup() {
       try {
         if (!journal.inventoryComplete) await observe();
-        if (!journal.documentRemoved) {
-          const current = await get(
-            'site.standard.document',
-            journal.documentRkey
-          );
-          if (current) {
-            assert(
-              journal.syncedDocument &&
-                current.cid === journal.syncedDocument.cid
-            );
-            assert(
-              current.value.site === journal.publicationUri &&
-                current.value.path === journal.expectedPath
-            );
-            await ok(
-              rpc.post('com.atproto.repo.deleteRecord', {
-                input: {
-                  repo: identity.did,
-                  collection: 'site.standard.document',
-                  rkey: journal.documentRkey,
-                  swapRecord: current.cid,
-                },
-              })
-            );
-          }
-          assert(
-            (await get('site.standard.document', journal.documentRkey)) === null
-          );
-          journal.documentRemoved = true;
-          await save();
-        } else
-          assert(
-            (await get('site.standard.document', journal.documentRkey)) === null
-          );
-        if (!journal.publicationRestored) {
-          const current = await get(
-            'site.standard.publication',
-            journal.publicationRkey
-          );
-          if (journal.originalPublication) {
-            assert(current && current.value.url === ORIGIN);
-            if (current.cid !== journal.originalPublication.cid) {
-              assert(
-                journal.syncedPublication &&
-                  current.cid === journal.syncedPublication.cid
-              );
-              await ok(
-                rpc.post('com.atproto.repo.putRecord', {
-                  input: {
-                    repo: identity.did,
-                    collection: 'site.standard.publication',
-                    rkey: journal.publicationRkey,
-                    record: journal.originalPublication.value,
-                    swapRecord: current.cid,
-                  },
-                })
-              );
-            }
-            assert.deepEqual(
-              (await get('site.standard.publication', journal.publicationRkey))
-                ?.value,
-              journal.originalPublication.value
-            );
-          } else {
-            if (current) {
-              assert(
-                journal.syncedPublication &&
-                  current.cid === journal.syncedPublication.cid &&
-                  current.value.url === ORIGIN
-              );
-              await ok(
-                rpc.post('com.atproto.repo.deleteRecord', {
-                  input: {
-                    repo: identity.did,
-                    collection: 'site.standard.publication',
-                    rkey: journal.publicationRkey,
-                    swapRecord: current.cid,
-                  },
-                })
-              );
-            }
-            assert(
-              (await get(
-                'site.standard.publication',
-                journal.publicationRkey
-              )) === null
-            );
-          }
-          journal.publicationRestored = true;
-          await save();
-        }
+        await removeOwnedDocument();
+        await restoreOwnedPublication();
         if (journal.originalPublication)
           assert.deepEqual(
             (await get('site.standard.publication', journal.publicationRkey))
@@ -320,4 +298,56 @@ export async function fixtureJournal(
       }
     },
   };
+}
+
+function validateRecoveryJournal(
+  journal: Journal,
+  identity: PublishingIdentity,
+  slug: string
+) {
+  assert(
+    journal.version === 1 &&
+      journal.did === identity.did &&
+      journal.publicationUri === identity.publicationUri &&
+      journal.publicationRkey === identity.publicationRkey
+  );
+  assert(journal.slug === slug && journal.expectedPath === `/writings/${slug}`);
+  assert(
+    journal.documentRkey ===
+      documentRkey(journal.expectedPath, new Date(journal.publishedAt))
+  );
+}
+
+function validateObservedRecords(
+  journal: Journal,
+  publication: RecordSnapshot | null,
+  document: RecordSnapshot | null
+) {
+  validateObservedVersions(journal, publication, document);
+  if (publication) assert(publication.value.url === ORIGIN);
+  if (document)
+    assert(
+      document.value.site === journal.publicationUri &&
+        document.value.path === journal.expectedPath
+    );
+}
+
+function validateObservedVersions(
+  journal: Journal,
+  publication: RecordSnapshot | null,
+  document: RecordSnapshot | null
+) {
+  if (journal.inventoryComplete) {
+    if (publication)
+      assert(
+        publication.cid === journal.syncedPublication?.cid ||
+          publication.cid === journal.originalPublication?.cid,
+        'The publication CID changed outside a journaled owned version. Refuse to adopt it during cleanup.'
+      );
+    if (document)
+      assert(
+        document.cid === journal.syncedDocument?.cid,
+        'The document CID changed outside its journaled owned version. Refuse to adopt it during cleanup.'
+      );
+  }
 }

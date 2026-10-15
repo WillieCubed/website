@@ -18,36 +18,65 @@ export function normalizeTrack(value: unknown): MusicTrack {
       unavailable: true,
       url: null,
     };
-  const durationMs =
-    typeof item.duration_ms === 'number' && item.duration_ms >= 0
-      ? item.duration_ms
-      : null;
-  const seconds = durationMs === null ? null : Math.floor(durationMs / 1000);
+  const durationMs = trackDurationMs(item.duration_ms);
   const local = envelope.is_local === true || item.is_local === true;
   const kind = local ? 'local' : item.type === 'episode' ? 'episode' : 'track';
   return {
     title: String(item.name),
-    artist:
-      kind === 'episode'
-        ? String(record(item.show).name ?? item.publisher ?? 'Podcast')
-        : Array.isArray(item.artists)
-          ? item.artists
-              .map((a: unknown) => String(record(a).name ?? ''))
-              .join(', ')
-          : '',
-    duration:
-      seconds === null
-        ? '—'
-        : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`,
+    artist: trackArtist(item, kind),
+    duration: formatDuration(durationMs),
     durationMs,
     kind,
     unavailable: item.is_playable === false,
-    url:
-      !local && /^[A-Za-z0-9]{22}$/.test(String(item.id ?? ''))
-        ? `https://open.spotify.com/${kind}/${item.id}`
-        : null,
+    url: trackUrl(item.id, kind, local),
   };
 }
+
+function trackDurationMs(value: unknown) {
+  return typeof value === 'number' && value >= 0 ? value : null;
+}
+function formatDuration(durationMs: number | null) {
+  if (durationMs === null) return '—';
+  const seconds = Math.floor(durationMs / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+function trackArtist(item: Record<string, unknown>, kind: MusicTrack['kind']) {
+  if (kind === 'episode')
+    return String(record(item.show).name ?? item.publisher ?? 'Podcast');
+  if (!Array.isArray(item.artists)) return '';
+  return item.artists
+    .map((artist: unknown) => String(record(artist).name ?? ''))
+    .join(', ');
+}
+function trackUrl(id: unknown, kind: MusicTrack['kind'], local: boolean) {
+  return !local && /^[A-Za-z0-9]{22}$/.test(String(id ?? ''))
+    ? `https://open.spotify.com/${kind}/${id}`
+    : null;
+}
+function playlistImage(images: unknown) {
+  if (!Array.isArray(images)) return null;
+  return (
+    (
+      images.find((image: unknown) => {
+        try {
+          const url = new URL(String(record(image).url));
+          return (
+            url.protocol === 'https:' &&
+            [
+              'i.scdn.co',
+              'mosaic.scdn.co',
+              'image-cdn-ak.spotifycdn.com',
+              'image-cdn-fa.spotifycdn.com',
+            ].includes(url.hostname)
+          );
+        } catch {
+          return false;
+        }
+      }) as { url: string } | undefined
+    )?.url ?? null
+  );
+}
+
 export function normalizePlaylist(
   value: unknown,
   owner: string,
@@ -61,26 +90,7 @@ export function normalizePlaylist(
     typeof item.snapshot_id !== 'string'
   )
     throw new Error('Spotify returned an invalid playlist.');
-  const image = Array.isArray(item.images)
-    ? ((
-        item.images.find((i: unknown) => {
-          try {
-            const u = new URL(String(record(i).url));
-            return (
-              u.protocol === 'https:' &&
-              [
-                'i.scdn.co',
-                'mosaic.scdn.co',
-                'image-cdn-ak.spotifycdn.com',
-                'image-cdn-fa.spotifycdn.com',
-              ].includes(u.hostname)
-            );
-          } catch {
-            return false;
-          }
-        }) as { url: string } | undefined
-      )?.url ?? null)
-    : null;
+  const image = playlistImage(item.images);
   return {
     id: String(item.id),
     title: item.name,

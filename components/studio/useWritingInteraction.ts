@@ -227,8 +227,7 @@ export function useWritingInteraction(
           setSelectionPosition(null);
           return;
         }
-        const width = selectionTools.current?.offsetWidth || 300;
-        const height = selectionTools.current?.offsetHeight || 60;
+        const { width, height } = selectionToolbarSize(selectionTools.current);
         // Keep selection controls local to the canvas. The first paragraph's
         // toolbar must not cover the document's Details/Preview/action buttons.
         const canvasTop =
@@ -402,5 +401,15 @@ export function useWritingInteraction(
     insert,
     closePopover,
     history,
+  };
+}
+
+function selectionToolbarSize(element: HTMLElement | null): {
+  width: number;
+  height: number;
+} {
+  return {
+    width: element?.offsetWidth || 300,
+    height: element?.offsetHeight || 60,
   };
 }

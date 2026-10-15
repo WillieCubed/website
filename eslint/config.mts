@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import nextPlugin from '@next/eslint-plugin-next';
 import type { ESLint, Linter } from 'eslint';
+import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -21,6 +22,32 @@ const sitePlugin: ESLint.Plugin = {
     'no-file-references': noFileReferences,
   },
 };
+
+const esmSyntaxRestrictions = [
+  {
+    selector: 'CallExpression[callee.name="require"]',
+    message: 'Use ESM imports in this repository.',
+  },
+  {
+    selector:
+      'AssignmentExpression[left.object.name="module"][left.property.name="exports"]',
+    message: 'Use ESM exports in this repository.',
+  },
+  {
+    selector: 'AssignmentExpression[left.object.name="exports"]',
+    message: 'Use ESM exports in this repository.',
+  },
+];
+
+const uiSyntaxRestrictions = [
+  ...esmSyntaxRestrictions,
+  {
+    selector:
+      'TSTypeReference[typeName.name=/^(Awaited|NonNullable|ReturnType|Parameters)$/] TSTypeReference[typeName.name=/^(Awaited|NonNullable|ReturnType|Parameters)$/] TSTypeReference[typeName.name=/^(Awaited|NonNullable|ReturnType|Parameters)$/]',
+    message:
+      'Use a named domain type instead of stacking three or more inference utilities in UI code.',
+  },
+];
 
 const eslintConfig: Linter.Config[] = [
   {
@@ -119,21 +146,45 @@ const eslintConfig: Linter.Config[] = [
   },
   {
     files: ['**/*.{js,jsx,ts,tsx,mjs,mts}'],
+    plugins: { sonarjs },
+    rules: {
+      complexity: ['error', 10],
+      'sonarjs/cognitive-complexity': ['error', 15],
+      'max-depth': ['error', 4],
+    },
+  },
+  {
+    files: [
+      'components/writings/StandardSocialControls.tsx',
+      'components/writings/StandardSignInDialog.tsx',
+      'components/writings/useStandardSocialControls.ts',
+      'components/writings/standard-social.ts',
+    ],
+    rules: { 'no-nested-ternary': 'error' },
+  },
+  {
+    files: ['**/*.{js,jsx,ts,tsx,mjs,mts}'],
+    rules: {
+      'no-restricted-syntax': ['error', ...esmSyntaxRestrictions],
+    },
+  },
+  {
+    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': ['error', ...uiSyntaxRestrictions],
+    },
+  },
+  {
+    files: ['app/**/page.tsx'],
     rules: {
       'no-restricted-syntax': [
         'error',
-        {
-          selector: 'CallExpression[callee.name="require"]',
-          message: 'Use ESM imports in this repository.',
-        },
+        ...uiSyntaxRestrictions,
         {
           selector:
-            'AssignmentExpression[left.object.name="module"][left.property.name="exports"]',
-          message: 'Use ESM exports in this repository.',
-        },
-        {
-          selector: 'AssignmentExpression[left.object.name="exports"]',
-          message: 'Use ESM exports in this repository.',
+            'TSPropertySignature[key.name="params"] > TSTypeAnnotation > TSTypeReference[typeName.name="Promise"] > TSTypeParameterInstantiation > TSTypeLiteral',
+          message:
+            'Use the generated PageProps route helper instead of declaring a params shape by hand.',
         },
       ],
     },

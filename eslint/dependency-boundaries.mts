@@ -35,39 +35,10 @@ const rule: Rule.RuleModule = {
     function check(node: JSSyntaxElement, specifier: Node | null | undefined) {
       const value = specifier?.type === 'Literal' ? specifier.value : undefined;
       if (typeof value !== 'string') return;
-      let target;
-      if (value.startsWith('@/')) target = value.slice(2);
-      else if (value.startsWith('.')) {
-        target = relative(root, resolve(context.filename, '..', value))
-          .split(sep)
-          .join('/');
-      } else return;
-
-      const application = ['lib', 'app', 'components'].some((dir) =>
-        within(source, dir)
-      );
-      const infrastructure = ['tests', 'scripts'].some((dir) =>
-        within(target, dir)
-      );
-      if (
-        application &&
-        (infrastructure ||
-          (within(source, 'lib') &&
-            ['app', 'components'].some((dir) => within(target, dir))))
-      )
-        context.report({ node, messageId: 'application' });
-      else if (
-        within(source, 'tests/support') &&
-        ['tests/e2e', 'tests/integration', 'tests/unit', 'scripts'].some(
-          (dir) => within(target, dir)
-        )
-      )
-        context.report({ node, messageId: 'support' });
-      else if (
-        within(source, 'tests/e2e/publishing') &&
-        within(target, 'scripts')
-      )
-        context.report({ node, messageId: 'scenario' });
+      const target = localDependency(value, context.filename, root);
+      if (target === undefined) return;
+      const violation = dependencyViolation(source, target);
+      if (violation) context.report({ node, messageId: violation });
     }
     return {
       ImportDeclaration(node) {
@@ -87,3 +58,36 @@ const rule: Rule.RuleModule = {
 };
 
 export default rule;
+
+function localDependency(value: string, filename: string, root: string) {
+  if (value.startsWith('@/')) return value.slice(2);
+  if (value.startsWith('.'))
+    return relative(root, resolve(filename, '..', value))
+      .split(sep)
+      .join('/');
+  return undefined;
+}
+function dependencyViolation(source: string, target: string) {
+  const application = ['lib', 'app', 'components'].some((dir) =>
+    within(source, dir)
+  );
+  const infrastructure = ['tests', 'scripts'].some((dir) =>
+    within(target, dir)
+  );
+  if (
+    application &&
+    (infrastructure ||
+      (within(source, 'lib') &&
+        ['app', 'components'].some((dir) => within(target, dir))))
+  )
+    return 'application';
+  else if (
+    within(source, 'tests/support') &&
+    ['tests/e2e', 'tests/integration', 'tests/unit', 'scripts'].some((dir) =>
+      within(target, dir)
+    )
+  )
+    return 'support';
+  else if (within(source, 'tests/e2e/publishing') && within(target, 'scripts'))
+    return 'scenario';
+}

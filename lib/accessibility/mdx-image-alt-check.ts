@@ -36,7 +36,7 @@ function mediaAlt(
   }
   if (!value || typeof value !== 'object') return;
   const media = value as Record<string, unknown>;
-  if (!media.src && !media.url && !media.imageUrl) return;
+  if (!['src', 'url', 'imageUrl'].some((key) => media[key])) return;
   const message = imageAltIssue(
     media.alt,
     allowDecorative && media.decorative === true
@@ -59,6 +59,56 @@ function mdxAlt(
   if (message) issues.push(issue(file, line, message));
 }
 
+function literalAltText(alt: unknown): string | undefined {
+  const literal = alt as
+    | {
+        type: string;
+        value?: string;
+        expressions?: unknown[];
+        quasis?: Array<{ value: { cooked?: string | null } }>;
+      }
+    | undefined;
+  return literal?.type === 'StringLiteral'
+    ? literal.value
+    : literal?.type === 'TemplateLiteral' && literal.expressions?.length === 0
+      ? (literal.quasis?.[0]?.value.cooked ?? undefined)
+      : undefined;
+}
+
+type ParsedExpression = ReturnType<typeof parseExpression>;
+type ParsedArray = Extract<ParsedExpression, { type: 'ArrayExpression' }>;
+type LiteralMediaObject = Extract<
+  ParsedArray['elements'][number],
+  { type: 'ObjectExpression' }
+>;
+function literalMediaFields(
+  object: LiteralMediaObject,
+  file: string,
+  line: number,
+  label: string,
+  issues: AltIssue[]
+): Map<string, unknown> | undefined {
+  const fields = new Map<string, unknown>();
+  for (const property of object.properties) {
+    if (
+      property.type !== 'ObjectProperty' ||
+      (property.key.type !== 'Identifier' &&
+        property.key.type !== 'StringLiteral') ||
+      property.computed
+    ) {
+      issues.push(issue(file, line, `${label} needs literal image fields.`));
+      return undefined;
+    }
+    fields.set(
+      property.key.type === 'Identifier'
+        ? property.key.name
+        : property.key.value,
+      property.value
+    );
+  }
+  return fields;
+}
+
 function mdxMediaItems(
   attributes: { name?: string; value?: unknown }[],
   name: 'items' | 'poster',
@@ -78,7 +128,7 @@ function mdxMediaItems(
     );
     return;
   }
-  let root: ReturnType<typeof parseExpression>;
+  let root: ParsedExpression;
   try {
     root = parseExpression(expression, { plugins: ['typescript'] });
   } catch {
@@ -100,26 +150,14 @@ function mdxMediaItems(
       );
       return;
     }
-    const fields = new Map<string, unknown>();
-    for (const property of object.properties) {
-      if (
-        property.type !== 'ObjectProperty' ||
-        (property.key.type !== 'Identifier' &&
-          property.key.type !== 'StringLiteral') ||
-        property.computed
-      ) {
-        issues.push(
-          issue(file, line, `${name}[${index}] needs literal image fields.`)
-        );
-        return;
-      }
-      fields.set(
-        property.key.type === 'Identifier'
-          ? property.key.name
-          : property.key.value,
-        property.value
-      );
-    }
+    const fields = literalMediaFields(
+      object,
+      file,
+      line,
+      `${name}[${index}]`,
+      issues
+    );
+    if (!fields) return;
     const src = fields.get('src');
     const alt = fields.get('alt');
     const decorative = fields.get('decorative');
@@ -127,21 +165,7 @@ function mdxMediaItems(
       issues.push(issue(file, line, `${name}[${index}] needs src.`));
       return;
     }
-    const literal = alt as
-      | {
-          type: string;
-          value?: string;
-          expressions?: unknown[];
-          quasis?: Array<{ value: { cooked?: string | null } }>;
-        }
-      | undefined;
-    const text =
-      literal?.type === 'StringLiteral'
-        ? literal.value
-        : literal?.type === 'TemplateLiteral' &&
-            literal.expressions?.length === 0
-          ? (literal.quasis?.[0]?.value.cooked ?? undefined)
-          : undefined;
+    const text = literalAltText(alt);
     const decorativeLiteral = decorative as
       | { type: string; value?: boolean }
       | undefined;
@@ -155,14 +179,35 @@ function mdxMediaItems(
   });
 }
 
-/** Check every authored MDX file, including drafts. */
-export function validateMdxImageAlts(file: string, source: string): AltIssue[] {
-  const issues: AltIssue[] = [];
-  const { data, content } = matter(source);
-  const frontmatterLines =
-    source.slice(0, source.indexOf(content)).split('\n').length - 1;
-  const metadata = data as Record<string, unknown>;
+function checkFeatureImages(
+  features: unknown,
+  file: string,
+  issues: AltIssue[]
+): void {
+  if (Array.isArray(features)) {
+    features.forEach((feature, index) => {
+      if (!feature || typeof feature !== 'object') return;
+      mediaAlt(feature, file, `features[${index}]`, issues);
+      const screenshots = (feature as Record<string, unknown>).screenshots;
+      if (Array.isArray(screenshots)) {
+        screenshots.forEach((shot, shotIndex) =>
+          mediaAlt(
+            shot,
+            file,
+            `features[${index}].screenshots[${shotIndex}]`,
+            issues
+          )
+        );
+      }
+    });
+  }
+}
 
+function checkFrontmatterImages(
+  metadata: Record<string, unknown>,
+  file: string,
+  issues: AltIssue[]
+): void {
   if (metadata.featuredImage) {
     const message = imageAltIssue(metadata.featuredImageAlt);
     if (message) issues.push(issue(file, 1, `featuredImage: ${message}`));
@@ -190,24 +235,61 @@ export function validateMdxImageAlts(file: string, source: string): AltIssue[] {
       mediaAlt(photo, file, `photo[${index}]`, issues, false)
     );
   }
-  const features = metadata.features;
-  if (Array.isArray(features)) {
-    features.forEach((feature, index) => {
-      if (!feature || typeof feature !== 'object') return;
-      mediaAlt(feature, file, `features[${index}]`, issues);
-      const screenshots = (feature as Record<string, unknown>).screenshots;
-      if (Array.isArray(screenshots)) {
-        screenshots.forEach((shot, shotIndex) =>
-          mediaAlt(
-            shot,
-            file,
-            `features[${index}].screenshots[${shotIndex}]`,
-            issues
-          )
-        );
+  checkFeatureImages(metadata.features, file, issues);
+}
+
+interface MdxMediaElement {
+  type: string;
+  name?: string | null;
+  attributes?: { name?: string; value?: unknown }[];
+}
+function checkMdxElement(
+  visited: { type: string },
+  file: string,
+  line: number,
+  issues: AltIssue[]
+): void {
+  const node = visited as MdxMediaElement;
+  const attributes = node.attributes ?? [];
+  if (
+    (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') &&
+    [
+      'img',
+      'Image',
+      'Figure',
+      'ImageWithCaption',
+      'Scene',
+      'Gallery',
+      'TrailerBlock',
+    ].includes(String(node.name))
+  ) {
+    if (node.name === 'Gallery') {
+      mdxMediaItems(attributes, 'items', file, line, issues);
+      return;
+    }
+    if (node.name === 'TrailerBlock') {
+      if (
+        attributes.some(
+          (attribute) => 'name' in attribute && attribute.name === 'poster'
+        )
+      ) {
+        mdxMediaItems(attributes, 'poster', file, line, issues);
       }
-    });
+      return;
+    }
+    mdxAlt(attributes, file, line, issues);
   }
+}
+
+/** Check every authored MDX file, including drafts. */
+export function validateMdxImageAlts(file: string, source: string): AltIssue[] {
+  const issues: AltIssue[] = [];
+  const { data, content } = matter(source);
+  const frontmatterLines =
+    source.slice(0, source.indexOf(content)).split('\n').length - 1;
+  const metadata = data as Record<string, unknown>;
+
+  checkFrontmatterImages(metadata, file, issues);
 
   const tree = unified().use(remarkParse).use(remarkMdx).parse(content);
   visit(tree, (node) => {
@@ -216,35 +298,7 @@ export function validateMdxImageAlts(file: string, source: string): AltIssue[] {
       const message = imageAltIssue('alt' in node ? node.alt : undefined);
       if (message) issues.push(issue(file, line, message));
     }
-    if (
-      (node.type === 'mdxJsxFlowElement' ||
-        node.type === 'mdxJsxTextElement') &&
-      [
-        'img',
-        'Image',
-        'Figure',
-        'ImageWithCaption',
-        'Scene',
-        'Gallery',
-        'TrailerBlock',
-      ].includes(String(node.name))
-    ) {
-      if (node.name === 'Gallery') {
-        mdxMediaItems(node.attributes, 'items', file, line, issues);
-        return;
-      }
-      if (node.name === 'TrailerBlock') {
-        if (
-          node.attributes.some(
-            (attribute) => 'name' in attribute && attribute.name === 'poster'
-          )
-        ) {
-          mdxMediaItems(node.attributes, 'poster', file, line, issues);
-        }
-        return;
-      }
-      mdxAlt(node.attributes, file, line, issues);
-    }
+    checkMdxElement(node, file, line, issues);
   });
   return issues;
 }

@@ -1,7 +1,11 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { randomUUID } from 'node:crypto';
 
-import { type PostgresPoolClient, createPool } from '@/lib/db/postgres';
+import {
+  type PostgresPool,
+  type PostgresPoolClient,
+  createPool,
+} from '@/lib/db/postgres';
 
 import { StudioError } from './errors';
 import type {
@@ -9,17 +13,18 @@ import type {
   Draft,
   DraftContent,
   Generation,
+  GenerationInput,
   Publication,
   Revision,
   StudioStore,
 } from './types';
 
-type StudioPool = Pick<ReturnType<typeof createPool>, 'query'> & {
+type StudioPool = Pick<PostgresPool, 'query'> & {
   connect(): Promise<Pick<PostgresPoolClient, 'query' | 'release'>>;
 };
 
-let pool: ReturnType<typeof createPool> | undefined;
-export function getStudioPool(): ReturnType<typeof createPool> {
+let pool: PostgresPool | undefined;
+export function getStudioPool(): PostgresPool {
   if (pool) return pool;
   const localUrl = process.env.STUDIO_DATABASE_URL;
   let workerBinding = false;
@@ -287,9 +292,7 @@ export class PostgresStudioStore implements StudioStore {
     }
   }
 
-  async generation(
-    input: Omit<Generation, 'id' | 'status' | 'result' | 'error'>
-  ): Promise<Generation> {
+  async generation(input: GenerationInput): Promise<Generation> {
     const source = await this.revision(input.revisionId);
     if (!source || source.documentId !== input.documentId)
       throw new StudioError(404, 'Revision not found.');

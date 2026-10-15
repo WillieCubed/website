@@ -1,7 +1,30 @@
 import type { MusicCatalog, MusicPlaylist } from './types';
 
+export type MusicMode = 'prototype' | 'admin' | 'public';
+export type MusicLibraryFilter = 'all' | 'selected' | 'unselected';
+
 export type Catalog = MusicCatalog;
 export type PlaylistView = MusicPlaylist & { color?: string };
+
+/** Curation previews its draft; ordinary browsing reads the applied catalog. */
+export function catalogForViewing(
+  live: Catalog,
+  draft: Catalog,
+  mode: MusicMode,
+  editing: boolean
+): Catalog {
+  if (mode === 'admin') return draft;
+  return editing ? draft : live;
+}
+
+/** Filtered lists cannot be reordered without changing the hidden sequence. */
+export function canReorderPlaylists(
+  editing: boolean,
+  reordering: boolean,
+  hasCompleteOrder: boolean
+): boolean {
+  return editing && reordering && hasCompleteOrder;
+}
 export function listeningTime(
   tracks: readonly { duration: string }[]
 ): string | null {
@@ -27,4 +50,33 @@ export function moveItem(items: string[], id: string, step: number): string[] {
   const next = [...items];
   [next[index], next[destination]] = [next[destination], next[index]];
   return next;
+}
+
+export function gallerySelection(
+  catalog: Catalog,
+  mode: MusicMode,
+  editing: boolean,
+  seriesId: string | null,
+  libraryFilter: MusicLibraryFilter
+) {
+  const publicEmpty = mode === 'public' && catalog.selected.length === 0;
+  const series = catalog.series.find((item) => item.id === seriesId);
+  const order = series?.playlistIds ?? catalog.order;
+  const visibleIds = order.filter(
+    (id) => editing || catalog.selected.includes(id)
+  );
+  const matching = visibleIds.filter(
+    (id) =>
+      !editing ||
+      libraryFilter === 'all' ||
+      catalog.selected.includes(id) === (libraryFilter === 'selected')
+  );
+  const lead =
+    !series && !editing && catalog.lead && matching.includes(catalog.lead)
+      ? catalog.lead
+      : null;
+  const displayed = lead
+    ? [lead, ...matching.filter((id) => id !== lead)]
+    : matching;
+  return { publicEmpty, series, order, visibleIds, matching, lead, displayed };
 }

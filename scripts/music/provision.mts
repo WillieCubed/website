@@ -81,98 +81,107 @@ export async function provisionMusic() {
     console.log(
       'Step 3: Verify the public role cannot read private revisions.'
     );
-    const reader = new Pool({ connectionString: state.readerURL, max: 1 });
-    try {
-      await reader.query('SELECT id FROM music_approved_cache LIMIT 1');
-      let denied = false;
-      try {
-        await reader.query('SELECT id FROM music_revisions LIMIT 1');
-      } catch {
-        denied = true;
-      }
-      if (!denied)
-        throw new Error('Public role unexpectedly reads private data.');
-    } finally {
-      await reader.end();
-    }
+    await verifyReader(state.readerURL);
     console.log('Step 4: Configure the Cloudflare Workers.');
-    const workerSecrets = {
-      MUSIC_PUBLIC_DATABASE_URL: state.readerURL,
-      MUSIC_CACHE_WRITE_DATABASE_URL: state.refreshURL,
-      MUSIC_PRIVATE_DATABASE_URL: state.refreshURL,
-      MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey,
-      MUSIC_REFRESH_SECRET: state.secret,
-    };
-    const temporary = await mkdtemp(join(tmpdir(), 'willie-music-secrets-'));
-    try {
-      for (const [worker, values] of Object.entries({
-        'willie-page-preview': { MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey },
-        'willie-page': workerSecrets,
-      })) {
-        const file = join(temporary, `${worker}.json`);
-        await writeFile(
-          file,
-          JSON.stringify({
-            secrets: Object.fromEntries(
-              Object.entries(values).map(([name, text]) => [
-                name,
-                { name, type: 'secret_text', text },
-              ])
-            ),
-          }),
-          { mode: 0o600, flag: 'wx' }
-        );
-        const result = spawnSync('pnpm', [
-          'exec',
-          'cf',
-          'workers',
-          'secrets',
-          'bulk',
-          '--worker',
-          worker,
-          '--file',
-          file,
-          '--profile',
-          process.env.CLOUDFLARE_PROFILE || 'williecubed',
-        ]);
-        if (result.status !== 0)
-          throw new Error(`Could not configure Music secrets on ${worker}.`);
-        console.log(`${worker}: Music secrets configured.`);
-      }
-    } finally {
-      await rm(temporary, { recursive: true, force: true });
-    }
+    await configureWorkers(state, encryptionKey);
     console.log(
       'Step 5: Store the scheduler secret and leave scheduling disabled until the live endpoint passes.'
     );
-    for (const args of [
-      [
-        'secret',
-        'set',
-        'MUSIC_REFRESH_SECRET',
-        '--repo',
-        'WillieCubed/website',
-      ],
-      [
-        'variable',
-        'set',
-        'MUSIC_REFRESH_ENABLED',
-        '--repo',
-        'WillieCubed/website',
-        '--body',
-        'false',
-      ],
-    ]) {
-      const result = spawnSync('gh', args, {
-        input: args[0] === 'secret' ? state.secret : undefined,
-        encoding: 'utf8',
-      });
-      if (result.status !== 0)
-        throw new Error('Could not configure the refresh scheduler.');
-    }
+    await configureScheduler(state.secret);
     console.log('Music provisioning passed. The scheduler remains disabled.');
   } finally {
     await pool.end();
+  }
+}
+
+async function verifyReader(readerURL: string) {
+  const reader = new Pool({ connectionString: readerURL, max: 1 });
+  try {
+    await reader.query('SELECT id FROM music_approved_cache LIMIT 1');
+    let denied = false;
+    try {
+      await reader.query('SELECT id FROM music_revisions LIMIT 1');
+    } catch {
+      denied = true;
+    }
+    if (!denied)
+      throw new Error('Public role unexpectedly reads private data.');
+  } finally {
+    await reader.end();
+  }
+}
+
+async function configureWorkers(
+  state: Record<string, string>,
+  encryptionKey: string
+) {
+  const workerSecrets = {
+    MUSIC_PUBLIC_DATABASE_URL: state.readerURL,
+    MUSIC_CACHE_WRITE_DATABASE_URL: state.refreshURL,
+    MUSIC_PRIVATE_DATABASE_URL: state.refreshURL,
+    MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey,
+    MUSIC_REFRESH_SECRET: state.secret,
+  };
+  const temporary = await mkdtemp(join(tmpdir(), 'willie-music-secrets-'));
+  try {
+    for (const [worker, values] of Object.entries({
+      'willie-page-preview': { MUSIC_TOKEN_ENCRYPTION_KEY: encryptionKey },
+      'willie-page': workerSecrets,
+    })) {
+      const file = join(temporary, `${worker}.json`);
+      await writeFile(
+        file,
+        JSON.stringify({
+          secrets: Object.fromEntries(
+            Object.entries(values).map(([name, text]) => [
+              name,
+              { name, type: 'secret_text', text },
+            ])
+          ),
+        }),
+        { mode: 0o600, flag: 'wx' }
+      );
+      const result = spawnSync('pnpm', [
+        'exec',
+        'cf',
+        'workers',
+        'secrets',
+        'bulk',
+        '--worker',
+        worker,
+        '--file',
+        file,
+        '--profile',
+        process.env.CLOUDFLARE_PROFILE || 'williecubed',
+      ]);
+      if (result.status !== 0)
+        throw new Error(`Could not configure Music secrets on ${worker}.`);
+      console.log(`${worker}: Music secrets configured.`);
+    }
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
+  }
+}
+
+async function configureScheduler(secret: string) {
+  for (const args of [
+    ['secret', 'set', 'MUSIC_REFRESH_SECRET', '--repo', 'WillieCubed/website'],
+    [
+      'variable',
+      'set',
+      'MUSIC_REFRESH_ENABLED',
+      '--repo',
+      'WillieCubed/website',
+      '--body',
+      'false',
+    ],
+  ]) {
+    const result = spawnSync('gh', args, {
+      input: args[0] === 'secret' ? secret : undefined,
+      encoding: 'utf8',
+    });
+    if (result.status !== 0)
+      throw new Error('Could not configure the refresh scheduler.');
   }
 }
 

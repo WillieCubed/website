@@ -11,6 +11,7 @@ import {
 import type {
   ActivityFeedItem,
   ResponseActivity,
+  ResponseGroup,
   WebmentionActivity,
 } from '@/lib/indieweb/webmention/types';
 import { getAllWritings, getPublishedWriting } from '@/lib/writings/index';
@@ -29,18 +30,7 @@ export async function getActivityFeedItemsForPost(
   const native = await loadBlueskyResponses(published.writing);
   const known = emptyResponses();
   for (const item of verified) {
-    const key =
-      item.type === 'reply'
-        ? 'replies'
-        : item.type === 'like'
-          ? 'likes'
-          : item.type === 'repost'
-            ? 'reposts'
-            : item.type === 'bookmark'
-              ? 'bookmarks'
-              : item.type === 'rsvp'
-                ? 'rsvps'
-                : 'mentions';
+    const key = responseGroup(item.type);
     known[key].push(item);
   }
   const merged = mergeResponses(known, native.groups);
@@ -124,4 +114,20 @@ function fallbackTitle(targetUrl: string): string {
   } catch {
     return targetUrl;
   }
+}
+
+const RESPONSE_GROUPS = new Map<
+  WebmentionActivity['type'],
+  keyof ResponseGroup
+>([
+  ['reply', 'replies'],
+  ['like', 'likes'],
+  ['repost', 'reposts'],
+  ['bookmark', 'bookmarks'],
+  ['rsvp', 'rsvps'],
+  ['mention', 'mentions'],
+]);
+
+function responseGroup(type: WebmentionActivity['type']): keyof ResponseGroup {
+  return RESPONSE_GROUPS.get(type) ?? 'mentions';
 }

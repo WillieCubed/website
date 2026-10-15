@@ -6,6 +6,35 @@ import { SpotifyClient, SpotifyError } from './client';
 import { normalizePlaylist, normalizeTrack } from './normalize';
 import { accessToken } from './tokens';
 
+async function playlistMetadata(
+  client: SpotifyClient,
+  id: string,
+  previous?: MusicPlaylist
+) {
+  try {
+    return {
+      kind: 'available' as const,
+      metadata: await client.get(`playlists/${id}`),
+    };
+  } catch (error) {
+    if (
+      error instanceof SpotifyError &&
+      [403, 404].includes(error.providerStatus) &&
+      previous
+    )
+      return { kind: 'unavailable' as const };
+    throw error;
+  }
+}
+function unavailablePlaylist(previous: MusicPlaylist): MusicPlaylist {
+  return {
+    ...previous,
+    eligible: false,
+    checkedAt: new Date().toISOString(),
+    error: 'This playlist is no longer available.',
+  };
+}
+
 export async function importPlaylist(
   client: SpotifyClient,
   id: string,
@@ -13,23 +42,9 @@ export async function importPlaylist(
   previous?: MusicPlaylist
 ): Promise<MusicPlaylist> {
   for (let attempt = 0; attempt < 3; attempt++) {
-    let raw;
-    try {
-      raw = await client.get(`playlists/${id}`);
-    } catch (error) {
-      if (
-        error instanceof SpotifyError &&
-        [403, 404].includes(error.providerStatus) &&
-        previous
-      )
-        return {
-          ...previous,
-          eligible: false,
-          checkedAt: new Date().toISOString(),
-          error: 'This playlist is no longer available.',
-        };
-      throw error;
-    }
+    const result = await playlistMetadata(client, id, previous);
+    if (result.kind === 'unavailable') return unavailablePlaylist(previous!);
+    const raw = result.metadata;
     const normalized = normalizePlaylist(
       raw,
       owner,

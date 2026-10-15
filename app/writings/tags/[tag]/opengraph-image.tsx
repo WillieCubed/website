@@ -12,9 +12,9 @@ export const contentType = 'image/png';
  * Render a PNG social preview with the tag and public writing count. Return
  * 404 when the tag has no public writings.
  */
-export default async function Image(props: {
-  params: Promise<{ tag: string }>;
-}) {
+export default async function Image(
+  props: Pick<PageProps<'/writings/tags/[tag]'>, 'params'>
+) {
   const { tag } = await props.params;
   const group = (await getTagGroup(tagFromParam(tag))) ?? notFound();
   return renderEntityImage({

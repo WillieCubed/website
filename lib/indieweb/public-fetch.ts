@@ -209,15 +209,17 @@ export function createPublicOnlyAgent(
 }
 
 /** How documents are requested. Tests pass their own. */
+export interface DocumentFetchRequest {
+  headers: Record<string, string>;
+  method?: string;
+  body?: URLSearchParams;
+  redirect: 'manual';
+  signal: AbortSignal;
+}
+
 export type DocumentFetch = (
   url: string,
-  init: {
-    headers: Record<string, string>;
-    method?: string;
-    body?: URLSearchParams;
-    redirect: 'manual';
-    signal: AbortSignal;
-  }
+  init: DocumentFetchRequest
 ) => Promise<Response>;
 
 let sharedAgent: Agent | undefined;
@@ -260,7 +262,7 @@ export async function isFetchableUrl(
   resolve: AddressResolver,
   cloudflareRuntime = isCloudflareRuntime()
 ): Promise<boolean> {
-  if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
+  if (!['https:', 'http:'].includes(url.protocol)) return false;
   if (url.username || url.password) return false;
   const hostname = url.hostname.replace(/^\[|\]$/g, '');
   if (isIP(hostname)) return isPublicAddress(hostname);
@@ -361,95 +363,124 @@ export async function fetchPublicDocument(
 ): Promise<PublicDocument | null> {
   const request = fetch ?? publicOnlyFetch(resolve);
   const signal = AbortSignal.timeout(timeoutMs);
-  let current = new URL(address);
-  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-    if (!(await isFetchableUrl(current, resolve))) return null;
-    const response = await request(current.href, {
-      headers,
-      method,
-      ...(requestBody && { body: requestBody }),
-      redirect: 'manual',
-      signal,
-    });
+  const fetched = await fetchRedirectedResponse(address, request, resolve, {
+    headers,
+    method,
+    ...(requestBody && { body: requestBody }),
+    redirect: 'manual',
+    signal,
+  });
+  if (!fetched) return null;
+  return readPublicDocument(fetched.response, fetched.url, {
+    method,
+    bodyContentTypes,
+    maxBytes,
+  });
+}
 
-    if (REDIRECT_STATUSES.has(response.status)) {
-      if (method === 'POST') {
-        await response.body?.cancel().catch(() => {});
-        return null;
-      }
-      await response.body?.cancel().catch(() => {});
-      const location = response.headers.get('location');
-      if (!location) return null;
-      current = new URL(location, current);
-      continue;
-    }
-    const document = {
-      url: current.href,
-      status: response.status,
-      contentType: response.headers.get('content-type') ?? '',
-      headers: response.headers,
-    };
-    if (method === 'HEAD') {
-      await response.body?.cancel().catch(() => {});
-      return { ...document, body: '' };
-    }
-    if (!response.ok) {
-      await response.body?.cancel().catch(() => {});
-      return { ...document, body: '' };
-    }
-    const mimeType = document.contentType.split(';')[0].trim().toLowerCase();
-    if (bodyContentTypes && mimeType && !bodyContentTypes.includes(mimeType)) {
-      await response.body?.cancel().catch(() => {});
-      return { ...document, body: '' };
-    }
-    const length = Number(response.headers.get('content-length'));
-    if (length > maxBytes) {
-      await response.body?.cancel().catch(() => {});
-      return null;
-    }
-    const body = await readCappedText(response.body, maxBytes);
-    return body === null ? null : { ...document, body };
-  }
-  return null;
+export interface PublicBytes {
+  bytes: Uint8Array;
+  mimeType: string;
 }
 
 export async function fetchPublicBytes(
   address: string,
   maxBytes: number,
   timeoutMs = 10000
-): Promise<{ bytes: Uint8Array; mimeType: string } | null> {
+): Promise<PublicBytes | null> {
   const request = publicOnlyFetch(systemResolver);
   const signal = AbortSignal.timeout(timeoutMs);
+  const fetched = await fetchRedirectedResponse(
+    address,
+    request,
+    systemResolver,
+    { headers: {}, redirect: 'manual', signal }
+  );
+  if (!fetched) return null;
+  const { response } = fetched;
+  if (
+    !response.ok ||
+    Number(response.headers.get('content-length')) > maxBytes
+  ) {
+    await discardResponseBody(response);
+    return null;
+  }
+  const bytes = await readCappedBytes(response.body, maxBytes);
+  return bytes
+    ? {
+        bytes,
+        mimeType:
+          response.headers.get('content-type')?.split(';')[0].trim() ?? '',
+      }
+    : null;
+}
+
+async function readPublicDocument(
+  response: Response,
+  current: URL,
+  {
+    method,
+    bodyContentTypes,
+    maxBytes,
+  }: { method: string; bodyContentTypes?: readonly string[]; maxBytes: number }
+): Promise<PublicDocument | null> {
+  const document = {
+    url: current.href,
+    status: response.status,
+    contentType: response.headers.get('content-type') ?? '',
+    headers: response.headers,
+  };
+  if (method === 'HEAD' || !response.ok) {
+    await discardResponseBody(response);
+    return { ...document, body: '' };
+  }
+  const mimeType = document.contentType.split(';')[0].trim().toLowerCase();
+  if (bodyContentTypes && mimeType && !bodyContentTypes.includes(mimeType)) {
+    await discardResponseBody(response);
+    return { ...document, body: '' };
+  }
+  const length = Number(response.headers.get('content-length'));
+  if (length > maxBytes) {
+    await discardResponseBody(response);
+    return null;
+  }
+  const body = await readCappedText(response.body, maxBytes);
+  return body === null ? null : { ...document, body };
+}
+
+async function redirectDestination(
+  response: Response,
+  current: URL,
+  method: string
+): Promise<URL | null> {
+  await discardResponseBody(response);
+  if (method === 'POST') return null;
+  const location = response.headers.get('location');
+  return location ? new URL(location, current) : null;
+}
+
+async function fetchRedirectedResponse(
+  address: string,
+  request: DocumentFetch,
+  resolve: AddressResolver,
+  init: DocumentFetchRequest
+): Promise<{ response: Response; url: URL } | null> {
   let current = new URL(address);
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-    if (!(await isFetchableUrl(current, systemResolver))) return null;
-    const response = await request(current.href, {
-      headers: {},
-      redirect: 'manual',
-      signal,
-    });
-    if (REDIRECT_STATUSES.has(response.status)) {
-      await response.body?.cancel().catch(() => {});
-      const location = response.headers.get('location');
-      if (!location) return null;
-      current = new URL(location, current);
-      continue;
-    }
-    if (
-      !response.ok ||
-      Number(response.headers.get('content-length')) > maxBytes
-    ) {
-      await response.body?.cancel().catch(() => {});
-      return null;
-    }
-    const bytes = await readCappedBytes(response.body, maxBytes);
-    return bytes
-      ? {
-          bytes,
-          mimeType:
-            response.headers.get('content-type')?.split(';')[0].trim() ?? '',
-        }
-      : null;
+    if (!(await isFetchableUrl(current, resolve))) return null;
+    const response = await request(current.href, init);
+    if (!REDIRECT_STATUSES.has(response.status))
+      return { response, url: current };
+    const redirect = await redirectDestination(
+      response,
+      current,
+      init.method ?? 'GET'
+    );
+    if (!redirect) return null;
+    current = redirect;
   }
   return null;
+}
+async function discardResponseBody(response: Response): Promise<void> {
+  await response.body?.cancel().catch(() => {});
 }

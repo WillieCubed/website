@@ -88,11 +88,35 @@ orchestrator, so metadata validation does not create a runtime import cycle.
 
 ## UI and styles
 
-The palette session, homepage detail controller, and Standard social controller
-own request lifecycles, selection, transitions, and focus behavior. Their views
-render the corresponding state. Brand sections and downloads are separate
+The palette session and homepage detail controller own request lifecycles,
+selection, transitions, and focus behavior. The Standard social controller owns
+confirmed subscriptions and recommendations; the sign-in dialog owns its form,
+request cancellation, and modal lifecycle. Their views render the corresponding
+state. Action definitions keep button labels, progress, failures, and undo behavior
+together so the view and controller describe the same operation. Brand sections and downloads are separate
 components. Keep client directives on controllers and interactive views; keep
 filesystem and provider modules out of their import trees.
+
+Music's admin controller composes draft persistence and recovery, library
+imports, revision history, and publication tracking. The draft owner keeps
+the optimistic revision, pending edits, and save queue together; views use
+commands such as recovering a draft or restoring a revision. They do not
+receive mutable save refs. The browsing experience separates catalog editing
+and prototype storage from setup and review transitions. Playlist navigation
+keeps URL history, modal focus, and motion together. Cards receive prepared
+playlist and series previews rather than the complete library and catalog.
+
+Keep hook interfaces cohesive. A catalog document exposes edits to its live and
+draft values; prototype storage reports readiness and storage errors; a modal
+owns opening, dismissal, and focus. Compose these owners where their workflows
+meet. Do not flatten unrelated state, setters, refs, and commands into a single
+hook result or conceal that result under a few broad object keys. Pure catalog
+transformations belong in the music domain rather than inside a state hook.
+
+The palette's search hook owns request progress, timeouts, and stale-query
+results. Its session composes those results with commands and owns keyboard
+selection and command execution. Loading feedback and the native search
+recovery link render from the same request state.
 
 The homepage, shared chrome, and brand stylesheet entry points import ordered
 section styles. Preserve this order when editing them: responsive and
@@ -135,6 +159,58 @@ manifest (including its absence on older receipts) and records the cleanup
 implementation separately in `cleanupSourceFiles`. Historical specs and evidence may refer to
 paths from the previous layout; they are retained records, not current module
 maps or proof of this refactor.
+
+## Complexity and readability
+
+Prefer code a maintainer can follow in one direction: read inputs, make the
+domain decision, perform the effect, and return the result. Separate request
+lifecycle from rendering and pure transformations from persistence. Keep state
+with the component that owns its lifetime; a sign-in form should not make the
+social controller manage its field errors or abort controller.
+
+Extract a module when it gives a responsibility a useful name and a small
+interface. Avoid passing an entire controller into a component that needs only
+an open flag and a dismiss callback. A helper that merely hides a conditional,
+a wrapper that forwards every argument, or a general framework for two concrete
+operations can increase the amount a reader must understand. Delete redundant
+branches and derived state before introducing another abstraction.
+
+Name component contracts with the domain types they represent, such as `Part`,
+`Initiative`, `Draft[]`, or `WritingDocument`. A collection response, stored
+record, publication result, or controller has one contract owned by the module
+that defines its meaning. Producers declare that contract; consumers import it
+instead of calculating it from a loader or hook implementation. Use focused
+view props and action capabilities rather than passing an entire controller to
+a panel that needs only a few fields.
+
+Keep utility types when they express a clear relationship: native React element
+props, a small subset of a domain record, vendor parser adapters, and timer
+handles are useful examples. Avoid chains of `ReturnType`, `Awaited`, and
+`NonNullable` when an existing domain contract already says what the value is.
+Do not replace inference with a new name that merely conceals the same calculation.
+
+For Next.js pages, use generated `PageProps<'/route'>`; route handlers use
+`RouteContext<'/route'>`. Social image functions can select the page's generated
+params contract without claiming to receive search params. These helpers keep
+params asynchronous and check their keys against the route. Query values may
+be repeated, so narrow arrays at the request boundary before passing a query to
+a domain operation. ESLint's standard `no-restricted-syntax` rule rejects three
+nested inference utilities in UI code and handwritten promised params shapes in
+pages. These checks catch patterns; they cannot judge whether a contract has the
+right responsibility or belongs to the right owner.
+
+ESLint enforces cyclomatic complexity of at most 10, cognitive complexity of at
+most 15, and block nesting of at most 4 across JavaScript and TypeScript,
+including `.mts` scripts and tests. The simplified Standard social modules also
+reject nested ternaries. These limits identify review targets; they do not
+establish good architecture. Preserve meaningful domain operations instead of
+splitting them into arbitrary pieces to lower a score.
+
+Run `pnpm exec eslint . --format json` to inspect findings with file, line,
+rule, and diagnostic information. The codebase has no complexity baseline or
+exemptions. Do not raise limits or add suppressions to make a refactor pass.
+Review touched code for readable responsibilities and dependency direction even
+when lint passes.
 
 ## Verification
 

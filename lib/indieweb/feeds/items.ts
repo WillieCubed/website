@@ -13,6 +13,7 @@ import { writingMediaHtml } from '@/lib/writings/media';
 
 import { renderFeedHtml } from './html';
 import {
+  type FeedAttachment,
   type FeedItem,
   initiativeToFeedItem,
   projectToFeedItem,
@@ -47,30 +48,8 @@ async function writingFeedItems(writings: WritingData[]) {
         writing,
         await getWritingContentHtml(writing.slug)
       );
-      for (const attachment of item.attachments ?? []) {
-        const response = await fetchPublicDocument(attachment.url, {
-          method: 'HEAD',
-          timeoutMs: 3000,
-        }).catch(() => null);
-        if (!response || response.status < 200 || response.status >= 300)
-          continue;
-        const length = response.headers?.get('content-length');
-        if (
-          length &&
-          /^\d+$/.test(length) &&
-          Number.isSafeInteger(Number(length))
-        )
-          attachment.size_in_bytes = Number(length);
-        const type = response.headers
-          ?.get('content-type')
-          ?.split(';')[0]
-          .trim();
-        if (
-          type &&
-          /^(?:image|audio|video)\/[a-z0-9.+-]+$|^application\/pdf$/i.test(type)
-        )
-          attachment.mime_type = type;
-      }
+      for (const attachment of item.attachments ?? [])
+        await enrichAttachment(attachment);
       return item;
     })
   );
@@ -127,4 +106,25 @@ export async function getSiteFeedItems(): Promise<FeedItem[]> {
     getProjectFeedItems(),
   ]);
   return newestFirst([...writings, ...initiatives, ...projects]);
+}
+
+async function enrichAttachment(attachment: FeedAttachment) {
+  const response = await fetchPublicDocument(attachment.url, {
+    method: 'HEAD',
+    timeoutMs: 3000,
+  }).catch(() => null);
+  if (!response || response.status < 200 || response.status >= 300) return;
+  applyAttachmentHeaders(attachment, response.headers);
+}
+
+function applyAttachmentHeaders(attachment: FeedAttachment, headers: Headers) {
+  const length = headers?.get('content-length');
+  if (length && /^\d+$/.test(length) && Number.isSafeInteger(Number(length)))
+    attachment.size_in_bytes = Number(length);
+  const type = headers?.get('content-type')?.split(';')[0].trim();
+  if (
+    type &&
+    /^(?:image|audio|video)\/[a-z0-9.+-]+$|^application\/pdf$/i.test(type)
+  )
+    attachment.mime_type = type;
 }

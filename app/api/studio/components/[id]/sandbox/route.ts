@@ -5,7 +5,7 @@ import { getStudioStore } from '@/lib/studio/store';
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  context: RouteContext<'/api/studio/components/[id]/sandbox'>
 ) {
   return studioRoute(request, async () => {
     const proposal = await getStudioStore().proposal((await context.params).id);

@@ -1,8 +1,13 @@
+export interface EditorMark {
+  type: string;
+  attrs?: Record<string, unknown>;
+}
+
 export type EditorNode = {
   type: string;
   attrs?: Record<string, unknown>;
   text?: string;
-  marks?: { type: string; attrs?: Record<string, unknown> }[];
+  marks?: EditorMark[];
   content?: EditorNode[];
 };
 
@@ -61,14 +66,17 @@ export interface Publication {
   createdAt: string;
 }
 
-export interface Generation {
+export interface GenerationInput {
   inferenceKey?: string;
   startedAt?: string;
-  id: string;
   documentId: string;
   revisionId: string;
   kind: 'component';
   prompt: string;
+}
+
+export interface Generation extends GenerationInput {
+  id: string;
   status:
     | 'pending'
     | 'running'
@@ -111,9 +119,7 @@ export interface StudioStore {
   publication(documentId: string, revisionId: string): Promise<Publication>;
   getPublication(id: string): Promise<Publication | null>;
   updatePublication(id: string, update: Partial<Publication>): Promise<void>;
-  generation(
-    input: Omit<Generation, 'id' | 'status' | 'result' | 'error'>
-  ): Promise<Generation>;
+  generation(input: GenerationInput): Promise<Generation>;
   getGeneration(id: string): Promise<Generation | null>;
   updateGeneration(id: string, update: Partial<Generation>): Promise<void>;
   proposals(): Promise<ComponentProposal[]>;

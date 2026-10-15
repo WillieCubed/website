@@ -10,8 +10,8 @@ import { parseCatalog } from './schema';
 import { SpotifyClient } from './spotify/client';
 import { importPlaylist } from './spotify/import';
 import { accessToken } from './spotify/tokens';
-import { musicStore } from './store';
-import type { MusicPublication } from './types';
+import { type MusicQuery, musicStore } from './store';
+import type { MusicPublication, MusicRevision } from './types';
 import { emptyCatalog } from './types';
 
 interface GitHubObject {
@@ -164,6 +164,29 @@ async function advance(p: Publication): Promise<Publication> {
   if (branch === p.branch || p.branch !== `codex/music-publish-${p.id}`)
     throw new StudioError(409, 'Invalid publication branch.');
   if (p.rebase) p = await rebase(p, p.rebase.parent);
+  const merged = await recoverMergedPublication(p);
+  if (merged) return merged;
+  const ref = await github(`git/ref/heads/${encodeURIComponent(branch)}`),
+    base = (ref.object as GitHubObject).sha;
+  const currentSha = await fileSha(base);
+  if (currentSha !== p.baseFileSha)
+    throw new StudioError(
+      409,
+      'The published collection changed. Reload and review the current collection before publishing.'
+    );
+  p = await ensureProposalCommit(p, base);
+  await ensureProposalBranch(p);
+  if (p.base !== base) {
+    p = await rebase(p, base);
+    return p;
+  }
+  p = await ensurePullRequest(p, branch);
+  const mergeReadiness = await proposalMergeReadiness(p, base);
+  if (!mergeReadiness.ready) return mergeReadiness.publication;
+  return mergeReviewedProposal(p, branch, base);
+}
+
+async function recoverMergedPublication(p: Publication) {
   if (p.pullRequestNumber) {
     const existing = await github(`pulls/${p.pullRequestNumber}`);
     if (existing.merged) {
@@ -179,14 +202,9 @@ async function advance(p: Publication): Promise<Publication> {
       });
     }
   }
-  const ref = await github(`git/ref/heads/${encodeURIComponent(branch)}`),
-    base = (ref.object as GitHubObject).sha;
-  const currentSha = await fileSha(base);
-  if (currentSha !== p.baseFileSha)
-    throw new StudioError(
-      409,
-      'The published collection changed. Reload and review the current collection before publishing.'
-    );
+  return null;
+}
+async function ensureProposalCommit(p: Publication, base: string) {
   if (!p.proposalCommit) {
     const existing = await optional(
       `git/ref/heads/${encodeURIComponent(p.branch!)}`
@@ -213,6 +231,9 @@ async function advance(p: Publication): Promise<Publication> {
       p = await patch(p.id, { proposalCommit: commit, base });
     }
   }
+  return p;
+}
+async function ensureProposalBranch(p: Publication) {
   let branchRef = await optional(
     `git/ref/heads/${encodeURIComponent(p.branch!)}`
   );
@@ -228,10 +249,8 @@ async function advance(p: Publication): Promise<Publication> {
       409,
       'The publication proposal changed outside Music.'
     );
-  if (p.base !== base) {
-    p = await rebase(p, base);
-    return p;
-  }
+}
+async function ensurePullRequest(p: Publication, branch: string) {
   if (!p.pullRequestNumber) {
     const owner = required('STUDIO_GITHUB_REPOSITORY').split('/')[0];
     const matches = (await github(
@@ -250,19 +269,9 @@ async function advance(p: Publication): Promise<Publication> {
       pullRequestUrl: String(pr.html_url),
     });
   }
-  const pr = await github(`pulls/${p.pullRequestNumber}`);
-  if ((pr.head as GitHubObject).sha !== p.proposalCommit)
-    throw new StudioError(
-      409,
-      'The publication proposal changed outside Music.'
-    );
-  if (pr.merged)
-    return patch(p.id, {
-      status: 'deploying',
-      commit: String(pr.merge_commit_sha),
-    });
-  if (pr.state !== 'open')
-    throw new StudioError(409, 'The publication pull request was closed.');
+  return p;
+}
+async function requiredChecks(p: Publication) {
   const runs: GitHubCheckRun[] = [];
   for (let page = 1; page <= 10; page++) {
     const checkPath = `commits/${p.proposalCommit}/check-runs?per_page=100&page=${page}`;
@@ -297,17 +306,9 @@ async function advance(p: Publication): Promise<Publication> {
       409,
       'The required CI check failed. Open the publication to inspect it, then retry.'
     );
-  if (
-    pr.mergeable !== true ||
-    !['clean', 'unstable'].includes(String(pr.mergeable_state)) ||
-    (pr.base as GitHubObject).sha !== base ||
-    !requiredRuns.some(
-      (run) => run.status === 'completed' && run.conclusion === 'success'
-    )
-  )
-    return p;
-  const latest = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  if ((latest.object as GitHubObject).sha !== base) return p;
+  return requiredRuns;
+}
+async function recheckSelectedPlaylists(p: Publication) {
   const store = musicStore(),
     revision = await store.revision(p.revisionId);
   if (!revision || (await store.head())?.id !== p.revisionId)
@@ -342,8 +343,8 @@ async function advance(p: Publication): Promise<Publication> {
       409,
       'The draft changed during publication. Review it again.'
     );
-  const mergeBase = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  if ((mergeBase.object as { sha: string }).sha !== base) return p;
+}
+async function mergeProposal(p: Publication): Promise<Publication> {
   try {
     const merged = await github(`pulls/${p.pullRequestNumber}/merge`, 'PUT', {
       sha: p.proposalCommit,
@@ -357,6 +358,105 @@ async function advance(p: Publication): Promise<Publication> {
   }
   return p;
 }
+async function preparePublication(
+  revision: MusicRevision
+): Promise<Publication> {
+  const revisionId = revision.id;
+  const { cached, fresh } = await reviewPlaylists(revision);
+  const artifact = musicArtifact(revisionId, revision.body),
+    branch = required('STUDIO_GITHUB_BRANCH'),
+    base = await github(`git/ref/heads/${encodeURIComponent(branch)}`),
+    published = await githubCatalog((base.object as GitHubObject).sha),
+    baseSha = published.sha;
+  await verifyPublishedCatalog(baseSha);
+  const id = randomUUID();
+  const publication: Publication = {
+    id,
+    revisionId,
+    status: 'publishing',
+    error: null,
+    createdAt: new Date().toISOString(),
+    branch: `codex/music-publish-${id}`,
+    baseFileSha: baseSha,
+    sourceSha: artifact.sha,
+    source: artifact.content,
+    message: musicPublicationMessage(
+      published.catalog,
+      revision.body,
+      [...cached, ...fresh],
+      revisionId
+    ).message,
+  };
+  return publication;
+}
+async function reviewPlaylists(revision: MusicRevision) {
+  const store = musicStore(),
+    revisionId = revision.id;
+  const auth = revision.body.selected.length ? await accessToken() : null,
+    client = new SpotifyClient(auth?.token ?? ''),
+    cached = await store.playlists(),
+    fresh = [];
+  for (const id of revision.body.selected) {
+    const playlist = await importPlaylist(
+      client,
+      id,
+      auth!.ownerId,
+      cached.find((p) => p.id === id)
+    );
+    await store.cache(playlist);
+    if (!playlist.eligible) {
+      await suppressApproved(playlist.id);
+      throw new StudioError(
+        422,
+        `${playlist.title} must be an owned public playlist before publication.`
+      );
+    }
+    fresh.push(playlist);
+  }
+  if ((await store.head())?.id !== revisionId)
+    throw new StudioError(
+      409,
+      'The draft changed during review. Review it again.'
+    );
+  await cacheApproved(fresh);
+  return { cached, fresh };
+}
+async function verifyPublishedCatalog(baseSha: string | null) {
+  const store = musicStore();
+  const manifest = await approvedManifest();
+  if (baseSha !== manifest.sourceSha) {
+    const known = (
+      await store.pool.query(
+        "SELECT 1 FROM music_publications WHERE body->>'sourceSha'=$1 AND body->>'commit' IS NOT NULL",
+        [baseSha]
+      )
+    ).rowCount;
+    if (!known)
+      throw new StudioError(
+        409,
+        'The public collection changed outside this admin. Reload the current deployment before publishing.'
+      );
+  }
+}
+async function proofContainsPublication(
+  p: Publication,
+  result: Response,
+  proof: Record<string, unknown>
+) {
+  let ancestor = false;
+  if (
+    result.ok &&
+    proof.revisionId === p.revisionId &&
+    proof.sourceSha === p.sourceSha &&
+    proof.commit !== p.commit &&
+    /^[a-f0-9]{40}$/.test(String(proof.commit ?? ''))
+  ) {
+    const compare = await github(`compare/${p.commit}...${proof.commit}`);
+    ancestor = ['ahead', 'identical'].includes(String(compare.status));
+  }
+  return ancestor;
+}
+
 export async function publishMusic(
   revisionId: string
 ): Promise<MusicPublication> {
@@ -364,23 +464,8 @@ export async function publishMusic(
     db = await store.pool.connect();
   let publication: Publication | null = null;
   try {
-    if (
-      !(
-        await db.query(
-          "SELECT pg_try_advisory_lock(hashtext('music-publication')) AS locked"
-        )
-      ).rows[0].locked
-    )
-      throw new StudioError(
-        409,
-        'A publication is already being checked. Retry shortly.'
-      );
-    const revision = await store.revision(revisionId);
-    if (!revision || (await store.head())?.id !== revisionId)
-      throw new StudioError(
-        409,
-        'The draft changed after review. Review the latest saved draft.'
-      );
+    await lockPublication(db);
+    const revision = await reviewedRevision(revisionId);
     const existing = (
       await store.pool.query(
         'SELECT body FROM music_publications WHERE revision_id=$1',
@@ -391,73 +476,10 @@ export async function publishMusic(
       return existing;
     publication = existing ?? null;
     if (!publication) {
-      const auth = revision.body.selected.length ? await accessToken() : null,
-        client = new SpotifyClient(auth?.token ?? ''),
-        cached = await store.playlists(),
-        fresh = [];
-      for (const id of revision.body.selected) {
-        const playlist = await importPlaylist(
-          client,
-          id,
-          auth!.ownerId,
-          cached.find((p) => p.id === id)
-        );
-        await store.cache(playlist);
-        if (!playlist.eligible) {
-          await suppressApproved(playlist.id);
-          throw new StudioError(
-            422,
-            `${playlist.title} must be an owned public playlist before publication.`
-          );
-        }
-        fresh.push(playlist);
-      }
-      if ((await store.head())?.id !== revisionId)
-        throw new StudioError(
-          409,
-          'The draft changed during review. Review it again.'
-        );
-      await cacheApproved(fresh);
-      const artifact = musicArtifact(revisionId, revision.body),
-        branch = required('STUDIO_GITHUB_BRANCH'),
-        base = await github(`git/ref/heads/${encodeURIComponent(branch)}`),
-        published = await githubCatalog((base.object as GitHubObject).sha),
-        baseSha = published.sha;
-      const manifest = await approvedManifest();
-      if (baseSha !== manifest.sourceSha) {
-        const known = (
-          await store.pool.query(
-            "SELECT 1 FROM music_publications WHERE body->>'sourceSha'=$1 AND body->>'commit' IS NOT NULL",
-            [baseSha]
-          )
-        ).rowCount;
-        if (!known)
-          throw new StudioError(
-            409,
-            'The public collection changed outside this admin. Reload the current deployment before publishing.'
-          );
-      }
-      const id = randomUUID();
-      publication = {
-        id,
-        revisionId,
-        status: 'publishing',
-        error: null,
-        createdAt: new Date().toISOString(),
-        branch: `codex/music-publish-${id}`,
-        baseFileSha: baseSha,
-        sourceSha: artifact.sha,
-        source: artifact.content,
-        message: musicPublicationMessage(
-          published.catalog,
-          revision.body,
-          [...cached, ...fresh],
-          revisionId
-        ).message,
-      };
+      publication = await preparePublication(revision);
       await store.pool.query(
         'INSERT INTO music_publications(id,revision_id,body) VALUES($1,$2,$3)',
-        [id, revisionId, JSON.stringify(publication)]
+        [publication.id, revisionId, JSON.stringify(publication)]
       );
     }
     publication = await patch(publication.id, {
@@ -491,17 +513,7 @@ export async function musicPublicationStatus(
         { cache: 'no-store', signal: AbortSignal.timeout(10000) }
       );
       const proof = await result.json();
-      let ancestor = false;
-      if (
-        result.ok &&
-        proof.revisionId === p.revisionId &&
-        proof.sourceSha === p.sourceSha &&
-        proof.commit !== p.commit &&
-        /^[a-f0-9]{40}$/.test(proof.commit ?? '')
-      ) {
-        const compare = await github(`compare/${p.commit}...${proof.commit}`);
-        ancestor = ['ahead', 'identical'].includes(String(compare.status));
-      }
+      const ancestor = await proofContainsPublication(p, result, proof);
       if (result.ok && matchesMusicProof(p, proof, ancestor))
         p = await patch(p.id, { status: 'live', error: null });
     } catch {
@@ -520,4 +532,79 @@ export function publicationResponse(p: MusicPublication): MusicPublication {
     pullRequestUrl: p.pullRequestUrl,
     commit: p.commit,
   };
+}
+
+function canMergeProposal(
+  pr: Record<string, unknown>,
+  base: string,
+  requiredRuns: GitHubCheckRun[]
+) {
+  return !(
+    pr.mergeable !== true ||
+    !['clean', 'unstable'].includes(String(pr.mergeable_state)) ||
+    (pr.base as GitHubObject).sha !== base ||
+    !requiredRuns.some(
+      (run) => run.status === 'completed' && run.conclusion === 'success'
+    )
+  );
+}
+
+async function lockPublication(db: MusicQuery) {
+  if (
+    !(
+      await db.query(
+        "SELECT pg_try_advisory_lock(hashtext('music-publication')) AS locked"
+      )
+    ).rows[0].locked
+  )
+    throw new StudioError(
+      409,
+      'A publication is already being checked. Retry shortly.'
+    );
+}
+async function reviewedRevision(revisionId: string) {
+  const store = musicStore();
+  const revision = await store.revision(revisionId);
+  if (!revision || (await store.head())?.id !== revisionId)
+    throw new StudioError(
+      409,
+      'The draft changed after review. Review the latest saved draft.'
+    );
+  return revision;
+}
+
+async function proposalMergeReadiness(p: Publication, base: string) {
+  const pr = await github(`pulls/${p.pullRequestNumber}`);
+  if ((pr.head as GitHubObject).sha !== p.proposalCommit)
+    throw new StudioError(
+      409,
+      'The publication proposal changed outside Music.'
+    );
+  if (pr.merged)
+    return {
+      ready: false,
+      publication: await patch(p.id, {
+        status: 'deploying',
+        commit: String(pr.merge_commit_sha),
+      }),
+    };
+  if (pr.state !== 'open')
+    throw new StudioError(409, 'The publication pull request was closed.');
+  const requiredRuns = await requiredChecks(p);
+  if (!canMergeProposal(pr, base, requiredRuns))
+    return { ready: false, publication: p };
+  return { ready: true, publication: p };
+}
+
+async function mergeReviewedProposal(
+  p: Publication,
+  branch: string,
+  base: string
+) {
+  const latest = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
+  if ((latest.object as GitHubObject).sha !== base) return p;
+  await recheckSelectedPlaylists(p);
+  const mergeBase = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
+  if ((mergeBase.object as { sha: string }).sha !== base) return p;
+  return mergeProposal(p);
 }

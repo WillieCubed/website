@@ -118,14 +118,6 @@ export interface ActivityFeedRouteConfig {
   alternateUrl?: string;
 }
 
-export interface WritingActivityFeedRouteParams {
-  slug: string;
-}
-
-export interface WritingActivityFeedRouteProps {
-  params: Promise<WritingActivityFeedRouteParams>;
-}
-
 export interface WebmentionGroup<T extends PublishingResponse = Webmention> {
   likes: T[];
   reposts: T[];
@@ -137,12 +129,25 @@ export interface WebmentionGroup<T extends PublishingResponse = Webmention> {
 
 export type ResponseGroup = WebmentionGroup<PublishingResponse>;
 
+export type WebmentionDeliveryStatus = 'sent' | 'failed' | 'no_endpoint';
+
+export interface WebmentionSendResult extends SentWebmentionSummary {
+  endpoint?: string;
+  statusCode?: number;
+}
+
+export interface WebmentionPublishResult {
+  sent: number;
+  failed: number;
+  unsupported: number;
+}
+
 export interface OutgoingWebmention {
   id: string;
   sourceUrl: string;
   targetUrl: string;
   endpointUrl?: string;
-  status: 'pending' | 'sent' | 'failed' | 'no_endpoint';
+  status: 'pending' | WebmentionDeliveryStatus;
   responseCode?: number;
   sentAt?: Date;
   createdAt: Date;
@@ -175,6 +180,11 @@ export type WebmentionSourceWriting = Pick<
   | 'bookmarkOf'
   | 'rsvp'
 >;
+
+export interface WebmentionSourceDocument {
+  writing: WebmentionSourceWriting & { draft: boolean };
+  content: string;
+}
 
 export interface SendAllWebmentionsRequest {
   slugs?: string[];

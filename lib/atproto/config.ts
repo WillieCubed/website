@@ -35,12 +35,19 @@ export const PUBLICATION_URI: `at://${string}` | undefined =
     ? `at://${ATPROTO_DID}/${PUBLICATION_COLLECTION}/${PUBLICATION_RKEY}`
     : undefined;
 
-/** What writing records needs; throws when the environment leaves it out. */
-export function publishingIdentity(): {
+export interface PublishingIdentity {
   did: Did;
   publicationRkey: string;
   publicationUri: `at://${string}`;
-} {
+}
+
+export interface SocialOAuthSettings {
+  signingKey: string;
+  storageKey: string;
+}
+
+/** What writing records needs; throws when the environment leaves it out. */
+export function publishingIdentity(): PublishingIdentity {
   if (!ATPROTO_DID || !PUBLICATION_RKEY || !PUBLICATION_URI) {
     throw new Error(
       'Set NEXT_PUBLIC_ATPROTO_DID and ATPROTO_PUBLICATION_RKEY to publish.'
@@ -62,7 +69,7 @@ export function blueskyAppview(): string {
   return process.env.BLUESKY_APPVIEW_URL || 'https://public.api.bsky.app';
 }
 
-export function socialSettings() {
+export function socialSettings(): SocialOAuthSettings | undefined {
   const signingKey = process.env.ATPROTO_OAUTH_JWK;
   const storageKey = process.env.ATPROTO_OAUTH_STORAGE_KEY;
   if (!PUBLICATION_URI || !signingKey || !storageKey || !hasDatabase())

@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/site/dates';
 
 import StudioPreview from './StudioPreview';
 import type { WritingController } from './useWritingController';
+import type { WritingPreview } from './useWritingState';
 
 export default function WritingReview({
   controller,
@@ -90,41 +91,12 @@ export default function WritingReview({
         {preview && (
           <>
             {mode === 'read' ? (
-              <article>
-                <header className="pb-10 pt-4">
-                  {body.postType === 'article' && (
-                    <div className="space-y-2">
-                      <h2 className="text-headline-medium desktop:text-headline-large">
-                        {body.title}
-                      </h2>
-                      <p className="text-body-large text-accent">
-                        {body.description}
-                      </p>
-                    </div>
-                  )}
-                  <p className="mt-5 text-label-large text-muted">
-                    <time dateTime={published}>{formatDate(published)}</time>
-                    {body.postType === 'article' && <> · {minutes} min read</>}
-                  </p>
-                </header>
-                <div
-                  className={`prose prose-theme max-w-none ${body.postType === 'note' ? 'prose-xl [&_p]:text-body-large' : 'prose-lg [&_p]:text-body-medium'} [&_p]:my-4 [&_p]:leading-relaxed [&_p]:text-on-surface`}
-                  dangerouslySetInnerHTML={{
-                    __html: preview.contentHtml,
-                  }}
-                />
-                {body.tags.filter(Boolean).length > 0 && (
-                  <ul className="mt-4 flex flex-wrap gap-2" aria-label="Tags">
-                    {body.tags.filter(Boolean).map((tag) => (
-                      <li key={tag}>
-                        <span className="inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink">
-                          {tag}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </article>
+              <ReviewArticle
+                body={body}
+                preview={preview}
+                published={published}
+                minutes={minutes}
+              />
             ) : (
               <StudioPreview
                 title="Portable writing preview"
@@ -140,33 +112,94 @@ export default function WritingReview({
           </>
         )}
         {review && preview && (
-          <section className="studio-review mt-8">
-            <h2 className="text-title-large">Publication checks</h2>
-            {preview.issues.length ? (
-              <>
-                <p>Resolve these issues first:</p>
-                <ul>
-                  {preview.issues.map((issue, index) => (
-                    <li key={index}>
-                      {typeof issue === 'string'
-                        ? issue
-                        : JSON.stringify(issue)}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <p>No preview validation issues.</p>
-            )}
-            <Button
-              disabled={busy || preview.issues.length > 0 || conflict}
-              onClick={publish}
-            >
-              Publish this revision
-            </Button>
-          </section>
+          <PublicationChecks
+            preview={preview}
+            busy={busy}
+            conflict={conflict}
+            publish={publish}
+          />
         )}
       </section>
     </>
+  );
+}
+
+function ReviewArticle({
+  body,
+  preview,
+  published,
+  minutes,
+}: Pick<WritingController, 'body' | 'published' | 'minutes'> & {
+  preview: WritingPreview;
+}) {
+  return (
+    <article>
+      <header className="pb-10 pt-4">
+        {body.postType === 'article' && (
+          <div className="space-y-2">
+            <h2 className="text-headline-medium desktop:text-headline-large">
+              {body.title}
+            </h2>
+            <p className="text-body-large text-accent">{body.description}</p>
+          </div>
+        )}
+        <p className="mt-5 text-label-large text-muted">
+          <time dateTime={published}>{formatDate(published)}</time>
+          {body.postType === 'article' && <> · {minutes} min read</>}
+        </p>
+      </header>
+      <div
+        className={`prose prose-theme max-w-none ${body.postType === 'note' ? 'prose-xl [&_p]:text-body-large' : 'prose-lg [&_p]:text-body-medium'} [&_p]:my-4 [&_p]:leading-relaxed [&_p]:text-on-surface`}
+        dangerouslySetInnerHTML={{
+          __html: preview.contentHtml,
+        }}
+      />
+      {body.tags.filter(Boolean).length > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-2" aria-label="Tags">
+          {body.tags.filter(Boolean).map((tag) => (
+            <li key={tag}>
+              <span className="inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink">
+                {tag}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </article>
+  );
+}
+
+function PublicationChecks({
+  preview,
+  busy,
+  conflict,
+  publish,
+}: Pick<WritingController, 'busy' | 'conflict' | 'publish'> & {
+  preview: WritingPreview;
+}) {
+  return (
+    <section className="studio-review mt-8">
+      <h2 className="text-title-large">Publication checks</h2>
+      {preview.issues.length ? (
+        <>
+          <p>Resolve these issues first:</p>
+          <ul>
+            {preview.issues.map((issue, index) => (
+              <li key={index}>
+                {typeof issue === 'string' ? issue : JSON.stringify(issue)}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p>No preview validation issues.</p>
+      )}
+      <Button
+        disabled={busy || preview.issues.length > 0 || conflict}
+        onClick={publish}
+      >
+        Publish this revision
+      </Button>
+    </section>
   );
 }

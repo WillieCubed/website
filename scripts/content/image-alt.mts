@@ -33,53 +33,7 @@ export function validateTsxImageAlts(file: string, source: string): AltIssue[] {
     if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
       const name = node.tagName.getText(tree);
       if (imageTags.has(name)) {
-        const attributes = node.attributes.properties;
-        const alt = attributes.find(
-          (attribute): attribute is ts.JsxAttribute =>
-            ts.isJsxAttribute(attribute) &&
-            attribute.name.getText(tree) === 'alt'
-        );
-        const hidden = attributes.some(
-          (attribute) =>
-            ts.isJsxAttribute(attribute) &&
-            attribute.name.getText(tree) === 'aria-hidden' &&
-            ((attribute.initializer &&
-              ts.isStringLiteral(attribute.initializer) &&
-              attribute.initializer.text === 'true') ||
-              (attribute.initializer &&
-                ts.isJsxExpression(attribute.initializer) &&
-                attribute.initializer.expression?.kind ===
-                  ts.SyntaxKind.TrueKeyword))
-        );
-        const value = alt?.initializer;
-        const expression =
-          value && ts.isJsxExpression(value) ? value.expression : undefined;
-        const text = (node: ts.Node) =>
-          ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)
-            ? node.text
-            : undefined;
-        const literal = value
-          ? (text(value) ?? (expression ? text(expression) : undefined))
-          : undefined;
-        let invalidBranch = false;
-        const findInvalidBranch = (child: ts.Node) => {
-          const branchText = text(child);
-          if (
-            (branchText !== undefined && !branchText.trim()) ||
-            (ts.isIdentifier(child) && child.text === 'undefined') ||
-            child.kind === ts.SyntaxKind.NullKeyword
-          ) {
-            invalidBranch = true;
-          }
-          ts.forEachChild(child, findInvalidBranch);
-        };
-        if (expression) findInvalidBranch(expression);
-        const message =
-          !alt || literal !== undefined
-            ? imageAltIssue(literal, hidden)
-            : hidden || invalidBranch
-              ? 'Dynamic alt must stay nonblank; decorative images need literal alt="".'
-              : null;
+        const message = jsxImageAltMessage(node.attributes.properties, tree);
         if (message) {
           issues.push(
             issue(
@@ -95,4 +49,64 @@ export function validateTsxImageAlts(file: string, source: string): AltIssue[] {
   };
   check(tree);
   return issues;
+}
+
+function jsxImageAltMessage(
+  attributes: ts.JsxAttributes['properties'],
+  tree: ts.SourceFile
+) {
+  const alt = attributes.find(
+    (attribute): attribute is ts.JsxAttribute =>
+      ts.isJsxAttribute(attribute) && attribute.name.getText(tree) === 'alt'
+  );
+  const hidden = attributes.some((attribute) =>
+    hiddenImageAttribute(attribute, tree)
+  );
+  const value = alt?.initializer;
+  const expression =
+    value && ts.isJsxExpression(value) ? value.expression : undefined;
+  const literal = literalText(value) ?? literalText(expression);
+  let invalidBranch = false;
+  const findInvalidBranch = (child: ts.Node) => {
+    const branchText = literalText(child);
+    if (
+      (branchText !== undefined && !branchText.trim()) ||
+      (ts.isIdentifier(child) && child.text === 'undefined') ||
+      child.kind === ts.SyntaxKind.NullKeyword
+    ) {
+      invalidBranch = true;
+    }
+    ts.forEachChild(child, findInvalidBranch);
+  };
+  if (expression) findInvalidBranch(expression);
+  const message =
+    !alt || literal !== undefined
+      ? imageAltIssue(literal, hidden)
+      : hidden || invalidBranch
+        ? 'Dynamic alt must stay nonblank; decorative images need literal alt="".'
+        : null;
+  return message;
+}
+
+function hiddenImageAttribute(
+  attribute: ts.JsxAttributeLike,
+  tree: ts.SourceFile
+) {
+  return (
+    ts.isJsxAttribute(attribute) &&
+    attribute.name.getText(tree) === 'aria-hidden' &&
+    ((attribute.initializer &&
+      ts.isStringLiteral(attribute.initializer) &&
+      attribute.initializer.text === 'true') ||
+      (attribute.initializer &&
+        ts.isJsxExpression(attribute.initializer) &&
+        attribute.initializer.expression?.kind === ts.SyntaxKind.TrueKeyword))
+  );
+}
+
+function literalText(node: ts.Node | undefined) {
+  if (!node) return undefined;
+  return ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)
+    ? node.text
+    : undefined;
 }

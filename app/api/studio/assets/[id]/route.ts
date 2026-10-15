@@ -3,7 +3,7 @@ import { studioRoute } from '@/lib/studio/auth';
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  context: RouteContext<'/api/studio/assets/[id]'>
 ) {
   return studioRoute(request, async () => {
     const asset = await readAsset((await context.params).id);

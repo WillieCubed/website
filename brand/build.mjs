@@ -751,40 +751,42 @@ function renderLiquidGlass() {
       glassRenders.push({ rel, label, appearance });
     }
     if (label === 'macos' && appearances.default) {
-      // ICNS for distribution outside Xcode, resized from the Liquid Glass render.
-      const iconset = path.join(work, 'WillieCubed.iconset');
-      fs.mkdirSync(iconset);
-      const source = path.join(extracted, appearances.default);
-      for (const base of [16, 32, 128, 256, 512]) {
-        for (const [suffix, px] of [
-          ['', base],
-          ['@2x', base * 2],
-        ])
-          execFileSync(
-            'sips',
-            [
-              '-z',
-              String(px),
-              String(px),
-              source,
-              '--out',
-              path.join(iconset, `icon_${base}x${base}${suffix}.png`),
-            ],
-            { stdio: 'ignore' }
-          );
-      }
-      const icns = path.join(OUT, 'apple/macos/WillieCubed.icns');
-      fs.mkdirSync(path.dirname(icns), { recursive: true });
-      execFileSync('iconutil', ['-c', 'icns', iconset, '-o', icns]);
-      files.push({
-        rel: 'apple/macos/WillieCubed.icns',
-        bytes: fs.statSync(icns).size,
-        group: 'apple',
-        purpose: 'macOS app icon with Liquid Glass (ICNS, 16 to 1024px)',
-      });
+      writeMacIconSet(work, path.join(extracted, appearances.default));
     }
   }
   fs.rmSync(work, { recursive: true, force: true });
+}
+function writeMacIconSet(work, source) {
+  // ICNS for distribution outside Xcode, resized from the Liquid Glass render.
+  const iconset = path.join(work, 'WillieCubed.iconset');
+  fs.mkdirSync(iconset);
+  for (const base of [16, 32, 128, 256, 512]) {
+    for (const [suffix, px] of [
+      ['', base],
+      ['@2x', base * 2],
+    ])
+      execFileSync(
+        'sips',
+        [
+          '-z',
+          String(px),
+          String(px),
+          source,
+          '--out',
+          path.join(iconset, `icon_${base}x${base}${suffix}.png`),
+        ],
+        { stdio: 'ignore' }
+      );
+  }
+  const icns = path.join(OUT, 'apple/macos/WillieCubed.icns');
+  fs.mkdirSync(path.dirname(icns), { recursive: true });
+  execFileSync('iconutil', ['-c', 'icns', iconset, '-o', icns]);
+  files.push({
+    rel: 'apple/macos/WillieCubed.icns',
+    bytes: fs.statSync(icns).size,
+    group: 'apple',
+    purpose: 'macOS app icon with Liquid Glass (ICNS, 16 to 1024px)',
+  });
 }
 try {
   renderLiquidGlass();

@@ -13,16 +13,10 @@ export async function migrateMusicSharedKey() {
       'Pass the previous private env file and new Music key file.'
     );
 
-  const previous = parseEnv(await readFile(previousEnvPath, 'utf8'));
-  const oldKey = previous.STUDIO_TOKEN_ENCRYPTION_KEY;
-  const databaseURL = previous.STUDIO_DATABASE_URL;
-  const newKey = (await readFile(newKeyPath, 'utf8')).trim();
-  if (!oldKey || !databaseURL || !newKey)
-    throw new Error('The database and both encryption keys are required.');
-  if (Buffer.from(oldKey, 'base64').length !== 32)
-    throw new Error('The previous encryption key is invalid.');
-  if (Buffer.from(newKey, 'base64').length !== 32 || oldKey === newKey)
-    throw new Error('The new Music key must be a different 32-byte key.');
+  const { oldKey, databaseURL, newKey } = await migrationKeys(
+    previousEnvPath,
+    newKeyPath
+  );
 
   const pool = new Pool({ connectionString: databaseURL, max: 1 });
   const client = await pool.connect();
@@ -68,6 +62,21 @@ export async function migrateMusicSharedKey() {
     client.release();
     await pool.end();
   }
+}
+
+async function migrationKeys(previousEnvPath: string, newKeyPath: string) {
+  const previous = parseEnv(await readFile(previousEnvPath, 'utf8'));
+  const oldKey = previous.STUDIO_TOKEN_ENCRYPTION_KEY;
+  const databaseURL = previous.STUDIO_DATABASE_URL;
+  const newKey = (await readFile(newKeyPath, 'utf8')).trim();
+  if (!oldKey || !databaseURL || !newKey)
+    throw new Error('The database and both encryption keys are required.');
+  if (Buffer.from(oldKey, 'base64').length !== 32)
+    throw new Error('The previous encryption key is invalid.');
+  if (Buffer.from(newKey, 'base64').length !== 32 || oldKey === newKey)
+    throw new Error('The new Music key must be a different 32-byte key.');
+
+  return { oldKey, databaseURL, newKey };
 }
 
 if (isMain(import.meta.url)) await migrateMusicSharedKey();

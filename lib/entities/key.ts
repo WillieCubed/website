@@ -1,5 +1,17 @@
 import { tagPath } from '@/lib/writings/tags';
 
+function hrefPath(href: string): string | null {
+  if (/^https?:\/\//.test(href)) {
+    try {
+      const parsed = new URL(href);
+      return parsed.pathname + parsed.search;
+    } catch {
+      return null;
+    }
+  }
+  return href;
+}
+
 /**
  * Normalises any in-site href to the registry key form: the path alone,
  * without origin, query, hash, or trailing slash. The one query kept is the
@@ -8,15 +20,8 @@ import { tagPath } from '@/lib/writings/tags';
  * imports so client components can use it.
  */
 export function entityKey(href: string): string {
-  let url = href;
-  if (/^https?:\/\//.test(href)) {
-    try {
-      const parsed = new URL(href);
-      url = parsed.pathname + parsed.search;
-    } catch {
-      return href;
-    }
-  }
+  const url = hrefPath(href);
+  if (url === null) return href;
   const [beforeHash] = url.split('#');
   const [pathPart, query = ''] = beforeHash.split('?');
   let path = pathPart;

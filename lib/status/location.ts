@@ -25,6 +25,14 @@ export type LocationSnapshot = {
   updatedAt: string | null;
 };
 
+export interface PublicLocation {
+  city: string;
+  region: string;
+  country: string;
+  timezone: string;
+  updatedAt: string | null;
+}
+
 export const defaultLocation: LocationSnapshot = {
   source: 'default',
   updatedAt: null,
@@ -47,7 +55,7 @@ export async function resolveLocation(
 ): Promise<LocationSnapshot> {
   return (await source.read()) ?? defaultLocation;
 }
-export function publicLocation(snapshot: LocationSnapshot) {
+export function publicLocation(snapshot: LocationSnapshot): PublicLocation {
   const { city, region, country, timezone } = snapshot.location;
   return { city, region, country, timezone, updatedAt: snapshot.updatedAt };
 }

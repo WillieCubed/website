@@ -87,6 +87,16 @@ function underModal(element: HTMLElement, palette: HTMLDialogElement): boolean {
   );
 }
 
+function morphTarget(
+  source: HTMLElement | null,
+  dialog: HTMLDialogElement,
+  animate: boolean
+): HTMLElement | null {
+  return animate && source && inViewport(source) && !underModal(source, dialog)
+    ? source
+    : null;
+}
+
 /** True for ⌘K on Apple platforms and Ctrl+K elsewhere, with no other keys. */
 function isPaletteShortcut(event: KeyboardEvent): boolean {
   return (
@@ -203,6 +213,11 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
     runQueued();
   }, []);
 
+  const restorePaletteFocus = (restore: boolean) => {
+    if (restore) returnFocusRef.current?.focus({ preventScroll: true });
+    returnFocusRef.current = null;
+  };
+
   const closePalette = useCallback(
     async ({ animate = true, restoreFocus = true }: CloseOptions = {}) => {
       const dialog = dialogRef.current;
@@ -216,10 +231,7 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
       const source = sourceRef.current;
       sourceRef.current = null;
       // The trigger is hidden, not gone, so its box still says where it is.
-      const target =
-        animate && source && inViewport(source) && !underModal(source, dialog)
-          ? source
-          : null;
+      const target = morphTarget(source, dialog, animate);
       const update = () => {
         dialog.style.viewTransitionName = '';
         if (dialog.open) dialog.close();
@@ -236,8 +248,7 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
       if (target) target.style.viewTransitionName = '';
       // Focus lands once the card has shrunk back, so the trigger's focus
       // ring is not caught in the snapshot and dragged through the morph.
-      if (restoreFocus) returnFocusRef.current?.focus({ preventScroll: true });
-      returnFocusRef.current = null;
+      restorePaletteFocus(restoreFocus);
       busyRef.current = false;
       runQueued();
     },

@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache';
 
-import { createPool } from '@/lib/db/postgres';
+import { type PostgresPool, createPool } from '@/lib/db/postgres';
 
 export interface ResponseObservationStore {
   observe(copyUri: string, actorDids: string[]): Promise<Map<string, Date>>;
@@ -8,7 +8,7 @@ export interface ResponseObservationStore {
 
 const MAX_ACTORS = 1_000;
 const BATCH_SIZE = 100;
-let pool: ReturnType<typeof createPool> | undefined;
+let pool: PostgresPool | undefined;
 
 export function canonicalRepostActors(actorDids: string[]): string[] {
   return [...new Set(actorDids)].sort().slice(0, MAX_ACTORS);

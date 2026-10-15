@@ -41,44 +41,51 @@ export async function runSocialTests() {
         write: { type: 'boolean', default: false },
       },
     });
-    try {
-      Object.assign(process.env, parseEnv(await readFile(values.env!, 'utf8')));
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-    }
-    if (process.env.POSTGRES_URL) {
-      const dbUrl = new URL(process.env.POSTGRES_URL);
+    const refreshSeconds = await acceptanceEnvironment();
+    async function acceptanceEnvironment() {
+      try {
+        Object.assign(
+          process.env,
+          parseEnv(await readFile(values.env!, 'utf8'))
+        );
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      }
+      if (process.env.POSTGRES_URL) {
+        const dbUrl = new URL(process.env.POSTGRES_URL);
+        assert(
+          /^ep-winter-wind-b5iiaxe7(?:-pooler)?\.c-7\.us-east-2\.aws\.neon\.tech$/.test(
+            dbUrl.hostname
+          ),
+          'Only the verified isolated acceptance Neon host is permitted.'
+        );
+      }
       assert(
-        /^ep-winter-wind-b5iiaxe7(?:-pooler)?\.c-7\.us-east-2\.aws\.neon\.tech$/.test(
-          dbUrl.hostname
-        ),
-        'Only the verified isolated acceptance Neon host is permitted.'
+        process.env.NEXT_PUBLIC_ATPROTO_DID &&
+          process.env.NEXT_PUBLIC_ATPROTO_DID !== OWNER,
+        'Configure a separate acceptance publisher first. The production owner is forbidden.'
       );
+      assert.equal(
+        process.env.NEXT_PUBLIC_SITE_ORIGIN?.replace(/\/$/, ''),
+        ORIGIN
+      );
+      assert(
+        process.env.POSTGRES_URL,
+        'Load the isolated acceptance database URL through --env.'
+      );
+      assert(
+        values.slug && /^[a-z0-9][a-z0-9-]{0,199}$/.test(values.slug),
+        'Choose an existing published acceptance writing with --slug.'
+      );
+      const refreshSeconds = Number(values['refresh-wait-seconds']);
+      assert(
+        Number.isInteger(refreshSeconds) &&
+          refreshSeconds >= 0 &&
+          refreshSeconds <= 3600,
+        '--refresh-wait-seconds must be between 0 and 3600.'
+      );
+      return refreshSeconds;
     }
-    assert(
-      process.env.NEXT_PUBLIC_ATPROTO_DID &&
-        process.env.NEXT_PUBLIC_ATPROTO_DID !== OWNER,
-      'Configure a separate acceptance publisher first. The production owner is forbidden.'
-    );
-    assert.equal(
-      process.env.NEXT_PUBLIC_SITE_ORIGIN?.replace(/\/$/, ''),
-      ORIGIN
-    );
-    assert(
-      process.env.POSTGRES_URL,
-      'Load the isolated acceptance database URL through --env.'
-    );
-    assert(
-      values.slug && /^[a-z0-9][a-z0-9-]{0,199}$/.test(values.slug),
-      'Choose an existing published acceptance writing with --slug.'
-    );
-    const refreshSeconds = Number(values['refresh-wait-seconds']);
-    assert(
-      Number.isInteger(refreshSeconds) &&
-        refreshSeconds >= 0 &&
-        refreshSeconds <= 3600,
-      '--refresh-wait-seconds must be between 0 and 3600.'
-    );
 
     interface OwnedSocialRecord {
       uri: string;
@@ -377,29 +384,32 @@ export async function runSocialTests() {
           'document',
           document
         );
-      for (const owned of primaryExport.owned) {
-        const collection =
-          owned.kind === 'subscription'
-            ? 'site.standard.graph.subscription'
-            : 'site.standard.graph.recommend';
-        assert(owned.uri.startsWith(`at://${visitor}/${collection}/`));
-        assert.equal(
-          owned.target,
-          owned.kind === 'subscription' ? publication : document
+      await assertCapturedRecordOwnership();
+      async function assertCapturedRecordOwnership() {
+        for (const owned of primaryExport.owned) {
+          const collection =
+            owned.kind === 'subscription'
+              ? 'site.standard.graph.subscription'
+              : 'site.standard.graph.recommend';
+          assert(owned.uri.startsWith(`at://${visitor}/${collection}/`));
+          assert.equal(
+            owned.target,
+            owned.kind === 'subscription' ? publication : document
+          );
+        }
+        const initialRecords = [
+          ...(await subscriptions()),
+          ...(await recommendations()),
+        ];
+        assert(
+          initialRecords.every((record) =>
+            primaryExport.owned.some(
+              (owned) => owned.uri === record.uri && owned.cid === record.cid
+            )
+          ),
+          'Preexisting matching records are not owned by this capture. Refuse to remove them.'
         );
       }
-      const initialRecords = [
-        ...(await subscriptions()),
-        ...(await recommendations()),
-      ];
-      assert(
-        initialRecords.every((record) =>
-          primaryExport.owned.some(
-            (owned) => owned.uri === record.uri && owned.cid === record.cid
-          )
-        ),
-        'Preexisting matching records are not owned by this capture. Refuse to remove them.'
-      );
       async function undo(kind: 'subscription' | 'recommendation') {
         const current = await (kind === 'subscription'
           ? subscriptions()
@@ -414,19 +424,23 @@ export async function runSocialTests() {
         );
         if (current.length) await mutate(kind, 'DELETE');
       }
-      const initial = await status();
-      assert(
-        initial.enabled && initial.ready && initial.signedIn,
-        'Sign in through the actual acceptance browser and verify the published target first.'
-      );
-      const secondInitial = await status(secondCookie);
-      assert(
-        secondInitial.enabled && secondInitial.ready && secondInitial.signedIn
-      );
-      const secondRecords = {
-        subscriptions: await subscriptions(secondVisitor, secondPds),
-        recommendations: await recommendations(secondVisitor, secondPds),
-      };
+      const { secondInitial, secondRecords } = await visitorBaseline();
+      async function visitorBaseline() {
+        const initial = await status();
+        assert(
+          initial.enabled && initial.ready && initial.signedIn,
+          'Sign in through the actual acceptance browser and verify the published target first.'
+        );
+        const secondInitial = await status(secondCookie);
+        assert(
+          secondInitial.enabled && secondInitial.ready && secondInitial.signedIn
+        );
+        const secondRecords = {
+          subscriptions: await subscriptions(secondVisitor, secondPds),
+          recommendations: await recommendations(secondVisitor, secondPds),
+        };
+        return { secondInitial, secondRecords };
+      }
       receipt = {
         started: new Date().toISOString(),
         publisher: process.env.NEXT_PUBLIC_ATPROTO_DID!,
@@ -459,637 +473,89 @@ export async function runSocialTests() {
             'Existing real OAuth grants and Secure/HttpOnly/Lax cookies are accepted',
             { visitor, secondVisitor }
           );
-          const metadataResponse = await fetch(
-            `${ORIGIN}/oauth-client-metadata.json`,
-            {
-              redirect: 'error',
-              signal: AbortSignal.timeout(15000),
-            }
-          );
-          assert.equal(metadataResponse.status, 200);
-          const metadata = (await metadataResponse.json()) as { scope: string };
-          assert.equal(
-            metadata.scope,
-            'atproto include:site.standard.authSocial'
-          );
-          assert(process.env.ATPROTO_OAUTH_STORAGE_KEY);
-          const { decryptOAuthValue } =
-            await import('../../../../lib/atproto/oauth-crypto');
-          const grants = [];
-          for (const did of [visitor, secondVisitor]) {
-            const stored =
-              await database.sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${digest(did)} AND expires_at > NOW()`;
-            assert.equal(stored.rows.length, 1);
-            const tokens: StoredSession['tokenSet'] =
-              decryptOAuthValue<StoredSession>(
-                stored.rows[0].encrypted_value as string,
-                process.env.ATPROTO_OAUTH_STORAGE_KEY
-              ).tokenSet;
-            assert.equal(tokens.sub, did);
-            assert.equal(tokens.token_type, 'DPoP');
-            assert.equal(
-              new URL(tokens.aud).href,
-              new URL(await resolvePds(did as Did)).href
-            );
-            if (process.env.ATPROTO_ACCEPTANCE_PROVIDER_ORIGIN)
-              assert.equal(
-                tokens.iss,
-                process.env.ATPROTO_ACCEPTANCE_PROVIDER_ORIGIN
-              );
-            assert(tokens.scope.split(/\s+/).includes('atproto'));
-            const scopes = tokens.scope.split(/\s+/);
-            const graphScope = scopes.find((scope) =>
-              scope.startsWith('repo?')
-            );
-            const grantedCollections = graphScope
-              ? new URLSearchParams(graphScope.slice('repo?'.length))
-                  .getAll('collection')
-                  .sort()
-              : [];
-            assert(
-              scopes.includes('include:site.standard.authSocial') ||
-                JSON.stringify(grantedCollections) ===
-                  JSON.stringify([
-                    'site.standard.graph.recommend',
-                    'site.standard.graph.subscription',
-                  ]),
-              'The provider must grant both Standard.site social collections.'
-            );
-            grants.push({
-              subject: tokens.sub,
-              issuer: tokens.iss,
-              audience: tokens.aud,
-              scope: tokens.scope,
-              tokenType: tokens.token_type,
-            });
-          }
-          await checked(
-            'Deployed metadata and real DPoP grants request Standard.site social permissions',
-            { grants }
-          );
-          console.log(
-            'Step 2: Reject anonymous and cross-origin mutations without changing PDS records.'
-          );
-          const before = await subscriptions();
-          assert.equal(
-            (await request('/api/atproto/subscription', 'PUT', '', {})).status,
-            401
-          );
-          assert.equal(
-            (
-              await request(
-                '/api/atproto/subscription',
-                'PUT',
-                primaryCookie,
-                {},
-                'https://example.com'
-              )
-            ).status,
-            403
-          );
-          assert.deepEqual(await subscriptions(), before);
-          await checked('Anonymous and cross-origin requests cannot write');
-          async function allGraphRecords() {
-            const graph = [];
-            for (const [did, service] of [
-              [visitor, pds],
-              [secondVisitor, secondPds],
-            ]) {
-              for (const [collection, field] of [
-                ['site.standard.graph.subscription', 'publication'],
-                ['site.standard.graph.recommend', 'document'],
-              ])
-                graph.push(...(await matches(did, service, collection, field)));
-            }
-            return graph
-              .map(({ uri, cid }) => ({ uri, cid }))
-              .sort((a, b) => a.uri.localeCompare(b.uri));
-          }
-          const graphBeforeRejectedTargets = await allGraphRecords();
-          const missingSlug = `acceptance-missing-${Date.now()}`;
-          await assert.rejects(() => loadWriting(missingSlug));
-          let authoredDraft: typeof writing | undefined;
-          for (const slug of await getWritingSlugs()) {
-            const candidate = await loadWriting(slug);
-            if (candidate.writing.draft) {
-              authoredDraft = candidate.writing;
-              break;
-            }
-          }
-          assert(
-            authoredDraft,
-            'The negative target check requires an existing private authored draft.'
-          );
-          for (const slug of [missingSlug, authoredDraft.slug]) {
-            for (const method of ['PUT', 'DELETE'] as const) {
-              const rejected = await writeRequest(
-                '/api/atproto/recommendation',
-                method,
-                { slug }
-              );
-              assert.equal(
-                rejected.status,
-                404,
-                'Missing and draft recommendation targets must be rejected.'
-              );
-              assert.deepEqual(
-                await allGraphRecords(),
-                graphBeforeRejectedTargets
-              );
-            }
-          }
-          await checked(
-            'Missing writings and authored drafts reject create and undo without changing either visitor graph'
-          );
-
-          // OAuth callbacks complete a pending action. Clear only this isolated
-          // visitor's test targets before measuring idempotent creation.
-          await undo('subscription');
-          await undo('recommendation');
-          console.log(
-            'Step 3: Execute repeated and concurrent real writes, then inspect the visitor PDS.'
-          );
-          if (
-            visitor === process.env.NEXT_PUBLIC_ATPROTO_DID &&
-            process.env.ATPROTO_APP_PASSWORD
-          ) {
-            const { createRepoClient } =
-              await import('../../../../lib/atproto/client');
-            externalClient = await createRepoClient(
-              process.env.ATPROTO_APP_PASSWORD
-            );
-          } else
-            receipt.pending.push(
-              'Second-client graph recognition requires the isolated publisher as the first visitor and its existing app password.'
-            );
-          for (const [kind, records, field] of [
-            ['subscription', subscriptions, 'subscribed'],
-            ['recommendation', recommendations, 'recommended'],
-          ] as const) {
-            await Promise.all([mutate(kind, 'PUT'), mutate(kind, 'PUT')]);
-            await mutate(kind, 'PUT');
-            const created = await records();
-            receipt.owned.push(
-              ...created.map((record) => ({
-                uri: record.uri,
-                cid: record.cid,
-                kind,
-                target: kind === 'subscription' ? publication : document,
-              }))
-            );
-            await save();
-            assert.equal(
-              created.length,
-              1,
-              'Repeated/concurrent writes must create one matching record.'
-            );
-            assert.equal((await status())[field], true);
-            await checked(
-              `Real ${kind} writes are idempotent and match public PDS state`,
-              { uri: created[0].uri, cid: created[0].cid }
-            );
-            await undo(kind);
-            assert.equal((await records()).length, 0);
-            assert.equal((await status())[field], false);
-            await checked(`Explicit ${kind} undo removes matching PDS records`);
-            if (externalClient) {
-              const collection =
-                kind === 'subscription'
-                  ? 'site.standard.graph.subscription'
-                  : 'site.standard.graph.recommend';
-              const target = kind === 'subscription' ? publication : document;
-              for (let index = 0; index < 2; index++) {
-                const key = now();
-                const uri = `at://${visitor}/${collection}/${key}`;
-                assert(!(await externalClient.getRecord!(collection, key)));
-                const journal = { uri, cid: '', kind, target };
-                receipt.owned.push(journal);
-                await save();
-                const created: { uri: string; cid: string } =
-                  await externalClient.createRecord!(collection, key, {
-                    $type: collection,
-                    [kind === 'subscription' ? 'publication' : 'document']:
-                      target,
-                    createdAt: new Date().toISOString(),
-                  });
-                assert.equal(created.uri, uri);
-                journal.cid = created.cid;
-                await save();
-              }
-              assert.equal((await status())[field], true);
-              await mutate(kind, 'PUT');
-              assert.equal(
-                (await records()).length,
-                2,
-                'Recognition must not create a third record.'
-              );
-              await undo(kind);
-              assert.equal((await records()).length, 0);
-              await checked(
-                `Real ${kind} records created by a second publishing client are recognized and explicitly removed`
-              );
-            }
-          }
-          assert.deepEqual(await status(secondCookie), secondInitial);
-          assert.deepEqual(
-            {
-              subscriptions: await subscriptions(secondVisitor, secondPds),
-              recommendations: await recommendations(secondVisitor, secondPds),
-            },
-            secondRecords
-          );
-          await checked(
-            'One visitor cannot change another account or browser state'
-          );
-
-          console.log(
-            'Step 4: Verify a captured real callback rejects replay.'
-          );
-          if (values['callback-file']) {
-            const callback = JSON.parse(
-              await readFile(values['callback-file'], 'utf8')
-            ) as CapturedCallback;
-            assert(process.env.ATPROTO_OAUTH_STORAGE_KEY);
-            verifyCallbackSignature(
-              callback,
-              process.env.ATPROTO_OAUTH_STORAGE_KEY
-            );
-            const url = new URL(callback.url);
-            assert(
-              url.origin === ORIGIN && url.pathname === '/atproto/callback'
-            );
-            assert(
-              url.searchParams.has('code') && url.searchParams.has('state')
-            );
-            assert(
-              callback.expectation === 'grant' && callback.sessionReplaced
-            );
-            assert(
-              new URL(callback.location).origin === ORIGIN &&
-                !callback.location.includes('atprotoError=1')
-            );
-            assert.equal(callback.issuedStateHash, callback.stateHash);
-            assert.equal(callback.outcome, 'authorized');
-            assert.equal(callback.visitor, visitor);
-            assert.equal(callback.sessionHash, digest(primaryCookie));
-            assert.equal(
-              callback.stateHash,
-              digest(url.searchParams.get('state')!)
-            );
-            assert(callback.wrongBrowserRejected);
-            assert.equal(primaryExport.grant?.outcome, 'authorized');
-            assert.equal(primaryExport.grant?.did, visitor);
-            assert.equal(
-              primaryExport.grant?.sessionHash,
-              callback.sessionHash
-            );
-            assert.equal(
-              primaryExport.grant?.callbackStateHash,
-              callback.stateHash
-            );
-            assert.equal(
-              (
-                await database.sql`SELECT key_hash FROM atproto_oauth_states WHERE key_hash = ${callback.stateHash}`
-              ).rows.length,
-              0,
-              'Successful authorization must already have consumed this state.'
-            );
-            const beforeSessions =
-              await database.sql`SELECT token_hash FROM atproto_browser_sessions WHERE did = ${visitor}`;
-            const replay = await fetch(url, {
-              redirect: 'manual',
-              signal: AbortSignal.timeout(60000),
-              headers: { cookie: `atproto_flow=${callback.flowCookie}` },
-            });
-            assert.equal(replay.status, 303);
-            assert(replay.headers.get('location')?.includes('atprotoError=1'));
-            assert(
-              !replay.headers
-                .getSetCookie()
-                .some((cookie) => cookie.startsWith('atproto_session='))
-            );
-            const afterSessions =
-              await database.sql`SELECT token_hash FROM atproto_browser_sessions WHERE did = ${visitor}`;
-            assert.deepEqual(
-              afterSessions.rows.sort((a, b) =>
-                a.token_hash.localeCompare(b.token_hash)
-              ),
-              beforeSessions.rows.sort((a, b) =>
-                a.token_hash.localeCompare(b.token_hash)
-              )
-            );
-            await checked(
-              'A captured consumed provider callback cannot create a new session or replay its action'
-            );
-          } else
-            receipt.pending.push(
-              'Capture the original successful provider callback and flow cookie privately, then verify replay with --callback-file.'
-            );
-          for (const [option, expected] of [
-            ['cancelled-callback-file', 'cancel'],
-            ['expired-callback-file', 'expired'],
-          ] as const) {
-            const filename = values[option];
-            if (!filename) {
-              receipt.pending.push(
-                `Complete real provider ${expected} flow with the capture companion.`
-              );
-              continue;
-            }
-            const proof = JSON.parse(
-              await readFile(filename, 'utf8')
-            ) as CapturedCallback;
-            assert(process.env.ATPROTO_OAUTH_STORAGE_KEY);
-            verifyCallbackSignature(
-              proof,
-              process.env.ATPROTO_OAUTH_STORAGE_KEY
-            );
-            const url = new URL(proof.url);
-            assert(
-              url.origin === ORIGIN && url.pathname === '/atproto/callback'
-            );
-            assert(
-              proof.expectation === expected && proof.outcome === 'rejected'
-            );
-            assert(
-              new URL(proof.location).origin === ORIGIN &&
-                proof.location.includes('atprotoError=1') &&
-                !proof.sessionReplaced
-            );
-            assert(proof.visitor === secondVisitor);
-            assert(proof.sessionHash === digest(secondCookie));
-            assert(proof.stateHash === digest(url.searchParams.get('state')!));
-            assert(secondExport.grant?.outcome === 'authorized');
-            assert(
-              secondExport.grant.did === secondVisitor &&
-                secondExport.grant.sessionHash === proof.sessionHash
-            );
-            assert(
-              (
-                await database.sql`SELECT key_hash FROM atproto_oauth_states WHERE key_hash = ${proof.stateHash}`
-              ).rows.length === 0,
-              'Rejected authorization must leave no reusable captured state.'
-            );
-            assert((await browserDid(secondCookie)) === secondVisitor);
-            if (expected === 'cancel')
-              assert.equal(url.searchParams.get('error'), 'access_denied');
-            else
-              assert(
-                url.searchParams.has('code') && proof.expirySource,
-                'Expiry proof requires a real provider code and its controlled expiration receipt.'
-              );
-            await checked(
-              `Real provider ${expected} callback rejects the action without replacing a session`,
-              { expirySource: proof.expirySource }
-            );
-          }
-
-          const signedOutFile = values['signed-out-cancelled-callback-file'];
-          if (signedOutFile) {
-            const proof = JSON.parse(
-              await readFile(signedOutFile, 'utf8')
-            ) as CapturedCallback;
-            assert(process.env.ATPROTO_OAUTH_STORAGE_KEY);
-            verifyCallbackSignature(
-              proof,
-              process.env.ATPROTO_OAUTH_STORAGE_KEY
-            );
-            const callback = new URL(proof.url);
-            assert(
-              callback.origin === ORIGIN &&
-                callback.pathname === '/atproto/callback'
-            );
-            assert(
-              proof.expectation === 'cancel' &&
-                proof.outcome === 'rejected' &&
-                !proof.sessionReplaced
-            );
-            assert.equal(
-              proof.sessionHash,
-              digest(''),
-              'This signed proof denotes the observed absent session cookie, never an authenticated session.'
-            );
-            assert(
-              proof.visitor === secondVisitor &&
-                callback.searchParams.get('error') === 'access_denied'
-            );
-            assert.equal(
-              proof.stateHash,
-              digest(callback.searchParams.get('state')!)
-            );
-            assert(proof.location === `${ORIGIN}/writings?atprotoError=1`);
-            assert.equal(
-              (
-                await database.sql`SELECT token_hash FROM atproto_browser_sessions WHERE token_hash = ${proof.sessionHash}`
-              ).rows.length,
-              0
-            );
-            assert.equal(
-              (
-                await database.sql`SELECT key_hash FROM atproto_oauth_states WHERE key_hash = ${proof.stateHash}`
-              ).rows.length,
-              0
-            );
-            await checked(
-              'A fresh signed-out browser declined genuine provider authorization and returned without a session or social write',
+          await verifyProviderGrantScopes();
+          async function verifyProviderGrantScopes() {
+            const metadataResponse = await fetch(
+              `${ORIGIN}/oauth-client-metadata.json`,
               {
-                sessionCookie: 'absent',
-                sessionHashMeaning:
-                  'SHA256 of the actually absent cookie; not an authenticated session hash',
+                redirect: 'error',
+                signal: AbortSignal.timeout(15000),
               }
             );
-          } else
-            receipt.pending.push(
-              'Fresh signed-out provider cancellation has no captured genuine callback proof.'
+            assert.equal(metadataResponse.status, 200);
+            const metadata = (await metadataResponse.json()) as {
+              scope: string;
+            };
+            assert.equal(
+              metadata.scope,
+              'atproto include:site.standard.authSocial'
             );
-
-          console.log(
-            'Step 5: Force real provider refresh in two isolated processes without changing provider data.'
-          );
-          assert(
-            process.env.ATPROTO_OAUTH_STORAGE_KEY &&
-              process.env.ATPROTO_OAUTH_JWK,
-            'Real forced refresh requires matching acceptance keys.'
-          );
-          const refreshFile = fileURLToPath(
-            new URL('./refresh.mts', import.meta.url)
-          );
-          async function refreshInstance() {
-            return new Promise<Record<string, unknown>>((finish, reject) => {
-              let stdout = '';
-              const child = spawn(
-                'pnpm',
-                [
-                  'exec',
-                  'tsx',
-                  refreshFile,
-                  '--env',
-                  resolve(values.env!),
-                  '--visitor',
-                  visitor,
-                ],
-                {
-                  cwd: process.cwd(),
-                  env: process.env,
-                  stdio: ['ignore', 'pipe', 'pipe'],
-                }
-              );
-              child.stdout.on('data', (chunk: Buffer) => {
-                stdout += chunk.toString();
-              });
-              child.stderr.on('data', () => {});
-              child.on('error', reject);
-              const timeout = setTimeout(() => {
-                child.kill('SIGTERM');
-                reject(
-                  new Error('Real refresh instance exceeded 120 seconds.')
-                );
-              }, 120000);
-              child.on('exit', (code) => {
-                clearTimeout(timeout);
-                if (code !== 0)
-                  return reject(
-                    new Error(
-                      'A real refresh instance failed without exposing credentials.'
-                    )
-                  );
-                try {
-                  const result = JSON.parse(stdout.trim()) as Record<
-                    string,
-                    unknown
-                  >;
-                  assert.equal(result.status, 'passed');
-                  assert(
-                    result.providerRefresh &&
-                      result.authenticatedPdsRead &&
-                      result.accessGenerationChanged
-                  );
-                  finish(result);
-                } catch (error) {
-                  reject(error);
-                }
-              });
-            });
-          }
-          const instances = await Promise.all([
-            refreshInstance(),
-            refreshInstance(),
-          ]);
-          assert.notEqual(instances[0].pid, instances[1].pid);
-          await checked(
-            'Two isolated processes force real provider refresh under distributed locks and read the authenticated PDS',
-            { instances, forcedRefresh: true, naturalExpiry: false }
-          );
-          if (refreshSeconds) {
-            assert(
-              process.env.ATPROTO_OAUTH_STORAGE_KEY,
-              'Real refresh proof requires the matching acceptance storage key.'
-            );
+            assert(process.env.ATPROTO_OAUTH_STORAGE_KEY);
             const { decryptOAuthValue } =
               await import('../../../../lib/atproto/oauth-crypto');
-            const sessionRow =
-              await database.sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${digest(visitor)}`;
-            assert.equal(sessionRow.rows.length, 1);
-            const initialTokens = decryptOAuthValue<StoredSession>(
-              sessionRow.rows[0].encrypted_value as string,
-              process.env.ATPROTO_OAUTH_STORAGE_KEY
-            ).tokenSet;
-            assert.equal(initialTokens.sub, visitor);
-            assert(
-              initialTokens.expires_at && initialTokens.refresh_token,
-              'Provider must supply expiry and refresh credentials for this check.'
-            );
-            const initialAccessHash = digest(initialTokens.access_token);
-            const deadline = Date.now() + refreshSeconds * 1000;
-            let refreshed = false;
-            while (Date.now() < deadline) {
-              await new Promise((resolve) =>
-                setTimeout(resolve, Math.min(55000, deadline - Date.now()))
+            const grants = [];
+            for (const did of [visitor, secondVisitor]) {
+              const stored =
+                await database.sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${digest(did)} AND expires_at > NOW()`;
+              assert.equal(stored.rows.length, 1);
+              const tokens: StoredSession['tokenSet'] =
+                decryptOAuthValue<StoredSession>(
+                  stored.rows[0].encrypted_value as string,
+                  process.env.ATPROTO_OAUTH_STORAGE_KEY
+                ).tokenSet;
+              assert.equal(tokens.sub, did);
+              assert.equal(tokens.token_type, 'DPoP');
+              assert.equal(
+                new URL(tokens.aud).href,
+                new URL(await resolvePds(did as Did)).href
               );
-              const [first, second] = await Promise.all([status(), status()]);
-              assert(first.signedIn && second.signedIn);
-              const current =
-                await database.sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${digest(visitor)}`;
-              if (current.rows.length === 1) {
-                const tokens: StoredSession['tokenSet'] =
-                  decryptOAuthValue<StoredSession>(
-                    current.rows[0].encrypted_value as string,
-                    process.env.ATPROTO_OAUTH_STORAGE_KEY
-                  ).tokenSet;
-                assert.equal(tokens.sub, visitor);
-                assert.equal(tokens.iss, initialTokens.iss);
-                assert.equal(tokens.aud, initialTokens.aud);
-                if (
-                  tokens.expires_at &&
-                  tokens.expires_at > initialTokens.expires_at &&
-                  digest(tokens.access_token) !== initialAccessHash
-                ) {
-                  refreshed = true;
-                  await checked(
-                    'Provider token expiry advances and the actual access token generation changes',
-                    {
-                      beforeExpiresAt: new Date(
-                        initialTokens.expires_at
-                      ).toISOString(),
-                      afterExpiresAt: new Date(tokens.expires_at).toISOString(),
-                      refreshTokenRotated:
-                        tokens.refresh_token !== initialTokens.refresh_token,
-                    }
-                  );
-                  break;
-                }
-              }
+              if (process.env.ATPROTO_ACCEPTANCE_PROVIDER_ORIGIN)
+                assert.equal(
+                  tokens.iss,
+                  process.env.ATPROTO_ACCEPTANCE_PROVIDER_ORIGIN
+                );
+              assert(tokens.scope.split(/\s+/).includes('atproto'));
+              const scopes = tokens.scope.split(/\s+/);
+              const graphScope = scopes.find((scope) =>
+                scope.startsWith('repo?')
+              );
+              const grantedCollections = graphScope
+                ? new URLSearchParams(graphScope.slice('repo?'.length))
+                    .getAll('collection')
+                    .sort()
+                : [];
+              assert(
+                scopes.includes('include:site.standard.authSocial') ||
+                  JSON.stringify(grantedCollections) ===
+                    JSON.stringify([
+                      'site.standard.graph.recommend',
+                      'site.standard.graph.subscription',
+                    ]),
+                'The provider must grant both Standard.site social collections.'
+              );
+              grants.push({
+                subject: tokens.sub,
+                issuer: tokens.iss,
+                audience: tokens.aud,
+                scope: tokens.scope,
+                tokenType: tokens.token_type,
+              });
             }
-            assert(
-              refreshed,
-              'No real provider refresh was observed during the bounded wait. Extend --refresh-wait-seconds without replacing provider data.'
-            );
             await checked(
-              'Concurrent requests preserve a real naturally refreshed provider session'
+              'Deployed metadata and real DPoP grants request Standard.site social permissions',
+              { grants }
             );
           }
-
-          const originalBrowser =
-            await database.sql`SELECT expires_at FROM atproto_browser_sessions WHERE token_hash = ${digest(primaryCookie)} AND did = ${visitor}`;
-          assert.equal(originalBrowser.rows.length, 1);
-          const expiryBrowser = await chromium.launch({ headless: true });
-          try {
-            const expiryContext = await expiryBrowser.newContext({
-              viewport: { width: 1440, height: 1000 },
-            });
-            await expiryContext.addCookies([primaryExport.browserCookie]);
-            const expiryPage = await expiryContext.newPage();
-            await expiryPage.goto(`${ORIGIN}/writings/${values.slug}`);
-            const recommendation = expiryPage.locator(
-              '[data-standard-social="recommendation"]'
+          await verifyRejectedMutations();
+          async function verifyRejectedMutations() {
+            console.log(
+              'Step 2: Reject anonymous and cross-origin mutations without changing PDS records.'
             );
-            await recommendation
-              .getByRole('button', { name: 'Recommend', exact: true })
-              .waitFor();
-            await captureSocialState(
-              expiryPage,
-              dirname(values.receipt!),
-              'browser-session-before-expiry'
-            );
-            await database.sql`UPDATE atproto_browser_sessions SET expires_at = NOW() - INTERVAL '1 second' WHERE token_hash = ${digest(primaryCookie)} AND did = ${visitor}`;
-            const expiredAction = expiryPage.waitForResponse(
-              (response) =>
-                response.url() === `${ORIGIN}/api/atproto/recommendation` &&
-                response.request().method() === 'PUT'
-            );
-            await recommendation
-              .getByRole('button', { name: 'Recommend', exact: true })
-              .click();
-            assert.equal((await expiredAction).status(), 401);
-            await expiryPage.getByRole('dialog').waitFor({ state: 'visible' });
-            await expiryPage
-              .getByLabel('Your handle', { exact: true })
-              .waitFor();
-            assert.equal((await status()).signedIn, false);
-            await captureSocialState(
-              expiryPage,
-              dirname(values.receipt!),
-              'browser-session-expired-sign-in-recovery'
+            const before = await subscriptions();
+            assert.equal(
+              (await request('/api/atproto/subscription', 'PUT', '', {}))
+                .status,
+              401
             );
             assert.equal(
               (
@@ -1097,51 +563,665 @@ export async function runSocialTests() {
                   '/api/atproto/subscription',
                   'PUT',
                   primaryCookie,
-                  {}
+                  {},
+                  'https://example.com'
                 )
               ).status,
-              401
+              403
             );
-            assert.equal((await subscriptions()).length, 0);
+            assert.deepEqual(await subscriptions(), before);
+            await checked('Anonymous and cross-origin requests cannot write');
+            async function allGraphRecords() {
+              const graph = [];
+              for (const [did, service] of [
+                [visitor, pds],
+                [secondVisitor, secondPds],
+              ]) {
+                for (const [collection, field] of [
+                  ['site.standard.graph.subscription', 'publication'],
+                  ['site.standard.graph.recommend', 'document'],
+                ])
+                  graph.push(
+                    ...(await matches(did, service, collection, field))
+                  );
+              }
+              return graph
+                .map(({ uri, cid }) => ({ uri, cid }))
+                .sort((a, b) => a.uri.localeCompare(b.uri));
+            }
+            const graphBeforeRejectedTargets = await allGraphRecords();
+            const missingSlug = `acceptance-missing-${Date.now()}`;
+            await assert.rejects(() => loadWriting(missingSlug));
+            let authoredDraft: typeof writing | undefined;
+            for (const slug of await getWritingSlugs()) {
+              const candidate = await loadWriting(slug);
+              if (candidate.writing.draft) {
+                authoredDraft = candidate.writing;
+                break;
+              }
+            }
+            assert(
+              authoredDraft,
+              'The negative target check requires an existing private authored draft.'
+            );
+            for (const slug of [missingSlug, authoredDraft.slug]) {
+              for (const method of ['PUT', 'DELETE'] as const) {
+                const rejected = await writeRequest(
+                  '/api/atproto/recommendation',
+                  method,
+                  { slug }
+                );
+                assert.equal(
+                  rejected.status,
+                  404,
+                  'Missing and draft recommendation targets must be rejected.'
+                );
+                assert.deepEqual(
+                  await allGraphRecords(),
+                  graphBeforeRejectedTargets
+                );
+              }
+            }
             await checked(
-              'A genuinely issued browser session rejects reads/writes after its isolated deadline is moved into the past'
+              'Missing writings and authored drafts reject create and undo without changing either visitor graph'
             );
-          } finally {
-            try {
-              await database.sql`UPDATE atproto_browser_sessions SET expires_at = ${new Date(originalBrowser.rows[0].expires_at as string).toISOString()} WHERE token_hash = ${digest(primaryCookie)} AND did = ${visitor}`;
-            } finally {
-              await expiryBrowser.close();
+          }
+          // OAuth callbacks complete a pending action. Clear only this isolated
+          // visitor's test targets before measuring idempotent creation.
+          await undo('subscription');
+          await undo('recommendation');
+          await exerciseVisitorGraph();
+          async function exerciseVisitorGraph() {
+            console.log(
+              'Step 3: Execute repeated and concurrent real writes, then inspect the visitor PDS.'
+            );
+            if (
+              visitor === process.env.NEXT_PUBLIC_ATPROTO_DID &&
+              process.env.ATPROTO_APP_PASSWORD
+            ) {
+              const { createRepoClient } =
+                await import('../../../../lib/atproto/client');
+              externalClient = await createRepoClient(
+                process.env.ATPROTO_APP_PASSWORD
+              );
+            } else
+              receipt.pending.push(
+                'Second-client graph recognition requires the isolated publisher as the first visitor and its existing app password.'
+              );
+            for (const [kind, records, field] of [
+              ['subscription', subscriptions, 'subscribed'],
+              ['recommendation', recommendations, 'recommended'],
+            ] as const) {
+              await Promise.all([mutate(kind, 'PUT'), mutate(kind, 'PUT')]);
+              await mutate(kind, 'PUT');
+              const created = await records();
+              receipt.owned.push(
+                ...created.map((record) => ({
+                  uri: record.uri,
+                  cid: record.cid,
+                  kind,
+                  target: kind === 'subscription' ? publication : document,
+                }))
+              );
+              await save();
+              assert.equal(
+                created.length,
+                1,
+                'Repeated/concurrent writes must create one matching record.'
+              );
+              assert.equal((await status())[field], true);
+              await checked(
+                `Real ${kind} writes are idempotent and match public PDS state`,
+                { uri: created[0].uri, cid: created[0].cid }
+              );
+              await undo(kind);
+              assert.equal((await records()).length, 0);
+              assert.equal((await status())[field], false);
+              await checked(
+                `Explicit ${kind} undo removes matching PDS records`
+              );
+              await verifyExternalGraphRecognition();
+              async function verifyExternalGraphRecognition() {
+                if (externalClient) {
+                  const collection =
+                    kind === 'subscription'
+                      ? 'site.standard.graph.subscription'
+                      : 'site.standard.graph.recommend';
+                  const target =
+                    kind === 'subscription' ? publication : document;
+                  for (let index = 0; index < 2; index++) {
+                    const key = now();
+                    const uri = `at://${visitor}/${collection}/${key}`;
+                    assert(!(await externalClient.getRecord!(collection, key)));
+                    const journal = { uri, cid: '', kind, target };
+                    receipt.owned.push(journal);
+                    await save();
+                    const created: { uri: string; cid: string } =
+                      await externalClient.createRecord!(collection, key, {
+                        $type: collection,
+                        [kind === 'subscription' ? 'publication' : 'document']:
+                          target,
+                        createdAt: new Date().toISOString(),
+                      });
+                    assert.equal(created.uri, uri);
+                    journal.cid = created.cid;
+                    await save();
+                  }
+                  assert.equal((await status())[field], true);
+                  await mutate(kind, 'PUT');
+                  assert.equal(
+                    (await records()).length,
+                    2,
+                    'Recognition must not create a third record.'
+                  );
+                  await undo(kind);
+                  assert.equal((await records()).length, 0);
+                  await checked(
+                    `Real ${kind} records created by a second publishing client are recognized and explicitly removed`
+                  );
+                }
+              }
+            }
+            assert.deepEqual(await status(secondCookie), secondInitial);
+            assert.deepEqual(
+              {
+                subscriptions: await subscriptions(secondVisitor, secondPds),
+                recommendations: await recommendations(
+                  secondVisitor,
+                  secondPds
+                ),
+              },
+              secondRecords
+            );
+            await checked(
+              'One visitor cannot change another account or browser state'
+            );
+          }
+          await verifyCapturedProviderCallbacks();
+          async function verifyCapturedProviderCallbacks() {
+            console.log(
+              'Step 4: Verify a captured real callback rejects replay.'
+            );
+            await verifyAuthorizedCallback();
+            async function verifyAuthorizedCallback() {
+              if (values['callback-file']) {
+                const { callback, url } = await validateConsumedAuthorization(
+                  values['callback-file']
+                );
+                async function validateConsumedAuthorization(filename: string) {
+                  const callback = JSON.parse(
+                    await readFile(filename, 'utf8')
+                  ) as CapturedCallback;
+                  assert(process.env.ATPROTO_OAUTH_STORAGE_KEY);
+                  verifyCallbackSignature(
+                    callback,
+                    process.env.ATPROTO_OAUTH_STORAGE_KEY
+                  );
+                  const url = new URL(callback.url);
+                  assert(
+                    url.origin === ORIGIN &&
+                      url.pathname === '/atproto/callback'
+                  );
+                  assert(
+                    url.searchParams.has('code') &&
+                      url.searchParams.has('state')
+                  );
+                  assert(
+                    callback.expectation === 'grant' && callback.sessionReplaced
+                  );
+                  assert(
+                    new URL(callback.location).origin === ORIGIN &&
+                      !callback.location.includes('atprotoError=1')
+                  );
+                  assert.equal(callback.issuedStateHash, callback.stateHash);
+                  assert.equal(callback.outcome, 'authorized');
+                  assert.equal(callback.visitor, visitor);
+                  assert.equal(callback.sessionHash, digest(primaryCookie));
+                  assert.equal(
+                    callback.stateHash,
+                    digest(url.searchParams.get('state')!)
+                  );
+                  assert(callback.wrongBrowserRejected);
+                  assert.equal(primaryExport.grant?.outcome, 'authorized');
+                  assert.equal(primaryExport.grant?.did, visitor);
+                  assert.equal(
+                    primaryExport.grant?.sessionHash,
+                    callback.sessionHash
+                  );
+                  assert.equal(
+                    primaryExport.grant?.callbackStateHash,
+                    callback.stateHash
+                  );
+                  assert.equal(
+                    (
+                      await database.sql`SELECT key_hash FROM atproto_oauth_states WHERE key_hash = ${callback.stateHash}`
+                    ).rows.length,
+                    0,
+                    'Successful authorization must already have consumed this state.'
+                  );
+                  return { callback, url };
+                }
+                const beforeSessions =
+                  await database.sql`SELECT token_hash FROM atproto_browser_sessions WHERE did = ${visitor}`;
+                const replay = await fetch(url, {
+                  redirect: 'manual',
+                  signal: AbortSignal.timeout(60000),
+                  headers: { cookie: `atproto_flow=${callback.flowCookie}` },
+                });
+                assert.equal(replay.status, 303);
+                assert(
+                  replay.headers.get('location')?.includes('atprotoError=1')
+                );
+                assert(
+                  !replay.headers
+                    .getSetCookie()
+                    .some((cookie) => cookie.startsWith('atproto_session='))
+                );
+                const afterSessions =
+                  await database.sql`SELECT token_hash FROM atproto_browser_sessions WHERE did = ${visitor}`;
+                assert.deepEqual(
+                  afterSessions.rows.sort((a, b) =>
+                    a.token_hash.localeCompare(b.token_hash)
+                  ),
+                  beforeSessions.rows.sort((a, b) =>
+                    a.token_hash.localeCompare(b.token_hash)
+                  )
+                );
+                await checked(
+                  'A captured consumed provider callback cannot create a new session or replay its action'
+                );
+              } else
+                receipt.pending.push(
+                  'Capture the original successful provider callback and flow cookie privately, then verify replay with --callback-file.'
+                );
+            }
+            await verifyRejectedCallbacks();
+            async function verifyRejectedCallbacks() {
+              for (const [option, expected] of [
+                ['cancelled-callback-file', 'cancel'],
+                ['expired-callback-file', 'expired'],
+              ] as const) {
+                const filename = values[option];
+                if (!filename) {
+                  receipt.pending.push(
+                    `Complete real provider ${expected} flow with the capture companion.`
+                  );
+                  continue;
+                }
+                await verifyRejectedCallback(filename);
+                async function verifyRejectedCallback(filename: string) {
+                  const proof = JSON.parse(
+                    await readFile(filename, 'utf8')
+                  ) as CapturedCallback;
+                  assert(process.env.ATPROTO_OAUTH_STORAGE_KEY);
+                  verifyCallbackSignature(
+                    proof,
+                    process.env.ATPROTO_OAUTH_STORAGE_KEY
+                  );
+                  const url = new URL(proof.url);
+                  assert(
+                    url.origin === ORIGIN &&
+                      url.pathname === '/atproto/callback'
+                  );
+                  assert(
+                    proof.expectation === expected &&
+                      proof.outcome === 'rejected'
+                  );
+                  assert(
+                    new URL(proof.location).origin === ORIGIN &&
+                      proof.location.includes('atprotoError=1') &&
+                      !proof.sessionReplaced
+                  );
+                  assert(proof.visitor === secondVisitor);
+                  assert(proof.sessionHash === digest(secondCookie));
+                  assert(
+                    proof.stateHash === digest(url.searchParams.get('state')!)
+                  );
+                  assert(secondExport.grant?.outcome === 'authorized');
+                  assert(
+                    secondExport.grant.did === secondVisitor &&
+                      secondExport.grant.sessionHash === proof.sessionHash
+                  );
+                  assert(
+                    (
+                      await database.sql`SELECT key_hash FROM atproto_oauth_states WHERE key_hash = ${proof.stateHash}`
+                    ).rows.length === 0,
+                    'Rejected authorization must leave no reusable captured state.'
+                  );
+                  assert((await browserDid(secondCookie)) === secondVisitor);
+                  if (expected === 'cancel')
+                    assert.equal(
+                      url.searchParams.get('error'),
+                      'access_denied'
+                    );
+                  else
+                    assert(
+                      url.searchParams.has('code') && proof.expirySource,
+                      'Expiry proof requires a real provider code and its controlled expiration receipt.'
+                    );
+                  await checked(
+                    `Real provider ${expected} callback rejects the action without replacing a session`,
+                    { expirySource: proof.expirySource }
+                  );
+                }
+              }
+            }
+            await verifySignedOutCancellation();
+            async function verifySignedOutCancellation() {
+              const signedOutFile =
+                values['signed-out-cancelled-callback-file'];
+              if (signedOutFile) {
+                const proof = JSON.parse(
+                  await readFile(signedOutFile, 'utf8')
+                ) as CapturedCallback;
+                assert(process.env.ATPROTO_OAUTH_STORAGE_KEY);
+                verifyCallbackSignature(
+                  proof,
+                  process.env.ATPROTO_OAUTH_STORAGE_KEY
+                );
+                const callback = new URL(proof.url);
+                assert(
+                  callback.origin === ORIGIN &&
+                    callback.pathname === '/atproto/callback'
+                );
+                assert(
+                  proof.expectation === 'cancel' &&
+                    proof.outcome === 'rejected' &&
+                    !proof.sessionReplaced
+                );
+                assert.equal(
+                  proof.sessionHash,
+                  digest(''),
+                  'This signed proof denotes the observed absent session cookie, never an authenticated session.'
+                );
+                assert(
+                  proof.visitor === secondVisitor &&
+                    callback.searchParams.get('error') === 'access_denied'
+                );
+                assert.equal(
+                  proof.stateHash,
+                  digest(callback.searchParams.get('state')!)
+                );
+                assert(proof.location === `${ORIGIN}/writings?atprotoError=1`);
+                assert.equal(
+                  (
+                    await database.sql`SELECT token_hash FROM atproto_browser_sessions WHERE token_hash = ${proof.sessionHash}`
+                  ).rows.length,
+                  0
+                );
+                assert.equal(
+                  (
+                    await database.sql`SELECT key_hash FROM atproto_oauth_states WHERE key_hash = ${proof.stateHash}`
+                  ).rows.length,
+                  0
+                );
+                await checked(
+                  'A fresh signed-out browser declined genuine provider authorization and returned without a session or social write',
+                  {
+                    sessionCookie: 'absent',
+                    sessionHashMeaning:
+                      'SHA256 of the actually absent cookie; not an authenticated session hash',
+                  }
+                );
+              } else
+                receipt.pending.push(
+                  'Fresh signed-out provider cancellation has no captured genuine callback proof.'
+                );
             }
           }
+          await verifyConcurrentProviderRefresh();
+          async function verifyConcurrentProviderRefresh() {
+            console.log(
+              'Step 5: Force real provider refresh in two isolated processes without changing provider data.'
+            );
+            assert(
+              process.env.ATPROTO_OAUTH_STORAGE_KEY &&
+                process.env.ATPROTO_OAUTH_JWK,
+              'Real forced refresh requires matching acceptance keys.'
+            );
+            const refreshFile = fileURLToPath(
+              new URL('./refresh.mts', import.meta.url)
+            );
+            async function refreshInstance() {
+              return new Promise<Record<string, unknown>>((finish, reject) => {
+                let stdout = '';
+                const child = spawn(
+                  'pnpm',
+                  [
+                    'exec',
+                    'tsx',
+                    refreshFile,
+                    '--env',
+                    resolve(values.env!),
+                    '--visitor',
+                    visitor,
+                  ],
+                  {
+                    cwd: process.cwd(),
+                    env: process.env,
+                    stdio: ['ignore', 'pipe', 'pipe'],
+                  }
+                );
+                child.stdout.on('data', (chunk: Buffer) => {
+                  stdout += chunk.toString();
+                });
+                child.stderr.on('data', () => {});
+                child.on('error', reject);
+                const timeout = setTimeout(() => {
+                  child.kill('SIGTERM');
+                  reject(
+                    new Error('Real refresh instance exceeded 120 seconds.')
+                  );
+                }, 120000);
+                child.on('exit', (code) => {
+                  clearTimeout(timeout);
+                  if (code !== 0)
+                    return reject(
+                      new Error(
+                        'A real refresh instance failed without exposing credentials.'
+                      )
+                    );
+                  try {
+                    const result = JSON.parse(stdout.trim()) as Record<
+                      string,
+                      unknown
+                    >;
+                    assert.equal(result.status, 'passed');
+                    assert(
+                      result.providerRefresh &&
+                        result.authenticatedPdsRead &&
+                        result.accessGenerationChanged
+                    );
+                    finish(result);
+                  } catch (error) {
+                    reject(error);
+                  }
+                });
+              });
+            }
+            const instances = await Promise.all([
+              refreshInstance(),
+              refreshInstance(),
+            ]);
+            assert.notEqual(instances[0].pid, instances[1].pid);
+            await checked(
+              'Two isolated processes force real provider refresh under distributed locks and read the authenticated PDS',
+              { instances, forcedRefresh: true, naturalExpiry: false }
+            );
+          }
+          await verifyNaturalProviderRefresh();
+          async function verifyNaturalProviderRefresh() {
+            if (refreshSeconds) {
+              assert(
+                process.env.ATPROTO_OAUTH_STORAGE_KEY,
+                'Real refresh proof requires the matching acceptance storage key.'
+              );
+              const { decryptOAuthValue } =
+                await import('../../../../lib/atproto/oauth-crypto');
+              const sessionRow =
+                await database.sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${digest(visitor)}`;
+              assert.equal(sessionRow.rows.length, 1);
+              const initialTokens = decryptOAuthValue<StoredSession>(
+                sessionRow.rows[0].encrypted_value as string,
+                process.env.ATPROTO_OAUTH_STORAGE_KEY
+              ).tokenSet;
+              assert.equal(initialTokens.sub, visitor);
+              assert(
+                initialTokens.expires_at && initialTokens.refresh_token,
+                'Provider must supply expiry and refresh credentials for this check.'
+              );
+              const initialAccessHash = digest(initialTokens.access_token);
+              const deadline = Date.now() + refreshSeconds * 1000;
+              let refreshed = false;
+              while (Date.now() < deadline) {
+                await new Promise((resolve) =>
+                  setTimeout(resolve, Math.min(55000, deadline - Date.now()))
+                );
+                const [first, second] = await Promise.all([status(), status()]);
+                assert(first.signedIn && second.signedIn);
+                const current =
+                  await database.sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${digest(visitor)}`;
+                if (current.rows.length === 1) {
+                  const tokens: StoredSession['tokenSet'] =
+                    decryptOAuthValue<StoredSession>(
+                      current.rows[0].encrypted_value as string,
+                      process.env.ATPROTO_OAUTH_STORAGE_KEY
+                    ).tokenSet;
+                  assert.equal(tokens.sub, visitor);
+                  assert.equal(tokens.iss, initialTokens.iss);
+                  assert.equal(tokens.aud, initialTokens.aud);
+                  if (
+                    tokens.expires_at &&
+                    tokens.expires_at > initialTokens.expires_at &&
+                    digest(tokens.access_token) !== initialAccessHash
+                  ) {
+                    refreshed = true;
+                    await checked(
+                      'Provider token expiry advances and the actual access token generation changes',
+                      {
+                        beforeExpiresAt: new Date(
+                          initialTokens.expires_at
+                        ).toISOString(),
+                        afterExpiresAt: new Date(
+                          tokens.expires_at
+                        ).toISOString(),
+                        refreshTokenRotated:
+                          tokens.refresh_token !== initialTokens.refresh_token,
+                      }
+                    );
+                    break;
+                  }
+                }
+              }
+              assert(
+                refreshed,
+                'No real provider refresh was observed during the bounded wait. Extend --refresh-wait-seconds without replacing provider data.'
+              );
+              await checked(
+                'Concurrent requests preserve a real naturally refreshed provider session'
+              );
+            }
 
-          console.log(
-            'Step 6: Sign out the primary browser and verify the second visitor remains signed in.'
-          );
-          const logout = await request(
-            '/api/atproto/logout',
-            'POST',
-            primaryCookie,
-            {}
-          );
-          assert.equal(logout.status, 200);
-          assert(
-            logout.headers
-              .getSetCookie()
-              .some(
-                (cookie) =>
-                  cookie.startsWith('atproto_session=') &&
-                  cookie.includes('Max-Age=0')
-              )
-          );
-          assert.equal((await status()).signedIn, false);
-          assert.equal((await status(secondCookie)).signedIn, true);
-          assert.equal(
-            (
-              await database.sql`SELECT token_hash FROM atproto_browser_sessions WHERE token_hash = ${digest(primaryCookie)}`
-            ).rows.length,
-            0
-          );
-          await checked('Sign-out revokes only the current browser session');
+            await verifyBrowserSessionExpiry();
+            async function verifyBrowserSessionExpiry() {}
+            const originalBrowser =
+              await database.sql`SELECT expires_at FROM atproto_browser_sessions WHERE token_hash = ${digest(primaryCookie)} AND did = ${visitor}`;
+            assert.equal(originalBrowser.rows.length, 1);
+            const expiryBrowser = await chromium.launch({ headless: true });
+            try {
+              const expiryContext = await expiryBrowser.newContext({
+                viewport: { width: 1440, height: 1000 },
+              });
+              await expiryContext.addCookies([primaryExport.browserCookie]);
+              const expiryPage = await expiryContext.newPage();
+              await expiryPage.goto(`${ORIGIN}/writings/${values.slug}`);
+              const recommendation = expiryPage.locator(
+                '[data-standard-social="recommendation"]'
+              );
+              await recommendation
+                .getByRole('button', { name: 'Recommend', exact: true })
+                .waitFor();
+              await captureSocialState(
+                expiryPage,
+                dirname(values.receipt!),
+                'browser-session-before-expiry'
+              );
+              await database.sql`UPDATE atproto_browser_sessions SET expires_at = NOW() - INTERVAL '1 second' WHERE token_hash = ${digest(primaryCookie)} AND did = ${visitor}`;
+              const expiredAction = expiryPage.waitForResponse(
+                (response) =>
+                  response.url() === `${ORIGIN}/api/atproto/recommendation` &&
+                  response.request().method() === 'PUT'
+              );
+              await recommendation
+                .getByRole('button', { name: 'Recommend', exact: true })
+                .click();
+              assert.equal((await expiredAction).status(), 401);
+              await expiryPage
+                .getByRole('dialog')
+                .waitFor({ state: 'visible' });
+              await expiryPage
+                .getByLabel('Your handle', { exact: true })
+                .waitFor();
+              assert.equal((await status()).signedIn, false);
+              await captureSocialState(
+                expiryPage,
+                dirname(values.receipt!),
+                'browser-session-expired-sign-in-recovery'
+              );
+              assert.equal(
+                (
+                  await request(
+                    '/api/atproto/subscription',
+                    'PUT',
+                    primaryCookie,
+                    {}
+                  )
+                ).status,
+                401
+              );
+              assert.equal((await subscriptions()).length, 0);
+              await checked(
+                'A genuinely issued browser session rejects reads/writes after its isolated deadline is moved into the past'
+              );
+            } finally {
+              try {
+                await database.sql`UPDATE atproto_browser_sessions SET expires_at = ${new Date(originalBrowser.rows[0].expires_at as string).toISOString()} WHERE token_hash = ${digest(primaryCookie)} AND did = ${visitor}`;
+              } finally {
+                await expiryBrowser.close();
+              }
+            }
+
+            await verifyBrowserSignOut();
+            async function verifyBrowserSignOut() {}
+            console.log(
+              'Step 6: Sign out the primary browser and verify the second visitor remains signed in.'
+            );
+            const logout = await request(
+              '/api/atproto/logout',
+              'POST',
+              primaryCookie,
+              {}
+            );
+            assert.equal(logout.status, 200);
+            assert(
+              logout.headers
+                .getSetCookie()
+                .some(
+                  (cookie) =>
+                    cookie.startsWith('atproto_session=') &&
+                    cookie.includes('Max-Age=0')
+                )
+            );
+            assert.equal((await status()).signedIn, false);
+            assert.equal((await status(secondCookie)).signedIn, true);
+            assert.equal(
+              (
+                await database.sql`SELECT token_hash FROM atproto_browser_sessions WHERE token_hash = ${digest(primaryCookie)}`
+              ).rows.length,
+              0
+            );
+            await checked('Sign-out revokes only the current browser session');
+          }
         } catch (error) {
           failure = error;
           receipt.error =
@@ -1150,25 +1230,31 @@ export async function runSocialTests() {
         console.log(
           'Step 7: Verify the primary visitor has no acceptance social records and the other visitor is unchanged.'
         );
-        try {
-          if ((await status()).signedIn) {
-            await undo('subscription');
-            await undo('recommendation');
+        await verifyVisitorCleanup();
+        async function verifyVisitorCleanup() {
+          try {
+            if ((await status()).signedIn) {
+              await undo('subscription');
+              await undo('recommendation');
+            }
+            assert.equal((await subscriptions()).length, 0);
+            assert.equal((await recommendations()).length, 0);
+            assert.deepEqual(
+              {
+                subscriptions: await subscriptions(secondVisitor, secondPds),
+                recommendations: await recommendations(
+                  secondVisitor,
+                  secondPds
+                ),
+              },
+              secondRecords
+            );
+            receipt.cleanup = 'passed';
+          } catch (error) {
+            receipt.cleanup = 'failed';
+            receipt.error = `${receipt.error ?? ''} Cleanup failed: ${error instanceof Error ? error.message : String(error)}`;
+            failure = error;
           }
-          assert.equal((await subscriptions()).length, 0);
-          assert.equal((await recommendations()).length, 0);
-          assert.deepEqual(
-            {
-              subscriptions: await subscriptions(secondVisitor, secondPds),
-              recommendations: await recommendations(secondVisitor, secondPds),
-            },
-            secondRecords
-          );
-          receipt.cleanup = 'passed';
-        } catch (error) {
-          receipt.cleanup = 'failed';
-          receipt.error = `${receipt.error ?? ''} Cleanup failed: ${error instanceof Error ? error.message : String(error)}`;
-          failure = error;
         }
         await save();
         if (failure) throw failure;

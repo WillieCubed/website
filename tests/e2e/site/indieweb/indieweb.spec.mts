@@ -10,7 +10,9 @@ import {
 import type { MicroformatRoot } from '../../../support/indieweb/microformats.mts';
 
 function rootOfType(items: MicroformatRoot[], type: string) {
-  return items.find((item) => item.type?.includes(type));
+  const root = items.find((item) => item.type?.includes(type));
+  expect(root, `${type} exists`).toBeDefined();
+  return root!;
 }
 
 test('the homepage exposes a parseable representative h-card and endpoints', async ({
@@ -37,13 +39,14 @@ test('the initiatives page exposes a parseable feed and author', async ({
     mf2(await response.text(), { baseUrl: `${site.origin}/initiatives` }).items,
     'h-feed'
   );
-  expect(feed?.properties.name).toContain('Initiatives');
-  expect(feed?.properties.url).toContain(`${site.origin}/initiatives`);
-  const author = feed?.properties.author?.[0] as MicroformatRoot | undefined;
-  expect(author?.type).toContain('h-card');
-  expect(author?.properties.name).toContain(site.author.name);
+  expect(feed.properties.name).toContain('Initiatives');
+  expect(feed.properties.url).toContain(`${site.origin}/initiatives`);
+  const author = feed.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author, 'feed author exists').toBeDefined();
+  expect(author!.type).toContain('h-card');
+  expect(author!.properties.name).toContain(site.author.name);
   // An empty feed is valid while every initiative is a draft.
-  for (const entry of feed?.children ?? []) {
+  for (const entry of feed.children ?? []) {
     expect(entry.type).toContain('h-entry');
     expect(entry.properties.url?.length).toBeGreaterThan(0);
   }
@@ -61,12 +64,13 @@ test('the writings page exposes a parseable feed and author', async ({
   // An entry streamed in after the shell lands outside the feed as a stray
   // top-level h-entry, and the feed then parses with none.
   expect(items.filter((item) => item.type?.includes('h-entry'))).toEqual([]);
-  expect(feed?.properties.name).toContain('Writings');
-  expect(feed?.properties.url).toContain(`${site.origin}/writings`);
-  const author = feed?.properties.author?.[0] as MicroformatRoot | undefined;
-  expect(author?.type).toContain('h-card');
-  expect(author?.properties.name).toContain(site.author.name);
-  for (const entry of feed?.children ?? []) {
+  expect(feed.properties.name).toContain('Writings');
+  expect(feed.properties.url).toContain(`${site.origin}/writings`);
+  const author = feed.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author, 'feed author exists').toBeDefined();
+  expect(author!.type).toContain('h-card');
+  expect(author!.properties.name).toContain(site.author.name);
+  for (const entry of feed.children ?? []) {
     expect(entry.type).toContain('h-entry');
     expect(entry.properties.url?.length).toBeGreaterThan(0);
   }
@@ -86,13 +90,14 @@ test('a tag page exposes a parseable feed of its entries', async ({
   });
   const feed = rootOfType(items, 'h-feed');
   expect(items.filter((item) => item.type?.includes('h-entry'))).toEqual([]);
-  expect(feed?.properties.name).toContain('note');
-  expect(feed?.properties.url).toContain(`${site.origin}${TAG_PATH}`);
-  const author = feed?.properties.author?.[0] as MicroformatRoot | undefined;
-  expect(author?.type).toContain('h-card');
-  expect(author?.properties.name).toContain(site.author.name);
-  expect(feed?.children?.length).toBeGreaterThan(0);
-  for (const entry of feed?.children ?? []) {
+  expect(feed.properties.name).toContain('note');
+  expect(feed.properties.url).toContain(`${site.origin}${TAG_PATH}`);
+  const author = feed.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author, 'feed author exists').toBeDefined();
+  expect(author!.type).toContain('h-card');
+  expect(author!.properties.name).toContain(site.author.name);
+  expect(feed.children?.length).toBeGreaterThan(0);
+  for (const entry of feed.children ?? []) {
     expect(entry.type).toContain('h-entry');
     expect(entry.properties.url?.length).toBeGreaterThan(0);
     expect(entry.properties.published?.length).toBeGreaterThan(0);
@@ -360,12 +365,13 @@ test('a published writing has a parseable author, permalink, date, and content',
     mf2(await response.text(), { baseUrl: `${site.origin}${postPath}` }).items,
     'h-entry'
   );
-  expect(entry?.properties.url).toContain(`${site.origin}${postPath}`);
-  expect(entry?.properties.published?.length).toBeGreaterThan(0);
-  expect(entry?.properties.content?.length).toBeGreaterThan(0);
-  const author = entry?.properties.author?.[0] as MicroformatRoot | undefined;
-  expect(author?.type).toContain('h-card');
-  expect(author?.properties.name).toContain(site.author.name);
+  expect(entry.properties.url).toContain(`${site.origin}${postPath}`);
+  expect(entry.properties.published?.length).toBeGreaterThan(0);
+  expect(entry.properties.content?.length).toBeGreaterThan(0);
+  const author = entry.properties.author?.[0] as MicroformatRoot | undefined;
+  expect(author, 'feed author exists').toBeDefined();
+  expect(author!.type).toContain('h-card');
+  expect(author!.properties.name).toContain(site.author.name);
   const feed = await request.get('/writings/feed/json');
   expect(feed.status()).toBe(200);
   const feedItem = (await feed.json()).items.find(

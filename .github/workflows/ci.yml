@@ -110,8 +110,17 @@ jobs:
 
           const build = JSON.parse(readFileSync('artifacts/cloudflare-build-metrics.json', 'utf8'));
           const preview = JSON.parse(readFileSync('artifacts/cloudflare-preview-metrics.json', 'utf8'));
+          const metricsGuide = [
+            process.env.GITHUB_SERVER_URL,
+            process.env.GITHUB_REPOSITORY,
+            'blob',
+            build.revision,
+            'docs/reference/operations/build-metrics.md',
+          ].join('/');
           const lines = [
             '## Cloudflare build metrics',
+            '',
+            `[Metric definitions and collection details](${metricsGuide})`,
             '',
             `- Revision: \`${build.revision}\``,
             `- Build time: ${(build.buildMs / 1000).toFixed(1)} s`,

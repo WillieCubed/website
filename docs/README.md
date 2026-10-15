@@ -94,6 +94,8 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
 
 ### Operations
 
+- [Build metrics](./reference/operations/build-metrics.md): definitions and
+  collection boundaries for the Cloudflare build and local browser measurements.
 - [Testing](./reference/operations/testing.md): suite boundaries and the checks appropriate to a change.
 
 - [Setup and deployment checks](./reference/operations/bootstrap.md): local setup, Cloudflare account and resource requirements, and current verification limits.

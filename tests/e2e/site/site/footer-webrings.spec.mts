@@ -116,8 +116,13 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
         page: box('body > .grow'),
         name: box('.site-footer__lockup'),
         pages: box('.site-footer__pages'),
+        rings: box('.site-webrings'),
+        label: box('.site-webrings__label'),
         panel: box('.site-webrings__controls'),
         row: box('.site-footer__row'),
+        targets: [...document.querySelectorAll('.site-webring__link')].map(
+          (e) => e.getBoundingClientRect().toJSON()
+        ),
         overflow: document.documentElement.scrollWidth > innerWidth,
       };
     });
@@ -127,12 +132,29 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
     expect(bounds.page.right).toBeCloseTo(bounds.row.right, 0);
     expect(bounds.panel.bottom).toBeLessThan(bounds.row.top);
     if (width < 600) {
-      expect(bounds.panel.left + bounds.panel.width / 2).toBeCloseTo(
-        bounds.row.left + bounds.row.width / 2,
+      expect(bounds.rings.left).toBeCloseTo(bounds.row.left, 0);
+      expect(bounds.rings.width).toBeCloseTo(
+        Math.min(480, bounds.row.width),
         0
       );
-      expect(bounds.panel.width).toBeLessThanOrEqual(bounds.row.width);
+      expect(bounds.label.right).toBeLessThan(bounds.panel.left);
+      expect(bounds.label.top + bounds.label.height / 2).toBeCloseTo(
+        bounds.panel.top + bounds.panel.height / 2,
+        0
+      );
+      expect(bounds.panel.right).toBeLessThanOrEqual(bounds.rings.right);
       expect(bounds.panel.top).toBeGreaterThan(bounds.pages.bottom);
+      for (const [index, target] of bounds.targets.entries()) {
+        expect(target.width).toBe(32);
+        expect(target.height).toBe(32);
+        expect(target.left).toBeGreaterThanOrEqual(bounds.panel.left);
+        expect(target.right).toBeLessThanOrEqual(bounds.panel.right);
+        if (index > 0) {
+          expect(target.left).toBeGreaterThanOrEqual(
+            bounds.targets[index - 1].right
+          );
+        }
+      }
     } else {
       expect(bounds.panel.right).toBeCloseTo(bounds.row.right, 0);
       expect(bounds.pages.right).toBeLessThan(bounds.panel.left);

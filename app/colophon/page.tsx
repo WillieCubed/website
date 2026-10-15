@@ -46,10 +46,16 @@ export default function ColophonPage() {
         <section className="colophon-intro" aria-labelledby="colophon-title">
           <div className="colophon-welcome">
             <h1 id="colophon-title">Colophon</h1>
-            <p>
-              Designed and built by{' '}
-              <SiteLink href="/">Willie Chalmers III</SiteLink>.
-            </p>
+            <div className="colophon-intro-copy">
+              <p>
+                This site brings my writing, software, music, and organizing
+                together under one address.
+              </p>
+              <p className="colophon-byline">
+                Designed and built by{' '}
+                <SiteLink href="/">Willie Chalmers III</SiteLink>.
+              </p>
+            </div>
           </div>
           <div className="colophon-illustration" aria-hidden="true">
             <span className="colophon-illustration-letters">Aa</span>
@@ -105,7 +111,7 @@ export default function ColophonPage() {
             </p>
           </section>
           <section className="colophon-credits" aria-labelledby="credits-title">
-            <h2 id="credits-title">Source and credits</h2>
+            <h2 id="credits-title">Credits</h2>
             <p>
               The source is on{' '}
               <SiteLink href="https://github.com/WillieCubed/website">

@@ -105,8 +105,30 @@
   }
 }
 @container (max-width: 320px) {
-  .site-footer__profiles {
+  .site-footer:not([data-dock]) .site-footer__profiles {
     gap: 8px;
+    flex-wrap: wrap;
+  }
+  .site-footer:not([data-dock]) .site-footer__profiles a {
+    padding-inline: 4px;
+  }
+  .site-footer:not([data-dock]) .site-footer__row:has(.microstatus) {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas:
+      'profiles profiles'
+      'microstatus feeds';
+    row-gap: 8px;
+  }
+  .site-footer:not([data-dock]) .site-footer__profiles {
+    grid-area: profiles;
+  }
+  .site-footer:not([data-dock]) .microstatus {
+    grid-area: microstatus;
+    justify-self: start;
+    min-width: 24px;
+  }
+  .site-footer:not([data-dock]) .feeds-button {
+    grid-area: feeds;
   }
 }
 /* The footer carries the column its page's top bar registered. The :has() rules are only the first paint's

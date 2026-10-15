@@ -824,6 +824,41 @@ test('the palette opens a playlist and keyboard focus remains inside it', async 
   ).toBeFocused();
 });
 
+test('a palette result outside the current series uses the All playlists sequence and history', async ({
+  page,
+}) => {
+  await page
+    .getByRole('navigation', { name: 'Playlist series' })
+    .getByRole('link', { name: 'Fall Tour' })
+    .click();
+  await expect(
+    page.getByRole('link', { name: 'Open Summer 2026', exact: true })
+  ).toHaveCount(0);
+  await page.locator('header[data-column] .palette-trigger').click();
+  await page
+    .getByRole('combobox', { name: 'Search the site or type a command' })
+    .fill('Summer 2026');
+  await page.getByRole('option', { name: /Summer 2026/ }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Summer 2026', exact: true })
+  ).toBeVisible();
+  await expect(page).toHaveURL(`${route}?detail=summer`);
+  await page
+    .getByRole('button', { name: 'Next playlist', exact: true })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Fall Tour 2026, Part 2', exact: true })
+  ).toBeVisible();
+  await expect(page).toHaveURL(`${route}?detail=fall-2`);
+  await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
+  await expect(page).toHaveURL(route);
+  await expect(
+    page.getByRole('link', { name: 'Open Summer 2026', exact: true })
+  ).toBeFocused();
+  await page.goBack();
+  await expect(page).toHaveURL(`${route}?series=fall-tour`);
+});
+
 test('dragging changes the authored order without changing the live gallery', async ({
   page,
   isMobile,

@@ -1,17 +1,14 @@
 import type {} from '@atcute/atproto';
 import assert from 'node:assert/strict';
 
-import type { OwnedBrowser } from './types.mts';
+import type { CaptureLedger } from './ledger.mts';
+import type { CaptureGraphReader, OwnedBrowser } from './types.mts';
 
 interface Context {
   lock?: <T>(key: string, operation: () => Promise<T>) => Promise<T>;
   settings: Record<string, string>;
-  graphFor: (
-    did: string,
-    action?: 'subscription' | 'recommendation',
-    targetOnly?: boolean
-  ) => Promise<{ uri: string; cid: string; value: Record<string, unknown> }[]>;
-  journalOwnership: () => Promise<void>;
+  graphFor: CaptureGraphReader;
+  ledger: CaptureLedger;
 }
 
 export async function settleUiMutation(
@@ -71,6 +68,5 @@ export async function settleUiMutation(
       }
     }
   );
-  intent.quiescedAt = new Date().toISOString();
-  await dependencies.journalOwnership();
+  await dependencies.ledger.markMutationQuiesced(owner.sessionHash);
 }

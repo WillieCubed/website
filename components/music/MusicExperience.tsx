@@ -26,6 +26,7 @@ import {
 
 import MusicChrome from './MusicChrome';
 import MusicCollectionHeader from './MusicCollectionHeader';
+import type { MusicCoverProps } from './MusicCover';
 import MusicDetail from './MusicDetail';
 import MusicExperienceFrame from './MusicExperienceFrame';
 import MusicGallery, {
@@ -58,7 +59,7 @@ export interface MusicExperienceProps {
   initialCatalog: Catalog;
   mode?: MusicMode;
   validCatalog?: (value: unknown) => value is Catalog;
-  Cover?: ComponentType<{ playlist: PlaylistView }>;
+  Cover?: ComponentType<MusicCoverProps>;
   onChange?: (catalog: Catalog) => void;
   onPublish?: (reviewed: Catalog) => Promise<void>;
   saveStatus?: string;
@@ -168,16 +169,14 @@ export default function MusicExperience({
       ),
   });
   useMusicPaletteNavigation({
-    mode,
-    setup: setup.isOpen,
-    catalog,
-    editing,
-    playlists,
-    displayed,
-    revealAll: () => {
-      setSeriesId(null);
-      clearFilter();
-    },
+    enabled: !setup.isOpen,
+    playlists: catalog.order.flatMap((id) => {
+      const playlist = playlists.find((item) => item.id === id);
+      return playlist && (editing || catalog.selected.includes(id))
+        ? [playlist]
+        : [];
+    }),
+    onOpenPlaylist: openPalettePlaylist,
   });
   const current = playlists.find((item) => item.id === navigation.focused);
   const changed =
@@ -200,6 +199,26 @@ export default function MusicExperience({
     const id = `series-${crypto.randomUUID()}`;
     changeCatalog(appendCatalogSeries(draft, id, title));
     navigation.chooseSeries(id);
+  }
+  function openPalettePlaylist(id: string) {
+    const revealAll = !displayed.includes(id);
+    const destination = {
+      seriesId: revealAll ? null : seriesId,
+      playlistIds: revealAll
+        ? gallerySelection(catalog, mode, editing, null, 'all').displayed
+        : displayed,
+    };
+    if (revealAll) {
+      flushSync(() => {
+        clearFilter();
+        navigation.chooseSeries(null);
+      });
+    }
+    const source = gallery.current?.querySelector<HTMLElement>(
+      `[data-playlist="${id}"] .mp-card-open`
+    );
+    source?.scrollIntoView({ behavior: 'instant', block: 'center' });
+    navigation.openPlaylist(id, source ?? undefined, destination);
   }
   function changeCatalog(next: Catalog) {
     catalogDocument.commit(next);

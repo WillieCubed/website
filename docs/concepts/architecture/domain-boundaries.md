@@ -105,13 +105,19 @@ to a view must not reset a mounted editor or a native file draft when the user
 opens a preview, visits a task, or moves through setup. Selection and the return
 from a task stay with the common owner that coordinates those transitions.
 
-Studio composes `useWritingDocument`, editor and navigation behavior, and
-publication directly where those workflows meet. The document owns the draft,
-autosave, and recovery; the writing canvas owns media selection, uploads, and
-geometry tied to its rendered editor. Tasks own revision history, while
-publication keeps its retry bookkeeping private. These boundaries let a panel
-manage its own interaction without shortening the lifetime of the writing it
-edits.
+Studio composes document persistence, editor navigation, and publication where
+those workflows meet. The document keeps save refs, recovery storage, and head
+verification private; views request edits, recovery, or a verified saved revision.
+Navigation owns task and preview modes, selection, focus, and scroll. Publication
+prepares review data and reports success before navigation opens it. Neither hook
+mutates the other's presentation state.
+
+The persistent canvas composes image/link forms, selection controls, and insertion
+choices. Forms own their drafts and uploads; selection controls own their placement.
+Hiding the canvas for a task or preview retains those owners and the native file
+input. One catalog owner refreshes widget entries and supplies the stable read
+capability used by the editor. Tasks report approval or restoration instead of
+coordinating catalog refs, list setters, or editor/body replacement protocols.
 
 Music's admin controller composes draft persistence and recovery, library
 imports, revision history, and publication tracking. The draft owner keeps
@@ -123,13 +129,18 @@ text editing, and its review dialog owns its DOM and focus lifecycle. Their
 common owner coordinates opening across siblings so those local interactions
 share one consistent view of which surface is open. Playlist navigation keeps
 URL history, modal focus, and motion together. Cards receive prepared playlist
-and series previews rather than the complete library and catalog.
+and series previews rather than the complete library and catalog. Each admin
+operation owns its errors; successful publication polling cannot clear a failed
+save or history request. Palette commands request playlist opening through the
+same navigation owner as links, with an explicit destination collection.
 
 Status follows the same distinction between editing and access. `LocationEditor`
 calls its editor hook locally, keeping location fields and save behavior with
 the form. The access root controls the authentication view; an explicit
 access-expiry callback lets the editor report lost access without giving that
-root ownership of the form.
+root ownership of the form. Public status refresh owns the last available
+snapshot; expanded clock and weather views own timezone, temperature units, and
+animation. Compact views do not create those detail-only interactions.
 
 Keep hook interfaces cohesive. A catalog document exposes edits to its live and
 draft values; prototype storage reports readiness and storage errors; a modal
@@ -206,7 +217,10 @@ Name component contracts with the domain types they represent, such as `Part`,
 `Initiative`, `Draft[]`, or `WritingDocument`. A collection response, stored
 record, publication result, or controller has one contract owned by the module
 that defines its meaning. Producers declare that contract; consumers import it
-instead of calculating it from a loader or hook implementation. Use focused
+instead of calculating it from a loader or hook implementation. Declare named
+props interfaces and records instead of inline object type definitions or utility
+fragments in parameter contracts. Compare numeric counts explicitly, such as
+`items.length > 0`, rather than treating a count as a boolean. Use focused
 view props and action capabilities rather than passing an entire controller to
 a panel that needs only a few fields.
 

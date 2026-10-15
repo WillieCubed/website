@@ -1,4 +1,4 @@
-import { parse } from '@babel/parser';
+import { type ParseResult, parse } from '@babel/parser';
 import { randomUUID } from 'node:crypto';
 import sanitizeHtml from 'sanitize-html';
 import { transform } from 'sucrase';
@@ -120,7 +120,17 @@ function validateImports(program: object): void {
 function isSyntaxNode(value: unknown): value is object {
   return !!value && typeof value === 'object' && 'type' in value;
 }
-type SyntaxNode = { type?: string; [key: string]: unknown };
+interface SyntaxNode {
+  type?: string;
+  [key: string]: unknown;
+}
+interface ImportSource {
+  value: string;
+}
+interface ImportCallee {
+  type?: string;
+  name?: string;
+}
 function isUnsupportedImport(node: SyntaxNode): boolean {
   if (
     ![
@@ -132,15 +142,12 @@ function isUnsupportedImport(node: SyntaxNode): boolean {
     return false;
   if (!node.source || node.importKind === 'type' || node.exportKind === 'type')
     return false;
-  return !Object.hasOwn(
-    runtimeModules,
-    (node.source as { value: string }).value
-  );
+  return !Object.hasOwn(runtimeModules, (node.source as ImportSource).value);
 }
 function isDynamicImport(node: SyntaxNode): boolean {
   if (node.type === 'ImportExpression') return true;
   if (node.type !== 'CallExpression') return false;
-  const callee = node.callee as { type?: string; name?: string } | undefined;
+  const callee = node.callee as ImportCallee | undefined;
   return (
     callee?.type === 'Import' ||
     (callee?.type === 'Identifier' && callee.name === 'require')
@@ -151,7 +158,7 @@ export async function compileSandbox(
   proposal: ComponentProposal,
   props: Record<string, unknown> = proposal.example
 ): Promise<string> {
-  let parsed: ReturnType<typeof parse>;
+  let parsed: ParseResult;
   try {
     parsed = parse(proposal.source, {
       sourceType: 'module',

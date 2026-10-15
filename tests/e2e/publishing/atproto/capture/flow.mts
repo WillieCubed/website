@@ -22,9 +22,11 @@ import {
   captureSocialLoading,
   captureSocialState,
 } from '../../../../support/publishing/social-browser.mts';
+import type { CaptureLedger } from './ledger.mts';
 import { captureSourceManifest } from './sources.mts';
 import type {
   AuthorizationBaseline,
+  CaptureGraphReader,
   CaptureOptions,
   CapturedFlow,
   LocalVerifier,
@@ -33,16 +35,11 @@ import type {
 } from './types.mts';
 
 interface Context {
-  first: BrowserContext;
   resolveHandle: (handle: string) => Promise<string>;
   ownedIdentities: AcceptanceIdentities | undefined;
   db: PostgresPool;
   hash: (value: string) => string;
-  graphFor: (
-    did: string,
-    action?: 'subscription' | 'recommendation',
-    targetOnly?: boolean
-  ) => Promise<{ uri: string; cid: string; value: Record<string, unknown> }[]>;
+  graphFor: CaptureGraphReader;
   ORIGIN: string;
   values: CaptureOptions;
   authorizationOnly: boolean;
@@ -52,18 +49,8 @@ interface Context {
   settings: Record<string, string>;
   existingOnly: boolean;
   authorizationBaseline: AuthorizationBaseline | undefined;
-  authorizationStates: {
-    key: string;
-    did: string;
-    encryptedHash: string;
-    flowHash: string;
-  }[];
+  ledger: CaptureLedger;
   publicDpopHash: (key: StoredState['dpopKey']) => string;
-  pendingGrants: PendingGrant[];
-  journalPendingGrants: () => Promise<void>;
-  ownership: OwnedBrowser[];
-  browserTokens: Map<string, string>;
-  journalOwnership: () => Promise<void>;
   authorizeOwnedProvider: (
     page: Page,
     identity: ProvisionedAccount,
@@ -72,10 +59,20 @@ interface Context {
   ) => Promise<void>;
   assertGrantBinding: (intent: PendingGrant, stored: StoredSession) => void;
   recoverPendingGrant: (intent: PendingGrant) => Promise<void>;
-  deliveryFailureObserved: boolean;
   authorizationRevision: string;
   localVerifier: LocalVerifier | undefined;
-  deliveryWithheld: Error;
+}
+
+/** The real callback completed, but its browser delivery was deliberately withheld. */
+export class CallbackDeliveryWithheld extends Error {}
+
+interface CallbackResponse {
+  status(): number;
+  headersArray(): Promise<CallbackHeader[]>;
+}
+interface CallbackHeader {
+  name: string;
+  value: string;
 }
 
 interface ProviderCallbackOutcome {
@@ -84,7 +81,7 @@ interface ProviderCallbackOutcome {
 }
 
 export async function flow(
-  dependencies: Context,
+  dependencies: Readonly<Context>,
   context: BrowserContext,
   handle: string,
   expectation: 'grant' | 'cancel' | 'expired',
@@ -110,11 +107,8 @@ export async function flow(
   const { login, loginPayload } = await beginLogin();
   const { flowCookie, own, issuedStateHash, issuedState, url } =
     await bindIssuedState();
-  const pendingGrant = await journalPendingGrant();
-  async function rememberCallback(response: {
-    status(): number;
-    headersArray(): Promise<{ name: string; value: string }[]>;
-  }) {
+  let pendingGrant = await journalPendingGrant();
+  async function rememberCallback(response: CallbackResponse) {
     if (!pendingGrant) return;
     const header = (await response.headersArray()).find(
       (entry) =>
@@ -128,16 +122,11 @@ export async function flow(
         'A completed grant callback must return its real session cookie.'
       );
       assert.equal(response.status(), 303);
-      await dependencies.save(`pending-callback-${issuedStateHash}.json`, {
-        setCookie: header,
-        callbackCompleted: true,
-        stateHash: issuedStateHash,
+      pendingGrant = await dependencies.ledger.recordCallback(issuedStateHash, {
+        setCookie: header!,
         actualStatus: response.status(),
       });
-      pendingGrant.responseSessionHash = dependencies.hash(token);
     }
-    pendingGrant.callbackCompleted = true;
-    await dependencies.journalPendingGrants();
   }
   if (automatedIdentity) {
     assert(ownedIdentities);
@@ -186,9 +175,11 @@ export async function flow(
     if (
       currentSession &&
       currentSession !== existingSession &&
-      !dependencies.ownership.some(
-        (entry) => entry.sessionHash === dependencies.hash(currentSession)
-      )
+      !dependencies.ledger
+        .browsers()
+        .some(
+          (entry) => entry.sessionHash === dependencies.hash(currentSession)
+        )
     ) {
       const owned: OwnedBrowser = {
         did: visitor,
@@ -198,11 +189,9 @@ export async function flow(
         inventoryComplete: false,
         records: [],
       };
-      dependencies.ownership.push(owned);
-      dependencies.browserTokens.set(owned.sessionHash, currentSession);
-      await dependencies.journalOwnership();
+      await dependencies.ledger.beginInventory(owned, currentSession);
       const records = await dependencies.graphFor(visitor, action);
-      owned.records = records
+      const ownedRecords = records
         .filter(
           (record) => !beforeRecords.some((before) => before.uri === record.uri)
         )
@@ -214,8 +203,10 @@ export async function flow(
             action === 'subscription' ? 'publication' : 'document'
           ] as string,
         }));
-      owned.inventoryComplete = true;
-      await dependencies.journalOwnership();
+      await dependencies.ledger.completeInventory(
+        owned.sessionHash,
+        ownedRecords
+      );
     }
     return currentSession;
   }
@@ -423,16 +414,12 @@ export async function flow(
           (row) => row.key === issuedStateHash
         )
       );
-      dependencies.authorizationStates.push({
+      await dependencies.ledger.recordIssuedState({
         key: issuedStateHash,
         did: visitor,
         encryptedHash: dependencies.hash(own[0].encrypted_value as string),
         flowHash: dependencies.hash(flowCookie),
       });
-      await dependencies.save(
-        'authorization-states.json',
-        dependencies.authorizationStates
-      );
     }
     const cookieDeadline = Date.now() + 5000;
     while (
@@ -553,7 +540,7 @@ export async function flow(
         wrongBrowserRejected = true;
       }
     } catch (error) {
-      if (error !== dependencies.deliveryWithheld)
+      if (!(error instanceof CallbackDeliveryWithheld))
         await dependencies.recordOperationFailure(error).catch(() => {});
       throw error;
     }
@@ -671,7 +658,6 @@ export async function flow(
       dependencies.values.output!,
       'callback-delivery-withheld'
     );
-    dependencies.deliveryFailureObserved = true;
     await dependencies.save('cookie-delivery-receipt.json', {
       status: 'observed',
       scope: 'real-callback-browser-delivery-failure',
@@ -691,7 +677,9 @@ export async function flow(
       browserRowBoundToActualResponse: true,
       actualSubscriptionPresent: true,
     });
-    throw dependencies.deliveryWithheld;
+    throw new CallbackDeliveryWithheld(
+      'The real callback response was withheld.'
+    );
   }
   async function proveCallback(
     { response, wrongBrowserRejected }: ProviderCallbackOutcome,
@@ -835,19 +823,20 @@ export async function flow(
                 ],
             }))
           : [];
-      const owner = dependencies.ownership.find(
-        (entry) =>
-          entry.sessionHash ===
-          (currentSession ? dependencies.hash(currentSession) : undefined)
-      );
+      const owner = dependencies.ledger
+        .browsers()
+        .find(
+          (entry) =>
+            entry.sessionHash ===
+            (currentSession ? dependencies.hash(currentSession) : undefined)
+        );
       if (owner && expectation === 'grant') {
-        owner.records = ownedSocialRecords.map((record) => ({
+        const records = ownedSocialRecords.map((record) => ({
           ...record,
           kind: action,
           target: record.target as string,
         }));
-        owner.inventoryComplete = true;
-        await dependencies.journalOwnership();
+        await dependencies.ledger.completeInventory(owner.sessionHash, records);
       }
       if (expectation !== 'grant')
         assert.deepEqual(
@@ -948,9 +937,8 @@ export async function flow(
         ).rows.map((row) => row.token_hash as string),
         priorGrantKeys: existingGrant.rows.map((row) => row.key_hash as string),
       };
-      dependencies.pendingGrants.push(pendingGrant);
       // The SDK carries this exact DPoP key from state into its stored grant.
-      await dependencies.journalPendingGrants();
+      pendingGrant = await dependencies.ledger.beginGrant(pendingGrant);
     }
 
     return pendingGrant;

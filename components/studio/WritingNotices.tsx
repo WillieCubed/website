@@ -1,49 +1,29 @@
 'use client';
-import type { Editor } from '@tiptap/react';
 
 import Button from '@/components/site/Button';
 
-import type { DraftContent } from '@/lib/studio/types';
+interface WritingNoticesProps {
+  conflict: boolean;
+  recovery: boolean;
+  onRecover: () => void;
+  onDiscard: () => void;
+  onRebase: () => Promise<void>;
+}
 
 export default function WritingNotices({
   conflict,
   recovery,
-  setRecovery,
-  recoveryKey,
-  update,
-  editor,
-  reloadHead,
-}: {
-  conflict: boolean;
-  recovery: DraftContent | null;
-  setRecovery: (body: DraftContent | null) => void;
-  recoveryKey: string;
-  update: (body: DraftContent) => void;
-  editor: Editor | null;
-  reloadHead: () => Promise<void>;
-}) {
+  onRecover,
+  onDiscard,
+  onRebase,
+}: WritingNoticesProps) {
   return (
     <>
       {recovery && (
         <section className="studio-notice" aria-label="Recovered writing">
           <p>There are unsaved changes from your last visit.</p>
-          <Button
-            onClick={() => {
-              editor?.commands.setContent(recovery.document);
-              update(recovery);
-              setRecovery(null);
-            }}
-          >
-            Recover changes
-          </Button>
-          <Button
-            onClick={() => {
-              sessionStorage.removeItem(recoveryKey);
-              setRecovery(null);
-            }}
-          >
-            Keep saved revision
-          </Button>
+          <Button onClick={onRecover}>Recover changes</Button>
+          <Button onClick={onDiscard}>Keep saved revision</Button>
         </section>
       )}
       {conflict && (
@@ -52,7 +32,7 @@ export default function WritingNotices({
             A newer revision exists. Your writing is still here. Load its
             revision number before explicitly saving your retained changes.
           </p>
-          <Button onClick={reloadHead}>
+          <Button onClick={onRebase}>
             Keep my changes against latest revision
           </Button>
         </section>

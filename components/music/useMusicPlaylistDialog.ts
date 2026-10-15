@@ -29,6 +29,10 @@ type Options = {
   seriesId: string | null;
   setSeriesId: (id: string | null) => void;
 };
+interface PlaylistDestination {
+  seriesId: string | null;
+  playlistIds: string[];
+}
 export function useMusicPlaylistDialog({
   catalog,
   mode,
@@ -96,11 +100,17 @@ export function useMusicPlaylistDialog({
     history.pushState(null, '', musicHref(id, null, mode));
   }
 
-  function openPlaylist(id: string, source?: HTMLElement) {
+  function openPlaylist(
+    id: string,
+    source: HTMLElement | null = null,
+    destination?: PlaylistDestination
+  ) {
+    const target = destination ?? { seriesId, playlistIds: displayed };
     cancelMotion.current?.();
-    if (source) returnFocus.current = source;
     const alreadyOpen = !!dialog.current?.open;
-    if (!alreadyOpen) focusSequence.current = [...displayed];
+    if (!alreadyOpen) returnFocus.current = source;
+    if (!alreadyOpen || destination)
+      focusSequence.current = [...target.playlistIds];
     const before = alreadyOpen ? focusParts() : cardParts(source);
     cancelMotion.current = playlistMotion(
       () => {
@@ -122,9 +132,9 @@ export function useMusicPlaylistDialog({
           dialog.current?.querySelector<HTMLElement>('.mp-detail-scroll');
         if (scroller) scroller.scrollTop = 0;
         if (alreadyOpen)
-          history.replaceState(null, '', musicHref(seriesId, id, mode));
+          history.replaceState(null, '', musicHref(target.seriesId, id, mode));
         else {
-          history.pushState(null, '', musicHref(seriesId, id, mode));
+          history.pushState(null, '', musicHref(target.seriesId, id, mode));
           ownDetailEntry.current = true;
         }
       },

@@ -1,8 +1,39 @@
 'use client';
+import type { ReactNode } from 'react';
+
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
 import type { MusicPublication } from '@/lib/music/types';
+
+interface MusicOperationNoticeProps {
+  error: string;
+  onDismiss: () => void;
+  children?: ReactNode;
+}
+
+export function MusicOperationNotice({
+  error,
+  onDismiss,
+  children,
+}: MusicOperationNoticeProps) {
+  if (error.length === 0) return null;
+  return (
+    <div className="music-admin-notice" role="alert">
+      <p>{error}</p>
+      <div className="music-admin-notice__actions">
+        {children}
+        <button
+          className="music-admin-notice__close"
+          aria-label="Dismiss message"
+          onClick={onDismiss}
+        >
+          <Icon name="x" size={18} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 interface SaveNoticeProps {
   error: string;
@@ -25,7 +56,7 @@ export function MusicSaveNotice({
   onDismiss,
 }: SaveNoticeProps) {
   return (
-    error && (
+    error.length > 0 && (
       <div className="music-admin-notice" role="alert">
         <p>{error}</p>
         <div className="music-admin-notice__actions">
@@ -105,7 +136,7 @@ export function MusicPublicationNotice({
   onDismiss,
 }: PublicationNoticeProps) {
   return (
-    publication &&
+    publication !== null &&
     visible && (
       <div className="music-admin-notice" role="status">
         <p>{publicationStatusMessage(publication)}</p>

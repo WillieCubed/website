@@ -124,3 +124,38 @@ test('native body HTML excludes document styles, scripts and executable imported
   assert.match(html, /Readable \*\*prose\*\*/);
   assert.doesNotMatch(html, /<(?:style|script|meta|link)\b|<[^>]+\sonerror=/i);
 });
+
+test('generated preview preserves the instance alternative and falls back only for legacy absence', async () => {
+  const proposal: ComponentProposal = {
+    id: 'generated',
+    version: '1.0.0',
+    name: 'Counter',
+    description: 'Counter',
+    source: 'export default function Counter(){return <p>5</p>}',
+    properties: {},
+    example: {},
+    portableHtml: '<p>Counter starts at zero.</p>',
+    portableText: 'Counter starts at zero.',
+    accessibility: 'Text',
+    status: 'approved',
+  };
+  for (const [alternative, expected] of [
+    [undefined, 'Counter starts at zero.'],
+    ['The counter currently shows five.', 'The counter currently shows five.'],
+    ['', ''],
+  ] as const) {
+    const attrs = {
+      id: 'generated',
+      version: '1.0.0',
+      props: {},
+      ...(alternative === undefined ? {} : { portable: alternative }),
+    };
+    const html = await websitePreviewBody(
+      body({ type: 'catalogBlock', attrs }),
+      'instance-alternative',
+      async () => proposal
+    );
+    const caption = html.match(/<figcaption[^>]*><p[^>]*>(.*?)<\/p>/)?.[1];
+    assert.equal(caption, expected);
+  }
+});

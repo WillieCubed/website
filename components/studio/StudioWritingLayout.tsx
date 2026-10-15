@@ -1,6 +1,16 @@
 import type { ComponentPropsWithRef, ReactNode } from 'react';
 
 /** The document's geometry belongs here, regardless of data readiness. */
+interface StudioWritingLayoutProps {
+  heading: ReactNode;
+  metadata: ReactNode;
+  controls: ReactNode;
+  children: ReactNode;
+  compact?: boolean;
+  pending?: boolean;
+  hidden?: boolean;
+}
+
 export default function StudioWritingLayout({
   heading,
   metadata,
@@ -9,15 +19,7 @@ export default function StudioWritingLayout({
   compact = false,
   pending = false,
   hidden = false,
-}: {
-  heading: ReactNode;
-  metadata: ReactNode;
-  controls: ReactNode;
-  children: ReactNode;
-  compact?: boolean;
-  pending?: boolean;
-  hidden?: boolean;
-}) {
+}: StudioWritingLayoutProps) {
   return (
     <>
       <header
@@ -42,7 +44,11 @@ export default function StudioWritingLayout({
   );
 }
 
-export function StudioHeadingFields({ children }: { children: ReactNode }) {
+interface StudioHeadingFieldsProps {
+  children: ReactNode;
+}
+
+export function StudioHeadingFields({ children }: StudioHeadingFieldsProps) {
   return <div className="studio-heading-fields">{children}</div>;
 }
 

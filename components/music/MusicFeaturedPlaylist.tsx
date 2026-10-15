@@ -7,6 +7,7 @@ import { isPlainClick } from '@/lib/dom/click';
 import { type PlaylistView, listeningTime } from '@/lib/music/presentation';
 import type { MusicTrack } from '@/lib/music/types';
 
+import type { MusicCoverProps } from './MusicCover';
 import type { MusicSeriesPreview } from './music-gallery';
 
 interface FeaturedPlaylistProps {
@@ -14,7 +15,7 @@ interface FeaturedPlaylistProps {
   playlist: PlaylistView;
   note: string | undefined;
   memberships: MusicSeriesPreview[];
-  Cover: ComponentType<{ playlist: PlaylistView }>;
+  Cover: ComponentType<MusicCoverProps>;
   openPlaylist: (id: string, source?: HTMLElement) => void;
 }
 
@@ -68,7 +69,11 @@ export default function MusicFeaturedPlaylist({
   );
 }
 
-function OpeningTracks({ tracks }: { tracks: MusicTrack[] }) {
+interface OpeningTracksProps {
+  tracks: MusicTrack[];
+}
+
+function OpeningTracks({ tracks }: OpeningTracksProps) {
   return (
     <ol className="mp-feature-tracks" aria-label="Opening tracks">
       {tracks.slice(0, 3).map((track, index) => (
@@ -92,7 +97,7 @@ function OpeningTracks({ tracks }: { tracks: MusicTrack[] }) {
 interface SeriesPreviewProps {
   href: (id: string) => string;
   series: MusicSeriesPreview;
-  Cover: ComponentType<{ playlist: PlaylistView }>;
+  Cover: ComponentType<MusicCoverProps>;
   openPlaylist: (id: string, source?: HTMLElement) => void;
 }
 function SeriesPreview({

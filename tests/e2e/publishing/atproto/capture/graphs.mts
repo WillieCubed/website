@@ -9,7 +9,7 @@ interface Context {
 }
 
 export async function graphFor(
-  dependencies: Context,
+  dependencies: Readonly<Context>,
   did: string,
   action: 'subscription' | 'recommendation' = 'subscription',
   targetOnly = true

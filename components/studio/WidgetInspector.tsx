@@ -18,19 +18,21 @@ import { StudioInspectorHostContext } from './StudioInspectorHost';
 import { StudioSaveContext } from './StudioSaveContext';
 
 /** Keep authoring controls outside the document and its reader-facing widget. */
+interface WidgetInspectorProps {
+  id: string;
+  name: string;
+  onDismiss: () => void;
+  onRemove: () => void;
+  children: ReactNode;
+}
+
 export default function WidgetInspector({
   id,
   name,
   onDismiss: onDismissed,
   onRemove,
   children,
-}: {
-  id: string;
-  name: string;
-  onDismiss: () => void;
-  onRemove: () => void;
-  children: ReactNode;
-}) {
+}: WidgetInspectorProps) {
   const status = useContext(StudioSaveContext);
   const host = useContext(StudioInspectorHostContext);
   const dialog = useRef<HTMLDialogElement>(null);

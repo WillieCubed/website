@@ -5,6 +5,20 @@ import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { type AnchorBounds, positionPopover } from './popover-position';
 import './site.css';
 
+interface PopoverProps {
+  label: string;
+  current?: boolean;
+  trigger: ReactNode;
+  children: ReactNode;
+  triggerClassName: string;
+  panelClassName: string;
+  align?: 'start' | 'end';
+  placement?: 'default' | 'breadcrumb';
+  width?: number;
+  disabled?: boolean;
+  anchorRect?: () => AnchorBounds | null;
+}
+
 export default function Popover({
   label,
   current = false,
@@ -17,19 +31,7 @@ export default function Popover({
   width: preferredWidth = 240,
   disabled = false,
   anchorRect,
-}: {
-  label: string;
-  current?: boolean;
-  trigger: ReactNode;
-  children: ReactNode;
-  triggerClassName: string;
-  panelClassName: string;
-  align?: 'start' | 'end';
-  placement?: 'default' | 'breadcrumb';
-  width?: number;
-  disabled?: boolean;
-  anchorRect?: () => AnchorBounds | null;
-}) {
+}: PopoverProps) {
   const id = useId();
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);

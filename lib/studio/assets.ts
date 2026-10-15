@@ -6,7 +6,7 @@ import { MEDIA_TYPES } from '@/lib/indieweb/media';
 
 import { StudioError } from './errors';
 import { getStudioPool } from './store';
-import type { DraftContent } from './types';
+import type { DraftContent, UploadedStudioAsset } from './types';
 
 function privateBucket(): R2Bucket {
   try {
@@ -30,9 +30,7 @@ function publishedBucket(): R2Bucket {
   throw new StudioError(503, 'Published media storage is not configured.');
 }
 
-export async function uploadAsset(
-  file: File
-): Promise<{ id: string; url: string }> {
+export async function uploadAsset(file: File): Promise<UploadedStudioAsset> {
   if (!MEDIA_TYPES[file.type] || file.size === 0 || file.size > 4_000_000)
     throw new StudioError(400, 'Choose an image smaller than 4 MB.');
   const id = randomUUID();

@@ -3,13 +3,13 @@ export interface EditorMark {
   attrs?: Record<string, unknown>;
 }
 
-export type EditorNode = {
+export interface EditorNode {
   type: string;
   attrs?: Record<string, unknown>;
   text?: string;
   marks?: EditorMark[];
   content?: EditorNode[];
-};
+}
 
 export interface DraftContent {
   /** Exact imported bytes as UTF-8, retained privately for recovery. */
@@ -40,6 +40,27 @@ export interface Draft {
   deletedAt: string | null;
 }
 
+export interface UploadedStudioAsset {
+  id: string;
+  url: string;
+}
+
+export interface PublicationCommitInput {
+  tree: string;
+  parent: string;
+}
+
+export interface PublicationArtifact {
+  path: string;
+  sha: string;
+  baseSha: string | null;
+}
+
+export interface PublicationRebaseInput extends PublicationCommitInput {
+  before: string;
+  after?: string;
+}
+
 export interface Publication {
   id: string;
   documentId: string;
@@ -54,14 +75,9 @@ export interface Publication {
   publishedFileSha?: string;
   sourceFileSha?: string | null;
   sourcePath?: string;
-  proposalInput?: { tree: string; parent: string };
-  artifactManifest?: { path: string; sha: string; baseSha: string | null }[];
-  rebaseInput?: {
-    before: string;
-    after?: string;
-    tree: string;
-    parent: string;
-  } | null;
+  proposalInput?: PublicationCommitInput;
+  artifactManifest?: PublicationArtifact[];
+  rebaseInput?: PublicationRebaseInput | null;
   error: string | null;
   createdAt: string;
 }

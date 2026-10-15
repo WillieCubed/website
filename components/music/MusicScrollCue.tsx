@@ -4,13 +4,15 @@ import { type RefObject, useEffect, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
+interface MusicScrollCueProps {
+  gallery: RefObject<HTMLDivElement | null>;
+  collection: string;
+}
+
 export default function MusicScrollCue({
   gallery,
   collection,
-}: {
-  gallery: RefObject<HTMLDivElement | null>;
-  collection: string;
-}) {
+}: MusicScrollCueProps) {
   const [visible, setVisible] = useState(false);
   const [bottom, setBottom] = useState(20);
   const [left, setLeft] = useState<number | null>(null);

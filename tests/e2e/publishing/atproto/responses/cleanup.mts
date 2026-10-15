@@ -4,27 +4,21 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { isDeepStrictEqual } from 'node:util';
 
+import type { RepoClient, RepoRecord } from '../../../../../lib/atproto/types';
 import type { Owned, Receipt } from './types.mts';
 
 interface Context {
   receipt: Receipt | undefined;
   remove: (entry: Owned) => Promise<void>;
-  get: (
-    collection: string,
-    rkey: string
-  ) => Promise<{
-    uri: string;
-    cid: string;
-    value: Record<string, unknown>;
-  } | null>;
+  get: (collection: string, rkey: string) => Promise<RepoRecord | null>;
   config: typeof import('../../../../../lib/atproto/config');
-  client: import('../../../../../lib/atproto/types.ts').RepoClient;
+  client: RepoClient;
   save: () => Promise<void>;
   deploy: () => Promise<void>;
   did: string | undefined;
 }
 
-export async function cleanup(dependencies: Context) {
+export async function cleanup(dependencies: Readonly<Context>) {
   assert(dependencies.receipt);
   for (const entry of [...dependencies.receipt.owned].reverse())
     await dependencies.remove(entry);
@@ -54,7 +48,10 @@ export async function cleanup(dependencies: Context) {
   await dependencies.save();
 }
 
-async function restoreDocument(dependencies: Context, receipt: Receipt) {
+async function restoreDocument(
+  dependencies: Readonly<Context>,
+  receipt: Receipt
+) {
   const current = await dependencies.get(
     dependencies.config.DOCUMENT_COLLECTION,
     receipt.document.rkey
@@ -96,7 +93,10 @@ async function restoreDocument(dependencies: Context, receipt: Receipt) {
   await dependencies.save();
 }
 
-async function restoreSource(dependencies: Context, receipt: Receipt) {
+async function restoreSource(
+  dependencies: Readonly<Context>,
+  receipt: Receipt
+) {
   const original = receipt.source.original,
     temporary = receipt.source.temporary;
   const source = await readFile(receipt.source.path, 'utf8');

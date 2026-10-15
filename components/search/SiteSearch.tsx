@@ -62,7 +62,11 @@ export default async function SiteSearch({ query = '' }: SiteSearchProps) {
   );
 }
 
-function SearchResults({ response }: { response: SearchResponse }) {
+interface SearchResultsProps {
+  response: SearchResponse;
+}
+
+function SearchResults({ response }: SearchResultsProps) {
   const { results, total, query } = response;
 
   return (
@@ -86,7 +90,11 @@ function SearchResults({ response }: { response: SearchResponse }) {
   );
 }
 
-function SearchResultCard({ result }: { result: SearchResult }) {
+interface SearchResultCardProps {
+  result: SearchResult;
+}
+
+function SearchResultCard({ result }: SearchResultCardProps) {
   const meta = resultMeta(result);
 
   return (

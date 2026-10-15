@@ -9,9 +9,16 @@ import type {
 } from '@/lib/music/types';
 import { emptyCatalog } from '@/lib/music/types';
 
-import { musicAdminRequest } from './music-admin-request';
+import {
+  type MusicRevisionResponse,
+  musicAdminRequest,
+} from './music-admin-request';
 import { type MusicDraftSnapshot, canRefreshMusic } from './music-draft-guards';
 import { importMusicLibrary } from './music-library-import';
+
+interface SpotifyConnectionRedirect {
+  url: string;
+}
 
 interface Options {
   acceptCollection: (catalog: MusicAdminCollectionData) => void;
@@ -23,7 +30,6 @@ interface Options {
   readDraft: () => MusicDraftSnapshot;
   remount: () => void;
   setBusy: (busy: boolean) => void;
-  setError: (message: string) => void;
   setStatus: (message: string) => void;
 }
 export function useMusicLibrary({
@@ -33,30 +39,38 @@ export function useMusicLibrary({
   readDraft,
   remount,
   setBusy,
-  setError,
   setStatus,
 }: Options) {
+  const [loadError, setLoadError] = useState('');
+  const [connectError, setConnectError] = useState('');
+  const [refreshError, setRefreshError] = useState('');
   const [connection, setConnection] = useState<MusicConnection | null>(null);
   async function load() {
-    const [catalog, conn] = await Promise.all([
-      musicAdminRequest<MusicAdminCollectionData>('/catalog'),
-      musicAdminRequest<MusicConnection>('/connection'),
-    ]);
-    acceptCollection(catalog);
-    acceptPublication(catalog.publication ?? null);
-    setConnection(conn);
-    setStatus(
-      catalog.revision
-        ? 'Saved privately'
-        : 'Choose what belongs in the public gallery'
-    );
-    return { catalog, conn };
+    setLoadError('');
+    try {
+      const [catalog, conn] = await Promise.all([
+        musicAdminRequest<MusicAdminCollectionData>('/catalog'),
+        musicAdminRequest<MusicConnection>('/connection'),
+      ]);
+      acceptCollection(catalog);
+      acceptPublication(catalog.publication ?? null);
+      setConnection(conn);
+      setStatus(
+        catalog.revision
+          ? 'Saved privately'
+          : 'Choose what belongs in the public gallery'
+      );
+      return { catalog, conn };
+    } catch (error) {
+      setLoadError((error as Error).message);
+      throw error;
+    }
   }
   async function connect() {
     setBusy(true);
-    setError('');
+    setConnectError('');
     try {
-      const result = await musicAdminRequest<{ url: string }>(
+      const result = await musicAdminRequest<SpotifyConnectionRedirect>(
         '/spotify/connect',
         {
           method: 'POST',
@@ -64,17 +78,17 @@ export function useMusicLibrary({
       );
       location.assign(result.url);
     } catch (e) {
-      setError((e as Error).message);
+      setConnectError((e as Error).message);
       setBusy(false);
     }
   }
   async function refresh() {
     if (!canRefreshMusic(readDraft())) {
-      setError('Wait for the draft to save before refreshing.');
+      setRefreshError('Wait for the draft to save before refreshing.');
       return;
     }
     setBusy(true);
-    setError('');
+    setRefreshError('');
     setStatus('Importing Spotify playlists…');
     try {
       const imported = await importMusicLibrary();
@@ -90,7 +104,7 @@ export function useMusicLibrary({
         JSON.stringify(order) !== JSON.stringify(body.order) ||
         !result.catalog.revision
       ) {
-        const next = await musicAdminRequest<{ revision: MusicRevision }>(
+        const next = await musicAdminRequest<MusicRevisionResponse>(
           '/catalog',
           {
             method: 'PUT',
@@ -103,17 +117,28 @@ export function useMusicLibrary({
         acceptImportedRevision(next.revision, result.catalog);
       }
       remount();
-      if (imported.failed)
-        setError(
+      if (imported.failed > 0)
+        setRefreshError(
           `${imported.failed} playlists could not refresh. Saved choices are intact. Retry the refresh.`
         );
       setStatus('Saved privately');
     } catch (e) {
-      setError((e as Error).message);
+      setRefreshError((e as Error).message);
       setStatus('Refresh needs attention');
     } finally {
       setBusy(false);
     }
   }
-  return { connection, load, connect, refresh };
+  return {
+    connection,
+    load,
+    connect,
+    refresh,
+    loadError,
+    connectError,
+    refreshError,
+    dismissLoadError: () => setLoadError(''),
+    dismissConnectError: () => setConnectError(''),
+    dismissRefreshError: () => setRefreshError(''),
+  };
 }

@@ -18,13 +18,12 @@ interface DetailDialogProps {
   countdown: React.ReactNode;
 }
 
-function DetailBody({
-  entry,
-  onOpen,
-}: {
+interface DetailBodyProps {
   entry: Entry | null;
   onOpen: (id: string) => void;
-}) {
+}
+
+function DetailBody({ entry, onOpen }: DetailBodyProps) {
   return (
     <div className="d-content scroller">
       <span className="d-kicker">{entry?.parent ?? ''}</span>
@@ -36,17 +35,19 @@ function DetailBody({
   );
 }
 
+interface DetailContentsProps {
+  openId: string | null;
+  mediaRef: React.RefObject<HTMLDivElement | null>;
+  countdown: React.ReactNode;
+  onOpen: (id: string) => void;
+}
+
 function DetailContents({
   openId,
   mediaRef,
   countdown,
   onOpen,
-}: {
-  openId: string | null;
-  mediaRef: React.RefObject<HTMLDivElement | null>;
-  countdown: React.ReactNode;
-  onOpen: (id: string) => void;
-}) {
+}: DetailContentsProps) {
   const entry = openId ? entries[openId] : null;
   const media = entry?.detail.media;
   return (

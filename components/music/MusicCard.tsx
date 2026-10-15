@@ -1,16 +1,15 @@
 'use client';
 import type { ComponentType } from 'react';
 
-import type { PlaylistView } from '@/lib/music/presentation';
-
 import MusicCardControls from './MusicCardControls';
 import { MusicCardCaption, MusicCardOpenTarget } from './MusicCardOpening';
+import type { MusicCoverProps } from './MusicCover';
 import MusicFeaturedPlaylist from './MusicFeaturedPlaylist';
 import type { MusicGalleryItem } from './music-gallery';
 
 interface Props {
   item: MusicGalleryItem;
-  Cover: ComponentType<{ playlist: PlaylistView }>;
+  Cover: ComponentType<MusicCoverProps>;
   editing: boolean;
   href: (id: string) => string;
   onDragStart: (id: string) => void;

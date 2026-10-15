@@ -5,9 +5,24 @@ import Icon from '@/components/icons/Icon';
 import Button from '@/components/site/Button';
 import Popover from '@/components/site/Popover';
 
-import type { DraftContent } from '@/lib/studio/types';
+import type { WritingPreviewMode } from './writing-contracts';
+import type { WritingPanelTask } from './writing-task-definitions';
 
-import type { WritingTask } from './writing-task-definitions';
+interface WritingControlsProps {
+  conflict: boolean;
+  recovery: boolean;
+  busy: boolean;
+  editor: Editor | null;
+  openTask: (task: WritingPanelTask) => void;
+  closePopover: (event: React.MouseEvent) => void;
+  history: () => void;
+  save: () => Promise<boolean>;
+  generatePreview: (
+    mode: WritingPreviewMode,
+    publishing?: boolean
+  ) => Promise<void>;
+  control: string;
+}
 
 export default function WritingControls({
   conflict,
@@ -20,21 +35,7 @@ export default function WritingControls({
   save,
   generatePreview,
   control,
-}: {
-  conflict: boolean;
-  recovery: DraftContent | null;
-  busy: boolean;
-  editor: Editor | null;
-  openTask: (task: Exclude<WritingTask, 'write'>) => void;
-  closePopover: (event: React.MouseEvent) => void;
-  history: () => void;
-  save: () => Promise<boolean>;
-  generatePreview: (
-    mode: 'read' | 'portable',
-    publishing?: boolean
-  ) => Promise<void>;
-  control: string;
-}) {
+}: WritingControlsProps) {
   return (
     <>
       <nav className="studio-document-controls" aria-label="Writing controls">

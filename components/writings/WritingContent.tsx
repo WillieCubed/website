@@ -69,7 +69,11 @@ function WritingBody({ content, writing, html }: WritingBodyProps) {
   );
 }
 
-function WritingAttachments({ attachments }: { attachments: ResponseMedia[] }) {
+interface WritingAttachmentsProps {
+  attachments: ResponseMedia[];
+}
+
+function WritingAttachments({ attachments }: WritingAttachmentsProps) {
   return (
     <>
       {attachments.length > 0 && (
@@ -112,7 +116,11 @@ function WritingAttachments({ attachments }: { attachments: ResponseMedia[] }) {
   );
 }
 
-function WritingEventDetails({ event }: { event?: WritingEvent }) {
+interface WritingEventDetailsProps {
+  event?: WritingEvent;
+}
+
+function WritingEventDetails({ event }: WritingEventDetailsProps) {
   return (
     <>
       {event && (
@@ -149,7 +157,11 @@ function WritingEventDetails({ event }: { event?: WritingEvent }) {
   );
 }
 
-function WritingLocation({ location }: { location: unknown }) {
+interface WritingLocationProps {
+  location: unknown;
+}
+
+function WritingLocation({ location }: WritingLocationProps) {
   const locationName = locationText(location);
   const locationUrl = propertyUrl(location);
   return (
@@ -169,7 +181,11 @@ function WritingLocation({ location }: { location: unknown }) {
   );
 }
 
-function WritingCitations({ citations }: { citations: WritingPropertyLink[] }) {
+interface WritingCitationsProps {
+  citations: WritingPropertyLink[];
+}
+
+function WritingCitations({ citations }: WritingCitationsProps) {
   return (
     <>
       {citations.length > 0 && (
@@ -190,7 +206,11 @@ function WritingCitations({ citations }: { citations: WritingPropertyLink[] }) {
   );
 }
 
-function WritingCategories({ writing }: { writing: WritingData }) {
+interface WritingCategoriesProps {
+  writing: WritingData;
+}
+
+function WritingCategories({ writing }: WritingCategoriesProps) {
   // Keyed by slug: a soft navigation keeps the previous writing in the DOM.
   const peopleLabelId = `people-${writing.slug}`;
   return (

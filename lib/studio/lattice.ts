@@ -221,6 +221,10 @@ export interface RuntimeSelection {
   devices: RuntimeChoice[];
   selectedRuntimeId: string | null;
 }
+interface StoredRuntime {
+  runtimeId: string;
+}
+
 async function storedRuntime(): Promise<string | null> {
   const row = (
     await getStudioPool().query(
@@ -229,7 +233,7 @@ async function storedRuntime(): Promise<string | null> {
   ).rows[0];
   if (row) {
     try {
-      return unseal<{ runtimeId: string }>(row.credential).runtimeId;
+      return unseal<StoredRuntime>(row.credential).runtimeId;
     } catch {
       return null;
     }

@@ -6,6 +6,18 @@ import { StudioError } from './errors';
 import { STUDIO_LATTICE_SCOPE } from './lattice-client-metadata';
 import { getStudioPool } from './store';
 
+interface OAuthStart {
+  url: string;
+  cookie: string;
+}
+interface OAuthFlow {
+  state: string;
+  verifier: string;
+  origin: string;
+  expiresAt: number;
+  returnTo?: string;
+}
+
 interface Grant {
   accessToken: string;
   refreshToken: string | null;
@@ -46,7 +58,7 @@ export function writingReturnPath(value: string | null | undefined): string {
 export function beginOAuth(
   origin: string,
   returnTo?: string | null
-): { url: string; cookie: string } {
+): OAuthStart {
   const config = oauthConfig(origin),
     state = randomBytes(32).toString('base64url'),
     verifier = randomBytes(32).toString('base64url');
@@ -126,13 +138,7 @@ export async function completeOAuth(request: Request): Promise<string> {
     !url.searchParams.get('state')
   )
     throw new StudioError(400, 'Authorization response is incomplete.');
-  let flow: {
-    state: string;
-    verifier: string;
-    origin: string;
-    expiresAt: number;
-    returnTo?: string;
-  };
+  let flow: OAuthFlow;
   try {
     flow = unseal(cookie);
   } catch {

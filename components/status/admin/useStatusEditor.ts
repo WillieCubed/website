@@ -6,10 +6,12 @@ import { fetchWithDeadline } from '@/lib/http/fetch';
 import type { AdminState } from '@/lib/status/admin-state';
 import type { City } from '@/lib/status/location';
 
+interface AdminStatusResponse extends AdminState {
+  redirect?: string;
+}
+
 const endpoint = '/api/admin/status';
-async function readResponse(
-  response: Response
-): Promise<AdminState & { redirect?: string }> {
+async function readResponse(response: Response): Promise<AdminStatusResponse> {
   const text = await response.text();
   try {
     return JSON.parse(text);

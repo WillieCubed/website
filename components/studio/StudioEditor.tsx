@@ -4,22 +4,23 @@ import { useCallback, useEffect, useState } from 'react';
 
 import Button from '@/components/site/Button';
 
-import { BUILTIN_CATALOG } from '@/lib/studio/catalog';
 import type { Draft } from '@/lib/studio/types';
 
 import StudioDocumentFrame, {
   StudioDocumentPendingContent,
 } from './StudioDocumentFrame';
 import StudioDocumentTransition from './StudioDocumentTransition';
-import { type CatalogEntry } from './StudioNodes';
 import Writing from './StudioWriting';
 import { studioRequest } from './api';
+import { useWritingCatalog } from './useWritingCatalog';
 
-export default function StudioEditor({ id }: { id: string }) {
+interface StudioEditorProps {
+  id: string;
+}
+
+export default function StudioEditor({ id }: StudioEditorProps) {
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [entries, setEntries] = useState<CatalogEntry[]>(BUILTIN_CATALOG);
-  const [catalogStatus, setCatalogStatus] = useState('Loading widgets…');
-  const [catalogFailed, setCatalogFailed] = useState(false);
+  const catalog = useWritingCatalog();
   const [error, setError] = useState('');
   const [refreshAttempt, setRefreshAttempt] = useState(0);
   const [readyDocument, setReadyDocument] = useState<string | null>(null);
@@ -35,41 +36,10 @@ export default function StudioEditor({ id }: { id: string }) {
       .catch((error) => {
         if (!signal.aborted) setError(error.message);
       });
-    studioRequest<{ entries: CatalogEntry[] }>('/catalog', { signal })
-      .then((catalog) => {
-        if (!signal.aborted) {
-          setEntries(catalog.entries);
-          setCatalogStatus('');
-        }
-      })
-      .catch(() => {
-        if (!signal.aborted) {
-          setCatalogFailed(true);
-          setCatalogStatus(
-            'Widgets could not load. Your writing is still available.'
-          );
-        }
-      });
     return () => {
       controller.abort();
     };
   }, [id, refreshAttempt]);
-  async function retryCatalog() {
-    setCatalogFailed(false);
-    setCatalogStatus('Loading widgets…');
-    try {
-      const catalog = await studioRequest<{ entries: CatalogEntry[] }>(
-        '/catalog'
-      );
-      setEntries(catalog.entries);
-      setCatalogStatus('');
-    } catch {
-      setCatalogFailed(true);
-      setCatalogStatus(
-        'Widgets could not load. Your writing is still available.'
-      );
-    }
-  }
   const activeDraft = draft?.id === id ? draft : null;
   return (
     <StudioDocumentFrame>
@@ -99,9 +69,7 @@ export default function StudioEditor({ id }: { id: string }) {
             initial={activeDraft}
             onReady={editorReady}
             interactive={readyDocument === id}
-            entries={entries}
-            catalogStatus={catalogStatus}
-            retryCatalog={catalogFailed ? retryCatalog : undefined}
+            catalog={catalog}
           />
         )}
       </StudioDocumentTransition>

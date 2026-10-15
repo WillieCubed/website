@@ -93,16 +93,28 @@ async function Reading({ params }: Props) {
     />
   );
 }
-type ReadingContext = {
+interface ReadingMenuItem {
+  label: string;
+  href: string;
+}
+interface ReadingCrumb extends ReadingMenuItem {
+  menuItems: ReadingMenuItem[];
+}
+interface ReadingCollection {
+  title: string;
+  items: ReadingEntry[];
+}
+interface ReadingContext {
   all: ReadingEntry[];
   writings: WritingData[];
-  crumbs: {
-    label: string;
-    href: string;
-    menuItems: { label: string; href: string }[];
-  }[];
+  crumbs: ReadingCrumb[];
   status: React.ReactNode;
-};
+}
+interface ReadingArticleProps extends ReadingContext {
+  slug: string;
+  drafts: Draft[];
+}
+
 async function ReadingArticle({
   slug,
   all,
@@ -110,10 +122,7 @@ async function ReadingArticle({
   writings,
   crumbs,
   status,
-}: ReadingContext & {
-  slug: string;
-  drafts: Draft[];
-}) {
+}: ReadingArticleProps) {
   const entry = all.find((item) => item.slug === slug);
   if (!entry) notFound();
   const { html, publishedContent, renderingMessage } = await readingContent(
@@ -201,13 +210,17 @@ async function readingContent(entry: ReadingEntry, drafts: Draft[]) {
 
   return { html, publishedContent, renderingMessage };
 }
+interface ReadingIndexProps extends ReadingContext {
+  segments: string[];
+}
+
 async function ReadingIndex({
   segments,
   all,
   writings,
   crumbs,
   status,
-}: ReadingContext & { segments: string[] }) {
+}: ReadingIndexProps) {
   const { title, items } = readingCollection(segments, all);
   const tags = [
     ...new Set(all.flatMap((item) => item.tags.map(normalizeTag))),
@@ -256,7 +269,7 @@ async function ReadingIndex({
             })
           )}
         </div>
-        {!items.length && (
+        {items.length === 0 && (
           <p className="text-body-large text-muted">
             Your first writing is waiting.
           </p>
@@ -278,7 +291,7 @@ async function ReadingIndex({
 function readingCollection(
   segments: string[],
   all: ReadingEntry[]
-): { title: string; items: ReadingEntry[] } {
+): ReadingCollection {
   let title = 'Writings';
   let items = all;
   if (segments[0] === 'tags') {
@@ -288,20 +301,24 @@ function readingCollection(
       items = all.filter((item) =>
         item.tags.some((value) => normalizeTag(value) === tag)
       );
-      if (!items.length) notFound();
+      if (items.length === 0) notFound();
     } else if (segments.length !== 1) notFound();
   } else if (segments[0] === 'series' && segments.length === 2) {
     title = segments[1].replaceAll('-', ' ');
     items = all
       .filter((item) => item.series?.slug === segments[1])
       .sort((a, b) => (a.series?.part ?? 0) - (b.series?.part ?? 0));
-    if (!items.length) notFound();
-  } else if (segments.length) notFound();
+    if (items.length === 0) notFound();
+  } else if (segments.length > 0) notFound();
 
   return { title, items };
 }
 
-function Edit({ entry }: { entry: ReadingEntry }) {
+interface EditProps {
+  entry: ReadingEntry;
+}
+
+function Edit({ entry }: EditProps) {
   return entry.editorId ? (
     <SiteLink
       href={`/studio/${entry.editorId}`}
@@ -314,16 +331,14 @@ function Edit({ entry }: { entry: ReadingEntry }) {
     <ImportWriting slug={entry.slug} />
   );
 }
-function Tags({
-  tags,
-  filter = false,
-  currentTag,
-}: {
+interface TagsProps {
   tags: string[];
   filter?: boolean;
   currentTag?: string;
-}) {
-  return tags.length ? (
+}
+
+function Tags({ tags, filter = false, currentTag }: TagsProps) {
+  return tags.length > 0 ? (
     <ul
       aria-label={filter ? 'Filter by tag' : 'Tags'}
       className="mt-4 flex flex-wrap gap-2"

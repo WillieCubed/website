@@ -343,7 +343,7 @@ export async function validatePublication(
           'Imported MDX code needs an approved catalog component and portable alternative before publication.'
         );
       if (node.type === 'link' || node.type === 'image') {
-        const target = (node as unknown as { url: string }).url;
+        const target = (node as unknown as MdxUrlNode).url;
         if (!safeUrl(target))
           issues.push('Use a safe public URL for media and links.');
       }
@@ -388,12 +388,20 @@ function catalogPropertyIssues(
   }
 }
 
-function mdxElementIssues(node: { type: string }, issues: string[]): void {
+interface MdxUrlNode {
+  url: string;
+}
+interface MdxElement {
+  name: string;
+  attributes: MdxAttribute[];
+}
+interface MdxNode {
+  type: string;
+}
+
+function mdxElementIssues(node: MdxNode, issues: string[]): void {
   if (!['mdxJsxFlowElement', 'mdxJsxTextElement'].includes(node.type)) return;
-  const element = node as unknown as {
-    name: string;
-    attributes: { type: string; name?: string; value?: unknown }[];
-  };
+  const element = node as unknown as MdxElement;
   const safeElements = new Set([
     'Figure',
     'Callout',
@@ -427,10 +435,13 @@ function mdxElementIssues(node: { type: string }, issues: string[]): void {
   for (const attribute of element.attributes ?? [])
     mdxAttributeIssues(attribute, issues);
 }
-function mdxAttributeIssues(
-  attribute: { type: string; name?: string; value?: unknown },
-  issues: string[]
-): void {
+interface MdxAttribute {
+  type: string;
+  name?: string;
+  value?: unknown;
+}
+
+function mdxAttributeIssues(attribute: MdxAttribute, issues: string[]): void {
   if (
     attribute.type !== 'mdxJsxAttribute' ||
     (attribute.value !== null && typeof attribute.value !== 'string') ||

@@ -1,5 +1,10 @@
 import type { BrowserContext, Page } from '@playwright/test';
 
+import type {
+  RepoRecord,
+  RepoRecordReference,
+} from '../../../../../lib/atproto/types';
+
 export interface CapturedSocialRecord {
   uri: string;
   cid: string;
@@ -36,15 +41,13 @@ export interface AuthorizationFlow {
   ): Promise<CapturedFlow>;
 }
 
+export interface VerifiedDocument extends RepoRecordReference {
+  sourceHash: string;
+  dirtyFixtureOverlay?: true;
+}
+
 export interface VerifiedRuntime {
-  document?:
-    | {
-        uri: string;
-        cid: string;
-        sourceHash: string;
-        dirtyFixtureOverlay?: true;
-      }
-    | undefined;
+  document?: VerifiedDocument;
   publication: string;
   cid: string;
   dirtyFixtureOverlay?: boolean | undefined;
@@ -73,21 +76,37 @@ export interface CaptureOptions {
   'social-runtime-revision'?: string | undefined;
 }
 
+export interface PendingSocialMutation {
+  kind: 'subscription' | 'recommendation';
+  before: RepoRecordReference[];
+  dispatchedAt?: string;
+  responseCompletedAt?: string;
+  quiescedAt?: string;
+  target: string;
+}
+
+export interface CallbackObservation {
+  actualStatus: number;
+  setCookie: string;
+}
+
+export interface PendingCallbackReceipt extends CallbackObservation {
+  callbackCompleted: boolean;
+  stateHash: string;
+}
+
+export type CaptureGraphReader = (
+  did: string,
+  action?: 'subscription' | 'recommendation',
+  targetOnly?: boolean
+) => Promise<RepoRecord[]>;
+
 export interface OwnedBrowser {
   did: string;
   sessionHash: string;
   grantCreated: boolean;
   inventoryComplete: boolean;
-  pendingMutation?:
-    | {
-        kind: 'subscription' | 'recommendation';
-        before: { uri: string; cid: string }[];
-        dispatchedAt?: string;
-        responseCompletedAt?: string;
-        quiescedAt?: string;
-        target: string;
-      }
-    | undefined;
+  pendingMutation?: PendingSocialMutation;
   recordsClean?: boolean | undefined;
   grantRevoked?: boolean | undefined;
   dpopSpkiSha256?: string | undefined;
@@ -104,20 +123,31 @@ export interface PendingGrant {
   issuer: string;
   audience: string;
   kind: 'subscription' | 'recommendation';
-  beforeRecords: { uri: string; cid: string }[];
+  beforeRecords: RepoRecordReference[];
   beforeBrowsers: string[];
   priorGrantKeys: string[];
   callbackCompleted?: boolean | undefined;
   responseSessionHash?: string | undefined;
 }
 
+export interface AuthorizationInventoryRow {
+  key: string;
+  rowHash: string;
+}
+export interface ExpiredAuthorizationState extends AuthorizationInventoryRow {
+  expiresAt: string;
+}
+export type AuthorizationDatabaseInventory = Record<
+  string,
+  AuthorizationInventoryRow[]
+>;
 export interface AuthorizationBaseline {
   origin: string;
   publisher: string;
   runtimeRevision: string;
-  database: { [k: string]: { key: string; rowHash: string }[] };
-  graphs: { uri: string; cid: string; value: Record<string, unknown> }[];
-  expiredStates: { key: string; expiresAt: string; rowHash: string }[];
+  database: AuthorizationDatabaseInventory;
+  graphs: RepoRecord[];
+  expiredStates: ExpiredAuthorizationState[];
 }
 
 export interface RunContext {

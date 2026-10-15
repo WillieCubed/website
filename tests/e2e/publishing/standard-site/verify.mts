@@ -1,7 +1,19 @@
 import assert from 'node:assert/strict';
 import type { DefaultTreeAdapterTypes } from 'parse5';
 
-import type { RepoRecord } from '../../../../lib/atproto/types';
+import type {
+  RepoRecord,
+  RepoRecordReference,
+} from '../../../../lib/atproto/types';
+
+export interface PublishedWritingVerification {
+  status: 'passed';
+  checkedAt: string;
+  origin: string;
+  publication: RepoRecordReference;
+  document: RepoRecordReference;
+  independentValidator: string;
+}
 
 interface VerificationContext {
   slug: string;
@@ -34,7 +46,7 @@ export async function verifyPublishedWriting({
   DOCUMENT_COLLECTION,
   publicRecord,
   progress,
-}: VerificationContext) {
+}: VerificationContext): Promise<PublishedWritingVerification> {
   progress.verificationPhase = 'verification slug validation';
   assert(/^[a-z0-9-]+$/.test(slug), 'Verification requires a writing slug.');
   progress.verificationPhase = 'verification module loading';
@@ -95,22 +107,15 @@ export async function verifyPublishedWriting({
   );
   progress.verificationPhase = 'writing publication head link retention';
   assertPublicationHeadLink(parse(page), publicationUri);
-  console.log(
-    JSON.stringify(
-      {
-        status: 'passed',
-        checkedAt: new Date().toISOString(),
-        origin: ORIGIN,
-        publication: { uri: publication.uri, cid: publication.cid },
-        document: { uri: document.uri, cid: document.cid },
-        independentValidator:
-          'pending: use the authorized browser; this script does not access or replace site-validator.fly.dev',
-      },
-      null,
-      2
-    )
-  );
-  process.exit(0);
+  return {
+    status: 'passed',
+    checkedAt: new Date().toISOString(),
+    origin: ORIGIN,
+    publication: { uri: publication.uri, cid: publication.cid },
+    document: { uri: document.uri, cid: document.cid },
+    independentValidator:
+      'pending: use the authorized browser; this script does not access or replace site-validator.fly.dev',
+  };
 }
 
 function assertPublicationHeadLink(

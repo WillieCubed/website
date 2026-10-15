@@ -15,11 +15,22 @@ import {
   listeningTime,
 } from '@/lib/music/presentation';
 
-import MusicCover from './MusicCover';
+import MusicCover, { type MusicCoverProps } from './MusicCover';
 import MusicSelectionControl from './MusicSelectionControl';
 import './music-setup.css';
 
 const steps = ['Connect', 'Choose', 'Preview'];
+
+interface MusicSetupProps {
+  catalog: Catalog;
+  playlists: PlaylistView[];
+  Cover?: ComponentType<MusicCoverProps>;
+  mode?: MusicMode;
+  connected?: boolean;
+  onConnect?: () => Promise<void>;
+  onCancel: () => void;
+  onComplete: (catalog: Catalog) => void;
+}
 
 export default function MusicSetup({
   catalog,
@@ -30,16 +41,7 @@ export default function MusicSetup({
   onConnect,
   onCancel,
   onComplete,
-}: {
-  catalog: Catalog;
-  playlists: PlaylistView[];
-  Cover?: ComponentType<{ playlist: PlaylistView }>;
-  mode?: MusicMode;
-  connected?: boolean;
-  onConnect?: () => Promise<void>;
-  onCancel: () => void;
-  onComplete: (catalog: Catalog) => void;
-}) {
+}: MusicSetupProps) {
   const playlists = useMemo(
     () =>
       mode === 'admin'
@@ -76,6 +78,17 @@ export default function MusicSetup({
       ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]
     );
     setLead((current) => (current === id ? null : current));
+  }
+  function continueSetup() {
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
+    onComplete({
+      ...catalog,
+      selected: collection.map((playlist) => playlist.id),
+      lead,
+    });
   }
 
   useEffect(() => {
@@ -181,32 +194,25 @@ export default function MusicSetup({
         </main>
         <SetupActions
           step={step}
-          setStep={setStep}
-          selected={selected}
-          collection={collection}
-          onComplete={onComplete}
-          catalog={catalog}
-          lead={lead}
+          selectedCount={selected.length}
+          onBack={() => setStep(step - 1)}
+          onContinue={continueSetup}
         />
       </div>
     </>
   );
 }
 
-type StepHeading = {
+interface StepHeading {
   title: RefObject<HTMLHeadingElement | null>;
-  Cover: ComponentType<{ playlist: PlaylistView }>;
-};
-function ConnectStep({
-  title,
-  playlists,
-  Cover,
-  onConnect,
-}: StepHeading & {
+  Cover: ComponentType<MusicCoverProps>;
+}
+interface ConnectStepProps extends StepHeading {
   mode: MusicMode;
   playlists: PlaylistView[];
   onConnect: () => void;
-}) {
+}
+function ConnectStep({ title, playlists, Cover, onConnect }: ConnectStepProps) {
   return (
     <section className="ms-connect" aria-labelledby="ms-title">
       <div className="ms-connect-copy">
@@ -278,6 +284,13 @@ function ConnectStep({
     </section>
   );
 }
+interface ChooseStepProps extends StepHeading {
+  mode: MusicMode;
+  playlists: PlaylistView[];
+  selected: string[];
+  toggle: (id: string) => void;
+}
+
 function ChooseStep({
   title,
   mode,
@@ -285,12 +298,7 @@ function ChooseStep({
   Cover,
   selected,
   toggle,
-}: StepHeading & {
-  mode: MusicMode;
-  playlists: PlaylistView[];
-  selected: string[];
-  toggle: (id: string) => void;
-}) {
+}: ChooseStepProps) {
   return (
     <section aria-labelledby="ms-title">
       <div className="ms-selection-heading">
@@ -348,6 +356,13 @@ function ChooseStep({
     </section>
   );
 }
+interface PreviewStepProps extends StepHeading {
+  collection: PlaylistView[];
+  featured?: PlaylistView;
+  lead: string | null;
+  setLead: (id: string | null) => void;
+}
+
 function PreviewStep({
   title,
   collection,
@@ -355,12 +370,7 @@ function PreviewStep({
   Cover,
   lead,
   setLead,
-}: StepHeading & {
-  collection: PlaylistView[];
-  featured?: PlaylistView;
-  lead: string | null;
-  setLead: (id: string | null) => void;
-}) {
+}: PreviewStepProps) {
   return (
     <section aria-labelledby="ms-title">
       <h1 id="ms-title" ref={title} tabIndex={-1}>
@@ -443,50 +453,35 @@ function PreviewStep({
   );
 }
 
+interface SetupActionsProps {
+  step: number;
+  selectedCount: number;
+  onBack: () => void;
+  onContinue: () => void;
+}
+
 function SetupActions({
   step,
-  setStep,
-  selected,
-  collection,
-  onComplete,
-  catalog,
-  lead,
-}: {
-  step: number;
-  setStep: (step: number) => void;
-  selected: string[];
-  collection: PlaylistView[];
-  onComplete: (catalog: Catalog) => void;
-  catalog: Catalog;
-  lead: string | null;
-}) {
+  selectedCount,
+  onBack,
+  onContinue,
+}: SetupActionsProps) {
   return (
     step > 0 && (
       <div className="ms-actions" role="group" aria-label="Setup actions">
-        <button
-          className="ms-button ms-tonal"
-          onClick={() => setStep(step - 1)}
-        >
+        <button className="ms-button ms-tonal" onClick={onBack}>
           <Icon name="arrow-left" />
           Back
         </button>
         <p role="status">
           {step === 1
-            ? `${selected.length} selected`
+            ? `${selectedCount} selected`
             : 'Nothing goes live from setup.'}
         </p>
         <button
           className="ms-button ms-primary"
-          disabled={!selected.length}
-          onClick={() =>
-            step === 1
-              ? setStep(2)
-              : onComplete({
-                  ...catalog,
-                  selected: collection.map((playlist) => playlist.id),
-                  lead,
-                })
-          }
+          disabled={selectedCount === 0}
+          onClick={onContinue}
         >
           {step === 1 ? 'Preview collection' : 'Continue to curation'}
           <Icon name="arrow-right" />

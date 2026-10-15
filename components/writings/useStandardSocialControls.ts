@@ -34,14 +34,16 @@ export interface StandardSocialController {
   signOut(): Promise<void>;
 }
 
+interface StandardSocialOptions {
+  action: SocialAction;
+  slug?: string;
+}
+
 /** Owns confirmed social state, requests, feedback, and action focus. */
 export function useStandardSocialControls({
   action,
   slug,
-}: {
-  action: SocialAction;
-  slug?: string;
-}): StandardSocialController {
+}: StandardSocialOptions): StandardSocialController {
   const [state, setState] = useState<SocialState | null>(null);
   const [signIn, setSignIn] = useState(false);
   const [pending, setPending] = useState<'action' | 'logout' | null>(null);

@@ -116,17 +116,14 @@ function useSignIn(open: boolean, onDismiss: () => void): SignInController {
   return { dialog, error, pending, announcement, submit, dismiss };
 }
 
-function SignInForm({
-  action,
-  slug,
-  id,
-  login,
-}: {
+interface SignInFormProps {
   action: SocialAction;
   slug?: string;
   id: string;
   login: SignInFormState;
-}) {
+}
+
+function SignInForm({ action, slug, id, login }: SignInFormProps) {
   const { error, pending, announcement, submit } = login;
   let label = error.service ? 'Try again' : 'Continue';
   if (pending) label = 'Connecting…';

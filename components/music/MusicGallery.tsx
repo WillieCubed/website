@@ -53,7 +53,13 @@ export default function MusicGallery({
     </section>
   );
 }
-export function MusicPublicPlaceholder({ loadError }: { loadError?: string }) {
+interface MusicPublicPlaceholderProps {
+  loadError?: string;
+}
+
+export function MusicPublicPlaceholder({
+  loadError,
+}: MusicPublicPlaceholderProps) {
   return (
     <section
       className="mp-public-placeholder"

@@ -1,3 +1,13 @@
+/** An existing instance owns its alternative, including an intentionally empty one. */
+export function effectivePortable(
+  attrs: Record<string, unknown>,
+  legacyDefault: string
+): string {
+  return Object.hasOwn(attrs, 'portable')
+    ? String(attrs.portable ?? '')
+    : legacyDefault;
+}
+
 /** Author review is tied to this exact instance's content and configuration. */
 export function portableReview(attrs: Record<string, unknown>) {
   return structuredClone({

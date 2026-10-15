@@ -15,13 +15,12 @@ const regionLabel = (city?: City) =>
     .filter(Boolean)
     .join(', ');
 
-function LocationEditor({
-  initial,
-  onAccessExpired,
-}: {
+interface LocationEditorProps {
   initial: AdminState;
   onAccessExpired: (message: string, configured: boolean) => void;
-}) {
+}
+
+function LocationEditor({ initial, onAccessExpired }: LocationEditorProps) {
   const hydrated = useHydrated();
   const {
     editing,
@@ -159,7 +158,11 @@ function LocationEditor({
   );
 }
 
-export default function StatusEditor({ initial }: { initial: AdminState }) {
+interface StatusEditorProps {
+  initial: AdminState;
+}
+
+export default function StatusEditor({ initial }: StatusEditorProps) {
   const [access, setAccess] = useState({
     configured: initial.configured,
     signedIn: initial.signedIn,

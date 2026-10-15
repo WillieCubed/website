@@ -11,13 +11,15 @@ const statusLabel = {
   unpaired: 'Not paired',
   revoked: 'Access removed',
 };
+interface StudioRuntimePickerProps {
+  onReady: (ready: boolean) => void;
+  returnTo?: string;
+}
+
 export default function StudioRuntimePicker({
   onReady,
   returnTo,
-}: {
-  onReady: (ready: boolean) => void;
-  returnTo?: string;
-}) {
+}: StudioRuntimePickerProps) {
   const [choices, setChoices] = useState<RuntimeSelection | null>(null);
   const [busy, setBusy] = useState(true);
   const [message, setMessage] = useState('Loading your personal devices…');

@@ -3,13 +3,12 @@
 import { useRef, useState } from 'react';
 import readingTime from 'reading-time';
 
-import type { Draft } from '@/lib/studio/types';
+import type { ComponentProposal, Draft, Revision } from '@/lib/studio/types';
 
 import {
   StudioCatalogContext,
   StudioCatalogStatusContext,
 } from './StudioNodes';
-import type { CatalogEntry } from './StudioNodes';
 import { StudioSaveContext } from './StudioSaveContext';
 import StudioWritingLayout from './StudioWritingLayout';
 import WritingCanvas from './WritingCanvas';
@@ -20,44 +19,57 @@ import WritingNotices from './WritingNotices';
 import WritingPublicationNotice from './WritingPublicationNotice';
 import WritingReview from './WritingReview';
 import WritingTasks from './WritingTasks';
+import type { WritingCatalog } from './useWritingCatalog';
 import { useWritingDocument } from './useWritingDocument';
 import { useWritingInteraction } from './useWritingInteraction';
 import { useWritingPublication } from './useWritingPublication';
+import type { WritingPreviewMode } from './writing-contracts';
 import { proseText } from './writingText';
 
-export type WritingProps = {
+export interface WritingProps {
   initial: Draft;
   onReady: () => void;
   interactive: boolean;
-  entries: CatalogEntry[];
-  catalogStatus: string;
-  retryCatalog?: () => void;
-};
+  catalog: WritingCatalog;
+}
 
 export default function Writing({
   initial,
-  entries,
   onReady,
   interactive,
-  catalogStatus,
-  retryCatalog,
+  catalog,
 }: WritingProps) {
   const document = useWritingDocument(initial);
-  // Navigation and previews meet here; neither owns the authoritative draft.
-  const publication = useWritingPublication(document, initial, () =>
-    interaction.rememberRange()
-  );
   const interaction = useWritingInteraction(
     document,
-    entries,
-    publication.mode,
-    () => {
-      publication.setMode('write');
-      publication.setReview(false);
-    },
+    catalog.readEntries,
     onReady,
     interactive
   );
+  const publication = useWritingPublication(document);
+  async function generatePreview(
+    nextMode: WritingPreviewMode,
+    publishing = false
+  ) {
+    interaction.rememberRange();
+    if (await publication.preparePreview(publishing))
+      interaction.showPreview(nextMode);
+  }
+  function returnToWriting() {
+    publication.dismissReview();
+    interaction.returnToWriting();
+  }
+  function restoreRevision(revision: Revision) {
+    interaction.replaceDocument(revision.body);
+    returnToWriting();
+  }
+  async function insertApproved(proposal: ComponentProposal) {
+    try {
+      interaction.insert(await catalog.resolveApproved(proposal));
+    } catch (error) {
+      document.reportStatus((error as Error).message);
+    }
+  }
   const [showHeading, setShowHeading] = useState(
     Boolean(initial.head.body.title || initial.head.body.description)
   );
@@ -70,22 +82,21 @@ export default function Writing({
   );
   const control = 'site-button site-button-surface';
   const { body, status } = document;
-  const { catalog, task } = interaction;
-  const { mode } = publication;
+  const { task, mode } = interaction;
   return (
-    <StudioCatalogContext.Provider value={catalog}>
+    <StudioCatalogContext.Provider value={catalog.entries}>
       <StudioCatalogStatusContext.Provider
-        value={{ message: catalogStatus, retry: retryCatalog }}
+        value={{ message: catalog.status, retry: catalog.retry }}
       >
         <StudioSaveContext.Provider value={status}>
           <WritingNotices
             conflict={document.conflict}
-            recovery={document.recovery}
-            setRecovery={document.setRecovery}
-            recoveryKey={document.recoveryKey}
-            update={document.update}
-            editor={interaction.editor}
-            reloadHead={document.reloadHead}
+            recovery={Boolean(document.recovery)}
+            onRecover={() =>
+              document.recoverChanges(interaction.replaceDocument)
+            }
+            onDiscard={document.discardRecovery}
+            onRebase={document.rebaseChanges}
           />
           <StudioWritingLayout
             hidden={mode !== 'write'}
@@ -100,7 +111,6 @@ export default function Writing({
                 showHeading={showHeading}
                 titleField={titleField}
                 body={document.body}
-                bodyRef={document.bodyRef}
                 update={document.update}
               />
             }
@@ -111,8 +121,7 @@ export default function Writing({
                 setShowHeading={setShowHeading}
                 titleField={titleField}
                 body={document.body}
-                bodyRef={document.bodyRef}
-                saved={document.saved}
+                dirty={document.dirty}
                 status={document.status}
                 update={document.update}
                 published={published}
@@ -122,37 +131,34 @@ export default function Writing({
             controls={
               <WritingControls
                 conflict={document.conflict}
-                recovery={document.recovery}
+                recovery={Boolean(document.recovery)}
                 busy={publication.busy}
                 editor={interaction.editor}
                 openTask={interaction.openTask}
                 closePopover={interaction.closePopover}
                 history={() => interaction.openTask('history')}
                 save={document.save}
-                generatePreview={publication.generatePreview}
+                generatePreview={generatePreview}
                 control={control}
               />
             }
           >
             <WritingTasks
-              setStatus={document.setStatus}
+              reportStatus={document.reportStatus}
               draft={document.draft}
-              setCatalog={interaction.setCatalog}
-              catalogRef={interaction.catalogRef}
               task={interaction.task}
               taskHeading={interaction.taskHeading}
               body={document.body}
-              bodyRef={document.bodyRef}
               update={document.update}
-              editor={interaction.editor}
-              returnToWriting={interaction.returnToWriting}
-              insert={interaction.insert}
+              returnToWriting={returnToWriting}
+              onRestore={restoreRevision}
+              onApproved={insertApproved}
               save={document.save}
-              catalogStatus={catalogStatus}
-              retryCatalog={retryCatalog}
+              catalogStatus={catalog.status}
+              retryCatalog={catalog.retry}
             />
             <WritingCanvas
-              catalog={interaction.catalog}
+              catalog={catalog.entries}
               cursor={interaction.cursor}
               insertAnchor={interaction.insertAnchor}
               insertionRect={interaction.insertionRect}
@@ -161,11 +167,10 @@ export default function Writing({
               editor={interaction.editor}
               rememberRange={interaction.rememberRange}
               openTask={interaction.openTask}
-              returnToWriting={interaction.returnToWriting}
+              returnToWriting={returnToWriting}
               insert={interaction.insert}
-              closePopover={interaction.closePopover}
               control={control}
-              setStatus={document.setStatus}
+              setStatus={document.reportStatus}
               visible={task === 'write' && mode === 'write'}
             />
           </StudioWritingLayout>
@@ -176,12 +181,12 @@ export default function Writing({
               body={document.body}
               status={document.status}
               conflict={document.conflict}
-              mode={publication.mode}
-              setMode={publication.setMode}
+              mode={mode}
+              onViewChange={interaction.showPreview}
               preview={publication.preview}
               review={publication.review}
               busy={publication.busy}
-              returnToWriting={interaction.returnToWriting}
+              returnToWriting={returnToWriting}
               publish={publication.publish}
               published={published}
               minutes={minutes}
@@ -192,7 +197,7 @@ export default function Writing({
             publicationConnectionError={publication.publicationConnectionError}
             publication={publication.publication}
             busy={publication.busy}
-            generatePreview={publication.generatePreview}
+            generatePreview={generatePreview}
           />
         </StudioSaveContext.Provider>
       </StudioCatalogStatusContext.Provider>

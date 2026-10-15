@@ -130,6 +130,14 @@ function loadPlaces(): Promise<PaletteData> {
   return placesRequest;
 }
 
+interface QueuedPaletteClose {
+  close: CloseOptions;
+}
+interface QueuedPaletteOpen {
+  open: HTMLElement | null | undefined;
+}
+type QueuedPaletteOperation = QueuedPaletteClose | QueuedPaletteOpen;
+
 /**
  * Owns the command palette: whether it is open, the ⌘K / Ctrl+K shortcut on
  * every page, and which trigger opened it. That trigger's container morphs
@@ -150,9 +158,7 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
   // A close or an opening asked for while the palette is still morphing the
   // other way, such as Escape mid-morph or a command that navigates. It
   // runs once the morph ends rather than being dropped.
-  const queuedRef = useRef<
-    { close: CloseOptions } | { open: HTMLElement | null | undefined } | null
-  >(null);
+  const queuedRef = useRef<QueuedPaletteOperation | null>(null);
   const [open, setOpen] = useState(false);
   // Each opening starts a fresh session, so the input and results reset.
   const [session, setSession] = useState(0);

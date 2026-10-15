@@ -13,6 +13,7 @@ import type {
 } from '@/lib/music/types';
 
 import {
+  MusicOperationNotice,
   MusicPublicationNotice,
   MusicRecoveryNotice,
   MusicSaveNotice,
@@ -34,15 +35,15 @@ import { useMusicRevisionHistory } from './useMusicRevisionHistory';
 
 export default function MusicAdmin() {
   const [status, setStatus] = useState('Loading playlists…');
-  const [error, setError] = useState('');
+  const [callbackError, setCallbackError] = useState('');
+  const [recoveryError, setRecoveryError] = useState('');
   const [busy, setBusy] = useState(false);
   const collection = useMusicCollection();
   const draft = useMusicDraft({
     busy,
-    setError,
     setStatus,
     onSaved: collection.acceptRevision,
-    onSettled: clearMusicDraftRecovery,
+    onSettled: settleLocalDraft,
     onStaged: retainLocalDraft,
   });
   const recovery = useMusicDraftRecovery({
@@ -52,7 +53,6 @@ export default function MusicAdmin() {
     readDraft: draft.inspect,
     busy,
     setBusy,
-    setError,
   });
 
   function acceptCollection(catalog: MusicAdminCollectionData) {
@@ -76,14 +76,12 @@ export default function MusicAdmin() {
     readDraft: draft.inspect,
     remount: collection.remount,
     setBusy,
-    setError,
     setStatus,
   });
   const history = useMusicRevisionHistory({
     readDraft: draft.inspect,
     onRestored: reloadRestoredDraft,
     setBusy,
-    setError,
   });
   useEffect(() => {
     let active = true;
@@ -93,14 +91,14 @@ export default function MusicAdmin() {
         if (!active) return;
         const params = new URLSearchParams(location.search);
         if (params.get('connectionError'))
-          setError(params.get('connectionError')!);
+          setCallbackError(params.get('connectionError')!);
         recovery.discover(catalog.revision?.body);
         if (params.has('connected') && conn.connected) {
           window.history.replaceState(null, '', location.pathname);
           await library.refresh();
         }
       })
-      .catch((e) => setError(e.message));
+      .catch(() => undefined);
     return () => {
       active = false;
     };
@@ -109,23 +107,23 @@ export default function MusicAdmin() {
     try {
       await library.load();
       draft.discardChanges();
-      setError('');
-      clearMusicDraftRecovery();
+      settleLocalDraft();
       collection.remount();
-    } catch (error) {
-      setError((error as Error).message);
+    } catch {
+      // The library owns and displays its failed load.
     }
   }
   function retryLoad() {
-    setError('');
-    void library
-      .load()
-      .catch(() => setError('The collection could not load. Try again.'));
+    void library.load().catch(() => undefined);
+  }
+  function settleLocalDraft() {
+    clearMusicDraftRecovery();
+    setRecoveryError('');
   }
   function retainLocalDraft(catalog: MusicCatalog, revisionId: string | null) {
     publication.clearPublication();
     if (!rememberMusicDraft(catalog, revisionId))
-      setError(
+      setRecoveryError(
         'Browser recovery is unavailable. Keep this tab open until the save finishes.'
       );
   }
@@ -172,14 +170,55 @@ export default function MusicAdmin() {
       </noscript>
       <div className="music-admin-notices">
         <MusicSaveNotice
-          error={error}
+          error={draft.state.error}
           blocked={currentDraft.blocked}
           conflict={draft.state.conflict}
           reconnect={Boolean(library.connection?.reconnect)}
           onRetry={draft.retry}
           onUseSaved={loadSavedDraft}
           onConnect={library.connect}
-          onDismiss={() => setError('')}
+          onDismiss={draft.dismissError}
+        />
+        <MusicOperationNotice
+          error={library.loadError}
+          onDismiss={library.dismissLoadError}
+        >
+          <button className="mp-button mp-tonal" onClick={retryLoad}>
+            Try again
+          </button>
+        </MusicOperationNotice>
+        <MusicOperationNotice
+          error={library.connectError}
+          onDismiss={library.dismissConnectError}
+        />
+        <MusicOperationNotice
+          error={library.refreshError}
+          onDismiss={library.dismissRefreshError}
+        >
+          {library.connection?.reconnect && (
+            <button
+              className="mp-button"
+              onClick={() => void library.connect()}
+            >
+              Reconnect Spotify
+            </button>
+          )}
+        </MusicOperationNotice>
+        <MusicOperationNotice
+          error={history.error}
+          onDismiss={history.dismissError}
+        />
+        <MusicOperationNotice
+          error={publication.error}
+          onDismiss={publication.dismissError}
+        />
+        <MusicOperationNotice
+          error={callbackError}
+          onDismiss={() => setCallbackError('')}
+        />
+        <MusicOperationNotice
+          error={recoveryError}
+          onDismiss={() => setRecoveryError('')}
         />
         {busy && (
           <p role="status">
@@ -207,7 +246,7 @@ export default function MusicAdmin() {
         connected={connected}
         setupInitially={setupInitially}
         saveStatus={status}
-        loadError={error}
+        loadError={library.loadError}
         interactionLocked={busy}
         canReview={canReview}
         published={published}

@@ -89,12 +89,19 @@ function interactionWord(
   return kind === 'reply' ? null : TARGET_WORD[kind];
 }
 
+interface ReplyTargetHeadingProps {
+  url: string;
+  kind: TargetKind;
+  context?: ReplyContext;
+  rsvpStatus?: RSVPStatus;
+}
+
 function ReplyTargetHeading({
   url,
   kind,
   context,
   rsvpStatus,
-}: Pick<ReplyTargetProps, 'url' | 'kind' | 'context' | 'rsvpStatus'>) {
+}: ReplyTargetHeadingProps) {
   const host = hostOf(url);
   const siteName = context?.siteName || host;
   const word = interactionWord(kind, rsvpStatus);
@@ -123,7 +130,11 @@ function ReplyTargetHeading({
   );
 }
 
-function ReplyTargetAuthor({ context }: { context?: ReplyContext }) {
+interface ReplyTargetAuthorProps {
+  context?: ReplyContext;
+}
+
+function ReplyTargetAuthor({ context }: ReplyTargetAuthorProps) {
   return (
     <>
       {context?.authorName && (
@@ -146,15 +157,13 @@ function ReplyTargetAuthor({ context }: { context?: ReplyContext }) {
   );
 }
 
-function RsvpProperty({
-  emit,
-  kind,
-  status,
-}: {
+interface RsvpPropertyProps {
   emit: boolean;
   kind: TargetKind;
   status?: RSVPStatus;
-}) {
+}
+
+function RsvpProperty({ emit, kind, status }: RsvpPropertyProps) {
   if (!emit || kind !== 'rsvp' || !status) return null;
   return (
     <data className="p-rsvp hidden" value={status}>

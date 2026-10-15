@@ -1,8 +1,8 @@
 import type {} from '@atcute/atproto';
 import type {} from '@atcute/bluesky';
-import type { Did } from '@atcute/lexicons';
 import assert from 'node:assert/strict';
 
+import type { PublishingIdentity } from '../../../../../lib/atproto/config';
 import type { RuntimeExpectation, Snapshot } from './types.mts';
 
 interface Context {
@@ -10,11 +10,7 @@ interface Context {
   runtimeExpectation: RuntimeExpectation;
   slug: string;
   did: string | undefined;
-  identity: {
-    did: Did;
-    publicationRkey: string;
-    publicationUri: `at://${string}`;
-  };
+  identity: PublishingIdentity;
   values: {
     env: string;
     slug?: string | undefined;
@@ -30,7 +26,7 @@ interface Context {
   retainedDocument: Snapshot | undefined;
 }
 
-export async function verifyRetainedHttp(dependencies: Context) {
+export async function verifyRetainedHttp(dependencies: Readonly<Context>) {
   const revision = await fetch(`${dependencies.ORIGIN}/api/indieweb/revision`, {
     redirect: 'error',
     signal: AbortSignal.timeout(15000),

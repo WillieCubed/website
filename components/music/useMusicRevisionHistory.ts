@@ -6,18 +6,21 @@ import type { MusicRevision } from '@/lib/music/types';
 import { musicAdminRequest } from './music-admin-request';
 import { type MusicDraftSnapshot, canRestoreMusic } from './music-draft-guards';
 
+interface MusicRevisionHistoryResponse {
+  revisions: MusicRevision[];
+}
+
 interface Options {
   readDraft: () => MusicDraftSnapshot;
   onRestored: () => Promise<void>;
   setBusy: (busy: boolean) => void;
-  setError: (message: string) => void;
 }
 export function useMusicRevisionHistory({
   readDraft,
   onRestored,
   setBusy,
-  setError,
 }: Options) {
+  const [error, setError] = useState('');
   const [history, setHistory] = useState<MusicRevision[] | null>(null);
   const historyDialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -25,11 +28,13 @@ export function useMusicRevisionHistory({
     else historyDialog.current?.close();
   }, [history]);
   function openHistory() {
-    void musicAdminRequest<{ revisions: MusicRevision[] }>('/history')
+    setError('');
+    void musicAdminRequest<MusicRevisionHistoryResponse>('/history')
       .then((r) => setHistory(r.revisions))
       .catch((e) => setError(e.message));
   }
   async function restore(targetRevisionId: string) {
+    setError('');
     const draft = readDraft();
     if (!canRestoreMusic(draft)) {
       setError('Wait for the draft to save before restoring history.');
@@ -53,6 +58,8 @@ export function useMusicRevisionHistory({
     }
   }
   return {
+    error,
+    dismissError: () => setError(''),
     history,
     historyDialog,
     openHistory,

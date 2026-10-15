@@ -27,7 +27,7 @@ const RINGS = [
 export default function Webrings() {
   const labelId = useId();
   const tooltipId = useId();
-  const group = useRef<HTMLDivElement>(null);
+  const group = useRef<HTMLElement>(null);
   const tooltip = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -133,15 +133,10 @@ export default function Webrings() {
   }, []);
 
   return (
-    <div
-      ref={group}
-      className="site-webrings"
-      role="group"
-      aria-labelledby={labelId}
-    >
-      <p className="site-webrings__label" id={labelId}>
+    <section ref={group} className="site-webrings" aria-labelledby={labelId}>
+      <h2 className="site-webrings__label" id={labelId}>
         Webrings
-      </p>
+      </h2>
       <div className="site-webrings__controls">
         {RINGS.map((ring, index) => (
           <nav className="site-webring" aria-label={ring.name} key={ring.name}>
@@ -182,6 +177,6 @@ export default function Webrings() {
         role="tooltip"
         popover="manual"
       />
-    </div>
+    </section>
   );
 }

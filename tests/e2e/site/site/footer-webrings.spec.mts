@@ -4,7 +4,11 @@ test('both rings expose previous, directory, and next destinations', async ({
   page,
 }) => {
   await page.goto('/writings');
-  const rings = page.getByRole('group', { name: 'Webrings', exact: true });
+  const rings = page.getByRole('region', { name: 'Webrings', exact: true });
+  await expect(
+    rings.getByRole('heading', { name: 'Webrings', exact: true })
+  ).toHaveCount(1);
+  await expect(rings.getByRole('navigation')).toHaveCount(2);
   await expect(rings.getByRole('link')).toHaveCount(6);
   for (const [name, href] of [
     ['Previous site in the IndieWeb Webring', 'https://xn--sr8hvo.ws/previous'],
@@ -116,6 +120,7 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
         page: box('body > .grow'),
         name: box('.site-footer__lockup'),
         pages: box('.site-footer__pages'),
+        firstPage: box('.site-footer__pages a'),
         rings: box('.site-webrings'),
         label: box('.site-webrings__label'),
         panel: box('.site-webrings__controls'),
@@ -138,6 +143,10 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
         0
       );
       expect(bounds.label.right).toBeLessThan(bounds.panel.left);
+      expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
+      expect(bounds.panel.width).toBe(196);
+      expect(bounds.rings.right - bounds.panel.right).toBe(12);
+      expect(bounds.targets[3].left - bounds.targets[2].right).toBe(4);
       expect(bounds.label.top + bounds.label.height / 2).toBeCloseTo(
         bounds.panel.top + bounds.panel.height / 2,
         0
@@ -156,7 +165,7 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
         }
       }
     } else {
-      expect(bounds.panel.right).toBeCloseTo(bounds.row.right, 0);
+      expect(bounds.rings.right).toBeCloseTo(bounds.row.right, 0);
       expect(bounds.pages.right).toBeLessThan(bounds.panel.left);
     }
   }
@@ -199,7 +208,7 @@ test('both rings remain usable without JavaScript', async ({
   for (const path of ['/', '/writings']) {
     await page.goto(path);
     const links = page
-      .getByRole('group', { name: 'Webrings', exact: true })
+      .getByRole('region', { name: 'Webrings', exact: true })
       .getByRole('link');
     await expect(links).toHaveCount(6);
     for (const link of await links.all()) await expect(link).toBeVisible();

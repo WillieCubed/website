@@ -521,47 +521,48 @@
    their spacing follows the group, rather than the taller link rows. */
 .site-webrings {
   display: grid;
-  justify-items: center;
+  justify-items: stretch;
   row-gap: 8px;
   margin: 0;
-}
-.site-webrings__controls {
-  display: grid;
-  gap: 4px;
   padding: 8px;
   border-radius: 16px;
   background: var(--color-surface-container-low);
 }
+.site-webrings__controls {
+  display: grid;
+  gap: 4px;
+}
 .site-webrings__label {
   margin: 0;
+  padding-inline: 8px;
   color: var(--color-muted);
-  font: 500 14px/24px var(--font-sans);
-  text-align: center;
+  font: 500 12px/16px var(--font-sans);
+  text-align: start;
 }
 @media (max-width: 599px) {
   .site-webrings {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     width: 100%;
     max-width: 480px;
-    padding: 8px;
-    border-radius: 16px;
-    background: var(--color-surface-container-low);
+    /* The section's box follows the surface edge; its heading follows
+       the shared footer text line. The trailing arrow's drawn inset
+       plus 12px balances the heading's inset. */
+    padding-inline: var(--footer-content-pad) 12px;
   }
   .site-webrings__label {
     flex-shrink: 0;
-    text-align: start;
+    padding: 0;
   }
   .site-webrings__controls {
-    flex: 1;
-    min-width: 0;
+    flex: 0 0 auto;
+    margin-inline-start: auto;
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    gap: 0;
-    padding: 0;
-    background: transparent;
+    justify-content: start;
+    gap: 4px;
   }
 }
 .site-webring {

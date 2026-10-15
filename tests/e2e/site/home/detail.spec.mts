@@ -61,6 +61,15 @@ async function open(page: Page, id = 'lvbt') {
   await settled(page);
 }
 
+async function clickBackdrop(page: Page) {
+  // Reserved scrollbar gutters are outside the dialog's backdrop and send
+  // pointer events to the root. Click inside the page's actual viewport.
+  const start = await page.evaluate(
+    () => document.documentElement.getBoundingClientRect().left
+  );
+  await page.mouse.click(start + 8, 8);
+}
+
 const closers: [string, (page: Page) => Promise<void>][] = [
   [
     'the close button',
@@ -68,7 +77,7 @@ const closers: [string, (page: Page) => Promise<void>][] = [
       detail(page).getByRole('link', { name: 'Close', exact: true }).click(),
   ],
   // The top left corner of the viewport is backdrop at this size.
-  ['the backdrop', (page) => page.mouse.click(8, 8)],
+  ['the backdrop', clickBackdrop],
   ['Escape', (page) => page.keyboard.press('Escape')],
 ];
 
@@ -154,7 +163,7 @@ test('Back closes the view, and it closes again after Forward', async ({
   await page.goForward();
   await expect(detail(page)).toBeVisible();
   await settled(page);
-  await page.mouse.click(8, 8);
+  await clickBackdrop(page);
   await expect(detail(page)).toBeHidden();
   await expect(page).toHaveURL(/\/$/);
 });

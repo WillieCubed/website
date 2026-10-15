@@ -76,7 +76,7 @@ Build each origin separately, then use the matching deployment command:
 | Target          | Build                           | Deploy                           |
 | --------------- | ------------------------------- | -------------------------------- |
 | Production      | `pnpm build:cloudflare`         | `pnpm deploy:cloudflare`         |
-| Private preview | `pnpm build:cloudflare:preview` | `pnpm deploy:cloudflare:preview` |
+| Private preview | `pnpm build:cloudflare-preview` | `pnpm deploy:cloudflare-preview` |
 
 The build embeds the public origin and revision. Reusing one `.open-next`
 directory for both targets would carry the wrong identity into one environment.

@@ -10,14 +10,10 @@ import {
 } from '@/lib/indieweb/micropub/endpoint';
 import { parseMicropubCreateRequest } from '@/lib/indieweb/micropub/parse';
 import { buildMicropubWritingFile } from '@/lib/indieweb/micropub/serialize';
+import type { PrivateMicropubStore } from '@/lib/indieweb/micropub/store';
 import { site } from '@/lib/site/identity';
 import { StudioError } from '@/lib/studio/errors';
-import type {
-  Draft,
-  DraftContent,
-  Revision,
-  StudioStore,
-} from '@/lib/studio/types';
+import type { Draft, DraftContent, Revision } from '@/lib/studio/types';
 
 import { memoryIndieAuthStore } from '../../support/indieauth/memory-store.mts';
 
@@ -74,8 +70,8 @@ function memoryStudio() {
         throw new StudioError(409, 'Revision changed');
       drafts.set(id, { ...draft, deletedAt: new Date().toISOString() });
     },
-  };
-  return { store: store as unknown as StudioStore, drafts, history };
+  } satisfies PrivateMicropubStore;
+  return { store, drafts, history };
 }
 
 async function setup(scopes = ['create', 'update', 'delete']) {

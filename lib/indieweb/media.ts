@@ -1,5 +1,12 @@
-import type { R2Bucket } from '@cloudflare/workers-types';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+
+interface MediaBucket {
+  put(
+    key: string,
+    value: ArrayBuffer,
+    options: { httpMetadata: { contentType: string } }
+  ): Promise<unknown>;
+}
 
 /**
  * Where Micropub media uploads are kept.
@@ -49,7 +56,7 @@ export const MEDIA_TYPES: Readonly<Record<string, string>> = {
 };
 
 /** Store media in R2 and return an immutable URL on the site origin. */
-export function r2MediaStore(bucket: R2Bucket, origin: string): MediaStore {
+export function r2MediaStore(bucket: MediaBucket, origin: string): MediaStore {
   return {
     async put(pathname, file, contentType) {
       const suffix = crypto.randomUUID();

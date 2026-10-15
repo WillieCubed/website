@@ -27,13 +27,18 @@ import type { Draft, Publication, StudioStore } from '@/lib/studio/types';
 
 export interface PrivateMicropubOptions {
   /** Explicit dependency injection for tests; Workers use private Hyperdrive. */
-  studioStore?: StudioStore;
+  studioStore?: PrivateMicropubStore;
   publish?: (documentId: string, revisionId: string) => Promise<Publication>;
 }
 
+export type PrivateMicropubStore = Pick<
+  StudioStore,
+  'bySlug' | 'create' | 'save' | 'remove'
+>;
+
 export function privateMicropubStore(
   options: PrivateMicropubOptions = {}
-): StudioStore | null {
+): PrivateMicropubStore | null {
   if (options.studioStore) return options.studioStore;
   if (process.env.STUDIO_DATABASE_URL) return getStudioStore();
   try {

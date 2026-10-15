@@ -26,7 +26,7 @@ pnpm exec playwright test tests/e2e/site/indieweb/indieweb.spec.mts --project=de
 ```
 
 The browser suite inspects the served page after building it. Add
-`pnpm build:cloudflare` or `pnpm build:cloudflare:preview` when the change affects
+`pnpm build:cloudflare` or `pnpm build:cloudflare-preview` when the change affects
 the corresponding Worker package. Build production and preview separately;
 compiled origins and revisions prevent one output directory from representing
 both environments.

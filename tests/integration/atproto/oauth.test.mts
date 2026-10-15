@@ -40,7 +40,7 @@ const state = (expiresAt = Date.now() + 600000): StoredState => ({
   issuer: 'https://provider.acceptance.example',
   redirectUri: 'https://standard-acceptance.example/atproto/callback',
   pkceVerifier: 'fixture',
-  authMethod: { method: 'none' } as unknown as StoredState['authMethod'],
+  authMethod: { method: 'none' },
   dpopKey: {} as StoredState['dpopKey'],
   sub: did,
   userState: {

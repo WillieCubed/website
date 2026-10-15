@@ -45,7 +45,7 @@ export function Rail({ focuses }: { focuses: FocusItem[] }) {
           </div>
         </div>
 
-        <div className="rail-search">
+        <div className="rail-search mt-5">
           <PaletteTrigger size="rail" />
         </div>
 

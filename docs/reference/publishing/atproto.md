@@ -318,7 +318,7 @@ flowchart LR
 Run `pnpm test`, lint, type checking, and a production build on the revision
 being reviewed. `pnpm test` runs the runtime preparation in `pretest` before the
 bounded unit suite. Add `pnpm build:cloudflare` when checking the production
-Worker package; use `pnpm build:cloudflare:preview` for the preview package.
+Worker package; use `pnpm build:cloudflare-preview` for the preview package.
 Build each environment separately because its origin and revision are compiled
 into the output.
 

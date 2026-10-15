@@ -96,6 +96,9 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Keep CSS Highlight API rules out of Turbopack's unsupported selector transform. */}
+        {/* eslint-disable-next-line @next/next/no-css-tags -- The valid ::highlight() selectors must be served unchanged. */}
+        <link rel="stylesheet" href="/highlights.css" />
         <script
           id="theme-transition"
           dangerouslySetInnerHTML={{ __html: themeTransitionScript }}

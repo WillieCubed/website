@@ -35,15 +35,16 @@ test('getMediaStore requires a Cloudflare R2 binding', () => {
 
 test('R2 media storage writes immutable keys under the site origin', async () => {
   const writes: { key: string; bytes: ArrayBuffer; type: string }[] = [];
-  const bucket = {
+  const bucket: Parameters<typeof r2MediaStore>[0] = {
     async put(
       key: string,
       bytes: ArrayBuffer,
       options: { httpMetadata: { contentType: string } }
     ) {
       writes.push({ key, bytes, type: options.httpMetadata.contentType });
+      return null;
     },
-  } as unknown as Parameters<typeof r2MediaStore>[0];
+  };
   const store = r2MediaStore(bucket, 'https://willie.page');
   const url = await storeMedia(jpeg(), store, new Date('2026-09-22T12:00:00Z'));
   assert.match(

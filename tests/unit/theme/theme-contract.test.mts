@@ -80,13 +80,7 @@ test('the root theme owns light, dark, animated, and reduced-motion states', asy
 });
 
 test('site identity publishes a browser chrome color for each scheme', () => {
-  const colors = (
-    site as unknown as {
-      themeColors?: { light: string; dark: string };
-    }
-  ).themeColors;
-
-  assert.deepEqual(colors, { light: '#f4f5ef', dark: '#111413' });
+  assert.deepEqual(site.themeColors, { light: '#f4f5ef', dark: '#111413' });
 });
 
 test('venture roles carry one Material color for each scheme', () => {

@@ -80,9 +80,12 @@ and how their setup and cleanup work.
 | `pnpm dev:app`                   | Starts `next dev` directly                                                                   |
 | `pnpm build`                     | Builds Studio runtime, checks images, generates search/content manifests, and builds Next.js |
 | `pnpm build:cloudflare`          | Builds the production Worker with its own origin and revision                                |
-| `pnpm build:cloudflare:preview`  | Builds the private preview Worker                                                            |
+| `pnpm build:cloudflare-preview`  | Builds the private preview Worker                                                            |
+| `pnpm build:metrics`             | Builds the production Worker and records build size and source metrics                       |
+| `pnpm preview:cloudflare`        | Runs the local Cloudflare Worker preview                                                     |
+| `pnpm preview:metrics`           | Measures browser performance on the local Worker preview                                     |
 | `pnpm deploy:cloudflare`         | Deploys the production Worker                                                                |
-| `pnpm deploy:cloudflare:preview` | Deploys the private preview Worker                                                           |
+| `pnpm deploy:cloudflare-preview` | Deploys the private preview Worker                                                           |
 | `pnpm start`                     | Serves the production build                                                                  |
 | `pnpm test`                      | Runs the unit tests in `tests/unit` with Node's test runner                                  |
 | `pnpm test:e2e`                  | Runs the Playwright smoke and axe tests in `tests/e2e/site` against the production build     |

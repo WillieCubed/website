@@ -2,6 +2,7 @@ import { AnchorHTMLAttributes, PropsWithChildren } from 'react';
 
 import BrewLink from '@/components/link/BrewLink';
 import SiteLink from '@/components/link/SiteLink';
+import StableImage from '@/components/media/StableImage';
 import { Ref } from '@/components/references/Ref';
 import { RefMark } from '@/components/references/RefMark';
 
@@ -24,6 +25,7 @@ export {
 };
 
 export const mdxComponents = {
+  img: StableImage,
   h1: ({ children }: PropsWithChildren) => (
     <h1 className="mb-4 mt-8 text-3xl font-bold text-on-surface">{children}</h1>
   ),
@@ -75,11 +77,11 @@ export const mdxComponents = {
     <li className="text-body-medium text-on-surface">{children}</li>
   ),
   blockquote: ({ children }: PropsWithChildren) => (
-    <blockquote className="my-6 -ml-[var(--bleed)] border-l-4 border-accent/40 pl-[calc(var(--bleed)-4px)] italic text-prose">
+    <blockquote className="my-6 rounded-2xl border-0 bg-surface-container p-5 italic text-prose">
       {children}
     </blockquote>
   ),
-  hr: () => <hr className="my-8 border-t-2 border-outline-variant" />,
+  hr: () => <hr className="my-8 h-px border-0 bg-outline-variant" />,
   strong: ({ children }: PropsWithChildren) => (
     <strong className="font-bold text-on-surface">{children}</strong>
   ),

@@ -4,6 +4,8 @@ import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
 
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
 
+import { fetchWithDeadline } from '@/lib/http/fetch';
+
 interface SocialState {
   enabled: boolean;
   ready: boolean;
@@ -32,6 +34,7 @@ export function useStandardSocialControls({
     null
   );
   const [loginError, setLoginError] = useState('');
+  const [announcement, setAnnouncement] = useState('');
   const [loginInvalid, setLoginInvalid] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const busy = pending !== null;
@@ -104,7 +107,7 @@ export function useStandardSocialControls({
         setFeedback({ message: 'That action did not finish.', retry: null });
     };
     const query = slug ? '?slug=' + encodeURIComponent(slug) : '';
-    fetch('/api/atproto/social' + query, {
+    fetchWithDeadline('/api/atproto/social' + query, {
       signal: controller.signal,
       cache: 'no-store',
     })
@@ -157,10 +160,11 @@ export function useStandardSocialControls({
     loginRequest.current?.abort();
     loginRequest.current = controller;
     setPending('login');
+    setAnnouncement('Connecting…');
     setLoginError('');
     setLoginInvalid(false);
     try {
-      const response = await fetch('/api/atproto/login', {
+      const response = await fetchWithDeadline('/api/atproto/login', {
         signal: controller.signal,
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -180,6 +184,7 @@ export function useStandardSocialControls({
         setPending(null);
         return;
       }
+      setAnnouncement('Opening your account provider…');
       window.location.assign(result.url);
     } catch {
       if (controller.signal.aborted) return;
@@ -201,9 +206,18 @@ export function useStandardSocialControls({
     }
     restoreActionFocus.current = true;
     setPending('action');
+    setAnnouncement(
+      action === 'subscription'
+        ? active
+          ? 'Unsubscribing…'
+          : 'Subscribing…'
+        : active
+          ? 'Withdrawing recommendation…'
+          : 'Recommending…'
+    );
     setFeedback(null);
     try {
-      const response = await fetch('/api/atproto/' + action, {
+      const response = await fetchWithDeadline('/api/atproto/' + action, {
         method: active ? 'DELETE' : 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ slug }),
@@ -238,11 +252,21 @@ export function useStandardSocialControls({
       }
       const data = await response.json();
       if (typeof data.active !== 'boolean') throw new Error();
+      setAnnouncement(
+        action === 'subscription'
+          ? data.active
+            ? 'Subscribed.'
+            : 'Unsubscribed.'
+          : data.active
+            ? 'Recommended.'
+            : 'Recommendation withdrawn.'
+      );
       setState((current) => ({
         ...current!,
         [action === 'subscription' ? 'subscribed' : 'recommended']: data.active,
       }));
     } catch {
+      setAnnouncement('');
       setFeedback({
         message:
           action === 'subscription'
@@ -262,16 +286,19 @@ export function useStandardSocialControls({
   async function signOut() {
     restoreActionFocus.current = true;
     setPending('logout');
+    setAnnouncement('Signing out…');
     setFeedback(null);
     try {
-      const response = await fetch('/api/atproto/logout', {
+      const response = await fetchWithDeadline('/api/atproto/logout', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: '{}',
       });
       if (!response.ok) throw new Error('Sign-out failed. Try again.');
+      setAnnouncement('Signed out.');
       setState({ enabled: true, ready: true, signedIn: false });
     } catch {
+      setAnnouncement('');
       setFeedback({ message: 'Couldn’t sign out.', retry: 'logout' });
     } finally {
       setPending(null);
@@ -280,6 +307,7 @@ export function useStandardSocialControls({
 
   return {
     busy,
+    announcement,
     state,
     signIn,
     pending,

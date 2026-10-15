@@ -1,5 +1,7 @@
 .root {
   max-width: 100%;
+  width: 220px;
+  min-height: 48px;
 }
 
 .actions {
@@ -26,6 +28,7 @@
 }
 
 .action {
+  min-width: 168px;
   position: relative;
   gap: 6px;
   padding: 8px 12px;
@@ -324,22 +327,6 @@
   border-color: var(--color-error);
 }
 
-.spinner {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spin 800ms linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @media (max-width: 480px) {
   .dialog {
     padding: 24px;
@@ -355,9 +342,6 @@
   .dialog,
   .dialog::backdrop {
     transition: none;
-  }
-  .spinner {
-    animation: none;
   }
 }
 
@@ -386,4 +370,44 @@
 
 .compact .action[aria-pressed='true']:not([data-retry]) > svg {
   fill: currentColor;
+}
+
+.action > svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.compact {
+  width: 48px;
+}
+.compact .action {
+  min-width: 48px;
+}
+.signOut:disabled[aria-busy='true'],
+.continue:disabled[aria-busy='true'] {
+  opacity: 1;
+}
+
+/* Narrow headers retain one stable icon action and its optional account menu. */
+@media (max-width: 480px) {
+  .root {
+    width: 98px;
+  }
+  .action,
+  .actions[data-split] .action {
+    width: 48px;
+    min-width: 48px;
+    padding-inline: 0;
+  }
+  .action > span:last-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .compact {
+    width: 48px;
+  }
 }

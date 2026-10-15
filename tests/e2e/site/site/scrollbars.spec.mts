@@ -31,7 +31,9 @@ test('the page keeps its scrollbar gutter under the detail view', async ({
   await page.goto('/?detail=lvbt');
   await expect(page.locator('dialog.detail')).toBeVisible();
   expect(await computed(page, 'html', 'overflow')).toBe('hidden');
-  expect(await computed(page, 'html', 'scrollbar-gutter')).toBe('stable');
+  expect(await computed(page, 'html', 'scrollbar-gutter')).toBe(
+    'stable both-edges'
+  );
 });
 
 test('the detail view scrolls with a thin bar in its venture colours', async ({
@@ -94,15 +96,17 @@ test('below 840px the detail view fills the window with square corners', async (
     const box = dialog.getBoundingClientRect();
     return {
       width: Math.round(box.width),
+      availableWidth: Math.round(document.body.getBoundingClientRect().width),
+      start: box.left,
+      end: innerWidth - box.right,
       height: Math.round(box.height),
       radius: getComputedStyle(dialog).borderTopRightRadius,
       overflow: getComputedStyle(dialog).overflowY,
     };
   });
-  expect(view).toEqual({
-    width: 760,
-    height: 900,
-    radius: '0px',
-    overflow: 'auto',
-  });
+  expect(view.width).toBe(view.availableWidth);
+  expect(Math.abs(view.start - view.end)).toBeLessThanOrEqual(1);
+  expect(view.height).toBe(900);
+  expect(view.radius).toBe('0px');
+  expect(view.overflow).toBe('auto');
 });

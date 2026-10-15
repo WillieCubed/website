@@ -1,6 +1,7 @@
 import { mf2 } from 'microformats-parser';
 
 import { hasDatabase, sql } from '@/lib/db/postgres';
+import { fetchWithDeadline } from '@/lib/http/fetch';
 import { SITE_URL } from '@/lib/indieweb/constants';
 
 /**
@@ -226,13 +227,17 @@ export async function fetchReplyContext(url: string): Promise<ReplyContext> {
 
   try {
     // Fetch the page
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': `${new URL(SITE_URL).hostname} reply-context fetcher (+${SITE_URL})`,
-        Accept: 'text/html,application/xhtml+xml',
+    const response = await fetchWithDeadline(
+      url,
+      {
+        headers: {
+          'User-Agent': `${new URL(SITE_URL).hostname} reply-context fetcher (+${SITE_URL})`,
+          Accept: 'text/html,application/xhtml+xml',
+        },
+        redirect: 'follow',
       },
-      redirect: 'follow',
-    });
+      1500
+    );
 
     if (!response.ok) {
       // Still cache the minimal context to avoid repeated failed fetches

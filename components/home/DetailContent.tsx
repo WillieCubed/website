@@ -2,7 +2,9 @@
 
 import { Constellation } from '@/components/home/Constellation';
 import { Icon } from '@/components/home/Icon';
+import SiteLink from '@/components/link/SiteLink';
 
+import { isPlainClick } from '@/lib/dom/click';
 import { type Detail, type DetailMedia } from '@/lib/home/ventures';
 
 export function Media({
@@ -70,13 +72,21 @@ export function Body({
           {detail.list.map((item) => (
             <li key={item.title}>
               {item.opens ? (
-                <button type="button" onClick={() => onOpen(item.opens!)}>
+                <SiteLink
+                  href={`/?detail=${item.opens}`}
+                  preview={false}
+                  onClick={(event) => {
+                    if (!isPlainClick(event)) return;
+                    event.preventDefault();
+                    onOpen(item.opens!);
+                  }}
+                >
                   <b>
                     {item.title}
                     <Icon name="forward" />
                   </b>
                   <span>{item.text}</span>
-                </button>
+                </SiteLink>
               ) : (
                 <>
                   <b>{item.title}</b>

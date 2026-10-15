@@ -13,9 +13,11 @@ import {
 
 import { entityKey } from '@/lib/entities/key';
 import type { EntityCard } from '@/lib/entities/types';
+import { fetchWithDeadline } from '@/lib/http/fetch';
 import { isInternalHref } from '@/lib/site/urls';
 
 import LinkPreview from './LinkPreview';
+import NavigationHint from './NavigationHint';
 import './link.css';
 import { schemeVars } from './scheme';
 
@@ -42,7 +44,7 @@ let registryPromise: Promise<Map<string, EntityCard>> | null = null;
 
 function loadRegistry(): Promise<Map<string, EntityCard>> {
   if (!registryPromise) {
-    registryPromise = fetch('/entities.json')
+    registryPromise = fetchWithDeadline('/entities.json')
       .then((response) => {
         // A failed response goes through the catch below like a network
         // error, so one bad deploy or cold start does not leave the whole
@@ -235,6 +237,7 @@ export default function SiteLink({
         }}
       >
         {children}
+        <NavigationHint />
       </Link>
       {wantsPreview && card && (
         <LinkPreview

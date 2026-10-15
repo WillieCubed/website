@@ -36,7 +36,7 @@
   background: var(--color-card);
 }
 .brand-type-role + .brand-type-role {
-  border-top: 1px solid var(--color-line);
+  margin-top: 8px;
 }
 .brand-type-role-description h5 {
   margin: 0;

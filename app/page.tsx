@@ -74,7 +74,9 @@ export async function generateMetadata({
  *
  * Route: /
  */
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const { detail } = await searchParams;
+  const initialDetail = Array.isArray(detail) ? detail[0] : detail;
   const [featuredTiles, featured] = await Promise.all([
     getFeaturedTiles(),
     getFeaturedInitiatives(),
@@ -114,6 +116,7 @@ export default async function HomePage() {
       {/* The footer is this page's contact row until the page ends. */}
       <DockFooter />
       <HomeShell
+        initialDetail={initialDetail}
         brands={brands}
         detailCountdown={<CountdownDays deadline={LVBT_DEADLINE} />}
         extraEntries={focusEntries(featuredTiles)}

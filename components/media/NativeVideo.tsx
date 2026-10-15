@@ -80,6 +80,12 @@ export default function NativeVideo({
     <div>
       <video
         ref={video}
+        style={{
+          width: '100%',
+          height: 'auto',
+          aspectRatio: '16 / 9',
+          objectFit: 'contain',
+        }}
         onError={() => {
           if (!new URL(src).pathname.endsWith('.m3u8')) setFailedSource(src);
         }}
@@ -91,12 +97,12 @@ export default function NativeVideo({
         className={className}
         aria-label={description || 'Video'}
       />
-      {failed && sourceUrl && (
+      {sourceUrl && (
         <SiteLink
           href={sourceUrl}
           className="mt-2 inline-flex min-h-10 items-center rounded-full bg-tray px-4 text-label-medium text-ink"
         >
-          Open video
+          {failed ? 'Open video at its source' : 'Video source'}
         </SiteLink>
       )}
     </div>

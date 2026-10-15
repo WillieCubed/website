@@ -3,6 +3,7 @@
 import React from 'react';
 
 import Icon from '@/components/icons/Icon';
+import SiteLink from '@/components/link/SiteLink';
 import { usePaletteSession } from '@/components/search/palette/usePaletteSession';
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
 
@@ -81,6 +82,7 @@ function PaletteBody({
     inputRef,
     query,
     searchError,
+    searching,
     readout,
     pending,
     announcement,
@@ -127,7 +129,7 @@ function PaletteBody({
         />
       </div>
 
-      <div className="palette-body flex min-h-0 flex-1 flex-col gap-3">
+      <div className="palette-body flex h-[min(320px,45dvh)] min-h-0 flex-1 flex-col gap-3">
         {(readout || pending) && (
           <ReadoutView
             readout={
@@ -198,17 +200,29 @@ function PaletteBody({
             ))}
           </div>
         )}
-        {/* Search runs from two characters on, so a single one has not
-            been looked for yet and says nothing. */}
-        {!showList && !readout && !pending && typed.length >= 2 && !egg && (
-          <p className="palette-empty m-0 px-5 pt-5 pb-3 text-muted">
-            {searchError ?? `Nothing on the site matches “${query.trim()}”.`}
-          </p>
-        )}
-        {showList && searchError && (
-          <p className="palette-empty m-0 px-5 pt-5 pb-3 text-muted">
-            {searchError}
-          </p>
+        {!readout && !pending && typed.length >= 2 && !egg && (
+          <div className="palette-search-status">
+            <p
+              className="palette-empty m-0 px-5 pt-5 pb-3 text-muted"
+              role="status"
+            >
+              {searching
+                ? 'Searching…'
+                : (searchError ??
+                  (!showList
+                    ? `Nothing on the site matches “${query.trim()}”.`
+                    : `${rows.length} results available.`))}
+            </p>
+            {searchError && (
+              <SiteLink
+                preview={false}
+                href={`/search?q=${encodeURIComponent(query.trim())}`}
+                onClick={() => onClose({ animate: false, restoreFocus: false })}
+              >
+                Search without instant search
+              </SiteLink>
+            )}
+          </div>
         )}
       </div>
 

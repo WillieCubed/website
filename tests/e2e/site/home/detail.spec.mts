@@ -64,7 +64,8 @@ async function open(page: Page, id = 'lvbt') {
 const closers: [string, (page: Page) => Promise<void>][] = [
   [
     'the close button',
-    (page) => detail(page).getByRole('button', { name: 'Close' }).click(),
+    (page) =>
+      detail(page).getByRole('link', { name: 'Close', exact: true }).click(),
   ],
   // The top left corner of the viewport is backdrop at this size.
   ['the backdrop', (page) => page.mouse.click(8, 8)],
@@ -99,7 +100,7 @@ test('closing before the URL catches up still closes', async ({ page }) => {
   await page.locator('#rtc a.cover').click();
   await expect(detail(page)).toBeVisible();
   await settled(page);
-  await detail(page).getByRole('button', { name: 'Close' }).click();
+  await detail(page).getByRole('link', { name: 'Close', exact: true }).click();
   await expect(detail(page)).toBeHidden();
   release();
   await page.waitForTimeout(500);
@@ -133,7 +134,7 @@ test('Back after closing leaves the page instead of reopening it', async ({
   await page.goto('/');
   await hydrated(page);
   await open(page);
-  await detail(page).getByRole('button', { name: 'Close' }).click();
+  await detail(page).getByRole('link', { name: 'Close', exact: true }).click();
   await expect(detail(page)).toBeHidden();
   await expect(page).toHaveURL(/\/$/);
   await page.goBack();

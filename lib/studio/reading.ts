@@ -135,7 +135,7 @@ export async function safeReadingHtml(
     ]),
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,
-      img: ['src', 'alt', 'title'],
+      img: ['src', 'alt', 'title', 'width', 'height'],
       '*': ['id'],
     },
     allowedSchemes: ['https', 'http', 'mailto'],

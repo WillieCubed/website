@@ -19,6 +19,13 @@ export function visibleCollection(
     );
   const order = catalog.order.filter((id) => byId.has(id));
   return {
+    // An absent or expired approved record is a load failure, not evidence
+    // that Willie has no playlists. Known exclusions can be genuinely empty.
+    unavailable:
+      order.length === 0 &&
+      catalog.selected.some(
+        (id) => !playlists.some((p) => p.id === id && !p.eligible)
+      ),
     catalog: {
       ...catalog,
       order,

@@ -141,7 +141,6 @@
 .studio-review-screen {
   animation: studio-task-enter var(--duration-fast) var(--ease-site);
 }
-.studio-editor .site-button,
 .studio-editor .studio-inline-trigger {
   transition:
     background-color var(--duration-fast) var(--ease-site),
@@ -188,8 +187,9 @@
 
 .studio-portable-review {
   margin-block: var(--spacing-xl);
-  padding-block: var(--spacing-lg);
-  border-block: 1px solid var(--color-line);
+  padding: var(--spacing-lg);
+  border-radius: 20px;
+  background: var(--color-surface-container);
 }
 .studio-portable-text {
   white-space: pre-wrap;

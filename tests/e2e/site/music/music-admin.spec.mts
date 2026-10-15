@@ -204,7 +204,7 @@ test('a Spotify refresh keeps the reviewed draft aligned with the saved revision
   await importRequested;
   await expect(
     page.locator('.music-admin-notices [role="status"]')
-  ).toContainText('Importing your Spotify playlists…');
+  ).toContainText('Importing Spotify playlists…');
   await expect(page.locator('.music-prototype')).toHaveAttribute('inert', '');
   await expect(selection).toBeDisabled();
   const dir = '.playwright-mcp/music/iterations/2026-10-13-refresh-locked';
@@ -261,6 +261,27 @@ test('publication feedback stays out of the page layout', async ({
     });
   });
   await page.goto('/studio/music');
+  await page.evaluate(() => document.fonts.ready);
+  await page
+    .getByRole('button', { name: 'Review changes' })
+    .scrollIntoViewIfNeeded();
+  const composition = () =>
+    page.evaluate(() =>
+      Array.from(
+        document.querySelectorAll(
+          'header[data-column],.mp-rail,.mp-grid,.mp-sample-note,.mp-draft-note'
+        )
+      ).map((element) => {
+        const box = element.getBoundingClientRect();
+        return {
+          x: box.x,
+          y: box.y + scrollY,
+          width: box.width,
+          height: box.height,
+        };
+      })
+    );
+  const before = await composition();
   await page.getByRole('button', { name: 'Review changes' }).click();
   await page.getByRole('button', { name: 'Publish collection' }).click();
   const notice = page.locator('.music-admin-notice[role="status"]');
@@ -270,13 +291,24 @@ test('publication feedback stays out of the page layout', async ({
   const message = await notice.boundingBox();
   expect(bar).not.toBeNull();
   expect(message).not.toBeNull();
-  expect(bar!.y).toBe(0);
+  const actions = await page.locator('.mp-draft-note').boundingBox();
+  // The action surface can now park above the footer while the snackbar
+  // stays at the viewport edge. They must remain separate in either position.
+  expect(
+    message!.y + message!.height < actions!.y ||
+      message!.y > actions!.y + actions!.height
+  ).toBe(true);
+  const footer = await page.locator('.site-footer').boundingBox();
+  expect(actions!.y + actions!.height).toBeLessThanOrEqual(footer!.y);
+  // Publication feedback must preserve the workspace composition.
+  expect(await composition()).toEqual(before);
   await expect(
     page.getByRole('complementary', { name: 'Private preview' })
   ).toHaveCount(0);
   expect(bar!.y).toBeLessThan(message!.y);
   const dir = '.playwright-mcp/music/iterations/2026-10-13-studio-toast';
   await mkdir(dir, { recursive: true });
+  await page.evaluate(() => scrollTo(0, 0));
   await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
   await page.screenshot({
     path: `${dir}/${info.project.name}.png`,

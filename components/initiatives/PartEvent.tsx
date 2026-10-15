@@ -24,21 +24,21 @@ interface PartEventProps {
  */
 export default function PartEvent({ initiative, part, url }: PartEventProps) {
   return (
-    <div className="h-event relative flex min-h-[52vh] flex-col justify-end bg-gradient-to-t from-ink/80 via-ink/20 to-transparent p-6 medium:p-10">
+    <div className="h-event relative flex min-h-[52vh] flex-col justify-end bg-gradient-to-t from-scrim/90 via-scrim/40 to-transparent p-6 medium:p-10">
       <data className="p-name" value={partTitle(initiative, part)} />
       <data className="u-url" value={url} />
-      <p className="act-kicker text-label-large text-ground/85">
+      <p className="font-mono tracking-[0.04em] text-label-large text-on-scrim">
         {initiative.partLabel} {part.number}
       </p>
-      <h1 className="mt-2 max-w-[18ch] text-display-medium text-ground">
+      <h1 className="mt-2 max-w-[18ch] text-display-medium text-on-scrim">
         {part.title}
       </h1>
       {part.tagline && (
-        <p className="p-summary mt-3 max-w-prose text-headline-small font-normal text-ground/90">
+        <p className="p-summary mt-3 max-w-prose text-headline-small font-normal text-on-scrim">
           {part.tagline}
         </p>
       )}
-      <p className="mt-4 text-label-large text-ground/85">
+      <p className="mt-4 text-label-large text-on-scrim">
         <time className="dt-start" dateTime={isoDate(part.starts)}>
           {formatRange(part.starts, part.ends, true)}
         </time>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
+import { fetchWithDeadline } from '@/lib/http/fetch';
 import type {
   MusicCatalog,
   MusicPlaylist,
@@ -16,14 +17,14 @@ import MusicExperience from './MusicExperience';
 
 const recoveryKey = 'willie-music-recovery-v1';
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api/studio/music${path}`, {
+  const response = await fetchWithDeadline(`/api/studio/music${path}`, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
   const contentType = response.headers.get('content-type') ?? '';
   if (!contentType.includes('application/json'))
     throw new Error(
-      'The preview returned a page instead of music data. Reload your collection and try again.'
+      'The preview returned a page instead of music data. Reload the collection and try again.'
     );
   const data = await response.json();
   if (!response.ok)
@@ -52,7 +53,7 @@ export default function MusicAdmin() {
     playlists: MusicPlaylist[];
   } | null>(null);
   const [connection, setConnection] = useState<Connection | null>(null);
-  const [status, setStatus] = useState('Loading your collection…');
+  const [status, setStatus] = useState('Loading playlists…');
   const [error, setError] = useState('');
   const [conflict, setConflict] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -100,7 +101,7 @@ export default function MusicAdmin() {
     setStatus(
       catalog.revision
         ? 'Saved privately'
-        : 'Choose what belongs in your gallery'
+        : 'Choose what belongs in the public gallery'
     );
     return { catalog, conn };
   }
@@ -242,12 +243,12 @@ export default function MusicAdmin() {
   }
   async function refresh() {
     if (savingRef.current || pending.current) {
-      setError('Wait for your draft to save before refreshing.');
+      setError('Wait for the draft to save before refreshing.');
       return;
     }
     setBusy(true);
     setError('');
-    setStatus('Importing your Spotify playlists…');
+    setStatus('Importing Spotify playlists…');
     try {
       const started = Date.now();
       let imported: { failed: number };
@@ -299,7 +300,7 @@ export default function MusicAdmin() {
       setGeneration((n) => n + 1);
       if (imported.failed)
         setError(
-          `${imported.failed} playlists could not refresh. Your saved choices are intact. Retry the refresh.`
+          `${imported.failed} playlists could not refresh. Saved choices are intact. Retry the refresh.`
         );
       setStatus('Saved privately');
     } catch (e) {
@@ -320,7 +321,7 @@ export default function MusicAdmin() {
       return;
     if (JSON.stringify(reviewed) !== JSON.stringify(saved.current)) {
       setError(
-        'Your draft changed after review. Review the saved version again.'
+        'The draft changed after review. Review the saved version again.'
       );
       return;
     }
@@ -365,7 +366,7 @@ export default function MusicAdmin() {
   }, [publication]);
   async function restore(revisionId: string) {
     if (savingRef.current || pending.current || blocked.current) {
-      setError('Wait for your draft to save before restoring history.');
+      setError('Wait for the draft to save before restoring history.');
       return;
     }
     setBusy(true);
@@ -392,6 +393,12 @@ export default function MusicAdmin() {
   const eligible = data?.playlists.filter((p) => p.eligible) ?? [];
   return (
     <>
+      <noscript>
+        <p>
+          This curation tool needs JavaScript.{' '}
+          <SiteLink href="/music">Browse the music collection</SiteLink>.
+        </p>
+      </noscript>
       <div className="music-admin-notices">
         {error && (
           <div className="music-admin-notice" role="alert">
@@ -432,9 +439,7 @@ export default function MusicAdmin() {
         )}
         {busy && (
           <p role="status">
-            {status === 'Importing your Spotify playlists…'
-              ? status
-              : 'Working…'}
+            {status === 'Importing Spotify playlists…' ? status : 'Working…'}
           </p>
         )}
         {recovery && (
@@ -480,11 +485,11 @@ export default function MusicAdmin() {
           <div className="music-admin-notice" role="status">
             <p>
               {publication.status === 'live'
-                ? 'Your collection is live.'
+                ? 'The collection is live.'
                 : publication.status === 'deploying'
-                  ? 'Deploying your collection…'
+                  ? 'Deploying the collection…'
                   : publication.status === 'publishing'
-                    ? 'Publishing your reviewed collection…'
+                    ? 'Publishing the reviewed collection…'
                     : (publication.error ?? 'Publication failed.')}
             </p>
             <div className="music-admin-notice__actions">
@@ -524,11 +529,19 @@ export default function MusicAdmin() {
           </div>
         )}
       </div>
-      {data && connection ? (
+      {
         <MusicExperience
           key={generation}
           mode="admin"
-          playlists={data.playlists}
+          playlists={data?.playlists ?? []}
+          loading={!data || !connection}
+          loadError={error}
+          onRetry={() => {
+            setError('');
+            void load().catch(() =>
+              setError('The collection could not load. Try again.')
+            );
+          }}
           initialCatalog={initial}
           onChange={change}
           onPublish={publish}
@@ -539,16 +552,18 @@ export default function MusicAdmin() {
           saveStatus={status}
           published={
             publication?.status === 'live' &&
-            publication.revisionId === data.revision?.id &&
+            publication.revisionId === data?.revision?.id &&
             !pending.current &&
             !saving
           }
-          connected={connection.connected}
+          connected={connection?.connected ?? false}
           onConnect={connect}
           onRefresh={refresh}
-          setupInitially={
-            !data.revision || (!initial.selected.length && eligible.length > 0)
-          }
+          setupInitially={Boolean(
+            data &&
+            (!data.revision ||
+              (!initial.selected.length && eligible.length > 0))
+          )}
           adminMenuItems={[
             {
               label: 'History',
@@ -558,18 +573,12 @@ export default function MusicAdmin() {
                   .catch((e) => setError(e.message));
               },
             },
-            ...(!connection.connected
+            ...(!connection?.connected
               ? [{ label: 'Reconnect Spotify', onSelect: () => void connect() }]
               : []),
           ]}
         />
-      ) : (
-        <main id="main" className="mp-shell">
-          <h1>Music</h1>
-          <p>{status}</p>
-          {error && <button onClick={() => void load()}>Try again</button>}
-        </main>
-      )}
+      }
       {history && (
         <dialog
           ref={historyDialog}

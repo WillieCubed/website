@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 import { flushSync } from 'react-dom';
 
+import { fetchWithDeadline } from '@/lib/http/fetch';
 import type { CloseOptions, PaletteData } from '@/lib/search/palette/types';
 import type { Command } from '@/lib/search/palette/types';
 
@@ -107,7 +108,7 @@ let placesRequest: Promise<PaletteData> | null = null;
  * try again, and the palette still searches and runs its commands meanwhile.
  */
 function loadPlaces(): Promise<PaletteData> {
-  placesRequest ??= fetch('/api/palette')
+  placesRequest ??= fetchWithDeadline('/api/palette')
     .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json() as Promise<PaletteData>;

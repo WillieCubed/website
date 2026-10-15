@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 
+import { useHydrated } from '@/lib/dom/hydrated';
+import { fetchWithDeadline } from '@/lib/http/fetch';
 import type { AdminState } from '@/lib/status/admin-state';
 import type { City } from '@/lib/status/location';
 
@@ -26,10 +28,13 @@ async function readResponse(
 
 export default function StatusEditor({ initial }: { initial: AdminState }) {
   const [state, setState] = useState(initial);
-  const [editing, setEditing] = useState(false);
-  const [query, setQuery] = useState(initial.snapshot?.location.city || '');
+  const hydrated = useHydrated();
+  const [editing, setEditing] = useState(Boolean(initial.editing));
+  const [query, setQuery] = useState(
+    initial.query ?? initial.snapshot?.location.city ?? ''
+  );
   const [dirty, setDirty] = useState(false);
-  const [results, setResults] = useState<City[]>([]);
+  const [results, setResults] = useState<City[]>(initial.results ?? []);
   const [message, setMessage] = useState(initial.message || '');
   const [pending, setPending] = useState(false);
   const [chosen, setChosen] = useState<City>();
@@ -53,7 +58,7 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
     const timer = setTimeout(async () => {
       setMessage('Searching…');
       try {
-        const response = await fetch(
+        const response = await fetchWithDeadline(
           `${endpoint}?edit=1&q=${encodeURIComponent(query.trim())}`,
           { signal: abort.signal, cache: 'no-store' }
         );
@@ -107,7 +112,7 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
     if (city) setQuery(city.city);
     setMessage(city ? 'Saving…' : '');
     try {
-      let response = await fetch(endpoint, {
+      let response = await fetchWithDeadline(endpoint, {
         method: 'POST',
         headers: { Accept: 'application/json' },
         body: new URLSearchParams(fields),
@@ -115,7 +120,7 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
       let next = await readResponse(response);
       if (next.redirect) {
         const destination = new URL(next.redirect, window.location.origin);
-        response = await fetch(`${endpoint}${destination.search}`, {
+        response = await fetchWithDeadline(`${endpoint}${destination.search}`, {
           cache: 'no-store',
         });
         next = await readResponse(response);
@@ -180,17 +185,26 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
         >
           <header className="field-heading">
             <h2 id="location-title">Location</h2>
-            <button
-              type="button"
-              ref={control}
-              className="edit-control"
-              data-edit-button
-              aria-controls="city-field"
-              disabled={pending}
-              onClick={toggleEdit}
-            >
-              {editing ? 'Cancel' : 'Edit'}
-            </button>
+            <form action="/admin/status" method="get">
+              <button
+                type="submit"
+                name="edit"
+                value={editing ? '' : '1'}
+                ref={control}
+                className="edit-control"
+                data-edit-button
+                aria-controls="city-field"
+                disabled={pending}
+                onClick={(event) => {
+                  if (hydrated) {
+                    event.preventDefault();
+                    toggleEdit();
+                  }
+                }}
+              >
+                {editing ? 'Cancel' : 'Edit'}
+              </button>
+            </form>
           </header>
           <div className="location" role="region" aria-label="Current city">
             {!editing ? (
@@ -200,8 +214,13 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
             ) : (
               <form
                 data-location-form
-                onSubmit={(event) => event.preventDefault()}
+                action="/admin/status"
+                method="get"
+                onSubmit={(event) => {
+                  if (hydrated) event.preventDefault();
+                }}
               >
+                <input type="hidden" name="edit" value="1" />
                 <input
                   ref={input}
                   id="city-field"
@@ -254,6 +273,9 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
                     }
                   }}
                 />
+                <noscript>
+                  <button type="submit">Search cities</button>
+                </noscript>
               </form>
             )}
             {region && <p className="region">{regionLabel(region)}</p>}
@@ -272,18 +294,30 @@ export default function StatusEditor({ initial }: { initial: AdminState }) {
             hidden={!editing || !results.length}
           >
             {results.map((city, index) => (
-              <button
-                type="button"
+              <form
                 key={`${city.city}:${city.latitude}:${city.longitude}`}
-                role="option"
-                aria-selected={index === selected}
-                id={`city-option-${index}`}
-                disabled={pending}
-                onClick={() => void save(city)}
+                method="post"
+                action={endpoint}
+                onSubmit={(event) => {
+                  if (hydrated) {
+                    event.preventDefault();
+                    void save(city);
+                  }
+                }}
               >
-                <strong>{city.city}</strong>
-                <span>{regionLabel(city)}</span>
-              </button>
+                <input type="hidden" name="action" value="save" />
+                <input type="hidden" name="city" value={JSON.stringify(city)} />
+                <button
+                  type="submit"
+                  role="option"
+                  aria-selected={index === selected}
+                  id={`city-option-${index}`}
+                  disabled={pending}
+                >
+                  <strong>{city.city}</strong>
+                  <span>{regionLabel(city)}</span>
+                </button>
+              </form>
             ))}
           </div>
           <a className="credit" href="https://open-meteo.com/">

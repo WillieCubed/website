@@ -1,5 +1,4 @@
 import { connection } from 'next/server';
-import { Suspense } from 'react';
 
 import { CountUp } from './CountUp';
 
@@ -25,17 +24,13 @@ async function Days({
   return <CountUp end={daysUntil(deadline)} animate={animate} />;
 }
 
-/** The number of days left before `deadline`, streamed in at request time. */
-export function CountdownDays({
+/** Compute the current value on the server, before exposing the page. */
+export async function CountdownDays({
   deadline,
   animate = false,
 }: {
   deadline: string;
   animate?: boolean;
 }) {
-  return (
-    <Suspense fallback={<span>…</span>}>
-      <Days deadline={deadline} animate={animate} />
-    </Suspense>
-  );
+  return <Days deadline={deadline} animate={animate} />;
 }

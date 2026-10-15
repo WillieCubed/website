@@ -1,0 +1,14 @@
+.site-collection {
+  --collection-bleed: 12px;
+}
+.collection-header {
+  padding-top: 24px;
+}
+.collection-items {
+  margin-inline: calc(-1 * var(--collection-bleed));
+}
+@media (min-width: 600px) {
+  .site-collection {
+    --collection-bleed: 20px;
+  }
+}

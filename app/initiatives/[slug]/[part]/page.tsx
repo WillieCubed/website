@@ -175,7 +175,7 @@ export default async function PartPage(props: {
         {isPrivatePreview() && (initiative.draft || part.draft) && (
           <p className="mb-4 text-label-medium text-muted">Draft</p>
         )}
-        <header className="relative overflow-hidden rounded-3xl bg-ink text-ground">
+        <header className="relative overflow-hidden rounded-3xl bg-scrim text-on-scrim">
           {cover && (
             <Image
               src={cover.src}

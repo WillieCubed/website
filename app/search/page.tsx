@@ -1,5 +1,4 @@
 import type { Metadata } from 'next/types';
-import { Suspense } from 'react';
 
 import SiteSearch from '@/components/search/SiteSearch';
 import TopBar, { COLUMN } from '@/components/site/TopBar';
@@ -20,7 +19,8 @@ interface SearchPageProps {
   searchParams: Promise<{ q?: string }>;
 }
 
-export default function SearchPage({ searchParams }: SearchPageProps) {
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const { q } = await searchParams;
   return (
     <>
       <TopBar column="reading" />
@@ -30,17 +30,8 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
           Press <kbd className="font-mono">⌘K</kbd> (Ctrl+K on Windows and
           Linux) for instant search.
         </p>
-        {/* searchParams is request data, so reading it must sit under Suspense
-            for the static shell to prerender under Cache Components. */}
-        <Suspense fallback={<SiteSearch />}>
-          <SearchResults searchParams={searchParams} />
-        </Suspense>
+        <SiteSearch query={q} />
       </main>
     </>
   );
-}
-
-async function SearchResults({ searchParams }: SearchPageProps) {
-  const { q } = await searchParams;
-  return <SiteSearch query={q} />;
 }

@@ -1,0 +1,82 @@
+.site-button {
+  --button-fill: var(--color-surface-container-high);
+  --button-ink: var(--color-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  min-height: var(--control-target, 44px);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: 1px solid transparent;
+  border-radius: var(--shape-full, 999px);
+  background: var(--button-fill);
+  color: var(--button-ink);
+  font: inherit;
+  font-size: var(--text-label-large);
+  font-weight: var(--text-label-large--font-weight);
+  line-height: var(--text-label-large--line-height);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast, 160ms) var(--ease-site),
+    color var(--duration-fast, 160ms) var(--ease-site),
+    border-radius 320ms var(--ease-site),
+    scale 320ms var(--ease-site);
+}
+.site-button > svg {
+  display: block;
+  flex: none;
+}
+.site-button-tonal {
+  --button-fill: var(--color-primary-container);
+  --button-ink: var(--color-on-primary-container);
+}
+.site-button-primary {
+  --button-fill: var(--color-primary);
+  --button-ink: var(--color-on-primary);
+}
+.site-button-quiet {
+  --button-fill: transparent;
+  --button-ink: var(--color-on-surface-variant);
+}
+.site-button-outlined {
+  border-color: var(--color-line);
+}
+.site-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--button-ink) 8%, var(--button-fill));
+}
+.site-button:active:not(:disabled) {
+  border-radius: 16px;
+  scale: 0.97;
+  background: color-mix(in srgb, var(--button-ink) 12%, var(--button-fill));
+}
+.site-button:focus-visible {
+  outline: var(--focus-width, 2px) solid var(--color-accent);
+  outline-offset: var(--spacing-2xs);
+}
+.site-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.site-button-icon {
+  width: var(--control-target, 44px);
+  height: var(--control-target, 44px);
+  flex: none;
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-button {
+    transition: none;
+  }
+  .site-button:active:not(:disabled) {
+    scale: 1;
+  }
+}
+@media (forced-colors: active) {
+  .site-button {
+    border-color: ButtonText;
+  }
+  .site-button:disabled {
+    border-color: GrayText;
+  }
+}

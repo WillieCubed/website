@@ -7,6 +7,8 @@ import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import { ViewTransition } from '@/components/site/view-transition';
 
+import { useHydrated } from '@/lib/dom/hydrated';
+import { fetchWithDeadline } from '@/lib/http/fetch';
 import type { PublicStatus } from '@/lib/status/types';
 
 import TimeZoneChooser from './TimeZoneChooser';
@@ -20,6 +22,7 @@ export default function Status({
   initial: PublicStatus;
   expanded?: boolean;
 }) {
+  const hydrated = useHydrated();
   const pathname = usePathname();
   const [data, setData] = useState(initial);
   const [refreshing, setRefreshing] = useState(true);
@@ -59,7 +62,7 @@ export default function Status({
       inFlight = true;
       setRefreshing(true);
       try {
-        const response = await fetch('/api/status', {
+        const response = await fetchWithDeadline('/api/status', {
           cache: 'no-store',
           signal: abort.signal,
         });
@@ -149,13 +152,20 @@ export default function Status({
         preview={false}
         href="/status"
         className="microstatus"
-        aria-label={`Willie's status in ${location.city}${weather ? `, ${Math.round(weather.temperature)} degrees Fahrenheit, ${weatherLabel(weather)}` : ''}`}
+        aria-label={
+          data.unavailable
+            ? 'Current status unavailable'
+            : `Willie's status in ${location.city}${weather ? `, ${Math.round(weather.temperature)} degrees Fahrenheit, ${weatherLabel(weather)}` : ''}`
+        }
       >
         <span className="microstatus-place">
           <Icon name="map-pin" />
-          {city}
+          {data.unavailable ? 'Status unavailable' : city}
         </span>
-        <span className="microstatus-clock">
+        <span
+          className="microstatus-clock"
+          style={data.unavailable ? { visibility: 'hidden' } : undefined}
+        >
           <Icon name="clock" />
           {clock}
         </span>
@@ -174,8 +184,17 @@ export default function Status({
         aria-label="Willie's location, time, and weather"
       >
         <div className="status-place">
-          <h1 className="status-heading">Willie is currently in {city}.</h1>
-          <div className="clock">
+          <h1 className="status-heading">
+            {data.unavailable ? (
+              'Willie’s current location is unavailable.'
+            ) : (
+              <>Willie is currently in {city}.</>
+            )}
+          </h1>
+          <div
+            className="clock"
+            style={data.unavailable ? { visibility: 'hidden' } : undefined}
+          >
             {clock}
             <TimeZoneChooser
               current={selectedTimezone}
@@ -194,6 +213,7 @@ export default function Status({
             <button
               type="button"
               className="weather-reading"
+              disabled={!hydrated}
               onClick={toggleTemperature}
               aria-label={`Show temperature in degrees ${celsius ? 'Fahrenheit' : 'Celsius'}`}
               title={`Switch to °${celsius ? 'F' : 'C'}`}

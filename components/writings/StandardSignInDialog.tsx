@@ -99,6 +99,7 @@ export default function StandardSignInDialog({ action, slug, control }: Props) {
         <button
           type="submit"
           disabled={busy}
+          aria-busy={busy}
           className={styles.continue}
           title={loginError && !loginInvalid ? loginError : undefined}
           aria-describedby={
@@ -112,6 +113,9 @@ export default function StandardSignInDialog({ action, slug, control }: Props) {
               : 'Continue'}{' '}
           <Icon name="arrow-right" size={18} />
         </button>
+        <span className="sr-only" role="status">
+          {busy ? 'Connecting…' : ''}
+        </span>
       </form>
     </dialog>
   );

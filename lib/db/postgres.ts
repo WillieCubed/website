@@ -27,6 +27,11 @@ interface PoolFacade {
 }
 
 const localPools = new Map<string, Pool>();
+// Bound client connection and response waits without assuming pooled session settings.
+const clientDeadlines = {
+  connectionTimeoutMillis: 5000,
+  query_timeout: 5000,
+};
 
 export type DatabaseBinding = 'HYPERDRIVE' | 'STUDIO_HYPERDRIVE';
 
@@ -59,7 +64,7 @@ function localPool(max = 2, override?: string): Pool {
   const key = `${max}:${url}`;
   let existing = localPools.get(key);
   if (!existing) {
-    existing = new Pool({ connectionString: url, max });
+    existing = new Pool({ connectionString: url, max, ...clientDeadlines });
     localPools.set(key, existing);
   }
   return existing;
@@ -94,7 +99,7 @@ export function createPool(
 
     // Worker I/O objects belong to one request. Hyperdrive pools at the edge;
     // retaining a pg Pool across invocations can hang the next request.
-    const client = new Client({ connectionString: url });
+    const client = new Client({ connectionString: url, ...clientDeadlines });
     try {
       await client.connect();
       return await client.query(text, values);
@@ -108,7 +113,10 @@ export function createPool(
     async connect() {
       const url = workerUrl();
       if (url) {
-        const client = new Client({ connectionString: url });
+        const client = new Client({
+          connectionString: url,
+          ...clientDeadlines,
+        });
         await client.connect();
         return {
           query: (text, values) => client.query(text, values),

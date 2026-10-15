@@ -122,7 +122,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
         {result.description}
       </p>
       {result.snippet && (
-        <p className="mt-2 line-clamp-2 text-body-small text-on-surface-variant/80">
+        <p className="mt-2 line-clamp-2 text-body-small text-on-surface-variant">
           {result.snippet}
         </p>
       )}

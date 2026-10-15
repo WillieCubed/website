@@ -3,6 +3,7 @@
 import SiteLink from '@/components/link/SiteLink';
 
 import { isPlainClick } from '@/lib/dom/click';
+import { useHydrated } from '@/lib/dom/hydrated';
 import type { FocusId } from '@/lib/home/focuses';
 
 import { isFocusPressed, useHome, usePreviewHandlers } from './HomeContext';
@@ -47,10 +48,12 @@ function LiveFocus({ focus }: { focus: FocusItem }) {
     },
     onBlur,
   };
+  const hydrated = useHydrated();
   const pressed = isFocusPressed(preview, focus.id);
   return (
     <button
       type="button"
+      disabled={!hydrated}
       className={lit.includes(focus.id) ? 'focus hit' : 'focus'}
       data-focus={focus.id}
       data-branded={focus.style ? '' : undefined}

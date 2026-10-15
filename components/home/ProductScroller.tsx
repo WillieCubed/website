@@ -2,6 +2,10 @@
 
 import { useRef, useState } from 'react';
 
+import SiteLink from '@/components/link/SiteLink';
+
+import { isPlainClick } from '@/lib/dom/click';
+import { useHydrated } from '@/lib/dom/hydrated';
 import type { Product } from '@/lib/home/ventures';
 
 import { brandStyle, prefersReducedMotion, useHome } from './HomeContext';
@@ -18,6 +22,7 @@ export function ProductScroller({
   loading: 'eager' | 'lazy';
 }) {
   const { openDetail, brands } = useHome();
+  const hydrated = useHydrated();
   const scroller = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
 
@@ -47,15 +52,21 @@ export function ProductScroller({
         {products.map((product) => {
           const style = brandStyle(brands, product.brand);
           return (
-            <button
+            <SiteLink
+              href={`/?detail=${product.id}`}
+              preview={false}
+              prefetch={false}
               key={product.id}
               className="product"
-              type="button"
               data-product={product.id}
               data-brand={product.brand}
               data-branded={style ? '' : undefined}
               style={style}
-              onClick={(event) => openDetail(product.id, event.currentTarget)}
+              onClick={(event) => {
+                if (!isPlainClick(event)) return;
+                event.preventDefault();
+                openDetail(product.id, event.currentTarget);
+              }}
             >
               {/* Decorative: the card's text names the product, and the
                   detail view it opens describes the screenshot. */}
@@ -78,7 +89,7 @@ export function ProductScroller({
                   <em className="product-copy">{product.copy}</em>
                 </span>
               </span>
-            </button>
+            </SiteLink>
           );
         })}
       </div>
@@ -91,6 +102,7 @@ export function ProductScroller({
           <button
             key={product.id}
             type="button"
+            disabled={!hydrated}
             aria-label={product.name}
             aria-current={i === current}
             onClick={() => {

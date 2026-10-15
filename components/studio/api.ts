@@ -1,8 +1,10 @@
+import { fetchWithDeadline } from '@/lib/http/fetch';
+
 export async function studioRequest<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-  const response = await fetch(`/api/studio${path}`, {
+  const response = await fetchWithDeadline(`/api/studio${path}`, {
     ...init,
     headers: {
       ...(init?.body instanceof FormData

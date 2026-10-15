@@ -66,7 +66,7 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
   });
   await page.goto('/writings');
   await expect(
-    page.getByRole('link', { name: 'Search', exact: true })
+    page.getByRole('button', { name: 'Search', exact: true })
   ).toHaveCount(1);
   await expect(page.locator('main input[type="search"]')).toHaveCount(0);
   await expect(
@@ -109,17 +109,19 @@ test('Standard.site sign-in, confirmed actions, undo, failures and mobile layout
     fullPage: false,
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  const heading = await page
-    .getByRole('heading', { name: 'Writings', exact: true })
-    .boundingBox();
-  const subscribe = await page
-    .getByRole('button', { name: 'Subscribe', exact: true })
-    .boundingBox();
-  expect(
-    Math.abs(
-      heading!.y + heading!.height / 2 - subscribe!.y - subscribe!.height / 2
-    )
-  ).toBeLessThan(4);
+  await expect
+    .poll(async () => {
+      const heading = await page
+        .getByRole('heading', { name: 'Writings', exact: true })
+        .boundingBox();
+      const subscribe = await page
+        .getByRole('button', { name: 'Subscribe', exact: true })
+        .boundingBox();
+      return Math.abs(
+        heading!.y + heading!.height / 2 - subscribe!.y - subscribe!.height / 2
+      );
+    })
+    .toBeLessThan(4);
   await page.screenshot({
     path: directory + '/standard-mobile-signin.png',
     fullPage: false,

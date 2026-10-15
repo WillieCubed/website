@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react';
 
 import './site.css';
+import './styles/buttons.css';
 
 /** Site controls share typography, hit area, focus and state treatment. */
 export default function Button({

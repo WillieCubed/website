@@ -210,7 +210,8 @@ export async function runStudioTests() {
     dbURL.searchParams.set('options', `-c search_path=${schema}`);
     const env = {
       ...process.env,
-      SITE_MODE: 'preview',
+      SITE_MODE:
+        process.env.STUDIO_TEST_SITE_MODE === 'public' ? 'public' : 'preview',
       STUDIO_DATABASE_URL: dbURL.href,
       ...(process.env.MUSIC_E2E === '1'
         ? { MUSIC_PUBLIC_DATABASE_URL: dbURL.href }
@@ -223,7 +224,8 @@ export async function runStudioTests() {
       STUDIO_TEST_TOKEN: token,
       STUDIO_E2E: '1',
     };
-    // A real JWT/JWKS check protects the local server. No auth bypass or provider credentials.
+    // Private mode uses real JWT/JWKS checks; public mode exercises the public
+    // boundary with Studio routes disabled. Neither uses provider credentials.
     next = spawn('pnpm', ['exec', 'next', 'dev', '--port', String(port)], {
       env,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -240,7 +242,9 @@ export async function runStudioTests() {
       if (next.exitCode !== null)
         throw new Error(`Preview server exited: ${logs}`);
       try {
-        const response = await fetch(`${origin}/api/studio/documents`, {
+        const readyPath =
+          env.SITE_MODE === 'public' ? '/music' : '/api/studio/documents';
+        const response = await fetch(`${origin}${readyPath}`, {
           headers: { 'cf-access-jwt-assertion': token },
           signal: AbortSignal.timeout(3000),
         });
@@ -261,9 +265,10 @@ export async function runStudioTests() {
         'playwright',
         'test',
         '--config',
-        process.env.MUSIC_E2E
-          ? 'tests/music-admin.config.mts'
-          : 'tests/studio.config.mts',
+        process.env.STUDIO_TEST_CONFIG ??
+          (process.env.MUSIC_E2E
+            ? 'tests/music-admin.config.mts'
+            : 'tests/studio.config.mts'),
         ...process.argv.slice(2),
       ],
       { env, stdio: 'inherit', detached: true }

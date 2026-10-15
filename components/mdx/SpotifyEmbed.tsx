@@ -34,7 +34,7 @@ export default function SpotifyEmbed({
   const src = `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=${theme === 'dark' ? '0' : '1'}`;
 
   return (
-    <div className="my-6 w-full overflow-hidden rounded-lg">
+    <figure className="my-6 w-full overflow-hidden rounded-lg">
       <iframe
         src={src}
         width="100%"
@@ -44,6 +44,9 @@ export default function SpotifyEmbed({
         className="border-0"
         title={`Spotify ${type}`}
       />
-    </div>
+      <figcaption>
+        <a href={url}>{`Open this ${type} on Spotify`}</a>
+      </figcaption>
+    </figure>
   );
 }

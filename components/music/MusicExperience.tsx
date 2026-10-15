@@ -1,6 +1,12 @@
 'use client';
 
-import { type ComponentType, useEffect, useRef, useState } from 'react';
+import {
+  type ComponentType,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { flushSync } from 'react-dom';
 
 import Icon from '@/components/icons/Icon';
@@ -8,9 +14,13 @@ import SpotifyIcon from '@/components/icons/SpotifyIcon';
 import SiteLink from '@/components/link/SiteLink';
 import { usePalette } from '@/components/search/palette/PaletteProvider';
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
+import Button from '@/components/site/Button';
+import Popover from '@/components/site/Popover';
 import TopBar from '@/components/site/TopBar';
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
 
+import { isPlainClick } from '@/lib/dom/click';
+import { musicAliases, offersCredits } from '@/lib/music/easter-eggs';
 import { type PlaylistMotionParts, playlistMotion } from '@/lib/music/motion';
 import {
   type Catalog,
@@ -24,6 +34,7 @@ import MusicCover from './MusicCover';
 import MusicScrollCue from './MusicScrollCue';
 import MusicSelectionControl from './MusicSelectionControl';
 import MusicSetup from './MusicSetup';
+import PlaylistCredits from './PlaylistCredits';
 import './music-prototype.css';
 
 const STORAGE_KEY = 'willie-music-prototype-v1';
@@ -34,6 +45,8 @@ function readLocation() {
 }
 
 export interface MusicExperienceProps {
+  initialSeries?: string;
+  initialDetail?: string;
   playlists: PlaylistView[];
   initialCatalog: Catalog;
   mode?: 'prototype' | 'admin' | 'public';
@@ -50,10 +63,15 @@ export interface MusicExperienceProps {
   onRefresh?: () => Promise<void>;
   adminMenuItems?: BreadcrumbMenuItem[];
   setupInitially?: boolean;
+  loading?: boolean;
+  loadError?: string;
+  onRetry?: () => void;
 }
 export default function MusicExperience({
   playlists,
   initialCatalog,
+  initialSeries,
+  initialDetail,
   mode = 'public',
   validCatalog,
   Cover = MusicCover,
@@ -68,16 +86,39 @@ export default function MusicExperience({
   onRefresh,
   adminMenuItems = [],
   setupInitially = false,
+  loading = false,
+  loadError,
+  onRetry,
 }: MusicExperienceProps) {
   const [live, setLive] = useState<Catalog>(initialCatalog);
   const [draft, setDraft] = useState<Catalog>(initialCatalog);
   const [editing, setEditing] = useState(mode === 'admin');
   const [setup, setSetup] = useState(setupInitially);
+  const wasLoading = useRef(loading);
+  useEffect(() => {
+    if (wasLoading.current && !loading) {
+      setLive(initialCatalog);
+      setDraft(initialCatalog);
+      setSetup(setupInitially);
+    }
+    wasLoading.current = loading;
+  }, [loading, initialCatalog, setupInitially]);
   const [review, setReview] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [reordering, setReordering] = useState(false);
+  const [ready, setReady] = useState(mode !== 'prototype');
   const [storageError, setStorageError] = useState('');
-  const [seriesId, setSeriesId] = useState<string | null>(null);
-  const [focused, setFocused] = useState<string | null>(null);
+  const [seriesId, setSeriesId] = useState<string | null>(
+    initialCatalog.series.some((series) => series.id === initialSeries)
+      ? initialSeries!
+      : null
+  );
+  const [focused, setFocused] = useState<string | null>(
+    initialDetail &&
+      playlists.some((p) => p.id === initialDetail) &&
+      initialCatalog.selected.includes(initialDetail)
+      ? initialDetail
+      : null
+  );
   const { close: closePalette, registerCommands } = usePalette();
   const [libraryFilter, setLibraryFilter] = useState<
     'all' | 'selected' | 'unselected'
@@ -89,6 +130,7 @@ export default function MusicExperience({
   const cancelMotion = useRef<(() => void) | null>(null);
   const reviewDialog = useRef<HTMLDialogElement>(null);
   const reviewTrigger = useRef<HTMLButtonElement>(null);
+  const publicationBar = useRef<HTMLDivElement>(null);
   const curateToggle = useRef<HTMLButtonElement>(null);
   const setupToggle = useRef<HTMLButtonElement>(null);
   const focusSequence = useRef<string[]>([]);
@@ -97,7 +139,8 @@ export default function MusicExperience({
   const ownPop = useRef(false);
   const dragId = useRef<string | null>(null);
   const catalog = editing || mode === 'admin' ? draft : live;
-  const publicEmpty = mode === 'public' && catalog.selected.length === 0;
+  const publicEmpty =
+    mode === 'public' && !loading && catalog.selected.length === 0;
   const series = catalog.series.find((item) => item.id === seriesId);
   const order = series?.playlistIds ?? catalog.order;
   const visibleIds = order.filter(
@@ -123,6 +166,41 @@ export default function MusicExperience({
     focused && focusSequence.current.length ? focusSequence.current : displayed;
   const currentIndex = focused ? focusIds.indexOf(focused) : -1;
   const changed = JSON.stringify(live) !== JSON.stringify(draft);
+
+  useLayoutEffect(() => {
+    if (!editing || setup || !publicationBar.current) return;
+    const bar = publicationBar.current;
+    const root = document.documentElement;
+    const previous = root.style.getPropertyValue('--music-publication-height');
+    const update = () => {
+      root.style.setProperty(
+        '--music-publication-height',
+        `${Math.ceil(bar.getBoundingClientRect().height)}px`
+      );
+      const focused = document.activeElement;
+      const bounds = bar.getBoundingClientRect();
+      if (
+        focused instanceof HTMLElement &&
+        focused.closest('.mp-grid') &&
+        focused.getBoundingClientRect().top < bounds.bottom &&
+        focused.getBoundingClientRect().bottom > bounds.top - 16
+      ) {
+        focused.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      }
+    };
+    update();
+    const observer =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+    observer?.observe(bar);
+    window.addEventListener('resize', update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', update);
+      if (previous)
+        root.style.setProperty('--music-publication-height', previous);
+      else root.style.removeProperty('--music-publication-height');
+    };
+  }, [editing, setup, saveStatus, loading, published]);
 
   useEffect(() => () => cancelMotion.current?.(), []);
 
@@ -152,7 +230,7 @@ export default function MusicExperience({
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ live, draft }));
     } catch {
       setStorageError(
-        'Browser storage is unavailable. Keep this tab open to retain your changes.'
+        'Browser storage is unavailable. Keep this tab open to retain changes.'
       );
     }
   }, [live, draft, ready]);
@@ -171,8 +249,9 @@ export default function MusicExperience({
         (editing || catalog.selected.includes(state.detail!));
       setFocused(allowed ? state.detail : null);
       if (external) ownDetailEntry.current = false;
-      if (allowed && !dialog.current?.open) {
-        dialog.current?.showModal();
+      if (allowed && dialog.current && !dialog.current.matches(':modal')) {
+        if (dialog.current.open) dialog.current.close();
+        dialog.current.showModal();
         dialog.current
           ?.querySelector<HTMLElement>('#mp-detail-title')
           ?.focus({ preventScroll: true });
@@ -205,11 +284,18 @@ export default function MusicExperience({
     const params = new URLSearchParams();
     if (nextSeries) params.set('series', nextSeries);
     if (detail) params.set('detail', detail);
-    return `${location.pathname}${params.size ? `?${params}` : ''}`;
+    const path =
+      mode === 'prototype'
+        ? '/prototypes/music'
+        : mode === 'admin'
+          ? '/studio/music'
+          : '/music';
+    return `${path}${params.size ? `?${params}` : ''}`;
   }
 
   function chooseSeries(id: string | null) {
     setSeriesId(id);
+    setReordering(false);
     history.pushState(null, '', href(id, null));
   }
 
@@ -270,7 +356,7 @@ export default function MusicExperience({
             title: playlist.title,
             detail: 'Open playlist',
             group: 'Playlists' as const,
-            keywords: ['music', 'playlist'],
+            keywords: ['music', 'playlist', ...musicAliases(playlist.id)],
             kind: 'music' as const,
             run: async () => {
               await closePalette({ animate: false, restoreFocus: false });
@@ -401,7 +487,7 @@ export default function MusicExperience({
   }
 
   function dropOn(id: string) {
-    if (!editing || libraryFilter !== 'all') return;
+    if (!editing || !reordering || libraryFilter !== 'all') return;
     const from = dragId.current;
     dragId.current = null;
     if (!from || from === id) return;
@@ -470,18 +556,26 @@ export default function MusicExperience({
         aria-label={featured ? 'Featured playlist' : undefined}
         data-playlist={playlist.id}
         data-focused={playlist.id === focused || undefined}
-        draggable={editing && libraryFilter === 'all'}
+        draggable={editing && reordering && libraryFilter === 'all'}
         onDragStart={() => {
           dragId.current = playlist.id;
         }}
         onDragOver={(event) => {
-          if (editing && libraryFilter === 'all') event.preventDefault();
+          if (editing && reordering && libraryFilter === 'all')
+            event.preventDefault();
         }}
         onDrop={() => dropOn(playlist.id)}
       >
-        <button
+        <SiteLink
+          href={href(seriesId, playlist.id)}
+          preview={false}
+          prefetch={false}
           className="mp-card-open"
-          onClick={(event) => openPlaylist(playlist.id, event.currentTarget)}
+          onClick={(event) => {
+            if (!isPlainClick(event)) return;
+            event.preventDefault();
+            openPlaylist(playlist.id, event.currentTarget);
+          }}
           aria-label={`Open ${playlist.title}`}
         >
           <div className="mp-art-frame" data-card-surface="">
@@ -499,7 +593,8 @@ export default function MusicExperience({
                 <h3>{playlist.title}</h3>
                 <p className="mp-small">
                   {series ? `${index + 1} of ${matching.length} · ` : ''}
-                  {sampleTracks.length} tracks
+                  {playlist.trackCount}{' '}
+                  {playlist.trackCount === 1 ? 'track' : 'tracks'}
                 </p>
               </div>
               <span className="mp-open-icon">
@@ -507,14 +602,15 @@ export default function MusicExperience({
               </span>
             </div>
           )}
-        </button>
+        </SiteLink>
         {featured && (
           <div className="mp-feature-details">
             <div className="mp-card-caption">
               <h3>{playlist.title}</h3>
             </div>
             <p className="mp-small mp-feature-meta">
-              {sampleTracks.length} tracks
+              {playlist.trackCount}{' '}
+              {playlist.trackCount === 1 ? 'track' : 'tracks'}
               {runtime && ` · ${runtime}`}
             </p>
             {note ? (
@@ -545,7 +641,7 @@ export default function MusicExperience({
             {memberships.map((item) => (
               <div className="mp-feature-series" key={item.id}>
                 <p className="mp-feature-series-context">
-                  <span>{item.title}</span>
+                  <span title={item.title}>{item.title}</span>
                   <span>
                     Part {item.playlistIds.indexOf(playlist.id) + 1} of{' '}
                     {item.playlistIds.length}
@@ -564,15 +660,20 @@ export default function MusicExperience({
                         (candidate) => candidate.id === id
                       )!;
                       return (
-                        <button
+                        <SiteLink
+                          href={href(seriesId, id)}
+                          preview={false}
+                          prefetch={false}
                           className="mp-series-cover"
                           key={id}
                           data-playlist-origin={id}
                           aria-label={`Open ${related.title} from ${item.title}`}
                           title={related.title}
-                          onClick={(event) =>
-                            openPlaylist(id, event.currentTarget)
-                          }
+                          onClick={(event) => {
+                            if (!isPlainClick(event)) return;
+                            event.preventDefault();
+                            openPlaylist(id, event.currentTarget);
+                          }}
                         >
                           <span
                             className="mp-series-cover-frame"
@@ -582,42 +683,57 @@ export default function MusicExperience({
                               <Cover playlist={related} />
                             </span>
                           </span>
-                        </button>
+                        </SiteLink>
                       );
                     })}
                 </div>
               </div>
             ))}
-            <button
+            <SiteLink
+              href={href(seriesId, playlist.id)}
+              preview={false}
+              prefetch={false}
               className="mp-button mp-tonal mp-feature-action"
-              onClick={(event) =>
-                openPlaylist(playlist.id, event.currentTarget)
-              }
+              onClick={(event) => {
+                if (!isPlainClick(event)) return;
+                event.preventDefault();
+                openPlaylist(playlist.id, event.currentTarget);
+              }}
             >
               Open playlist
-            </button>
+            </SiteLink>
           </div>
         )}
         {editing && (
           <div className="mp-card-controls">
-            <label className="mp-check">
+            <label
+              className="mp-check"
+              title={
+                !playlist.eligible ? 'Unavailable for publication' : undefined
+              }
+            >
               <MusicSelectionControl
                 checked={selected}
-                disabled={!playlist.eligible && !selected}
+                disabled={loading || (!playlist.eligible && !selected)}
                 onChange={() => select(playlist.id)}
-                aria-label={`Include ${playlist.title}`}
+                aria-label={`Include ${playlist.title}${!playlist.eligible ? ', unavailable for publication' : ''}`}
               />
               {!playlist.eligible
-                ? 'Unavailable for publication'
+                ? 'Unavailable'
                 : selected
                   ? 'Included'
                   : 'Include'}
             </label>
-            <div className="mp-order-buttons">
+            <div
+              className="mp-order-buttons"
+              hidden={
+                !reordering || matching.length < 2 || libraryFilter !== 'all'
+              }
+            >
               <span className="mp-order-label">Order</span>
               <button
                 className="mp-icon-button"
-                disabled={index === 0 || libraryFilter !== 'all'}
+                disabled={loading || index === 0 || libraryFilter !== 'all'}
                 onClick={() => reorder(playlist.id, -1)}
                 aria-label={`Move ${playlist.title} earlier`}
               >
@@ -626,7 +742,9 @@ export default function MusicExperience({
               <button
                 className="mp-icon-button"
                 disabled={
-                  index === matching.length - 1 || libraryFilter !== 'all'
+                  loading ||
+                  index === matching.length - 1 ||
+                  libraryFilter !== 'all'
                 }
                 onClick={() => reorder(playlist.id, 1)}
                 aria-label={`Move ${playlist.title} later`}
@@ -663,7 +781,7 @@ export default function MusicExperience({
     return (
       <div
         className="music-prototype"
-        aria-busy={!ready || interactionLocked}
+        aria-busy={(loading && !loadError) || !ready || interactionLocked}
         aria-disabled={interactionLocked || undefined}
         inert={interactionLocked}
       >
@@ -683,11 +801,69 @@ export default function MusicExperience({
     );
   }
 
+  const seriesNavigation = (
+    <nav
+      className="mp-series-nav"
+      aria-label="Playlist series"
+      inert={loading || undefined}
+      aria-disabled={loading || undefined}
+    >
+      <SiteLink
+        href={href(null, null)}
+        preview={false}
+        prefetch={false}
+        aria-current={!series ? 'page' : undefined}
+        data-selected={!series || undefined}
+        onClick={(event) => {
+          if (!isPlainClick(event)) return;
+          event.preventDefault();
+          chooseSeries(null);
+        }}
+      >
+        <span>All playlists</span>
+        <span>
+          {loading ? (
+            <span className="mp-pending-count" />
+          ) : editing ? (
+            playlists.length
+          ) : (
+            catalog.selected.length
+          )}
+        </span>
+      </SiteLink>
+      {catalog.series.map((item) => (
+        <SiteLink
+          href={href(item.id, null)}
+          preview={false}
+          prefetch={false}
+          key={item.id}
+          aria-current={series?.id === item.id ? 'page' : undefined}
+          data-selected={series?.id === item.id || undefined}
+          onClick={(event) => {
+            if (!isPlainClick(event)) return;
+            event.preventDefault();
+            chooseSeries(item.id);
+          }}
+        >
+          <span>{item.title}</span>
+          <span>
+            {
+              item.playlistIds.filter(
+                (id) => editing || catalog.selected.includes(id)
+              ).length
+            }
+          </span>
+        </SiteLink>
+      ))}
+    </nav>
+  );
+
   return (
     <div
       className="music-prototype"
       data-editing={editing || undefined}
-      aria-busy={!ready || interactionLocked}
+      data-reordering={(editing && reordering) || undefined}
+      aria-busy={(loading && !loadError) || !ready || interactionLocked}
       aria-disabled={interactionLocked || undefined}
       inert={interactionLocked}
     >
@@ -798,41 +974,19 @@ export default function MusicExperience({
         <aside className="mp-rail">
           <div className="mp-heading">
             <h1>Music</h1>
+            {editing && (
+              <Button
+                variant="tonal"
+                className="mp-new-series"
+                disabled={loading}
+                onClick={() => setNewSeries('')}
+              >
+                <Icon name="plus" size={20} />
+                <span>Create a series</span>
+              </Button>
+            )}
           </div>
-          {!publicEmpty && (
-            <nav className="mp-series-nav" aria-label="Playlist series">
-              <button aria-pressed={!series} onClick={() => chooseSeries(null)}>
-                <span>All playlists</span>
-                <span>
-                  {editing ? playlists.length : catalog.selected.length}
-                </span>
-              </button>
-              {catalog.series.map((item) => (
-                <button
-                  key={item.id}
-                  aria-pressed={series?.id === item.id}
-                  onClick={() => chooseSeries(item.id)}
-                >
-                  <span>{item.title}</span>
-                  <span>
-                    {
-                      item.playlistIds.filter(
-                        (id) => editing || catalog.selected.includes(id)
-                      ).length
-                    }
-                  </span>
-                </button>
-              ))}
-              {editing && (
-                <button
-                  className="mp-new-series"
-                  onClick={() => setNewSeries('')}
-                >
-                  Create a series<span aria-hidden="true">+</span>
-                </button>
-              )}
-            </nav>
-          )}
+          {!publicEmpty && !editing && seriesNavigation}
           {newSeries !== null && (
             <form className="mp-new-series-form" onSubmit={addSeries}>
               <label htmlFor="mp-series-title">Series name</label>
@@ -856,38 +1010,6 @@ export default function MusicExperience({
               </div>
             </form>
           )}
-          {editing && (
-            <div className="mp-draft-note">
-              <span className="mp-status-dot" />
-              <span>
-                {mode === 'prototype'
-                  ? changed
-                    ? 'Unapplied changes'
-                    : 'No unapplied changes'
-                  : published
-                    ? 'Live collection'
-                    : 'Private draft'}
-              </span>
-              <small>
-                {mode === 'prototype'
-                  ? storageError
-                    ? 'This tab only'
-                    : 'Saved in this browser'
-                  : published
-                    ? 'On willie.page'
-                    : saveStatus}
-              </small>
-              <button
-                className="mp-button mp-primary"
-                ref={reviewTrigger}
-                disabled={mode === 'prototype' ? !changed : !canReview}
-                onClick={() => setReview(true)}
-              >
-                Review changes
-                <Icon name="arrow-right" />
-              </button>
-            </div>
-          )}
         </aside>
         {publicEmpty ? (
           <section
@@ -898,82 +1020,136 @@ export default function MusicExperience({
               <Icon name="music" size={32} />
             </span>
             <h2 id="mp-public-placeholder-title">
-              Looks like Willie’s playlists aren’t here yet.
+              {loadError
+                ? 'Playlists are unavailable right now.'
+                : 'No playlists to show right now.'}
             </h2>
             <p>
-              While this page finds its groove, you can listen to what he’s
-              sharing on Spotify.
+              {loadError ??
+                'My playlists normally appear here. You can still explore them on Spotify.'}
             </p>
-            <SiteLink
-              className="mp-button mp-public-placeholder-link"
-              href={spotifyProfileUrl}
-              target="_blank"
-            >
-              <SpotifyIcon />
-              Visit Willie on Spotify
-              <Icon name="external" />
-            </SiteLink>
+            <div className="mp-public-placeholder-actions">
+              {loadError && (
+                <form action="/music" method="get">
+                  <Button variant="tonal">Try again</Button>
+                </form>
+              )}
+              <SiteLink
+                className="mp-button mp-public-placeholder-link"
+                href={spotifyProfileUrl}
+                target="_blank"
+              >
+                <SpotifyIcon />
+                Explore playlists
+                <Icon name="external" />
+              </SiteLink>
+            </div>
           </section>
         ) : (
           <section
             className="mp-collection"
             aria-labelledby="mp-collection-title"
           >
-            <header className="mp-collection-header">
-              <div
+            <header
+              className={
+                !editing && !series && !loadError
+                  ? 'mp-visually-hidden'
+                  : 'mp-collection-header'
+              }
+            >
+              <h2
+                id="mp-collection-title"
                 className={
-                  !series && !editing ? 'mp-visually-hidden' : undefined
+                  editing || !series ? 'mp-visually-hidden' : undefined
                 }
               >
-                <h2 id="mp-collection-title">
-                  {series?.title ??
-                    (editing ? 'Your playlists' : 'Selected playlists')}
-                </h2>
-                <p className="mp-small">
-                  {series
-                    ? `${matching.length} playlists · In sequence`
-                    : `${matching.length} playlists`}
-                </p>
-              </div>
+                {series?.title ??
+                  (editing ? 'Playlists' : 'Willie’s playlists')}
+              </h2>
+              <p
+                className={`mp-loading-status${editing && catalog.series.length ? ' mp-visually-hidden' : ''}`}
+                role="status"
+              >
+                {loading
+                  ? loadError ||
+                    (editing
+                      ? 'Loading playlists…'
+                      : 'Loading Willie’s playlists…')
+                  : `${matching.length} ${matching.length === 1 ? 'playlist' : 'playlists'}${series ? ' · In sequence' : ''}`}
+                {loading && loadError && onRetry && (
+                  <button className="mp-text-button" onClick={onRetry}>
+                    Try again
+                  </button>
+                )}
+              </p>
+              {editing && catalog.series.length > 0 && (
+                <Popover
+                  label="Choose playlist collection"
+                  disabled={loading}
+                  triggerClassName="mp-collection-picker"
+                  panelClassName="mp-collection-menu"
+                  width={320}
+                  trigger={
+                    <>
+                      <span>{series?.title ?? 'All playlists'}</span>
+                      <span className="mp-small">{matching.length}</span>
+                      <Icon name="chevron-down" size={16} />
+                    </>
+                  }
+                >
+                  {seriesNavigation}
+                </Popover>
+              )}
+              {editing && (
+                <Button
+                  variant="quiet"
+                  className="mp-reorder-toggle"
+                  aria-label={
+                    reordering ? 'Finish reordering' : 'Reorder playlists'
+                  }
+                  aria-pressed={reordering}
+                  disabled={
+                    loading ||
+                    (!reordering &&
+                      (matching.length < 2 || libraryFilter !== 'all'))
+                  }
+                  onClick={() => setReordering(!reordering)}
+                >
+                  {reordering ? 'Done' : 'Reorder'}
+                </Button>
+              )}
             </header>
             {editing && (
               <>
                 <div
                   className="mp-library-filters"
+                  inert={loading || undefined}
                   role="group"
                   aria-label="Library filter"
                 >
                   {(
                     [
-                      ['all', 'All', visibleIds.length],
-                      [
-                        'selected',
-                        'In gallery',
-                        visibleIds.filter((id) => catalog.selected.includes(id))
-                          .length,
-                      ],
-                      [
-                        'unselected',
-                        'Not included',
-                        visibleIds.filter(
-                          (id) => !catalog.selected.includes(id)
-                        ).length,
-                      ],
+                      ['all', 'All'],
+                      ['selected', 'In gallery'],
+                      ['unselected', 'Not included'],
                     ] as const
-                  ).map(([value, label, count]) => (
+                  ).map(([value, label]) => (
                     <button
                       key={value}
                       aria-pressed={libraryFilter === value}
-                      onClick={() => setLibraryFilter(value)}
+                      disabled={loading}
+                      onClick={() => {
+                        setLibraryFilter(value);
+                        setReordering(false);
+                      }}
                     >
                       {label}
-                      <span aria-hidden="true">{count}</span>
                     </button>
                   ))}
                 </div>
-                <p className="mp-edit-hint">
-                  Choose what appears in your gallery. Open a playlist to add
-                  notes or arrange its place in a series.
+                <p className="mp-visually-hidden">
+                  Include playlists in the public gallery. Open a playlist to
+                  add notes and series.
                 </p>
               </>
             )}
@@ -986,15 +1162,49 @@ export default function MusicExperience({
               ref={gallery}
               className={`mp-grid${editing ? ' mp-grid-editing' : ''}`}
             >
-              {displayed.map((id, index) =>
-                renderCard(playlists.find((item) => item.id === id)!, index)
-              )}
+              {loading && playlists.length === 0
+                ? Array.from({ length: 6 }, (_, index) => (
+                    <article
+                      className="mp-card mp-card-pending"
+                      key={index}
+                      aria-hidden="true"
+                    >
+                      <div className="mp-card-open">
+                        <div className="mp-art-frame">
+                          <div className="mp-art" />
+                        </div>
+                        <div className="mp-card-caption">
+                          <div>
+                            <span className="mp-pending-line" />
+                            <p className="mp-small">
+                              <span className="mp-pending-line mp-pending-line-short" />
+                            </p>
+                          </div>
+                          <span className="mp-open-icon" />
+                        </div>
+                      </div>
+                      {editing && (
+                        <div className="mp-card-controls">
+                          <label className="mp-check">
+                            <MusicSelectionControl disabled tabIndex={-1} />
+                            <span className="mp-pending-line mp-pending-control" />
+                          </label>
+                        </div>
+                      )}
+                    </article>
+                  ))
+                : displayed.map((id, index) => {
+                    const playlist = playlists.find((item) => item.id === id);
+                    return playlist ? renderCard(playlist, index) : null;
+                  })}
             </div>
-            <MusicScrollCue
-              gallery={gallery}
-              collection={`${seriesId}:${editing}:${displayed.join(',')}`}
-            />
-            {!matching.length && (
+            {!editing && (
+              <MusicScrollCue
+                gallery={gallery}
+                collection={`${seriesId}:${editing}:${displayed.join(',')}`}
+              />
+            )}
+            {!loading && !matching.length && (
               <div className="mp-empty">
                 <Icon name="music" size={32} />
                 <h3>
@@ -1006,10 +1216,12 @@ export default function MusicExperience({
                 </h3>
                 <p>
                   {editing && playlists.length === 0
-                    ? 'Connect Spotify to bring your playlists into the studio.'
+                    ? 'Connect Spotify to bring playlists into the studio.'
                     : editing && libraryFilter !== 'all'
-                      ? 'Choose All to see the rest of your library.'
-                      : 'Open a playlist from All playlists to add it to this series.'}
+                      ? 'Choose All to see the rest of the library.'
+                      : editing
+                        ? 'Open a playlist from All playlists to add it to this series.'
+                        : 'Explore All playlists for more of Willie’s music.'}
                 </p>
                 {(editing
                   ? playlists.length > 0
@@ -1039,13 +1251,52 @@ export default function MusicExperience({
           </section>
         )}
       </main>
+      {editing && (
+        <div
+          ref={publicationBar}
+          className="mp-draft-note"
+          role="region"
+          aria-label="Collection publication"
+        >
+          <span className="mp-status-dot" />
+          <span>
+            {mode === 'prototype'
+              ? changed
+                ? 'Unapplied changes'
+                : 'No unapplied changes'
+              : published
+                ? 'Live collection'
+                : 'Private draft'}
+          </span>
+          <small>
+            {mode === 'prototype'
+              ? storageError
+                ? 'This tab only'
+                : 'Saved in this browser'
+              : published
+                ? 'On willie.page'
+                : saveStatus}
+          </small>
+          <Button
+            variant={changed ? 'primary' : 'tonal'}
+            ref={reviewTrigger}
+            disabled={loading || (mode === 'prototype' ? !changed : !canReview)}
+            onClick={() => setReview(true)}
+          >
+            Review changes
+            <Icon name="arrow-right" />
+          </Button>
+        </div>
+      )}
       <p className="mp-announcement" role="status" aria-live="polite">
         {announcement}
       </p>
       <dialog
         ref={dialog}
+        open={initialDetail && focused === initialDetail ? true : undefined}
         className="mp-detail"
         data-editing={editing || undefined}
+        data-reordering={(editing && reordering) || undefined}
         aria-labelledby="mp-detail-title"
         onKeyDown={(event) => {
           if (event.key === 'Tab') {
@@ -1094,7 +1345,7 @@ export default function MusicExperience({
       >
         {current && (
           <>
-            <div className="mp-detail-bar">
+            <div className="mp-detail-bar scroller">
               <span>
                 {series
                   ? `${series.title} / ${String(currentIndex + 1).padStart(2, '0')}`
@@ -1125,17 +1376,23 @@ export default function MusicExperience({
                     <Icon name="arrow-right" size={24} />
                   </button>
                 </div>
-                <button
+                <SiteLink
+                  href={href(seriesId, null)}
+                  preview={false}
                   className="mp-icon-button mp-icon-button--tonal mp-detail-close"
-                  onClick={closePlaylist}
+                  onClick={(event) => {
+                    if (!isPlainClick(event)) return;
+                    event.preventDefault();
+                    closePlaylist();
+                  }}
                   aria-label="Close playlist"
                 >
                   <Icon name="x" size={24} />
-                </button>
+                </SiteLink>
               </div>
             </div>
             <div
-              className="mp-detail-scroll"
+              className="mp-detail-scroll scroller"
               role="region"
               aria-label="Playlist details"
               tabIndex={-1}
@@ -1198,7 +1455,7 @@ export default function MusicExperience({
               </div>
               {editing && (
                 <div className="mp-context-editor">
-                  <label htmlFor="mp-playlist-note">Your notes</label>
+                  <label htmlFor="mp-playlist-note">Playlist notes</label>
                   <textarea
                     id="mp-playlist-note"
                     rows={3}
@@ -1215,7 +1472,7 @@ export default function MusicExperience({
                     }
                   />
                   <fieldset className="mp-visibility-editor">
-                    <legend>In your gallery</legend>
+                    <legend>In the public gallery</legend>
                     <label className="mp-check">
                       <MusicSelectionControl
                         aria-label="Include in gallery"
@@ -1255,6 +1512,11 @@ export default function MusicExperience({
                 </div>
               )}
               <div className="mp-detail-tracks">
+                {!editing &&
+                  offersCredits(current.id) &&
+                  sampleTracks.length > 0 && (
+                    <PlaylistCredits key={current.id} tracks={sampleTracks} />
+                  )}
                 <div className="mp-track-heading">
                   <h3>Track list</h3>
                   <span>Original order</span>
@@ -1323,12 +1585,12 @@ export default function MusicExperience({
             });
           }}
         >
-          <header className="mp-review-header">
+          <header className="mp-review-header scroller">
             <div>
               <h2 id="mp-review-title" tabIndex={-1}>
-                Review your collection
+                Review the collection
               </h2>
-              <p>Check the order and context before applying your changes.</p>
+              <p>Check the order and context before applying changes.</p>
             </div>
             <button
               className="mp-icon-button mp-icon-button--tonal"
@@ -1339,7 +1601,7 @@ export default function MusicExperience({
             </button>
           </header>
           <div
-            className="mp-review-body"
+            className="mp-review-body scroller"
             role="region"
             aria-label="Collection review"
             tabIndex={-1}
@@ -1364,8 +1626,11 @@ export default function MusicExperience({
                 <button
                   className="mp-text-button"
                   onClick={() => {
-                    setLibraryFilter('all');
-                    chooseSeries(null);
+                    flushSync(() => {
+                      setLibraryFilter('all');
+                      chooseSeries(null);
+                      setReordering(true);
+                    });
                     closeReview();
                     gallery.current
                       ?.querySelector<HTMLButtonElement>(
@@ -1396,7 +1661,7 @@ export default function MusicExperience({
                           </span>
                           {id === draft.lead && (
                             <span className="mp-review-feature-label">
-                              Featured in your gallery
+                              Featured in the public gallery
                             </span>
                           )}
                           {draft.notes[id] && (
@@ -1453,7 +1718,7 @@ export default function MusicExperience({
               ))}
             </aside>
           </div>
-          <footer className="mp-review-actions">
+          <footer className="mp-review-actions scroller">
             <p>
               {mode === 'prototype'
                 ? 'This action stays in this browser.'
@@ -1478,7 +1743,7 @@ export default function MusicExperience({
                   setLibraryFilter('all');
                 });
                 setAnnouncement('Changes applied to this prototype.');
-                curateToggle.current?.focus({ preventScroll: true });
+                curateToggle.current?.focus();
               }}
             >
               {mode === 'prototype'

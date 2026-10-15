@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { connection } from 'next/server';
-import { Suspense } from 'react';
 
 import MusicExperience from '@/components/music/MusicExperience';
 
@@ -21,28 +20,29 @@ export async function generateMetadata({
   return {
     title,
     description:
-      'Playlists, compilations, and series selected by Willie Chalmers III.',
+      'Willie Chalmers III’s taste in music, collected in playlists and series.',
     alternates: { canonical: canonicalUrl('/music') },
   };
 }
-async function Gallery() {
+export default async function Music({
+  searchParams,
+}: {
+  searchParams: Promise<{ series?: string; detail?: string }>;
+}) {
+  const params = await searchParams;
   await connection();
   const data = await publicCollection();
   return (
-    <MusicExperience playlists={data.playlists} initialCatalog={data.catalog} />
-  );
-}
-export default function Music() {
-  return (
-    <Suspense
-      fallback={
-        <main id="main" className="mp-shell">
-          <h1>Music</h1>
-          <p>Loading the collection…</p>
-        </main>
+    <MusicExperience
+      playlists={data.playlists}
+      initialSeries={params.series}
+      initialDetail={params.detail}
+      initialCatalog={data.catalog}
+      loadError={
+        'unavailable' in data && data.unavailable
+          ? 'The collection couldn’t be loaded. Try again, or explore my playlists on Spotify.'
+          : undefined
       }
-    >
-      <Gallery />
-    </Suspense>
+    />
   );
 }

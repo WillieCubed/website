@@ -89,3 +89,30 @@
   font-size: 12px;
   color: var(--color-muted);
 }
+
+.site-navigation-hint {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.site-navigation-hint[data-pending] {
+  width: auto;
+  pointer-events: none;
+  position: fixed;
+  z-index: 9999;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--color-primary);
+  animation: navigation-breathe 1s var(--ease-site) alternate infinite;
+}
+@keyframes navigation-breathe {
+  to {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-navigation-hint[data-pending] {
+    animation: none;
+  }
+}

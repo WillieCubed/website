@@ -1,6 +1,7 @@
 import sanitizeHtml from 'sanitize-html';
 
 import { renderFeedHtml } from '@/lib/indieweb/feeds/html';
+import { imageMetadata } from '@/lib/media/geometry';
 
 import { catalogEntry } from './catalog';
 import { compileSandbox } from './components';
@@ -19,6 +20,19 @@ function imageUrl(value: unknown): string {
   const url = String(value ?? '');
   return /^(?:https?:\/\/|\/(?!\/))/i.test(url) ? url : '';
 }
+function previewImage(
+  src: string,
+  alt: unknown,
+  width?: unknown,
+  height?: unknown
+) {
+  const size = imageMetadata(src, width, height);
+  const dimensions = size
+    ? ` width="${size.width}" height="${size.height}"`
+    : '';
+  const ratio = size ? `${size.width} / ${size.height}` : '4 / 3';
+  return `<img${dimensions} decoding="async" loading="lazy" style="width:100%;height:auto;aspect-ratio:${ratio};object-fit:contain" class="h-auto w-full" src="${escape(src)}" alt="${escape(alt)}">`;
+}
 function clean(html: string) {
   return sanitizeHtml(html, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat([
@@ -28,7 +42,7 @@ function clean(html: string) {
     ]),
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,
-      img: ['src', 'alt', 'title'],
+      img: ['src', 'alt', 'title', 'width', 'height'],
       '*': ['id'],
     },
     allowedSchemes: ['https', 'http', 'mailto'],
@@ -72,7 +86,7 @@ export async function websitePreviewBody(
     if (node.type === 'image') {
       const src = imageUrl(attrs.src);
       return src
-        ? `<figure class="my-8"><div class="overflow-hidden rounded-lg"><img width="800" height="600" decoding="async" loading="lazy" class="h-auto w-full object-cover" src="${escape(src)}" alt="${escape(attrs.alt)}"></div>${attrs.title ? `<figcaption class="mt-3 text-center text-body-small text-on-surface-variant">${escape(attrs.title)}</figcaption>` : ''}</figure>`
+        ? `<figure class="my-8"><div class="overflow-hidden rounded-lg">${previewImage(src, attrs.alt, attrs.width, attrs.height)}</div>${attrs.title ? `<figcaption class="mt-3 text-center text-body-small text-on-surface-variant">${escape(attrs.title)}</figcaption>` : ''}</figure>`
         : '<p class="fallback">Choose an image to preview this figure.</p>';
     }
     if (node.type !== 'catalogBlock') return prose(documentSource(node));
@@ -84,7 +98,7 @@ export async function websitePreviewBody(
     if (entry?.id === 'figure') {
       const src = imageUrl(props.src);
       return src
-        ? `<figure class="my-8"><div class="overflow-hidden rounded-lg"><img width="800" height="600" decoding="async" loading="lazy" class="h-auto w-full object-cover" src="${escape(src)}" alt="${escape(props.alt)}"></div>${props.caption ? `<figcaption class="mt-3 text-center text-body-small text-on-surface-variant">${escape(props.caption)}</figcaption>` : ''}</figure>`
+        ? `<figure class="my-8"><div class="overflow-hidden rounded-lg">${previewImage(src, props.alt, props.width, props.height)}</div>${props.caption ? `<figcaption class="mt-3 text-center text-body-small text-on-surface-variant">${escape(props.caption)}</figcaption>` : ''}</figure>`
         : '<p class="fallback">Choose an image to preview this figure.</p>';
     }
     if (entry?.id === 'callout')

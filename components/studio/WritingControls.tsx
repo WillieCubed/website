@@ -1,40 +1,40 @@
 'use client';
+import type { Editor } from '@tiptap/react';
 
 import Icon from '@/components/icons/Icon';
 import Button from '@/components/site/Button';
 import Popover from '@/components/site/Popover';
 
-import type { WritingController } from './useWritingController';
+import type { DraftContent } from '@/lib/studio/types';
+
+import type { WritingTask } from './writing-task-definitions';
 
 export default function WritingControls({
-  controller,
+  conflict,
+  recovery,
+  busy,
+  editor,
+  openTask,
+  closePopover,
+  history,
+  save,
+  generatePreview,
+  control,
 }: {
-  controller: Pick<
-    WritingController,
-    | 'conflict'
-    | 'recovery'
-    | 'busy'
-    | 'editor'
-    | 'openTask'
-    | 'closePopover'
-    | 'history'
-    | 'save'
-    | 'generatePreview'
-    | 'control'
-  >;
+  conflict: boolean;
+  recovery: DraftContent | null;
+  busy: boolean;
+  editor: Editor | null;
+  openTask: (task: Exclude<WritingTask, 'write'>) => void;
+  closePopover: (event: React.MouseEvent) => void;
+  history: () => void;
+  save: () => Promise<boolean>;
+  generatePreview: (
+    mode: 'read' | 'portable',
+    publishing?: boolean
+  ) => Promise<void>;
+  control: string;
 }) {
-  const {
-    conflict,
-    recovery,
-    busy,
-    editor,
-    openTask,
-    closePopover,
-    history,
-    save,
-    generatePreview,
-    control,
-  } = controller;
   return (
     <>
       <nav className="studio-document-controls" aria-label="Writing controls">

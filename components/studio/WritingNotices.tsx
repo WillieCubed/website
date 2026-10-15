@@ -1,32 +1,27 @@
 'use client';
+import type { Editor } from '@tiptap/react';
 
 import Button from '@/components/site/Button';
 
-import type { WritingController } from './useWritingController';
+import type { DraftContent } from '@/lib/studio/types';
 
 export default function WritingNotices({
-  controller,
+  conflict,
+  recovery,
+  setRecovery,
+  recoveryKey,
+  update,
+  editor,
+  reloadHead,
 }: {
-  controller: Pick<
-    WritingController,
-    | 'conflict'
-    | 'recovery'
-    | 'setRecovery'
-    | 'recoveryKey'
-    | 'update'
-    | 'editor'
-    | 'reloadHead'
-  >;
+  conflict: boolean;
+  recovery: DraftContent | null;
+  setRecovery: (body: DraftContent | null) => void;
+  recoveryKey: string;
+  update: (body: DraftContent) => void;
+  editor: Editor | null;
+  reloadHead: () => Promise<void>;
 }) {
-  const {
-    conflict,
-    recovery,
-    setRecovery,
-    recoveryKey,
-    update,
-    editor,
-    reloadHead,
-  } = controller;
   return (
     <>
       {recovery && (

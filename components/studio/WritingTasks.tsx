@@ -1,58 +1,77 @@
 'use client';
+import type { Editor } from '@tiptap/react';
+import { useEffect, useState } from 'react';
+import type { RefObject } from 'react';
 
 import Button from '@/components/site/Button';
 
 import { formatDate } from '@/lib/site/dates';
+import type { Draft } from '@/lib/studio/types';
 import type { DraftContent, Revision } from '@/lib/studio/types';
 
 import { type CatalogEntry } from './StudioNodes';
 import StudioWidgetGenerator from './StudioWidgetGenerator';
 import { studioRequest } from './api';
-import type { WritingController } from './useWritingController';
+import type { WritingTask } from './writing-task-definitions';
 import { WRITING_TASKS } from './writing-task-definitions';
 import { proseText } from './writingText';
 
 export default function WritingTasks({
-  controller,
+  draft,
+  setCatalog,
+  catalogRef,
+  task,
+  taskHeading,
+  body,
+  bodyRef,
+  update,
+  editor,
+  returnToWriting,
+  insert,
+  save,
   catalogStatus,
   retryCatalog,
+  setStatus,
 }: {
-  controller: Pick<
-    WritingController,
-    | 'draft'
-    | 'setCatalog'
-    | 'catalogRef'
-    | 'task'
-    | 'taskHeading'
-    | 'historyLoading'
-    | 'body'
-    | 'bodyRef'
-    | 'revisions'
-    | 'update'
-    | 'editor'
-    | 'returnToWriting'
-    | 'insert'
-    | 'save'
-  >;
+  draft: Draft;
+  setCatalog: (entries: CatalogEntry[]) => void;
+  catalogRef: RefObject<CatalogEntry[]>;
+  task: WritingTask;
+  taskHeading: RefObject<HTMLHeadingElement | null>;
+  body: DraftContent;
+  bodyRef: RefObject<DraftContent>;
+  update: (body: DraftContent) => void;
+  editor: Editor | null;
+  returnToWriting: () => void;
+  insert: (entry: CatalogEntry) => void;
+  save: () => Promise<boolean>;
   catalogStatus?: string;
   retryCatalog?: () => void;
+  setStatus: (status: string) => void;
 }) {
-  const {
-    draft,
-    setCatalog,
-    catalogRef,
-    task,
-    taskHeading,
-    historyLoading,
-    body,
-    bodyRef,
-    revisions,
-    update,
-    editor,
-    returnToWriting,
-    insert,
-    save,
-  } = controller;
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [revisions, setRevisions] = useState<Revision[]>([]);
+  useEffect(() => {
+    if (task !== 'history') return;
+    let current = true;
+    setHistoryLoading(true);
+    studioRequest<Revision[] | { revisions: Revision[] }>(
+      `/documents/${draft.id}/revisions`
+    )
+      .then((result) => {
+        if (current)
+          setRevisions(Array.isArray(result) ? result : result.revisions);
+      })
+      .catch((error) => {
+        if (current) setStatus(error.message);
+      })
+      .finally(() => {
+        if (current) setHistoryLoading(false);
+      });
+    return () => {
+      current = false;
+    };
+  }, [task, draft.id, setStatus]);
   return (
     <>
       {task !== 'write' && (

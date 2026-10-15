@@ -1,52 +1,50 @@
 'use client';
+import { useEffect, useRef } from 'react';
 
 import Button from '@/components/site/Button';
 
 import { formatDate } from '@/lib/site/dates';
+import type { Draft, DraftContent } from '@/lib/studio/types';
 
 import StudioPreview from './StudioPreview';
-import type { WritingController } from './useWritingController';
-import type { WritingPreview } from './useWritingState';
+import type { WritingPreview } from './useWritingPublication';
+import type { WritingMode } from './writing-contracts';
 
 export default function WritingReview({
-  controller,
+  draft,
+  reviewedRevision,
+  body,
+  status,
+  conflict,
+  mode,
+  setMode,
+  preview,
+  review,
+  busy,
+  returnToWriting,
+  publish,
+  published,
+  minutes,
 }: {
-  controller: Pick<
-    WritingController,
-    | 'draft'
-    | 'reviewedRevision'
-    | 'reviewHeading'
-    | 'body'
-    | 'status'
-    | 'conflict'
-    | 'mode'
-    | 'setMode'
-    | 'preview'
-    | 'review'
-    | 'busy'
-    | 'returnToWriting'
-    | 'publish'
-    | 'published'
-    | 'minutes'
-  >;
+  draft: Draft;
+  reviewedRevision: number | null;
+  body: DraftContent;
+  status: string;
+  conflict: boolean;
+  mode: WritingMode;
+  setMode: (mode: WritingMode) => void;
+  preview: WritingPreview | null;
+  review: boolean;
+  busy: boolean;
+  returnToWriting: () => void;
+  publish: () => Promise<void>;
+  published: string;
+  minutes: number;
 }) {
-  const {
-    draft,
-    reviewedRevision,
-    reviewHeading,
-    body,
-    status,
-    conflict,
-    mode,
-    setMode,
-    preview,
-    review,
-    busy,
-    returnToWriting,
-    publish,
-    published,
-    minutes,
-  } = controller;
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    reviewHeading.current?.focus();
+  }, []);
   return (
     <>
       <section className="studio-review-screen pt-10">
@@ -129,7 +127,11 @@ function ReviewArticle({
   preview,
   published,
   minutes,
-}: Pick<WritingController, 'body' | 'published' | 'minutes'> & {
+}: {
+  body: DraftContent;
+  published: string;
+  minutes: number;
+} & {
   preview: WritingPreview;
 }) {
   return (
@@ -174,7 +176,11 @@ function PublicationChecks({
   busy,
   conflict,
   publish,
-}: Pick<WritingController, 'busy' | 'conflict' | 'publish'> & {
+}: {
+  busy: boolean;
+  conflict: boolean;
+  publish: () => Promise<void>;
+} & {
   preview: WritingPreview;
 }) {
   return (

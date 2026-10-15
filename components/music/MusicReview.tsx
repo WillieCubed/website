@@ -1,5 +1,6 @@
 'use client';
-import type { ComponentType, RefObject } from 'react';
+import { type ComponentType, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 
 import Icon from '@/components/icons/Icon';
 
@@ -14,8 +15,7 @@ import { scrollDialogContent } from './music-dialog';
 
 type Props = {
   open: boolean;
-  reviewDialog: RefObject<HTMLDialogElement | null>;
-  closeReview: () => void;
+  onClose: () => void;
   onEditOrder: () => void;
   draft: Catalog;
   playlists: PlaylistView[];
@@ -26,8 +26,7 @@ type Props = {
 };
 export default function MusicReview({
   open,
-  reviewDialog,
-  closeReview,
+  onClose,
   onEditOrder,
   draft,
   playlists,
@@ -36,6 +35,28 @@ export default function MusicReview({
   canReview = true,
   applyReview,
 }: Props) {
+  const reviewDialog = useRef<HTMLDialogElement>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const dialog = reviewDialog.current;
+    if (!open || !dialog) return;
+    returnFocus.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    dialog.showModal();
+    dialog.querySelector<HTMLElement>('#mp-review-title')?.focus({
+      preventScroll: true,
+    });
+    dialog.scrollTop = 0;
+    return () => dialog.close();
+  }, [open]);
+
+  function closeReview() {
+    flushSync(onClose);
+    returnFocus.current?.focus({ preventScroll: true });
+  }
+
   if (!open) return null;
   return (
     <dialog
@@ -88,7 +109,13 @@ export default function MusicReview({
         <section className="mp-review-order">
           <div className="mp-review-section-heading">
             <h3>Gallery order</h3>
-            <button className="mp-text-button" onClick={onEditOrder}>
+            <button
+              className="mp-text-button"
+              onClick={() => {
+                closeReview();
+                onEditOrder();
+              }}
+            >
               Edit order
             </button>
           </div>
@@ -174,7 +201,10 @@ export default function MusicReview({
         <button
           className="mp-button mp-primary"
           disabled={mode !== 'prototype' && !canReview}
-          onClick={applyReview}
+          onClick={() => {
+            closeReview();
+            void applyReview();
+          }}
         >
           {mode === 'prototype' ? 'Apply to prototype' : 'Publish collection'}
           <Icon name="check" />

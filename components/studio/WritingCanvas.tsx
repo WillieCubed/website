@@ -1,6 +1,8 @@
 'use client';
-
+import type { Editor } from '@tiptap/react';
 import { EditorContent } from '@tiptap/react';
+import type { RefObject } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import Button from '@/components/site/Button';
@@ -8,76 +10,230 @@ import Popover from '@/components/site/Popover';
 
 import type { EditorNode } from '@/lib/studio/types';
 
+import type { CatalogEntry } from './StudioNodes';
 import { StudioWritingSurface } from './StudioWritingLayout';
-import type { WritingController } from './useWritingController';
+import { studioRequest } from './api';
+import type { WritingTask } from './writing-task-definitions';
 
 export default function WritingCanvas({
-  controller,
+  catalog,
+  cursor,
+  insertAnchor,
+  insertionRect,
+  taskRange,
+  selection,
+  editor,
+  rememberRange,
+  openTask,
+  returnToWriting,
+  insert,
+  closePopover,
+  control,
+  setStatus,
   visible,
 }: {
   visible: boolean;
-  controller: Pick<
-    WritingController,
-    | 'catalog'
-    | 'media'
-    | 'setMedia'
-    | 'mediaPanel'
-    | 'mediaHeight'
-    | 'url'
-    | 'setUrl'
-    | 'alt'
-    | 'setAlt'
-    | 'uploading'
-    | 'setImageFile'
-    | 'cursor'
-    | 'writingSpace'
-    | 'insertionPosition'
-    | 'insertAnchor'
-    | 'insertionRect'
-    | 'taskRange'
-    | 'selectionTools'
-    | 'selectionPosition'
-    | 'selection'
-    | 'editor'
-    | 'rememberRange'
-    | 'openTask'
-    | 'returnToWriting'
-    | 'upload'
-    | 'insert'
-    | 'closePopover'
-    | 'control'
-  >;
+
+  catalog: CatalogEntry[];
+  cursor: RefObject<number>;
+  insertAnchor: RefObject<Pick<
+    DOMRect,
+    'left' | 'right' | 'top' | 'bottom'
+  > | null>;
+  insertionRect: () => Pick<
+    DOMRect,
+    'left' | 'right' | 'top' | 'bottom'
+  > | null;
+  taskRange: RefObject<{ from: number; to: number; scroll: number }>;
+  selection: { from: number; to: number; text: string } | null;
+  editor: Editor | null;
+  rememberRange: () => void;
+  openTask: (task: Exclude<WritingTask, 'write'>) => void;
+  returnToWriting: () => void;
+  insert: (entry: CatalogEntry) => void;
+  closePopover: (event: React.MouseEvent) => void;
+  control: string;
+  setStatus: (status: string) => void;
 }) {
-  const {
-    catalog,
-    media,
-    setMedia,
-    mediaPanel,
-    mediaHeight,
-    url,
-    setUrl,
-    alt,
-    setAlt,
-    uploading,
-    setImageFile,
-    cursor,
-    writingSpace,
-    insertionPosition,
-    insertAnchor,
-    insertionRect,
-    taskRange,
-    selectionTools,
-    selectionPosition,
-    selection,
-    editor,
-    rememberRange,
-    openTask,
-    returnToWriting,
-    upload,
-    insert,
-    closePopover,
-    control,
-  } = controller;
+  // Hidden tasks and previews retain this owner, including the native file input.
+  const visibleRef = useRef(visible);
+  visibleRef.current = visible;
+  const [media, setMedia] = useState<'link' | 'image' | null>(null);
+  const mediaPanel = useRef<HTMLFormElement>(null);
+  const [mediaHeight, setMediaHeight] = useState(0);
+  const [url, setUrl] = useState('');
+  const [alt, setAlt] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const uploadInFlight = useRef(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const writingSpace = useRef<HTMLDivElement>(null);
+  const [insertionPosition, setInsertionPosition] = useState({
+    top: 0,
+    bottom: 0,
+    boundary: 0,
+  });
+  const selectionTools = useRef<HTMLDivElement>(null);
+  const [selectionPosition, setSelectionPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  useEffect(() => {
+    if (!editor || !visible) return;
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const block = editor.view.dom.querySelector('.studio-active-block');
+        const space = writingSpace.current;
+        if (!block || !space) return;
+        const bounds = block.getBoundingClientRect();
+        const origin = space.getBoundingClientRect();
+        setInsertionPosition({
+          top: bounds.top - origin.top,
+          bottom: bounds.bottom - origin.top + 8,
+          boundary: bounds.bottom - origin.top + 4,
+        });
+      });
+    };
+    measure();
+    editor.on('transaction', measure);
+    const observer = new ResizeObserver(measure);
+    observer.observe(editor.view.dom);
+    const activeBlock = editor.view.dom.querySelector('.studio-active-block');
+    if (activeBlock) observer.observe(activeBlock);
+    window.addEventListener('resize', measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      editor.off('transaction', measure);
+      window.removeEventListener('resize', measure);
+    };
+  }, [editor, selection, visible]);
+  useEffect(() => {
+    const panel = mediaPanel.current;
+    if (!media || !panel) return;
+    const observer = new ResizeObserver(() =>
+      setMediaHeight(panel.getBoundingClientRect().height)
+    );
+    observer.observe(panel);
+    setMediaHeight(panel.getBoundingClientRect().height);
+    return () => observer.disconnect();
+  }, [media]);
+  useEffect(() => {
+    let frame = 0;
+    const release = () => {
+      cancelAnimationFrame(frame);
+      // Let the click finish before the focused block changes its geometry.
+      frame = requestAnimationFrame(() => {
+        const space = writingSpace.current;
+        if (!space) return;
+        space.removeAttribute('data-focus-press');
+        const reduced = window.matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches;
+        // Release transitions held during pointer selection without moving its target.
+        for (const animation of space.getAnimations({ subtree: true })) {
+          const effect = animation.effect;
+          if (!effect || (effect.getTiming().delay ?? 0) < 86_400_000) continue;
+          effect.updateTiming({ delay: 0, duration: reduced ? 0 : 200 });
+          animation.currentTime = 0;
+        }
+      });
+    };
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('pointerup', release);
+      window.removeEventListener('pointercancel', release);
+    };
+  }, []);
+  useEffect(() => {
+    if (!editor || !selection || !visible) {
+      setSelectionPosition(null);
+      return;
+    }
+    const place = () => {
+      try {
+        const start = editor.view.coordsAtPos(selection.from);
+        const end = editor.view.coordsAtPos(selection.to);
+        if (end.bottom < 0 || start.top > innerHeight) {
+          setSelectionPosition(null);
+          return;
+        }
+        const { width, height } = selectionToolbarSize(selectionTools.current);
+        // Keep selection controls local to the canvas. The first paragraph's
+        // toolbar must not cover the document's Details/Preview/action buttons.
+        const canvasTop =
+          writingSpace.current?.getBoundingClientRect().top ?? 0;
+        const above = start.top - height - 8;
+        setSelectionPosition({
+          left: Math.max(16, Math.min(start.left, innerWidth - width - 16)),
+          top:
+            above >= Math.max(16, canvasTop)
+              ? above
+              : Math.min(end.bottom + 8, innerHeight - height - 16),
+        });
+      } catch {
+        setSelectionPosition(null);
+      }
+    };
+    const frame = requestAnimationFrame(place);
+    window.addEventListener('scroll', place, { passive: true });
+    window.addEventListener('resize', place);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', place);
+      window.removeEventListener('resize', place);
+    };
+  }, [editor, selection, visible]);
+  async function upload() {
+    if (!imageFile || !editor || !alt.trim() || uploadInFlight.current) return;
+    uploadInFlight.current = true;
+    setUploading(true);
+    let insertion = editor.state.selection.getBookmark();
+    const trackInsertion = ({
+      transaction,
+    }: {
+      transaction: import('@tiptap/pm/state').Transaction;
+    }) => {
+      insertion = insertion.map(transaction.mapping);
+    };
+    editor.on('transaction', trackInsertion);
+    const data = new FormData();
+    data.append('file', imageFile);
+    setStatus('Uploading image…');
+    try {
+      const asset = await studioRequest<{ url: string }>('/assets', {
+        method: 'POST',
+        body: data,
+      });
+      editor
+        .chain()
+        .setTextSelection(insertion.resolve(editor.state.doc).from)
+        .insertContent({
+          type: 'catalogBlock',
+          attrs: {
+            id: 'figure',
+            version: '1',
+            props: { src: asset.url, alt, caption: '', size: 'default' },
+            instance: crypto.randomUUID(),
+          },
+        })
+        .run();
+      if (visibleRef.current) editor.commands.focus();
+      setMedia(null);
+      setAlt('');
+      setImageFile(null);
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      editor.off('transaction', trackInsertion);
+      uploadInFlight.current = false;
+      setUploading(false);
+    }
+  }
+
   return (
     <>
       <SelectionTools
@@ -216,6 +372,7 @@ export default function WritingCanvas({
             <button
               onClick={(event) => {
                 closePopover(event);
+                rememberRange();
                 setMedia('image');
               }}
             >
@@ -351,15 +508,14 @@ function SelectionTools({
   editor,
   rememberRange,
   setMedia,
-}: Pick<
-  WritingController,
-  | 'selection'
-  | 'selectionTools'
-  | 'selectionPosition'
-  | 'editor'
-  | 'rememberRange'
-  | 'setMedia'
-> & { visible: boolean }) {
+}: {
+  selection: { from: number; to: number; text: string } | null;
+  selectionTools: RefObject<HTMLDivElement | null>;
+  selectionPosition: { top: number; left: number } | null;
+  editor: Editor | null;
+  rememberRange: () => void;
+  setMedia: (media: 'link' | 'image' | null) => void;
+} & { visible: boolean }) {
   return (
     selection && (
       <div
@@ -402,4 +558,14 @@ function SelectionTools({
       </div>
     )
   );
+}
+
+function selectionToolbarSize(element: HTMLElement | null): {
+  width: number;
+  height: number;
+} {
+  return {
+    width: element?.offsetWidth || 300,
+    height: element?.offsetHeight || 60,
+  };
 }

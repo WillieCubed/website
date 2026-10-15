@@ -96,6 +96,9 @@ html[data-music-motion] {
     display: none;
   }
 }
+.mp-shell[hidden] {
+  display: none;
+}
 .mp-shell {
   display: grid;
   grid-template-columns: 256px minmax(0, 1fr);

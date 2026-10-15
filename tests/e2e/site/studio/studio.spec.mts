@@ -1320,6 +1320,25 @@ test('inline controls follow a middle paragraph and preserve selected prose', as
     Math.abs(mediaBounds!.y - sourceBounds!.y - sourceBounds!.height)
   ).toBeLessThan(20);
   await linkAddress.fill('https://example.com/');
+  await writingAction(page, 'Writing details');
+  await page
+    .getByRole('button', { name: 'Back to writing', exact: true })
+    .click();
+  await expect(
+    page.getByRole('textbox', { name: 'Writing content' })
+  ).toBeFocused();
+  await expect(linkAddress).toHaveValue('https://example.com/');
+  await page.getByRole('button', { name: 'Read preview', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Portable preview', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Back to writing', exact: true })
+    .click();
+  await expect(
+    page.getByRole('textbox', { name: 'Writing content' })
+  ).toBeFocused();
+  await expect(linkAddress).toHaveValue('https://example.com/');
   await page.getByRole('button', { name: 'Add link', exact: true }).click();
   await expect(paragraph.locator('a')).toHaveText('Paragraph 9');
   await add.click();
@@ -1370,4 +1389,50 @@ test('inline controls follow a middle paragraph and preserve selected prose', as
         : itemBounds!.y;
     expect(Math.abs(addBounds!.y - expectedTop)).toBeLessThan(5);
   }).toPass();
+});
+
+test('an unfinished image retains its file and description across tasks and previews', async ({
+  page,
+  request,
+}) => {
+  const draft = await createWriting(request, 'An image draft');
+  await page.goto(`/studio/${draft.id}`);
+  const editor = page.getByRole('textbox', { name: 'Writing content' });
+  await editor.click();
+  await page.getByRole('button', { name: 'Insert block', exact: true }).click();
+  await page.getByRole('button', { name: 'Image', exact: true }).click();
+  const file = page.getByLabel('Image file', { exact: true });
+  const description = page.getByRole('textbox', {
+    name: 'Image description',
+    exact: true,
+  });
+  await file.setInputFiles({
+    name: 'retained.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('image draft'),
+  });
+  await description.fill('A description still being composed.');
+  await writingAction(page, 'Writing details');
+  await page
+    .getByRole('button', { name: 'Back to writing', exact: true })
+    .click();
+  await expect(editor).toBeFocused();
+  await expect(description).toHaveValue('A description still being composed.');
+  await page.getByRole('button', { name: 'Read preview', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Read your writing', exact: true })
+  ).toBeFocused();
+  await page
+    .getByRole('button', { name: 'Portable preview', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Back to writing', exact: true })
+    .click();
+  await expect(editor).toBeFocused();
+  await expect(description).toHaveValue('A description still being composed.');
+  await expect
+    .poll(() =>
+      file.evaluate((input: HTMLInputElement) => input.files?.[0]?.name)
+    )
+    .toBe('retained.png');
 });

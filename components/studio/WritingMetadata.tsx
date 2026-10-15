@@ -1,45 +1,44 @@
 'use client';
+import { useEffect, useState } from 'react';
+import type { RefObject } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import Popover from '@/components/site/Popover';
 
 import { formatDate } from '@/lib/site/dates';
-
-import type { WritingController } from './useWritingController';
+import type { Draft, DraftContent } from '@/lib/studio/types';
 
 export default function WritingMetadata({
-  controller,
+  draft,
+  showHeading,
+  setShowHeading,
+  titleField,
+  body,
+  bodyRef,
+  saved,
+  status,
+  update,
+  published,
+  minutes,
 }: {
-  controller: Pick<
-    WritingController,
-    | 'draft'
-    | 'showHeading'
-    | 'setShowHeading'
-    | 'announcement'
-    | 'titleField'
-    | 'body'
-    | 'bodyRef'
-    | 'saved'
-    | 'status'
-    | 'update'
-    | 'published'
-    | 'minutes'
-  >;
+  draft: Draft;
+  showHeading: boolean;
+  setShowHeading: (show: boolean) => void;
+  titleField: RefObject<HTMLTextAreaElement | null>;
+  body: DraftContent;
+  bodyRef: RefObject<DraftContent>;
+  saved: RefObject<string>;
+  status: string;
+  update: (body: DraftContent) => void;
+  published: string;
+  minutes: number;
 }) {
-  const {
-    draft,
-    showHeading,
-    setShowHeading,
-    announcement,
-    titleField,
-    body,
-    bodyRef,
-    saved,
-    status,
-    update,
-    published,
-    minutes,
-  } = controller;
+  const [announcement, setAnnouncement] = useState(status);
+  useEffect(() => {
+    if (status === 'Unsaved changes' || status === 'Saving…') return;
+    const timer = setTimeout(() => setAnnouncement(status), 600);
+    return () => clearTimeout(timer);
+  }, [status]);
   return (
     <>
       <div className="studio-byline flex flex-wrap items-center gap-x-2 gap-y-2 text-label-large text-muted">
@@ -142,10 +141,7 @@ export default function WritingMetadata({
   );
 }
 
-function writingPublicationState(
-  draft: WritingController['draft'],
-  saved: boolean
-): string {
+function writingPublicationState(draft: Draft, saved: boolean): string {
   if (!draft.liveRevisionId) return 'Draft';
   return draft.liveRevisionId === draft.head.id && saved
     ? 'Published'
@@ -157,7 +153,7 @@ function AddWritingTitle({
   showHeading,
   onAdd,
 }: {
-  body: WritingController['body'];
+  body: DraftContent;
   showHeading: boolean;
   onAdd: () => void;
 }) {

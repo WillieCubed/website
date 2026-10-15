@@ -1,34 +1,10 @@
 'use client';
 
-import {
-  type KeyboardEvent,
-  type RefObject,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 
 import { fetchWithDeadline } from '@/lib/http/fetch';
 import type { AdminState } from '@/lib/status/admin-state';
 import type { City } from '@/lib/status/location';
-
-export interface StatusEditorController {
-  state: AdminState;
-  editing: boolean;
-  query: string;
-  results: City[];
-  message: string;
-  pending: boolean;
-  selected: number;
-  input: RefObject<HTMLInputElement | null>;
-  control: RefObject<HTMLButtonElement | null>;
-  saved: City | undefined;
-  region: City | undefined;
-  toggleEdit: () => void;
-  save: (city: City) => Promise<void>;
-  changeQuery: (value: string) => void;
-  onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
-}
 
 const endpoint = '/api/admin/status';
 async function readResponse(
@@ -42,8 +18,11 @@ async function readResponse(
   }
 }
 
-export function useStatusEditor(initial: AdminState): StatusEditorController {
-  const [state, setState] = useState(initial);
+export function useStatusEditor(
+  initial: AdminState,
+  onAccessExpired: (message: string, configured: boolean) => void
+) {
+  const [saved, setSaved] = useState(initial.snapshot?.location);
   const [editing, setEditing] = useState(Boolean(initial.editing));
   const [query, setQuery] = useState(
     initial.query ?? initial.snapshot?.location.city ?? ''
@@ -57,7 +36,24 @@ export function useStatusEditor(initial: AdminState): StatusEditorController {
   const input = useRef<HTMLInputElement>(null);
   const control = useRef<HTMLButtonElement>(null);
   const sequence = useRef(0);
-  const saved = state.snapshot?.location;
+  const returnFocus = useRef(false);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      returnFocus.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Saving disables the control until the pending render has committed.
+    if (!editing && !pending && returnFocus.current) {
+      returnFocus.current = false;
+      control.current?.focus();
+    }
+  }, [editing, pending]);
 
   useEffect(() => {
     if (editing) {
@@ -78,7 +74,7 @@ export function useStatusEditor(initial: AdminState): StatusEditorController {
           { signal: abort.signal, cache: 'no-store' }
         );
         const next = await readResponse(response);
-        receiveSearch(response, next, current);
+        if (!abort.signal.aborted) receiveSearch(response, next, current);
       } catch (error) {
         if (!abort.signal.aborted && current === sequence.current)
           setMessage(
@@ -102,8 +98,10 @@ export function useStatusEditor(initial: AdminState): StatusEditorController {
   ): void {
     if (current !== sequence.current) return;
     if (!next.signedIn) {
-      setState(next);
-      setMessage(next.message || 'Sign in again to edit your location.');
+      onAccessExpired(
+        next.message || 'Sign in again to edit your location.',
+        next.configured
+      );
       return;
     }
     if (!response.ok) throw new Error('Search is unavailable. Try again.');
@@ -114,15 +112,22 @@ export function useStatusEditor(initial: AdminState): StatusEditorController {
   }
 
   function receiveSave(response: Response, next: AdminState): void {
-    setState(next);
+    if (!next.signedIn) {
+      onAccessExpired(
+        next.message || 'Sign in again to edit your location.',
+        next.configured
+      );
+      return;
+    }
+    setSaved(next.snapshot?.location);
     setMessage(next.message === 'City updated.' ? 'Saved' : next.message || '');
     if (response.ok) {
       setEditing(false);
       setResults([]);
       setChosen(undefined);
       setQuery(next.snapshot?.location.city || '');
-      control.current?.focus();
-    } else if (next.signedIn) {
+      returnFocus.current = true;
+    } else {
       setResults(next.results || results);
     }
   }
@@ -162,13 +167,14 @@ export function useStatusEditor(initial: AdminState): StatusEditorController {
         });
         next = await readResponse(response);
       }
-      receiveSave(response, next);
+      if (mounted.current) receiveSave(response, next);
     } catch (error) {
+      if (!mounted.current) return;
       setMessage(
         error instanceof Error ? error.message : 'Could not save. Try again.'
       );
     } finally {
-      setPending(false);
+      if (mounted.current) setPending(false);
     }
   }
 
@@ -206,7 +212,6 @@ export function useStatusEditor(initial: AdminState): StatusEditorController {
     }
   }
   return {
-    state,
     editing,
     query,
     results,

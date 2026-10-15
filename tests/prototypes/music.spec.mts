@@ -614,7 +614,13 @@ test('collection review keeps its actions visible and restores editing focus', a
     name: 'Review changes',
     exact: true,
   });
-  await launch.click();
+  const unrelated = page.getByRole('button', {
+    name: 'Create a series',
+    exact: true,
+  });
+  await unrelated.focus();
+  await expect(unrelated).toBeFocused();
+  await launch.dispatchEvent('click');
   const review = page.getByRole('dialog', {
     name: 'Review the collection',
     exact: true,
@@ -624,6 +630,13 @@ test('collection review keeps its actions visible and restores editing focus', a
     exact: true,
   });
   await expect(apply).toBeInViewport();
+  await expect(
+    review.getByRole('heading', { name: 'Review the collection', exact: true })
+  ).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(
+    review.getByRole('button', { name: 'Close review', exact: true })
+  ).toBeFocused();
   await review
     .getByRole('button', { name: 'Close review', exact: true })
     .focus();
@@ -646,6 +659,52 @@ test('collection review keeps its actions visible and restores editing focus', a
       exact: true,
     })
   ).toBeFocused();
+});
+
+test('an unfinished series survives gallery preview and setup exit or completion', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Curate music', exact: true }).click();
+  await page.getByRole('button', { name: 'Create a series' }).click();
+  const title = page.getByRole('textbox', { name: 'Series name', exact: true });
+  await title.fill('Unfinished compilation');
+  await page.getByRole('button', { name: 'View gallery', exact: true }).click();
+  await page.getByRole('button', { name: 'Curate music', exact: true }).click();
+  await expect(title).toHaveValue('Unfinished compilation');
+
+  await page.getByRole('button', { name: 'Show setup', exact: true }).click();
+  await expect(title).not.toBeVisible();
+  await expect(page.locator('#main')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Exit setup', exact: true }).click();
+  await expect(title).toHaveValue('Unfinished compilation');
+  await expect(
+    page.getByRole('button', { name: 'Show setup', exact: true })
+  ).toBeFocused();
+
+  await page.getByRole('button', { name: 'Show setup', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Connect Spotify', exact: true })
+    .click();
+  await page
+    .getByRole('checkbox', { name: 'Select Summer 2026', exact: true })
+    .check();
+  await page
+    .getByRole('button', { name: 'Preview collection', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Continue to curation', exact: true })
+    .click();
+  await expect(title).toHaveValue('Unfinished compilation');
+  await expect(
+    page.getByRole('button', { name: 'View gallery', exact: true })
+  ).toBeFocused();
+  await page
+    .getByRole('button', { name: 'Create series', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Unfinished compilation', exact: true })
+  ).toBeVisible();
+  await expect(title).toHaveCount(0);
 });
 
 test('the owner can create a series, assign a playlist, and reorder with buttons', async ({

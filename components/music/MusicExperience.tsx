@@ -45,8 +45,6 @@ import { useMusicCatalogLoading } from './useMusicCatalogLoading';
 import { useMusicPaletteNavigation } from './useMusicPaletteNavigation';
 import { useMusicPlaylistDialog } from './useMusicPlaylistDialog';
 import { useMusicPlaylistDrag } from './useMusicPlaylistDrag';
-import { useMusicReview } from './useMusicReview';
-import { useMusicSeriesCreation } from './useMusicSeriesCreation';
 import { useMusicSetup } from './useMusicSetup';
 import { usePrototypeMusicCatalog } from './usePrototypeMusicCatalog';
 
@@ -109,7 +107,7 @@ export default function MusicExperience({
   const gallery = useRef<HTMLDivElement>(null);
   const curateToggle = useRef<HTMLButtonElement>(null);
   const setupToggle = useRef<HTMLButtonElement>(null);
-  const review = useMusicReview();
+  const [reviewOpen, setReviewOpen] = useState(false);
   const setup = useMusicSetup({
     mode,
     initiallyOpen: setupInitially,
@@ -169,11 +167,6 @@ export default function MusicExperience({
         dropCatalog(draft, order, source, target, series?.id ?? null)
       ),
   });
-  const seriesForm = useMusicSeriesCreation((title) => {
-    const id = `series-${crypto.randomUUID()}`;
-    changeCatalog(appendCatalogSeries(draft, id, title));
-    return id;
-  }, navigation.chooseSeries);
   useMusicPaletteNavigation({
     mode,
     setup: setup.isOpen,
@@ -203,6 +196,11 @@ export default function MusicExperience({
     filterAll: libraryFilter === 'all',
   });
 
+  function createSeries(title: string) {
+    const id = `series-${crypto.randomUUID()}`;
+    changeCatalog(appendCatalogSeries(draft, id, title));
+    navigation.chooseSeries(id);
+  }
   function changeCatalog(next: Catalog) {
     catalogDocument.commit(next);
     announce('Draft saved in this browser.');
@@ -220,11 +218,11 @@ export default function MusicExperience({
   }
   function openSetup() {
     setup.open();
-    review.hide();
+    setReviewOpen(false);
   }
   function toggleCuration() {
     setEditing(!editing);
-    review.hide();
+    setReviewOpen(false);
     clearFilter();
   }
   function movePlaylist(id: string, step: number) {
@@ -238,7 +236,6 @@ export default function MusicExperience({
       navigation.chooseSeries(null);
       setReordering(true);
     });
-    review.close();
     gallery.current
       ?.querySelector<HTMLButtonElement>(
         '.mp-order-buttons button:not(:disabled)'
@@ -247,13 +244,12 @@ export default function MusicExperience({
   }
   async function applyReview() {
     if (mode !== 'prototype') {
-      review.close();
       await onPublish?.(draft);
       return;
     }
     flushSync(() => {
       catalogDocument.apply();
-      review.hide();
+      setReviewOpen(false);
       setEditing(false);
       clearFilter();
     });
@@ -281,8 +277,8 @@ export default function MusicExperience({
       loadError={loadError}
       ready={prototype.ready}
       interactionLocked={interactionLocked}
-    >
-      {setup.isOpen ? (
+      publicEmpty={publicEmpty}
+      setupView={
         <MusicSetup
           playlists={playlists}
           Cover={Cover}
@@ -293,90 +289,21 @@ export default function MusicExperience({
           onCancel={setup.cancel}
           onComplete={setup.complete}
         />
-      ) : (
+      }
+      chrome={
+        <MusicChrome
+          mode={mode}
+          editing={editing}
+          onToggleCuration={toggleCuration}
+          onOpenSetup={openSetup}
+          onRefresh={onRefresh}
+          setupToggle={setupToggle}
+          curateToggle={curateToggle}
+          adminMenuItems={adminMenuItems}
+        />
+      }
+      overlays={
         <>
-          <MusicChrome
-            mode={mode}
-            editing={editing}
-            onToggleCuration={toggleCuration}
-            onOpenSetup={openSetup}
-            onRefresh={onRefresh}
-            setupToggle={setupToggle}
-            curateToggle={curateToggle}
-            adminMenuItems={adminMenuItems}
-          />
-          <main
-            id="main"
-            className={`mp-shell${publicEmpty ? ' mp-shell-public-empty' : ''}`}
-          >
-            <MusicRail
-              publicEmpty={publicEmpty}
-              editing={editing}
-              loading={loading}
-              seriesNavigation={seriesNavigation}
-              setNewSeries={seriesForm.setTitle}
-              newSeries={seriesForm.title}
-              addSeries={seriesForm.submit}
-            />
-            <MusicGallery
-              publicEmpty={publicEmpty}
-              loadError={loadError}
-              storageError={prototype.error}
-              mode={mode}
-              header={
-                <MusicCollectionHeader
-                  series={series}
-                  editing={editing}
-                  loading={loading}
-                  loadError={loadError}
-                  onRetry={onRetry}
-                  hasSeries={catalog.series.length > 0}
-                  count={matching.length}
-                  reordering={reordering}
-                  filterAll={libraryFilter === 'all'}
-                  onToggleReordering={() => setReordering(!reordering)}
-                  seriesNavigation={seriesNavigation}
-                />
-              }
-              filters={
-                <MusicLibraryFilters
-                  editing={editing}
-                  libraryFilter={libraryFilter}
-                  setLibraryFilter={chooseFilter}
-                  loading={loading}
-                />
-              }
-              empty={
-                <MusicEmptyCollection
-                  loading={loading}
-                  count={matching.length}
-                  editing={editing}
-                  libraryFilter={libraryFilter}
-                  hasLibrary={playlists.length > 0}
-                  hasSelection={catalog.selected.length > 0}
-                  onBrowse={browseAll}
-                />
-              }
-            >
-              <MusicPlaylistGrid
-                items={items}
-                editing={editing}
-                loading={loading}
-                playlistCount={playlists.length}
-                href={(id) => navigation.href(seriesId, id)}
-                collectionKey={`${seriesId}:${editing}:${displayed.join(',')}`}
-                gallery={gallery}
-                Cover={Cover}
-                onDragStart={drag.start}
-                onDrop={drag.drop}
-                openPlaylist={navigation.openPlaylist}
-                select={(id) =>
-                  changeCatalog(toggleCatalogSelection(draft, id))
-                }
-                reorder={movePlaylist}
-              />
-            </MusicGallery>
-          </main>
           <MusicPublicationBar
             visible={editing}
             mode={mode}
@@ -386,8 +313,7 @@ export default function MusicExperience({
             saveStatus={saveStatus}
             loading={loading}
             canReview={canReview}
-            reviewTrigger={review.trigger}
-            onReview={review.show}
+            onReview={() => setReviewOpen(true)}
           />
           <p className="mp-announcement" role="status" aria-live="polite">
             {announcement}
@@ -422,9 +348,8 @@ export default function MusicExperience({
             closePlaylist={navigation.closePlaylist}
           />
           <MusicReview
-            open={review.isOpen}
-            reviewDialog={review.dialog}
-            closeReview={review.close}
+            open={reviewOpen}
+            onClose={() => setReviewOpen(false)}
             onEditOrder={editOrder}
             draft={draft}
             playlists={playlists}
@@ -434,7 +359,71 @@ export default function MusicExperience({
             applyReview={applyReview}
           />
         </>
-      )}
+      }
+    >
+      <MusicRail
+        publicEmpty={publicEmpty}
+        editing={editing}
+        loading={loading}
+        seriesNavigation={seriesNavigation}
+        onCreateSeries={createSeries}
+      />
+      <MusicGallery
+        publicEmpty={publicEmpty}
+        loadError={loadError}
+        storageError={prototype.error}
+        mode={mode}
+        header={
+          <MusicCollectionHeader
+            series={series}
+            editing={editing}
+            loading={loading}
+            loadError={loadError}
+            onRetry={onRetry}
+            hasSeries={catalog.series.length > 0}
+            count={matching.length}
+            reordering={reordering}
+            filterAll={libraryFilter === 'all'}
+            onToggleReordering={() => setReordering(!reordering)}
+            seriesNavigation={seriesNavigation}
+          />
+        }
+        filters={
+          <MusicLibraryFilters
+            editing={editing}
+            libraryFilter={libraryFilter}
+            setLibraryFilter={chooseFilter}
+            loading={loading}
+          />
+        }
+        empty={
+          <MusicEmptyCollection
+            loading={loading}
+            count={matching.length}
+            editing={editing}
+            libraryFilter={libraryFilter}
+            hasLibrary={playlists.length > 0}
+            hasSelection={catalog.selected.length > 0}
+            onBrowse={browseAll}
+          />
+        }
+      >
+        <MusicPlaylistGrid
+          items={items}
+          editing={editing}
+          loading={loading}
+          playlistCount={playlists.length}
+          href={(id) => navigation.href(seriesId, id)}
+          collectionKey={`${seriesId}:${editing}:${displayed.join(',')}`}
+          gallery={gallery}
+          Cover={Cover}
+          onDragStart={drag.start}
+          onDrop={drag.drop}
+          openPlaylist={navigation.openPlaylist}
+          select={(id) => changeCatalog(toggleCatalogSelection(draft, id))}
+          reorder={movePlaylist}
+        />
+      </MusicGallery>
     </MusicExperienceFrame>
   );
 }

@@ -345,8 +345,8 @@ async function reconcilePullRequest(
       409,
       'The publication pull request was closed without merging.'
     );
-  const base = await currentPublicationBase(publication, branch);
-  if (!base) return;
+  const base = await reconcilePublicationBase(publication, branch);
+  if (base.kind === 'rebased') return;
   // GitHub's protected merge is authoritative for required checks, reviews,
   // rulesets and permissions. Fine-grained repository tokens cannot call the
   // Checks API, so never make a separate check-run request here. An
@@ -354,17 +354,19 @@ async function reconcilePullRequest(
   if (
     pr.mergeable !== true ||
     pr.mergeable_state !== 'clean' ||
-    (pr.base as { sha: string }).sha !== base
+    (pr.base as { sha: string }).sha !== base.sha
   )
     return;
-  if (!(await publicationBaseUnchanged(publication, branch, base))) return;
+  if (!(await publicationBaseUnchanged(publication, branch, base.sha))) return;
   await mergePublication(publication, pr);
 }
 
-async function currentPublicationBase(
+type PublicationBase = { kind: 'current'; sha: string } | { kind: 'rebased' };
+
+async function reconcilePublicationBase(
   publication: Publication,
   branch: string
-): Promise<string | null> {
+): Promise<PublicationBase> {
   const current = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
   const base = (current.object as { sha: string }).sha;
   if (
@@ -377,10 +379,10 @@ async function currentPublicationBase(
     );
   if (publication.proposalInput?.parent !== base) {
     await rebaseArtifacts(publication, base, branch);
-    return null; // The same PR now reruns required checks on its new head.
+    return { kind: 'rebased' }; // The same PR now reruns required checks on its new head.
   }
 
-  return base;
+  return { kind: 'current', sha: base };
 }
 
 async function publicationBaseUnchanged(

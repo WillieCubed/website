@@ -106,7 +106,7 @@ function feedbackLabel(feedback: SocialFeedback): string {
   return feedback.retry === null ? 'Unavailable' : 'Try again';
 }
 
-interface SocialButton {
+export interface SocialButtonDisplay {
   label: string;
   title?: string;
   icon: IconName;
@@ -124,7 +124,7 @@ function retryButton(
   pending: boolean,
   compact: boolean,
   feedback: SocialFeedback
-): SocialButton {
+): SocialButtonDisplay {
   return {
     label: pending ? operation.pending : feedbackLabel(feedback),
     title: feedback.message,
@@ -142,7 +142,7 @@ export function socialButton(
   pending: boolean,
   compact: boolean,
   feedback: SocialFeedback | null
-): SocialButton {
+): SocialButtonDisplay {
   const definition = socialActions[action];
   const operation = definition[active ? 'active' : 'inactive'];
   if (feedback && feedback.retry !== 'logout')

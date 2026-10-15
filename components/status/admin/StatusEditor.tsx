@@ -16,27 +16,6 @@ const regionLabel = (city?: City) =>
     .filter(Boolean)
     .join(', ');
 
-function StatusEditorAccess({ view }: { view: StatusEditorController }) {
-  const { state, message } = view;
-  if (!state.configured) return <p>Sign-in is unavailable.</p>;
-  if (!state.signedIn)
-    return (
-      <>
-        {message && (
-          <p className="message" role="status">
-            {message}
-          </p>
-        )}
-        <p>
-          <SiteLink href="https://willie.page/admin/status" preview={false}>
-            Sign in through Cloudflare Access
-          </SiteLink>
-        </p>
-      </>
-    );
-  return <LocationEditor view={view} />;
-}
-
 function LocationEditor({ view }: { view: StatusEditorController }) {
   const hydrated = useHydrated();
   const {
@@ -177,13 +156,31 @@ function LocationEditor({ view }: { view: StatusEditorController }) {
 
 export default function StatusEditor({ initial }: { initial: AdminState }) {
   const view = useStatusEditor(initial);
+  const { state, message } = view;
 
   return (
     <>
       <div className="admin-heading">
         <h1>Status</h1>
       </div>
-      <StatusEditorAccess view={view} />
+      {!state.configured ? (
+        <p>Sign-in is unavailable.</p>
+      ) : !state.signedIn ? (
+        <>
+          {message && (
+            <p className="message" role="status">
+              {message}
+            </p>
+          )}
+          <p>
+            <SiteLink href="https://willie.page/admin/status" preview={false}>
+              Sign in through Cloudflare Access
+            </SiteLink>
+          </p>
+        </>
+      ) : (
+        <LocationEditor view={view} />
+      )}
     </>
   );
 }

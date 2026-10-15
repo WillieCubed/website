@@ -95,7 +95,7 @@ export function useMusicLibrary({
           {
             method: 'PUT',
             body: JSON.stringify({
-              expectedRevisionId: readDraft().revisionId,
+              expectedRevisionId: result.catalog.revision?.id ?? null,
               catalog: { ...body, order },
             }),
           }

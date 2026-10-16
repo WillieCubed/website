@@ -237,7 +237,7 @@ export const ventures: Venture[] = [
         caption: LVBT_DEADLINE_CAPTION,
       },
       body: [
-        'Las Vegans for Better Transit is a nonprofit that organizes riders and neighbors into a constituency the Legislature has to answer to.',
+        'Las Vegans for Better Transit is an advocacy group fighting for world-class public transportation and land use that supports walkable, human-scale neighborhoods.',
       ],
       list: [
         {

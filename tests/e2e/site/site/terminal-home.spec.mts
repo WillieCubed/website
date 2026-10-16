@@ -13,7 +13,14 @@ test('the production server isolates terminal and HTML homepage responses', asyn
     expect(response.headers()['cache-control']).toContain('no-store');
     expect(response.headers()['cdn-cache-control']).toBe('no-store');
     expect(response.headers().vary).toContain('Accept');
-    expect(await response.text()).toContain('W I L L I E C U B E D');
+    const body = await response.text();
+    expect(body).toContain('W I L L I E C U B E D');
+    expect(body.replace(/\s+/g, ' ')).toContain(
+      'One tool for planning, scheduling, and tracking every kind of work.'
+    );
+    expect(body.includes(String.fromCharCode(27))).toBe(
+      headers.Accept !== 'text/plain'
+    );
     const head = await request.head('/', { headers });
     expect(head.headers()['content-type']).toContain('text/plain');
     expect(await head.body()).toHaveLength(0);

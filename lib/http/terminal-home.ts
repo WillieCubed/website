@@ -1,4 +1,4 @@
-import { focuses } from '@/lib/home/focuses';
+import { type Detail, entries, products } from '@/lib/home/ventures';
 import { site } from '@/lib/site/identity';
 
 import { homepageNegotiationHeaders } from './response-headers';
@@ -76,41 +76,59 @@ function wrap(text: string, width = 68): string[] {
   return lines;
 }
 
-function homepageText() {
+function styled(text: string, code: '1' | '1;32' | '36', color: boolean) {
+  return color ? `\u001b[${code}m${text}\u001b[0m` : text;
+}
+
+function describeWork(name: string, detail: Detail, color: boolean) {
+  return [
+    `  ${styled(name, '1', color)}`,
+    ...detail.body.flatMap((paragraph) =>
+      wrap(paragraph, 66).map((line) => `    ${line}`)
+    ),
+    ...detail.links.map((link) => `    ${styled(link.href, '36', color)}`),
+    '',
+  ];
+}
+
+function usesAnsi(headers: Headers) {
+  return (
+    /^curl\/\S+/i.test(headers.get('User-Agent') ?? '') &&
+    !/(?:^|,)\s*text\/plain\s*(?:;|,|$)/i.test(headers.get('Accept') ?? '')
+  );
+}
+
+function homepageText(color: boolean) {
   return [
     '',
-    '  W I L L I E C U B E D',
+    `  ${styled('W I L L I E C U B E D', '1;32', color)}`,
     `  ${site.name}`,
     '',
     ...wrap(site.description).map((line) => `  ${line}`),
     '',
-    '  RIGHT NOW',
+    `  ${styled('MY WORK', '1;32', color)}`,
     '',
-    ...focuses.flatMap((focus) =>
-      wrap(focus.line, 64).map(
-        (line, index) => `  ${index === 0 ? '*' : ' '} ${line}`
-      )
+    ...site.ventures.flatMap((venture) =>
+      describeWork(venture.name, entries[venture.key].detail, color)
     ),
+    `  ${styled('PROJECTS', '1;32', color)}`,
     '',
-    '  MY WORK',
-    '',
-    ...site.ventures.flatMap((venture) => [
-      `  ${venture.name}`,
-      `  ${venture.url}`,
-      '',
-    ]),
-    '  EXPLORE',
+    ...[entries.transitmapper, ...Object.values(products)].flatMap((entry) =>
+      describeWork(entry.name, entry.detail, color)
+    ),
+    `  ${styled('EXPLORE', '1;32', color)}`,
     '',
     `  Writings     ${site.origin}/writings`,
     `  Projects     ${site.origin}/projects`,
     `  Initiatives  ${site.origin}/initiatives`,
     '',
-    '  SAY HELLO',
+    `  ${styled('SAY HELLO', '1;32', color)}`,
     '',
     `  ${site.author.email}`,
     ...site.social.map((profile) => `  ${profile.href}`),
     '',
     `  ${site.origin}`,
+    '  For plain text, send Accept: text/plain.',
     '  For HTML, send Accept: text/html or X-Original: true.',
     '',
   ].join('\n');
@@ -129,7 +147,8 @@ export function terminalHome(request: Request): Response | undefined {
     !wantsTerminal(request.headers)
   )
     return undefined;
-  return new Response(request.method === 'HEAD' ? null : homepageText(), {
+  const color = usesAnsi(request.headers);
+  return new Response(request.method === 'HEAD' ? null : homepageText(color), {
     headers: {
       ...terminalHomeHeaders,
       'Content-Type': 'text/plain; charset=utf-8',

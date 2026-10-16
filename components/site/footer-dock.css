@@ -392,11 +392,18 @@
    panel room without reserving a fixed fraction of the viewport. */
 .site-footer {
   --footer-space: 32px;
+  --footer-tail-gap: 8px;
 }
 .site-footer__inner {
   min-height: 0;
-  grid-template-rows: auto auto;
-  row-gap: 8px;
+  grid-template-areas:
+    'brand brand'
+    'pages webrings'
+    'contacts contacts';
+  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-rows: auto auto auto;
+  row-gap: 0;
+  column-gap: 40px;
   padding-top: clamp(24px, 3vw, 32px);
   padding-inline: var(--footer-panel-edge);
   padding-bottom: var(--footer-inset);
@@ -411,9 +418,12 @@
   padding-inline: var(--footer-panel-edge);
 }
 .site-footer__brand {
+  grid-area: brand;
   padding-inline: var(--footer-content-pad);
 }
 .site-footer .site-footer__pages {
+  grid-area: pages;
+  margin-block-start: var(--footer-space);
   padding-inline-start: var(--footer-content-pad);
 }
 .site-footer__profiles {
@@ -429,11 +439,9 @@
 .site-footer[data-flow] :is(a, button) {
   scroll-margin-block: 24px;
 }
-.site-footer__top {
-  grid-area: 1 / 1;
-}
 .site-footer__row {
-  grid-area: 2 / 1;
+  grid-area: contacts;
+  margin-block-start: var(--footer-tail-gap);
 }
 @container footer (max-width: 560px) {
   .site-footer:not([data-dock]) .site-footer__profiles li[data-extra] {
@@ -456,10 +464,7 @@
 }
 .site-footer[data-dock] .site-footer__top,
 .site-footer:not([data-dock]) .site-footer__top {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-content: start;
-  row-gap: var(--footer-space);
+  display: contents;
 }
 .site-footer[data-dock] .site-footer__top .site-footer__pages,
 .site-footer:not([data-dock]) .site-footer__top .site-footer__pages {
@@ -468,10 +473,7 @@
   min-height: 0;
 }
 .site-footer__navigation {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
-  align-items: start;
-  column-gap: 40px;
+  display: contents;
 }
 .site-footer .site-footer__pages ul {
   display: grid;
@@ -486,6 +488,24 @@
   letter-spacing: 0;
 }
 @media (max-width: 599px) {
+  .site-footer__inner {
+    grid-template-areas: 'brand' 'pages' 'contacts' 'webrings';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(4, auto);
+  }
+  .site-footer__row {
+    margin-block-start: var(--footer-space);
+  }
+  /* The expanded footer ends with the webrings. While it is closed, the
+     contact row still occupies its original dock position. Measure the
+     ring height so this also works when narrow content wraps. */
+  .site-footer[data-dock] .site-footer__row {
+    translate: 0
+      calc(
+        (var(--footer-webrings-h, 48px) + var(--footer-tail-gap)) *
+          (1 - var(--p))
+      );
+  }
   .site-footer[data-dock] {
     --lockup-h: 48px;
   }
@@ -494,10 +514,6 @@
   }
   .site-footer:not([data-dock]) .site-footer__lockup {
     font-size: clamp(22px, 6.7vw, 30px);
-  }
-  .site-footer__navigation {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 32px;
   }
   .site-footer .site-footer__pages {
     padding-inline: var(--footer-content-pad);
@@ -521,10 +537,13 @@
 /* Ring controls form one compact labeled group beside the site links;
    their spacing follows the group, rather than the taller link rows. */
 .site-webrings {
+  grid-area: webrings;
+  align-self: start;
   display: grid;
   justify-items: stretch;
   row-gap: 8px;
   margin: 0;
+  margin-block-start: var(--footer-space);
   padding: 8px;
   border-radius: 16px;
   background: color-mix(
@@ -546,6 +565,7 @@
 }
 @media (max-width: 599px) {
   .site-webrings {
+    margin-block-start: var(--footer-tail-gap);
     display: flex;
     flex-wrap: wrap;
     align-items: center;

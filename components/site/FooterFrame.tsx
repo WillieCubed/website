@@ -103,6 +103,10 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
         String(document.body.getBoundingClientRect().width)
       );
       surface?.style.setProperty('--page-w', String(surface.offsetWidth));
+      footer.style.setProperty(
+        '--footer-webrings-h',
+        `${rings?.offsetHeight ?? 0}px`
+      );
       footerHeight = footer.offsetHeight;
       scrollHeight = document.documentElement.scrollHeight;
     };

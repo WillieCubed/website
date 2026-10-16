@@ -37,11 +37,19 @@ test('the open dock keeps all six ring links available while tabbing', async ({
   await page.goto('/');
   const rings = page.locator('.site-webrings');
   await expect(rings).toHaveAttribute('inert', '');
+  await expect(page.locator('.site-footer')).toHaveAttribute('data-dock', '');
+  await expect
+    .poll(() =>
+      page
+        .locator('.site-footer__row')
+        .evaluate((row) => innerHeight - row.getBoundingClientRect().bottom)
+    )
+    .toBeCloseTo(16, 0);
   await page.evaluate(() =>
     window.scrollTo(0, document.documentElement.scrollHeight)
   );
   await expect(rings).not.toHaveAttribute('inert');
-  await page.locator('.site-footer__pages a').last().focus();
+  await page.getByRole('button', { name: 'Feeds', exact: true }).focus();
   for (const name of [
     'Previous site in the IndieWeb Webring',
     'IndieWeb Webring',
@@ -134,14 +142,19 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
           (e) => e.getBoundingClientRect().toJSON()
         ),
         overflow: document.documentElement.scrollWidth > innerWidth,
+        ringsLast:
+          document.querySelector('.site-footer__inner')!.lastElementChild ===
+          document.querySelector('.site-webrings'),
       };
     });
     expect(bounds.overflow, `${width}px overflow`).toBe(false);
     expect(bounds.name.bottom).toBeLessThan(bounds.pages.top);
     expect(bounds.page.left).toBeCloseTo(bounds.row.left, 0);
     expect(bounds.page.right).toBeCloseTo(bounds.row.right, 0);
-    expect(bounds.panel.bottom).toBeLessThan(bounds.row.top);
+    expect(bounds.ringsLast).toBe(true);
     if (width < 600) {
+      expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
+      expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
       expect(bounds.rings.left).toBeCloseTo(bounds.row.left, 0);
       expect(bounds.rings.width).toBeCloseTo(
         Math.min(480, bounds.row.width),
@@ -175,6 +188,7 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
         }
       }
     } else {
+      expect(bounds.panel.bottom).toBeLessThan(bounds.row.top);
       expect(bounds.rings.right).toBeCloseTo(bounds.row.right, 0);
       expect(bounds.pages.right).toBeLessThan(bounds.panel.left);
     }

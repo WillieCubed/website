@@ -16,8 +16,8 @@ import {
 import type { MusicSeries } from '@/lib/music/types';
 
 import MusicCover, { type MusicCoverProps } from './MusicCover';
+import MusicDetailNavigation from './MusicDetailNavigation';
 import {
-  MusicDetailNavigation,
   MusicPlaylistArtwork,
   MusicPlaylistEditor,
   MusicPlaylistSummary,
@@ -62,6 +62,7 @@ export default function MusicDetail({
     focusIds,
     openPlaylist,
     closePlaylist,
+    openRelatedPlaylist,
   } = navigation;
   const current = playlists.find((playlist) => playlist.id === focused);
   return (
@@ -88,6 +89,9 @@ export default function MusicDetail({
             onOpen={openPlaylist}
             onClose={closePlaylist}
             closeHref={closeHref}
+            title={current.title}
+            playlistId={current.id}
+            dialog={dialog}
           />
           <div
             className="mp-detail-scroll scroller"
@@ -95,16 +99,20 @@ export default function MusicDetail({
             aria-label="Playlist details"
             tabIndex={-1}
           >
-            <MusicPlaylistArtwork
-              playlist={current}
-              Cover={Cover}
-              series={catalog.series}
-            />
             <MusicPlaylistSummary
               playlist={current}
               runtime={listeningTime(current.tracks)}
               mode={mode}
               note={editing ? undefined : catalog.notes[current.id]}
+            />
+            <MusicPlaylistArtwork
+              playlist={current}
+              Cover={Cover}
+              series={catalog.series}
+              editing={editing}
+              onToggleMembership={(id) =>
+                onChange(toggleCatalogMembership(draft, id, current.id))
+              }
             />
             {editing && (
               <MusicPlaylistEditor
@@ -119,15 +127,16 @@ export default function MusicDetail({
                 onToggleFeature={() =>
                   onChange(toggleCatalogFeature(draft, current.id))
                 }
-                onToggleMembership={(id) =>
-                  onChange(toggleCatalogMembership(draft, id, current.id))
-                }
               />
             )}
             <MusicPlaylistTracks
-              tracks={current.tracks}
-              playlistId={current.id}
+              playlist={current}
+              available={playlists.filter((item) =>
+                catalog.selected.includes(item.id)
+              )}
+              mode={mode}
               editing={editing}
+              onOpenEnding={openRelatedPlaylist}
             />
           </div>
         </>

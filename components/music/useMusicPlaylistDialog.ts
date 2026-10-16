@@ -5,10 +5,11 @@ import { flushSync } from 'react-dom';
 import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
 
 import { type PlaylistMotionParts, playlistMotion } from '@/lib/music/motion';
-import type {
+import {
   Catalog,
   MusicMode,
   PlaylistView,
+  gallerySelection,
 } from '@/lib/music/presentation';
 
 import { musicHref, useMusicPlaylistHistory } from './useMusicPlaylistHistory';
@@ -29,6 +30,7 @@ interface Options {
 interface PlaylistDestination {
   seriesId: string | null;
   playlistIds: string[];
+  related?: boolean;
 }
 export function useMusicPlaylistDialog({
   catalog,
@@ -95,46 +97,32 @@ export function useMusicPlaylistDialog({
     if (!alreadyOpen) returnFocus.current = source;
     if (!alreadyOpen || destination)
       focusSequence.current = [...target.playlistIds];
-    const before = alreadyOpen ? focusParts() : cardParts(source);
+    const before = alreadyOpen
+      ? playlistFocusParts(dialog.current)
+      : cardParts(source);
     cancelMotion.current = playlistMotion(
       () => {
         const focusedControl = document.activeElement;
-        flushSync(() => setFocused(id));
+        flushSync(() => {
+          setFocused(id);
+          setSeriesId(target.seriesId);
+        });
         showPlaylistDialog(dialog.current);
-        if (
-          alreadyOpen &&
-          focusedControl instanceof HTMLButtonElement &&
-          focusedControl.disabled
-        ) {
-          dialog.current
-            ?.querySelector<HTMLElement>(
-              '.mp-detail-pagination button:not(:disabled)'
-            )
-            ?.focus({ preventScroll: true });
-        }
+        restoreNavigationFocus(dialog.current, focusedControl, alreadyOpen);
         const scroller =
           dialog.current?.querySelector<HTMLElement>('.mp-detail-scroll');
         if (scroller) scroller.scrollTop = 0;
-        playlistHistory.open(target.seriesId, id, alreadyOpen);
+        if (target.related) {
+          dialog.current
+            ?.querySelector<HTMLElement>('#mp-detail-title')
+            ?.focus({ preventScroll: true });
+          playlistHistory.openRelated(target.seriesId, id, alreadyOpen);
+        } else playlistHistory.open(target.seriesId, id, alreadyOpen);
       },
       before,
-      focusParts,
+      () => playlistFocusParts(dialog.current),
       alreadyOpen ? 'swap' : 'open'
     );
-  }
-
-  function focusParts(): PlaylistMotionParts {
-    const find = (selector: string) =>
-      dialog.current?.querySelector<HTMLElement>(selector);
-    return {
-      surface: dialog.current,
-      cover: find('[data-focus-cover]'),
-      controls: find('.mp-detail-bar'),
-      summary: find('.mp-detail-body'),
-      tracks: find('.mp-detail-tracks'),
-      context: find('.mp-detail-context'),
-      editor: find('.mp-context-editor'),
-    };
   }
 
   function closePlaylist() {
@@ -152,7 +140,7 @@ export function useMusicPlaylistDialog({
         if (restore?.isConnected) restore.focus({ preventScroll: true });
         playlistHistory.close(seriesId);
       },
-      visibleTarget ? focusParts() : {},
+      visibleTarget ? playlistFocusParts(dialog.current) : {},
       () => cardParts(visibleTarget),
       'close'
     );
@@ -160,12 +148,22 @@ export function useMusicPlaylistDialog({
 
   const backdrop = useBackdropDismiss(closePlaylist);
 
+  function openRelatedPlaylist(id: string) {
+    openPlaylist(id, null, {
+      seriesId: null,
+      playlistIds: gallerySelection(catalog, mode, editing, null, 'all')
+        .displayed,
+      related: true,
+    });
+  }
+
   return {
     focused,
     focusIds,
     currentIndex,
     dialog,
     openPlaylist,
+    openRelatedPlaylist,
     closePlaylist,
     backdrop,
     chooseSeries,
@@ -174,6 +172,44 @@ export function useMusicPlaylistDialog({
   };
 }
 
+function playlistFocusParts(
+  dialog: HTMLDialogElement | null
+): PlaylistMotionParts {
+  const find = (selector: string) =>
+    dialog?.querySelector<HTMLElement>(selector);
+  const body = find('.mp-detail-body');
+  return {
+    surface: dialog,
+    viewport: find('.mp-detail-scroll'),
+    cover: find('[data-focus-cover]'),
+    controls: find('.mp-detail-bar'),
+    summary:
+      (body?.getBoundingClientRect().height ?? 0) > 0
+        ? body
+        : find('#mp-detail-title'),
+    tracks: find('.mp-detail-tracks'),
+    context: find('.mp-detail-context'),
+    editor: find('.mp-context-editor'),
+  };
+}
+
+function restoreNavigationFocus(
+  dialog: HTMLDialogElement | null,
+  focusedControl: Element | null,
+  alreadyOpen: boolean
+) {
+  if (
+    alreadyOpen &&
+    focusedControl instanceof HTMLButtonElement &&
+    focusedControl.disabled
+  ) {
+    dialog
+      ?.querySelector<HTMLElement>(
+        '.mp-detail-pagination button:not(:disabled)'
+      )
+      ?.focus({ preventScroll: true });
+  }
+}
 function closeTarget(
   origin: HTMLElement | null,
   gallery: HTMLDivElement | null,
@@ -191,11 +227,27 @@ function closeTarget(
 }
 function upgradePlaylistDialog(dialog: HTMLDialogElement | null) {
   if (!dialog || dialog.matches(':modal')) return;
+  const { scroller, readingPosition, readingFocus } =
+    playlistReadingContext(dialog);
   if (dialog.open) dialog.close();
   dialog.showModal();
-  dialog
-    .querySelector<HTMLElement>('#mp-detail-title')
-    ?.focus({ preventScroll: true });
+  (
+    readingFocus ?? dialog.querySelector<HTMLElement>('#mp-detail-title')
+  )?.focus({ preventScroll: true });
+  if (scroller) scroller.scrollTop = readingPosition;
+}
+
+function playlistReadingContext(dialog: HTMLDialogElement) {
+  const scroller = dialog.querySelector<HTMLElement>('.mp-detail-scroll');
+  const readingPosition = scroller?.scrollTop ?? 0;
+  const active = document.activeElement;
+  const readingFocus =
+    active instanceof HTMLElement && dialog.contains(active)
+      ? active
+      : readingPosition > 0
+        ? scroller
+        : null;
+  return { scroller, readingPosition, readingFocus };
 }
 
 function showPlaylistDialog(dialog: HTMLDialogElement | null) {

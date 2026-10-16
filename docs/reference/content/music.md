@@ -41,6 +41,63 @@ when the preference changes while it is running. Without scripts or motion
 support, the native disclosure and manually scrollable credits remain readable.
 No audio or additional provider request is started by either discovery.
 
+### Track lists
+
+Public and curation details share a segmented tonal track list, with 8px inner
+corners and 16px outer corners. Titles and
+artist names wrap fully; original track numbers and durations stay on one line.
+Song titles align with the Track list heading and the surrounding detail copy.
+Filled row containers extend beyond that text edge; sequence numbers sit beside
+durations on the trailing edge. The list uses the site's Material surface, typography, spacing, and radius
+tokens, with visible keyboard focus and forced-color boundaries.
+Available songs and episodes link directly to Spotify in a new tab. Local files
+and unavailable entries keep their sequence position and display explicit labels
+without an inactive link or a playback control.
+
+All tracks and provider links render in the initial HTML, in their original
+order. The showcase prioritizes browsing Willie's playlists and following songs
+to Spotify; it has no separate playlist or track search interface. Site-wide
+Search keeps Cmd/Ctrl+K, and browser Find keeps Cmd/Ctrl+F. Reading the list
+starts no provider requests and changes no curation data.
+
+The detail toolbar reserves room for a compact visual title at widths of 840px
+and above. It appears only after the entire main heading has scrolled out of
+view and disappears as soon as that heading returns. Navigation controls keep
+their positions; long toolbar titles truncate within the remaining space. The
+main heading remains the single accessible title. On smaller screens, or
+without scripts, the toolbar contains only its controls.
+When the scrollport leaves its top position, the toolbar changes from the page
+surface to Surface Container, following the [Material app bar's scroll treatment](https://m3.material.io/components/app-bars/).
+Returning to the top restores the original surface. This applies at every
+viewport width and introduces no divider, shadow, or layout shift.
+Upgrading the server-rendered detail to a modal preserves its existing reading
+position and focus context, so visitors can start reading before scripts finish
+loading.
+
+Opening and closing use a 380ms cover and surface transition when supported.
+The opening title and tracks appear immediately, without a staggered entrance.
+Track hover and press feedback changes only the surface color over 120ms.
+Reduced motion disables these transitions and the compact title's entrance.
+The dialog and scrollport use [nested transition groups](https://developer.chrome.com/docs/css-ui/view-transitions/nested-view-transition-groups)
+to retain their clipping during motion. Browsers without that capability use
+immediate navigation, preserving all content and controls.
+
+Complete public playlists with at least 50 tracks have a quiet, static ending
+after the final song. The default messages distinguish 50–149, 150–299, and
+300-or-more tracks; known playlists have individual lines tied to their stable
+identities. Short and partially loaded lists have no ending. The notes occupy
+normal document flow, use a filled Material surface in both themes, and align
+their text with the song titles using the same padding and container outset.
+They introduce no animation, sound, or automatic scrolling.
+
+The long Willie collection's ending links to Williecore when the shorter
+playlist is available, eligible, complete, and shorter than the collection.
+Otherwise it uses the ordinary long-list ending. The native in-site link works
+without scripts. Enhanced navigation opens the shorter playlist at its heading,
+resets the series scope to All playlists, and keeps Close and browser Back in
+step with the URL. The curation editor retains its existing controls; endings
+appear in its gallery preview and on the public page.
+
 ## Storage and approval
 
 Private Music tables share the studio database. Immutable revisions preserve
@@ -140,7 +197,8 @@ For public Music interactions, run
 `MUSIC_E2E=1 STUDIO_TEST_SITE_MODE=public STUDIO_TEST_CONFIG=tests/music-public.config.mts pnpm exec tsx tests/support/studio/run.mts`.
 This serves the actual public route against an isolated approved cache, keeps
 Studio routes disabled, and checks the aliases, native credits, motion controls,
-and empty-state alignment on mobile and desktop in both themes.
+track readability and destinations, and empty-state alignment on mobile and
+desktop in both themes.
 
 ## Hosted acceptance remains required
 

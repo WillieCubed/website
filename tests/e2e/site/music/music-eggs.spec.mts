@@ -81,6 +81,533 @@ test.beforeEach(async () => {
   }
 });
 
+const longTrackTitle =
+  'A quiet, luminous evening that keeps unfolding long after the last train has left the station (Live at the end of the world)';
+async function seedLongTrackList() {
+  const tracks = Array.from({ length: 105 }, (_, index) => ({
+    title: index === 100 ? longTrackTitle : `Song ${index + 1}`,
+    artist:
+      index === 100
+        ? 'Beyoncé and a very long list of collaborators'
+        : 'Fixture artist',
+    duration: index === 100 ? '123:45' : '3:12',
+    durationMs: 192000,
+    kind: index === 2 ? 'local' : 'track',
+    unavailable: index === 1,
+    url:
+      index === 2
+        ? null
+        : `https://open.spotify.com/track/${String(index + 1).padStart(22, '0')}`,
+  }));
+  await db.query(
+    `UPDATE music_approved_cache SET body = body || $2::jsonb WHERE id = $1`,
+    [entries[0].id, JSON.stringify({ tracks, trackCount: tracks.length })]
+  );
+}
+
+async function seedEndingPlaylist(count: number, id: string, title: string) {
+  const { rows } = await db.query(
+    'SELECT body FROM music_approved_cache WHERE id=$1',
+    [entries[0].id]
+  );
+  const source = rows[0].body;
+  const tracks = Array.from({ length: count }, (_, index) => ({
+    ...source.tracks[0],
+    title: `Song ${index + 1}`,
+  }));
+  const body = {
+    ...source,
+    id,
+    title,
+    tracks,
+    trackCount: count,
+    url: `https://open.spotify.com/playlist/${id}`,
+  };
+  await db.query(
+    'INSERT INTO music_approved_cache(id,body,checked_at,eligible) VALUES($1,$2,now(),true) ON CONFLICT(id) DO UPDATE SET body=excluded.body, checked_at=excluded.checked_at, eligible=true',
+    [id, JSON.stringify(body)]
+  );
+}
+
+test('playful endings follow complete long lists and stay clear of the last track', async ({
+  page,
+}) => {
+  for (const [count, message] of [
+    [49, null],
+    [50, 'You found the end. For now.'],
+    [150, 'That was the extended cut.'],
+    [300, 'That was the extended cut of the extended cut.'],
+  ] as const) {
+    await seedEndingPlaylist(count, entries[0].id, entries[0].title);
+    await page.goto(`/music?detail=${entries[0].id}`);
+    const dialog = page.locator('dialog.mp-detail');
+    const ending = dialog.getByRole('complementary', {
+      name: 'Playlist ending',
+    });
+    if (!message) {
+      await expect(ending).toHaveCount(0);
+      continue;
+    }
+    await expect(ending).toHaveText(message);
+    await dialog.locator('.mp-detail-scroll').evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    const last = await dialog
+      .locator('.mp-track-list > li')
+      .last()
+      .boundingBox();
+    const note = await ending.boundingBox();
+    const port = await dialog.locator('.mp-detail-scroll').boundingBox();
+    expect(note!.y).toBeGreaterThanOrEqual(last!.y + last!.height + 16);
+    expect(note!.y + note!.height).toBeLessThanOrEqual(
+      port!.y + port!.height - 16
+    );
+    expect(await ending.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(
+      false
+    );
+    const alignment = await dialog.evaluate((el) => ({
+      title: el
+        .querySelector('.mp-track-list > li:last-child .mp-track-title')!
+        .getBoundingClientRect().left,
+      ending: el.querySelector('.mp-playlist-ending p')!.getBoundingClientRect()
+        .left,
+      fill: getComputedStyle(el.querySelector('.mp-playlist-ending')!)
+        .backgroundColor,
+      surface: getComputedStyle(el).backgroundColor,
+    }));
+    expect(alignment.ending).toBeCloseTo(alignment.title, 1);
+    expect(alignment.fill).not.toBe(alignment.surface);
+  }
+  expect(
+    (await new AxeBuilder({ page }).include('dialog.mp-detail').analyze())
+      .violations
+  ).toEqual([]);
+});
+
+test('the shorter-version ending opens available Williecore with and without scripts', async ({
+  page,
+  browser,
+}) => {
+  const collection = '62XTb89yYS322P7LODBSmU';
+  const shorter = '5AgpIU7pNfvef8FL9kvbYa';
+  await seedEndingPlaylist(300, collection, '36 Hours of Willie: A Playlist');
+  await seedEndingPlaylist(56, shorter, 'Williecore');
+  await page.goto(`/music?detail=${collection}`);
+  const ending = page.getByRole('complementary', { name: 'Playlist ending' });
+  await expect(ending).toContainText('There was a shorter version.');
+  const link = ending.getByRole('link', { name: 'Williecore', exact: true });
+  await expect(link).toHaveAttribute('href', `/music?detail=${shorter}`);
+  await link.click();
+  await expect(page.locator('#mp-detail-title')).toHaveText('Williecore');
+  await expect(page.locator('#mp-detail-title')).toBeFocused();
+  await expect(page).toHaveURL(new RegExp(`/music\\?detail=${shorter}$`));
+  expect(
+    await page.locator('.mp-detail-scroll').evaluate((el) => el.scrollTop)
+  ).toBe(0);
+  await expect(page.locator('.mp-track-list > li')).toHaveCount(56);
+  const native = await browser.newContext({
+    baseURL: process.env.STUDIO_TEST_ORIGIN,
+    javaScriptEnabled: false,
+    viewport: page.viewportSize()!,
+  });
+  try {
+    const nativePage = await native.newPage();
+    await nativePage.goto(`/music?detail=${collection}`);
+    await nativePage
+      .getByRole('complementary', { name: 'Playlist ending' })
+      .getByRole('link', { name: 'Williecore', exact: true })
+      .click();
+    await expect(nativePage.locator('#mp-detail-title')).toHaveText(
+      'Williecore'
+    );
+    await expect(nativePage.locator('.mp-track-list > li')).toHaveCount(56);
+  } finally {
+    await native.close();
+  }
+  await db.query('UPDATE music_approved_cache SET eligible=false WHERE id=$1', [
+    shorter,
+  ]);
+  await page.goto(`/music?detail=${collection}`);
+  await expect(ending.getByRole('link')).toHaveCount(0);
+  await expect(ending).toHaveText(
+    'That was the extended cut of the extended cut.'
+  );
+});
+
+test('long playlists prioritize songs without a second search interface', async ({
+  page,
+}) => {
+  await seedLongTrackList();
+  await page.route('**/pagefind/**', (route) => route.abort());
+  await page.goto(`/music?detail=${entries[0].id}`);
+  const dialog = page.locator('dialog.mp-detail');
+  const rows = dialog.locator('.mp-track-list > li');
+  await expect(dialog.getByRole('searchbox')).toHaveCount(0);
+  await expect(dialog.getByRole('search')).toHaveCount(0);
+  await expect(
+    dialog.getByRole('button', { name: /find a track|clear track search/i })
+  ).toHaveCount(0);
+  await expect(rows).toHaveCount(105);
+  await expect(rows.nth(100)).toHaveAttribute('value', '101');
+  await expect(rows.nth(100)).toContainText(longTrackTitle);
+  const heading = await dialog.locator('.mp-track-heading').boundingBox();
+  const firstRow = await rows.first().boundingBox();
+  expect(firstRow!.y - heading!.y - heading!.height).toBeLessThanOrEqual(16);
+  // Site-wide Search remains available independently of the track list.
+  const firstTrack = rows.first().getByRole('link');
+  await firstTrack.focus();
+  await firstTrack.press('Control+k');
+  await expect(page.getByRole('combobox')).toBeVisible();
+  await page.getByRole('combobox').press('Escape');
+  await expect(firstTrack).toBeFocused();
+  await expect(rows).toHaveCount(105);
+  await dialog.getByRole('button', { name: 'Next playlist' }).click();
+  await expect(rows).toHaveCount(12);
+  await dialog.getByRole('button', { name: 'Previous playlist' }).click();
+  await expect(rows).toHaveCount(105);
+});
+
+test('the compact toolbar title appears only after the heading leaves view and never crowds controls', async ({
+  page,
+}) => {
+  await seedLongTrackList();
+  await page.goto(`/music?detail=${entries[0].id}`);
+  const dialog = page.locator('dialog.mp-detail');
+  const port = dialog.locator('.mp-detail-scroll');
+  const title = dialog.locator('.mp-detail-toolbar-title');
+  const bar = dialog.locator('.mp-detail-bar');
+  await expect(title).toHaveCount(1);
+  await expect(title).toHaveAttribute('aria-hidden', 'true');
+  for (const width of [320, 390, 600, 839, 840, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await port.evaluate((el) => {
+      el.scrollTop = 0;
+    });
+    await expect(title).not.toBeVisible();
+    await expect(bar).not.toHaveAttribute('data-scrolled');
+    const restingFill = await bar.evaluate(
+      (el) => getComputedStyle(el).backgroundColor
+    );
+    const before = await dialog.locator('.mp-detail-pagination').boundingBox();
+    if (width >= 840) {
+      await port.evaluate((el) => {
+        const heading = el
+          .querySelector('#mp-detail-title')!
+          .getBoundingClientRect();
+        el.scrollTop += heading.bottom - el.getBoundingClientRect().top - 12;
+      });
+      await expect(title).not.toBeVisible();
+    }
+    await port.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await expect(bar).toHaveAttribute('data-scrolled');
+    await expect
+      .poll(() => bar.evaluate((el) => getComputedStyle(el).backgroundColor))
+      .not.toBe(restingFill);
+    if (width >= 840) {
+      await expect(title).toBeVisible();
+      await expect(title).toHaveText(entries[0].title);
+      const boxes = await dialog.locator('.mp-detail-bar').evaluate((el) => {
+        const close = el
+          .querySelector('.mp-detail-close')!
+          .getBoundingClientRect();
+        const title = el
+          .querySelector('.mp-detail-toolbar-title')!
+          .getBoundingClientRect();
+        const actions = el
+          .querySelector('.mp-detail-actions')!
+          .getBoundingClientRect();
+        return {
+          closeRight: close.right,
+          titleLeft: title.left,
+          titleRight: title.right,
+          actionsLeft: actions.left,
+          width: title.width,
+          overflow: el.scrollWidth > el.clientWidth,
+        };
+      });
+      expect(boxes.closeRight + 8).toBeLessThanOrEqual(boxes.titleLeft);
+      expect(boxes.titleRight + 8).toBeLessThanOrEqual(boxes.actionsLeft);
+      expect(boxes.width).toBeGreaterThan(80);
+      expect(boxes.overflow).toBe(false);
+      const main = await dialog.locator('#mp-detail-title').boundingBox();
+      const scroller = await port.boundingBox();
+      expect(main!.y + main!.height).toBeLessThanOrEqual(scroller!.y);
+    } else await expect(title).not.toBeVisible();
+    const after = await dialog.locator('.mp-detail-pagination').boundingBox();
+    expect(after).toEqual(before);
+    await port.evaluate((el) => {
+      el.scrollTop = 0;
+    });
+    await expect(title).not.toBeVisible();
+    await expect(bar).not.toHaveAttribute('data-scrolled');
+  }
+  await port.evaluate((el) => {
+    el.scrollTop = el.scrollHeight;
+  });
+  await expect(title).toBeVisible();
+  await dialog.getByRole('button', { name: 'Next playlist' }).click();
+  await expect(title).toHaveText(entries[1].title);
+  await expect(title).not.toBeVisible();
+  expect(
+    (await new AxeBuilder({ page }).include('dialog.mp-detail').analyze())
+      .violations
+  ).toEqual([]);
+});
+
+test('enhancing the server-rendered detail preserves an existing reading position', async ({
+  page,
+}) => {
+  await seedLongTrackList();
+  let release!: () => void;
+  const hydration = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(/\.js(?:\?|$)/, async (route) => {
+    await hydration;
+    await route.continue();
+  });
+  try {
+    await page.goto(`/music?detail=${entries[0].id}`, { waitUntil: 'commit' });
+    const dialog = page.locator('dialog.mp-detail');
+    const port = dialog.locator('.mp-detail-scroll');
+    await expect(dialog.locator('.mp-track-list > li')).toHaveCount(105);
+    await page.evaluate(() =>
+      Promise.all(Array.from(document.fonts, (face) => face.load()))
+    );
+    await port.focus();
+    await port.press('End');
+    await expect
+      .poll(() =>
+        port.evaluate((el) =>
+          Math.abs(el.scrollHeight - el.clientHeight - el.scrollTop)
+        )
+      )
+      .toBeLessThanOrEqual(1);
+    const before = await port.evaluate((el) => el.scrollTop);
+    expect(before).toBeGreaterThan(1000);
+    release();
+    await expect(page.locator('dialog.mp-detail:modal')).toBeVisible();
+    await expect(port).toBeFocused();
+    await expect.poll(() => port.evaluate((el) => el.scrollTop)).toBe(before);
+  } finally {
+    release();
+  }
+});
+
+test('opening motion keeps tracks visible immediately and honors reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/music');
+  const supported = await page.evaluate(
+    () =>
+      typeof document.startViewTransition === 'function' &&
+      CSS.supports('view-transition-group', 'contain')
+  );
+  if (!supported) {
+    await page
+      .getByRole('link', { name: `Open ${entries[0].title}`, exact: true })
+      .click();
+    await expect(page.locator('dialog.mp-detail')).toBeVisible();
+    await expect(page.locator('.mp-track-list > li')).toHaveCount(12);
+    await expect(page.locator('html')).not.toHaveAttribute('data-music-motion');
+    return;
+  }
+  await page.evaluate(() => {
+    const start = document.startViewTransition.bind(document);
+    const state = window as typeof window & {
+      musicMotionSample?: {
+        opacity: string;
+        name: string;
+        delay: string;
+        duration: string;
+        surfaceClip: string;
+        viewportClip: string;
+        viewportGroup: string;
+        surfaceBackground: string;
+        ground: string;
+      };
+    };
+    document.startViewTransition = (update) => {
+      const transition = start(update);
+      void transition.ready.then(() => {
+        const root = document.documentElement;
+        const tracks = getComputedStyle(
+          root,
+          '::view-transition-new(music-prototype-tracks)'
+        );
+        const cover = getComputedStyle(
+          root,
+          '::view-transition-group(music-prototype-cover)'
+        );
+        state.musicMotionSample = {
+          opacity: tracks.opacity,
+          name: tracks.animationName,
+          delay: tracks.animationDelay,
+          duration: cover.animationDuration,
+          surfaceClip: getComputedStyle(
+            root,
+            '::view-transition-group-children(music-prototype-surface)'
+          ).overflow,
+          viewportClip: getComputedStyle(
+            root,
+            '::view-transition-group-children(music-prototype-viewport)'
+          ).overflow,
+          viewportGroup: getComputedStyle(
+            document.querySelector('.mp-detail-scroll')!
+          ).getPropertyValue('view-transition-group'),
+          surfaceBackground: getComputedStyle(
+            root,
+            '::view-transition-new(music-prototype-surface)'
+          ).backgroundColor,
+          ground: getComputedStyle(document.querySelector('dialog.mp-detail')!)
+            .backgroundColor,
+        };
+      });
+      return transition;
+    };
+  });
+  await page
+    .getByRole('link', { name: `Open ${entries[0].title}`, exact: true })
+    .click();
+  const sample = () =>
+    page.evaluate(
+      () =>
+        (
+          window as typeof window & {
+            musicMotionSample?: {
+              opacity: string;
+              name: string;
+              delay: string;
+              duration: string;
+              surfaceClip: string;
+              viewportClip: string;
+              viewportGroup: string;
+              surfaceBackground: string;
+              ground: string;
+            };
+          }
+        ).musicMotionSample
+    );
+  await expect.poll(sample).toBeTruthy();
+  const value = (await sample())!;
+  expect(value.opacity).toBe('1');
+  expect(value.name).toBe('none');
+  expect(value.delay).toBe('0s');
+  expect(parseFloat(value.duration)).toBeGreaterThan(0);
+  expect(parseFloat(value.duration)).toBeLessThanOrEqual(0.4);
+  expect(value.surfaceClip).toBe('clip');
+  expect(value.viewportClip).toBe('clip');
+  expect(value.viewportGroup).toBe('contain');
+  expect(value.surfaceBackground).toBe(value.ground);
+  await expect(page.locator('html')).not.toHaveAttribute('data-music-motion');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/music');
+  await page
+    .getByRole('link', { name: `Open ${entries[0].title}`, exact: true })
+    .click();
+  await expect(page.locator('dialog.mp-detail')).toBeVisible();
+  await expect(page.locator('html')).not.toHaveAttribute('data-music-motion');
+});
+
+test('track links and long metadata remain readable across compact and expanded layouts', async ({
+  page,
+}) => {
+  await seedLongTrackList();
+  await page.goto(`/music?detail=${entries[0].id}`);
+  const dialog = page.locator('dialog.mp-detail');
+  const rows = dialog.locator('.mp-track-list > li');
+  await expect(rows.nth(0).getByRole('link')).toHaveAttribute(
+    'href',
+    /open.spotify.com\/track\//
+  );
+  await expect(rows.nth(1).getByRole('link')).toHaveCount(0);
+  await expect(rows.nth(1)).toContainText('Unavailable');
+  await expect(rows.nth(2).getByRole('link')).toHaveCount(0);
+  await expect(rows.nth(2)).toContainText('Local file');
+  for (const width of [320, 390, 600, 840, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const row = rows.nth(100);
+    await row.scrollIntoViewIfNeeded();
+    const geometry = await row.evaluate((element) => {
+      const title = element.querySelector<HTMLElement>('.mp-track-title')!;
+      const duration =
+        element.querySelector<HTMLElement>('.mp-track-duration')!;
+      const number = element.querySelector<HTMLElement>('.mp-track-number')!;
+      const wraps = (node: HTMLElement) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return (
+          new Set(
+            Array.from(range.getClientRects()).map((rect) =>
+              Math.round(rect.top)
+            )
+          ).size > 1
+        );
+      };
+      return {
+        aligned:
+          Math.abs(
+            title.getBoundingClientRect().left -
+              document
+                .querySelector('#mp-track-list-heading')!
+                .getBoundingClientRect().left
+          ) < 0.1,
+        overflow: element.scrollWidth > element.clientWidth,
+        titleClipped:
+          title.scrollHeight > title.clientHeight ||
+          title.scrollWidth > title.clientWidth,
+        durationWrapped: wraps(duration),
+        numberWrapped: wraps(number),
+      };
+    });
+    expect(geometry).toEqual({
+      aligned: true,
+      overflow: false,
+      titleClipped: false,
+      durationWrapped: false,
+      numberWrapped: false,
+    });
+  }
+  expect(
+    (await new AxeBuilder({ page }).include('dialog.mp-detail').analyze())
+      .violations
+  ).toEqual([]);
+});
+
+test('all tracks and Spotify destinations work without JavaScript, with no inert filter', async ({
+  browser,
+  page,
+}) => {
+  await seedLongTrackList();
+  const native = await browser.newContext({
+    baseURL: process.env.STUDIO_TEST_ORIGIN,
+    javaScriptEnabled: false,
+    viewport: page.viewportSize()!,
+  });
+  try {
+    const nativePage = await native.newPage();
+    await nativePage.goto(`/music?detail=${entries[0].id}`);
+    const dialog = nativePage.locator('dialog.mp-detail');
+    await expect(dialog.locator('.mp-track-list > li')).toHaveCount(105);
+    await expect(dialog.getByRole('searchbox')).toHaveCount(0);
+    await dialog.locator('.mp-detail-scroll').evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await expect(dialog.locator('.mp-detail-toolbar-title')).not.toBeVisible();
+    await expect(
+      dialog.getByRole('button', { name: 'Find a track' })
+    ).toHaveCount(0);
+    await expect(
+      dialog.locator('.mp-track-list > li').nth(100).getByRole('link')
+    ).toHaveAttribute('href', /open.spotify.com\/track\//);
+  } finally {
+    await native.close();
+  }
+});
+
 test('secret palette phrases open the right public playlist even when site search fails', async ({
   page,
 }) => {
@@ -107,6 +634,86 @@ test('secret palette phrases open the right public playlist even when site searc
     await page
       .getByRole('link', { name: 'Close playlist', exact: true })
       .click();
+  }
+});
+
+test('playlist details put Close first and group position with navigation', async ({
+  page,
+  browser,
+}, info) => {
+  await page.goto(`/music?detail=${entries[0].id}`);
+  const dialog = page.locator('dialog.mp-detail');
+  await expect(dialog).toBeVisible();
+  const bar = dialog.locator('.mp-detail-bar');
+  await expect(bar.locator('a, button').first()).toHaveAccessibleName(
+    'Close playlist'
+  );
+  const position = bar.locator('.mp-detail-position');
+  await expect(position).toHaveText('1 of 3');
+  await expect(bar.locator('.mp-detail-close')).toHaveCSS(
+    'border-radius',
+    '50%'
+  );
+  await expect(bar.locator('.mp-detail-close')).toHaveCSS(
+    'border-top-width',
+    '2px'
+  );
+  const close = await bar
+    .getByRole('link', { name: 'Close playlist' })
+    .boundingBox();
+  const count = await position.boundingBox();
+  const navigation = await bar
+    .getByRole('group', { name: 'Playlist navigation' })
+    .boundingBox();
+  const header = await bar.boundingBox();
+  // Classic scrollbars reserve equal rails in the header and detail body.
+  const inset = await bar.evaluate(
+    (element) =>
+      16 + ((element as HTMLElement).offsetWidth - element.clientWidth) / 2
+  );
+  expect(close!.x - header!.x).toBeCloseTo(inset, 0);
+  expect(close!.x + close!.width).toBeLessThan(count!.x);
+  expect(count!.x + count!.width).toBeLessThan(navigation!.x);
+  expect(
+    header!.x + header!.width - navigation!.x - navigation!.width
+  ).toBeCloseTo(inset, 0);
+  expect(close!.width).toBeGreaterThanOrEqual(48);
+  const viewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 320, height: 844 });
+  expect(
+    await dialog
+      .locator('h2')
+      .evaluate((title) => title.scrollWidth <= title.clientWidth)
+  ).toBe(true);
+  await page.setViewportSize(viewport);
+  await expect(
+    bar.getByRole('button', { name: 'Previous playlist' })
+  ).toBeDisabled();
+  await bar.getByRole('button', { name: 'Next playlist' }).click();
+  await expect(position).toHaveText('2 of 3');
+  await expect(dialog.locator('#mp-detail-title')).toHaveText(entries[1].title);
+  await expect(
+    bar.getByRole('button', { name: 'Previous playlist' })
+  ).toBeEnabled();
+  await page.screenshot({
+    path: info.outputPath('playlist-header.png'),
+    fullPage: false,
+  });
+  await bar.getByRole('link', { name: 'Close playlist' }).click();
+  await expect(dialog).toBeHidden();
+  const native = await browser.newContext({
+    baseURL: process.env.STUDIO_TEST_ORIGIN,
+    javaScriptEnabled: false,
+    viewport,
+  });
+  try {
+    const nativePage = await native.newPage();
+    await nativePage.goto(`/music?detail=${entries[0].id}`);
+    await nativePage.getByRole('link', { name: 'Close playlist' }).click();
+    await expect(nativePage.locator('dialog.mp-detail')).toBeHidden();
+    await expect(nativePage.locator('.mp-card')).toHaveCount(3);
+  } finally {
+    await native.close();
   }
 });
 

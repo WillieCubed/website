@@ -69,7 +69,16 @@ export function useMusicPlaylistHistory({
     } else history.replaceState(null, '', musicHref(series, null, mode));
     ownDetailEntry.current = false;
   }
-  return { open, close };
+  function openRelated(
+    series: string | null,
+    detail: string,
+    alreadyOpen: boolean
+  ) {
+    open(series, detail, alreadyOpen);
+    // A cross-collection destination closes to its own gallery, like its native URL.
+    ownDetailEntry.current = false;
+  }
+  return { open, openRelated, close };
 }
 export function musicHref(
   nextSeries: string | null,

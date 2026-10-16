@@ -546,11 +546,9 @@
   margin-block-start: var(--footer-space);
   padding: 8px;
   border-radius: 16px;
-  background: color-mix(
-    in srgb,
-    var(--color-surface-container-lowest) 12%,
-    var(--color-tray)
-  );
+  background: transparent;
+  outline: 1px solid var(--color-outline-variant);
+  outline-offset: -1px;
 }
 .site-webrings__controls {
   display: grid;

@@ -3,12 +3,21 @@ import { expect, test } from '@playwright/test';
 test('the desktop rail clears the docked footer', async ({ page }) => {
   await page.setViewportSize({ width: 1000, height: 700 });
   await page.goto('/');
+  await page.evaluate(() => document.fonts.ready);
 
   const footer = page.locator('footer.site-footer');
   await expect(footer).toHaveAttribute('data-dock', '');
   for (const [width, height] of [
+    [840, 700],
+    [840, 801],
+    [840, 850],
     [1000, 700],
+    [1000, 800],
+    [1000, 801],
     [1000, 850],
+    [1000, 900],
+    [1000, 901],
+    [1199, 850],
     [1200, 850],
     [1440, 900],
   ]) {
@@ -24,6 +33,14 @@ test('the desktop rail clears the docked footer', async ({ page }) => {
       );
     });
     expect(gap, `${width}×${height} rail gap`).toBeGreaterThanOrEqual(12);
+    // Narrow containers hide labels; the closed dock must retain their
+    // icons so the four kept contact links still have visible targets.
+    for (const link of await page
+      .locator('.site-footer__profiles li:not([data-extra]) a')
+      .all()) {
+      await expect(link).toBeVisible();
+      expect((await link.boundingBox())!.width).toBeGreaterThanOrEqual(16);
+    }
   }
 });
 

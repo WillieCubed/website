@@ -145,7 +145,6 @@ export default function SiteFooter() {
                 ))}
               </ul>
             </nav>
-            <Webrings />
           </div>
         </div>
         {/* This row never wraps. When the column gets narrow the labels
@@ -186,6 +185,7 @@ export default function SiteFooter() {
           </Suspense>
           {!isPrivatePreview() && <FeedsButton />}
         </div>
+        <Webrings />
       </div>
     </FooterFrame>
   );

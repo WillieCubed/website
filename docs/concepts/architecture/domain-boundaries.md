@@ -247,6 +247,32 @@ reject nested ternaries. These limits identify review targets; they do not
 establish good architecture. Preserve meaningful domain operations instead of
 splitting them into arbitrary pieces to lower a score.
 
+UI modules also report standard ESLint size warnings: `max-lines-per-function`
+flags functions above 150 nonblank, non-comment lines, including immediately
+invoked functions; `max-statements` flags more than 30 statements in a function.
+Nested effect and callback bodies are checked separately, and their lines also
+count toward the enclosing function. These rules cover app
+and component modules, including route handlers, hooks, and JSX-heavy render functions whose
+branching scores remain low. They run in the existing pre-commit and CI lint
+commands. The pre-commit hook uses `lint-staged --verbose` so successful ESLint
+tasks print their warnings; CI prints them through `pnpm lint`. They are review
+warnings and do not block a commit or fail CI.
+
+A size warning starts a responsibility review.
+Identify what the function owns, which consumers need its state, and what its
+public props or hook result require a caller to understand. Explain retained
+large functions in the PR. A cohesive composition root or declarative view can
+remain large; a small hook that forwards a broad controller can still need work.
+
+Extract a part when it owns a distinct responsibility or lifecycle. Keep state
+with its lowest common consumer, while preserving the mounted lifetimes needed
+for drafts, native file inputs, selection, and focus. Composition should reduce
+coordination at the caller. Avoid new forwarding layers, large return objects
+spread across hooks, compressed formatting, or moving the same controller into
+another file. No standard size rule can establish SRP or correct state ownership;
+the pull request template makes those explicit review checks. Size warnings have
+no baseline, per-file exemptions, or permitted suppressions.
+
 Run `pnpm exec eslint . --format json` to inspect findings with file, line,
 rule, and diagnostic information. The codebase has no complexity baseline or
 exemptions. Do not raise limits or add suppressions to make a refactor pass.

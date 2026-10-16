@@ -31,7 +31,7 @@
      keeps the surface off the links when the column itself is narrow. */
   --pill-w: max(var(--rail-w), 360px);
   /* How far the collapsed row's surface reaches past the row. */
-  --pill-x: 14px;
+  --pill-x: var(--spacing-lg);
   --pill-y: var(--footer-pill-y);
   --pad-top: 48px;
   /* The page's side gutter: .home's, or the margin beside the centred
@@ -111,7 +111,7 @@
   left: var(--shell-gutter);
   height: var(--lockup-h);
   margin: 0;
-  gap: 0.45em;
+  gap: var(--spacing-brand-lockup);
   font-size: calc(20px + 28px * var(--p));
   line-height: 1;
   font-weight: 700;
@@ -283,7 +283,7 @@
   --sheet-gap: 16;
   --sheet-r: 28px;
   /* The collapsed row's surface reaches this far past the row (--pill-y). */
-  --footer-pill-y: 6px;
+  --footer-pill-y: var(--spacing-sm);
 }
 :root[data-footer-dock] body {
   background: color-mix(
@@ -315,7 +315,7 @@
 }
 @media (max-width: 839px) {
   :root[data-footer-dock] {
-    --sheet-gap: 10;
+    --sheet-gap: 12;
     --sheet-r: 24px;
   }
 }
@@ -385,14 +385,14 @@
 }
 @media (max-width: 839px) {
   .site-footer {
-    --footer-panel-edge: 10px;
+    --footer-panel-edge: var(--spacing-md);
   }
 }
 /* Content sets the footer height. Responsive spacing gives the closing
    panel room without reserving a fixed fraction of the viewport. */
 .site-footer {
-  --footer-space: 32px;
-  --footer-tail-gap: 8px;
+  --footer-space: var(--spacing-section);
+  --footer-tail-gap: var(--spacing-inline);
 }
 .site-footer__inner {
   min-height: 0;
@@ -460,7 +460,7 @@
   line-height: 1;
   font-weight: 700;
   letter-spacing: -0.03em;
-  gap: 0.45em;
+  gap: var(--spacing-brand-lockup);
 }
 .site-footer[data-dock] .site-footer__top,
 .site-footer:not([data-dock]) .site-footer__top {
@@ -525,7 +525,7 @@
   .site-footer .site-footer__top .site-footer__pages a {
     font-size: 20px;
     line-height: 28px;
-    padding-block: 6px;
+    padding-block: var(--spacing-control-block);
   }
 }
 .site-footer__brand-detail {
@@ -715,7 +715,7 @@
   max-width: min(260px, calc(100vw - 24px));
   border: 0;
   border-radius: 14px;
-  padding: 6px 10px;
+  padding: var(--spacing-sm) var(--spacing-md);
   color: var(--color-ink);
   background: var(--color-surface-container);
   box-shadow: 0 2px 5px color-mix(in srgb, var(--color-scrim) 16%, transparent);

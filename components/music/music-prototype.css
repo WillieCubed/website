@@ -58,7 +58,7 @@ html[data-music-motion] {
   align-items: center;
   gap: 16px;
   min-height: 42px;
-  padding: 6px
+  padding: var(--spacing-sm)
     max(
       var(--mp-page-gutter),
       calc((100vw - var(--mp-page-width)) / 2 + var(--mp-page-gutter))
@@ -71,9 +71,9 @@ html[data-music-motion] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: var(--spacing-inline);
   min-height: 40px;
-  padding: 8px 14px;
+  padding: 8px var(--spacing-control-inline);
   border-radius: 20px;
   background: var(--color-surface-container-high);
   color: var(--color-ink);
@@ -116,7 +116,7 @@ html[data-music-motion] {
   top: 32px;
 }
 .mp-heading h1 {
-  margin: -6px 0 24px -4px;
+  margin: calc(-1 * var(--spacing-sm)) 0 24px -4px;
   font-size: 80px;
   font-weight: 500;
   letter-spacing: -0.055em;
@@ -125,7 +125,7 @@ html[data-music-motion] {
 .mp-series-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--spacing-inline);
 }
 .mp-series-nav > :is(button, a) {
   display: flex;
@@ -171,7 +171,7 @@ html[data-music-motion] {
   color: inherit;
 }
 .mp-series-nav > :is(button, a):first-child {
-  margin-bottom: 18px;
+  margin-bottom: var(--spacing-stack);
 }
 .mp-series-nav > .mp-new-series {
   color: var(--color-primary);
@@ -330,7 +330,7 @@ html[data-music-motion] {
   padding: 12px 0 0;
 }
 .mp-card-caption h3 {
-  margin: 0 0 5px;
+  margin: 0 0 var(--spacing-xs);
   font-size: 17px;
   line-height: 23px;
   font-weight: 500;
@@ -536,7 +536,7 @@ html[data-music-motion] {
 }
 .mp-feature-series-covers {
   display: none;
-  gap: 10px;
+  gap: var(--spacing-inline);
   flex-shrink: 0;
 }
 .mp-series-cover {
@@ -581,7 +581,7 @@ html[data-music-motion] {
     font-size: clamp(40px, 5.8cqw, 56px);
   }
   .mp-feature-tracks {
-    gap: 6px;
+    gap: var(--spacing-inline);
     margin-top: 16px;
   }
   .mp-feature-track-info > span {
@@ -600,7 +600,7 @@ html[data-music-motion] {
   }
 }
 .mp-sample-note {
-  margin-top: 38px;
+  margin-top: var(--spacing-section-roomy);
   color: var(--color-muted);
   font-size: 12px;
   line-height: 20px;
@@ -609,9 +609,9 @@ html[data-music-motion] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--spacing-inline);
   min-height: 44px;
-  padding: 10px 17px;
+  padding: var(--spacing-md) var(--spacing-control-inline);
   border: 1px solid var(--color-outline-variant);
   border-radius: 24px;
   background: var(--color-card);
@@ -708,7 +708,7 @@ html[data-music-motion] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-inline);
   margin-top: 8px;
 }
 .mp-check {
@@ -743,7 +743,7 @@ html[data-music-motion] {
 .mp-status-dot {
   width: 6px;
   height: 6px;
-  margin-top: 6px;
+  margin-top: var(--spacing-sm);
   border-radius: 50%;
   background: var(--color-primary);
 }
@@ -755,7 +755,7 @@ html[data-music-motion] {
 .mp-draft-note .mp-button {
   grid-column: 1/-1;
   justify-self: start;
-  margin-top: 15px;
+  margin-top: var(--spacing-stack);
 }
 .mp-edit-hint {
   margin: -4px 0 28px;
@@ -766,8 +766,8 @@ html[data-music-motion] {
 }
 .mp-new-series-form {
   display: grid;
-  gap: 10px;
-  margin-top: 18px;
+  gap: var(--spacing-inline);
+  margin-top: var(--spacing-stack);
   padding: 16px;
   border-radius: 12px;
   background: var(--color-surface-container);
@@ -775,7 +775,7 @@ html[data-music-motion] {
 }
 .mp-new-series-form input {
   width: 100%;
-  padding: 10px;
+  padding: var(--spacing-md);
   border: 1px solid var(--color-outline);
   border-radius: 6px;
 }
@@ -788,7 +788,7 @@ html[data-music-motion] {
   display: grid;
   justify-items: start;
   gap: 12px;
-  padding: 50px 0;
+  padding: var(--spacing-3xl) 0;
 }
 .mp-empty h3 {
   font-size: 23px;
@@ -875,7 +875,7 @@ html[data-music-motion] {
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  padding: 10px 16px;
+  padding: var(--spacing-md) 16px;
   border: 1px solid var(--color-outline-variant);
   border-radius: 24px;
   background: var(--color-surface-container);
@@ -1024,7 +1024,7 @@ html:has(dialog.mp-detail[open], dialog.mp-review[open]) {
 .mp-detail-series {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--spacing-inline);
   padding: 16px 0 0;
   color: var(--color-muted);
   font-size: 13px;
@@ -1046,12 +1046,12 @@ html:has(dialog.mp-detail[open], dialog.mp-review[open]) {
   text-wrap: pretty;
 }
 .mp-detail-meta {
-  margin-top: 10px;
+  margin-top: var(--spacing-md);
   font-size: 13px;
   color: var(--color-muted);
 }
 .mp-playlist-note {
-  margin-top: 22px;
+  margin-top: var(--spacing-group);
   font-size: 16px;
   line-height: 26px;
   white-space: pre-wrap;
@@ -1123,7 +1123,7 @@ html:has(dialog.mp-detail[open], dialog.mp-review[open]) {
 }
 .mp-track-artist {
   display: block;
-  margin-top: 3px;
+  margin-top: var(--spacing-xs);
   color: var(--color-muted);
   font-size: 12px;
   line-height: 18px;
@@ -1136,7 +1136,7 @@ html:has(dialog.mp-detail[open], dialog.mp-review[open]) {
   display: grid;
   gap: 12px;
 }
-.mp-context-editor > label:first-child,
+.mp-context-note > label,
 .mp-context-editor legend {
   font-size: 13px;
   font-weight: 600;
@@ -1174,7 +1174,7 @@ dialog.mp-review {
   overflow-y: auto;
 }
 .mp-review h2 {
-  margin: 8px 0 14px;
+  margin: 8px 0 var(--spacing-stack);
   font-size: 32px;
   line-height: 37px;
   font-weight: 600;
@@ -1205,7 +1205,7 @@ dialog.mp-review {
 }
 .mp-review ol {
   margin: 0 0 24px;
-  padding-left: 22px;
+  padding-left: var(--spacing-xl);
   font-size: 14px;
   line-height: 28px;
 }
@@ -1227,7 +1227,7 @@ dialog.mp-review {
   display: flex;
   flex-wrap: wrap;
   justify-content: end;
-  gap: 10px;
+  gap: var(--spacing-inline);
   margin-top: 24px;
 }
 html[data-music-motion]::view-transition {
@@ -1469,7 +1469,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   .mp-series-nav > :is(button, a) {
     margin: 0;
     gap: 8px;
-    padding: 10px 14px;
+    padding: var(--spacing-md) var(--spacing-control-inline);
     min-height: 44px;
     font-size: 15px;
   }
@@ -1514,8 +1514,8 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     grid-row: 1;
   }
   .mp-detail-series {
-    padding-top: 10px;
-    gap: 6px;
+    padding-top: var(--spacing-md);
+    gap: var(--spacing-inline);
     font-size: 11px;
   }
   .mp-detail-series > span:last-child {
@@ -1533,7 +1533,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
 @media (max-width: 599px) {
   .music-prototype {
     --mp-gallery-title-leading: 21px;
-    --mp-gallery-caption-padding: 10px;
+    --mp-gallery-caption-padding: var(--spacing-md);
   }
   .music-prototype > header[data-column] {
     padding-block: 8px;
@@ -1543,11 +1543,11 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   }
   .mp-prototype-bar {
     gap: 8px;
-    padding: 5px 20px;
+    padding: var(--spacing-xs) 20px;
     font-size: 10px;
   }
   .mp-prototype-bar .mp-text-button {
-    gap: 6px;
+    gap: var(--spacing-inline);
     font-size: 12px;
   }
   .mp-prototype-bar svg {
@@ -1556,7 +1556,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   }
   .mp-shell {
     margin-top: 8px;
-    gap: 10px;
+    gap: var(--spacing-inline);
   }
   .mp-heading h1 {
     font-size: 52px;
@@ -1575,7 +1575,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   }
   .mp-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 30px 20px;
+    gap: var(--spacing-section) 20px;
   }
   .mp-art {
     border-radius: 3px;
@@ -1584,7 +1584,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     display: block;
     width: min(100%, 420px);
     margin-inline: auto;
-    margin-bottom: 18px;
+    margin-bottom: var(--spacing-stack);
   }
   .mp-card-lead .mp-card-open {
     display: block;
@@ -1605,7 +1605,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     font-size: 16px;
   }
   .mp-feature-details {
-    margin-top: 18px;
+    margin-top: var(--spacing-stack);
   }
   .mp-feature-details > .mp-small {
     margin-top: 8px;
@@ -1628,7 +1628,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     gap: 4px 12px;
   }
   .mp-card-caption {
-    padding-top: 10px;
+    padding-top: var(--spacing-md);
   }
   .mp-card-caption h3 {
     font-size: 15px;
@@ -1647,14 +1647,14 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
     margin-left: -8px;
   }
   .mp-draft-note .mp-button {
-    padding: 10px 13px;
+    padding: var(--spacing-md) var(--spacing-md);
     font-size: 12px;
   }
   .mp-draft-note > span {
     font-size: 12px;
   }
   .mp-edit-hint {
-    margin-bottom: 22px;
+    margin-bottom: var(--spacing-group);
     font-size: 13px;
     line-height: 21px;
   }
@@ -1684,7 +1684,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   }
   .mp-detail-series {
     flex-wrap: wrap;
-    gap: 2px 8px;
+    gap: var(--spacing-related) 8px;
     font-size: 10px;
   }
   .mp-playlist-note {
@@ -1764,7 +1764,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
 .mp-heading .mp-new-series {
   flex-shrink: 0;
   min-height: 48px;
-  padding: 10px 16px;
+  padding: var(--spacing-md) 16px;
   white-space: nowrap;
 }
 .music-prototype .mp-series-nav[inert] > a {
@@ -1783,7 +1783,7 @@ html[data-music-motion='swap']::view-transition-new(music-prototype-editor) {
   align-items: center;
   gap: 12px;
   min-height: 44px;
-  padding: 10px 16px;
+  padding: var(--spacing-md) 16px;
   background: var(--color-surface-container);
   border-radius: 16px;
   font-size: 14px;
@@ -2012,7 +2012,7 @@ html:has(.music-prototype[data-editing] .mp-draft-note) {
   border-radius: 28px;
   background: var(--color-surface-container-high);
   box-shadow: 0 4px 28px color-mix(in srgb, var(--color-scrim) 20%, transparent);
-  gap: 4px 10px;
+  gap: 4px var(--spacing-inline);
   font-size: 14px;
   line-height: 20px;
   transition:
@@ -2077,13 +2077,14 @@ dialog.mp-detail[data-editing] .mp-detail-meta {
 .mp-context-editor {
   gap: 24px;
 }
-.mp-context-editor > label:first-child,
+.mp-context-note > label,
 .mp-context-editor legend {
   font-size: 16px;
   line-height: 24px;
 }
-.mp-context-editor > label:first-child {
-  margin-bottom: -14px;
+.mp-context-note {
+  display: grid;
+  gap: var(--spacing-inline);
 }
 .mp-context-editor textarea {
   min-height: 124px;
@@ -2177,7 +2178,7 @@ dialog.mp-review[open] {
   flex-direction: column-reverse;
   align-items: start;
   gap: 8px;
-  padding: 18px 20px;
+  padding: var(--spacing-lg) 20px;
   border-radius: 20px;
   background: var(--color-surface-container);
 }
@@ -2198,7 +2199,7 @@ dialog.mp-review[open] {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 18px;
+  gap: var(--spacing-stack);
 }
 .mp-review-order > ol > li {
   display: grid;
@@ -2313,7 +2314,7 @@ dialog.mp-review[open] {
     margin: 0;
   }
   .music-prototype[data-editing] .mp-draft-note .mp-button {
-    padding: 10px 12px;
+    padding: var(--spacing-md) 12px;
     font-size: 13px;
   }
   dialog.mp-review {
@@ -2341,8 +2342,8 @@ dialog.mp-review[open] {
     gap: 8px;
   }
   .mp-review .mp-review-summary > div {
-    padding: 14px 12px;
-    gap: 6px;
+    padding: var(--spacing-lg) 12px;
+    gap: var(--spacing-inline);
   }
   .mp-review-summary dd {
     font-size: 28px;
@@ -2364,7 +2365,7 @@ dialog.mp-review[open] {
     width: auto;
     flex: 1;
     min-width: 0;
-    padding: 10px 12px;
+    padding: var(--spacing-md) 12px;
     font-size: 13px;
     gap: 8px;
   }
@@ -2378,10 +2379,10 @@ dialog.mp-review[open] {
     font-size: 28px;
   }
   .mp-library-filters {
-    gap: 6px;
+    gap: var(--spacing-inline);
   }
   .mp-library-filters button {
-    padding: 10px 12px;
+    padding: var(--spacing-md) 12px;
     gap: 8px;
     font-size: 13px;
   }
@@ -2407,7 +2408,7 @@ dialog.mp-review[open] {
   }
   .mp-context-editor {
     grid-column: 1 / -1;
-    gap: 22px;
+    gap: var(--spacing-group);
   }
   .mp-context-editor textarea {
     min-height: 110px;
@@ -2426,7 +2427,7 @@ dialog.mp-review[open] {
 .mp-review-section-heading .mp-text-button {
   min-height: 40px;
   font-size: 13px;
-  padding-inline: 14px;
+  padding-inline: var(--spacing-control-inline);
 }
 @media (max-width: 359px) {
   .music-prototype[data-editing] .mp-heading {
@@ -2474,7 +2475,7 @@ img.mp-cover {
   left: 50%;
   bottom: max(20px, env(safe-area-inset-bottom));
   display: grid;
-  gap: 10px;
+  gap: var(--spacing-inline);
   width: min(560px, calc(100vw - 32px));
   transform: translateX(-50%);
   pointer-events: none;
@@ -2484,8 +2485,8 @@ img.mp-cover {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 10px 12px;
-  padding: 12px 14px 12px 18px;
+  gap: var(--spacing-inline) 12px;
+  padding: 12px var(--spacing-lg) 12px var(--spacing-lg);
   border: 1px solid var(--color-outline-variant);
   border-radius: 18px;
   background: var(--color-surface-container-highest);
@@ -2511,11 +2512,11 @@ img.mp-cover {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px 12px;
+  gap: var(--spacing-inline) 12px;
 }
 .music-admin-notice__actions .mp-button {
   min-height: 38px;
-  padding: 7px 12px;
+  padding: var(--spacing-control-block) 12px;
 }
 .music-admin-notice__actions a {
   color: var(--color-primary);
@@ -2533,7 +2534,7 @@ img.mp-cover {
   place-items: center;
   width: 36px;
   height: 36px;
-  margin-left: 2px;
+  margin-left: var(--spacing-xs);
   border: 0;
   border-radius: 12px;
   background: transparent;

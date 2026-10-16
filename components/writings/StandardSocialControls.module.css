@@ -30,7 +30,7 @@
 .action {
   min-width: 168px;
   position: relative;
-  gap: 6px;
+  gap: var(--spacing-inline);
   padding: 8px 12px;
   background: var(--color-secondary-container);
   color: var(--color-on-secondary-container);
@@ -98,7 +98,7 @@
 }
 
 .actions[data-split] {
-  gap: 2px;
+  gap: var(--spacing-related);
 }
 
 .actions[data-split] .action {
@@ -146,16 +146,16 @@
 }
 
 .menu {
-  padding: 6px;
+  padding: var(--spacing-sm);
 }
 
 .signOut {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-inline);
   width: 100%;
   min-height: 44px;
-  padding: 10px 14px;
+  padding: var(--spacing-md) var(--spacing-lg);
   border-radius: 10px;
   background: var(--color-surface-container-high);
   color: var(--color-ink);
@@ -245,7 +245,7 @@
   width: 44px;
   min-height: 44px;
   border-radius: 22px;
-  margin-right: -10px;
+  margin-right: calc(-1 * var(--spacing-md));
   background: var(--color-surface-container-high);
   color: var(--color-ink);
 }
@@ -279,7 +279,7 @@
   display: block;
   width: 100%;
   margin-top: 8px;
-  padding: 14px 16px;
+  padding: var(--spacing-lg) 16px;
   border: 1px solid var(--color-line);
   border-radius: 14px;
   background: var(--color-surface);
@@ -298,7 +298,7 @@
   align-items: center;
   justify-content: space-between;
   min-height: 48px;
-  padding: 12px 18px;
+  padding: 12px var(--spacing-lg);
   border-radius: 14px;
   background: var(--color-primary);
   color: var(--color-on-primary);

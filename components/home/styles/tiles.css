@@ -4,7 +4,7 @@
     grid-auto-flow: dense;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     grid-auto-rows: clamp(92px, 8.2vw, 124px);
-    gap: 10px;
+    gap: var(--spacing-inline);
     padding-block: 28px 120px;
   }
   .tile {
@@ -90,7 +90,7 @@
     z-index: 1;
     display: flex;
     gap: 8px;
-    padding: 12px 14px;
+    padding: 12px var(--spacing-lg);
     color: var(--color-muted);
     font-size: 13px;
   }
@@ -111,8 +111,8 @@
   .hint span {
     position: absolute;
     top: 50%;
-    right: calc(100% + 6px);
-    padding: 3px 9px;
+    right: calc(100% + var(--spacing-sm));
+    padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: 999px;
     background: var(--color-card);
     box-shadow: 0 1px 2px
@@ -151,9 +151,9 @@
 
   .body {
     position: absolute;
-    left: 18px;
-    right: 18px;
-    bottom: 18px;
+    left: var(--spacing-lg);
+    right: var(--spacing-lg);
+    bottom: var(--spacing-lg);
   }
   .body h3 {
     margin: 0;
@@ -170,8 +170,8 @@
   .count {
     display: flex;
     align-items: baseline;
-    gap: 10px;
-    margin-top: 14px;
+    gap: var(--spacing-inline);
+    margin-top: var(--spacing-stack);
   }
   .count b {
     font-size: clamp(36px, 3.6vw, 54px);
@@ -185,7 +185,7 @@
     line-height: 1.3;
   }
   .active {
-    margin: 14px 0 0;
+    margin: var(--spacing-stack) 0 0;
     padding: 12px 0 0;
 
     color: var(--color-muted);
@@ -217,14 +217,14 @@
 
   .products {
     position: absolute;
-    left: 14px;
-    right: 14px;
-    top: 46px;
-    bottom: 14px;
+    left: var(--spacing-lg);
+    right: var(--spacing-lg);
+    top: var(--spacing-3xl);
+    bottom: var(--spacing-lg);
     z-index: 3;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    gap: var(--spacing-inline);
   }
   /* A fixed text row keeps product names level when one card's hover copy
      wraps to two lines. */
@@ -263,7 +263,7 @@
   .product .product-text {
     display: grid;
     align-content: start;
-    padding: 10px 12px 0;
+    padding: var(--spacing-md) 12px 0;
   }
   .product .product-text b {
     font-weight: 600;
@@ -352,8 +352,8 @@
   }
   .atlas-copy {
     position: absolute;
-    left: 14px;
-    right: 14px;
+    left: var(--spacing-lg);
+    right: var(--spacing-lg);
     bottom: 12px;
     color: var(--color-muted);
     font: 400 12px/1.3 var(--font-mono);

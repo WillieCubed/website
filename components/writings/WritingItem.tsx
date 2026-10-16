@@ -205,7 +205,7 @@ export default function WritingItem({
               {formatDate(writing.published, 'short')}
             </time>
             {writing.draft && (
-              <span className="rounded-full bg-mint/40 px-2 py-0.5 text-ink">
+              <span className="rounded-full bg-mint/40 px-2 py-1 text-ink">
                 Draft
               </span>
             )}

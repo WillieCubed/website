@@ -168,6 +168,20 @@
   --spacing-2xl: 2rem;
   --spacing-3xl: 3rem;
 
+  /* Semantic roles: choose the relationship before choosing its size. */
+  --spacing-related: var(--spacing-xs);
+  --spacing-inline: var(--spacing-sm);
+  --spacing-stack: var(--spacing-lg);
+  --spacing-group: var(--spacing-xl);
+  --spacing-section: var(--spacing-2xl);
+  --spacing-control-block: var(--spacing-sm);
+  --spacing-control-inline: var(--spacing-lg);
+  --spacing-panel: var(--spacing-xl);
+  --spacing-section-roomy: 2.5rem;
+  --spacing-editor-clearance: 7rem;
+  --spacing-fold-preview: 9.5rem;
+  --spacing-brand-lockup: var(--spacing-md);
+
   /*
    * Tailwind v4 resolves max-w-* against --max-width, then --spacing, then
    * --container. The named spacing steps above would otherwise turn max-w-2xl

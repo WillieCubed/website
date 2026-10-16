@@ -81,7 +81,7 @@ export default function EntityImage({
         }}
       >
         <div
-          style={{ display: 'flex', flexDirection: 'column', gap: 18, flex: 1 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}
         >
           {kicker && (
             <div
@@ -133,7 +133,7 @@ export default function EntityImage({
           }}
         >
           <div style={{ display: 'flex' }}>{meta ?? ''}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div
               style={{
                 display: 'flex',

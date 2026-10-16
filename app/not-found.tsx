@@ -59,7 +59,7 @@ export default async function NotFound() {
             preview={false}
             prefetch={false}
             href="/"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-label-large font-semibold text-on-primary transition-colors hover:bg-primary/90"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-label-large font-semibold text-on-primary transition-colors hover:bg-primary/90"
           >
             <Icon name="arrow-left" size={16} />
             Back to the homepage

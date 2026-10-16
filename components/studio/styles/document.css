@@ -8,7 +8,7 @@
 }
 .studio-mark {
   display: inline-flex;
-  padding: 7px;
+  padding: var(--spacing-sm);
   flex-shrink: 0;
 }
 .studio-mark img {

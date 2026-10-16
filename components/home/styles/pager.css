@@ -3,7 +3,7 @@
     display: none;
     justify-content: center;
     gap: 0;
-    padding: 10px 0 14px;
+    padding: var(--spacing-md) 0 var(--spacing-lg);
   }
   .pager button {
     position: relative;

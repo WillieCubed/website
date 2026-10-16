@@ -37,7 +37,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 0.75rem;
-  margin-top: 1.125rem;
+  margin-top: var(--spacing-stack);
   font-size: 0.9375rem;
   color: var(--b-on-surface-variant, var(--color-on-surface-variant));
 }
@@ -49,7 +49,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 1.375rem;
+  margin-top: var(--spacing-group);
 }
 .project-links a {
   display: inline-flex;

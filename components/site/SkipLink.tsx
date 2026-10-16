@@ -16,7 +16,7 @@ export default function SkipLink() {
   return (
     <SiteLink
       href="#main"
-      className="sr-only rounded-full bg-primary text-label-large font-semibold text-on-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:px-4 focus:py-2.5"
+      className="sr-only rounded-full bg-primary text-label-large font-semibold text-on-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:px-4 focus:py-3"
       onClick={(event) => {
         const main = [...document.querySelectorAll<HTMLElement>('main')].find(
           (element) => element.getClientRects().length > 0

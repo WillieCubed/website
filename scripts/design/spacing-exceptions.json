@@ -1,0 +1,114 @@
+[
+  {
+    "file": "components/brand/styles/usage.css",
+    "selector": ".brand-avoid-crowd",
+    "property": "gap",
+    "value": "3px",
+    "reason": "Deliberately violates clear space in the brand guide example showing what not to do."
+  },
+  {
+    "file": "components/home/styles/pager.css",
+    "selector": ".pager button[aria-current='true']::after",
+    "property": "left",
+    "value": "1px",
+    "reason": "Centers the 22px active mark inside its unchanged 24px hit target: (24 - 22) / 2."
+  },
+  {
+    "file": "components/music/music-prototype.css",
+    "selector": ".mp-announcement, .mp-visually-hidden",
+    "property": "margin",
+    "value": "-1px",
+    "reason": "Clipped screen-reader-only announcement box; the standard -1px margin prevents layout interference."
+  },
+  {
+    "file": "components/music/music-prototype.css",
+    "selector": ".mp-track-number, .mp-track-duration",
+    "property": "padding-top",
+    "value": "3px",
+    "reason": "Aligns the small mono track ordinal and duration with the larger first title line."
+  },
+  {
+    "file": "components/music/music-prototype.css",
+    "selector": ".mp-heading h1",
+    "property": "margin",
+    "value": "0 0 20px -3px",
+    "reason": "Corrects the left glyph bearing at 64px display type; the 80px heading uses a 4px correction."
+  },
+  {
+    "file": "components/music/music-prototype.css",
+    "selector": ".mp-review-number",
+    "property": "padding-top",
+    "value": "2px",
+    "reason": "Aligns the small mono ordinal with the larger playlist title in a review row."
+  },
+  {
+    "file": "components/music/music-setup.css",
+    "selector": ".ms-connect-details svg",
+    "property": "margin-top",
+    "value": "3px",
+    "reason": "Centers the 16px icon artwork beside the first 24px text line."
+  },
+  {
+    "file": "components/prototypes/music/music-prototype.css",
+    "selector": ".mp-announcement, .mp-visually-hidden",
+    "property": "margin",
+    "value": "-1px",
+    "reason": "Clipped screen-reader-only announcement box; the standard -1px margin prevents layout interference."
+  },
+  {
+    "file": "components/prototypes/music/music-prototype.css",
+    "selector": ".mp-track-number, .mp-track-duration",
+    "property": "padding-top",
+    "value": "3px",
+    "reason": "Aligns the small mono track ordinal and duration with the larger first title line."
+  },
+  {
+    "file": "components/prototypes/music/music-prototype.css",
+    "selector": ".mp-heading h1",
+    "property": "margin",
+    "value": "0 0 20px -3px",
+    "reason": "Corrects the left glyph bearing at 64px display type; the 80px heading uses a 4px correction."
+  },
+  {
+    "file": "components/prototypes/music/music-prototype.css",
+    "selector": ".mp-review-number",
+    "property": "padding-top",
+    "value": "2px",
+    "reason": "Aligns the small mono ordinal with the larger playlist title in a review row."
+  },
+  {
+    "file": "components/prototypes/music/music-setup.css",
+    "selector": ".ms-connect-details svg",
+    "property": "margin-top",
+    "value": "3px",
+    "reason": "Centers the 16px icon artwork beside the first 24px text line."
+  },
+  {
+    "file": "components/site/footer-dock.css",
+    "selector": ".site-webring__link::before",
+    "property": "inset",
+    "value": "2px",
+    "reason": "Insets only the painted state layer; navigation target size and position do not change."
+  },
+  {
+    "file": "components/status/status.css",
+    "selector": ".status-expanded .unit",
+    "property": "margin-left",
+    "value": "2px",
+    "reason": "Optical spacing of the small unit glyph beside the large temperature numeral."
+  },
+  {
+    "file": "components/status/status.css",
+    "selector": ".microstatus .unit",
+    "property": "margin-inline-start",
+    "value": "1px",
+    "reason": "Optical spacing of the temperature unit glyph at the compact text scale."
+  },
+  {
+    "file": "components/music/music-prototype.css",
+    "selector": ".music-admin-notices > p[role='status']",
+    "property": "margin",
+    "value": "-1px",
+    "reason": "Clipped screen-reader-only announcement box; the standard -1px margin prevents layout interference."
+  }
+]

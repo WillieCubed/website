@@ -62,7 +62,7 @@ export default function Callout({
       <div className="flex items-start gap-3">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`mt-0.5 h-5 w-5 flex-shrink-0 ${styles.icon}`}
+          className={`h-5 w-5 flex-shrink-0 ${styles.icon}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

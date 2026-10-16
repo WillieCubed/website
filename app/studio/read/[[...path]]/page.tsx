@@ -351,8 +351,8 @@ function Tags({ tags, filter = false, currentTag }: TagsProps) {
             aria-current={!currentTag ? 'page' : undefined}
             className={
               !currentTag
-                ? 'inline-block rounded-full bg-primary px-3 py-1.5 text-label-large text-on-primary'
-                : 'inline-block rounded-full border border-line bg-card px-3 py-1.5 text-label-large text-ink transition-colors hover:border-accent hover:text-accent'
+                ? 'inline-block rounded-full bg-primary px-3 py-2 text-label-large text-on-primary'
+                : 'inline-block rounded-full border border-line bg-card px-3 py-2 text-label-large text-ink transition-colors hover:border-accent hover:text-accent'
             }
           >
             All
@@ -369,8 +369,8 @@ function Tags({ tags, filter = false, currentTag }: TagsProps) {
             }
             className={
               filter && currentTag === normalizeTag(tag)
-                ? 'inline-block rounded-full bg-primary px-3 py-1.5 text-label-large text-on-primary'
-                : `inline-block rounded-full border border-line ${filter ? 'bg-card py-1.5 text-label-large' : 'bg-ground py-1 text-label-medium'} px-3 text-ink transition-colors hover:border-accent hover:text-accent`
+                ? 'inline-block rounded-full bg-primary px-3 py-2 text-label-large text-on-primary'
+                : `inline-block rounded-full border border-line ${filter ? 'bg-card py-2 text-label-large' : 'bg-ground py-1 text-label-medium'} px-3 text-ink transition-colors hover:border-accent hover:text-accent`
             }
           >
             {tag}

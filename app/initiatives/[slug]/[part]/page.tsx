@@ -91,7 +91,7 @@ function PartMilestones({ part }: { part: Part }) {
         <section className="act-card rounded-2xl p-4" aria-label="Milestones">
           <ol className="grid list-none gap-3 p-0">
             {part.milestones.map((m) => (
-              <li key={m.id} className="grid gap-0.5">
+              <li key={m.id} className="grid gap-related">
                 <time
                   dateTime={isoDate(m.date)}
                   className="text-label-medium text-muted"

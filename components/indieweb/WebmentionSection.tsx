@@ -185,7 +185,7 @@ function Mentions({ mentions }: { mentions: PublishingResponse[] }) {
         const host = new URL(mention.sourceUrl).hostname;
         const { author } = mention;
         return (
-          <li key={mention.id} className="u-mention h-cite space-y-0.5">
+          <li key={mention.id} className="u-mention h-cite space-y-related">
             <a
               href={mention.sourceUrl}
               rel="noopener"

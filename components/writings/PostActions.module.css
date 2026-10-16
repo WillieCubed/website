@@ -7,7 +7,7 @@
 
 .reply {
   display: flex;
-  gap: 2px;
+  gap: var(--spacing-related);
   flex: 1;
   min-width: 0;
 }
@@ -17,7 +17,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--spacing-inline);
   min-height: 40px;
   border-radius: 20px;
   padding: 8px 12px;
@@ -79,7 +79,7 @@
 
 .share {
   display: flex;
-  gap: 2px;
+  gap: var(--spacing-related);
   flex: none;
 }
 

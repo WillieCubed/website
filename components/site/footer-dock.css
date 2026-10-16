@@ -96,7 +96,7 @@
    drives it: the cube is 1.3em tall beside the name at 1em, as on every
    other page, so the two keep their proportion at every size. */
 .site-footer[data-dock] .site-footer__brand {
-  padding-top: calc(var(--lockup-h) + 12px);
+  padding-top: var(--lockup-h);
 }
 .site-footer[data-dock] .site-footer__lockup {
   position: absolute;
@@ -399,6 +399,7 @@
   row-gap: var(--footer-space);
   padding-top: clamp(24px, 3vw, 32px);
   padding-inline: var(--footer-panel-edge);
+  padding-bottom: var(--footer-inset);
 }
 /* Within the existing maximum width, containers follow the frame edge
    while readable content retains its inset. The upper surface uses this same frame. */
@@ -526,7 +527,7 @@
   margin: 0;
   padding: 8px;
   border-radius: 16px;
-  background: var(--color-surface-container-low);
+  background: var(--color-surface-container-highest);
 }
 .site-webrings__controls {
   display: grid;

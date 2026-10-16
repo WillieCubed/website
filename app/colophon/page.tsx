@@ -137,12 +137,13 @@ export default function ColophonPage() {
             <h2 id="making-title">Making it</h2>
             <p>
               <span className="colophon-statement">
-                Handwriting code isn’t really that important to me.
+                Not a single line of code was written by hand.
               </span>
-              I think one of the best uses of AI is efficiently creating
-              workflows and interfaces catered to my exact taste, when I can
-              properly describe it. That’s how I’m building the software behind
-              this site.
+              I built this site with tools including Claude and Codex.
+              Handwriting code isn’t really that important to me. I think one of
+              the best uses of AI is efficiently creating workflows and
+              interfaces catered to my exact taste, when I can properly describe
+              it.
             </p>
             <p>
               <span className="colophon-statement">

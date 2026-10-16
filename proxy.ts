@@ -6,7 +6,13 @@ import { isPrivatePreview, privateHeaders } from '@/lib/studio/config';
 import { StudioError } from '@/lib/studio/errors';
 import { tagPath } from '@/lib/writings/tags';
 
-export function proxy(request: NextRequest) {
+/**
+ * Route public traffic and enforce private-preview access before rendering.
+ * Public deployments hide Studio routes, preserve legacy tag redirects, and
+ * negotiate the homepage. Authenticated previews keep their private routing
+ * and response policies without exposing the public terminal page.
+ */
+export function proxy(request: NextRequest): Response | Promise<Response> {
   const path = request.nextUrl.pathname;
   if (!isPrivatePreview()) {
     if (/^\/(?:studio|api\/studio)(?:\/|$)/.test(path))

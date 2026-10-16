@@ -35,9 +35,10 @@ covers their hosting context.
 
 Maintainers changing the homepage negotiation should preserve these request
 rules. The public, query-free `/` responds to `curl -L https://willie.page`
-with a text layout of the existing site identity, focuses, ventures, and contact
-links. The response uses `text/plain; charset=utf-8`. It adds no scripts,
-dependencies, terminal control sequences, or separate biography to maintain.
+with an ANSI-styled layout of the existing site identity, ventures, projects,
+and contact links. Each venture and project includes the description already
+published in its homepage detail view. The response adds no scripts,
+dependencies, live provider requests, or separate biography to maintain.
 
 `Accept` quality values and media-range specificity determine whether plain
 text is preferred over HTML. When both are equally acceptable, a `curl/`
@@ -49,6 +50,16 @@ curl -L -H 'Accept: text/plain' https://willie.page
 curl -L -H 'Accept: text/html' https://willie.page
 curl -L -H 'X-Original: true' https://willie.page
 ```
+
+Ordinary curl requests receive bold headings, green section titles, and cyan
+work links. Explicit `Accept: text/plain` requests receive the same content
+without escape codes, including when curl makes the request. Other clients
+selecting text also receive clean text. Styling uses only SGR foreground colors
+and bold emphasis, with a reset after each span. It never clears the screen,
+moves the cursor, changes the background, or animates.
+
+The server cannot detect whether curl writes to a terminal or a pipe. Use the
+explicit plain-text header when saving a file or processing the response.
 
 GET returns text; HEAD returns the same headers with no body. Query strings,
 React Server Component requests, router prefetch requests, other methods, and
@@ -67,9 +78,12 @@ Verify these headers on the deployed host before claiming production behavior.
 
 HTTP permits selection by request headers through
 [proactive negotiation](https://www.rfc-editor.org/rfc/rfc9110.html#section-12.1).
-The layout deliberately omits ANSI color commands because
+Both terminal forms use `text/plain; charset=utf-8`. ANSI under this media type
+is a deliberate compatibility compromise:
 [the text/plain definition](https://www.rfc-editor.org/rfc/rfc2046.html#section-4.1.3)
-excludes embedded formatting commands. Unlike the
+excludes embedded formatting commands. Explicit plain-text requests preserve
+that definition; ordinary curl requests prioritize terminal presentation.
+Unlike the
 [Cole Wilson example](https://cole.ws), this response does not switch terminal
 screens to conceal an HTML document. The
 [nytpu article](https://nytpu.com/gemlog/2026-03-18) supplies the inspiration for

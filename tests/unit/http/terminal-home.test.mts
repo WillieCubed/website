@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { entries, products } from '@/lib/home/ventures';
 import { terminalHome } from '@/lib/http/terminal-home';
 import { site } from '@/lib/site/identity';
 
@@ -14,9 +15,9 @@ function request(
   return new NextRequest(`${site.origin}${path}`, { headers, method });
 }
 
-test('curl gets a small readable homepage without terminal control commands', async () => {
+test('explicit plain text includes published descriptions without terminal controls', async () => {
   const response = await proxy(
-    request({ 'User-Agent': 'curl/8.10.1', Accept: '*/*' })
+    request({ 'User-Agent': 'curl/8.10.1', Accept: 'text/plain' })
   );
   const body = await response.text();
   assert.equal(
@@ -26,6 +27,14 @@ test('curl gets a small readable homepage without terminal control commands', as
   assert.ok(body.includes(site.name));
   for (const venture of site.ventures) assert.ok(body.includes(venture.url));
   assert.ok(body.includes(site.author.email));
+  const unwrapped = body.replace(/\s+/g, ' ');
+  for (const id of ['lvbt', 'hypertext', 'rtc', 'transitmapper']) {
+    assert.ok(unwrapped.includes(entries[id].detail.body[0]), id);
+  }
+  for (const product of Object.values(products)) {
+    assert.ok(unwrapped.includes(product.detail.body[0]), product.name);
+  }
+  assert.ok(!body.includes('A directory for finding the helpers'));
   assert.doesNotMatch(body, /<!doctype|<html/i);
   assert.ok(
     [...body].every(
@@ -36,6 +45,22 @@ test('curl gets a small readable homepage without terminal control commands', as
   );
   assert.ok(body.length < 5000);
   assert.ok(body.split('\n').every((line) => line.length <= 72));
+});
+
+test('ordinary curl uses only foreground color and emphasis escapes', async () => {
+  const body = await terminalHome(
+    request({ 'User-Agent': 'curl/8', Accept: '*/*' })
+  )!.text();
+  const esc = String.fromCharCode(27);
+  assert.ok(body.includes(`${esc}[1;32m`));
+  const clean = body.replaceAll(
+    new RegExp(`${esc}\\[(?:0|1|1;32|36)m`, 'g'),
+    ''
+  );
+  assert.ok(!clean.includes(esc), 'Only the approved SGR commands are emitted');
+  assert.ok(clean.replace(/\s+/g, ' ').includes(entries.docket.detail.body[0]));
+  assert.ok(clean.split('\n').every((line) => line.length <= 72));
+  assert.ok(body.endsWith('\n'));
 });
 
 test('Accept preferences override curl detection and honor specific exclusions', () => {

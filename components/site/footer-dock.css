@@ -204,10 +204,19 @@
   color: var(--color-accent);
 }
 .site-footer[data-dock] .site-footer__profiles a > svg {
+  --icon-shown: var(--profile-icons, var(--dock));
   flex-shrink: 0;
-  width: calc(16px * var(--dock));
-  opacity: var(--dock);
-  scale: calc(0.6 + 0.4 * var(--dock));
+  width: calc(16px * var(--icon-shown));
+  opacity: var(--icon-shown);
+  scale: calc(0.6 + 0.4 * var(--icon-shown));
+}
+
+/* Status hides the contact labels below this container width. Keep their
+   icons present even while the desktop dock is closed. */
+@container footer (max-width: 1000px) {
+  .site-footer[data-dock] .site-footer__profiles {
+    --profile-icons: 1;
+  }
 }
 
 @media (min-width: 840px) {
@@ -588,6 +597,13 @@
     align-items: center;
     justify-content: start;
     gap: 4px;
+  }
+}
+/* Preserve the text alignment and all six targets with classic scrollbars
+   at the compact layout's narrowest width. Only the trailing inset yields. */
+@media (max-width: 359px) {
+  .site-webrings {
+    padding-inline-end: var(--spacing-inline);
   }
 }
 .site-webring {

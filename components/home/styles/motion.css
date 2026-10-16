@@ -110,6 +110,32 @@ html[data-detail-morph]::view-transition-new(root) {
   }
 }
 
+/* The expanded rail wraps more text than the large layout. Let its two
+   breathing spaces yield to that content before it reaches the dock. */
+@media (min-width: 840px) and (max-width: 1199px) {
+  .home .lead {
+    display: grid;
+    height: 100%;
+    grid-template-rows:
+      minmax(24px, clamp(48px, 12svh, 120px))
+      max-content max-content minmax(24px, 56px) max-content;
+    align-content: start;
+  }
+  .home .intro {
+    grid-row: 2;
+  }
+  .home .rail-search {
+    grid-row: 3;
+  }
+  .home .focuses {
+    grid-row: 5;
+    margin-top: 0;
+  }
+  .home .statement {
+    margin-top: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),

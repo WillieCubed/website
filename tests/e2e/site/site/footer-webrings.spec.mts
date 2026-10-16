@@ -91,6 +91,7 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
   page,
 }) => {
   await page.goto('/');
+  await page.evaluate(() => document.fonts.ready);
   // Leave room for platform font metrics and wider classic scrollbars:
   // 318px with a 15px bar has the same content budget as 320px with 17px.
   for (const width of [
@@ -168,7 +169,9 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
       ).toBeGreaterThanOrEqual(6);
       expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
       expect(bounds.panel.width).toBe(196);
-      expect(bounds.rings.right - bounds.panel.right).toBe(12);
+      expect(bounds.rings.right - bounds.panel.right).toBe(
+        width < 360 ? 8 : 12
+      );
       expect(bounds.targets[3].left - bounds.targets[2].right).toBe(4);
       expect(bounds.label.top + bounds.label.height / 2).toBeCloseTo(
         bounds.panel.top + bounds.panel.height / 2,

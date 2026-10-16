@@ -79,7 +79,7 @@ function introduction(format: TerminalFormat): string[] {
 
 function directory(format: TerminalFormat): string[] {
   return [
-    `${PAGE_INDENT}${styled('EXPLORE', 'heading', format)}`,
+    `${PAGE_INDENT}${styled('Explore', 'heading', format)}`,
     '',
     `${PAGE_INDENT}Writings     ${site.origin}/writings`,
     `${PAGE_INDENT}Projects     ${site.origin}/projects`,
@@ -90,7 +90,7 @@ function directory(format: TerminalFormat): string[] {
 
 function contact(format: TerminalFormat): string[] {
   return [
-    `${PAGE_INDENT}${styled('SAY HELLO', 'heading', format)}`,
+    `${PAGE_INDENT}${styled('Say hello', 'heading', format)}`,
     '',
     `${PAGE_INDENT}${site.author.email}`,
     ...site.social.map((profile) => `${PAGE_INDENT}${profile.href}`),
@@ -118,8 +118,8 @@ export function renderTerminalHome(format: TerminalFormat): string {
   const projects = visibleEntries(['transitmapper', ...Object.keys(products)]);
   return [
     ...introduction(format),
-    ...workSection('MY WORK', organizations, format),
-    ...workSection('PROJECTS', projects, format),
+    ...workSection('My work', organizations, format),
+    ...workSection('Projects', projects, format),
     ...directory(format),
     ...contact(format),
   ].join('\n');

@@ -107,34 +107,6 @@ export default function ColophonPage() {
               className="colophon-specimen"
               aria-label="Atkinson Hyperlegible type specimens"
             >
-              <svg
-                className="colophon-decoration colophon-palette"
-                viewBox="0 0 800 120"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <ellipse
-                  cx="210"
-                  cy="64"
-                  rx="184"
-                  ry="43"
-                  fill="var(--color-tertiary-container)"
-                  transform="rotate(-3 210 64)"
-                />
-                <ellipse
-                  cx="602"
-                  cy="64"
-                  rx="177"
-                  ry="45"
-                  fill="var(--color-primary-container)"
-                  transform="rotate(3 602 64)"
-                />
-                <path
-                  d="M400 8c5 13 8 16 21 21-13 5-16 8-21 21-5-13-8-16-21-21 13-5 16-8 21-21Z"
-                  fill="var(--color-primary)"
-                />
-              </svg>
               <div className="colophon-type-sample colophon-type-sample--sans">
                 <span className="colophon-sample-text">0O · 1Il</span>
                 <span className="colophon-sample-name">

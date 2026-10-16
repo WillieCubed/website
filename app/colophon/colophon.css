@@ -65,14 +65,11 @@
   margin-bottom: 0;
 }
 .colophon-specimen {
-  --sample-size: clamp(38px, 5.5vw, 72px);
+  --sample-size: clamp(32px, 4vw, 56px);
   display: grid;
-  position: relative;
-  isolation: isolate;
-  padding-top: 24px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 48px;
-  margin: 16px 0 0;
+  gap: 32px;
+  margin: 8px 0 0;
   min-width: 0;
 }
 .colophon-sample-text {
@@ -89,7 +86,7 @@
   font: 500 13px/1.5 var(--font-sans);
 }
 .colophon h2 {
-  font: 600 32px/1.1 var(--font-sans);
+  font: 600 36px/1.1 var(--font-sans);
   letter-spacing: -0.035em;
   margin: 0 0 20px;
 }
@@ -158,12 +155,11 @@
   max-width: 64ch;
 }
 .colophon-purpose h2 {
-  color: var(--color-primary);
-  font-size: 52px;
+  font-size: 40px;
 }
 .colophon .colophon-lead {
   color: var(--color-on-surface);
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.4;
   letter-spacing: -0.02em;
   margin-bottom: 24px;
@@ -183,25 +179,10 @@
 }
 .colophon-design h2,
 .colophon-publishing h2 {
-  font-size: 48px;
   margin: 0;
-}
-.colophon-design h2 {
-  color: var(--color-tertiary);
-}
-.colophon-publishing h2 {
-  color: var(--color-primary);
 }
 .colophon-decoration {
   display: block;
-}
-.colophon-palette {
-  position: absolute;
-  z-index: -1;
-  inset-inline: 0;
-  top: 8px;
-  width: 100%;
-  height: calc(var(--sample-size) * 1.5);
 }
 .colophon-feed-link {
   display: inline-flex;
@@ -226,12 +207,6 @@
 .colophon-specimen {
   grid-column: 1 / -1;
 }
-.colophon-type-sample--sans {
-  color: var(--color-on-tertiary-container);
-}
-.colophon-type-sample--mono {
-  color: var(--color-on-primary-container);
-}
 .colophon-sample-name {
   color: var(--color-on-surface-variant);
 }
@@ -243,9 +218,6 @@
 }
 .colophon-making h2 {
   grid-column: 1 / -1;
-  color: var(--color-tertiary);
-  font-size: 64px;
-  letter-spacing: -0.05em;
 }
 .colophon-making p {
   margin-bottom: 0;
@@ -260,7 +232,6 @@
 .colophon-credits h2 {
   grid-column: 1 / span 4;
   grid-row: 1 / span 3;
-  font-size: 40px;
   margin: 0;
 }
 .colophon-credits > p,
@@ -370,11 +341,8 @@
     padding: 8px 12px;
     right: 0;
   }
-  .colophon-purpose h2,
-  .colophon-making h2,
-  .colophon-design h2,
-  .colophon-publishing h2 {
-    font-size: 40px;
+  .colophon h2 {
+    font-size: 32px;
   }
   .colophon .colophon-lead {
     font-size: 22px;
@@ -383,7 +351,6 @@
     --sample-size: clamp(22px, 6vw, 32px);
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
-    padding-top: 12px;
   }
   .colophon-sample-name {
     margin-top: 8px;

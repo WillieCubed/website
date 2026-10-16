@@ -101,7 +101,7 @@ function usesAnsi(headers: Headers) {
 function homepageText(color: boolean) {
   return [
     '',
-    `  ${styled('W I L L I E C U B E D', '1;32', color)}`,
+    `  ${styled(`❖ ${site.shortName}`, '1;32', color)}`,
     `  ${site.name}`,
     '',
     ...wrap(site.description).map((line) => `  ${line}`),

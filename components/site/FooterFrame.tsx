@@ -56,9 +56,13 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
 
     const contact = footer.querySelector<HTMLElement>('[data-footer-contact]');
     const pages = footer.querySelector<HTMLElement>('.site-footer__pages');
+    const rings = footer.querySelector<HTMLElement>('.site-webrings');
+    const markButton = footer.querySelector<HTMLElement>(
+      '.site-footer__mark-button'
+    );
     const feedButton = footer.querySelector<HTMLElement>('.feeds-button');
     const tagline = footer.querySelector<HTMLElement>(
-      '.site-footer__brand > p'
+      '.site-footer__brand-detail > p'
     );
     const extraProfiles = footer.querySelectorAll<HTMLElement>('[data-extra]');
     const name = footer.querySelector<HTMLElement>('[data-footer-name]');
@@ -86,16 +90,19 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     let footerHeight = 0;
     let scrollHeight = 0;
     let p = 0;
+    let keyboardDockOpen = false;
     // The page above turns into a sheet as the footer opens
     // through the shared styles, so the root carries the progress too, with the
     // page's width as a plain number for the sheet's scale.
     const root = document.documentElement;
+    const surface = document.querySelector<HTMLElement>('body > .grow');
     root.dataset.footerDock = '';
     const measure = () => {
       root.style.setProperty(
         '--page-w',
         String(document.body.getBoundingClientRect().width)
       );
+      surface?.style.setProperty('--page-w', String(surface.offsetWidth));
       footerHeight = footer.offsetHeight;
       scrollHeight = document.documentElement.scrollHeight;
     };
@@ -103,6 +110,8 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     const updateFocusAvailability = () => {
       // A clipped or transparent control cannot receive keyboard focus.
       if (pages) pages.inert = p < 0.9;
+      if (rings) rings.inert = p < 0.9;
+      if (markButton) markButton.inert = compact.matches && p < 0.08;
       if (feedButton) feedButton.inert = p < 0.6;
       const status = footer.querySelector<HTMLElement>('.microstatus');
       if (status) status.inert = p < 0.9;
@@ -116,12 +125,20 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     let frame = 0;
     const update = () => {
       frame = 0;
-      p = footerProgress({
-        scrollY: window.scrollY,
-        viewportHeight: window.innerHeight,
-        scrollHeight,
-        footerHeight,
-      });
+      // A footer taller than the viewport scrolls in normal flow. Keep an
+      // already-open dock available when keyboard focus scrolls a link.
+      const flow = footerHeight > window.innerHeight;
+      footer.toggleAttribute('data-flow', flow);
+      p = keyboardDockOpen
+        ? 1
+        : flow
+          ? Number(footer.getBoundingClientRect().top < window.innerHeight)
+          : footerProgress({
+              scrollY: window.scrollY,
+              viewportHeight: window.innerHeight,
+              scrollHeight,
+              footerHeight,
+            });
       updateFocusAvailability();
       footer.style.setProperty('--p', p.toFixed(4));
       root.style.setProperty('--footer-p', p.toFixed(4));
@@ -129,7 +146,9 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       // on a window tall enough to show part of the footer at the top, the
       // page stays flat until it moves. Scaling it makes it a containing
       // block for fixed elements, so it is scaled only while it is a sheet.
-      const sheet = Math.min(p, window.scrollY / Math.max(footerHeight, 1));
+      const sheet = flow
+        ? 0
+        : Math.min(p, window.scrollY / Math.max(footerHeight, 1));
       root.style.setProperty('--sheet-p', sheet.toFixed(4));
       root.toggleAttribute('data-footer-sheet', sheet > 0);
       // The headline's name rides the sticky rail, so where it has got to
@@ -153,6 +172,27 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       measure();
       schedule();
     };
+    const keepOpen = () => {
+      if (p > 0.5) {
+        keyboardDockOpen = true;
+        schedule();
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Tab' && footer.contains(document.activeElement))
+        keepOpen();
+    };
+    const onFocusOut = () =>
+      queueMicrotask(() => {
+        if (!footer.contains(document.activeElement)) {
+          keyboardDockOpen = false;
+          schedule();
+        }
+      });
+    const release = () => {
+      keyboardDockOpen = false;
+      schedule();
+    };
 
     // The page grows as images load and the tagline streams in, which
     // moves where the footer's stretch of scroll starts.
@@ -161,6 +201,13 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', remeasure);
     compact.addEventListener('change', remeasure);
+    reduce.addEventListener('change', remeasure);
+    footer.addEventListener('focusin', keepOpen);
+    footer.addEventListener('focusout', onFocusOut);
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('wheel', release, { passive: true });
+    window.addEventListener('touchstart', release, { passive: true });
+    window.addEventListener('pointerdown', release, { passive: true });
     measure();
     update();
 
@@ -170,8 +217,17 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', remeasure);
       compact.removeEventListener('change', remeasure);
+      reduce.removeEventListener('change', remeasure);
+      footer.removeEventListener('focusin', keepOpen);
+      footer.removeEventListener('focusout', onFocusOut);
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('wheel', release);
+      window.removeEventListener('touchstart', release);
+      window.removeEventListener('pointerdown', release);
       [
         pages,
+        rings,
+        markButton,
         feedButton,
         footer.querySelector<HTMLElement>('.microstatus'),
         tagline,
@@ -184,6 +240,8 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       headlineReveal?.destroy();
       footer.removeAttribute('style');
       delete footer.dataset.dock;
+      delete footer.dataset.flow;
+      surface?.style.removeProperty('--page-w');
       root.style.removeProperty('--page-w');
       root.style.removeProperty('--footer-p');
       root.style.removeProperty('--sheet-p');

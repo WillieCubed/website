@@ -18,6 +18,7 @@ import { isPrivatePreview } from '@/lib/studio/config';
 import FeedsButton from './FeedsButton';
 import FooterFrame from './FooterFrame';
 import FooterLockup from './FooterLockup';
+import Webrings from './Webrings';
 import './site.css';
 
 /**
@@ -39,18 +40,13 @@ function pagesAt(paths: string[]) {
   return paths.flatMap((path) => PAGES.filter((page) => page.href === path));
 }
 
-const PAGE_GROUPS = [
-  { label: 'Public work', pages: pagesAt(WORK_PATHS) },
-  {
-    label: 'Profile',
-    pages: [
-      ...pagesAt(PROFILE_PATHS),
-      // Newly routed pages remain reachable before they receive a group.
-      ...PAGES.filter(
-        (page) => ![...WORK_PATHS, ...PROFILE_PATHS].includes(page.href)
-      ),
-    ],
-  },
+const FOOTER_PAGES = [
+  ...pagesAt(WORK_PATHS),
+  ...pagesAt(PROFILE_PATHS),
+  // Newly routed pages remain reachable before they receive a position.
+  ...PAGES.filter(
+    (page) => ![...WORK_PATHS, ...PROFILE_PATHS].includes(page.href)
+  ),
 ];
 
 const ELSEWHERE: {
@@ -129,31 +125,28 @@ export default function SiteFooter() {
     <FooterFrame>
       <div className="site-footer__inner">
         <div className="site-footer__top">
-          <div className="site-footer__brand space-y-3">
+          <div className="site-footer__brand">
             <FooterLockup name={site.name} />
-            <Suspense fallback={<p className="text-body-medium">&nbsp;</p>}>
-              <Tagline />
-            </Suspense>
+            <div className="site-footer__brand-detail">
+              <Suspense fallback={<p className="text-body-medium">&nbsp;</p>}>
+                <Tagline />
+              </Suspense>
+            </div>
           </div>
-          <nav aria-label="Pages" className="site-footer__pages">
-            {PAGE_GROUPS.filter((group) => group.pages.length > 0).map(
-              (group) => (
-                <ul key={group.label} aria-label={group.label}>
-                  {group.pages.map((page) => (
-                    <li key={page.href}>
-                      <SiteLink
-                        preview={false}
-                        href={page.href}
-                        className={LINK}
-                      >
-                        {page.label}
-                      </SiteLink>
-                    </li>
-                  ))}
-                </ul>
-              )
-            )}
-          </nav>
+          <div className="site-footer__navigation">
+            <nav aria-label="Pages" className="site-footer__pages">
+              <ul aria-label="Site">
+                {FOOTER_PAGES.map((page) => (
+                  <li key={page.href}>
+                    <SiteLink preview={false} href={page.href} className={LINK}>
+                      {page.label}
+                    </SiteLink>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <Webrings />
+          </div>
         </div>
         {/* This row never wraps. When the column gets narrow the labels
             drop and the icons stay, so the row degrades instead of folding.

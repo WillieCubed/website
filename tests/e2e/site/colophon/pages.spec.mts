@@ -50,7 +50,7 @@ test('the colophon shows the served artifact and remains readable at every viewp
   await expect(page.locator('main h1')).toHaveText('Colophon');
   if (testInfo.project.name === 'phone')
     await expect(
-      page.getByRole('heading', { name: 'Type', exact: true })
+      page.getByRole('heading', { name: 'A place of my own', exact: true })
     ).toBeInViewport();
   await expect(page.locator('.colophon-revision')).toHaveAttribute(
     'href',

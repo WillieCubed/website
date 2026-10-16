@@ -13,7 +13,7 @@ import {
 import MusicCover, { type MusicCoverProps } from './MusicCover';
 import { scrollDialogContent } from './music-dialog';
 
-type Props = {
+interface Props {
   open: boolean;
   onClose: () => void;
   onEditOrder: () => void;
@@ -23,7 +23,7 @@ type Props = {
   mode: MusicMode;
   canReview?: boolean;
   applyReview: () => Promise<void>;
-};
+}
 export default function MusicReview({
   open,
   onClose,

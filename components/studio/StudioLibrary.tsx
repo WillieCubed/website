@@ -155,7 +155,7 @@ export default function StudioLibrary() {
           style={{ minHeight: 440 }}
         >
           {loading &&
-            !documents.length &&
+            documents.length === 0 &&
             Array.from({ length: 3 }, (_, i) => (
               <article
                 key={i}
@@ -212,7 +212,7 @@ export default function StudioLibrary() {
               </article>
             );
           })}
-          {!status && !documents.length && (
+          {!status && documents.length === 0 && (
             <p className="text-body-large text-muted">
               No working copies yet. Start a writing, or open a published
               writing to edit it.

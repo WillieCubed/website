@@ -320,7 +320,7 @@ export async function runWebSubTests() {
         [hostedId]
       )
     ).rows[0];
-    if (!row) throw new Error('Hosted subscriber state disappeared.');
+    if (row == null) throw new Error('Hosted subscriber state disappeared.');
     active = row.active;
     pendingMode = row.pending_mode;
     if (row.subscription_verification)
@@ -374,9 +374,10 @@ export async function runWebSubTests() {
       initial.response.headers.get('link'),
       topicUrl.href
     );
-    const relations = headerLinks.length
-      ? headerLinks
-      : embeddedRelations(initial.body, topicUrl.href);
+    const relations =
+      headerLinks.length > 0
+        ? headerLinks
+        : embeddedRelations(initial.body, topicUrl.href);
     const selves = relations.filter((link) => link.relations.includes('self'));
     hub = relations.find((link) => link.relations.includes('hub'))?.href;
     if (
@@ -390,7 +391,7 @@ export async function runWebSubTests() {
       );
     Object.assign(record, {
       hub,
-      discovery: headerLinks.length ? 'http-link' : 'embedded-link',
+      discovery: headerLinks.length > 0 ? 'http-link' : 'embedded-link',
       baselineSha256: baselineHash,
       contentType,
     });
@@ -404,7 +405,7 @@ export async function runWebSubTests() {
         server.listen(0, '127.0.0.1', resolve);
       });
       const address = server.address();
-      if (!address || typeof address === 'string')
+      if (address === null || typeof address === 'string')
         throw new Error('Subscriber did not bind a TCP port.');
       tunnel = spawn(
         'cloudflared',

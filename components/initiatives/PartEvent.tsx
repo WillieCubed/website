@@ -5,12 +5,15 @@ import { partTitle } from '@/lib/initiatives/load';
 
 import { formatRange, isoDate } from './dates';
 
+type EventInitiative = Pick<Initiative, 'title' | 'partLabel'>;
+type EventPart = Pick<
+  Part,
+  'number' | 'title' | 'tagline' | 'starts' | 'ends' | 'places'
+>;
+
 interface PartEventProps {
-  initiative: Pick<Initiative, 'title' | 'partLabel'>;
-  part: Pick<
-    Part,
-    'number' | 'title' | 'tagline' | 'starts' | 'ends' | 'places'
-  >;
+  initiative: EventInitiative;
+  part: EventPart;
   /** The part page's canonical URL. */
   url: string;
 }

@@ -18,15 +18,17 @@ import './music-setup.css';
 
 const steps = ['Connect', 'Choose', 'Preview'];
 
+interface MusicSetupPrototypeProps {
+  catalog: Catalog;
+  onCancel: () => void;
+  onComplete: (catalog: Catalog) => void;
+}
+
 export default function MusicSetupPrototype({
   catalog,
   onCancel,
   onComplete,
-}: {
-  catalog: Catalog;
-  onCancel: () => void;
-  onComplete: (catalog: Catalog) => void;
-}) {
+}: MusicSetupPrototypeProps) {
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
   const [lead, setLead] = useState<string | null>(null);
@@ -317,7 +319,7 @@ export default function MusicSetupPrototype({
             </p>
             <button
               className="ms-button ms-primary"
-              disabled={!selected.length}
+              disabled={selected.length === 0}
               onClick={() =>
                 step === 1
                   ? setStep(2)

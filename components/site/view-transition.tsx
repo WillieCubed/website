@@ -4,7 +4,11 @@ import * as React from 'react';
 // Next.js ships React's canary build, which has ViewTransition. Plain Node,
 // where the unit tests render components, resolves the stable build, which
 // does not, and a named import of a missing export stops the module loading.
-function Passthrough({ children }: { children?: ReactNode }) {
+interface PassthroughProps {
+  children?: ReactNode;
+}
+
+function Passthrough({ children }: PassthroughProps) {
   return <>{children}</>;
 }
 

@@ -40,7 +40,7 @@ async function validateImage(
   if (detected?.mime !== mimeType)
     throw new Error('Image signature does not match its MIME type.');
   const dimensions = imageSize(bytes);
-  if (!dimensions.width || !dimensions.height)
+  if (dimensions.width === 0 || dimensions.height === 0)
     throw new Error('Image dimensions are unavailable.');
   if (
     icon &&

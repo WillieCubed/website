@@ -56,7 +56,7 @@ export default function PostActions({
     const opening = !replyOpen;
     const surface = replySurface.current;
     if (
-      !document.startViewTransition ||
+      document.startViewTransition == null ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
       !surface
     ) {

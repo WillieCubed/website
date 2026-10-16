@@ -4,10 +4,14 @@ import { COLUMN } from './TopBar';
 import './styles/collections.css';
 
 /** Collection pages share the title gutter and the card boundary. */
+interface CollectionLayoutProps extends PropsWithChildren {
+  className?: string;
+}
+
 export default function CollectionLayout({
   children,
   className = '',
-}: PropsWithChildren<{ className?: string }>) {
+}: CollectionLayoutProps) {
   return (
     <main
       id="main"

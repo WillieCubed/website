@@ -53,7 +53,8 @@ export async function approvedManifest() {
 }
 export async function publicCollection() {
   const manifest = await approvedManifest();
-  if (!manifest.catalog.selected.length) return { ...manifest, playlists: [] };
+  if (manifest.catalog.selected.length === 0)
+    return { ...manifest, playlists: [] };
   const rows = await optionalWithin(
     Promise.resolve().then(() =>
       publicMusicPool().query(

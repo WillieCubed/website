@@ -427,7 +427,7 @@ export async function clearStaleContextCache(
     WHERE fetched_at < NOW() - INTERVAL '1 hour' * ${maxAgeHours}
     RETURNING id
   `;
-  return result.rowCount || 0;
+  return result.rowCount ?? 0;
 }
 
 function contextFromRow(row: ReplyContextRow): ReplyContext {
@@ -438,7 +438,10 @@ function contextFromRow(row: ReplyContextRow): ReplyContext {
     authorPhoto: row.author_photo || undefined,
     title: row.title || undefined,
     contentPreview: row.content_preview || undefined,
-    publishedAt: row.published_at ? new Date(row.published_at) : undefined,
+    publishedAt:
+      row.published_at !== null && row.published_at !== ''
+        ? new Date(row.published_at)
+        : undefined,
     siteName: row.site_name || undefined,
     fetchedAt: new Date(row.fetched_at),
   };

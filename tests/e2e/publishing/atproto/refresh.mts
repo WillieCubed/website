@@ -60,7 +60,7 @@ export async function runRefreshTests() {
         process.env.ATPROTO_OAUTH_STORAGE_KEY!
       ).tokenSet;
       assert.equal(tokens.sub, values.visitor);
-      assert(tokens.refresh_token && tokens.expires_at);
+      assert(tokens.refresh_token && (tokens.expires_at ?? 0) > 0);
       return tokens;
     }
     const before = await tokens();

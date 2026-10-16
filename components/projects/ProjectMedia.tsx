@@ -5,13 +5,15 @@ import StableImage from '@/components/media/StableImage';
 import type { ProjectMedia as Media } from '@/lib/projects';
 
 /** One piece of a project's media. The first item on a page is the hero. */
+interface ProjectMediaProps {
+  media: Media;
+  hero?: boolean;
+}
+
 export default function ProjectMedia({
   media,
   hero = false,
-}: {
-  media: Media;
-  hero?: boolean;
-}) {
+}: ProjectMediaProps) {
   const className = hero ? 'project-hero' : 'project-figure';
   switch (media.kind) {
     case 'image':

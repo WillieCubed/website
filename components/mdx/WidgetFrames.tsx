@@ -3,13 +3,15 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 
 /** Trusted host bridge for presentation and optional editor settings. */
+interface WidgetFramesProps {
+  children: ReactNode;
+  widgetProps?: Record<string, unknown>;
+}
+
 export default function WidgetFrames({
   children,
   widgetProps,
-}: {
-  children: ReactNode;
-  widgetProps?: Record<string, unknown>;
-}) {
+}: WidgetFramesProps) {
   const serializedProps =
     widgetProps === undefined ? null : JSON.stringify(widgetProps);
   const container = useRef<HTMLDivElement>(null);

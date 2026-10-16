@@ -9,17 +9,19 @@ import { type KitDownload, formatBytes, kit } from '@/lib/brand/kit';
  * the feed links in the footer: a SiteLink would prefetch each one as a
  * route and look it up for a hover card it cannot have.
  */
+interface DownloadProps {
+  file: KitDownload;
+  showSize?: boolean;
+  label?: string;
+  shortLabel?: string;
+}
+
 function Download({
   file,
   showSize = false,
   label,
   shortLabel,
-}: {
-  file: KitDownload;
-  showSize?: boolean;
-  label?: string;
-  shortLabel?: string;
-}) {
+}: DownloadProps) {
   return (
     <a href={file.href} download aria-label={shortLabel ? label : undefined}>
       {shortLabel ? (
@@ -36,13 +38,12 @@ function Download({
     </a>
   );
 }
-export function Downloads({
-  files,
-  showSize = false,
-}: {
+interface DownloadsProps {
   files: KitDownload[];
   showSize?: boolean;
-}) {
+}
+
+export function Downloads({ files, showSize = false }: DownloadsProps) {
   return (
     <p className="brand-downloads">
       {files.map((file) => (
@@ -51,14 +52,16 @@ export function Downloads({
     </p>
   );
 }
-export function AssetDownloads({
-  files,
-  png: pngLabel = 'PNG 1024',
-}: {
+interface AssetDownloadsProps {
   files: KitDownload[];
   /** The PNG offered beside the SVG; the rest wait under More formats. */
   png?: string;
-}) {
+}
+
+export function AssetDownloads({
+  files,
+  png: pngLabel = 'PNG 1024',
+}: AssetDownloadsProps) {
   const svg = files.find((file) => file.label === 'SVG');
   const png =
     files.find((file) => file.label === pngLabel) ??
@@ -95,7 +98,11 @@ export function AssetDownloads({
     </div>
   );
 }
-function PlatformGuidance({ title }: { title: string }) {
+interface PlatformGuidanceProps {
+  title: string;
+}
+
+function PlatformGuidance({ title }: PlatformGuidanceProps) {
   if (title === 'Web and PWA') {
     return (
       <div className="brand-platform-guide">
@@ -147,7 +154,11 @@ function PlatformGuidance({ title }: { title: string }) {
     </div>
   );
 }
-export function PlatformFiles({ title }: { title: string }) {
+interface PlatformFilesProps {
+  title: string;
+}
+
+export function PlatformFiles({ title }: PlatformFilesProps) {
   const group = kit.platforms.find((entry) => entry.title === title);
   if (!group) return null;
   return (

@@ -188,7 +188,7 @@ export default function WritingItem({
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-label-medium text-muted medium:grid medium:grid-cols-[minmax(0,1fr)_auto] medium:gap-x-4">
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {target && (
+            {target != null && (
               <>
                 <span className="flex items-center gap-1">
                   <Icon

@@ -8,7 +8,11 @@ import { useEffect, useRef } from 'react';
  * only reads that attribute when `animation-timeline`
  * is unsupported and motion is allowed.
  */
-export default function Reveal({ children }: { children: React.ReactNode }) {
+interface RevealProps {
+  children: React.ReactNode;
+}
+
+export default function Reveal({ children }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

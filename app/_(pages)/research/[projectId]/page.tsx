@@ -1,7 +1,7 @@
-export type ResearchProject = {
+export interface ResearchProject {
   title: string;
   description: string;
-};
+}
 
 /**
  * A page showing off a single research project.

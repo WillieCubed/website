@@ -89,7 +89,10 @@ function draft(row: DraftRow): Draft {
     slug: row.slug,
     head: revision(row),
     liveRevisionId: row.live_revision_id,
-    deletedAt: row.deleted_at ? new Date(row.deleted_at).toISOString() : null,
+    deletedAt:
+      row.deleted_at !== null && row.deleted_at !== ''
+        ? new Date(row.deleted_at).toISOString()
+        : null,
   };
 }
 
@@ -110,7 +113,7 @@ export class PostgresStudioStore implements StudioStore {
       projection + ' WHERE d.id = $1 AND d.deleted_at IS NULL',
       [id]
     );
-    return result.rows[0] ? draft(result.rows[0]) : null;
+    return result.rows[0] != null ? draft(result.rows[0]) : null;
   }
 
   async bySlug(slug: string) {
@@ -118,7 +121,7 @@ export class PostgresStudioStore implements StudioStore {
       projection + ' WHERE d.slug = $1 AND d.deleted_at IS NULL',
       [slug]
     );
-    return result.rows[0] ? draft(result.rows[0]) : null;
+    return result.rows[0] != null ? draft(result.rows[0]) : null;
   }
 
   async create(slug: string, body: DraftContent): Promise<Draft> {
@@ -164,7 +167,8 @@ export class PostgresStudioStore implements StudioStore {
         'SELECT head_id FROM studio_documents WHERE id=$1 AND deleted_at IS NULL FOR UPDATE',
         [id]
       );
-      if (!current.rows[0]) throw new StudioError(404, 'Writing not found.');
+      if (current.rows[0] == null)
+        throw new StudioError(404, 'Writing not found.');
       const n = await client.query(
         'SELECT COALESCE(MAX(number),0)+1 AS number FROM studio_revisions WHERE document_id=$1',
         [id]
@@ -213,7 +217,7 @@ export class PostgresStudioStore implements StudioStore {
       'SELECT * FROM studio_revisions WHERE id=$1',
       [id]
     );
-    return result.rows[0] ? revision(result.rows[0]) : null;
+    return result.rows[0] != null ? revision(result.rows[0]) : null;
   }
 
   async remove(id: string, expectedRevisionId: string) {
@@ -221,7 +225,7 @@ export class PostgresStudioStore implements StudioStore {
       'UPDATE studio_documents SET deleted_at=now() WHERE id=$1 AND head_id=$2 AND deleted_at IS NULL RETURNING id',
       [id, expectedRevisionId]
     );
-    if (!result.rowCount)
+    if ((result.rowCount ?? 0) === 0)
       throw new StudioError(
         409,
         'The writing changed. Refresh before deleting.'

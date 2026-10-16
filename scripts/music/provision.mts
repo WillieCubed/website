@@ -56,7 +56,7 @@ export async function provisionMusic() {
       const exists = (
         await pool.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [role])
       ).rowCount;
-      if (!exists)
+      if ((exists ?? 0) === 0)
         await pool.query(`CREATE ROLE ${role} LOGIN PASSWORD '${state[key]}'`);
       await pool.query(`GRANT USAGE ON SCHEMA public TO ${role}`);
     }

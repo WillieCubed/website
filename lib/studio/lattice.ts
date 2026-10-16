@@ -42,7 +42,8 @@ export async function dispatchGeneration(
       }),
     ]
   );
-  if (!claim.rowCount) return (await store.getGeneration(generation.id))!;
+  if ((claim.rowCount ?? 0) === 0)
+    return (await store.getGeneration(generation.id))!;
   const finish = async (update: Partial<Generation>) => {
     await getStudioPool().query(
       "UPDATE studio_generations SET body=body || $3::jsonb WHERE id=$1 AND body->>'dispatchId'=$2 AND body->>'status'='running'",
@@ -231,7 +232,7 @@ async function storedRuntime(): Promise<string | null> {
       "SELECT credential FROM studio_connections WHERE id='lattice-runtime'"
     )
   ).rows[0];
-  if (row) {
+  if (row != null) {
     try {
       return unseal<StoredRuntime>(row.credential).runtimeId;
     } catch {
@@ -269,7 +270,7 @@ export async function runtimeSelection(): Promise<RuntimeSelection> {
       "SELECT 1 FROM studio_connections WHERE id='lattice'"
     )
   ).rowCount;
-  if (!connected)
+  if ((connected ?? 0) === 0)
     return { connected: false, devices: [], selectedRuntimeId: null };
   let token: string;
   try {

@@ -57,7 +57,7 @@ export async function readAsset(id: string) {
   const record = (
     await getStudioPool().query('SELECT * FROM studio_assets WHERE id=$1', [id])
   ).rows[0];
-  if (!record) throw new StudioError(404, 'Image not found.');
+  if (record == null) throw new StudioError(404, 'Image not found.');
   const value = await privateBucket().get(record.pathname);
   if (!value) throw new StudioError(404, 'Image not found.');
   return {

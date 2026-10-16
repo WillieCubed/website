@@ -138,8 +138,9 @@ export function renderConsentPage({
   me,
 }: ConsentPageOptions): string {
   const clientName = client.name ?? new URL(request.clientId).host;
-  const scopes = request.scope.length
-    ? `<fieldset class="permissions">
+  const scopes =
+    request.scope.length > 0
+      ? `<fieldset class="permissions">
 <legend>Allow ${escapeHtml(clientName)} to</legend>
 <div class="scope-list">
 ${request.scope
@@ -150,7 +151,7 @@ ${request.scope
   .join('\n')}
 </div>
 </fieldset>`
-    : '<p class="hint">This request only confirms who you are.</p>';
+      : '<p class="hint">This request only confirms who you are.</p>';
   return document(
     `Sign in to ${clientName}`,
     `<div class="consent">

@@ -3,7 +3,13 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const filename = 'lib/example/value.ts';
-const eslint = new ESLint();
+// Comment parsing uses virtual files and does not need a TypeScript project.
+const eslint = new ESLint({
+  overrideConfig: {
+    languageOptions: { parserOptions: { projectService: false } },
+    rules: { '@typescript-eslint/strict-boolean-expressions': 'off' },
+  },
+});
 
 test('code documentation rejects filenames while allowing symbol links and runtime paths', async () => {
   const [result] = await eslint.lintText(

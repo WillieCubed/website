@@ -189,7 +189,7 @@ export function createResponseRecordReader(
       cid: record.cid,
       value: parsed.value,
       pds,
-      ...(parsed.legacyBlobCids.length && {
+      ...(parsed.legacyBlobCids.length > 0 && {
         legacyBlobCids: parsed.legacyBlobCids,
       }),
     };

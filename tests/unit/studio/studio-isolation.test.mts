@@ -100,7 +100,7 @@ test('a verified preview owner sees request-time writing rewrites, while syndica
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const address = server.address();
-  assert.ok(address && typeof address !== 'string');
+  assert.ok(address !== null && typeof address !== 'string');
   const issuer = `http://127.0.0.1:${address.port}`;
   try {
     Object.assign(process.env, {

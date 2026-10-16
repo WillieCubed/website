@@ -12,9 +12,9 @@ function formatDate(date: Date): string {
   });
 }
 
-type NowItemState = {
+interface NowItemState {
   date: Date;
-};
+}
 
 export function NowItem({
   date,
@@ -44,6 +44,10 @@ export const metadata: Metadata = pageMetadata({
  * clock, which the prerenderer only allows inside cached or dynamic code,
  * and an hour of staleness is fine for a page about the current month.
  */
+interface DatedItem {
+  date: Date;
+}
+
 async function loadNowSections() {
   const nowEntries = await getAllNowEntries();
   const now = new Date();
@@ -51,7 +55,7 @@ async function loadNowSections() {
   twoYearsAgo.setFullYear(now.getFullYear() - 2);
   const oneMonthAgo = new Date(now);
   oneMonthAgo.setMonth(now.getMonth() - 1);
-  const byNewest = (a: { date: Date }, b: { date: Date }) =>
+  const byNewest = (a: DatedItem, b: DatedItem) =>
     new Date(b.date).getTime() - new Date(a.date).getTime();
 
   return {

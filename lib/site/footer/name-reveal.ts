@@ -256,9 +256,9 @@ export function createNameReveal(
       }
       // Nothing to do while the wave stands still and the letters have
       // caught up with it, which is most of the page.
-      if (next === wave && !frame) return;
+      if (next === wave && frame === 0) return;
       wave = next;
-      if (frame) return;
+      if (frame !== 0) return;
       last = performance.now();
       frame = requestAnimationFrame(tick);
     },

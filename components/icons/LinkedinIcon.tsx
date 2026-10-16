@@ -1,4 +1,8 @@
-export default function LinkedinIcon({ className }: { className?: string }) {
+interface LinkedinIconProps {
+  className?: string;
+}
+
+export default function LinkedinIcon({ className }: LinkedinIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

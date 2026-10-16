@@ -174,7 +174,7 @@ export async function accessToken(): Promise<string> {
     const rows = await client.query(
       "SELECT credential FROM studio_connections WHERE id='lattice' FOR UPDATE"
     );
-    if (!rows.rows[0])
+    if (rows.rows[0] == null)
       throw new StudioError(503, 'Connect your Lattice account first.');
     let grant = unseal<Grant>(rows.rows[0].credential);
     if (grant.expiresAt < Date.now() + 60_000) {

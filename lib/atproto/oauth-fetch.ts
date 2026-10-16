@@ -47,7 +47,7 @@ function publicOAuthEndpoint(input: RequestInfo | URL): URL {
   if (url.protocol !== 'https:' || url.username || url.password)
     throw new Error('OAuth endpoints must use public HTTPS.');
   const host = url.hostname.replace(/^\[|\]$/g, '');
-  if (isIP(host) && !isPublicAddress(host))
+  if (isIP(host) !== 0 && !isPublicAddress(host))
     throw new Error('OAuth endpoints must use public HTTPS.');
   return url;
 }

@@ -260,7 +260,7 @@ export async function getWebmention(id: string): Promise<Webmention | null> {
     WHERE id = ${id}
   `;
   const [row] = result.rows;
-  return row ? rowToWebmention(row as WebmentionRow) : null;
+  return row != null ? rowToWebmention(row as WebmentionRow) : null;
 }
 
 /**
@@ -621,6 +621,10 @@ function rowsToWebmentions(rows: unknown[]): Webmention[] {
   return rows.map((row) => rowToWebmention(row as WebmentionRow));
 }
 
+function optionalTimestamp(value: string | Date | null): Date | undefined {
+  return value === null || value === '' ? undefined : new Date(value);
+}
+
 function rowToWebmention(row: WebmentionRow): Webmention {
   return {
     id: row.id,
@@ -636,9 +640,9 @@ function rowToWebmention(row: WebmentionRow): Webmention {
     name: citedName(row.name, row.content),
     content: row.content ?? undefined,
     contentHtml: row.content_html ?? undefined,
-    publishedAt: row.published_at ? new Date(row.published_at) : undefined,
+    publishedAt: optionalTimestamp(row.published_at),
     receivedAt: new Date(row.received_at),
-    verifiedAt: row.verified_at ? new Date(row.verified_at) : undefined,
+    verifiedAt: optionalTimestamp(row.verified_at),
     isVerified: row.is_verified,
     isApproved: row.is_approved,
   };

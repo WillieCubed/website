@@ -148,7 +148,7 @@ test('cold publishing imports preserve native HTTPS headers and gzip bodies', as
       server!.listen(0, '127.0.0.1', finish);
     });
     const address = server.address();
-    assert(address && typeof address !== 'string');
+    assert(address !== null && typeof address !== 'string');
     const script = `
       await Promise.all([
         import('./lib/atproto/bluesky.ts'),

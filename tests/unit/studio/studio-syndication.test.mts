@@ -29,12 +29,16 @@ test('generated blocks carry meaningful portable Markdown in feed HTML', async (
 });
 
 test('publication audit rejects generated blocks without useful portable content', () => {
-  assert.ok(auditPortableContent('<StudioBlock id="map" />').length);
-  assert.ok(auditPortableContent('<StudioBlock portable="a" />').length);
+  assert.ok(auditPortableContent('<StudioBlock id="map" />').length > 0);
+  assert.ok(auditPortableContent('<StudioBlock portable="a" />').length > 0);
   const blank = Buffer.from('---').toString('base64url');
-  assert.ok(auditPortableContent(`<StudioBlock portable="${blank}" />`).length);
+  assert.ok(
+    auditPortableContent(`<StudioBlock portable="${blank}" />`).length > 0
+  );
   const code = Buffer.from('{process.exit(1)}').toString('base64url');
-  assert.ok(auditPortableContent(`<StudioBlock portable="${code}" />`).length);
+  assert.ok(
+    auditPortableContent(`<StudioBlock portable="${code}" />`).length > 0
+  );
 });
 
 test('legacy interactive blocks and expressions never silently disappear or execute', async () => {

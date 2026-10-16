@@ -53,7 +53,7 @@ function rssEnclosure(item: FeedItem): string {
     )
     .find((attachment) => attachment !== undefined);
   const attachment = preferred ?? attachments[0];
-  return attachment
+  return attachment != null
     ? `<enclosure url="${escapeXml(attachment.url)}" type="${escapeXml(attachment.mime_type)}" length="${attachment.size_in_bytes}"/>`
     : '';
 }
@@ -117,7 +117,8 @@ export function writingToFeedItem(
     content,
     url: absoluteRoute`/writings/${writing.slug}`,
     published: new Date(writing.published),
-    updated: writing.lastUpdated ? new Date(writing.lastUpdated) : undefined,
+    updated:
+      writing.lastUpdated != null ? new Date(writing.lastUpdated) : undefined,
     categories: writing.tags,
     attachments: writingAttachments(writing).map((media) => ({
       url: media.url,
@@ -202,7 +203,7 @@ function latestFeedDate(items: FeedItem[]): Date {
   return (
     items
       .map((item) => item.updated || item.published)
-      .sort((a, b) => b.getTime() - a.getTime())[0] || new Date()
+      .sort((a, b) => b.getTime() - a.getTime())[0] ?? new Date()
   );
 }
 
@@ -417,7 +418,9 @@ export function generateJsonFeed(
           },
         ],
       }),
-      ...(item.attachments?.length && { attachments: item.attachments }),
+      ...((item.attachments?.length ?? 0) > 0 && {
+        attachments: item.attachments,
+      }),
     })),
   };
 

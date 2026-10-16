@@ -4,15 +4,17 @@ import './site.css';
 import './styles/buttons.css';
 
 /** Site controls share typography, hit area, focus and state treatment. */
+interface ButtonProps extends ComponentProps<'button'> {
+  variant?: 'surface' | 'outlined' | 'tonal' | 'primary' | 'quiet';
+  iconOnly?: boolean;
+}
+
 export default function Button({
   variant = 'surface',
   iconOnly = false,
   className = '',
   ...props
-}: ComponentProps<'button'> & {
-  variant?: 'surface' | 'outlined' | 'tonal' | 'primary' | 'quiet';
-  iconOnly?: boolean;
-}) {
+}: ButtonProps) {
   return (
     <button
       {...props}

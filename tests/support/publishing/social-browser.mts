@@ -446,7 +446,7 @@ export async function socialUiFailures(options: {
   // The primary callback performed one write. Reserve its slot and honor the deployed ten-write minute limit.
   const writeTimes = [Date.now()];
   async function writeSlot() {
-    while (writeTimes.length && writeTimes[0] <= Date.now() - 61000)
+    while (writeTimes.length > 0 && writeTimes[0] <= Date.now() - 61000)
       writeTimes.shift();
     if (writeTimes.length >= 9) {
       const wait = Math.max(1, writeTimes[0] + 61000 - Date.now());
@@ -624,7 +624,7 @@ export async function socialUiFailures(options: {
     for (const kind of ['subscription', 'recommendation'] as const) {
       await load(kind);
       const existing = await confirmedGraph(kind);
-      if (existing.length) {
+      if (existing.length > 0) {
         // The parent owns callback-created records and authorizes this narrow undo.
         await options.beforeMutation(kind);
         await writeSlot();
@@ -1203,7 +1203,7 @@ async function visitorGraphRecords(
     for (const record of page.records) {
       assert(record.uri.startsWith(`at://${did}/${collection}/`));
       assert(typeof record.cid === 'string' && record.cid);
-      assert(record.value && typeof record.value === 'object');
+      assert(record.value != null && typeof record.value === 'object');
       records.push({
         uri: record.uri,
         cid: record.cid,

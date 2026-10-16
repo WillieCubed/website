@@ -161,9 +161,10 @@ export function createPublicOnlyLookup(
     resolvePublicAddresses(hostname, resolve).then(
       (resolved) => {
         const wanted = wantedFamily(options.family);
-        const addresses = wanted
-          ? resolved.filter(({ family }) => family === wanted)
-          : resolved;
+        const addresses =
+          wanted !== 0
+            ? resolved.filter(({ family }) => family === wanted)
+            : resolved;
         if (addresses.length === 0) {
           callback(blockedAddressError(hostname), '');
         } else if (options.all) {
@@ -197,7 +198,7 @@ export function createPublicOnlyAgent(
           return;
         }
         const peer = socket?.remoteAddress;
-        if (!socket || !peer || !isPublicAddress(peer)) {
+        if (socket == null || !peer || !isPublicAddress(peer)) {
           socket?.destroy();
           callback(blockedAddressError(options.hostname), null);
           return;
@@ -265,7 +266,7 @@ export async function isFetchableUrl(
   if (!['https:', 'http:'].includes(url.protocol)) return false;
   if (url.username || url.password) return false;
   const hostname = url.hostname.replace(/^\[|\]$/g, '');
-  if (isIP(hostname)) return isPublicAddress(hostname);
+  if (isIP(hostname) !== 0) return isPublicAddress(hostname);
   if (resolve === systemResolver && cloudflareRuntime) {
     const name = hostname.replace(/\.+$/, '');
     return name !== 'localhost' && !name.endsWith('.localhost');

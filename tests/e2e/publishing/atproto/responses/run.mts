@@ -1057,7 +1057,8 @@ export async function runHostedResponses() {
             ) &&
             Boolean(indexedPlaylist) &&
             views.some(
-              (view) => view.uri === image.uri && view.embed?.images?.length
+              (view) =>
+                view.uri === image.uri && (view.embed?.images?.length ?? 0) > 0
             ) &&
             quotes.posts.some((view) => view.uri === quote.uri) &&
             likes.likes.some((like) => like.actor.did === did) &&
@@ -1082,8 +1083,8 @@ export async function runHostedResponses() {
             imported.groups.replies.some((reply) => reply.id === ref.uri)
           ) &&
             imported.groups.mentions.some((reply) => reply.id === quote.uri) &&
-            imported.groups.likes.length &&
-            imported.groups.reposts.length,
+            imported.groups.likes.length > 0 &&
+            imported.groups.reposts.length > 0,
           'The actual importer must retain every indexed reply, quote, like and repost.'
         );
         assert(

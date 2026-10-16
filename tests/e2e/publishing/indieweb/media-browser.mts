@@ -230,11 +230,14 @@ export async function runMediaBrowserTests() {
             media.currentTime = 0;
             return observed;
           });
-          if (tag === 'video')
+          if (tag === 'video') {
+            assert(typeof observed.width === 'number');
+            assert(typeof observed.height === 'number');
             assert(
-              observed.width && observed.height,
+              observed.width > 0 && observed.height > 0,
               'The playing video must have decoded dimensions.'
             );
+          }
           playback.push({ kind: tag, ...observed });
         }
         receipt.activeCheck = `${width}px ${theme}: PDF attachment`;
@@ -392,7 +395,7 @@ function readFeedEntry({
     },
   };
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
-  if (doc.getElementsByTagName('parsererror').length)
+  if (doc.getElementsByTagName('parsererror').length > 0)
     throw new Error('The deployed XML feed is malformed.');
   const entries = Array.from(
     doc.getElementsByTagName(kind === 'rss' ? 'item' : 'entry')

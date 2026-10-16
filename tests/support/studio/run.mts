@@ -20,14 +20,14 @@ export async function runStudioTests() {
   async function cleanup() {
     if (cleaning) return;
     cleaning = true;
-    if (runningTests?.pid) {
+    if (runningTests?.pid !== undefined) {
       try {
         process.kill(-runningTests.pid, 'SIGTERM');
       } catch {
         /* Test runner may have stopped already. */
       }
     }
-    if (next?.pid) {
+    if (next?.pid !== undefined) {
       try {
         process.kill(-next.pid, 'SIGTERM');
       } catch {
@@ -91,7 +91,7 @@ export async function runStudioTests() {
     const code = await new Promise<number | null>((resolve) =>
       runningTests!.once('exit', resolve)
     );
-    process.exitCode = code || 0;
+    process.exitCode = code ?? 0;
   } catch (error) {
     console.error(error);
     process.exitCode = 1;
@@ -119,7 +119,7 @@ export async function runStudioTests() {
       server!.listen(0, '127.0.0.1', resolve)
     );
     const address = server.address();
-    if (!address || typeof address === 'string')
+    if (address === null || typeof address === 'string')
       throw new Error('The test issuer needs a local TCP listener.');
     const issuer = `http://127.0.0.1:${address.port}`;
     const token = await new SignJWT({ email: 'studio-test@example.invalid' })

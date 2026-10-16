@@ -133,7 +133,7 @@ function runtimeMessage(
   selected?: RuntimeChoice
 ): string {
   if (!next.connected) return 'Connect Lattice to choose your Lovelace device.';
-  if (!next.devices.length)
+  if (next.devices.length === 0)
     return 'No personal devices are available. Open Lovelace on your computer and pair it with Lattice.';
   if (!selected)
     return 'Choose the personal device that should handle your requests.';

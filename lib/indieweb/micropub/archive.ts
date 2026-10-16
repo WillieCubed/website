@@ -98,7 +98,7 @@ export const micropubArchiveStore: MicropubArchiveStore = {
       FROM micropub_deleted_writings WHERE mutation_key = ${key}
     `;
     const row = result.rows[0];
-    return row
+    return row != null
       ? {
           url: row.permalink,
           slug: row.slug,

@@ -129,7 +129,7 @@ async function ensureDataMarker(journal: Journal): Promise<void> {
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     assert(
-      !journal.workers.length &&
+      journal.workers.length === 0 &&
         !journal.tunnel &&
         !journal.publisher.did &&
         !journal.visitor.did,
@@ -151,7 +151,7 @@ async function ensureDataMarker(journal: Journal): Promise<void> {
       await mkdir(journal.data, { mode: 0o700 });
       names = [];
     }
-    assert(!names.length, 'Refuse an unmarked nonempty data directory.');
+    assert(names.length === 0, 'Refuse an unmarked nonempty data directory.');
     await privateWrite(
       resolve(journal.data, '.acceptance-owner'),
       journal.marker
@@ -180,7 +180,7 @@ export async function ensureTunnel(journal: Journal, journalPath: string) {
     stdio: ['ignore', descriptor, descriptor],
   });
   closeSync(descriptor);
-  assert(child.pid);
+  assert(child.pid !== undefined);
   child.unref();
   const commandLine = `cloudflared ${args.join(' ')}`;
   journal.tunnel = { pid: child.pid, upstream: '', command: commandLine };

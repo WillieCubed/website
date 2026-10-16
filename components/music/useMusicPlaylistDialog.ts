@@ -16,7 +16,7 @@ function readLocation() {
   return { series: params.get('series'), detail: params.get('detail') };
 }
 
-type Options = {
+interface Options {
   catalog: Catalog;
   mode: MusicMode;
   initialDetail?: string;
@@ -28,7 +28,7 @@ type Options = {
   gallery: RefObject<HTMLDivElement | null>;
   seriesId: string | null;
   setSeriesId: (id: string | null) => void;
-};
+}
 interface PlaylistDestination {
   seriesId: string | null;
   playlistIds: string[];
@@ -60,7 +60,9 @@ export function useMusicPlaylistDialog({
   const ownDetailEntry = useRef(false);
   const ownPop = useRef(false);
   const focusIds =
-    focused && focusSequence.current.length ? focusSequence.current : displayed;
+    focused && focusSequence.current.length > 0
+      ? focusSequence.current
+      : displayed;
   const currentIndex = focused ? focusIds.indexOf(focused) : -1;
   useEffect(() => () => cancelMotion.current?.(), []);
 
@@ -213,7 +215,7 @@ export function musicHref(
       : mode === 'admin'
         ? '/studio/music'
         : '/music';
-  return `${path}${params.size ? `?${params}` : ''}`;
+  return `${path}${params.size > 0 ? `?${params}` : ''}`;
 }
 
 function closeTarget(

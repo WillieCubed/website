@@ -110,7 +110,7 @@ export const indieAuthStore: IndieAuthStore = {
         )
     `;
     const row = result.rows[0];
-    if (!row) return null;
+    if (row == null) return null;
     return {
       clientId: row.client_id,
       me: row.me,

@@ -3,15 +3,17 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 /** Content becomes usable immediately; its skeleton fades independently. */
+interface StudioDocumentTransitionProps {
+  ready: boolean;
+  pending: ReactNode;
+  children: ReactNode;
+}
+
 export default function StudioDocumentTransition({
   ready,
   pending,
   children,
-}: {
-  ready: boolean;
-  pending: ReactNode;
-  children: ReactNode;
-}) {
+}: StudioDocumentTransitionProps) {
   const [opening, setOpening] = useState(true);
   const outgoing = useRef<HTMLDivElement>(null);
   useEffect(() => {

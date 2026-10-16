@@ -77,7 +77,7 @@ function validMark(mark: EditorMark): boolean {
 function validateDocumentNode(node: EditorNode, depth: number): void {
   if (
     depth > 50 ||
-    !node ||
+    node == null ||
     typeof node.type !== 'string' ||
     !allowedNodes.has(node.type)
   )
@@ -267,11 +267,13 @@ function bulletListSource(node: EditorNode): string {
 
 function orderedListSource(node: EditorNode): string {
   const a = node.attrs ?? {};
+  const parsedStart = Number(a.start);
+  const start =
+    parsedStart === 0 || Number.isNaN(parsedStart) ? 1 : parsedStart;
   return (node.content ?? [])
     .map(
       (item, i) =>
-        `${i + (Number(a.start) || 1)}. ` +
-        documentSource(item).replaceAll('\n', '\n   ')
+        `${i + start}. ` + documentSource(item).replaceAll('\n', '\n   ')
     )
     .join('\n');
 }
@@ -283,12 +285,11 @@ function imageSource(node: EditorNode): string {
 
 function headingSource(node: EditorNode): string {
   const a = node.attrs ?? {};
+  const parsedLevel = Number(a.level);
+  const level =
+    parsedLevel === 0 || Number.isNaN(parsedLevel) ? 2 : parsedLevel;
   const children = () => (node.content ?? []).map(documentSource).join('');
-  return (
-    '#'.repeat(Math.max(2, Math.min(6, Number(a.level) || 2))) +
-    ' ' +
-    children()
-  );
+  return '#'.repeat(Math.max(2, Math.min(6, level))) + ' ' + children();
 }
 
 export function exportMdx(

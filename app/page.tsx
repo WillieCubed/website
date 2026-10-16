@@ -98,7 +98,7 @@ export default async function HomePage({ searchParams }: PageProps<'/'>) {
   );
   const focusItems = focuses.map((focus) => {
     const own = tiles.filter((tile) => byFocus[focus.id].includes(tile.id));
-    const vars = own[0] && brandVarsOfTile(own[0], brands);
+    const vars = own[0] != null && brandVarsOfTile(own[0], brands);
     return {
       ...focus,
       live: own.length > 0,

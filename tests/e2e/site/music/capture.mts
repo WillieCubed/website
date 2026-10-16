@@ -85,7 +85,7 @@ export async function captureMusicPrototype() {
         const capture = async (name: string) => {
           const file = `${output}/${device}-${name}-${colorScheme}.png`;
           await page.screenshot({ path: file, fullPage: false });
-          if (!(await page.locator('dialog[open]').count()))
+          if ((await page.locator('dialog[open]').count()) === 0)
             await page.screenshot({
               path: `${output}/${device}-${name}-${colorScheme}-full.png`,
               fullPage: true,

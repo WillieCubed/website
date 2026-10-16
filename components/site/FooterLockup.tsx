@@ -25,7 +25,11 @@ import {
  * brings it in instead, and the homepage styles
  * turns the wipe off there.
  */
-export default function FooterLockup({ name }: { name: string }) {
+interface FooterLockupProps {
+  name: string;
+}
+
+export default function FooterLockup({ name }: FooterLockupProps) {
   const menuId = useId();
   const markButton = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);

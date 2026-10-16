@@ -217,7 +217,7 @@ function mediaFetchArguments(args: string[]) {
   if (
     !['discover', 'fetch'].includes(command) ||
     !argument ||
-    extra.length ||
+    extra.length > 0 ||
     (command === 'discover' && argument === '--all')
   ) {
     throw new Error(

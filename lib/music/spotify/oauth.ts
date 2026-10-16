@@ -50,7 +50,7 @@ export async function completeSpotify(
       ]
     )
   ).rows[0];
-  if (!row)
+  if (row == null)
     throw new StudioError(
       400,
       'Spotify sign-in expired or was already used. Connect again.'
@@ -84,7 +84,7 @@ export async function completeSpotify(
         'SELECT owner_id FROM music_connections WHERE singleton=true'
       )
     ).rows[0];
-    if (existing && existing.owner_id !== me.id)
+    if (existing != null && existing.owner_id !== me.id)
       throw new StudioError(
         409,
         'Reconnect the same Spotify account to preserve your collection.'

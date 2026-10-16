@@ -1,7 +1,11 @@
 import { type JsonLdNode, serializeJsonLd } from '@/lib/seo/jsonld';
 
 /** Renders one JSON-LD script tag. The data is escaped by serializeJsonLd. */
-export default function JsonLd({ data }: { data: JsonLdNode }) {
+interface JsonLdProps {
+  data: JsonLdNode;
+}
+
+export default function JsonLd({ data }: JsonLdProps) {
   return (
     <script
       type="application/ld+json"

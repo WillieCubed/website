@@ -72,7 +72,7 @@ export async function extractInternalLinks(): Promise<LinkMap> {
       // Don't count self-links
       if (targetSlug === sourceSlug) continue;
 
-      if (!linkMap[targetSlug]) {
+      if (linkMap[targetSlug] == null) {
         linkMap[targetSlug] = [];
       }
       if (!linkMap[targetSlug].includes(sourceSlug)) {
@@ -90,7 +90,7 @@ export async function extractInternalLinks(): Promise<LinkMap> {
  */
 export async function getBacklinksForPost(slug: string): Promise<Backlink[]> {
   const linkMap = await extractInternalLinks();
-  const sourceSlugs = linkMap[slug] || [];
+  const sourceSlugs = linkMap[slug] ?? [];
 
   if (sourceSlugs.length === 0) {
     return [];

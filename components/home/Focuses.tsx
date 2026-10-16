@@ -32,7 +32,11 @@ export interface StackPicture {
  * and focus events a hover would, so those preview only for a mouse and a
  * keyboard, or the tap would switch the focus on and then straight off.
  */
-function LiveFocus({ focus }: { focus: FocusItem }) {
+interface LiveFocusProps {
+  focus: FocusItem;
+}
+
+function LiveFocus({ focus }: LiveFocusProps) {
   const { preview, lit, setPreview, clearPreviewNow } = useHome();
   const { onPointerEnter, onPointerLeave, onFocus, onBlur } =
     usePreviewHandlers({ focus: focus.id });
@@ -80,7 +84,11 @@ function LiveFocus({ focus }: { focus: FocusItem }) {
  * what the work is. The rail is on the first screen at every size, so they
  * load eagerly.
  */
-function Stack({ pictures }: { pictures: StackPicture[] }) {
+interface StackProps {
+  pictures: StackPicture[];
+}
+
+function Stack({ pictures }: StackProps) {
   return (
     <span className="stack" aria-hidden="true">
       {pictures.map((image) => (
@@ -101,7 +109,11 @@ function Stack({ pictures }: { pictures: StackPicture[] }) {
 }
 
 /** The rail's list of what Willie is working toward. */
-export function Focuses({ items }: { items: FocusItem[] }) {
+interface FocusesProps {
+  items: FocusItem[];
+}
+
+export function Focuses({ items }: FocusesProps) {
   return (
     <section className="focuses" aria-labelledby="focuses-heading">
       <h2 id="focuses-heading">Focuses</h2>
@@ -130,13 +142,12 @@ export function Focuses({ items }: { items: FocusItem[] }) {
  * view in place, growing out of the name, and falls back to the same view by
  * URL without scripting. It is a prose link, so it keeps the hover card.
  */
-export function VentureLink({
-  id,
-  children,
-}: {
+interface VentureLinkProps {
   id: string;
   children: React.ReactNode;
-}) {
+}
+
+export function VentureLink({ id, children }: VentureLinkProps) {
   const { openDetail } = useHome();
   return (
     <SiteLink

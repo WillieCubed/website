@@ -253,6 +253,29 @@ exemptions. Do not raise limits or add suppressions to make a refactor pass.
 Review touched code for readable responsibilities and dependency direction even
 when lint passes.
 
+UI contracts use named interfaces. Standard `no-restricted-syntax` selectors
+reject inline object parameter types (including defaulted props), inline props
+for `FC`/`FunctionComponent`/`ComponentType` and `memo`/`forwardRef`, and utility fragments such as `Pick` in parameters
+or property contracts. `@typescript-eslint/consistent-type-definitions` requires
+interfaces for object definitions in app and component modules. Named union
+and utility aliases remain useful for domain types that cannot be interfaces.
+
+`@typescript-eslint/strict-boolean-expressions` rejects number and nullable-number
+truthiness throughout JavaScript and TypeScript. Compare counts explicitly:
+`items.length > 0`, `(items?.length ?? 0) > 0`, or `count === 0`. Check optional
+identifiers for absence rather than conflating absence with zero. Numeric defaults
+and sort results need particular care: preserve whether zero and `NaN` select a
+fallback, and preserve negative comparator results. String, nullable-boolean,
+and nullable-object checks remain allowed; mixed types need explicit checks.
+
+Both gates run through the existing Husky pre-commit hook and required CI lint
+job. Pre-commit uses `lint-staged` with `eslint --fix`; CI uses `pnpm lint` over
+the whole repository. Typed lint reads the TypeScript project, including supported
+JavaScript files and hidden route modules. The pre-commit command does not cache
+results because inferred types can change through imported declarations. No
+custom checker or baseline is needed, and lint success still requires architectural
+review of responsibilities and state ownership.
+
 ## Verification
 
 Custom ESLint rules, processors, and configuration use TypeScript and are

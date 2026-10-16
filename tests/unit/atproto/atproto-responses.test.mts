@@ -64,7 +64,7 @@ test('native replies preserve identity, source, date and gallery descriptions', 
       description: 'A garden',
     },
   ]);
-  assert.equal(response && 'isVerified' in response, false);
+  assert.equal(response != null && 'isVerified' in response, false);
 });
 test('hidden, blocked, labelled or malformed replies never display', () => {
   assert.equal(

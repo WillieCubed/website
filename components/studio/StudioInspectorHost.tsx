@@ -7,11 +7,13 @@ export const StudioInspectorHostContext = createContext<HTMLDivElement | null>(
   null
 );
 
+interface StudioInspectorHostProps {
+  children: ReactNode;
+}
+
 export default function StudioInspectorHost({
   children,
-}: {
-  children: ReactNode;
-}) {
+}: StudioInspectorHostProps) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   return (
     <StudioInspectorHostContext value={host}>

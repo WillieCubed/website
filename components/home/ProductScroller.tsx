@@ -14,13 +14,12 @@ import { brandStyle, prefersReducedMotion, useHome } from './HomeContext';
  * The studio tile's product cards. On compact screens they scroll and snap
  * sideways, and the pager follows whichever card has snapped into place.
  */
-export function ProductScroller({
-  products,
-  loading,
-}: {
+interface ProductScrollerProps {
   products: Product[];
   loading: 'eager' | 'lazy';
-}) {
+}
+
+export function ProductScroller({ products, loading }: ProductScrollerProps) {
   const { openDetail, brands } = useHome();
   const hydrated = useHydrated();
   const scroller = useRef<HTMLDivElement>(null);

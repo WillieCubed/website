@@ -152,7 +152,7 @@
     "wrangler": "4.149.0"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,mts}": "eslint --cache --fix",
+    "*.{js,jsx,ts,tsx,mjs,mts}": "eslint --fix",
     "*.{js,jsx,ts,tsx,mjs,mts,css,md}": "prettier --write"
   }
 }

@@ -29,11 +29,12 @@ export function rankItems(
     scored.push({ ...item, score, snippet: snippetFor(item.content, terms) });
   }
 
-  return scored.sort(
-    (a, b) =>
-      (b.score ?? 0) - (a.score ?? 0) ||
-      new Date(b.published).getTime() - new Date(a.published).getTime()
-  );
+  return scored.sort((a, b) => {
+    const byScore = (b.score ?? 0) - (a.score ?? 0);
+    return byScore !== 0 && !Number.isNaN(byScore)
+      ? byScore
+      : new Date(b.published).getTime() - new Date(a.published).getTime();
+  });
 }
 
 function scoreTerms(

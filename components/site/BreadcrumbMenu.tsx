@@ -17,15 +17,7 @@ export type BreadcrumbMenuItem = {
   | { href?: never; onSelect: () => void }
 );
 
-export default function BreadcrumbMenu({
-  label,
-  title,
-  href,
-  items,
-  showArrow,
-  home = false,
-  prefetchHome = true,
-}: {
+interface BreadcrumbMenuProps {
   label: string;
   /** Names the menu when the visible label cannot, such as an ellipsis. */
   title?: string;
@@ -34,7 +26,17 @@ export default function BreadcrumbMenu({
   showArrow: boolean;
   home?: boolean;
   prefetchHome?: boolean;
-}) {
+}
+
+export default function BreadcrumbMenu({
+  label,
+  title,
+  href,
+  items,
+  showArrow,
+  home = false,
+  prefetchHome = true,
+}: BreadcrumbMenuProps) {
   const pathname = usePathname();
 
   if (home) {

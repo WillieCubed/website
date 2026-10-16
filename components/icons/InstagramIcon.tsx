@@ -1,4 +1,8 @@
-export default function InstagramIcon({ className }: { className?: string }) {
+interface InstagramIconProps {
+  className?: string;
+}
+
+export default function InstagramIcon({ className }: InstagramIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

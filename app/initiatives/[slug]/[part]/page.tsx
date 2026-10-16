@@ -84,7 +84,11 @@ export async function generateViewport(
   return initiativeViewport(slug);
 }
 
-function PartMilestones({ part }: { part: Part }) {
+interface PartMilestonesProps {
+  part: Part;
+}
+
+function PartMilestones({ part }: PartMilestonesProps) {
   return (
     <aside className="grid content-start gap-6">
       {part.milestones.length > 0 && (

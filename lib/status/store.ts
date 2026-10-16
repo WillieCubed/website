@@ -21,7 +21,7 @@ export function createStatusStore(query: Query): StatusStore {
         // public reader has its own three-hour Next data cache.
         'SELECT location, updated_at, clock_timestamp() AS origin_read_at FROM status_location WHERE singleton = true'
       );
-      if (!rows[0]) return null;
+      if (rows[0] == null) return null;
       return {
         source: 'manual',
         location: citySchema.parse(rows[0].location),

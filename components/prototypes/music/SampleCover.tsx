@@ -1,10 +1,10 @@
 import type { SamplePlaylist } from '@/lib/prototypes/music';
 
-export default function SampleCover({
-  playlist,
-}: {
+interface SampleCoverProps {
   playlist: SamplePlaylist;
-}) {
+}
+
+export default function SampleCover({ playlist }: SampleCoverProps) {
   const { cover, color, ink, coverLabel, year, part } = playlist;
   return (
     <svg

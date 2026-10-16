@@ -205,7 +205,7 @@ function dominantColor(svg) {
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   const best = [...counts].sort((a, b) => b[1] - a[1])[0];
-  return best ? best[0] : null;
+  return best !== undefined ? best[0] : null;
 }
 
 async function fromIcon(html, base) {

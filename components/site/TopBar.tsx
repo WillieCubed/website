@@ -132,8 +132,8 @@ export default function TopBar({
                   href={crumb.href}
                   items={[
                     { label: crumb.label, href: crumb.href },
-                    ...(crumb.menuItems?.length
-                      ? crumb.menuItems
+                    ...((crumb.menuItems?.length ?? 0) > 0
+                      ? (crumb.menuItems ?? [])
                       : routedPages.some((page) => page.path === crumb.href)
                         ? routedPages.map(({ label, path }) => ({
                             label,

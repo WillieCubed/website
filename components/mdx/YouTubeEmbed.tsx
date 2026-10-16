@@ -9,9 +9,10 @@ export default function YouTubeEmbed({
   title = 'YouTube video',
   startTime,
 }: YouTubeEmbedProps) {
-  const src = startTime
-    ? `https://www.youtube.com/embed/${videoId}?start=${startTime}`
-    : `https://www.youtube.com/embed/${videoId}`;
+  const src =
+    startTime !== undefined && startTime !== 0 && !Number.isNaN(startTime)
+      ? `https://www.youtube.com/embed/${videoId}?start=${startTime}`
+      : `https://www.youtube.com/embed/${videoId}`;
 
   return (
     <figure className="my-6 w-full">

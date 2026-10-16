@@ -140,15 +140,13 @@ export default function WritingHeader({
   );
 }
 
-function Byline({
-  writing,
-  publishedIso,
-  readingTime = false,
-}: {
+interface BylineProps {
   writing: WritingData;
   publishedIso: string;
   readingTime?: boolean;
-}) {
+}
+
+function Byline({ writing, publishedIso, readingTime = false }: BylineProps) {
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label-large text-muted">
       <time className="dt-published" dateTime={publishedIso}>

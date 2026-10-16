@@ -177,7 +177,7 @@ function rsvpAnswer(hEntry: MicroformatRoot): RSVPStatus | undefined {
   const text =
     typeof value === 'string'
       ? value
-      : value && 'value' in value && typeof value.value === 'string'
+      : value != null && 'value' in value && typeof value.value === 'string'
         ? value.value
         : undefined;
   const answer = text?.trim().toLowerCase();
@@ -194,8 +194,11 @@ function extractContent(
   baseUrl: string
 ): { text?: string; html?: string } {
   const properties = hEntry.properties;
-  const content =
-    properties.content?.[0] || properties.summary?.[0] || properties.name?.[0];
+  const content = [
+    properties.content?.[0],
+    properties.summary?.[0],
+    properties.name?.[0],
+  ].find((value) => value != null && value !== '');
 
   const value = contentText(content);
   const originalMarkup = contentMarkup(content);
@@ -217,7 +220,7 @@ function extractContent(
 function extractPublishedDate(hEntry: MicroformatRoot): Date | undefined {
   const properties = hEntry.properties;
   const published = properties.published?.[0];
-  if (!published) return undefined;
+  if (published == null || published === '') return undefined;
 
   if (typeof published === 'string') {
     const date = new Date(published);
@@ -352,8 +355,8 @@ function contentText(value: MicroformatProperty | undefined): string {
 function contentMarkup(
   value: MicroformatProperty | undefined
 ): string | undefined {
-  return value &&
-    typeof value === 'object' &&
+  return typeof value === 'object' &&
+    value !== null &&
     'html' in value &&
     typeof value.html === 'string'
     ? value.html

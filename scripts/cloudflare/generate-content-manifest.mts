@@ -19,7 +19,7 @@ export async function generateContentManifest() {
       else if (/\.(?:png|jpe?g|webp|gif|avif|svg)$/i.test(entry.name)) {
         try {
           const size = imageSize(readFileSync(join(root, path)));
-          if (size.width && size.height)
+          if (size.width !== 0 && size.height !== 0)
             imageDimensions['/' + relative('public', path)] = {
               width: size.width,
               height: size.height,

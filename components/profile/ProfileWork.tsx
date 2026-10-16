@@ -3,7 +3,11 @@ import SharedTitle from '@/components/site/SharedTitle';
 
 import { ventures } from '@/lib/home/ventures';
 
-export default function ProfileWork({ ids }: { ids: string[] }) {
+interface ProfileWorkProps {
+  ids: string[];
+}
+
+export default function ProfileWork({ ids }: ProfileWorkProps) {
   const work = ventures.filter(
     (venture) => !venture.hidden && ids.includes(venture.id)
   );

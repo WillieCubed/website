@@ -51,7 +51,7 @@ function validateTypedMember(member: unknown, field: string): void {
   if (typeof typed.$type !== 'string' || !TYPE.test(typed.$type))
     throw new Error(`atproto.${field} needs a valid lexicon $type.`);
   const schema = knownMembers[typed.$type as keyof typeof knownMembers];
-  if (!schema) return;
+  if (schema == null) return;
   const result = safeParse(schema, member, { strict: true });
   if (!result.ok)
     throw new Error(`Invalid ${typed.$type} metadata: ${result.message}`);

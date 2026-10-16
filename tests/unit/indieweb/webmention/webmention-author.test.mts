@@ -9,7 +9,7 @@ const source = 'https://example.com/replies/1';
 /** The first h-entry parsed from `html`, as the verifier reads it. */
 function entry(html: string) {
   const [item] = mf2(html, { baseUrl: source }).items;
-  assert.ok(item, 'the markup parses to an h-entry');
+  assert.ok(item != null, 'the markup parses to an h-entry');
   return item;
 }
 

@@ -65,7 +65,7 @@ async function get(id: string): Promise<Publication> {
       [id]
     )
   ).rows[0];
-  if (!row) throw new StudioError(404, 'Publication not found.');
+  if (row == null) throw new StudioError(404, 'Publication not found.');
   return row.body;
 }
 async function patch(id: string, value: Partial<Publication>) {
@@ -187,7 +187,7 @@ async function advance(p: Publication): Promise<Publication> {
 }
 
 async function recoverMergedPublication(p: Publication) {
-  if (p.pullRequestNumber) {
+  if ((p.pullRequestNumber ?? 0) > 0) {
     const existing = await github(`pulls/${p.pullRequestNumber}`);
     if (existing.merged) {
       if ((existing.head as GitHubObject).sha !== p.proposalCommit)
@@ -251,7 +251,7 @@ async function ensureProposalBranch(p: Publication) {
     );
 }
 async function ensurePullRequest(p: Publication, branch: string) {
-  if (!p.pullRequestNumber) {
+  if ((p.pullRequestNumber ?? 0) === 0) {
     const owner = required('STUDIO_GITHUB_REPOSITORY').split('/')[0];
     const matches = (await github(
       `pulls?state=all&head=${encodeURIComponent(`${owner}:${p.branch}`)}&base=${encodeURIComponent(branch)}`
@@ -316,7 +316,7 @@ async function recheckSelectedPlaylists(p: Publication) {
       409,
       'The draft changed. Review the current saved collection.'
     );
-  if (revision.body.selected.length) {
+  if (revision.body.selected.length > 0) {
     const auth = await accessToken(),
       client = new SpotifyClient(auth.token),
       cached = await store.playlists();
@@ -392,7 +392,7 @@ async function preparePublication(
 async function reviewPlaylists(revision: MusicRevision) {
   const store = musicStore(),
     revisionId = revision.id;
-  const auth = revision.body.selected.length ? await accessToken() : null,
+  const auth = revision.body.selected.length > 0 ? await accessToken() : null,
     client = new SpotifyClient(auth?.token ?? ''),
     cached = await store.playlists(),
     fresh = [];
@@ -431,7 +431,7 @@ async function verifyPublishedCatalog(baseSha: string | null) {
         [baseSha]
       )
     ).rowCount;
-    if (!known)
+    if ((known ?? 0) === 0)
       throw new StudioError(
         409,
         'The public collection changed outside this admin. Reload the current deployment before publishing.'

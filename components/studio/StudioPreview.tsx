@@ -3,15 +3,17 @@
 import { useEffect, useRef, useState } from 'react';
 
 /** The preview remains opaque; its only message is its own rendered height. */
+interface StudioPreviewProps {
+  html: string;
+  title: string;
+  className?: string;
+}
+
 export default function StudioPreview({
   html,
   title,
   className = 'studio-preview',
-}: {
-  html: string;
-  title: string;
-  className?: string;
-}) {
+}: StudioPreviewProps) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = useState(240);
   const [documentHtml, setDocumentHtml] = useState<string | null>(null);

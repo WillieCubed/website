@@ -7,10 +7,11 @@ import { splitBrews } from '@/lib/writings/remark-brews';
  * purpose: it keeps the prose's colour and weight and shows only a faint
  * dotted underline until pointed at.
  */
-export default function BrewLink({
-  href,
-  children,
-}: PropsWithChildren<{ href: string }>) {
+interface BrewLinkProps extends PropsWithChildren {
+  href: string;
+}
+
+export default function BrewLink({ href, children }: BrewLinkProps) {
   return (
     // A plain anchor, not SiteLink: /coffee and /tea are route handlers,
     // not pages the router can render, so they take a full navigation. The

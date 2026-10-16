@@ -43,6 +43,28 @@ const uiSyntaxRestrictions = [
   ...esmSyntaxRestrictions,
   {
     selector:
+      ':matches(FunctionDeclaration, FunctionExpression, ArrowFunctionExpression) > :matches(Identifier, ObjectPattern, ArrayPattern, RestElement, AssignmentPattern) TSTypeAnnotation TSTypeLiteral',
+    message: 'Declare a named interface for this UI parameter contract.',
+  },
+  {
+    selector:
+      ':matches(FunctionDeclaration, FunctionExpression, ArrowFunctionExpression) > :matches(Identifier, ObjectPattern, AssignmentPattern) TSTypeAnnotation TSTypeReference[typeName.name=/^(Pick|Omit|Partial|Required|ReturnType|Parameters|Awaited|NonNullable)$/], TSPropertySignature > TSTypeAnnotation TSTypeReference[typeName.name=/^(Pick|Omit|Partial|Required|ReturnType|Parameters|Awaited|NonNullable)$/]',
+    message:
+      'Use a named domain contract instead of an inline utility type fragment.',
+  },
+  {
+    selector:
+      'TSTypeReference[typeName.name=/^(FC|FunctionComponent|ComponentType)$/] > TSTypeParameterInstantiation :matches(TSTypeLiteral, TSTypeReference[typeName.name=/^(Pick|Omit|Partial|Required|ReturnType|Parameters|Awaited|NonNullable)$/]), TSTypeReference[typeName.left.name="React"][typeName.right.name=/^(FC|FunctionComponent|ComponentType)$/] > TSTypeParameterInstantiation :matches(TSTypeLiteral, TSTypeReference[typeName.name=/^(Pick|Omit|Partial|Required|ReturnType|Parameters|Awaited|NonNullable)$/])',
+    message: 'Declare a named props interface for this component.',
+  },
+  {
+    selector:
+      'CallExpression[callee.name=/^(memo|forwardRef)$/] > TSTypeParameterInstantiation :matches(TSTypeLiteral, TSTypeReference[typeName.name=/^(Pick|Omit|Partial|Required|ReturnType|Parameters|Awaited|NonNullable)$/]), CallExpression[callee.object.name="React"][callee.property.name=/^(memo|forwardRef)$/] > TSTypeParameterInstantiation :matches(TSTypeLiteral, TSTypeReference[typeName.name=/^(Pick|Omit|Partial|Required|ReturnType|Parameters|Awaited|NonNullable)$/])',
+    message: 'Declare a named props interface for this component.',
+  },
+
+  {
+    selector:
       'TSTypeReference[typeName.name=/^(Awaited|NonNullable|ReturnType|Parameters)$/] TSTypeReference[typeName.name=/^(Awaited|NonNullable|ReturnType|Parameters)$/] TSTypeReference[typeName.name=/^(Awaited|NonNullable|ReturnType|Parameters)$/]',
     message:
       'Use a named domain type instead of stacking three or more inference utilities in UI code.',
@@ -102,6 +124,29 @@ const eslintConfig: Linter.Config[] = [
     ],
     languageOptions: {
       globals: globals.node,
+    },
+  },
+  {
+    files: ['**/*.{js,jsx,ts,tsx,mjs,mts}'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname + '/..',
+      },
+    },
+    rules: {
+      '@typescript-eslint/strict-boolean-expressions': [
+        'error',
+        {
+          allowNumber: false,
+          allowNullableNumber: false,
+          allowString: true,
+          allowNullableString: true,
+          allowNullableBoolean: true,
+          allowNullableObject: true,
+          allowAny: true,
+        },
+      ],
     },
   },
   {
@@ -171,6 +216,7 @@ const eslintConfig: Linter.Config[] = [
   {
     files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}'],
     rules: {
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
       'no-restricted-syntax': ['error', ...uiSyntaxRestrictions],
     },
   },
@@ -182,7 +228,7 @@ const eslintConfig: Linter.Config[] = [
         ...uiSyntaxRestrictions,
         {
           selector:
-            'TSPropertySignature[key.name="params"] > TSTypeAnnotation > TSTypeReference[typeName.name="Promise"] > TSTypeParameterInstantiation > TSTypeLiteral',
+            'TSPropertySignature[key.name="params"] > TSTypeAnnotation > TSTypeReference[typeName.name="Promise"] > TSTypeParameterInstantiation :matches(TSTypeLiteral, TSTypeReference[typeName.name=/^(Pick|Omit|Partial|Required|ReturnType|Parameters|Awaited|NonNullable)$/])',
           message:
             'Use the generated PageProps route helper instead of declaring a params shape by hand.',
         },

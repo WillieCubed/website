@@ -13,9 +13,11 @@ export const contentType = 'image/png';
  * Render a PNG social preview with the initiative part title, dates, places,
  * brand color, and available cover. Return 404 when the part is unavailable.
  */
-export default async function Image(
-  props: Pick<PageProps<'/initiatives/[slug]/[part]'>, 'params'>
-) {
+interface SocialImageProps {
+  params: PageProps<'/initiatives/[slug]/[part]'>['params'];
+}
+
+export default async function Image(props: SocialImageProps) {
   const { slug, part: partSlug } = await props.params;
   const found = await getPart(slug, partSlug);
   if (!found) notFound();
@@ -24,7 +26,7 @@ export default async function Image(
     kicker: `${initiative.title} · ${initiative.partLabel} ${part.number}`,
     title: part.title,
     description: part.tagline ?? part.description,
-    meta: `${formatRange(part.starts, part.ends, true)}${part.places.length ? ` · ${part.places.map((p) => p.name).join(', ')}` : ''}`,
+    meta: `${formatRange(part.starts, part.ends, true)}${part.places.length > 0 ? ` · ${part.places.map((p) => p.name).join(', ')}` : ''}`,
     brand: initiative.brand?.startsWith('#') ? initiative.brand : undefined,
     cover: await publicImageDataUri(part.cover?.src ?? initiative.cover?.src),
   });

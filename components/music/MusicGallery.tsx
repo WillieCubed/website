@@ -162,7 +162,7 @@ export function MusicEmptyCollection({
   hasSelection,
   onBrowse,
 }: EmptyCollectionProps) {
-  if (loading || count) return null;
+  if (loading || count > 0) return null;
   return (
     <div className="mp-empty">
       <Icon name="music" size={32} />

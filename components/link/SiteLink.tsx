@@ -97,8 +97,8 @@ export default function SiteLink({
   const [open, setOpen] = useState(false);
 
   const clearTimers = () => {
-    if (intentTimer.current) window.clearTimeout(intentTimer.current);
-    if (leaveTimer.current) window.clearTimeout(leaveTimer.current);
+    if (intentTimer.current !== null) window.clearTimeout(intentTimer.current);
+    if (leaveTimer.current !== null) window.clearTimeout(leaveTimer.current);
     intentTimer.current = null;
     leaveTimer.current = null;
   };

@@ -96,7 +96,7 @@ test('the same deadline bounds the response body after headers arrive', async ()
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   try {
     const address = server.address();
-    assert(address && typeof address !== 'string');
+    assert(address !== null && typeof address !== 'string');
     const response = await fetchWithDeadline(
       `http://127.0.0.1:${address.port}`,
       {},

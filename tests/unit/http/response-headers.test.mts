@@ -19,7 +19,7 @@ function headersFor(path: string): Map<string, string> {
       strict: true,
       regexModifier: (regex) => modifyRouteRegex(regex),
     });
-    if (!match(path)) continue;
+    if (match(path) === false) continue;
     for (const { key, value } of rule.headers) found.set(key, value);
   }
   return found;

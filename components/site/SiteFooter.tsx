@@ -66,7 +66,11 @@ const ELSEWHERE: {
   },
 ];
 
-function SocialIcon({ label }: { label: string }) {
+interface SocialIconProps {
+  label: string;
+}
+
+function SocialIcon({ label }: SocialIconProps) {
   switch (label) {
     case 'Bluesky':
       return <BlueskyIcon className="size-4" />;

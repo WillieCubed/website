@@ -98,7 +98,10 @@ export async function recoverNotificationWorkflow(
   );
   assert(
     allRuns.every(
-      (run) => run.updatedAt && Number.isFinite(Date.parse(run.updatedAt))
+      (run) =>
+        run.updatedAt !== undefined &&
+        run.updatedAt !== '' &&
+        Number.isFinite(Date.parse(run.updatedAt))
     )
   );
   if (
@@ -424,7 +427,8 @@ async function drainWorkflowInvocations(
     afterDrain.every(
       (run) =>
         run.status === 'completed' &&
-        run.updatedAt &&
+        run.updatedAt !== undefined &&
+        run.updatedAt !== '' &&
         Date.parse(run.updatedAt) <= Date.parse(receipt.terminalObservedAt!)
     ),
     'An acceptance notification job changed during the drain. Preserve the fixture and retry recovery.'

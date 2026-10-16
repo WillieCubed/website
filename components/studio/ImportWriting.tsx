@@ -5,7 +5,11 @@ import { useState } from 'react';
 
 import { fetchWithDeadline } from '@/lib/http/fetch';
 
-export default function ImportWriting({ slug }: { slug: string }) {
+interface ImportWritingProps {
+  slug: string;
+}
+
+export default function ImportWriting({ slug }: ImportWritingProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');

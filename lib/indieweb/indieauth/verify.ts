@@ -15,7 +15,7 @@ export async function micropubTokenStatus({
 > {
   const record = await findActiveToken(store, bearer, now);
   if (!record || !sameOrigin(record.me, expectedMe)) return 'invalid';
-  if (!requiredScope) return 'valid';
+  if (requiredScope == null || requiredScope === '') return 'valid';
   const accepted = Array.isArray(requiredScope)
     ? requiredScope
     : [requiredScope];
@@ -38,7 +38,7 @@ export async function verifyIndieAuthToken({
 }: IndieAuthVerificationOptions): Promise<boolean> {
   const record = await findActiveToken(store, bearer, now);
   if (!record || !sameOrigin(record.me, expectedMe)) return false;
-  if (!requiredScope) return true;
+  if (requiredScope == null || requiredScope === '') return true;
 
   const accepted = Array.isArray(requiredScope)
     ? requiredScope

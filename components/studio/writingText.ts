@@ -14,7 +14,7 @@ function catalogText(node: EditorNode): string {
   return [
     String(node.attrs?.children || ''),
     ...Object.values(
-      (node.attrs?.props as Record<string, unknown>) || {}
+      (node.attrs?.props as Record<string, unknown> | undefined) ?? {}
     ).filter((value) => typeof value === 'string'),
   ].join(' ');
 }

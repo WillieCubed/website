@@ -26,7 +26,7 @@ function resolverFor(
   return async (hostname) => {
     calls.push(hostname);
     const addresses = table[hostname];
-    if (!addresses)
+    if (addresses == null)
       throw Object.assign(new Error('ENOTFOUND'), { code: 'ENOTFOUND' });
     return addresses.map((address) => ({
       address,

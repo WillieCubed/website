@@ -44,7 +44,7 @@ function pages(table: Record<string, Response | (() => Response)>) {
   const fetch: DocumentFetch = async (url) => {
     requested.push(url);
     const page = table[url];
-    if (!page) return new Response('Not found', { status: 404 });
+    if (page == null) return new Response('Not found', { status: 404 });
     return typeof page === 'function' ? page() : page;
   };
   return { fetch, requested, resolve: async () => PUBLIC };

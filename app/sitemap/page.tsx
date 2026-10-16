@@ -25,18 +25,20 @@ export const metadata = pageMetadata({
   path: page.path,
 });
 
+interface SitemapLinkProps extends PropsWithChildren {
+  href: string;
+  title: string;
+  description: string;
+  fullNavigation?: boolean;
+}
+
 function SitemapLink({
   href,
   title,
   description,
   fullNavigation = false,
   children,
-}: PropsWithChildren<{
-  href: string;
-  title: string;
-  description: string;
-  fullNavigation?: boolean;
-}>) {
+}: SitemapLinkProps) {
   const content = (
     <>
       <span className="sitemap-link__heading">

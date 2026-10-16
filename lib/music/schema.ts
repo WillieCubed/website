@@ -61,6 +61,6 @@ export function publicCatalog(value: MusicCatalog): MusicCatalog {
         ...s,
         playlistIds: s.playlistIds.filter((id) => selected.has(id)),
       }))
-      .filter((s) => s.playlistIds.length),
+      .filter((s) => s.playlistIds.length > 0),
   };
 }

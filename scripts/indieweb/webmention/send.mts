@@ -4,7 +4,7 @@ import { isMain } from '../../shared/command.mts';
 
 export async function runWebmentionSend() {
   const result = await sendChangedWebmentions();
-  if (result.failed) process.exitCode = 1;
+  if (result.failed > 0) process.exitCode = 1;
 }
 
 if (isMain(import.meta.url)) await runWebmentionSend();

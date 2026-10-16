@@ -13,7 +13,7 @@ export async function GET(request: Request) {
       configured: Boolean(
         process.env.SPOTIFY_CLIENT_ID && process.env.MUSIC_TOKEN_ENCRYPTION_KEY
       ),
-      connected: Boolean(row && !row.reconnect),
+      connected: Boolean(row != null && !row.reconnect),
       reconnect: Boolean(row?.reconnect),
       ownerId: row?.owner_id ?? null,
       import:

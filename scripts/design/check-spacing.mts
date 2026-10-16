@@ -60,7 +60,7 @@ for (const entry of stale)
   );
 for (const entry of tokens.missing)
   console.error(`${entry.file}: Undefined spacing token ${entry.name}`);
-if (violations.length || stale.length || tokens.missing.length) {
+if (violations.length > 0 || stale.length > 0 || tokens.missing.length > 0) {
   console.error(
     `${violations.length} unexplained off-grid spacing declarations; ${stale.length} stale exceptions; ${tokens.missing.length} undefined spacing tokens.`
   );

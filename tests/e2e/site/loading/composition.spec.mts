@@ -1168,7 +1168,7 @@ test('page scrollbar gutters keep start and end spacing balanced', async ({
             const frame = node.getBoundingClientRect();
             const boxes = Array.from(node.children)
               .map((child) => child.getBoundingClientRect())
-              .filter((box) => box.width);
+              .filter((box) => box.width > 0);
             return {
               start: Math.min(...boxes.map((box) => box.left)) - frame.left,
               end: frame.right - Math.max(...boxes.map((box) => box.right)),

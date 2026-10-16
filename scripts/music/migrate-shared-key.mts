@@ -25,7 +25,7 @@ export async function migrateMusicSharedKey() {
     const pending = await client.query(
       'SELECT 1 FROM music_oauth_states LIMIT 1'
     );
-    if (pending.rowCount)
+    if ((pending.rowCount ?? 0) > 0)
       throw new Error('Finish or clear pending Spotify authorizations first.');
     const rows = await client.query(
       'SELECT encrypted_grant FROM music_connections WHERE singleton=true FOR UPDATE'

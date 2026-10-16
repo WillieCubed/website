@@ -15,7 +15,11 @@ const CONDENSED_COUNT = 3;
  * few, the list condenses to its first entries and a button unfolds the
  * rest; it never hides entirely.
  */
-export function References({ items }: { items: Reference[] }) {
+interface ReferencesProps {
+  items: Reference[];
+}
+
+export function References({ items }: ReferencesProps) {
   const [expanded, setExpanded] = useState(false);
   useEffect(() => {
     const revealTarget = () => {

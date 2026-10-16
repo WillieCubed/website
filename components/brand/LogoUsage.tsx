@@ -21,7 +21,11 @@ const SIZE_GROUPS: Array<{ label: string; kind: KitUsage['kind'] }> = [
 ];
 const TILE = '/brand/mark/williecubed-mark.svg';
 /** The real mark, changed the one way each rule forbids. */
-function AvoidExample({ id }: { id: string }) {
+interface AvoidExampleProps {
+  id: string;
+}
+
+function AvoidExample({ id }: AvoidExampleProps) {
   switch (id) {
     case 'crowd':
       return (

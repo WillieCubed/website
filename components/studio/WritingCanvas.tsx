@@ -142,7 +142,7 @@ export default function WritingCanvas({
     editor
       .chain()
       .focus()
-      .insertContentAt(at.depth ? at.after(1) : at.pos, node)
+      .insertContentAt(at.depth > 0 ? at.after(1) : at.pos, node)
       .run();
   }
   return (

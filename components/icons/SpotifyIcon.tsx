@@ -1,4 +1,8 @@
-export default function SpotifyIcon({ className }: { className?: string }) {
+interface SpotifyIconProps {
+  className?: string;
+}
+
+export default function SpotifyIcon({ className }: SpotifyIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

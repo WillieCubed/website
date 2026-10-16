@@ -40,7 +40,7 @@ export default function WebmentionReplies({
           <li
             key={reply.id}
             style={
-              reply.threadDepth
+              reply.threadDepth !== undefined && reply.threadDepth > 0
                 ? {
                     marginInlineStart: `${Math.min(reply.threadDepth, 3) * 12}px`,
                   }

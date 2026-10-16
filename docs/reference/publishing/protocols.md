@@ -31,6 +31,50 @@ covers their hosting context.
 | every page                  | [Fragmention](https://indieweb.org/fragmention)                                                      | A URL ending in `##some+words` scrolls to and highlights the first place those words appear. See the fragmentions note below.                             |
 | every page                  | [Speculation rules](https://developer.mozilla.org/docs/Web/API/Speculation_Rules_API)                | Prefetches in-site pages on hover. See the speculation rules note below.                                                                                  |
 
+## Terminal homepage
+
+Maintainers changing the homepage negotiation should preserve these request
+rules. The public, query-free `/` responds to `curl -L https://willie.page`
+with a text layout of the existing site identity, focuses, ventures, and contact
+links. The response uses `text/plain; charset=utf-8`. It adds no scripts,
+dependencies, terminal control sequences, or separate biography to maintain.
+
+`Accept` quality values and media-range specificity determine whether plain
+text is preferred over HTML. When both are equally acceptable, a `curl/`
+user agent selects text unless the client explicitly accepts HTML. Other
+clients default to HTML. These commands select each representation explicitly:
+
+```sh
+curl -L -H 'Accept: text/plain' https://willie.page
+curl -L -H 'Accept: text/html' https://willie.page
+curl -L -H 'X-Original: true' https://willie.page
+```
+
+GET returns text; HEAD returns the same headers with no body. Query strings,
+React Server Component requests, router prefetch requests, other methods, and
+other paths retain their existing handling. Private previews authenticate
+before any terminal negotiation.
+
+The proxy declares `Vary: Accept, User-Agent, X-Original` and
+`Cache-Control: private, no-store` for both homepage representations.
+Next 16.3.8 replaces HTML's Vary with its own router fields. A local production
+server preserves `Cache-Control: private, no-store` for both representations;
+the development server replaces HTML's value with `no-cache, must-revalidate`.
+Both representations also send `CDN-Cache-Control: no-store` through the
+framework configuration. The no-store policy prevents cache reuse despite
+Next's Vary replacement. Next's internal rendering cache remains a separate layer.
+Verify these headers on the deployed host before claiming production behavior.
+
+HTTP permits selection by request headers through
+[proactive negotiation](https://www.rfc-editor.org/rfc/rfc9110.html#section-12.1).
+The layout deliberately omits ANSI color commands because
+[the text/plain definition](https://www.rfc-editor.org/rfc/rfc2046.html#section-4.1.3)
+excludes embedded formatting commands. Unlike the
+[Cole Wilson example](https://cole.ws), this response does not switch terminal
+screens to conceal an HTML document. The
+[nytpu article](https://nytpu.com/gemlog/2026-03-18) supplies the inspiration for
+the alternate representation and `X-Original` override.
+
 ## humans.txt
 
 ### Build metadata and package names

@@ -130,9 +130,14 @@ test('decoration stays silent while the specimens and build table remain accessi
   await page.goto('/colophon');
   const illustration = page.locator('.colophon-illustration');
   await expect(illustration).toHaveAttribute('aria-hidden', 'true');
-  await expect(
-    illustration.locator('a, button, input, select, textarea, [tabindex]')
-  ).toHaveCount(0);
+  for (const decoration of await page
+    .locator('.colophon-illustration, .colophon-decoration')
+    .all()) {
+    await expect(decoration).toHaveAttribute('aria-hidden', 'true');
+    await expect(
+      decoration.locator('a, button, input, select, textarea, [tabindex]')
+    ).toHaveCount(0);
+  }
   const intro = await page.locator('.colophon-intro').ariaSnapshot();
   expect(intro).toContain('heading "Colophon"');
   expect(intro).not.toContain('Aa');

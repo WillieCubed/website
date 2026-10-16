@@ -42,6 +42,7 @@ The permitted cases are:
 - Large music headings compensate for the left glyph bearing; small track
   and review numbers compensate for the adjacent text's baseline.
 - The setup information icon aligns its artwork with the first text line.
+- The playlist ending's 20px icon centers beside its 24px first text line.
 - Temperature unit glyphs use small optical separations from the numeral.
 - The brand guide deliberately crowds a logo to illustrate incorrect usage.
 

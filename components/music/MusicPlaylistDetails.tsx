@@ -3,93 +3,36 @@ import type { ComponentType } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
-import SiteLink from '@/components/link/SiteLink';
 
-import { isPlainClick } from '@/lib/dom/click';
-import { offersCredits } from '@/lib/music/easter-eggs';
+import { offersCredits, playlistEnding } from '@/lib/music/easter-eggs';
 import type {
   Catalog,
   MusicMode,
   PlaylistView,
 } from '@/lib/music/presentation';
-import type { MusicSeries, MusicTrack } from '@/lib/music/types';
+import type { MusicSeries } from '@/lib/music/types';
 
 import type { MusicCoverProps } from './MusicCover';
+import MusicPlaylistSeries from './MusicPlaylistSeries';
 import MusicSelectionControl from './MusicSelectionControl';
 import PlaylistCredits from './PlaylistCredits';
+import PlaylistEnding from './PlaylistEnding';
+import PlaylistTracks from './PlaylistTracks';
+import { musicHref } from './useMusicPlaylistHistory';
 
-interface NavigationProps {
-  closeHref: string;
-  index: number;
-  ids: string[];
-  series: MusicSeries | undefined;
-  onOpen: (id: string) => void;
-  onClose: () => void;
-}
-export function MusicDetailNavigation({
-  index,
-  ids,
-  series,
-  onOpen,
-  onClose,
-  closeHref,
-}: NavigationProps) {
-  return (
-    <div className="mp-detail-bar scroller">
-      <span>
-        {series
-          ? `${series.title} / ${String(index + 1).padStart(2, '0')}`
-          : `${index + 1} of ${ids.length}`}
-      </span>
-      <div className="mp-detail-actions">
-        <div
-          className="mp-detail-pagination"
-          role="group"
-          aria-label="Playlist navigation"
-        >
-          <button
-            className="mp-icon-button mp-icon-button--tonal"
-            disabled={index <= 0}
-            onClick={() => onOpen(ids[index - 1])}
-            aria-label="Previous playlist"
-          >
-            <Icon name="arrow-left" size={24} />
-          </button>
-          <button
-            className="mp-icon-button mp-icon-button--filled"
-            disabled={index < 0 || index >= ids.length - 1}
-            onClick={() => onOpen(ids[index + 1])}
-            aria-label="Next playlist"
-          >
-            <Icon name="arrow-right" size={24} />
-          </button>
-        </div>
-        <SiteLink
-          href={closeHref}
-          preview={false}
-          className="mp-icon-button mp-icon-button--tonal mp-detail-close"
-          onClick={(event) => {
-            if (!isPlainClick(event)) return;
-            event.preventDefault();
-            onClose();
-          }}
-          aria-label="Close playlist"
-        >
-          <Icon name="x" size={24} />
-        </SiteLink>
-      </div>
-    </div>
-  );
-}
 interface ArtworkProps {
   playlist: PlaylistView;
   Cover: ComponentType<MusicCoverProps>;
   series: MusicSeries[];
+  editing: boolean;
+  onToggleMembership: (id: string) => void;
 }
 export function MusicPlaylistArtwork({
   playlist,
   Cover,
   series,
+  editing,
+  onToggleMembership,
 }: ArtworkProps) {
   return (
     <div className="mp-detail-art-column">
@@ -97,20 +40,12 @@ export function MusicPlaylistArtwork({
         <Cover playlist={playlist} />
       </div>
       <div className="mp-detail-context">
-        {series
-          .filter((item) => item.playlistIds.includes(playlist.id))
-          .map((item) => (
-            <p key={item.id} className="mp-detail-series">
-              <span>{item.title}</span>
-              <span>
-                {String(item.playlistIds.indexOf(playlist.id) + 1).padStart(
-                  2,
-                  '0'
-                )}{' '}
-                / {String(item.playlistIds.length).padStart(2, '0')}
-              </span>
-            </p>
-          ))}
+        <MusicPlaylistSeries
+          playlistId={playlist.id}
+          series={series}
+          editing={editing}
+          onToggleMembership={onToggleMembership}
+        />
       </div>
     </div>
   );
@@ -132,31 +67,34 @@ export function MusicPlaylistSummary({
       <h2 id="mp-detail-title" tabIndex={-1} aria-live="polite">
         {playlist.title}
       </h2>
-      <p className="mp-detail-meta">
-        {playlist.trackCount} items{runtime && ` · ${runtime}`}
-        {mode === 'prototype' && ' · Sample sequence'}
-      </p>
-      {note && <p className="mp-playlist-note">{note}</p>}
-      {mode === 'prototype' ? (
-        <>
-          <button className="mp-button mp-spotify" disabled>
+
+      <div className="mp-detail-summary">
+        <p className="mp-detail-meta">
+          {playlist.trackCount} items{runtime && ` · ${runtime}`}
+          {mode === 'prototype' && ' · Sample sequence'}
+        </p>
+        {mode === 'prototype' ? (
+          <>
+            <button className="mp-button mp-spotify" disabled>
+              Open in Spotify
+              <Icon name="external" />
+            </button>
+            <p className="mp-spotify-note">Sample playlist · No Spotify link</p>
+          </>
+        ) : (
+          <a
+            className="mp-button mp-spotify"
+            href={playlist.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <SpotifyIcon />
             Open in Spotify
             <Icon name="external" />
-          </button>
-          <p className="mp-spotify-note">Sample playlist · No Spotify link</p>
-        </>
-      ) : (
-        <a
-          className="mp-button mp-spotify"
-          href={playlist.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <SpotifyIcon />
-          Open in Spotify
-          <Icon name="external" />
-        </a>
-      )}
+          </a>
+        )}
+      </div>
+      {note && <p className="mp-playlist-note">{note}</p>}
     </div>
   );
 }
@@ -166,7 +104,6 @@ interface EditorProps {
   onUpdateNote: (note: string) => void;
   onToggleSelection: () => void;
   onToggleFeature: () => void;
-  onToggleMembership: (seriesId: string) => void;
 }
 export function MusicPlaylistEditor({
   playlistId,
@@ -174,7 +111,6 @@ export function MusicPlaylistEditor({
   onUpdateNote,
   onToggleSelection,
   onToggleFeature,
-  onToggleMembership,
 }: EditorProps) {
   return (
     <div className="mp-context-editor">
@@ -206,58 +142,37 @@ export function MusicPlaylistEditor({
           Feature in the gallery
         </label>
       </fieldset>
-      <fieldset>
-        <legend>Series</legend>
-        {draft.series.map((item) => (
-          <label className="mp-check" key={item.id}>
-            <MusicSelectionControl
-              checked={item.playlistIds.includes(playlistId)}
-              onChange={() => onToggleMembership(item.id)}
-            />
-            {item.title}
-          </label>
-        ))}
-      </fieldset>
     </div>
   );
 }
 interface MusicPlaylistTracksProps {
-  tracks: MusicTrack[];
-  playlistId: string;
+  playlist: PlaylistView;
+  available: PlaylistView[];
+  mode: MusicMode;
   editing: boolean;
+  onOpenEnding: (id: string) => void;
 }
-
 export function MusicPlaylistTracks({
-  tracks: sampleTracks,
-  playlistId,
+  playlist,
+  available,
+  mode,
   editing,
+  onOpenEnding,
 }: MusicPlaylistTracksProps) {
+  const ending = editing ? null : playlistEnding(playlist, available);
   return (
     <div className="mp-detail-tracks">
-      {!editing && offersCredits(playlistId) && sampleTracks.length > 0 && (
-        <PlaylistCredits key={playlistId} tracks={sampleTracks} />
+      {!editing && offersCredits(playlist.id) && playlist.tracks.length > 0 && (
+        <PlaylistCredits key={playlist.id} tracks={playlist.tracks} />
       )}
-      <div className="mp-track-heading">
-        <h3>Track list</h3>
-        <span>Original order</span>
-      </div>
-      <ol className="mp-track-list">
-        {sampleTracks.map((track, index) => (
-          <li
-            key={index}
-            className={track.unavailable ? 'mp-track-unavailable' : undefined}
-          >
-            <span className="mp-track-number">
-              {String(index + 1).padStart(2, '0')}
-            </span>
-            <span>
-              <span className="mp-track-title">{track.title}</span>
-              <span className="mp-track-artist">{track.artist}</span>
-            </span>
-            <span className="mp-track-duration">{track.duration}</span>
-          </li>
-        ))}
-      </ol>
+      <PlaylistTracks key={playlist.id} tracks={playlist.tracks} />
+      {ending && (
+        <PlaylistEnding
+          ending={ending}
+          href={ending.link ? musicHref(null, ending.link.id, mode) : undefined}
+          onOpen={onOpenEnding}
+        />
+      )}
     </div>
   );
 }

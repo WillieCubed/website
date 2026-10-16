@@ -830,6 +830,192 @@ test('authenticated thumbnails load without exposing preview assets', async ({
   }
 });
 
+test('playlist series context identifies the series and keeps its position intact', async ({
+  page,
+}, info) => {
+  const title =
+    'Songs for staring out of a train window on a rainy day, from the opening scene to the closing credits';
+  const records = Array.from({ length: 23 }, (_, index) => ({
+    ...playlist,
+    id: String(index + 1).padStart(22, '0'),
+  }));
+  const ids = records.map((record) => record.id);
+  await page.route('**/api/studio/music/catalog', (route) =>
+    route.fulfill({
+      json: {
+        revision: {
+          id: 'fixture',
+          body: {
+            ...catalog,
+            order: ids,
+            selected: ids,
+            series: [{ id: 'cinematic', title, playlistIds: ids }],
+          },
+        },
+        playlists: records,
+      },
+    })
+  );
+  await page.route('**/api/studio/music/connection', (route) =>
+    route.fulfill({ json: { connected: true } })
+  );
+  await page.goto(`/studio/music?series=cinematic&detail=${ids[1]}`);
+  const context = page.locator('.mp-detail-context');
+  await expect(context.locator('.mp-detail-series-label')).toHaveText('Series');
+  await expect(context.locator('.mp-detail-series-name')).toHaveText(title);
+  await expect(context.locator('.mp-detail-series-position')).toContainText(
+    '02 / 23'
+  );
+  await expect(page.locator('.mp-detail-bar .mp-detail-position')).toHaveCount(
+    0
+  );
+  await expect(page.locator('.mp-detail-series-name')).toHaveCount(1);
+  await expect(context.getByRole('checkbox')).toBeChecked();
+  for (const width of [320, 390, 600, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.evaluate(() => document.fonts.ready);
+    const layout = await context.evaluate((row) => {
+      const name = row.querySelector<HTMLElement>('.mp-detail-series-name')!;
+      const position = row.querySelector<HTMLElement>(
+        '.mp-detail-series-position'
+      )!;
+      const visible = position.querySelector<HTMLElement>('[aria-hidden]')!;
+      const text = document.createRange();
+      text.selectNodeContents(visible);
+      return {
+        lines: text.getClientRects().length,
+        nameFits: name.scrollWidth <= name.clientWidth,
+        positionFits: position.scrollWidth <= position.clientWidth,
+        contextFits: row.scrollWidth <= row.clientWidth,
+      };
+    });
+    expect(layout, `${width}px`).toEqual({
+      lines: 1,
+      nameFits: true,
+      positionFits: true,
+      contextFits: true,
+    });
+    if (width < 840) {
+      const identity = await page
+        .locator('.mp-detail-scroll')
+        .evaluate((scroller) => {
+          const title = scroller.querySelector('h2')!.getBoundingClientRect();
+          const art = scroller
+            .querySelector('.mp-detail-art')!
+            .getBoundingClientRect();
+          const series = scroller
+            .querySelector('.mp-detail-context')!
+            .getBoundingClientRect();
+          const css = getComputedStyle(scroller);
+          return {
+            available:
+              scroller.clientWidth -
+              parseFloat(css.paddingLeft) -
+              parseFloat(css.paddingRight),
+            titleWidth: title.width,
+            seriesWidth: series.width,
+            artworkAboveTitle: art.bottom <= title.top,
+            seriesBelowArtwork: series.top >= art.bottom,
+            artworkWidth: art.width,
+            artworkHeight: art.height,
+          };
+        });
+      expect(identity.titleWidth).toBeCloseTo(identity.available, 0);
+      expect(identity.seriesWidth).toBeCloseTo(identity.available, 0);
+      expect(identity.artworkAboveTitle).toBe(true);
+      expect(identity.seriesBelowArtwork).toBe(true);
+      expect(identity.artworkWidth).toBeCloseTo(
+        Math.min(identity.available, 280),
+        0
+      );
+      expect(identity.artworkHeight).toBeCloseTo(identity.artworkWidth, 0);
+    }
+    await page.screenshot({
+      path: info.outputPath(`series-context-${width}.png`),
+      fullPage: false,
+    });
+  }
+});
+
+test('ending navigation keeps Close and browser Back consistent after leaving a series', async ({
+  page,
+}) => {
+  const ids = ['62XTb89yYS322P7LODBSmU', '5AgpIU7pNfvef8FL9kvbYa'];
+  const records = ids.map((id, index) => ({
+    ...playlist,
+    id,
+    title: index > 0 ? 'Williecore' : '36 Hours of Willie: A Playlist',
+    tracks: Array.from({ length: index > 0 ? 56 : 300 }, () => ({
+      title: 'A song',
+      artist: 'An artist',
+      duration: '3:00',
+      durationMs: 180000,
+      kind: 'track',
+      url: null,
+    })),
+    trackCount: index > 0 ? 56 : 300,
+  }));
+  await page.route('**/api/studio/music/catalog', (route) =>
+    route.fulfill({
+      json: {
+        revision: {
+          id: 'fixture',
+          body: {
+            ...catalog,
+            order: ids,
+            selected: ids,
+            series: [
+              { id: 'cinematic', title: 'Cinematic', playlistIds: [ids[0]] },
+            ],
+          },
+        },
+        playlists: records,
+      },
+    })
+  );
+  await page.route('**/api/studio/music/connection', (route) =>
+    route.fulfill({ json: { connected: true } })
+  );
+  await page.goto('/studio/music?series=cinematic');
+  await page
+    .getByRole('button', { name: 'Open menu for Music', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'View gallery', exact: true }).click();
+  await expect(page.locator('.mp-card')).toHaveCount(1);
+  await page
+    .getByRole('link', {
+      name: 'Open 36 Hours of Willie: A Playlist',
+      exact: true,
+    })
+    .click();
+  const dialog = page.locator('dialog.mp-detail');
+  await dialog
+    .getByRole('complementary', { name: 'Playlist ending' })
+    .getByRole('link', { name: 'Williecore', exact: true })
+    .click();
+  await expect(page.locator('#mp-detail-title')).toHaveText('Williecore');
+  await dialog
+    .getByRole('link', { name: 'Close playlist', exact: true })
+    .click();
+  await expect(dialog).toBeHidden();
+  await expect(page).toHaveURL(/\/studio\/music$/);
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Playlist series' })
+      .getByRole('link', { name: /^All playlists/ })
+  ).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('.mp-card')).toHaveCount(2);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/studio\/music\?series=cinematic$/);
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Playlist series' })
+      .getByRole('link', { name: /^Cinematic/ })
+  ).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('.mp-card')).toHaveCount(1);
+  await expect(dialog).toBeHidden();
+});
+
 test('detail pages and temporary views fit the same mobile and desktop viewports', async ({
   page,
 }, info) => {

@@ -1,5 +1,6 @@
 type MotionPart =
   | 'surface'
+  | 'viewport'
   | 'cover'
   | 'controls'
   | 'summary'
@@ -18,6 +19,7 @@ export function playlistMotion(
 ): () => void {
   if (
     typeof document.startViewTransition !== 'function' ||
+    !CSS.supports('view-transition-group', 'contain') ||
     matchMedia('(prefers-reduced-motion: reduce)').matches
   ) {
     update();

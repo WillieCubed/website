@@ -24,8 +24,8 @@
     "file": "components/music/music-prototype.css",
     "selector": ".mp-track-number, .mp-track-duration",
     "property": "padding-top",
-    "value": "3px",
-    "reason": "Aligns the small mono track ordinal and duration with the larger first title line."
+    "value": "2px",
+    "reason": "Centers the 20px metadata line box against the 24px first title line: (24 - 20) / 2."
   },
   {
     "file": "components/music/music-prototype.css",
@@ -110,5 +110,12 @@
     "property": "margin",
     "value": "-1px",
     "reason": "Clipped screen-reader-only announcement box; the standard -1px margin prevents layout interference."
+  },
+  {
+    "file": "components/music/music-prototype.css",
+    "selector": ".mp-playlist-ending > svg",
+    "property": "margin-top",
+    "value": "2px",
+    "reason": "Centers the 20px ending icon beside its 24px first text line: (24 - 20) / 2."
   }
 ]

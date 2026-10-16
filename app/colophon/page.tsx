@@ -48,8 +48,7 @@ export default function ColophonPage() {
             <h1 id="colophon-title">Colophon</h1>
             <div className="colophon-intro-copy">
               <p>
-                My corner of the web, with room for writing, software, music,
-                organizing, and whatever comes next.
+                My writing, software, music, and organizing, all at one address.
               </p>
               <p className="colophon-byline">
                 Designed and built by{' '}
@@ -67,25 +66,24 @@ export default function ColophonPage() {
           <section className="colophon-purpose" aria-labelledby="purpose-title">
             <h2 id="purpose-title">A place of my own</h2>
             <p className="colophon-lead">
-              I like the idea of a web made up of people’s own places. This is
-              mine, shaped around what I want to make and share.
+              I’m building this website to follow IndieWeb principles and ideas
+              of the old web, with human intent always at the forefront.
             </p>
             <p>
-              The <SiteLink href="https://indieweb.org/">IndieWeb</SiteLink> and
-              the older tradition of personal websites inform how I build it:
-              keeping my work at my own address, making it portable, and
-              connecting directly with other people. I want room to change
-              things as my interests and needs change.
+              The <SiteLink href="https://indieweb.org/">IndieWeb</SiteLink>{' '}
+              ideas show up in practical ways: my work lives at my own address,
+              posts are portable, and people can follow along and respond from
+              their own websites.
             </p>
           </section>
           <section className="colophon-design" aria-labelledby="design-title">
             <h2 id="design-title">Design</h2>
             <div className="colophon-prose">
               <p>
-                Reading and finding things come first. There should also be room
-                for a little play. You can{' '}
+                I like modern, playful illustrations that draw attention to
+                parts of a page. There’s room for a joke, too: you can{' '}
                 <SiteLink href="/coffee">ask for coffee</SiteLink> and get a
-                teapot, for instance.
+                teapot.
               </p>
               <p>
                 Links should feel like links, and things that look interactive
@@ -126,17 +124,16 @@ export default function ColophonPage() {
           <section className="colophon-making" aria-labelledby="making-title">
             <h2 id="making-title">Making it</h2>
             <p>
-              I use AI to help build the software, interfaces, and maintenance
-              workflows for this site. The intent, decisions, and final say are
-              mine. I care about describing what I want clearly and refining the
-              result until it fits.
+              Handwriting code isn’t really that important to me. I think one of
+              the best uses of AI is efficiently creating workflows and
+              interfaces catered to my exact taste, when I can properly describe
+              it. That’s how I’m building the software behind this site.
             </p>
             <p>
-              Maintaining the site is part of the design work, too. I’m building
-              tools around how I actually write and publish: a draft should look
-              like the page it will become, and saving, reviewing, and
-              publishing should be a few clear actions. The goal is to make
-              doing exactly what I want stupidly simple.
+              Developer experience is at the forefront, too. I’m the maintainer,
+              and it should be stupidly simple for me to do exactly what I want
+              to do. The workflows are bespoke and need to be designed well,
+              with my intent guiding how they work.
             </p>
           </section>
           <section

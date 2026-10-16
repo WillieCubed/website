@@ -83,7 +83,11 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
   page,
 }) => {
   await page.goto('/');
-  for (const width of [320, 390, 599, 600, 839, 840, 1199, 1200, 1920, 2560]) {
+  // 318px also covers the content budget of a 320px Linux viewport with
+  // a 17px classic scrollbar, rather than the 15px bar on macOS.
+  for (const width of [
+    318, 320, 390, 599, 600, 839, 840, 1199, 1200, 1920, 2560,
+  ]) {
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() =>
       window.scrollTo(0, document.documentElement.scrollHeight)

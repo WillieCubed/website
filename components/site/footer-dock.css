@@ -544,7 +544,9 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 4px;
+    /* Auto margin supplies the heading's available separation. A fixed
+       column gap would wrap this row with wider classic scrollbars. */
+    gap: 4px 0;
     width: 100%;
     max-width: 480px;
     /* The section's box follows the surface edge; its heading follows

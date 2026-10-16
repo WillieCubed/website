@@ -1,7 +1,7 @@
 'use client';
 
 import { Body, Media } from '@/components/home/DetailContent.tsx';
-import { brandStyle } from '@/components/home/HomeContext';
+import { brandStyle, useHome } from '@/components/home/HomeContext';
 import { Icon } from '@/components/home/Icon';
 import { useDetailDialog } from '@/components/home/useDetailDialog';
 import SiteLink from '@/components/link/SiteLink';
@@ -86,16 +86,15 @@ export function DetailDialog({
   initialId,
 }: DetailDialogProps) {
   const {
-    brands,
     openId,
     dialogRef,
     mediaRef,
-    selfClosedRef,
-    wantRef,
+    requestOpen,
     requestClose,
+    onNativeClose,
     backdrop,
-    settle,
   } = useDetailDialog(registerOpener, initialId);
+  const { brands } = useHome();
   const entry = openId ? entries[openId] : null;
   const style = brandStyle(brands, entry?.brand);
 
@@ -114,13 +113,7 @@ export function DetailDialog({
       }}
       // The browser can close the dialog without a cancel to intercept, such
       // as on a second Escape in a row. Close the view with it.
-      onClose={() => {
-        if (selfClosedRef.current) {
-          selfClosedRef.current = false;
-          return;
-        }
-        if (wantRef.current !== null) requestClose();
-      }}
+      onClose={onNativeClose}
       {...backdrop}
     >
       <div className="d-bar">
@@ -142,10 +135,7 @@ export function DetailDialog({
         openId={openId}
         mediaRef={mediaRef}
         countdown={countdown}
-        onOpen={(id) => {
-          wantRef.current = id;
-          void settle();
-        }}
+        onOpen={requestOpen}
       />
     </dialog>
   );

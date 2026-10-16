@@ -1,10 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
 import type { RefObject } from 'react';
 
 import Button from '@/components/site/Button';
 
-import { formatDate } from '@/lib/site/dates';
 import type { Draft } from '@/lib/studio/types';
 import type {
   ComponentProposal,
@@ -13,15 +11,10 @@ import type {
 } from '@/lib/studio/types';
 
 import StudioWidgetGenerator from './StudioWidgetGenerator';
-import { studioRequest } from './api';
+import WritingHistory from './WritingHistory';
 import type { DraftUpdate } from './writing-contracts';
 import type { WritingTask } from './writing-task-definitions';
 import { WRITING_TASKS } from './writing-task-definitions';
-import { proseText } from './writingText';
-
-interface WritingRevisionHistory {
-  revisions: Revision[];
-}
 
 interface WritingTasksProps {
   draft: Draft;
@@ -35,7 +28,6 @@ interface WritingTasksProps {
   save: () => Promise<boolean>;
   catalogStatus?: string;
   retryCatalog?: () => void;
-  reportStatus: (message: string) => void;
 }
 
 export default function WritingTasks({
@@ -50,31 +42,7 @@ export default function WritingTasks({
   save,
   catalogStatus,
   retryCatalog,
-  reportStatus,
 }: WritingTasksProps) {
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [revisions, setRevisions] = useState<Revision[]>([]);
-  useEffect(() => {
-    if (task !== 'history') return;
-    let current = true;
-    setHistoryLoading(true);
-    studioRequest<Revision[] | WritingRevisionHistory>(
-      `/documents/${draft.id}/revisions`
-    )
-      .then((result) => {
-        if (current)
-          setRevisions(Array.isArray(result) ? result : result.revisions);
-      })
-      .catch((error) => {
-        if (current) reportStatus(error.message);
-      })
-      .finally(() => {
-        if (current) setHistoryLoading(false);
-      });
-    return () => {
-      current = false;
-    };
-  }, [task, draft.id, reportStatus]);
   return (
     <>
       {task !== 'write' && (
@@ -129,23 +97,7 @@ export default function WritingTasks({
             </div>
           )}
           {task === 'history' && (
-            <>
-              <p className="text-body-medium text-muted">
-                Every save keeps the previous version. Restoring one creates a
-                new draft.
-              </p>
-              {historyLoading && <p role="status">Loading revisions…</p>}
-              {!historyLoading && revisions.length === 0 && (
-                <p>No earlier revisions yet.</p>
-              )}
-              {revisions.map((revision) => (
-                <RevisionCard
-                  key={revision.id}
-                  revision={revision}
-                  onRestore={() => onRestore(revision)}
-                />
-              ))}
-            </>
+            <WritingHistory documentId={draft.id} onRestore={onRestore} />
           )}
         </section>
       )}
@@ -158,40 +110,6 @@ export default function WritingTasks({
         />
       </div>
     </>
-  );
-}
-
-interface RevisionCardProps {
-  revision: Revision;
-  onRestore: () => void;
-}
-
-function RevisionCard({ revision, onRestore }: RevisionCardProps) {
-  return (
-    <div className="studio-revision">
-      <details className="studio-history-inspection">
-        <summary>
-          Revision {revision.number} · {formatDate(revision.createdAt)}
-        </summary>
-        {revision.body.title && (
-          <h3 className="mt-4 text-title-medium">{revision.body.title}</h3>
-        )}
-        {revision.body.description && (
-          <p className="mt-2 text-body-medium text-muted">
-            {revision.body.description}
-          </p>
-        )}
-        <p className="mt-4 whitespace-pre-wrap text-body-medium">
-          {proseText(revision.body.document)}
-        </p>
-        {revision.body.originalSource && (
-          <p className="mt-2 text-body-small text-muted">
-            Imported source is retained in this revision.
-          </p>
-        )}
-      </details>
-      <Button onClick={onRestore}>Restore as draft</Button>
-    </div>
   );
 }
 

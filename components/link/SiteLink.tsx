@@ -33,6 +33,49 @@ export default function SiteLink({
   href,
   preview = true,
   children,
+  prefetch,
+  scroll,
+  replace,
+  ...props
+}: PropsWithChildren<SiteLinkProps>) {
+  if (!isInternalHref(href)) {
+    return (
+      <a {...props} href={href} rel={props.rel ?? 'noopener'}>
+        {children}
+      </a>
+    );
+  }
+  if (preview && !href.startsWith('#')) {
+    return (
+      <PreviewSiteLink
+        {...props}
+        href={href}
+        prefetch={prefetch}
+        scroll={scroll}
+        replace={replace}
+      >
+        {children}
+      </PreviewSiteLink>
+    );
+  }
+  return (
+    <Link
+      {...props}
+      href={href}
+      prefetch={prefetch}
+      scroll={scroll}
+      replace={replace}
+    >
+      {children}
+      <NavigationHint />
+    </Link>
+  );
+}
+
+/** Only links that render a hover card mount its intent and popover lifetime. */
+function PreviewSiteLink({
+  href,
+  children,
   onPointerEnter,
   onPointerLeave,
   onFocus,
@@ -43,10 +86,6 @@ export default function SiteLink({
   replace,
   ...rest
 }: PropsWithChildren<SiteLinkProps>) {
-  const internal = isInternalHref(href);
-  const hash = href.startsWith('#');
-  const wantsPreview = preview && internal && !hash;
-
   const {
     anchorRef,
     popoverRef,
@@ -57,23 +96,6 @@ export default function SiteLink({
     scheduleHide,
     hide,
   } = useLinkPreview(href);
-
-  if (!internal) {
-    return (
-      <a
-        {...rest}
-        href={href}
-        rel={rest.rel ?? 'noopener'}
-        onPointerEnter={onPointerEnter}
-        onPointerLeave={onPointerLeave}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        onPointerDown={onPointerDown}
-      >
-        {children}
-      </a>
-    );
-  }
 
   const cardStyle = card?.brand
     ? { ...style, ...schemeVars(card.brand) }
@@ -90,21 +112,21 @@ export default function SiteLink({
         replace={replace}
         onPointerEnter={(event) => {
           onPointerEnter?.(event);
-          if (wantsPreview && event.pointerType === 'mouse') scheduleShow();
+          if (event.pointerType === 'mouse') scheduleShow();
         }}
         onPointerLeave={(event) => {
           onPointerLeave?.(event);
-          if (wantsPreview) scheduleHide();
+          scheduleHide();
         }}
         onFocus={(event) => {
           onFocus?.(event);
-          if (wantsPreview && event.currentTarget.matches(':focus-visible')) {
+          if (event.currentTarget.matches(':focus-visible')) {
             scheduleShow();
           }
         }}
         onBlur={(event) => {
           onBlur?.(event);
-          if (wantsPreview) hide();
+          hide();
         }}
         onPointerDown={(event) => {
           onPointerDown?.(event);
@@ -114,7 +136,7 @@ export default function SiteLink({
         {children}
         <NavigationHint />
       </Link>
-      {wantsPreview && card && (
+      {card && (
         <LinkPreview
           card={card}
           style={cardStyle}

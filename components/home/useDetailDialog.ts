@@ -18,7 +18,6 @@ interface DetailDialogProps {
   registerOpener: (
     open: (id: string, from: HTMLElement | null) => void
   ) => void;
-  countdown: React.ReactNode;
 }
 
 /** A router call this view made whose result the URL does not show yet. */
@@ -38,10 +37,17 @@ export function useDetailDialog(
   const searchParams = useSearchParams();
   const requested = searchParams.get('detail');
 
-  const { brands, clearPreviewNow } = useHome();
+  const { clearPreviewNow } = useHome();
   const initial = initialId && entries[initialId] != null ? initialId : null;
-  const { openId, dialogRef, mediaRef, selfClosedRef, show, swap, hide } =
-    useDetailPresentation(initial, clearPreviewNow);
+  const {
+    openId,
+    dialogRef,
+    mediaRef,
+    consumePresentationClose,
+    show,
+    swap,
+    hide,
+  } = useDetailPresentation(initial, clearPreviewNow);
   const shownRef = useRef<string | null>(initial);
   const wantRef = useRef<string | null>(initial);
   // The element the next opening grows out of, when a click asked for it.
@@ -126,13 +132,18 @@ export function useDetailDialog(
   };
 
   const backdrop = useBackdropDismiss(requestClose);
+  const requestOpen = (id: string, from?: HTMLElement | null) => {
+    wantRef.current = id;
+    if (from !== undefined) fromRef.current = from;
+    void settle();
+  };
+  const onNativeClose = () => {
+    if (consumePresentationClose()) return;
+    if (wantRef.current !== null) requestClose();
+  };
 
   useEffect(() => {
-    registerOpener((id, from) => {
-      wantRef.current = id;
-      fromRef.current = from;
-      void settle();
-    });
+    registerOpener(requestOpen);
   });
 
   useEffect(() => {
@@ -153,14 +164,12 @@ export function useDetailDialog(
   }, [requested]);
 
   return {
-    brands,
     openId,
     dialogRef,
     mediaRef,
-    selfClosedRef,
-    wantRef,
+    requestOpen,
     requestClose,
+    onNativeClose,
     backdrop,
-    settle,
   };
 }

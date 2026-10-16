@@ -2,7 +2,10 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 
-import type { MusicPublication } from '../../../../lib/music/types';
+import type {
+  MusicCatalog,
+  MusicPublication,
+} from '../../../../lib/music/types';
 
 test.skip(
   process.env.MUSIC_E2E !== '1',
@@ -153,6 +156,137 @@ test('a publication response from before an edit cannot replace failed save feed
     0
   );
 });
+
+for (const operation of ['refresh', 'publication'] as const) {
+  test(`browser recovery waits for ${operation} and saves the recovered editor afterward`, async ({
+    page,
+    request,
+  }) => {
+    const initial = await (
+      await request.get('/api/studio/music/catalog')
+    ).json();
+    const catalog: MusicCatalog = {
+      version: 1,
+      order: ids,
+      selected: [ids[1]],
+      lead: null,
+      series: [],
+      notes: {},
+    };
+    const recovered = { ...catalog, selected: [ids[0]] };
+    const revision = {
+      id: 'recovery-base',
+      body: catalog,
+      conflict: false,
+      createdAt: '2026-10-16T12:00:00.000Z',
+    };
+    let saved: MusicCatalog | undefined;
+    await page.route('**/api/studio/music/catalog', async (route) => {
+      if (route.request().method() === 'PUT') {
+        const edit = route.request().postDataJSON();
+        expect(edit.expectedRevisionId).toBe('recovery-base');
+        saved = edit.catalog;
+        await route.fulfill({
+          json: {
+            revision: { ...revision, id: 'recovered-save', body: saved },
+          },
+        });
+        return;
+      }
+      await route.fulfill({
+        json: { ...initial, revision, publication: null },
+      });
+    });
+    await page.addInitScript((catalog) => {
+      localStorage.setItem(
+        'willie-music-recovery-v1',
+        JSON.stringify({ base: 'previous-tab', catalog })
+      );
+    }, recovered);
+    let release!: () => void;
+    let started!: () => void;
+    const released = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const requested = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const path = operation === 'refresh' ? 'import' : 'publications';
+    await page.route(`**/api/studio/music/${path}`, async (route) => {
+      started();
+      await released;
+      await route.fulfill({
+        json:
+          operation === 'refresh'
+            ? { failed: 0 }
+            : {
+                ...pollingPublication,
+                revisionId: revision.id,
+                status: 'live',
+              },
+      });
+    });
+    await page.goto('/studio/music');
+    const recover = page.getByRole('button', {
+      name: 'Recover draft',
+      exact: true,
+    });
+    await expect(recover).toBeEnabled();
+    if (operation === 'refresh') {
+      await page.getByRole('button', { name: 'Open menu for Music' }).click();
+      await page.getByRole('button', { name: 'Refresh Spotify' }).click();
+    } else {
+      await page
+        .getByRole('button', { name: 'Review changes', exact: true })
+        .click();
+      await page
+        .getByRole('button', { name: 'Publish collection', exact: true })
+        .click();
+    }
+    await requested;
+    try {
+      await expect(recover).toBeDisabled();
+      await recover.evaluate((button: HTMLButtonElement) => button.click());
+      await expect(
+        page.getByText('This browser has an unsaved draft.', { exact: true })
+      ).toBeVisible();
+      expect(saved).toBeUndefined();
+      expect(
+        await page.evaluate(
+          () =>
+            JSON.parse(localStorage.getItem('willie-music-recovery-v1')!)
+              .catalog.selected
+        )
+      ).toEqual([ids[0]]);
+    } finally {
+      release();
+    }
+    await expect(recover).toBeEnabled();
+    await recover.click();
+    await expect(recover).toHaveCount(0);
+    await expect(
+      page.getByRole('checkbox', {
+        name: 'Include A long playlist title that preserves the sequence across several evenings',
+        exact: true,
+      })
+    ).toBeChecked();
+    await expect(
+      page.getByRole('checkbox', {
+        name: 'Include Summer in the city',
+        exact: true,
+      })
+    ).not.toBeChecked();
+    await expect.poll(() => saved?.selected).toEqual([ids[0]]);
+    await expect
+      .poll(() =>
+        page.evaluate(() => localStorage.getItem('willie-music-recovery-v1'))
+      )
+      .toBeNull();
+    await expect(
+      page.getByText('Saved privately', { exact: true }).first()
+    ).toBeVisible();
+  });
+}
 
 test('the public Music gallery loads, passes axe, and fits the viewport', async ({
   page,

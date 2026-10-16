@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 
-import type { Publication, Revision } from '@/lib/studio/types';
+import type { DraftContent, Publication, Revision } from '@/lib/studio/types';
 
 import { studioRequest } from './api';
-import type { WritingDocument, WritingSnapshot } from './writing-contracts';
+import type { WritingSnapshot } from './writing-contracts';
 
 export interface WritingPreview {
   html: string;
@@ -28,70 +28,38 @@ export interface WritingPublication {
   review: boolean;
   reviewedRevision: number | null;
   busy: boolean;
-  publication: Publication | null;
-  publicationConnectionError: string;
+  submittedPublication: Publication | null;
+}
+
+interface WritingPublicationIdentity {
+  id: string;
+  slug: string;
+}
+
+interface WritingPublicationSource {
+  draft: WritingPublicationIdentity;
+  body: DraftContent;
+  captureSnapshot: () => WritingSnapshot;
+  isCurrent: (snapshot: WritingSnapshot) => boolean;
+  selectSavedRevision: (snapshot: WritingSnapshot) => Promise<Revision | null>;
+  save: () => Promise<boolean>;
+  reportStatus: (message: string) => void;
 }
 
 /** Prepare immutable review data; editor navigation belongs to interaction. */
 export function useWritingPublication(
-  document: WritingDocument
+  document: WritingPublicationSource
 ): WritingPublication {
   const documentId = document.draft.id;
-  const { reportStatus, refreshPublicationMetadata } = document;
+  const { reportStatus } = document;
   const [prepared, setPrepared] = useState<PreparedPreview | null>(null);
-  const [publication, setPublication] = useState<Publication | null>(null);
-  const [publicationConnectionError, setPublicationConnectionError] =
-    useState('');
-  const [publicationPollRetry, setPublicationPollRetry] = useState(0);
+  const [submittedPublication, setSubmittedPublication] =
+    useState<Publication | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     // An edit retires authority even when undo restores identical bytes.
     setPrepared(null);
   }, [document.body]);
-  useEffect(() => {
-    try {
-      const retained = sessionStorage.getItem(
-        `studio-publication:${documentId}`
-      );
-      if (retained)
-        studioRequest<Publication>(`/publications/${retained}`)
-          .then(setPublication)
-          .catch((error) => reportStatus(error.message));
-    } catch {
-      /* Saved writing remains available without browser recovery storage. */
-    }
-  }, [documentId, reportStatus]);
-  useEffect(() => {
-    if (!publication) return;
-    try {
-      sessionStorage.setItem(
-        `studio-publication:${documentId}`,
-        publication.id
-      );
-    } catch {
-      /* Poll the publication for this visit. */
-    }
-  }, [publication, documentId]);
-  useEffect(() => {
-    if (!publication || ['live', 'failed'].includes(publication.status)) return;
-    const timer = setTimeout(() => {
-      studioRequest<Publication>(`/publications/${publication.id}`)
-        .then((value) => {
-          setPublication(value);
-          setPublicationConnectionError('');
-        })
-        .catch((error) => {
-          setPublicationConnectionError(
-            `Connection interrupted. Retrying… ${error.message}`
-          );
-          setPublicationPollRetry((value) => value + 1);
-        });
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [publication, publicationPollRetry]);
-  useEffect(() => {
-    if (publication?.status === 'live') void refreshPublicationMetadata();
-  }, [publication?.status, refreshPublicationMetadata]);
 
   async function preparePreview(publishing = false): Promise<boolean> {
     const snapshot = document.captureSnapshot();
@@ -149,7 +117,7 @@ export function useWritingPublication(
         method: 'POST',
         body: JSON.stringify({ documentId, revisionId: prepared.revision.id }),
       });
-      setPublication(next);
+      setSubmittedPublication(next);
       dismissReview();
     } catch (error) {
       reportStatus((error as Error).message);
@@ -167,7 +135,6 @@ export function useWritingPublication(
     review: Boolean(current?.revision),
     reviewedRevision: current?.revision?.number ?? null,
     busy,
-    publication,
-    publicationConnectionError,
+    submittedPublication,
   };
 }

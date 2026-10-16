@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 
@@ -15,11 +15,14 @@ export default function TableOfContents({
   headings,
   className = '',
 }: TableOfContentsProps) {
+  const navigation = useRef<HTMLElement>(null);
+  const contentsId = useId();
   const [activeId, setActiveId] = useState<string>('');
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    if (headings.length === 0) return;
+    const article = navigation.current?.closest('article, main');
+    if (!article || headings.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -36,7 +39,7 @@ export default function TableOfContents({
     );
 
     headings.forEach((heading) => {
-      const element = document.getElementById(heading.id);
+      const element = article.querySelector(`#${CSS.escape(heading.id)}`);
       if (element) {
         observer.observe(element);
       }
@@ -50,13 +53,13 @@ export default function TableOfContents({
   }
 
   return (
-    <nav className={className} aria-label="Table of contents">
+    <nav ref={navigation} className={className} aria-label="Table of contents">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex w-full items-center justify-between rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-left desktop:hidden"
         aria-expanded={isExpanded}
-        aria-controls="writing-contents"
+        aria-controls={contentsId}
       >
         <span className="text-title-small font-medium">Contents</span>
         <svg
@@ -77,7 +80,7 @@ export default function TableOfContents({
       </button>
 
       <div
-        id="writing-contents"
+        id={contentsId}
         className={`${isExpanded ? 'mt-2 block' : 'hidden'} desktop:block`}
       >
         <div className="hidden text-title-medium font-medium desktop:mb-4 desktop:block">

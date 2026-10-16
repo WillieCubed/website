@@ -1,6 +1,19 @@
 import { moveItem } from './presentation';
 import type { MusicCatalog } from './types';
 
+/** Keep authored order and append each newly imported playlist once. */
+export function appendImportedPlaylistOrder(
+  catalog: MusicCatalog,
+  playlistIds: string[]
+): MusicCatalog {
+  const additions = [...new Set(playlistIds)].filter(
+    (id) => !catalog.order.includes(id)
+  );
+  return additions.length === 0
+    ? catalog
+    : { ...catalog, order: [...catalog.order, ...additions] };
+}
+
 export function toggleCatalogSelection(
   catalog: MusicCatalog,
   id: string

@@ -112,7 +112,6 @@ export default function Writing({
             }
           >
             <WritingTasks
-              reportStatus={document.reportStatus}
               draft={document.draft}
               task={interaction.task}
               taskHeading={interaction.taskHeading}
@@ -161,11 +160,12 @@ export default function Writing({
             />
           )}
           <WritingPublicationNotice
-            draft={document.draft}
-            publicationConnectionError={publication.publicationConnectionError}
-            publication={publication.publication}
+            documentId={document.draft.id}
+            slug={document.draft.slug}
+            submittedPublication={publication.submittedPublication}
+            onLive={document.refreshPublicationMetadata}
             busy={publication.busy}
-            generatePreview={generatePreview}
+            onReview={() => generatePreview('read', true)}
           />
         </StudioSaveContext.Provider>
       </StudioCatalogStatusContext.Provider>

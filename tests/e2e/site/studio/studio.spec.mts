@@ -1,7 +1,12 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-import type { EditorNode } from '@/lib/studio/types';
+import type {
+  Draft,
+  EditorNode,
+  Generation,
+  Publication,
+} from '@/lib/studio/types';
 
 test.skip(
   process.env.STUDIO_E2E !== '1',
@@ -1535,4 +1540,323 @@ test('an image upload follows edits without taking focus from a preview', async 
   } finally {
     finishUpload();
   }
+});
+
+function publicationFixture(draft: Draft, id: string): Publication {
+  return {
+    id,
+    documentId: draft.id,
+    revisionId: draft.head.id,
+    status: 'deploying' as const,
+    commit: null,
+    error: null,
+    createdAt: draft.head.createdAt,
+  };
+}
+
+async function settleStudioResponse(page: import('@playwright/test').Page) {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      )
+  );
+}
+
+test('a retained publication response cannot replace a newly submitted publication', async ({
+  page,
+  request,
+}) => {
+  const draft = await createWriting(request, 'A newer publication');
+  let releaseRetained!: () => void;
+  const retained = new Promise<void>((resolve) => {
+    releaseRetained = resolve;
+  });
+  await page.addInitScript((id) => {
+    sessionStorage.setItem(`studio-publication:${id}`, 'retained-publication');
+  }, draft.id);
+  let retainedFinished!: () => void;
+  const finished = new Promise<void>((resolve) => {
+    retainedFinished = resolve;
+  });
+  await page.route(
+    '**/api/studio/publications/retained-publication',
+    async (route) => {
+      await retained;
+      await route
+        .fulfill({
+          json: {
+            ...publicationFixture(draft, 'retained-publication'),
+            status: 'failed',
+            error: 'An earlier publication failed.',
+          },
+        })
+        .catch(() => {});
+      retainedFinished();
+    }
+  );
+  await page.route('**/api/studio/publications', (route) =>
+    route.fulfill({ json: publicationFixture(draft, 'submitted-publication') })
+  );
+  await page.route(
+    '**/api/studio/publications/submitted-publication',
+    (route) =>
+      route.fulfill({
+        json: publicationFixture(draft, 'submitted-publication'),
+      })
+  );
+  const lookup = page.waitForRequest(
+    '**/api/studio/publications/retained-publication'
+  );
+  await page.goto(`/studio/${draft.id}`);
+  await lookup;
+  await writingAction(page, 'Review publication');
+  await page
+    .getByRole('button', { name: 'Publish this revision', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Deploying your writing…' })
+  ).toBeVisible();
+  releaseRetained();
+  await finished;
+  await settleStudioResponse(page);
+  await expect(
+    page.getByRole('heading', { name: 'Deploying your writing…' })
+  ).toBeVisible();
+  await expect(page.getByText('An earlier publication failed.')).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      (id) => sessionStorage.getItem(`studio-publication:${id}`),
+      draft.id
+    )
+  ).toBe('submitted-publication');
+});
+
+test('retained publication recovery refuses a job belonging to another writing', async ({
+  page,
+  request,
+}) => {
+  const draft = await createWriting(request, 'My own publication');
+  await page.addInitScript((id) => {
+    sessionStorage.setItem(`studio-publication:${id}`, 'foreign-publication');
+  }, draft.id);
+  await page.route('**/api/studio/publications/foreign-publication', (route) =>
+    route.fulfill({
+      json: {
+        ...publicationFixture(draft, 'foreign-publication'),
+        documentId: 'another-writing',
+        status: 'failed',
+        error: 'A different writing failed.',
+      },
+    })
+  );
+  const response = page.waitForResponse(
+    '**/api/studio/publications/foreign-publication'
+  );
+  await page.goto(`/studio/${draft.id}`);
+  await (await response).finished();
+  await settleStudioResponse(page);
+  await expect(page.getByText('A different writing failed.')).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', { name: 'Publication needs attention' })
+  ).toHaveCount(0);
+  await expect(page.getByLabel('Title', { exact: true })).toHaveValue(
+    'My own publication'
+  );
+});
+
+test('history failures stay in history and leaving the task cancels its response', async ({
+  page,
+  request,
+}) => {
+  const draft = await createWriting(request, 'History belongs to its task');
+  let releaseHistory!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    releaseHistory = resolve;
+  });
+  let deferHistory = false;
+  await page.route(
+    `**/api/studio/documents/${draft.id}/revisions`,
+    async (route) => {
+      if (deferHistory) await pending;
+      await route.fulfill({
+        status: 503,
+        json: { error: 'History is temporarily unavailable.' },
+      });
+    }
+  );
+  await page.goto(`/studio/${draft.id}`);
+  await writingAction(page, 'Revision history');
+  const history = page.getByRole('region', {
+    name: 'Revision history',
+    exact: true,
+  });
+  await expect(history.getByRole('alert')).toContainText(
+    'History is temporarily unavailable.'
+  );
+  await expect(history.getByText('No earlier revisions yet.')).toHaveCount(0);
+  await expect(page.locator('.studio-save-state')).toContainText(
+    'All changes saved'
+  );
+  deferHistory = true;
+  const retried = page.waitForRequest(
+    `**/api/studio/documents/${draft.id}/revisions`
+  );
+  await history
+    .getByRole('button', { name: 'Retry history', exact: true })
+    .click();
+  await retried;
+  await page
+    .getByRole('button', { name: 'Back to writing', exact: true })
+    .click();
+  releaseHistory();
+  await settleStudioResponse(page);
+  await expect(
+    page.getByRole('textbox', { name: 'Writing content' })
+  ).toBeFocused();
+  await expect(page.locator('.studio-save-state')).toContainText(
+    'All changes saved'
+  );
+  await expect(
+    page.getByText('History is temporarily unavailable.')
+  ).toHaveCount(0);
+});
+
+function generationFixture(draft: Draft, id: string): Generation {
+  return {
+    id,
+    documentId: draft.id,
+    revisionId: draft.head.id,
+    kind: 'component',
+    prompt: 'A useful widget.',
+    status: 'ready',
+    result: null,
+    error: null,
+  };
+}
+
+test('retained generation recovery cannot replace a newly requested widget', async ({
+  page,
+  request,
+}) => {
+  const draft = await createWriting(request, 'My new widget request');
+  let releaseRetained!: () => void;
+  const retained = new Promise<void>((resolve) => {
+    releaseRetained = resolve;
+  });
+  await page.addInitScript((id) => {
+    sessionStorage.setItem(`studio-generation:${id}`, 'retained-generation');
+  }, draft.id);
+  await page.route('**/api/studio/lattice/runtime', (route) =>
+    route.fulfill({
+      json: {
+        connected: true,
+        devices: [{ id: 'test-device', name: 'Test Mac', status: 'reachable' }],
+        selectedRuntimeId: 'test-device',
+      },
+    })
+  );
+  await page.route(
+    '**/api/studio/generations/retained-generation',
+    async (route) => {
+      await retained;
+      await route.fulfill({
+        json: {
+          ...generationFixture(draft, 'retained-generation'),
+          status: 'waiting',
+          error: 'An earlier request is waiting.',
+        },
+      });
+    }
+  );
+  await page.route('**/api/studio/generations', (route) =>
+    route.fulfill({ json: generationFixture(draft, 'new-generation') })
+  );
+  const lookup = page.waitForRequest(
+    '**/api/studio/generations/retained-generation'
+  );
+  await page.goto(`/studio/${draft.id}`);
+  await lookup;
+  await writingAction(page, 'Create widget');
+  await page
+    .getByLabel('Describe the widget', { exact: true })
+    .fill('A counter.');
+  await page
+    .getByRole('button', { name: 'Generate widget', exact: true })
+    .click();
+  await expect(
+    page.getByText('Widget ready to review', { exact: true })
+  ).toBeVisible();
+  const response = page.waitForResponse(
+    '**/api/studio/generations/retained-generation'
+  );
+  releaseRetained();
+  await (await response).finished();
+  await settleStudioResponse(page);
+  await expect(
+    page.getByText('Widget ready to review', { exact: true })
+  ).toBeVisible();
+  await expect(page.getByText('An earlier request is waiting.')).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      (id) => sessionStorage.getItem(`studio-generation:${id}`),
+      draft.id
+    )
+  ).toBe('new-generation');
+});
+
+test('finishing the library list request cannot erase a creation failure', async ({
+  page,
+  request,
+}, testInfo) => {
+  const draft = await createWriting(request, 'An existing library draft');
+  let releaseList!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    releaseList = resolve;
+  });
+  await page.route('**/api/studio/documents', async (route) => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({
+        status: 503,
+        json: { error: 'Creation is temporarily unavailable.' },
+      });
+      return;
+    }
+    await pending;
+    await route.fulfill({ json: { documents: [draft] } });
+  });
+  const listed = page.waitForRequest('**/api/studio/documents');
+  await page.goto('/studio');
+  await listed;
+  await page.getByRole('button', { name: 'New writing', exact: true }).click();
+  await expect(
+    page.getByText('Creation is temporarily unavailable.')
+  ).toBeVisible();
+  const response = page.waitForResponse(
+    (value) =>
+      value.url().endsWith('/api/studio/documents') &&
+      value.request().method() === 'GET'
+  );
+  releaseList();
+  await (await response).finished();
+  await settleStudioResponse(page);
+  await expect(
+    page.getByText('Creation is temporarily unavailable.')
+  ).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Edit An existing library draft' })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'New writing', exact: true })
+  ).toBeEnabled();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth
+    )
+  ).toBeTruthy();
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({
+    path: testInfo.outputPath('library-creation-error-viewport.png'),
+    fullPage: false,
+  });
 });

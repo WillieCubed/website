@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
   appendCatalogSeries,
+  appendImportedPlaylistOrder,
   dropCatalog,
   reorderCatalog,
   toggleCatalogFeature,
@@ -100,4 +101,25 @@ test('a new series starts empty without changing existing membership or publicat
   assert.equal(next.order, catalog.order);
   assert.equal(next.selected, catalog.selected);
   assert.equal(next.lead, catalog.lead);
+});
+
+test('import appends each new playlist after authored order without changing curation choices', () => {
+  const next = appendImportedPlaylistOrder(catalog, [
+    'three',
+    'new',
+    'one',
+    'new',
+    'last',
+  ]);
+  assert.deepEqual(next.order, ['one', 'two', 'three', 'new', 'last']);
+  assert.equal(next.selected, catalog.selected);
+  assert.equal(next.lead, catalog.lead);
+  assert.equal(next.series, catalog.series);
+  assert.equal(next.notes, catalog.notes);
+  assert.deepEqual(catalog.order, ['one', 'two', 'three']);
+});
+
+test('an import with no new playlists leaves the saved catalog intact', () => {
+  assert.equal(appendImportedPlaylistOrder(catalog, ['three', 'one']), catalog);
+  assert.equal(appendImportedPlaylistOrder(catalog, []), catalog);
 });

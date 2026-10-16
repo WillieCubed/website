@@ -110,7 +110,19 @@ those workflows meet. The document keeps save refs, recovery storage, and head
 verification private; views request edits, recovery, or a verified saved revision.
 Navigation owns task and preview modes, selection, focus, and scroll. Publication
 prepares review data and reports success before navigation opens it. Neither hook
-mutates the other's presentation state.
+mutates the other's presentation state. The always-mounted publication notice
+owns retained-job recovery, polling, connection feedback, and live-completion
+notification. A new submission cancels older tracking requests; recovered jobs
+must belong to the current writing. Revision history owns its request, error,
+and retry only while that task is mounted. The widget generation session owns
+its active job and invalidates older recovery or polling responses when a new
+request or decision succeeds. Persistent widget forms keep their prompt drafts
+when the author switches tasks.
+
+The writing library keeps list loading separate from creation. The new-writing
+control owns its pending action and error; a list refresh cannot clear creation
+feedback. Article contents observers resolve headings within their own article,
+so a retained page cannot supply another article's heading or panel target.
 
 The persistent canvas composes image/link forms, selection controls, and insertion
 choices. Forms own their drafts and uploads; selection controls own their placement.
@@ -123,7 +135,10 @@ Music's admin controller composes draft persistence and recovery, library
 imports, revision history, and publication tracking. The draft owner keeps
 the optimistic revision, pending edits, and save queue together; views use
 commands such as recovering a draft or restoring a revision. They do not
-receive mutable save refs. The browsing experience separates catalog editing
+receive mutable save refs. Browser recovery must be accepted by the draft
+owner before replacing the editor session or dismissing the recovery offer.
+A recovered editor catalog is a session seed, separate from the last confirmed
+server revision. The browsing experience separates catalog editing
 and prototype storage from setup and review transitions. Its rail owns series
 text editing, and its review dialog owns its DOM and focus lifecycle. Their
 common owner coordinates opening across siblings so those local interactions

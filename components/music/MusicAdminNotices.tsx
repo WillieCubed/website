@@ -98,11 +98,13 @@ export function MusicSaveNotice({
 
 interface RecoveryNoticeProps {
   available: boolean;
+  disabled: boolean;
   onRecover: () => void;
   onDiscard: () => void;
 }
 export function MusicRecoveryNotice({
   available,
+  disabled,
   onRecover,
   onDiscard,
 }: RecoveryNoticeProps) {
@@ -111,10 +113,14 @@ export function MusicRecoveryNotice({
       <div className="music-admin-notice" role="status">
         <p>This browser has an unsaved draft.</p>
         <div className="music-admin-notice__actions">
-          <button className="mp-button" onClick={onRecover}>
+          <button className="mp-button" disabled={disabled} onClick={onRecover}>
             Recover draft
           </button>
-          <button className="mp-button mp-tonal" onClick={onDiscard}>
+          <button
+            className="mp-button mp-tonal"
+            disabled={disabled}
+            onClick={onDiscard}
+          >
             Use saved draft
           </button>
         </div>

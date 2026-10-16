@@ -71,12 +71,13 @@ export default function MusicAdmin() {
   function retryLoad() {
     void library.load().catch(() => undefined);
   }
-  function retryPublication() {
-    return publication.publish(draft.inspect().savedCatalog);
-  }
   const currentDraft = draft.inspect();
   const { playlists, initialCatalog, loading, connected, setupInitially } =
-    adminCollectionView(collection.data, library.connection);
+    adminCollectionView(
+      collection.data,
+      library.connection,
+      collection.editorCatalog
+    );
   const canReview = !draft.state.saving && canPublishMusic(currentDraft, busy);
   const published = isPublishedDraft(
     publication.publication,
@@ -134,13 +135,14 @@ export default function MusicAdmin() {
         )}
         <MusicRecoveryNotice
           available={recovery.available}
+          disabled={busy}
           onRecover={recovery.recover}
           onDiscard={recovery.discard}
         />
         <MusicPublicationNotice
           publication={publication.publication}
           visible={publication.showPublicationNotice}
-          onRetry={retryPublication}
+          onRetry={() => publication.publish(draft.inspect().savedCatalog)}
           onDismiss={publication.dismissNotice}
         />
       </div>

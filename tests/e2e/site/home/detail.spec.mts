@@ -92,6 +92,44 @@ for (const [name, close] of closers) {
   });
 }
 
+test('a product opened inside the detail keeps one history entry and returns focus', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await hydrated(page);
+  await page.locator('#hypertext a.cover').press('Enter');
+  await expect(detail(page)).toBeVisible();
+  await expect(page).toHaveURL(/\?detail=hypertext$/);
+  await settled(page);
+  await detail(page)
+    .getByRole('link', { name: /^LogDate/ })
+    .click();
+  await expect(page).toHaveURL(/\?detail=logdate$/);
+  await expect(
+    detail(page).getByRole('heading', { name: 'LogDate' })
+  ).toBeVisible();
+  await settled(page);
+  await page.goBack();
+  await expect(detail(page)).toBeHidden();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('#hypertext a.cover')).toBeFocused();
+});
+
+test('a native close restores the tile and clears its detail URL', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await hydrated(page);
+  await open(page);
+  await detail(page).evaluate((dialog: HTMLDialogElement) => dialog.close());
+  await expect(detail(page)).toBeHidden();
+  await expect(page).toHaveURL(/\/$/);
+  await settled(page);
+  await expect(page.locator('#lvbt a.cover')).toBeFocused();
+  await expect(page.locator('#lvbt')).toBeVisible();
+  await open(page);
+});
+
 test('closing before the URL catches up still closes', async ({ page }) => {
   await page.goto('/');
   await hydrated(page);

@@ -7,6 +7,7 @@ import { site } from '@/lib/site/identity';
 import { sitePage } from '@/lib/site/navigation';
 
 import './colophon.css';
+import { PublishingIllustration, TeapotIllustration } from './illustrations';
 
 const page = sitePage('/colophon');
 export const metadata = pageMetadata({
@@ -83,9 +84,7 @@ export default function ColophonPage() {
               <div className="colophon-design-notes">
                 <p>
                   I like modern, playful illustrations that draw attention to
-                  parts of a page. There’s room for a joke, too: you can{' '}
-                  <SiteLink href="/coffee">ask for coffee</SiteLink> and get a
-                  teapot.
+                  parts of a page.
                 </p>
                 <p>
                   Links should feel like links, and things that look interactive
@@ -93,6 +92,14 @@ export default function ColophonPage() {
                   without JavaScript are part of how I judge whether an
                   interaction belongs here.
                 </p>
+                <div className="colophon-coffee-note">
+                  <TeapotIllustration />
+                  <p>
+                    There’s room for a joke, too: you can{' '}
+                    <SiteLink href="/coffee">ask for coffee</SiteLink> and get a
+                    teapot.
+                  </p>
+                </div>
               </div>
               <div className="colophon-type-notes">
                 <h3 id="type-title">Type</h3>
@@ -106,25 +113,25 @@ export default function ColophonPage() {
                   . Their distinct character shapes help separate similar
                   letters and numbers.
                 </p>
+                <figure
+                  className="colophon-specimen"
+                  aria-label="Atkinson Hyperlegible type specimens"
+                >
+                  <div className="colophon-type-sample colophon-type-sample--sans">
+                    <span className="colophon-sample-text">0O · 1Il</span>
+                    <span className="colophon-sample-name">
+                      Atkinson Hyperlegible Next
+                    </span>
+                  </div>
+                  <div className="colophon-type-sample colophon-type-sample--mono">
+                    <span className="colophon-sample-text">0O · 1Il</span>
+                    <span className="colophon-sample-name">
+                      Atkinson Hyperlegible Mono
+                    </span>
+                  </div>
+                </figure>
               </div>
             </div>
-            <figure
-              className="colophon-specimen"
-              aria-label="Atkinson Hyperlegible type specimens"
-            >
-              <div className="colophon-type-sample colophon-type-sample--sans">
-                <span className="colophon-sample-text">0O · 1Il</span>
-                <span className="colophon-sample-name">
-                  Atkinson Hyperlegible Next
-                </span>
-              </div>
-              <div className="colophon-type-sample colophon-type-sample--mono">
-                <span className="colophon-sample-text">0O · 1Il</span>
-                <span className="colophon-sample-name">
-                  Atkinson Hyperlegible Mono
-                </span>
-              </div>
-            </figure>
           </section>
           <section className="colophon-making" aria-labelledby="making-title">
             <h2 id="making-title">Making it</h2>
@@ -159,58 +166,15 @@ export default function ColophonPage() {
                 source, so the words can outlast a particular framework.
               </p>
               <p>
-                <SiteLink className="colophon-feed-link" href="/sitemap">
-                  <svg
-                    className="colophon-decoration colophon-paper"
-                    viewBox="0 0 160 152"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <g transform="rotate(-9 74 77)">
-                      <path
-                        d="M34 16h57l27 27v78c0 9-7 16-16 16H34c-9 0-16-7-16-16V32c0-9 7-16 16-16Z"
-                        fill="var(--color-primary-container)"
-                      />
-                      <path
-                        d="M91 16v19c0 5 3 8 8 8h19Z"
-                        fill="var(--color-primary)"
-                      />
-                      <path
-                        d="M38 60h51M38 78h38M38 96h25"
-                        fill="none"
-                        stroke="var(--color-on-primary-container)"
-                        strokeWidth="6"
-                        strokeLinecap="round"
-                      />
-                    </g>
-                    <circle
-                      cx="122"
-                      cy="114"
-                      r="34"
-                      fill="var(--color-tertiary-container)"
-                    />
-                    <g
-                      fill="none"
-                      stroke="var(--color-on-tertiary-container)"
-                      strokeWidth="5"
-                      strokeLinecap="round"
-                    >
-                      <path d="M107 97c18 0 32 14 32 32M107 112c9 0 17 8 17 17" />
-                    </g>
-                    <circle
-                      cx="107"
-                      cy="129"
-                      r="3"
-                      fill="var(--color-on-tertiary-container)"
-                    />
-                  </svg>
-                  <span>RSS, Atom, and JSON feeds</span>
-                </SiteLink>{' '}
-                let readers follow along in the app they choose. Webmention
+                Readers can follow along in the app they choose. Webmention
                 connects responses from other websites to the posts they
                 reference.
               </p>
             </div>
+            <SiteLink className="colophon-feed-link" href="/sitemap">
+              <PublishingIllustration />
+              <span>RSS, Atom, and JSON feeds</span>
+            </SiteLink>
           </section>
           <section className="colophon-credits" aria-labelledby="credits-title">
             <h2 id="credits-title">Credits</h2>

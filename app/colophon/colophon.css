@@ -67,9 +67,9 @@
 .colophon-specimen {
   --sample-size: clamp(36px, 4.5vw, 64px);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 32px;
-  margin: 8px 0 0;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin: 28px 0 0;
   min-width: 0;
 }
 .colophon-sample-text {
@@ -185,7 +185,8 @@
 .colophon-publishing h2 {
   margin: 0;
 }
-.colophon-design > h2 {
+.colophon-design > h2,
+.colophon-publishing > h2 {
   grid-column: 1 / -1;
 }
 .colophon-design > .colophon-prose {
@@ -219,16 +220,37 @@
 .colophon-decoration {
   display: block;
 }
-.colophon-feed-link {
-  display: inline-flex;
+.colophon-coffee-note {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 20px;
   align-items: center;
-  gap: 10px;
-  vertical-align: middle;
+  margin-top: 28px;
+}
+.colophon-teapot {
+  width: 100%;
+  height: auto;
+}
+.colophon-coffee-note p {
+  margin: 0;
+}
+.colophon-feed-link {
+  grid-column: 1 / span 4;
+  grid-row: 2;
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  font: 500 14px/1.5 var(--font-sans);
 }
 .colophon-feed-link .colophon-paper {
-  width: 40px;
-  height: 38px;
-  flex: 0 0 auto;
+  width: 160px;
+  max-width: 100%;
+  height: auto;
+}
+.colophon-publishing > .colophon-prose {
+  grid-row: 2;
 }
 .colophon-prose {
   grid-column: 5 / -1;
@@ -341,9 +363,23 @@
   .colophon-credits h2 {
     margin-bottom: 4px;
   }
+  .colophon-publishing > .colophon-prose {
+    grid-row: auto;
+  }
+  .colophon-feed-link {
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-columns: 80px minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+  }
+  .colophon-feed-link .colophon-paper {
+    width: 80px;
+  }
   .colophon-specimen {
     grid-column: 1;
-    margin-top: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 24px;
   }
 }
 @media (max-width: 599px) {
@@ -383,6 +419,11 @@
   }
   .colophon .colophon-lead {
     font-size: 22px;
+  }
+  .colophon-coffee-note {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 24px;
   }
   .colophon-specimen {
     --sample-size: clamp(22px, 6vw, 32px);

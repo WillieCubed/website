@@ -38,7 +38,8 @@ for (const width of [320, 390, 1440]) {
       };
     });
     expect(Math.abs(spacing.beforeSlash - spacing.afterSlash)).toBeLessThan(2);
-    expect(spacing.beforeSlash).toBeCloseTo(width <= 360 ? 7 : 15, 0);
+    // The label inset and separator gap both follow the shared 4px grid.
+    expect(spacing.beforeSlash).toBeCloseTo(width <= 360 ? 8 : 16, 0);
     expect(spacing.documentWidth).toBeLessThanOrEqual(spacing.viewportWidth);
 
     const before = await brand.boundingBox();

@@ -125,7 +125,7 @@ async function WritingsList({ writings }: { writings: WritingData[] }) {
 }
 
 const CHIP =
-  'shrink-0 rounded-full px-3 py-1.5 text-label-large transition-colors';
+  'shrink-0 rounded-full px-3 py-2 text-label-large transition-colors';
 const CHIP_SELECTED = `${CHIP} bg-primary text-on-primary`;
 const CHIP_IDLE = `${CHIP} border border-line bg-card text-ink hover:border-accent hover:text-accent`;
 

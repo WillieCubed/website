@@ -54,15 +54,15 @@
     }
     .tile.lvbt .body {
       position: static;
-      padding: 48px 18px 20px;
+      padding: 48px var(--spacing-lg) 20px;
     }
     .tile.studio {
       aspect-ratio: auto;
     }
     .tile.studio .products {
       position: static;
-      margin: 46px 0 0;
-      padding: 0 14px 14px;
+      margin: var(--spacing-3xl) 0 0;
+      padding: 0 var(--spacing-lg) var(--spacing-lg);
     }
     .tile.atlas {
       aspect-ratio: 16 / 10;
@@ -111,7 +111,7 @@
     /* Free space splits evenly above and below the tagline, so the page
        doesn't start pressed against the top edge. */
     .lead {
-      --peek: 150px;
+      --peek: var(--spacing-fold-preview);
       justify-content: flex-start;
       min-height: calc(100svh - var(--peek));
     }
@@ -127,13 +127,13 @@
       grid-template-columns: none;
       grid-auto-flow: column;
       grid-auto-columns: 80%;
-      gap: 10px;
-      margin: 46px 0 0;
-      padding: 0 14px 4px;
+      gap: var(--spacing-inline);
+      margin: var(--spacing-3xl) 0 0;
+      padding: 0 var(--spacing-lg) 4px;
       overflow-x: auto;
       overscroll-behavior-x: contain;
       scroll-snap-type: x mandatory;
-      scroll-padding-inline: 14px;
+      scroll-padding-inline: var(--spacing-lg);
       scrollbar-width: none;
     }
     .tile.studio .products::-webkit-scrollbar {
@@ -172,7 +172,7 @@
       padding-top: 28px;
     }
     .focus {
-      padding-block: 6px;
+      padding-block: var(--spacing-sm);
     }
     .focuses h2 {
       margin-bottom: 4px;
@@ -209,7 +209,7 @@
       overflow-x: auto;
       overscroll-behavior-x: contain;
       scroll-snap-type: x mandatory;
-      scroll-padding-inline: 14px;
+      scroll-padding-inline: var(--spacing-lg);
       scrollbar-width: none;
     }
     .tile.studio .products::-webkit-scrollbar {
@@ -254,7 +254,7 @@
     }
     .tile.lvbt .body {
       position: static;
-      padding: 48px 18px 20px;
+      padding: 48px var(--spacing-lg) 20px;
     }
     .tile.studio {
       grid-column: 1 / -1;
@@ -265,8 +265,8 @@
     }
     .tile.studio .products {
       position: static;
-      margin: 46px 0 0;
-      padding: 0 14px 14px;
+      margin: var(--spacing-3xl) 0 0;
+      padding: 0 var(--spacing-lg) var(--spacing-lg);
     }
     .tile.studio .product {
       height: 260px;

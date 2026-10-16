@@ -89,7 +89,7 @@ export const mdxComponents = {
     <em className="italic">{children}</em>
   ),
   code: ({ children }: PropsWithChildren) => (
-    <code className="rounded bg-surface-container-high px-1.5 py-0.5 font-mono text-sm">
+    <code className="rounded bg-surface-container-high px-2 py-1 font-mono text-sm">
       {children}
     </code>
   ),

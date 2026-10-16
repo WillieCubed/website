@@ -18,7 +18,7 @@
   }
   .copy {
     display: grid;
-    margin-top: 18px;
+    margin-top: var(--spacing-stack);
   }
   .copy > p {
     max-width: 42ch;
@@ -58,14 +58,14 @@
     margin-top: 56px;
   }
   .focuses h2 {
-    margin: 0 0 10px;
+    margin: 0 0 var(--spacing-md);
     color: var(--color-muted);
     font-size: 13px;
     font-weight: 500;
   }
   .focuses ul {
     display: grid;
-    gap: 2px;
+    gap: var(--spacing-related);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -77,7 +77,7 @@
     column-gap: 16px;
     width: calc(100% + 24px);
     margin-inline: -12px;
-    padding: 10px 12px;
+    padding: var(--spacing-md) 12px;
     border: 0;
     border-radius: 14px;
     background: transparent;

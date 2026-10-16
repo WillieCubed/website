@@ -156,7 +156,7 @@
   filter: none;
 }
 .status-admin .city-input {
-  padding: 10px 12px;
+  padding: var(--spacing-md) 12px;
   margin-left: -12px;
   width: calc(100% + 24px);
   min-height: 52px;
@@ -199,7 +199,7 @@
   display: block;
   color: var(--muted);
   font-size: 14px;
-  margin-top: 2px;
+  margin-top: var(--spacing-xs);
   overflow-wrap: anywhere;
 }
 .status-admin .results button:hover span,

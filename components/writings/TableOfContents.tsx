@@ -98,7 +98,7 @@ export default function TableOfContents({
                     setIsExpanded(false);
                   }}
                   aria-current={isActive ? 'location' : undefined}
-                  className={`block w-full rounded px-3 py-1.5 text-left text-sm transition-colors ${indentClass} ${
+                  className={`block w-full rounded px-3 py-2 text-left text-sm transition-colors ${indentClass} ${
                     isActive
                       ? 'bg-primary/10 font-medium text-primary'
                       : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'

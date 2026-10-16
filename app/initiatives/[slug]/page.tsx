@@ -94,7 +94,7 @@ function InitiativeHeading({ initiative }: { initiative: Initiative }) {
         <p className="mt-6">
           <SiteLink
             href={initiative.website}
-            className="initiative-site inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-label-large font-semibold"
+            className="initiative-site inline-flex items-center gap-2 rounded-full px-5 py-3 text-label-large font-semibold"
           >
             Visit {new URL(initiative.website).hostname}
             <span aria-hidden="true">↗</span>

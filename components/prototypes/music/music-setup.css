@@ -24,7 +24,7 @@
   justify-content: center;
   gap: 12px;
   min-height: 52px;
-  padding: 14px 22px;
+  padding: var(--spacing-lg) var(--spacing-xl);
   border-radius: 18px;
   font-weight: 600;
   transition:
@@ -61,7 +61,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 18px;
+  padding: var(--spacing-lg) var(--spacing-lg);
   border-radius: 18px;
   background: var(--color-surface-container);
   color: var(--color-muted);
@@ -99,7 +99,7 @@
 }
 .ms-intro {
   max-width: 610px;
-  margin: 18px 0 0;
+  margin: var(--spacing-stack) 0 0;
   font-size: 19px;
   line-height: 1.5;
   color: var(--color-muted);
@@ -120,7 +120,7 @@
 .ms-connect-button {
   margin-top: 32px;
   min-height: 60px;
-  padding: 18px 24px;
+  padding: var(--spacing-lg) 24px;
   border-radius: 22px;
   font-size: 18px;
 }
@@ -128,12 +128,12 @@
   font-size: 14px;
   line-height: 1.6;
   color: var(--color-muted);
-  margin: 18px 0 0;
+  margin: var(--spacing-stack) 0 0;
 }
 .ms-cover-arrangement {
   position: relative;
   height: 430px;
-  margin: 0 10px;
+  margin: 0 var(--spacing-md);
 }
 .ms-art {
   position: absolute;
@@ -221,8 +221,8 @@
 .ms-source {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 28px 0 18px;
+  gap: var(--spacing-inline);
+  margin: 28px 0 var(--spacing-stack);
   color: var(--color-muted);
   font-size: 14px;
 }
@@ -360,7 +360,7 @@
   font-size: 15px;
   font-weight: 500;
   line-height: 1.25;
-  margin: 10px 0 0;
+  margin: var(--spacing-md) 0 0;
 }
 .ms-preview-caption {
   font-size: 13px;
@@ -387,7 +387,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px;
+  padding: var(--spacing-lg);
   min-height: 76px;
   border-radius: 18px;
   margin-bottom: 8px;
@@ -415,7 +415,7 @@
 }
 .ms-feature-none {
   min-height: 52px;
-  padding: 8px 14px;
+  padding: 8px var(--spacing-lg);
   margin-bottom: 16px;
   border-radius: 16px;
   font-size: 14px;
@@ -468,7 +468,7 @@
   display: block;
   font-size: 12px;
   color: var(--color-muted);
-  margin-top: 6px;
+  margin-top: var(--spacing-sm);
 }
 @media (hover: hover) {
   .ms-button:hover {
@@ -535,14 +535,14 @@
     padding: 0 20px;
   }
   .ms-header {
-    padding: 18px 0;
+    padding: var(--spacing-lg) 0;
   }
   .ms-wordmark {
     font-size: 22px;
   }
   .ms-exit {
     min-height: 44px;
-    padding: 10px 14px;
+    padding: var(--spacing-md) var(--spacing-lg);
     font-size: 14px;
   }
   .ms-exit svg {
@@ -550,12 +550,12 @@
     height: 18px;
   }
   .ms-steps {
-    gap: 6px;
+    gap: var(--spacing-inline);
     margin: 8px 0 32px;
   }
   .ms-steps li {
-    padding: 12px 10px;
-    gap: 6px;
+    padding: 12px var(--spacing-md);
+    gap: var(--spacing-inline);
     border-radius: 14px;
     font-size: 13px;
   }
@@ -570,7 +570,7 @@
   }
   .ms-intro {
     font-size: 16px;
-    margin-top: 14px;
+    margin-top: var(--spacing-stack);
   }
   .ms-connect {
     display: flex;
@@ -614,11 +614,11 @@
   .ms-permission {
     text-align: center;
     font-size: 12px;
-    margin-top: 14px;
+    margin-top: var(--spacing-stack);
   }
   .ms-connect-details {
-    padding: 22px;
-    gap: 22px;
+    padding: var(--spacing-xl);
+    gap: var(--spacing-group);
     border-radius: 24px;
   }
   .ms-selection-heading {
@@ -626,16 +626,16 @@
   }
   .ms-source {
     font-size: 12px;
-    margin: 24px 0 14px;
+    margin: 24px 0 var(--spacing-stack);
   }
   .ms-playlists {
     grid-template-columns: 1fr;
     gap: 8px;
   }
   .ms-playlist {
-    padding: 10px;
+    padding: var(--spacing-md);
     border-radius: 18px;
-    gap: 14px;
+    gap: var(--spacing-stack);
   }
   .ms-playlist-art {
     width: 72px;
@@ -645,16 +645,16 @@
   }
   .ms-playlist-meta {
     font-size: 12px;
-    margin-top: 6px;
+    margin-top: var(--spacing-sm);
   }
   .ms-actions {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 10px;
+    gap: var(--spacing-inline);
     padding: 12px;
     width: calc(100% - 24px);
     margin: 0;
-    bottom: 10px;
+    bottom: var(--spacing-md);
     border-radius: 24px;
   }
   .ms-actions p {
@@ -687,7 +687,7 @@
   }
   .ms-feature-preview {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: var(--spacing-stack);
   }
   .ms-feature-preview > .mp-cover {
     width: min(100%, 220px);
@@ -700,7 +700,7 @@
     margin-top: 8px;
   }
   .ms-preview-caption {
-    margin-top: 22px;
+    margin-top: var(--spacing-group);
   }
 }
 @media (prefers-reduced-motion: reduce) {

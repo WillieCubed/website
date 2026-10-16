@@ -44,7 +44,7 @@ export default async function SiteSearch({ query = '' }: SiteSearchProps) {
         />
         <button
           type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-primary px-3 py-1.5 text-label-large text-on-primary"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-primary px-3 py-2 text-label-large text-on-primary"
         >
           Search
         </button>
@@ -108,7 +108,7 @@ function SearchResultCard({ result }: SearchResultCardProps) {
           <Fragment key={part.kind}>
             {index > 0 && <span aria-hidden="true">·</span>}
             {part.kind === 'type' ? (
-              <span className="rounded bg-primary/10 px-1.5 py-0.5 capitalize text-primary">
+              <span className="rounded bg-primary/10 px-2 py-1 capitalize text-primary">
                 {part.text}
               </span>
             ) : part.kind === 'date' ? (

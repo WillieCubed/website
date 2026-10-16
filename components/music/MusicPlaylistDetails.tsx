@@ -178,14 +178,16 @@ export function MusicPlaylistEditor({
 }: EditorProps) {
   return (
     <div className="mp-context-editor">
-      <label htmlFor="mp-playlist-note">Playlist notes</label>
-      <textarea
-        id="mp-playlist-note"
-        rows={3}
-        placeholder="What should someone know before listening?"
-        value={draft.notes[playlistId] ?? ''}
-        onChange={(event) => onUpdateNote(event.target.value)}
-      />
+      <div className="mp-context-note">
+        <label htmlFor="mp-playlist-note">Playlist notes</label>
+        <textarea
+          id="mp-playlist-note"
+          rows={3}
+          placeholder="What should someone know before listening?"
+          value={draft.notes[playlistId] ?? ''}
+          onChange={(event) => onUpdateNote(event.target.value)}
+        />
+      </div>
       <fieldset className="mp-visibility-editor">
         <legend>In the public gallery</legend>
         <label className="mp-check">

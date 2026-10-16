@@ -57,7 +57,7 @@ function document(title: string, body: string): string {
 html{min-height:100%}
 body{margin:0;min-height:100vh;background:var(--surface);color:var(--on-surface);font:400 16px/1.5 Atkinson,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .topbar,.shell{width:min(calc(100% - 32px),620px);margin-inline:auto}
-.topbar{display:flex;align-items:center;gap:12px;padding:30px 32px 0;font-size:14px;font-weight:600}
+.topbar{display:flex;align-items:center;gap:12px;padding:32px 32px 0;font-size:14px;font-weight:600}
 .topbar a{color:var(--on-surface);text-decoration:none}
 .topbar a:hover{text-decoration:underline;text-decoration-color:var(--primary);text-underline-offset:4px}
 .topbar .slash,.topbar .current{color:var(--muted)}
@@ -69,11 +69,11 @@ h1 strong{font-weight:650}
 p{margin:0}
 .consent{overflow:hidden;border-radius:28px;background:var(--container-high)}
 .request-heading{padding:32px 32px 0}
-.client-address{margin-top:10px;color:var(--muted);font:400 13px/1.5 AtkinsonMono,ui-monospace,monospace;overflow-wrap:anywhere}
+.client-address{margin-top:12px;color:var(--muted);font:400 13px/1.5 AtkinsonMono,ui-monospace,monospace;overflow-wrap:anywhere}
 .permissions{min-width:0;margin:28px 32px;padding:0;border:0}
 legend{max-width:100%;padding:0;font-size:16px;font-weight:600;overflow-wrap:anywhere}
-.scope-list{display:grid;gap:3px;margin-top:12px}
-label.scope{display:flex;align-items:center;gap:12px;min-height:56px;padding:14px 16px;border-radius:5px;background:var(--container);cursor:pointer;transition:background-color 180ms ease}
+.scope-list{display:grid;gap:4px;margin-top:12px}
+label.scope{display:flex;align-items:center;gap:12px;min-height:56px;padding:16px 16px;border-radius:5px;background:var(--container);cursor:pointer;transition:background-color 180ms ease}
 label.scope:first-child{border-start-start-radius:16px;border-start-end-radius:16px}
 label.scope:last-child{border-end-start-radius:16px;border-end-end-radius:16px}
 label.scope:hover,label.scope:focus-within{background:var(--container-highest)}
@@ -101,7 +101,7 @@ button svg{width:18px;height:18px;flex:none}
 .request-details code{font:400 13px/1.5 AtkinsonMono,ui-monospace,monospace}
 .message{padding:32px;border-radius:28px;background:var(--container-high)}
 .message p{margin-top:16px;color:var(--muted)}
-@media(max-width:600px){.topbar{gap:10px;padding:24px 24px 0;font-size:13px}.shell{padding:32px 0 40px}.consent,.message{border-radius:24px}.request-heading{padding:24px 24px 0}h1{font-size:28px}.permissions{margin:24px}.verification{padding:22px 24px 24px}.hint{margin:24px}.actions{gap:10px}.actions button{padding-inline:16px}.request-details{margin-inline:8px}.message{padding:24px}}
+@media(max-width:600px){.topbar{gap:8px;padding:24px 24px 0;font-size:13px}.shell{padding:32px 0 40px}.consent,.message{border-radius:24px}.request-heading{padding:24px 24px 0}h1{font-size:28px}.permissions{margin:24px}.verification{padding:24px 24px 24px}.hint{margin:24px}.actions{gap:8px}.actions button{padding-inline:16px}.request-details{margin-inline:8px}.message{padding:24px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
 </style>
 </head>

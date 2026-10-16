@@ -106,7 +106,7 @@ html[data-detail-morph]::view-transition-new(root) {
     margin-top: 24px;
   }
   .home .focus {
-    padding-block: 5px;
+    padding-block: var(--spacing-xs);
   }
 }
 

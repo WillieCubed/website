@@ -71,13 +71,13 @@ export default function Playbill({
                 </p>
                 {!compact && part.places.length > 0 && (
                   <ul
-                    className="mt-3 flex flex-wrap gap-1.5"
+                    className="mt-3 flex flex-wrap gap-inline"
                     aria-label="Places"
                   >
                     {part.places.map((place) => (
                       <li
                         key={place.name}
-                        className="rounded-full border border-line bg-ground px-2.5 py-0.5 text-label-small text-muted"
+                        className="rounded-full border border-line bg-ground px-3 py-1 text-label-small text-muted"
                       >
                         {place.name}
                       </li>

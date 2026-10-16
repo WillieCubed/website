@@ -33,7 +33,7 @@ function ReadoutView({ readout }: ReadoutViewProps) {
         {readout.heading}
       </p>
       {readout.fields && readout.fields.length > 0 && (
-        <dl className="palette-readout__fields mt-[14px] grid grid-cols-[max-content_minmax(0,1fr)] gap-x-5 gap-y-0.5 max-[599px]:grid-cols-[minmax(0,1fr)] max-[599px]:gap-0">
+        <dl className="palette-readout__fields mt-4 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-5 gap-y-related max-[599px]:grid-cols-[minmax(0,1fr)] max-[599px]:gap-0">
           {readout.fields.map(([label, value], index) => (
             // Headers can repeat, so the position keeps keys unique.
             <div key={`${label}-${index}`} className="contents">
@@ -44,7 +44,7 @@ function ReadoutView({ readout }: ReadoutViewProps) {
         </dl>
       )}
       {readout.body && (
-        <pre className="palette-readout__body mt-[14px] [font:inherit] whitespace-pre-wrap">
+        <pre className="palette-readout__body mt-4 [font:inherit] whitespace-pre-wrap">
           {readout.body}
         </pre>
       )}
@@ -180,11 +180,11 @@ function PaletteBody({
 
   return (
     <>
-      <div className="palette-field flex min-h-14 flex-none items-center gap-[14px] rounded-2xl bg-surface-container-highest px-5 py-0">
+      <div className="palette-field flex min-h-14 flex-none items-center gap-stack rounded-2xl bg-surface-container-highest px-5 py-0">
         <Icon name="search" size={20} className="flex-none text-muted" />
         <input
           ref={inputRef}
-          className="min-w-0 flex-1 border-0 bg-transparent px-0 py-[14px] font-sans text-[18px]/[28px] text-ink outline-none placeholder:text-muted placeholder:opacity-100"
+          className="min-w-0 flex-1 border-0 bg-transparent px-0 py-4 font-sans text-[18px]/[28px] text-ink outline-none placeholder:text-muted placeholder:opacity-100"
           type="text"
           role="combobox"
           autoComplete="off"
@@ -220,11 +220,11 @@ function PaletteBody({
                 key={section.label}
                 role="group"
                 aria-labelledby={`${id}-${section.label}`}
-                className="palette-group rounded-2xl bg-card px-2 pt-1.5 pb-2"
+                className="palette-group rounded-2xl bg-card px-2 pt-2 pb-2"
               >
                 <div
                   id={`${id}-${section.label}`}
-                  className="palette-group__label px-3 pt-2.5 pb-1.5 text-xs leading-4 font-semibold tracking-[.05em] text-muted"
+                  className="palette-group__label px-3 pt-3 pb-2 text-xs leading-4 font-semibold tracking-[.05em] text-muted"
                 >
                   {section.label}
                 </div>
@@ -237,7 +237,7 @@ function PaletteBody({
                       id={`${id}-option-${index}`}
                       role="option"
                       aria-selected={index === active}
-                      className="palette-option grid grid-cols-[20px_minmax(0,1fr)] items-center gap-x-4 rounded-xl p-[10px_12px] cursor-pointer transition-[background-color,color] duration-[160ms] ease-site aria-selected:bg-secondary-container aria-selected:text-on-secondary-container"
+                      className="palette-option grid grid-cols-[20px_minmax(0,1fr)] items-center gap-x-4 rounded-xl p-3 cursor-pointer transition-[background-color,color] duration-[160ms] ease-site aria-selected:bg-secondary-container aria-selected:text-on-secondary-container"
                       onPointerMove={() => {
                         if (index !== active) setActive(index);
                       }}
@@ -283,7 +283,7 @@ function PaletteBody({
       </div>
 
       <p
-        className="palette-hints m-0 flex flex-none gap-5 px-3 pt-0.5 pb-1 text-xs leading-4 text-muted"
+        className="palette-hints m-0 flex flex-none gap-5 px-3 pt-1 pb-1 text-xs leading-4 text-muted"
         aria-hidden="true"
       >
         <span>

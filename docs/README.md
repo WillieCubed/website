@@ -45,6 +45,8 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
 
 ### Design
 
+- [Spacing](./reference/design/spacing.md): semantic spacing roles, the 4px
+  grid, optical exceptions, and source validation.
 - [Accessibility contract](./reference/design/accessibility.md): image
   descriptions, interaction rules, publication gates, and the limits of recorded
   audit evidence.

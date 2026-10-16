@@ -27,7 +27,7 @@ export default function ServerError({ onRetry }: ServerErrorProps) {
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-label-large font-semibold text-on-primary transition-colors hover:bg-primary/90"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-label-large font-semibold text-on-primary transition-colors hover:bg-primary/90"
           >
             Try again
           </button>

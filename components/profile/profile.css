@@ -44,7 +44,7 @@
 
 .profile-focuses {
   display: grid;
-  gap: 14px;
+  gap: var(--spacing-stack);
   margin-top: 20px;
   padding: 24px;
   list-style: none;
@@ -72,7 +72,7 @@
 
 .profile-work__link {
   display: block;
-  padding: 22px 24px;
+  padding: var(--spacing-xl) 24px;
   border-radius: 20px;
   background: var(--color-card);
   transition:
@@ -89,7 +89,7 @@
 
 .profile-work__link p {
   max-width: 650px;
-  margin-top: 10px;
+  margin-top: var(--spacing-md);
   line-height: 1.55;
 }
 

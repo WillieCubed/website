@@ -96,7 +96,7 @@
   .d-count > span {
     display: block;
     max-width: 22ch;
-    margin-top: 14px;
+    margin-top: var(--spacing-stack);
     color: var(--color-muted);
     font-size: 18px;
     line-height: 1.35;
@@ -163,8 +163,8 @@
   }
   .d-close {
     position: absolute;
-    top: 14px;
-    right: 18px;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
     display: grid;
     place-items: center;
     width: 38px;
@@ -202,7 +202,7 @@
     margin-top: 0;
   }
   .d-title {
-    margin: 10px 0 0;
+    margin: var(--spacing-md) 0 0;
     font-size: clamp(28px, 3vw, 40px);
     font-weight: 600;
     letter-spacing: -0.025em;
@@ -210,12 +210,12 @@
   }
   .d-body > p {
     max-width: 46ch;
-    margin: 14px 0 0;
+    margin: var(--spacing-stack) 0 0;
     color: var(--color-muted);
     font-size: 17px;
   }
   .d-list {
-    margin: 22px 0 0;
+    margin: var(--spacing-group) 0 0;
     padding: 0;
     list-style: none;
   }
@@ -245,7 +245,7 @@
   .d-list :is(button, a) b {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--spacing-inline);
   }
   .d-list :is(button, a) b .icon {
     font-size: 16px;
@@ -263,14 +263,14 @@
   .d-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: var(--spacing-inline);
     margin-top: 24px;
   }
   .d-links a {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 14px;
+    gap: var(--spacing-inline);
+    padding: var(--spacing-md) var(--spacing-control-inline);
     border-radius: 10px;
     background: var(--color-tray);
     font-size: 15px;

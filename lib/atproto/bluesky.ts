@@ -53,7 +53,8 @@ export function parseBlueskyPostUrl(
       url.origin === service.origin &&
       !url.username &&
       !url.password &&
-      match
+      match !== false &&
+      match !== null
       ? {
           actor: decodeURIComponent(match[1]),
           rkey: decodeURIComponent(match[2]),

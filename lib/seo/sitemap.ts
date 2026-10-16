@@ -14,7 +14,7 @@ type Entry = MetadataRoute.Sitemap[number];
  * there is a real edit date to give.
  */
 function entry(path: string, lastModified?: Date | string): Entry {
-  return lastModified
+  return lastModified !== undefined && lastModified !== ''
     ? { url: canonicalUrl(path), lastModified }
     : { url: canonicalUrl(path) };
 }

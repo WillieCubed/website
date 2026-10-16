@@ -86,7 +86,7 @@ export function readdirSync(path: string, options?: { withFileTypes: true }) {
     const child = suffix.split('/')[0];
     children.set(child, suffix.includes('/'));
   }
-  if (!children.size)
+  if (children.size === 0)
     throw new Error(`Runtime content directory missing: ${name}`);
   if (!options?.withFileTypes) return [...children.keys()];
   return [...children].map(([child, directory]) => ({

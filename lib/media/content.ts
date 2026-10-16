@@ -69,8 +69,8 @@ export function getMediaMentions({
     .filter((file) => file.endsWith('.md') && !file.startsWith('_'))
     .map((file) => getMediaMention(file.slice(0, -3), directory))
     .filter((mention) => !mention.draft || includeDrafts)
-    .sort(
-      (a, b) =>
-        b.published.localeCompare(a.published) || a.id.localeCompare(b.id)
-    );
+    .sort((a, b) => {
+      const byPublished = b.published.localeCompare(a.published);
+      return byPublished !== 0 ? byPublished : a.id.localeCompare(b.id);
+    });
 }

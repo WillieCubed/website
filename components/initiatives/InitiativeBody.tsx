@@ -14,7 +14,11 @@ const components = {
 };
 
 /** Renders an initiative or part body with the narrative components. */
-export default function InitiativeBody({ source }: { source: string }) {
+interface InitiativeBodyProps {
+  source: string;
+}
+
+export default function InitiativeBody({ source }: InitiativeBodyProps) {
   const Content = getCompiledMdx('narrative', source);
   return (
     <div className="initiative-prose prose prose-lg max-w-none">

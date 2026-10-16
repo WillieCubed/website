@@ -38,7 +38,7 @@ export async function validateWidgetPackage(
         typeof original[field] !== 'string' ||
         !(original[field] as string).trim()
     );
-    if (!missing.length) throw error;
+    if (missing.length === 0) throw error;
 
     const completion = jsonObject(await repair(output, missing));
     if (!completion)

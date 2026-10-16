@@ -91,7 +91,7 @@ export function useMusicDraft({
         base.current = result.revision.id;
         saved.current = result.revision.body;
         onSaved(result.revision);
-        if (!pending.current) onSettled();
+        if (pending.current === null) onSettled();
       }
       setStatus('Saved privately');
       setError('');

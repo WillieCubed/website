@@ -1,6 +1,6 @@
 import { StudioError } from '../../studio/errors';
 import { musicStore } from '../store';
-import { SpotifyError } from './client';
+import { SpotifyError, spotifyRetryAfter } from './client';
 import { sealMusic, spotifyClientId, unsealMusic } from './credentials';
 
 export interface SpotifyGrant {
@@ -34,7 +34,7 @@ async function tokenExchangeError(response: Response): Promise<never> {
   throw new SpotifyError(
     response.status,
     response.status === 429
-      ? Number(response.headers.get('retry-after')) || 60
+      ? spotifyRetryAfter(response.headers.get('retry-after'))
       : null
   );
 }
@@ -71,7 +71,7 @@ export async function accessToken(): Promise<{
         'SELECT * FROM music_connections WHERE singleton=true FOR UPDATE'
       )
     ).rows[0];
-    if (!row || row.reconnect)
+    if (row == null || row.reconnect)
       throw new StudioError(401, 'Connect Spotify to import your playlists.');
     let grant = unsealMusic<SpotifyGrant>(row.encrypted_grant);
     if (grant.expiresAt < Date.now() + 60000) {

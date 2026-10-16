@@ -7,7 +7,7 @@ import TopBar from '@/components/site/TopBar';
 
 import type { MusicMode } from '@/lib/music/presentation';
 
-type Props = {
+interface Props {
   mode: MusicMode;
   editing: boolean;
   onToggleCuration: () => void;
@@ -16,7 +16,7 @@ type Props = {
   setupToggle: RefObject<HTMLButtonElement | null>;
   curateToggle: RefObject<HTMLButtonElement | null>;
   adminMenuItems?: BreadcrumbMenuItem[];
-};
+}
 export default function MusicChrome({
   mode,
   editing,

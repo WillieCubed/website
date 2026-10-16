@@ -94,9 +94,10 @@ function CatalogField(props: FieldProps) {
         {property.required ? ' *' : ''}
       </span>
       <FieldControl {...props} />
-      {property.description && !['heading', 'title'].includes(name) && (
-        <small id={`${fieldsId}-${name}-help`}>{property.description}</small>
-      )}
+      {Boolean(property.description) &&
+        !['heading', 'title'].includes(name) && (
+          <small id={`${fieldsId}-${name}-help`}>{property.description}</small>
+        )}
     </label>
   );
 }
@@ -132,7 +133,7 @@ function accessibleField(
   fieldsId: string
 ) {
   const descriptionVisible =
-    property.description && !['heading', 'title'].includes(name);
+    Boolean(property.description) && !['heading', 'title'].includes(name);
   return {
     'aria-required': property.required || undefined,
     'aria-describedby': descriptionVisible

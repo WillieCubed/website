@@ -69,7 +69,7 @@ export function HomeShell({
       entries[id]?.focuses ?? extraEntries[id]?.focuses;
     const matches = (id: string) => {
       const focuses = focusesOf(id);
-      if (!preview || !focuses) return false;
+      if (!preview || focuses == null) return false;
       return 'focus' in preview
         ? focuses.includes(preview.focus)
         : id === preview.id;

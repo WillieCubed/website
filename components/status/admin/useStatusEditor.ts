@@ -109,7 +109,8 @@ export function useStatusEditor(
     if (!response.ok) throw new Error('Search is unavailable. Try again.');
     setResults(next.results || []);
     setMessage(
-      next.message || (next.results?.length ? '' : 'No cities found.')
+      next.message ||
+        ((next.results?.length ?? 0) > 0 ? '' : 'No cities found.')
     );
   }
 
@@ -201,7 +202,10 @@ export function useStatusEditor(
     } else if (event.key === 'Enter' && selected >= 0) {
       event.preventDefault();
       void save(results[selected]);
-    } else if (['ArrowDown', 'ArrowUp'].includes(event.key) && results.length) {
+    } else if (
+      ['ArrowDown', 'ArrowUp'].includes(event.key) &&
+      results.length > 0
+    ) {
       event.preventDefault();
       setSelected(
         selected < 0

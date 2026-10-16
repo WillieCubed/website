@@ -71,7 +71,11 @@ export async function generateViewport(
   return initiativeViewport(slug);
 }
 
-function InitiativeHeading({ initiative }: { initiative: Initiative }) {
+interface InitiativeHeadingProps {
+  initiative: Initiative;
+}
+
+function InitiativeHeading({ initiative }: InitiativeHeadingProps) {
   return (
     <header className="mx-auto max-w-[840px]">
       {isPrivatePreview() && initiative.draft && (

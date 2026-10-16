@@ -212,7 +212,7 @@ test('footer status adapts within one row even with a long city name', async ({
           const height = row.getBoundingClientRect().height;
           const lastContact = Math.max(
             ...[...controls[0].querySelectorAll('a')]
-              .filter((e) => e.getClientRects().length)
+              .filter((e) => e.getClientRects().length > 0)
               .map((e) => e.getBoundingClientRect().right)
           );
           return (

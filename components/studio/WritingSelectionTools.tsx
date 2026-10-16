@@ -116,7 +116,13 @@ export default function WritingSelectionTools({
 
 function selectionToolbarSize(element: HTMLElement | null): ToolbarSize {
   return {
-    width: element?.offsetWidth || 300,
-    height: element?.offsetHeight || 60,
+    width:
+      element?.offsetWidth === undefined || element.offsetWidth === 0
+        ? 300
+        : element.offsetWidth,
+    height:
+      element?.offsetHeight === undefined || element.offsetHeight === 0
+        ? 60
+        : element.offsetHeight,
   };
 }

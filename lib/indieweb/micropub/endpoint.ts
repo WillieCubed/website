@@ -180,10 +180,10 @@ export async function readMicropubAccessToken(
     return { error: 'invalid_request' };
   }
   if (
-    queryToken.length ||
+    queryToken.length > 0 ||
     jsonToken ||
     bodyTokens.length > 1 ||
-    (headerToken && bodyTokens.length)
+    (headerToken && bodyTokens.length > 0)
   )
     return { error: 'invalid_request' };
   const token =
@@ -511,7 +511,7 @@ export function authorizationError(
   const challenge =
     error === 'unauthorized'
       ? 'Bearer'
-      : `Bearer error="${error}"${scope ? `, scope="${Array.isArray(scope) ? scope.join(' ') : scope}"` : ''}`;
+      : `Bearer error="${error}"${scope !== undefined && scope !== '' ? `, scope="${Array.isArray(scope) ? scope.join(' ') : scope}"` : ''}`;
   response.headers.set('WWW-Authenticate', challenge);
   return response;
 }

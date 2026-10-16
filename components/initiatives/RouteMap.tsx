@@ -30,14 +30,17 @@ export default function RouteMap({
   const minLng = Math.min(...lngs) - 3;
   const maxLng = Math.max(...lngs) + 3;
   const x = (lng: number) =>
-    PAD + ((lng - minLng) / (maxLng - minLng || 1)) * (WIDTH - PAD * 2);
+    PAD +
+    ((lng - minLng) / (maxLng === minLng ? 1 : maxLng - minLng)) *
+      (WIDTH - PAD * 2);
   const y = (lat: number) =>
     HEIGHT -
     PAD -
-    ((lat - minLat) / (maxLat - minLat || 1)) * (HEIGHT - PAD * 2);
+    ((lat - minLat) / (maxLat === minLat ? 1 : maxLat - minLat)) *
+      (HEIGHT - PAD * 2);
   const points = places.map((p) => [x(p.lng), y(p.lat)] as const);
   const path = points
-    .map(([px, py], i) => `${i ? 'L' : 'M'}${px} ${py}`)
+    .map(([px, py], i) => `${i > 0 ? 'L' : 'M'}${px} ${py}`)
     .join(' ');
 
   return (

@@ -1,4 +1,8 @@
-export default function ThreadsIcon({ className }: { className?: string }) {
+interface ThreadsIconProps {
+  className?: string;
+}
+
+export default function ThreadsIcon({ className }: ThreadsIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

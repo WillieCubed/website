@@ -58,12 +58,12 @@ export function RefMark({
   }, []);
 
   const show = () => {
-    if (leaveTimer.current) window.clearTimeout(leaveTimer.current);
+    if (leaveTimer.current !== null) window.clearTimeout(leaveTimer.current);
     place();
     setOpen(true);
   };
   const hide = () => {
-    if (leaveTimer.current) window.clearTimeout(leaveTimer.current);
+    if (leaveTimer.current !== null) window.clearTimeout(leaveTimer.current);
     leaveTimer.current = window.setTimeout(() => setOpen(false), 120);
   };
 
@@ -120,7 +120,8 @@ export function RefMark({
         className="ref-popover"
         style={style}
         onPointerEnter={() => {
-          if (leaveTimer.current) window.clearTimeout(leaveTimer.current);
+          if (leaveTimer.current !== null)
+            window.clearTimeout(leaveTimer.current);
         }}
         onPointerLeave={hide}
       >

@@ -1196,7 +1196,7 @@ export async function runSocialCapture() {
             }
           }
           async function recordCompletedDeliveryProbe(): Promise<void> {
-            if (completedPending.length) {
+            if (completedPending.length > 0) {
               try {
                 const probe = JSON.parse(
                   await readFile(
@@ -1411,7 +1411,7 @@ export async function runSocialCapture() {
         ),
         'Never remove a second visitor record created outside this capture.'
       );
-      if (remaining.length) {
+      if (remaining.length > 0) {
         const undo = await second.request.delete(
           `${ORIGIN}/api/atproto/subscription`,
           { headers: { origin: ORIGIN }, data: {} }
@@ -1540,7 +1540,7 @@ export async function runSocialCapture() {
           async function finishUiMutation(
             kind: 'subscription' | 'recommendation'
           ) {
-            assert(owner);
+            assert(owner != null);
             await settleUiMutation(owner);
             const records = await graphFor(owner.did, kind);
             owner = await ledger.completeMutation(
@@ -1638,7 +1638,7 @@ export async function runSocialCapture() {
           assert(!social.error);
           await save('social-only-receipt.json', {
             scope: 'real-social-only',
-            status: social.pending.length ? 'pending' : 'checks-passed',
+            status: social.pending.length > 0 ? 'pending' : 'checks-passed',
             runtime: existingRuntime,
             localVerifier,
             fullVerification: 'pending',
@@ -1694,7 +1694,7 @@ export async function runSocialCapture() {
           await restoreAuthorizationBaseline();
           await save('capture-cleanup.json', {
             checkedAt: new Date().toISOString(),
-            status: pending.length ? 'pending' : 'passed',
+            status: pending.length > 0 ? 'pending' : 'passed',
             pending,
             owned: ledger.browsers(),
             providerRevocation:
@@ -1734,7 +1734,7 @@ export async function runSocialCapture() {
         const failed = cleanup.flatMap((result, index) =>
           result.status === 'rejected' ? [names[index]] : []
         );
-        if (failed.length) {
+        if (failed.length > 0) {
           pending.push(
             ...failed.map((name) => `The ${name} still needs resource cleanup.`)
           );
@@ -1820,7 +1820,7 @@ export async function runSocialCapture() {
               const current =
                 await db.sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${hash(owner.did)}`;
               assert(current.rows.length <= 1);
-              if (current.rows.length)
+              if (current.rows.length > 0)
                 assertGrantBinding(
                   grantIntent,
                   decryptOAuthValue<StoredSession>(
@@ -2162,7 +2162,7 @@ export async function runSocialCapture() {
               );
               const rows =
                 await db.sql`SELECT encrypted_value FROM atproto_oauth_states WHERE key_hash = ${state.key}`;
-              if (rows.rows.length) {
+              if (rows.rows.length > 0) {
                 assert.equal(rows.rows.length, 1);
                 assert.equal(
                   hash(rows.rows[0].encrypted_value as string),

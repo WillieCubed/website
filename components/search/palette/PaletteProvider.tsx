@@ -49,7 +49,7 @@ function reducedMotion(): boolean {
  * is swallowed rather than left to strand the palette half open.
  */
 function transition(update: () => void): Promise<void> {
-  if (!document.startViewTransition || reducedMotion()) {
+  if (document.startViewTransition == null || reducedMotion()) {
     update();
     return Promise.resolve();
   }

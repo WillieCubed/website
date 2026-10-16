@@ -27,7 +27,7 @@ export async function runImageChecks() {
       ),
   ];
 
-  if (issues.length) {
+  if (issues.length > 0) {
     for (const { file, line, message } of issues) {
       console.error(`${relative(process.cwd(), file)}:${line}: ${message}`);
     }

@@ -7,15 +7,13 @@ import SiteLink from '@/components/link/SiteLink';
 import { isPlainClick } from '@/lib/dom/click';
 import { type Detail, type DetailMedia } from '@/lib/home/ventures';
 
-export function Media({
-  id,
-  media,
-  countdown,
-}: {
+interface MediaProps {
   id: string;
   media: DetailMedia;
   countdown: React.ReactNode;
-}) {
+}
+
+export function Media({ id, media, countdown }: MediaProps) {
   switch (media.kind) {
     case 'countdown':
       return (
@@ -55,13 +53,12 @@ export function Media({
       return <Constellation morph={id} />;
   }
 }
-export function Body({
-  detail,
-  onOpen,
-}: {
+interface BodyProps {
   detail: Detail;
   onOpen: (id: string) => void;
-}) {
+}
+
+export function Body({ detail, onOpen }: BodyProps) {
   return (
     <div className="d-body">
       {detail.body.map((paragraph) => (

@@ -12,7 +12,11 @@ import './globals.css';
  * it brings its own document, fonts, and styles, and sets the title with a
  * React `<title>` because error boundaries cannot export metadata.
  */
-export default function GlobalError({ retry }: { retry: () => void }) {
+interface GlobalErrorProps {
+  retry: () => void;
+}
+
+export default function GlobalError({ retry }: GlobalErrorProps) {
   return (
     <html
       lang={site.language}

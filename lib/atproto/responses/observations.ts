@@ -51,7 +51,7 @@ const cachedReceipts = unstable_cache(
 export const responseObservationStore: ResponseObservationStore = {
   async observe(copyUri, actorDids) {
     const actors = canonicalRepostActors(actorDids);
-    if (!actors.length) return new Map();
+    if (actors.length === 0) return new Map();
     const receipts = await cachedReceipts(copyUri, actors);
     return new Map(
       receipts.map(([did, timestamp]) => [did, new Date(timestamp)])

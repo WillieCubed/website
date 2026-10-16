@@ -24,7 +24,7 @@ export function authorizeRefresh(
 }
 export async function refreshApproved() {
   const manifest = await approvedManifest();
-  if (!manifest.catalog.selected.length)
+  if (manifest.catalog.selected.length === 0)
     return { checked: 0, failed: 0, suppressed: 0 };
   const store = musicStore(),
     db = await store.pool.connect();

@@ -40,7 +40,7 @@ export default function ProjectPage({
 
   return (
     <div
-      className={hero ? 'project project-has-hero' : 'project'}
+      className={hero != null ? 'project project-has-hero' : 'project'}
       style={schemeStyleFromHex(projectSeed(project))}
     >
       <div className="project-topbar">
@@ -85,7 +85,7 @@ export default function ProjectPage({
           </div>
         </div>
         <div className="project-main">
-          {hero && <ProjectMedia media={hero} hero />}
+          {hero != null && <ProjectMedia media={hero} hero />}
           {project.content && <InitiativeBody source={project.content} />}
           {more.map((media, index) => (
             <ProjectMedia key={index} media={media} />

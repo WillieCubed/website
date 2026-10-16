@@ -148,7 +148,7 @@ export async function importLibrary() {
       }
     };
     await Promise.all([work(), work()]);
-    if (pause) {
+    if (pause !== null) {
       progress.retryAfter = (pause as SpotifyError).retryAfter;
       if ((pause as SpotifyError).providerStatus === 401)
         await store.pool.query(

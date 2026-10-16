@@ -199,7 +199,7 @@ export async function provisionAcceptanceIdentities(
           .split('\n')
           .filter(
             (line) =>
-              line &&
+              line.length > 0 &&
               !Object.keys(settings).some((name) => line.startsWith(`${name}=`))
           ),
         ...Object.entries(settings).map(

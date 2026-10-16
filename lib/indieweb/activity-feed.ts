@@ -148,11 +148,12 @@ function hostnameForUrl(url: string): string {
 function activityContent(activity: ResponseActivity): string | undefined {
   const body = activity.contentHtml
     ? sanitizeCommentHtml(activity.contentHtml, activity.sourceUrl)
-    : activity.media?.length
+    : (activity.media?.length ?? 0) > 0
       ? plainTextHtml(activity.content || '')
       : '';
-  const media = activity.media?.length
-    ? responseMediaHtml(activity.media, activity.sourceUrl)
-    : '';
+  const media =
+    activity.media && activity.media.length > 0
+      ? responseMediaHtml(activity.media, activity.sourceUrl)
+      : '';
   return body + media || undefined;
 }

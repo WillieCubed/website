@@ -107,7 +107,7 @@ function approvedProperties(
   proposal: ComponentProposal
 ): Record<string, unknown> {
   const props = (attrs.props ?? proposal.example) as Record<string, unknown>;
-  if (!props || typeof props !== 'object' || Array.isArray(props))
+  if (props == null || typeof props !== 'object' || Array.isArray(props))
     throw new StudioError(422, 'Component properties must be an object.');
   for (const [name, definition] of Object.entries(proposal.properties)) {
     const property = definition as CatalogProperty;
@@ -312,7 +312,7 @@ async function publicationPullRequest(
   branch: string
 ): Promise<Record<string, unknown>> {
   let pr: Record<string, unknown>;
-  if (publication.pullRequestNumber) {
+  if (publication.pullRequestNumber !== undefined) {
     pr = await github(`pulls/${publication.pullRequestNumber}`);
   } else {
     const owner = required('STUDIO_GITHUB_REPOSITORY').split('/')[0];
@@ -518,7 +518,7 @@ async function requireLatestPublication(
   const live = latestDraft?.liveRevisionId
     ? await store.revision(latestDraft.liveRevisionId)
     : null;
-  if (newer.rowCount || (live && live.number > revision.number))
+  if ((newer.rowCount ?? 0) > 0 || (live && live.number > revision.number))
     throw new StudioError(
       409,
       'Restore this earlier revision as a new working revision before publishing it.'
@@ -557,7 +557,7 @@ async function preparePublicationProposal(
   } else {
     // GitHub can delete the private head branch after a successful merge.
     // Reconcile the durable PR before considering a new proposal.
-    if (publication.pullRequestNumber) {
+    if (publication.pullRequestNumber !== undefined) {
       await reconcilePullRequest(publication, branch);
       return;
     }

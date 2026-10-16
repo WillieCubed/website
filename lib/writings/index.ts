@@ -126,7 +126,7 @@ export async function getWritingsInSeries(
   const writings = await getAllWritings();
   return writings
     .filter((writing) => writing.series?.slug === seriesSlug)
-    .sort((a, b) => (a.series?.part || 0) - (b.series?.part || 0));
+    .sort((a, b) => (a.series?.part ?? 0) - (b.series?.part ?? 0));
 }
 
 /**

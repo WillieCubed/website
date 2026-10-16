@@ -12,7 +12,9 @@ export class SpotifyError extends StudioError {
         : providerStatus === 401
           ? 'Reconnect Spotify to continue.'
           : `Spotify could not complete this request (${providerStatus}).`,
-      retryAfter ? { retryAfter } : undefined
+      retryAfter !== null && retryAfter !== 0 && !Number.isNaN(retryAfter)
+        ? { retryAfter }
+        : undefined
     );
   }
 }
@@ -37,7 +39,7 @@ export class SpotifyClient {
       throw new SpotifyError(
         response.status,
         response.status === 429
-          ? Math.max(1, Number(response.headers.get('retry-after')) || 60)
+          ? Math.max(1, spotifyRetryAfter(response.headers.get('retry-after')))
           : null
       );
     return response.json();
@@ -58,4 +60,9 @@ export class SpotifyClient {
     }
     return items;
   }
+}
+
+export function spotifyRetryAfter(header: string | null): number {
+  const seconds = Number(header);
+  return seconds === 0 || Number.isNaN(seconds) ? 60 : seconds;
 }

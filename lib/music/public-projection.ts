@@ -39,7 +39,7 @@ export function visibleCollection(
           ...s,
           playlistIds: s.playlistIds.filter((id) => byId.has(id)),
         }))
-        .filter((s) => s.playlistIds.length),
+        .filter((s) => s.playlistIds.length > 0),
     },
     playlists: order.map((id) => byId.get(id)!),
   };

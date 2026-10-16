@@ -96,21 +96,22 @@ export default function WebmentionSection({
         </div>
       )}
       {mentions.some(
-        (item) => item.origin === 'atproto' || item.media?.length
+        (item) => item.origin === 'atproto' || (item.media?.length ?? 0) > 0
       ) && (
         <WebmentionReplies
           replies={mentions.filter(
-            (item) => item.origin === 'atproto' || item.media?.length
+            (item) => item.origin === 'atproto' || (item.media?.length ?? 0) > 0
           )}
           label="Quotes and mentions"
         />
       )}
       {mentions.some(
-        (item) => item.origin !== 'atproto' && !item.media?.length
+        (item) => item.origin !== 'atproto' && (item.media?.length ?? 0) === 0
       ) && (
         <Mentions
           mentions={mentions.filter(
-            (item) => item.origin !== 'atproto' && !item.media?.length
+            (item) =>
+              item.origin !== 'atproto' && (item.media?.length ?? 0) === 0
           )}
         />
       )}
@@ -131,15 +132,13 @@ function names(items: PublishingResponse[]): string {
  * pointing at the like, repost, or RSVP where it lives. An RSVP face keeps
  * its answer as `p-rsvp`, so a parser can count who is coming.
  */
-function Facepile({
-  items,
-  property,
-  line,
-}: {
+interface FacepileProps {
   items: PublishingResponse[];
   property: 'u-like' | 'u-repost' | 'u-bookmark' | 'u-rsvp';
   line: (who: string, one: boolean) => string;
-}) {
+}
+
+function Facepile({ items, property, line }: FacepileProps) {
   if (items.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-3 text-body-small text-muted">
@@ -178,7 +177,11 @@ function excerpt(text: string): string {
  * its markup said. The host stands in for a missing author, so every line
  * says where the mention lives.
  */
-function Mentions({ mentions }: { mentions: PublishingResponse[] }) {
+interface MentionsProps {
+  mentions: PublishingResponse[];
+}
+
+function Mentions({ mentions }: MentionsProps) {
   return (
     <ul className="space-y-3 text-body-small text-muted">
       {mentions.map((mention) => {

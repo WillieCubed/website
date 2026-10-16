@@ -19,7 +19,7 @@ export async function searchPrivate(
   query: string,
   options: SearchOptions = {}
 ): Promise<SearchResponse> {
-  if (!query.trim() || !tokenize(query).length)
+  if (!query.trim() || tokenize(query).length === 0)
     return { query, total: 0, results: [], backend: 'private' };
   const items = await privateSearchItems();
   const filtered = [...items.values()].filter(

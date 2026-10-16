@@ -422,7 +422,7 @@ export async function runSocialTests() {
           ),
           'Undo would remove an unjournaled record.'
         );
-        if (current.length) await mutate(kind, 'DELETE');
+        if (current.length > 0) await mutate(kind, 'DELETE');
       }
       const { secondInitial, secondRecords } = await visitorBaseline();
       async function visitorBaseline() {
@@ -1051,7 +1051,7 @@ export async function runSocialTests() {
           }
           await verifyNaturalProviderRefresh();
           async function verifyNaturalProviderRefresh() {
-            if (refreshSeconds) {
+            if (refreshSeconds !== 0) {
               assert(
                 process.env.ATPROTO_OAUTH_STORAGE_KEY,
                 'Real refresh proof requires the matching acceptance storage key.'
@@ -1066,8 +1066,9 @@ export async function runSocialTests() {
                 process.env.ATPROTO_OAUTH_STORAGE_KEY
               ).tokenSet;
               assert.equal(initialTokens.sub, visitor);
+              assert(typeof initialTokens.expires_at === 'number');
               assert(
-                initialTokens.expires_at && initialTokens.refresh_token,
+                initialTokens.expires_at > 0 && initialTokens.refresh_token,
                 'Provider must supply expiry and refresh credentials for this check.'
               );
               const initialAccessHash = digest(initialTokens.access_token);
@@ -1091,7 +1092,7 @@ export async function runSocialTests() {
                   assert.equal(tokens.iss, initialTokens.iss);
                   assert.equal(tokens.aud, initialTokens.aud);
                   if (
-                    tokens.expires_at &&
+                    typeof tokens.expires_at === 'number' &&
                     tokens.expires_at > initialTokens.expires_at &&
                     digest(tokens.access_token) !== initialAccessHash
                   ) {

@@ -105,7 +105,7 @@ function validateComponentProperties(value: Record<string, unknown>): void {
 
 function validateImports(program: object): void {
   const nodes: object[] = [program];
-  while (nodes.length) {
+  while (nodes.length > 0) {
     const node = nodes.pop() as SyntaxNode;
     if (isUnsupportedImport(node) || isDynamicImport(node))
       throw new StudioError(422, 'Components may only import React.');

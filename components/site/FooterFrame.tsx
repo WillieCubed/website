@@ -170,7 +170,7 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
       headlineReveal?.set(1 - wave);
     };
     const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(update);
+      if (frame === 0) frame = requestAnimationFrame(update);
     };
     const remeasure = () => {
       measure();

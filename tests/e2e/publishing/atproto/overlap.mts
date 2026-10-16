@@ -338,7 +338,7 @@ export async function runOverlapTests() {
       assertOwnedMention(snapshot);
       assertKnownMentionTransition();
       function assertKnownMentionTransition() {
-        if (journal.mentionSnapshots.length) {
+        if (journal.mentionSnapshots.length > 0) {
           const known = journal.mentionSnapshots.at(-1)!;
           const previous = { ...known.value },
             current = { ...snapshot.value };
@@ -467,9 +467,9 @@ export async function runOverlapTests() {
                   new Date(String(observation.value.observed_at)).getTime() >=
                     new Date(journal.createdAt).getTime()
                 );
-                if (journal.observations?.length)
+                if ((journal.observations?.length ?? 0) > 0)
                   assert(
-                    journal.observations.some(
+                    (journal.observations ?? []).some(
                       (snapshot) => snapshot.canonical === observation.canonical
                     )
                   );

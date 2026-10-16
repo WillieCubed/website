@@ -30,7 +30,7 @@ function encryptedStore<T>(
         `SELECT encrypted_value FROM ${table} WHERE key_hash = $1 AND expires_at > NOW()`,
         [digest(id)]
       );
-      return rows[0]
+      return rows[0] != null
         ? decryptOAuthValue<T>(rows[0].encrypted_value, key)
         : undefined;
     },
@@ -119,7 +119,7 @@ export async function readBrowserSession(
   if (!/^[a-f0-9]{64}$/.test(token)) return null;
   const { rows } =
     await sql`SELECT did FROM atproto_browser_sessions WHERE token_hash = ${digest(token)} AND expires_at > NOW()`;
-  return rows[0] ? { did: rows[0].did, id: token } : null;
+  return rows[0] != null ? { did: rows[0].did, id: token } : null;
 }
 
 export async function deleteBrowserSession(token: string): Promise<void> {

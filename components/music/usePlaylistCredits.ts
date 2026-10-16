@@ -25,7 +25,7 @@ export function usePlaylistCredits() {
 
   useEffect(() => {
     const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-    if (!media) return;
+    if (media == null) return;
     const update = () => {
       setReduced(media.matches);
       if (media.matches) setPlaying(false);

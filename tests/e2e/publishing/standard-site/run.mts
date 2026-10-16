@@ -1001,7 +1001,7 @@ export async function runStandardSiteAcceptance() {
           });
           assert(
             restoredRepeated.status === 'synced' &&
-              !restoredRepeated.writes.length
+              restoredRepeated.writes.length === 0
           );
           assert.deepEqual(
             [

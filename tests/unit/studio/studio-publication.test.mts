@@ -209,7 +209,7 @@ test(
         endpoint: URL,
         init?: RequestInit
       ): Response | undefined {
-        if (path === 'pulls' && !init?.body) {
+        if (path === 'pulls' && init?.body == null) {
           const branch = endpoint.searchParams.get('head')!.split(':')[1];
           return Response.json(
             [...pulls.values()].filter(
@@ -233,7 +233,7 @@ test(
         if (path === 'commits') return Response.json(history);
         if (path.startsWith('compare/'))
           return Response.json({ status: 'ahead' });
-        if (init?.body) return undefined;
+        if (init?.body != null) return undefined;
         if (path.startsWith('git/commits/'))
           return Response.json({
             tree: { sha: 'tree-base' },

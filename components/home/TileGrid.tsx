@@ -20,13 +20,12 @@ const EAGER_TILES = 2;
 
 type Loading = 'eager' | 'lazy';
 
-function VentureBody({
-  venture,
-  loading,
-}: {
+interface VentureBodyProps {
   venture: Venture;
   loading: Loading;
-}) {
+}
+
+function VentureBody({ venture, loading }: VentureBodyProps) {
   const { body } = venture;
   switch (body.kind) {
     case 'lead':
@@ -81,16 +80,14 @@ function VentureBody({
  * A featured initiative's tile links to its page instead of opening a detail
  * view. A campaign with parts shows its acts; anything else shows its cover.
  */
-function InitiativeBody({
-  tile,
-  playbill,
-  loading,
-}: {
+interface InitiativeBodyProps {
   tile: InitiativeTileEntry;
   playbill?: React.ReactNode;
   loading: Loading;
-}) {
-  if (tile.body === 'playbill' && playbill) {
+}
+
+function InitiativeBody({ tile, playbill, loading }: InitiativeBodyProps) {
+  if (tile.body === 'playbill' && Boolean(playbill)) {
     return (
       <div className="tile-playbill" data-media="">
         {playbill}
@@ -111,14 +108,13 @@ function InitiativeBody({
   );
 }
 
-export function TileGrid({
-  tiles,
-  playbills = {},
-}: {
+interface TileGridProps {
   tiles: TileEntry[];
   /** Pre-rendered acts for playbill tiles, keyed by tile id. */
   playbills?: Record<string, React.ReactNode>;
-}) {
+}
+
+export function TileGrid({ tiles, playbills = {} }: TileGridProps) {
   return (
     <main id="main" className="evidence" aria-label="Work in progress">
       {tiles.map((tile, i) => {

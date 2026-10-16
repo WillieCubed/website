@@ -314,8 +314,8 @@ export async function verifyExistingRuntime(
       );
     assert.equal(metadata.draft, false);
     assert(
-      !(metadata.syndicateTo as unknown[] | undefined)?.length &&
-        !(metadata.syndication as unknown[] | undefined)?.length
+      ((metadata.syndicateTo as unknown[] | undefined)?.length ?? 0) === 0 &&
+        ((metadata.syndication as unknown[] | undefined)?.length ?? 0) === 0
     );
   }
 }

@@ -11,7 +11,11 @@ import { type FocusItem, Focuses, VentureLink } from './Focuses';
  * footer, which grows out of them (SiteFooter), so the photo and email are
  * given here as data.
  */
-export function Rail({ focuses }: { focuses: FocusItem[] }) {
+interface RailProps {
+  focuses: FocusItem[];
+}
+
+export function Rail({ focuses }: RailProps) {
   return (
     <aside className="rail h-card">
       <data

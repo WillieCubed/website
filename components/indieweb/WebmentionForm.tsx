@@ -12,7 +12,11 @@ import { WEBMENTION_ENDPOINT } from '@/lib/indieweb/constants';
  * as webmentions. Most sites send one on their own; this form is for the
  * ones that do not.
  */
-export default function WebmentionForm({ target }: { target: string }) {
+interface WebmentionFormProps {
+  target: string;
+}
+
+export default function WebmentionForm({ target }: WebmentionFormProps) {
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>(
     'idle'
   );

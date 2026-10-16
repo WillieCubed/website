@@ -38,9 +38,10 @@ export async function getFeaturedTiles(): Promise<InitiativeTile[]> {
           ? `${initiative.partLabel} ${act.number} · ${act.title}`
           : initiative.tagline,
         focuses: feature.focuses,
-        brandVars: Object.keys(vars).length
-          ? (vars as Record<string, string>)
-          : undefined,
+        brandVars:
+          Object.keys(vars).length > 0
+            ? (vars as Record<string, string>)
+            : undefined,
         image: initiative.cover,
         body: initiative.parts.length > 0 ? 'playbill' : 'cover',
       },

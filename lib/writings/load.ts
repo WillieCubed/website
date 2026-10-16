@@ -129,7 +129,10 @@ const INTERACTIONS = [
 function inferPostType(frontmatter: RawFrontmatter): PostType {
   const declared = frontmatter.postType ?? 'article';
   if (frontmatter.postType) return declared;
-  for (const [type, field] of INTERACTIONS) if (frontmatter[field]) return type;
+  for (const [type, field] of INTERACTIONS) {
+    const target = frontmatter[field];
+    if (target != null && target !== '') return type;
+  }
   return declared;
 }
 
@@ -141,7 +144,8 @@ function warnFrontmatter(
 ): void {
   if (process.env.NODE_ENV === 'production') return;
   for (const [type, field] of INTERACTIONS) {
-    if (postType === type && !frontmatter[field])
+    const target = frontmatter[field];
+    if (postType === type && (target == null || target === ''))
       console.warn(
         `Warning: Post "${slug}" has postType '${type}' but missing ${field} field`
       );

@@ -37,7 +37,7 @@ export default function PostInteractions({
     <section className="pt-14">
       {hasResponses && (
         <div className="space-y-8">
-          {hasWebmentions && webmentions && (
+          {hasWebmentions && webmentions != null && (
             <WebmentionSection webmentions={webmentions} />
           )}
           {backlinks.length > 0 && <BacklinksSection backlinks={backlinks} />}

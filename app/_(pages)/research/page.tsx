@@ -125,9 +125,9 @@ export default async function ResearchOverviewPage() {
 /** Project data retained from the former research model. */
 const RESEARCH_SLUGS = ['cole', 'storygen', 'aggie'];
 
-type ProjectsPageProps = {
+interface ProjectsPageProps {
   researchProjects: Project[];
-};
+}
 
 async function getResearchPageData(): Promise<ProjectsPageProps> {
   const projects = await getProjects();

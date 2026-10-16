@@ -1,11 +1,13 @@
 import './loading.css';
 
 /** An indeterminate MD3 wavy circular indicator; its containing control names the operation. */
+interface LoadingIndicatorProps {
+  className?: string;
+}
+
 export default function LoadingIndicator({
   className = '',
-}: {
-  className?: string;
-}) {
+}: LoadingIndicatorProps) {
   return (
     <svg
       className={`site-loading-indicator ${className}`}

@@ -122,7 +122,7 @@ function LocationEditor({ initial, onAccessExpired }: LocationEditorProps) {
         role="listbox"
         aria-label="Cities"
         aria-busy={pending}
-        hidden={!editing || !results.length}
+        hidden={!editing || results.length === 0}
       >
         {results.map((city, index) => (
           <form

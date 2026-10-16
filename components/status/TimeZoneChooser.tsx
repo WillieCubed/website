@@ -2,6 +2,16 @@
 
 import Popover from '@/components/site/Popover';
 
+interface TimeZoneChooserProps {
+  current: string;
+  localTimezone: string;
+  deviceTimezone: string;
+  city: string;
+  zone: string;
+  now?: Date;
+  onChange: (timezone: string) => void;
+}
+
 export default function TimeZoneChooser({
   current,
   localTimezone,
@@ -10,15 +20,7 @@ export default function TimeZoneChooser({
   zone,
   now,
   onChange,
-}: {
-  current: string;
-  localTimezone: string;
-  deviceTimezone: string;
-  city: string;
-  zone: string;
-  now?: Date;
-  onChange: (timezone: string) => void;
-}) {
+}: TimeZoneChooserProps) {
   const options = [
     { value: 'local', label: city, timezone: localTimezone },
     { value: 'device', label: 'Your time', timezone: deviceTimezone },

@@ -12,11 +12,13 @@ import StudioWritingLayout, {
 } from './StudioWritingLayout';
 
 /** Loading and editing share the same navigation, column, and canvas. */
+interface StudioDocumentFrameProps {
+  children: ReactNode;
+}
+
 export default function StudioDocumentFrame({
   children,
-}: {
-  children: ReactNode;
-}) {
+}: StudioDocumentFrameProps) {
   return (
     <>
       <TopBar
@@ -34,7 +36,11 @@ export default function StudioDocumentFrame({
   );
 }
 
-export function StudioDocumentPending({ error }: { error?: string }) {
+interface StudioDocumentPendingProps {
+  error?: string;
+}
+
+export function StudioDocumentPending({ error }: StudioDocumentPendingProps) {
   return (
     <StudioDocumentFrame>
       <StudioDocumentPendingContent error={error} />
@@ -42,7 +48,13 @@ export function StudioDocumentPending({ error }: { error?: string }) {
   );
 }
 
-export function StudioDocumentPendingContent({ error }: { error?: string }) {
+interface StudioDocumentPendingContentProps {
+  error?: string;
+}
+
+export function StudioDocumentPendingContent({
+  error,
+}: StudioDocumentPendingContentProps) {
   return (
     <StudioWritingLayout
       pending

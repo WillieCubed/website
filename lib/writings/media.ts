@@ -65,7 +65,11 @@ export function prepareWritingHtmlMedia(
             (item) =>
               item.kind === 'image' && identity(item.url) === identity(src)
           );
-        if (photo && photo.description !== undefined)
+        if (
+          typeof photo === 'object' &&
+          photo !== null &&
+          photo.description !== undefined
+        )
           child.attrs.push({ name: 'alt', value: photo.description });
       }
       supplyMissingPhotoAlt(child);

@@ -13,7 +13,11 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
 });
 
-export default function MediaMention({ mention }: { mention: Mention }) {
+interface MediaMentionProps {
+  mention: Mention;
+}
+
+export default function MediaMention({ mention }: MediaMentionProps) {
   const { featured, image } = mention;
   return (
     <article

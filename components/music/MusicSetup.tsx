@@ -241,17 +241,21 @@ function ConnectStep({ title, playlists, Cover, onConnect }: ConnectStepProps) {
       </div>
       <div className="ms-cover-arrangement" aria-hidden="true">
         <div className="ms-art ms-art-back">
-          {playlists[4] ? <Cover playlist={playlists[4]} /> : <SpotifyIcon />}
+          {playlists[4] != null ? (
+            <Cover playlist={playlists[4]} />
+          ) : (
+            <SpotifyIcon />
+          )}
         </div>
         <div className="ms-art ms-art-middle">
-          {playlists[1] ? (
+          {playlists[1] != null ? (
             <Cover playlist={playlists[1]} />
           ) : (
             <Icon name="music" />
           )}
         </div>
         <div className="ms-art ms-art-front">
-          {playlists[0] ? (
+          {playlists[0] != null ? (
             <Cover playlist={playlists[0]} />
           ) : (
             <Icon name="music" />

@@ -113,3 +113,23 @@ test('successful null playlist metadata is rejected with or without a cached pub
     );
   }
 });
+
+test('provider rate-limit defaults preserve zero and invalid header handling', async () => {
+  for (const [header, expected] of [
+    [null, 60],
+    ['', 60],
+    ['0', 60],
+    ['not-a-number', 60],
+    ['-5', 1],
+    ['120', 120],
+  ] as const) {
+    const headers = new Headers();
+    if (header !== null) headers.set('Retry-After', header);
+    const request = (async () =>
+      new Response('', { status: 429, headers })) as typeof fetch;
+    await assert.rejects(
+      new SpotifyClient('private', request).get('me'),
+      (error) => error instanceof SpotifyError && error.retryAfter === expected
+    );
+  }
+});

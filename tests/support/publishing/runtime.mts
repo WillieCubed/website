@@ -99,7 +99,7 @@ function sourceReferences(actual: string, source: string): string[] {
     if (
       ts.isCallExpression(node) &&
       node.expression.kind === ts.SyntaxKind.ImportKeyword &&
-      node.arguments[0] &&
+      node.arguments[0] != null &&
       ts.isStringLiteral(node.arguments[0])
     )
       references.push(node.arguments[0].text);

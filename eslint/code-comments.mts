@@ -40,7 +40,9 @@ export const hashComments: Linter.Processor<string> = {
     return messages.flat().map((message) => ({
       ...message,
       column: Math.max(1, message.column - 1),
-      ...(message.endColumn ? { endColumn: message.endColumn - 1 } : {}),
+      ...(message.endColumn !== undefined
+        ? { endColumn: message.endColumn - 1 }
+        : {}),
     }));
   },
 };
@@ -50,7 +52,7 @@ class HashCommentScanner {
   heredocs: { delimiter: string; tabs: boolean }[] = [];
 
   line(line: string) {
-    if (this.heredocs.length) {
+    if (this.heredocs.length > 0) {
       const { delimiter, tabs } = this.heredocs[0];
       if (
         (tabs ? line.replace(/^\t+/, '') : line).replace(/\r$/, '') ===

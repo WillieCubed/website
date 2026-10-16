@@ -272,7 +272,7 @@ function VirtualResume({
   );
 }
 
-type ResumeCV = {
+interface ResumeCV {
   summary: string;
   education: EducationItem[];
   experience: ResumeExperienceItem[];
@@ -281,66 +281,70 @@ type ResumeCV = {
   publications: PublicationItem[];
   talks: PresentationItem[];
   awards: AwardItem[];
-};
+}
 
-type EducationItem = {
+interface EducationItem {
   school: string;
   degree: string;
   subject: string;
   location: string;
   graduationDate: string;
-};
+}
 
-type ResumeExperienceItem = {
+interface ResumeExperienceItem {
   organization: string;
   positionTitle: string;
   startDate: string;
   endDate: string;
   location: string;
   description: string;
-};
+}
 
-type AwardItem = {
+interface AwardItem {
   type: 'award' | 'scholarship' | 'honor';
   title: string;
   date: string;
   description: string;
-};
+}
 
-type PublicationItem = {
+interface PublicationItem {
   title: string;
   authors: string[];
   date: string;
   url: string;
-};
+}
 
-export type ProfessionalAffiliationItem = {
+export interface ProfessionalAffiliationItem {
   organization: string;
   positionTitle: string;
   startDate: string;
   endDate: string;
   location: string;
   description: string;
-};
+}
 
 /**
  * An invited talk, presentation, or workshop.
  */
-type PresentationItem = {
+interface PresentationItem {
   title: string;
   date: string;
   location: string;
   description: string;
-};
+}
 
-type ServiceActivity = {
+interface ServiceActivity {
   group: string;
   positionTitle: string;
   startDate: string;
   endDate: string;
-};
+}
 
-function ResumeEducationList({ items }: { items: EducationItem[] }) {
+interface ResumeEducationListProps {
+  items: EducationItem[];
+}
+
+function ResumeEducationList({ items }: ResumeEducationListProps) {
   const educationItems = items.map(
     ({ school, degree, subject, location, graduationDate }) => (
       <li key={school + subject} className="space-y-2">
@@ -360,7 +364,11 @@ function ResumeEducationList({ items }: { items: EducationItem[] }) {
   return <ul className="space-y-6">{educationItems}</ul>;
 }
 
-function ResumeExperienceList({ items }: { items: ResumeExperienceItem[] }) {
+interface ResumeExperienceListProps {
+  items: ResumeExperienceItem[];
+}
+
+function ResumeExperienceList({ items }: ResumeExperienceListProps) {
   const experienceItems = items.map(
     ({
       positionTitle,

@@ -2,14 +2,19 @@ import type { InputHTMLAttributes } from 'react';
 
 import './music-selection-control.css';
 
+interface MusicSelectionControlProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type' | 'className'
+> {
+  type?: 'checkbox' | 'radio';
+  indicator?: 'include' | 'feature' | 'equal';
+}
+
 export default function MusicSelectionControl({
   type = 'checkbox',
   indicator = 'include',
   ...props
-}: Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'className'> & {
-  type?: 'checkbox' | 'radio';
-  indicator?: 'include' | 'feature' | 'equal';
-}) {
+}: MusicSelectionControlProps) {
   return (
     <span className="mp-selection-control" data-indicator={indicator}>
       <input {...props} type={type} />

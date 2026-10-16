@@ -37,7 +37,7 @@ export async function parseMicropubCreateRequest(
   return parseFormData(formData);
 }
 function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
-  if (!body || typeof body !== 'object' || Array.isArray(body))
+  if (body == null || typeof body !== 'object' || Array.isArray(body))
     throw new Error('invalid_request');
   const properties = validateProperties(body.properties ?? {});
   const types = body.type ?? ['h-entry'];
@@ -116,7 +116,7 @@ function citedUrl(values: unknown[] | undefined): string | undefined {
     };
     const [url] = Array.isArray(properties?.url) ? properties.url : [];
     const candidate = [url, value].find(
-      (item) => typeof item === 'string' && item.trim()
+      (item) => typeof item === 'string' && item.trim().length > 0
     );
     if (typeof candidate === 'string') return photoUrl(candidate);
   }
@@ -132,7 +132,7 @@ function parseFormData(formData: FormData): MicropubCreateRequest {
     'syndication',
   ])
     urlValues(properties[property], property);
-  if (properties.category)
+  if (properties.category != null)
     properties.category = formStringList(formData, 'category');
   const content = contentValue(properties.content);
   const postStatus = parsePostStatus(formData.getAll('post-status'));
@@ -176,7 +176,7 @@ function parsePostStatus(
     throw new MicropubValidationError(
       'post-status must be an array of one status.'
     );
-  if (!values.length) return undefined;
+  if (values.length === 0) return undefined;
   if (
     values.length !== 1 ||
     !['draft', 'published'].includes(String(values[0]))
@@ -384,7 +384,7 @@ function hasEntryContent(entry: RawMicropubEntry, content: string): boolean {
 }
 
 function sanitizeContentProperties(properties: Mf2Properties) {
-  if (properties.content)
+  if (properties.content != null)
     properties.content = properties.content.map((value) =>
       typeof value === 'object' && typeof value.html === 'string'
         ? { ...value, html: sanitizeCommentHtml(value.html, site.origin) }

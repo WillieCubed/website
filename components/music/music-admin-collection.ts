@@ -37,7 +37,7 @@ function needsSetup(
   return Boolean(
     data &&
     (!data.revision ||
-      (!catalog.selected.length &&
+      (catalog.selected.length === 0 &&
         data.playlists.some((playlist) => playlist.eligible)))
   );
 }

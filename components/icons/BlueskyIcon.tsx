@@ -1,4 +1,8 @@
-export default function BlueskyIcon({ className }: { className?: string }) {
+interface BlueskyIconProps {
+  className?: string;
+}
+
+export default function BlueskyIcon({ className }: BlueskyIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

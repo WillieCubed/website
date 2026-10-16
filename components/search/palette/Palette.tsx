@@ -101,7 +101,7 @@ function searchStatusMessage(
 ): string {
   if (searching) return 'Searching…';
   if (error) return error;
-  return count
+  return count > 0
     ? `${count} results available.`
     : `Nothing on the site matches “${query.trim()}”.`;
 }

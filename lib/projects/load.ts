@@ -41,12 +41,13 @@ const time = (date?: Date) => (date ? date.getTime() : Number.MIN_SAFE_INTEGER);
 
 /** Pinned work first, then the most recent start, undated last, then by title. */
 export function sortProjects(projects: Project[]): Project[] {
-  return [...projects].sort(
-    (a, b) =>
-      b.weight - a.weight ||
-      time(b.starts) - time(a.starts) ||
-      a.title.localeCompare(b.title)
-  );
+  return [...projects].sort((a, b) => {
+    const byWeight = b.weight - a.weight;
+    if (byWeight !== 0 && !Number.isNaN(byWeight)) return byWeight;
+    const byStart = time(b.starts) - time(a.starts);
+    if (byStart !== 0 && !Number.isNaN(byStart)) return byStart;
+    return a.title.localeCompare(b.title);
+  });
 }
 
 export function childrenOf(projects: Project[], slug: string): Project[] {

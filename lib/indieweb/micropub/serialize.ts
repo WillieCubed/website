@@ -85,7 +85,7 @@ function propertiesForEntry(
       syndication: entry.syndication,
       audio: entry.audio ?? [],
       video: entry.video ?? [],
-    }).filter(([, values]) => values.length)
+    }).filter(([, values]) => values.length > 0)
   );
 }
 
@@ -113,11 +113,13 @@ function peopleForEntry(entry: MicropubCreateRequest) {
   });
 }
 function appendEntryMetadata(lines: string[], entry: MicropubCreateRequest) {
-  if (entry.audio?.length) lines.push(`audio: ${JSON.stringify(entry.audio)}`);
-  if (entry.video?.length) lines.push(`video: ${JSON.stringify(entry.video)}`);
+  if (entry.audio !== undefined && entry.audio.length > 0)
+    lines.push(`audio: ${JSON.stringify(entry.audio)}`);
+  if (entry.video !== undefined && entry.video.length > 0)
+    lines.push(`video: ${JSON.stringify(entry.video)}`);
   if (entry.event) lines.push(`event: ${JSON.stringify(entry.event)}`);
   const people = peopleForEntry(entry);
-  if (people.length) lines.push(`people: ${JSON.stringify(people)}`);
+  if (people.length > 0) lines.push(`people: ${JSON.stringify(people)}`);
 
   appendCitationMetadata(lines, entry);
   appendPhotoAndRsvpMetadata(lines, entry);

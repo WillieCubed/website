@@ -40,7 +40,8 @@ export default function RequestLog({ paths }: RequestLogProps) {
         referrer: document.referrer,
         host: window.location.host,
         loadedHere:
-          !load || new URL(load.name).pathname === window.location.pathname,
+          load == null ||
+          new URL(load.name).pathname === window.location.pathname,
       })
     );
   }, []);

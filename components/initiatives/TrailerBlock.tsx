@@ -8,11 +8,11 @@ import type { Initiative } from '@/lib/initiatives/index';
  * The trailer at the top of an initiative page. Before the video exists it
  * shows the cover, plainly, so the page never ships an empty player.
  */
-export default function TrailerBlock({
-  initiative,
-}: {
+interface TrailerBlockProps {
   initiative: Initiative;
-}) {
+}
+
+export default function TrailerBlock({ initiative }: TrailerBlockProps) {
   const { trailer, cover } = initiative;
   if (trailer?.youtubeId) {
     return (

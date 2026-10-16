@@ -55,7 +55,7 @@ export async function recoverPendingGrant(
   const stored = await dependencies.db
     .sql`SELECT encrypted_value FROM atproto_oauth_sessions WHERE key_hash = ${dependencies.hash(intent.did)}`;
   assert(stored.rows.length <= 1);
-  if (stored.rows.length)
+  if (stored.rows.length > 0)
     dependencies.assertGrantBinding(
       intent,
       dependencies.decryptOAuthValue<StoredSession>(
@@ -71,7 +71,7 @@ export async function recoverPendingGrant(
     .browsers()
     .find((owner) => owner.sessionHash === intent.responseSessionHash);
   if (known) assert.equal(known.dpopSpkiSha256, intent.dpopSpkiSha256);
-  if (known?.inventoryComplete && stored.rows.length) return;
+  if (known?.inventoryComplete && stored.rows.length > 0) return;
   await recoverBrowserInventory();
   function revokedGrantAlreadyClean(): boolean {
     const terminal = dependencies.ledger
@@ -160,7 +160,7 @@ export async function recoverPendingGrant(
     assert(
       browserRow.rows.length === 1 || (known && browserRow.rows.length === 0)
     );
-    if (browserRow.rows.length)
+    if (browserRow.rows.length > 0)
       assert.equal(browserRow.rows[0].did, intent.did);
     const owner: OwnedBrowser = known ?? {
       did: intent.did,

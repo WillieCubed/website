@@ -22,7 +22,7 @@ import type {
 
 export function allowed(value: ResponseVisibility): boolean {
   return (
-    !!value &&
+    value != null &&
     !value.viewer?.blockedBy &&
     !value.viewer?.blocking &&
     !value.labels?.some(
@@ -55,7 +55,7 @@ function webUrl(value: string | undefined): string | undefined {
 }
 export function validProfile(profile: Profile): boolean {
   return (
-    !!profile &&
+    profile != null &&
     typeof profile.did === 'string' &&
     /^did:[a-z]+:[^/]+$/.test(profile.did) &&
     typeof profile.handle === 'string' &&

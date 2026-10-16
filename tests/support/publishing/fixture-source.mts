@@ -63,9 +63,10 @@ export async function fixtureSource(
           /^https:\/\/bsky\.app\/profile\/did:plc:[a-z2-7]+$/.test(url)
         )
     );
-    const optIn = syndicateTo?.length
-      ? `syndicateTo: ${JSON.stringify(syndicateTo)}\n`
-      : '';
+    const optIn =
+      (syndicateTo?.length ?? 0) > 0
+        ? `syndicateTo: ${JSON.stringify(syndicateTo)}\n`
+        : '';
     const original = `---\ntitle: 'Publishing acceptance'\ndescription: 'A temporary note for independent publishing checks.'\npublished: '${new Date().toISOString()}'\ntags: []\ndraft: false\n${optIn}---\n\nThis temporary note belongs to the isolated acceptance site.\n\nFixture identifier: ${randomUUID()}.\n`;
     journal = {
       version: 1,

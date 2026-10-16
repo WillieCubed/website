@@ -147,10 +147,10 @@ export async function getAllSeriesWithWritings(
   // Sort by most recent writing or startedAt
   return seriesList.sort((a, b) => {
     const aDate =
-      a.writings[0]?.published ||
+      a.writings[0]?.published ??
       (a.startedAt ? new Date(a.startedAt) : new Date(0));
     const bDate =
-      b.writings[0]?.published ||
+      b.writings[0]?.published ??
       (b.startedAt ? new Date(b.startedAt) : new Date(0));
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   });

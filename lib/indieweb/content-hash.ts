@@ -168,7 +168,7 @@ export async function markForResend(slug: string): Promise<number> {
     RETURNING id
   `;
 
-  return result.rowCount || 0;
+  return result.rowCount ?? 0;
 }
 
 /**
@@ -181,5 +181,5 @@ export async function deleteOutgoingWebmentions(slug: string): Promise<number> {
     RETURNING id
   `;
 
-  return result.rowCount || 0;
+  return result.rowCount ?? 0;
 }

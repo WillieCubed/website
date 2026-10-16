@@ -72,7 +72,11 @@ export default async function WritingsIndex({
   );
 }
 
-async function WritingsList({ writings }: { writings: WritingData[] }) {
+interface WritingsListProps {
+  writings: WritingData[];
+}
+
+async function WritingsList({ writings }: WritingsListProps) {
   // Resolve every series a listed writing belongs to. A series can be a file
   // or an initiative; the series loader handles both.
   const seriesSlugs = [
@@ -129,7 +133,11 @@ const CHIP =
 const CHIP_SELECTED = `${CHIP} bg-primary text-on-primary`;
 const CHIP_IDLE = `${CHIP} border border-line bg-card text-ink hover:border-accent hover:text-accent`;
 
-async function TagFilter({ currentTag }: { currentTag?: string }) {
+interface TagFilterProps {
+  currentTag?: string;
+}
+
+async function TagFilter({ currentTag }: TagFilterProps) {
   const tags = await getAllTags();
 
   if (tags.length === 0) {

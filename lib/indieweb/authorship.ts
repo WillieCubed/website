@@ -267,7 +267,7 @@ function authorProperty(
   entry: MicroformatRoot,
   feed?: MicroformatRoot
 ): MicroformatProperty | undefined {
-  return entry.properties.author?.length
+  return (entry.properties.author?.length ?? 0) > 0
     ? entry.properties.author[0]
     : feed?.properties.author?.[0];
 }

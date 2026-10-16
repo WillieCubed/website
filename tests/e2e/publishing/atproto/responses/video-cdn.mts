@@ -42,7 +42,7 @@ async function playlistGraph(
   const pending = [indexedPlaylist];
   const playlists = new Set<string>();
   const assets = new Set<string>();
-  while (pending.length) {
+  while (pending.length > 0) {
     const url = new URL(pending.shift()!);
     assert.equal(url.protocol, 'https:');
     if (playlists.has(url.href)) continue;
@@ -61,8 +61,10 @@ async function playlistGraph(
       .split(/\r?\n/)
       .map((line) => line.trim());
     assert.equal(lines[0], '#EXTM3U');
-    const references = lines.filter((line) => line && !line.startsWith('#'));
-    assert(references.length, 'The CDN playlist has no media references.');
+    const references = lines.filter(
+      (line) => line.length > 0 && !line.startsWith('#')
+    );
+    assert(references.length > 0, 'The CDN playlist has no media references.');
     collectPlaylistReferences(lines, references, response.url, pending, assets);
   }
   return { playlists, assets };
@@ -82,7 +84,10 @@ async function verifySegments(assets: Set<string>, cdnDeadline: AbortSignal) {
         `Video segment HTTP ${response.status}.`
       );
       const first = await reader?.read();
-      assert(first?.value?.byteLength, 'The CDN segment returned no bytes.');
+      assert(
+        (first?.value?.byteLength ?? 0) > 0,
+        'The CDN segment returned no bytes.'
+      );
     } finally {
       await reader?.cancel().catch(() => {});
       reader?.releaseLock();

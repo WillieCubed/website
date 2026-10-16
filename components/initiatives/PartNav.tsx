@@ -20,7 +20,7 @@ export default function PartNav({ initiative, part }: PartNavProps) {
       className="mt-12 grid gap-3 medium:grid-cols-3"
     >
       <div>
-        {previous && (
+        {previous != null && (
           <SiteLink
             preview={false}
             href={`${initiative.href}/${previous.slug}`}
@@ -45,7 +45,7 @@ export default function PartNav({ initiative, part }: PartNavProps) {
         </SiteLink>
       </div>
       <div className="text-right">
-        {next && (
+        {next != null && (
           <SiteLink
             preview={false}
             href={`${initiative.href}/${next.slug}`}

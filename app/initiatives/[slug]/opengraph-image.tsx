@@ -13,9 +13,11 @@ export const contentType = 'image/png';
  * Render a PNG social preview with the initiative title, tagline, date
  * range, brand color, and available cover.
  */
-export default async function Image(
-  props: Pick<PageProps<'/initiatives/[slug]'>, 'params'>
-) {
+interface SocialImageProps {
+  params: PageProps<'/initiatives/[slug]'>['params'];
+}
+
+export default async function Image(props: SocialImageProps) {
   const { slug } = await props.params;
   const initiative = await getInitiative(slug).catch(() => notFound());
   return renderEntityImage({

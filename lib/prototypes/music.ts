@@ -145,7 +145,7 @@ export function listeningTime(
     return match ? Number(match[1]) * 60 + Number(match[2]) : null;
   });
   const known = durations.filter((duration) => duration !== null);
-  if (!known.length) return null;
+  if (known.length === 0) return null;
   const minutes = Math.floor(
     known.reduce((total, duration) => total + duration, 0) / 60
   );
@@ -194,7 +194,7 @@ export function validCatalog(value: unknown): value is Catalog {
     Array.isArray(c.series) &&
     c.series.every(
       (s) =>
-        s &&
+        s != null &&
         typeof s.id === 'string' &&
         /^[a-z0-9-]+$/.test(s.id) &&
         typeof s.title === 'string' &&

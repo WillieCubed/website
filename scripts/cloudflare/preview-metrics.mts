@@ -138,16 +138,20 @@ export async function waitUntilReady(
 }
 
 export async function stopPreview(preview: ChildProcess): Promise<void> {
-  if (preview.exitCode !== null || preview.signalCode !== null || !preview.pid)
+  if (
+    preview.exitCode !== null ||
+    preview.signalCode !== null ||
+    preview.pid === undefined
+  )
     return;
   const kill = (signal: NodeJS.Signals) => {
-    if (preview.pid && process.platform !== 'win32') {
+    if (preview.pid !== undefined && process.platform !== 'win32') {
       try {
         process.kill(-preview.pid, signal);
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
       }
-    } else if (preview.pid) preview.kill(signal);
+    } else if (preview.pid !== undefined) preview.kill(signal);
   };
   await new Promise<void>((resolve) => {
     const timeout = setTimeout(() => {

@@ -936,7 +936,7 @@ test('opening, advancing, and closing work with full motion enabled', async ({
                   .getKeyframes()
                   .some(
                     (frame) =>
-                      frame.translate &&
+                      Boolean(frame.translate) &&
                       !['none', '0px', '0px 0px'].includes(
                         String(frame.translate)
                       )

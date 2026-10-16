@@ -23,6 +23,6 @@ test('every venture not marked hidden still gets a tile', () => {
   const tiles = getHomeTiles().map((tile) => tile.id);
   for (const venture of ventures.filter((v) => !v.hidden)) {
     assert.ok(tiles.includes(venture.id), `${venture.id} has a tile`);
-    assert.ok(entries[venture.id], `${venture.id} opens a detail view`);
+    assert.ok(entries[venture.id] != null, `${venture.id} opens a detail view`);
   }
 });

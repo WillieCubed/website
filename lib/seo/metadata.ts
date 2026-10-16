@@ -102,8 +102,12 @@ function articleMetadata(
     ...shared,
     type: 'article',
     authors: [absoluteUrl('/')],
-    ...(publishedTime ? { publishedTime: toIso(publishedTime) } : {}),
-    ...(modifiedTime ? { modifiedTime: toIso(modifiedTime) } : {}),
+    ...(publishedTime !== undefined && publishedTime !== ''
+      ? { publishedTime: toIso(publishedTime) }
+      : {}),
+    ...(modifiedTime !== undefined && modifiedTime !== ''
+      ? { modifiedTime: toIso(modifiedTime) }
+      : {}),
     ...(tags && tags.length > 0 ? { tags } : {}),
     ...(section ? { section } : {}),
   };

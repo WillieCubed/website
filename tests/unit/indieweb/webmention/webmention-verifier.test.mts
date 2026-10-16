@@ -133,7 +133,7 @@ test('a reply marked up as an h-entry is verified with its author and content', 
   assert.deepEqual(fetched, [source]);
 
   const [update] = verifications();
-  assert.ok(update, 'the row is marked verified');
+  assert.ok(update != null, 'the row is marked verified');
   assert.equal(update.values[0], 'reply');
   assert.ok(update.values.includes('Great post!'), 'the text is stored');
   assert.ok(

@@ -19,13 +19,13 @@ function wrapDialogFocus(
       'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href]'
     ) ?? []
   ).filter(
-    (element) => element.tabIndex >= 0 && element.getClientRects().length
+    (element) => element.tabIndex >= 0 && element.getClientRects().length > 0
   );
   const index = controls.indexOf(document.activeElement as HTMLElement);
   const wrap = event.shiftKey
     ? index <= 0
     : index < 0 || index === controls.length - 1;
-  if (wrap && controls.length) {
+  if (wrap && controls.length > 0) {
     event.preventDefault();
     controls[event.shiftKey ? controls.length - 1 : 0].focus();
   }

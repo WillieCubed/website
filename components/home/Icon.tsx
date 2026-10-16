@@ -11,7 +11,11 @@ const PATHS = {
 
 export type IconName = keyof typeof PATHS;
 
-export function Icon({ name }: { name: IconName }) {
+interface IconProps {
+  name: IconName;
+}
+
+export function Icon({ name }: IconProps) {
   return (
     <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
       <path d={PATHS[name]} />

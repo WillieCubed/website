@@ -123,7 +123,7 @@ test('a verified reply stays hidden until approval, then disappears when its lin
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const address = server.address();
-  if (!address || typeof address === 'string')
+  if (address === null || typeof address === 'string')
     throw new Error('Missing HTTPS source port.');
   source = `https://127.0.0.1:${address.port}/`;
 

@@ -11,13 +11,12 @@ const daysUntil = (date: string) =>
     )
   );
 
-async function Days({
-  deadline,
-  animate,
-}: {
+interface DaysProps {
   deadline: string;
   animate?: boolean;
-}) {
+}
+
+async function Days({ deadline, animate }: DaysProps) {
   // Reading the clock makes this a per-request hole in the static shell,
   // so the number is right on every visit instead of frozen at build time.
   await connection();
@@ -25,12 +24,14 @@ async function Days({
 }
 
 /** Compute the current value on the server, before exposing the page. */
+interface CountdownDaysProps {
+  deadline: string;
+  animate?: boolean;
+}
+
 export async function CountdownDays({
   deadline,
   animate = false,
-}: {
-  deadline: string;
-  animate?: boolean;
-}) {
+}: CountdownDaysProps) {
   return <Days deadline={deadline} animate={animate} />;
 }

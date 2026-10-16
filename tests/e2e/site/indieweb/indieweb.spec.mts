@@ -330,7 +330,7 @@ test('post actions offer reply destinations and retain native sharing', async ({
   await expect(bluesky).toBeHidden();
   await expect(moreSharing).toBeFocused();
 
-  if (hasBlueskyCopy) {
+  if (hasBlueskyCopy > 0) {
     await replyOptions.click();
     await expect(
       actions.getByRole('link', { name: 'Reply on Bluesky' })

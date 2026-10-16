@@ -46,7 +46,7 @@ export const ActiveWritingBlock = Extension.create({
           decorations(state) {
             const { $from, $to, from } = state.selection;
             // Follow the text block even inside a long list or quotation.
-            const start = $from.depth ? $from.before($from.depth) : from;
+            const start = $from.depth > 0 ? $from.before($from.depth) : from;
             const node = state.doc.nodeAt(start);
             return node?.isBlock
               ? DecorationSet.create(state.doc, [

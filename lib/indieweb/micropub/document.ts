@@ -186,7 +186,7 @@ function writeSyndicationTargets(file: WritingFile, next: Mf2Properties) {
   setKey(
     file,
     'syndicateTo',
-    targets.length ? [`syndicateTo: ${JSON.stringify(targets)}`] : null
+    targets.length > 0 ? [`syndicateTo: ${JSON.stringify(targets)}`] : null
   );
 }
 function writeEvent(file: WritingFile, next: Mf2Properties) {
@@ -229,7 +229,7 @@ function writeMediaUrls(
       setKey(
         file,
         name,
-        urls.length ? [`${name}: ${JSON.stringify(urls)}`] : null
+        urls.length > 0 ? [`${name}: ${JSON.stringify(urls)}`] : null
       );
   }
 }
@@ -246,10 +246,12 @@ function postTypeForProperties(
     ['in-reply-to', 'note'],
   ] as const;
   for (const [property, type] of citations)
-    if (properties[property]?.length) return type;
+    if ((properties[property]?.length ?? 0) > 0) return type;
   if (
     types?.includes('h-event') ||
-    ['start', 'end', 'location'].some((name) => properties[name]?.length)
+    ['start', 'end', 'location'].some(
+      (name) => (properties[name]?.length ?? 0) > 0
+    )
   )
     return 'event';
   return mediaPostType(properties);
@@ -264,10 +266,11 @@ function writeContent(
   let content = '',
     format = 'text';
   if (typeof value === 'string') content = value;
-  else if (value && typeof value.html === 'string') {
+  else if (value != null && typeof value.html === 'string') {
     content = value.html;
     format = 'html';
-  } else if (value && typeof value.value === 'string') content = value.value;
+  } else if (value != null && typeof value.value === 'string')
+    content = value.value;
   else if (value !== undefined)
     throw new MicropubRequestError('Content needs text, value, or html.');
   const lines = content.trim().replace(/\r?\n/g, '\n');
@@ -333,9 +336,11 @@ function writeRsvp(file: WritingFile, data: Frontmatter, next: Mf2Properties) {
       'rsvp is one of "yes", "no", "maybe", or "interested".'
     );
   }
-  const eventUrl = next['in-reply-to']?.[0]
-    ? citationUrl(next['in-reply-to'][0])
-    : undefined;
+  const replyTarget = next['in-reply-to']?.[0];
+  const eventUrl =
+    replyTarget == null || replyTarget === ''
+      ? undefined
+      : citationUrl(replyTarget);
   if (!eventUrl) {
     throw new MicropubRequestError(
       'An RSVP needs in-reply-to naming the event.'
@@ -612,7 +617,7 @@ function updatedProperties(
     );
   }
 
-  if (next.content) next.content = sanitizeContentValues(next.content);
+  if (next.content != null) next.content = sanitizeContentValues(next.content);
   for (const key of Object.keys(next))
     if (next[key].length === 0) delete next[key];
   return next;
@@ -658,8 +663,8 @@ function eventSourceProperties(data: Frontmatter): Mf2Properties {
 
 function mediaPostType(properties: Mf2Properties): string {
   for (const type of ['video', 'audio', 'photo'])
-    if (properties[type]?.length) return type;
-  return properties.name?.length ? 'article' : 'note';
+    if ((properties[type]?.length ?? 0) > 0) return type;
+  return (properties.name?.length ?? 0) > 0 ? 'article' : 'note';
 }
 
 function mergeStoredProperties(
@@ -671,7 +676,7 @@ function mergeStoredProperties(
     delete properties.name;
   return Object.fromEntries(
     Object.entries({ ...properties, ...(mf2?.properties ?? {}) }).filter(
-      ([, values]) => Array.isArray(values) && values.length
+      ([, values]) => Array.isArray(values) && values.length > 0
     )
   );
 }

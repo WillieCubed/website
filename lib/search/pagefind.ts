@@ -86,7 +86,7 @@ export async function buildPagefindIndex(
     await mkdir(outputPath, { recursive: true });
     await Promise.all(
       files.map(async (file) => {
-        if (!file.content.byteLength)
+        if (file.content.byteLength === 0)
           throw new Error(`Pagefind returned an empty asset: ${file.path}`);
         const destination = join(outputPath, file.path);
         await mkdir(dirname(destination), { recursive: true });

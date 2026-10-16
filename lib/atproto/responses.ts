@@ -34,8 +34,8 @@ interface ResponseThread {
   threadgate?: { record?: { hiddenReplies?: string[] } };
 }
 
-function visibleThreadPost(thread: Thread): Post | undefined {
-  const post = thread.post;
+function visibleThreadPost(thread: Thread | undefined): Post | undefined {
+  const post = thread?.post;
   return post && allowed(post) && allowed(post.author) ? post : undefined;
 }
 
@@ -86,8 +86,8 @@ export async function fetchBlueskyResponses(
       },
       signal
     );
-    const root = thread && visibleThreadPost(thread.thread);
-    if (!root) return { groups, copyUrl };
+    const root = visibleThreadPost(thread?.thread);
+    if (root === undefined) return { groups, copyUrl };
     return await collectResponses(
       thread!,
       root,
@@ -182,7 +182,7 @@ async function collectResponses(
   groups.likes = likes
     .filter(
       (like) =>
-        like &&
+        like != null &&
         validProfile(like.actor) &&
         allowed(like.actor) &&
         Number.isFinite(Date.parse(like.createdAt)) &&

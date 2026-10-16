@@ -211,7 +211,7 @@ export function useWritingInteraction(
     const at = editor.state.doc.resolve(
       Math.min(cursor.current, editor.state.doc.content.size)
     );
-    const boundary = at.depth ? at.after(1) : at.pos;
+    const boundary = at.depth > 0 ? at.after(1) : at.pos;
     editor.commands.insertContentAt(boundary, {
       type: 'catalogBlock',
       attrs: {

@@ -25,7 +25,7 @@ const HAS_PHOTO = '3eaf9c4b-5a7d-4f4e-8c6b-8d9e0f1a2b3c';
 /** The first h-entry parsed from `html`, as the verifier stored it. */
 function entry(html: string) {
   const [item] = mf2(html, { baseUrl: 'https://example.com/replies/1' }).items;
-  assert.ok(item, 'the markup parses to an h-entry');
+  assert.ok(item != null, 'the markup parses to an h-entry');
   return item;
 }
 

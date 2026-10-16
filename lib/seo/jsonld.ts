@@ -94,7 +94,7 @@ export function postingType(
     writing.repostOf ||
     writing.bookmarkOf ||
     writing.rsvp;
-  return writing.postType === 'article' && !answers
+  return writing.postType === 'article' && (answers == null || answers === '')
     ? 'BlogPosting'
     : 'SocialMediaPosting';
 }
@@ -122,7 +122,9 @@ export function postingLd(input: PostingInput): JsonLdNode {
     headline: input.title,
     description: input.description,
     datePublished: toIso(input.published),
-    ...(input.updated ? { dateModified: toIso(input.updated) } : {}),
+    ...(input.updated !== undefined && input.updated !== ''
+      ? { dateModified: toIso(input.updated) }
+      : {}),
     author: { '@id': ids.person },
     publisher: { '@id': ids.person },
     image: absoluteUrl(input.image),

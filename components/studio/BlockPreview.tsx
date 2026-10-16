@@ -9,11 +9,11 @@ import { imageLayout } from '@/lib/writings/image-layout';
 
 import { studioRequest } from './api';
 
-export default function BlockPreview({
-  attrs,
-}: {
+interface BlockPreviewProps {
   attrs: Record<string, unknown>;
-}) {
+}
+
+export default function BlockPreview({ attrs }: BlockPreviewProps) {
   const [html, setHtml] = useState('');
   const [widget, setWidget] = useState<{
     source: string;

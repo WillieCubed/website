@@ -29,7 +29,11 @@ const data: PlaylistView[] = playlists.map((p) => ({
   checkedAt: '2026-10-12T00:00:00Z',
   error: null,
 }));
-function Cover({ playlist }: { playlist: PlaylistView }) {
+interface CoverProps {
+  playlist: PlaylistView;
+}
+
+function Cover({ playlist }: CoverProps) {
   return (
     <SampleCover playlist={playlists.find((p) => p.id === playlist.id)!} />
   );

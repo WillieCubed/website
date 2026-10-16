@@ -6,13 +6,12 @@ import Icon from '@/components/icons/Icon';
 
 import { useHydrated } from '@/lib/dom/hydrated';
 
-export default function CopyHex({
-  name,
-  value,
-}: {
+interface CopyHexProps {
   name: string;
   value: string;
-}) {
+}
+
+export default function CopyHex({ name, value }: CopyHexProps) {
   const hydrated = useHydrated();
   const [status, setStatus] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);

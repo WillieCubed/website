@@ -126,7 +126,7 @@ function fakeGitHub(writeStatus?: number) {
     const request = new Request(input, init);
     calls.push(request.clone());
     if (request.method !== 'GET') {
-      return writeStatus
+      return writeStatus !== undefined && writeStatus !== 0
         ? new Response('conflict', { status: writeStatus })
         : Response.json({ commit: { sha: 'commit-sha' } });
     }

@@ -51,7 +51,11 @@ export default function ProjectsIndex({
   );
 }
 
-function CardGrid({ cards }: { cards: ProjectCard[] }) {
+interface CardGridProps {
+  cards: ProjectCard[];
+}
+
+function CardGrid({ cards }: CardGridProps) {
   return (
     <ul className="projects-grid">
       {cards.map((card) => (

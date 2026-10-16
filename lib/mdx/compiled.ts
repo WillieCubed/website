@@ -16,7 +16,7 @@ export function getCompiledMdx(
 ): MdxComponent {
   const key = createHash('sha256').update(`${kind}\0${source}`).digest('hex');
   const component = (generatedMdx as Record<string, MdxComponent>)[key];
-  if (!component)
+  if (component == null)
     throw new Error(`Missing bundled ${kind} MDX. Rebuild the site content.`);
   return component;
 }

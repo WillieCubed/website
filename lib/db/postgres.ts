@@ -75,7 +75,8 @@ function queryTag(
 ) {
   const tag: SqlTag = (strings, ...values) => {
     const text = strings.reduce(
-      (statement, part, index) => statement + (index ? `$${index}` : '') + part,
+      (statement, part, index) =>
+        statement + (index > 0 ? `$${index}` : '') + part,
       ''
     );
     return query(text, values);

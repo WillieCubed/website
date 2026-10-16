@@ -19,7 +19,10 @@ export function projectSeed(
     key?.startsWith('#') ? key : key ? table[key]?.hex : undefined;
   const ownerKey = project.owners
     .map((owner) => (OWNERS[owner] as { brand?: string }).brand)
-    .find((brand) => brand && table[brand]);
+    .find(
+      (brand) =>
+        brand !== undefined && brand !== '' && table[brand] !== undefined
+    );
   return (
     fromKey(project.brand) ?? table[project.slug]?.hex ?? fromKey(ownerKey)
   );

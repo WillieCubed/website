@@ -37,14 +37,14 @@ export class MusicStore {
     const result = await this.pool.query(
       'SELECT r.* FROM music_catalog_head h JOIN music_revisions r ON r.id=h.revision_id WHERE h.singleton=true'
     );
-    return result.rows[0] ? revision(result.rows[0]) : null;
+    return result.rows[0] != null ? revision(result.rows[0]) : null;
   }
   async revision(id: string) {
     const r = await this.pool.query(
       'SELECT * FROM music_revisions WHERE id=$1',
       [id]
     );
-    return r.rows[0] ? revision(r.rows[0]) : null;
+    return r.rows[0] != null ? revision(r.rows[0]) : null;
   }
   async history() {
     return (

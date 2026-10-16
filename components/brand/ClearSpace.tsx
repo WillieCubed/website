@@ -8,16 +8,18 @@ import type { KitUsage } from '@/lib/brand/kit';
  * cube to show that x is a quarter of its height, and in a lockup the gap
  * between cube and name is marked as the same x.
  */
-export default function ClearSpace({
-  src,
-  usage,
-  gap = false,
-}: {
+interface ClearSpaceProps {
   src: string;
   usage: KitUsage;
   /** Mark the lockup's cube-to-name gap as x. */
   gap?: boolean;
-}) {
+}
+
+export default function ClearSpace({
+  src,
+  usage,
+  gap = false,
+}: ClearSpaceProps) {
   const { width: w, height: h, cube, clearSpace } = usage;
   if (!cube || !clearSpace) return null;
   const { x } = clearSpace;

@@ -39,7 +39,7 @@ const morph = (
   kind: 'open' | 'swap' | 'close',
   update: () => void
 ): Promise<void> => {
-  if (!document.startViewTransition || prefersReducedMotion()) {
+  if (document.startViewTransition == null || prefersReducedMotion()) {
     update();
     return Promise.resolve();
   }
@@ -113,7 +113,7 @@ export function useDetailDialog(
   const { brands, clearPreviewNow } = useHome();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
-  const initial = initialId && entries[initialId] ? initialId : null;
+  const initial = initialId && entries[initialId] != null ? initialId : null;
   const [openId, setOpenId] = useState<string | null>(initial);
   const shownRef = useRef<string | null>(initial);
   const wantRef = useRef<string | null>(initial);
@@ -231,7 +231,7 @@ export function useDetailDialog(
     const named = pending ? pending.id : requestedRef.current;
     // A param that names no entry was not ours to write, and the view kept
     // what it showed; rewriting it would overwrite the visitor's entry.
-    if (named === shown || (named !== null && !entries[named])) return;
+    if (named === shown || (named !== null && entries[named] == null)) return;
     const push = named === null || !!pending?.push;
     pendingRef.current = { id: shown, push };
     const href = `${pathname}?detail=${shown}`;
@@ -249,7 +249,7 @@ export function useDetailDialog(
       if (want === null) {
         await hide();
         shownRef.current = null;
-      } else if (!entries[want]) {
+      } else if (entries[want] == null) {
         // A stale or mistyped link should not close a view the visitor is
         // reading, so an id with no entry keeps what is on screen.
         if (wantRef.current === want) wantRef.current = shown;

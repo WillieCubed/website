@@ -91,19 +91,8 @@ export function useStandardSocialControls({
     }
     async function load() {
       try {
-        const query = slug ? '?slug=' + encodeURIComponent(slug) : '';
-        const response = await fetchWithDeadline(
-          '/api/atproto/social' + query,
-          {
-            signal: controller.signal,
-            cache: 'no-store',
-          }
-        );
-        const data: SocialState = await response.json();
+        const current = await loadSocialState(slug, controller.signal);
         if (controller.signal.aborted) return;
-        if (!response.ok && response.status !== 401)
-          throw new Error('Social state unavailable.');
-        const current = response.status === 401 ? SIGNED_OUT : data;
         setState(current);
         finishReturn(returnFeedback(action, current));
       } catch {
@@ -213,4 +202,20 @@ function actionAnnouncement(
   if (action === 'subscription')
     return active ? 'Subscribed.' : 'Unsubscribed.';
   return active ? 'Recommended.' : 'Recommendation withdrawn.';
+}
+
+/** Reads confirmed state without coupling transport to focus or disclosure state. */
+async function loadSocialState(
+  slug: string | undefined,
+  signal: AbortSignal
+): Promise<SocialState> {
+  const query = slug ? '?slug=' + encodeURIComponent(slug) : '';
+  const response = await fetchWithDeadline('/api/atproto/social' + query, {
+    signal,
+    cache: 'no-store',
+  });
+  const data: SocialState = await response.json();
+  if (!response.ok && response.status !== 401)
+    throw new Error('Social state unavailable.');
+  return response.status === 401 ? SIGNED_OUT : data;
 }

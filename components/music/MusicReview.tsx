@@ -92,102 +92,15 @@ export default function MusicReview({
         aria-label="Collection review"
         tabIndex={-1}
       >
-        <dl className="mp-review-summary">
-          <div>
-            <dt>In gallery</dt>
-            <dd>{draft.selected.length}</dd>
-          </div>
-          <div>
-            <dt>Not included</dt>
-            <dd>{playlists.length - draft.selected.length}</dd>
-          </div>
-          <div>
-            <dt>Series</dt>
-            <dd>{draft.series.length}</dd>
-          </div>
-        </dl>
-        <section className="mp-review-order">
-          <div className="mp-review-section-heading">
-            <h3>Gallery order</h3>
-            <button
-              className="mp-text-button"
-              onClick={() => {
-                closeReview();
-                onEditOrder();
-              }}
-            >
-              Edit order
-            </button>
-          </div>
-          <ol>
-            {draft.order
-              .filter((id) => draft.selected.includes(id))
-              .map((id, index) => {
-                const playlist = playlists.find((item) => item.id === id)!;
-                return (
-                  <li key={id}>
-                    <span className="mp-review-number">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="mp-review-cover">
-                      <Cover playlist={playlist} />
-                    </span>
-                    <div>
-                      <span className="mp-review-playlist-title">
-                        {playlist.title}
-                      </span>
-                      {id === draft.lead && (
-                        <span className="mp-review-feature-label">
-                          Featured in the public gallery
-                        </span>
-                      )}
-                      {draft.notes[id] && (
-                        <p className="mp-review-note">{draft.notes[id]}</p>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-          </ol>
-        </section>
-        <aside className="mp-review-context">
-          <section className="mp-review-feature">
-            <h3>Featured playlist</h3>
-            {draft.lead ? (
-              <>
-                <div className="mp-review-feature-cover">
-                  <Cover
-                    playlist={playlists.find((item) => item.id === draft.lead)!}
-                  />
-                </div>
-                <p>{playlists.find((item) => item.id === draft.lead)?.title}</p>
-              </>
-            ) : (
-              <p>No featured playlist.</p>
-            )}
-          </section>
-          {draft.series.map((item) => (
-            <section key={item.id} className="mp-review-series">
-              <h3>{item.title}</h3>
-              {item.playlistIds.some((id) => draft.selected.includes(id)) ? (
-                <ol>
-                  {item.playlistIds
-                    .filter((id) => draft.selected.includes(id))
-                    .map((id) => (
-                      <li key={id}>
-                        {
-                          playlists.find((playlist) => playlist.id === id)
-                            ?.title
-                        }
-                      </li>
-                    ))}
-                </ol>
-              ) : (
-                <p>No selected playlists.</p>
-              )}
-            </section>
-          ))}
-        </aside>
+        <MusicReviewCollection
+          draft={draft}
+          playlists={playlists}
+          Cover={Cover}
+          onEditOrder={() => {
+            closeReview();
+            onEditOrder();
+          }}
+        />
       </div>
       <footer className="mp-review-actions scroller">
         <p>
@@ -211,5 +124,110 @@ export default function MusicReview({
         </button>
       </footer>
     </dialog>
+  );
+}
+
+interface MusicReviewCollectionProps {
+  draft: Catalog;
+  playlists: PlaylistView[];
+  Cover: ComponentType<MusicCoverProps>;
+  onEditOrder: () => void;
+}
+function MusicReviewCollection({
+  draft,
+  playlists,
+  Cover,
+  onEditOrder,
+}: MusicReviewCollectionProps) {
+  return (
+    <>
+      <dl className="mp-review-summary">
+        <div>
+          <dt>In gallery</dt>
+          <dd>{draft.selected.length}</dd>
+        </div>
+        <div>
+          <dt>Not included</dt>
+          <dd>{playlists.length - draft.selected.length}</dd>
+        </div>
+        <div>
+          <dt>Series</dt>
+          <dd>{draft.series.length}</dd>
+        </div>
+      </dl>
+      <section className="mp-review-order">
+        <div className="mp-review-section-heading">
+          <h3>Gallery order</h3>
+          <button className="mp-text-button" onClick={onEditOrder}>
+            Edit order
+          </button>
+        </div>
+        <ol>
+          {draft.order
+            .filter((id) => draft.selected.includes(id))
+            .map((id, index) => {
+              const playlist = playlists.find((item) => item.id === id)!;
+              return (
+                <li key={id}>
+                  <span className="mp-review-number">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span className="mp-review-cover">
+                    <Cover playlist={playlist} />
+                  </span>
+                  <div>
+                    <span className="mp-review-playlist-title">
+                      {playlist.title}
+                    </span>
+                    {id === draft.lead && (
+                      <span className="mp-review-feature-label">
+                        Featured in the public gallery
+                      </span>
+                    )}
+                    {draft.notes[id] && (
+                      <p className="mp-review-note">{draft.notes[id]}</p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+        </ol>
+      </section>
+      <aside className="mp-review-context">
+        <section className="mp-review-feature">
+          <h3>Featured playlist</h3>
+          {draft.lead ? (
+            <>
+              <div className="mp-review-feature-cover">
+                <Cover
+                  playlist={playlists.find((item) => item.id === draft.lead)!}
+                />
+              </div>
+              <p>{playlists.find((item) => item.id === draft.lead)?.title}</p>
+            </>
+          ) : (
+            <p>No featured playlist.</p>
+          )}
+        </section>
+        {draft.series.map((item) => (
+          <section key={item.id} className="mp-review-series">
+            <h3>{item.title}</h3>
+            {item.playlistIds.some((id) => draft.selected.includes(id)) ? (
+              <ol>
+                {item.playlistIds
+                  .filter((id) => draft.selected.includes(id))
+                  .map((id) => (
+                    <li key={id}>
+                      {playlists.find((playlist) => playlist.id === id)?.title}
+                    </li>
+                  ))}
+              </ol>
+            ) : (
+              <p>No selected playlists.</p>
+            )}
+          </section>
+        ))}
+      </aside>
+    </>
   );
 }

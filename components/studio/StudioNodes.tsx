@@ -99,133 +99,6 @@ export const MdxSource = Node.create({
 export function makeCatalogBlock(
   entries: CatalogEntry[] | (() => CatalogEntry[])
 ) {
-  function CatalogView({
-    node,
-    updateAttributes,
-    deleteNode,
-    editor,
-    getPos,
-  }: NodeViewProps) {
-    const catalog = useContext(StudioCatalogContext);
-    const catalogStatus = useContext(StudioCatalogStatusContext);
-    const entry = catalogBlockEntry(catalog, entries, node.attrs);
-    const generated = ![
-      'figure',
-      'callout',
-      'reference',
-      'youtube',
-      'spotify',
-      'soundcloud',
-    ].includes(String(node.attrs.id));
-    const reviewed = portableReviewed(node.attrs);
-    const [editing, setEditing] = useState(false);
-    const fieldsId = useId();
-    const editButton = useRef<HTMLButtonElement>(null);
-    const name = catalogBlockName(entry, generated, node.attrs.id);
-    useEffect(() => {
-      const change = (event: Event) => {
-        if ((event as CustomEvent<string>).detail !== fieldsId)
-          setEditing(false);
-      };
-      window.addEventListener('studio:widget-settings', change);
-      return () => window.removeEventListener('studio:widget-settings', change);
-    }, [fieldsId]);
-    function beginEditing() {
-      window.dispatchEvent(
-        new CustomEvent('studio:widget-settings', { detail: fieldsId })
-      );
-      setEditing(true);
-    }
-    function finishEditing() {
-      // Retain the focused block's shape across the handoff; an unfocused
-      // frame would collapse it and move the browser's reading anchor.
-      editButton.current?.focus({ preventScroll: true });
-      setEditing(false);
-    }
-    return (
-      <NodeViewWrapper
-        className="studio-catalog-block"
-        data-block-type={String(node.attrs.id)}
-        onFocusCapture={() => {
-          const position = getPos();
-          if (
-            typeof position === 'number' &&
-            editor.state.selection.from !== position
-          )
-            editor.commands.setNodeSelection(position);
-        }}
-        data-editing={editing || undefined}
-        contentEditable={false}
-      >
-        <div className="studio-block-heading studio-widget-toolbar">
-          <span
-            className="studio-widget-type"
-            aria-hidden={editing || undefined}
-          >
-            {name}
-          </span>
-          <Button
-            ref={editButton}
-            variant={editing ? 'tonal' : 'surface'}
-            aria-expanded={editing}
-            aria-controls={fieldsId}
-            aria-haspopup="dialog"
-            onClick={() =>
-              editing
-                ? document
-                    .getElementById(fieldsId)
-                    ?.querySelector<HTMLElement>('h2')
-                    ?.focus()
-                : beginEditing()
-            }
-          >
-            <Icon name="pen-line" /> <span>Edit block</span>
-          </Button>
-        </div>
-        <div
-          className="studio-widget-output"
-          role="group"
-          aria-label={`${entry?.name || 'Block'} preview`}
-        >
-          <BlockPreview attrs={node.attrs} />
-        </div>
-        <WidgetReviewGuidance
-          generated={generated}
-          editing={editing}
-          reviewed={reviewed}
-        />
-        <RetainedWidgetText attrs={node.attrs} />
-        {editing && (
-          <WidgetInspector
-            id={fieldsId}
-            name={name}
-            onDismiss={finishEditing}
-            onRemove={() => {
-              setEditing(false);
-              deleteNode();
-              editor.commands.focus();
-            }}
-          >
-            <WidgetFields
-              entry={entry}
-              catalogStatus={catalogStatus}
-              attrs={node.attrs}
-              fieldsId={fieldsId}
-              updateAttributes={updateAttributes}
-            />
-            {generated && (
-              <PortableSettings
-                attrs={node.attrs}
-                fieldsId={fieldsId}
-                reviewed={reviewed}
-                updateAttributes={updateAttributes}
-              />
-            )}
-          </WidgetInspector>
-        )}
-      </NodeViewWrapper>
-    );
-  }
   return Node.create({
     name: 'catalogBlock',
     group: 'block',
@@ -245,16 +118,19 @@ export function makeCatalogBlock(
       { ...HTMLAttributes, 'data-catalog-block': '' },
     ],
     addNodeView: () =>
-      ReactNodeViewRenderer(CatalogView, {
-        // Labels, icons and text inside a control belong to that control, too.
-        // Letting ProseMirror select this atom during their click can race an
-        // attribute update or the trailing-paragraph transaction on editor focus.
-        stopEvent: ({ event }) =>
-          event.target instanceof Element &&
-          !!event.target.closest(
-            'button, input, textarea, select, label, a, summary, [role="button"]'
-          ),
-      }),
+      ReactNodeViewRenderer(
+        (props) => <CatalogView {...props} entries={entries} />,
+        {
+          // Labels, icons and text inside a control belong to that control, too.
+          // Letting ProseMirror select this atom during their click can race an
+          // attribute update or the trailing-paragraph transaction on editor focus.
+          stopEvent: ({ event }) =>
+            event.target instanceof Element &&
+            !!event.target.closest(
+              'button, input, textarea, select, label, a, summary, [role="button"]'
+            ),
+        }
+      ),
   });
 }
 
@@ -427,5 +303,134 @@ function WidgetReviewGuidance({
     <p className="studio-block-guidance" role="status">
       Static alternative needs review. Choose Edit block to review it.
     </p>
+  );
+}
+
+interface CatalogViewProps extends NodeViewProps {
+  entries: CatalogEntry[] | (() => CatalogEntry[]);
+}
+
+function CatalogView({
+  node,
+  updateAttributes,
+  deleteNode,
+  editor,
+  getPos,
+  entries,
+}: CatalogViewProps) {
+  const catalog = useContext(StudioCatalogContext);
+  const catalogStatus = useContext(StudioCatalogStatusContext);
+  const entry = catalogBlockEntry(catalog, entries, node.attrs);
+  const generated = ![
+    'figure',
+    'callout',
+    'reference',
+    'youtube',
+    'spotify',
+    'soundcloud',
+  ].includes(String(node.attrs.id));
+  const reviewed = portableReviewed(node.attrs);
+  const [editing, setEditing] = useState(false);
+  const fieldsId = useId();
+  const editButton = useRef<HTMLButtonElement>(null);
+  const name = catalogBlockName(entry, generated, node.attrs.id);
+  useEffect(() => {
+    const change = (event: Event) => {
+      if ((event as CustomEvent<string>).detail !== fieldsId) setEditing(false);
+    };
+    window.addEventListener('studio:widget-settings', change);
+    return () => window.removeEventListener('studio:widget-settings', change);
+  }, [fieldsId]);
+  function beginEditing() {
+    window.dispatchEvent(
+      new CustomEvent('studio:widget-settings', { detail: fieldsId })
+    );
+    setEditing(true);
+  }
+  function finishEditing() {
+    // Retain the focused block's shape across the handoff; an unfocused
+    // frame would collapse it and move the browser's reading anchor.
+    editButton.current?.focus({ preventScroll: true });
+    setEditing(false);
+  }
+  return (
+    <NodeViewWrapper
+      className="studio-catalog-block"
+      data-block-type={String(node.attrs.id)}
+      onFocusCapture={() => {
+        const position = getPos();
+        if (
+          typeof position === 'number' &&
+          editor.state.selection.from !== position
+        )
+          editor.commands.setNodeSelection(position);
+      }}
+      data-editing={editing || undefined}
+      contentEditable={false}
+    >
+      <div className="studio-block-heading studio-widget-toolbar">
+        <span className="studio-widget-type" aria-hidden={editing || undefined}>
+          {name}
+        </span>
+        <Button
+          ref={editButton}
+          variant={editing ? 'tonal' : 'surface'}
+          aria-expanded={editing}
+          aria-controls={fieldsId}
+          aria-haspopup="dialog"
+          onClick={() =>
+            editing
+              ? document
+                  .getElementById(fieldsId)
+                  ?.querySelector<HTMLElement>('h2')
+                  ?.focus()
+              : beginEditing()
+          }
+        >
+          <Icon name="pen-line" /> <span>Edit block</span>
+        </Button>
+      </div>
+      <div
+        className="studio-widget-output"
+        role="group"
+        aria-label={`${entry?.name || 'Block'} preview`}
+      >
+        <BlockPreview attrs={node.attrs} />
+      </div>
+      <WidgetReviewGuidance
+        generated={generated}
+        editing={editing}
+        reviewed={reviewed}
+      />
+      <RetainedWidgetText attrs={node.attrs} />
+      {editing && (
+        <WidgetInspector
+          id={fieldsId}
+          name={name}
+          onDismiss={finishEditing}
+          onRemove={() => {
+            setEditing(false);
+            deleteNode();
+            editor.commands.focus();
+          }}
+        >
+          <WidgetFields
+            entry={entry}
+            catalogStatus={catalogStatus}
+            attrs={node.attrs}
+            fieldsId={fieldsId}
+            updateAttributes={updateAttributes}
+          />
+          {generated && (
+            <PortableSettings
+              attrs={node.attrs}
+              fieldsId={fieldsId}
+              reviewed={reviewed}
+              updateAttributes={updateAttributes}
+            />
+          )}
+        </WidgetInspector>
+      )}
+    </NodeViewWrapper>
   );
 }

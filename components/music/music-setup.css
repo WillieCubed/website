@@ -706,3 +706,11 @@
     transition: none;
   }
 }
+
+/* Keep all three step names beside their numbers on the narrowest phones. */
+@media (max-width: 359px) {
+  .ms-steps li {
+    padding-inline: var(--spacing-sm);
+    gap: var(--spacing-related);
+  }
+}

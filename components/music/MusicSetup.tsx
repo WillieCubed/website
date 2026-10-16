@@ -5,7 +5,6 @@ import { type ComponentType, type RefObject } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
-import { usePalette } from '@/components/search/palette/PaletteProvider';
 import PaletteTrigger from '@/components/search/palette/PaletteTrigger';
 
 import {
@@ -18,6 +17,7 @@ import {
 import MusicCover, { type MusicCoverProps } from './MusicCover';
 import MusicSelectionControl from './MusicSelectionControl';
 import './music-setup.css';
+import { useMusicSetupPalette } from './useMusicSetupPalette';
 
 const steps = ['Connect', 'Choose', 'Preview'];
 
@@ -60,7 +60,6 @@ export default function MusicSetup({
   const [lead, setLead] = useState<string | null>(
     mode === 'admin' ? catalog.lead : null
   );
-  const { close: closePalette, registerCommands } = usePalette();
   const title = useRef<HTMLHeadingElement>(null);
   const collection = catalog.order.flatMap((id) => {
     const playlist = playlists.find((item) => item.id === id);
@@ -91,39 +90,7 @@ export default function MusicSetup({
     });
   }
 
-  useEffect(() => {
-    if (step !== 1) return;
-    return registerCommands(
-      playlists
-        .filter((playlist) => playlist.eligible)
-        .map((playlist) => ({
-          id: `music:select:${playlist.id}`,
-          title: playlist.title,
-          detail: selected.includes(playlist.id)
-            ? 'Remove from your collection'
-            : 'Add to your collection',
-          group: 'Playlists' as const,
-          keywords: ['playlist', 'music', 'select'],
-          kind: 'music' as const,
-          run: async () => {
-            await closePalette({ animate: false, restoreFocus: false });
-            toggle(playlist.id);
-            const row = [
-              ...document.querySelectorAll<HTMLElement>('.ms-playlist'),
-            ].find((item) => item.dataset.playlist === playlist.id);
-            row
-              ?.querySelector<HTMLInputElement>('input')
-              ?.focus({ preventScroll: true });
-            row?.scrollIntoView({
-              behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
-                ? 'instant'
-                : 'smooth',
-              block: 'center',
-            });
-          },
-        }))
-    );
-  }, [step, playlists, selected, registerCommands, closePalette]);
+  useMusicSetupPalette({ enabled: step === 1, playlists, selected, toggle });
 
   return (
     <>

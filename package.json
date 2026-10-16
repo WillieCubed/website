@@ -20,7 +20,7 @@
     "deploy:cloudflare": "tsx scripts/cloudflare/deploy.mts",
     "deploy:cloudflare-preview": "tsx scripts/cloudflare/deploy.mts preview",
     "start": "next start",
-    "lint": "eslint . && pnpm spacing:check",
+    "lint": "eslint . --max-warnings 0 && pnpm spacing:check",
     "spacing:check": "tsx scripts/design/check-spacing.mts",
     "typecheck": "next typegen && tsc --noEmit",
     "pretypecheck": "tsx scripts/cloudflare/generate-mdx.mts",
@@ -152,7 +152,7 @@
     "wrangler": "4.149.0"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,mts}": "eslint --fix",
+    "*.{js,jsx,ts,tsx,mjs,mts}": "eslint --fix --max-warnings 0",
     "*.{js,jsx,ts,tsx,mjs,mts,css,md}": "prettier --write"
   }
 }

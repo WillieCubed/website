@@ -18,34 +18,34 @@ async function findings(
   return result.messages.map(({ ruleId, severity }) => ({ ruleId, severity }));
 }
 
-test('large branch-free JSX produces a size review warning', async () => {
+test('large branch-free JSX produces a size error', async () => {
   const code = `export function LargePanel() {
     return <section>
       ${Array.from({ length: 151 }, () => '<p>Playlist</p>').join('\n')}
     </section>;
   }`;
   assert.deepEqual(await findings(code), [
-    { ruleId: 'max-lines-per-function', severity: 1 },
+    { ruleId: 'max-lines-per-function', severity: 2 },
   ]);
 });
 
-test('many straight-line hook operations produce a statement review warning', async () => {
+test('many straight-line hook operations produce a statement error', async () => {
   const code = `export function useBusyHook() {
     ${Array.from({ length: 31 }, (_, i) => `Number(${i});`).join('\n')}
   }`;
   assert.deepEqual(await findings(code), [
-    { ruleId: 'max-statements', severity: 1 },
+    { ruleId: 'max-statements', severity: 2 },
   ]);
 });
 
-test('an oversized effect is reviewed even when its parent hook is small', async () => {
+test('an oversized effect is rejected even when its parent hook is small', async () => {
   const code = `export function useBusyHook() {
     useEffect(() => {
       ${Array.from({ length: 31 }, (_, i) => `Number(${i});`).join('\n')}
     }, []);
   }`;
   assert.deepEqual(await findings(code), [
-    { ruleId: 'max-statements', severity: 1 },
+    { ruleId: 'max-statements', severity: 2 },
   ]);
 });
 

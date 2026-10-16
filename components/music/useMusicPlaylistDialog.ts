@@ -11,10 +11,7 @@ import type {
   PlaylistView,
 } from '@/lib/music/presentation';
 
-function readLocation() {
-  const params = new URLSearchParams(location.search);
-  return { series: params.get('series'), detail: params.get('detail') };
-}
+import { musicHref, useMusicPlaylistHistory } from './useMusicPlaylistHistory';
 
 interface Options {
   catalog: Catalog;
@@ -57,8 +54,6 @@ export function useMusicPlaylistDialog({
   const cancelMotion = useRef<(() => void) | null>(null);
   const focusSequence = useRef<string[]>([]);
   const returnFocus = useRef<HTMLElement | null>(null);
-  const ownDetailEntry = useRef(false);
-  const ownPop = useRef(false);
   const focusIds =
     focused && focusSequence.current.length > 0
       ? focusSequence.current
@@ -66,35 +61,22 @@ export function useMusicPlaylistDialog({
   const currentIndex = focused ? focusIds.indexOf(focused) : -1;
   useEffect(() => () => cancelMotion.current?.(), []);
 
-  useEffect(() => {
-    const sync = (external = false) => {
-      if (external) focusSequence.current = [];
-      const state = readLocation();
-      setSeriesId(
-        catalog.series.some((item) => item.id === state.series)
-          ? state.series
-          : null
-      );
-      const allowed =
-        playlists.some((item) => item.id === state.detail) &&
-        (editing || catalog.selected.includes(state.detail!));
-      setFocused(allowed ? state.detail : null);
-      if (external) ownDetailEntry.current = false;
-      if (allowed) upgradePlaylistDialog(dialog.current);
-      else dialog.current?.close();
-    };
-    sync();
-    const pop = () => {
-      if (ownPop.current) {
-        ownPop.current = false;
-        return;
+  const playlistHistory = useMusicPlaylistHistory({
+    catalog,
+    editing,
+    playlists,
+    mode,
+    onLocation: (series, detail, external) => {
+      if (external) {
+        cancelMotion.current?.();
+        focusSequence.current = [];
       }
-      cancelMotion.current?.();
-      sync(true);
-    };
-    window.addEventListener('popstate', pop);
-    return () => window.removeEventListener('popstate', pop);
-  }, [catalog, editing]);
+      setSeriesId(series);
+      setFocused(detail);
+      if (detail) upgradePlaylistDialog(dialog.current);
+      else dialog.current?.close();
+    },
+  });
 
   function chooseSeries(id: string | null) {
     setSeriesId(id);
@@ -133,12 +115,7 @@ export function useMusicPlaylistDialog({
         const scroller =
           dialog.current?.querySelector<HTMLElement>('.mp-detail-scroll');
         if (scroller) scroller.scrollTop = 0;
-        if (alreadyOpen)
-          history.replaceState(null, '', musicHref(target.seriesId, id, mode));
-        else {
-          history.pushState(null, '', musicHref(target.seriesId, id, mode));
-          ownDetailEntry.current = true;
-        }
+        playlistHistory.open(target.seriesId, id, alreadyOpen);
       },
       before,
       focusParts,
@@ -173,11 +150,7 @@ export function useMusicPlaylistDialog({
         flushSync(() => setFocused(null));
         const restore = originVisible ? returnFocus.current : target;
         if (restore?.isConnected) restore.focus({ preventScroll: true });
-        if (ownDetailEntry.current) {
-          ownPop.current = true;
-          history.back();
-        } else history.replaceState(null, '', musicHref(seriesId, null, mode));
-        ownDetailEntry.current = false;
+        playlistHistory.close(seriesId);
       },
       visibleTarget ? focusParts() : {},
       () => cardParts(visibleTarget),
@@ -199,23 +172,6 @@ export function useMusicPlaylistDialog({
     href: (series: string | null, detail: string | null) =>
       musicHref(series, detail, mode),
   };
-}
-
-export function musicHref(
-  nextSeries: string | null,
-  detail: string | null,
-  mode: MusicMode
-) {
-  const params = new URLSearchParams();
-  if (nextSeries) params.set('series', nextSeries);
-  if (detail) params.set('detail', detail);
-  const path =
-    mode === 'prototype'
-      ? '/prototypes/music'
-      : mode === 'admin'
-        ? '/studio/music'
-        : '/music';
-  return `${path}${params.size > 0 ? `?${params}` : ''}`;
 }
 
 function closeTarget(
@@ -278,3 +234,5 @@ function playlistReturnTarget(
         );
   return { originVisible, target };
 }
+
+export type MusicPlaylistNavigation = ReturnType<typeof useMusicPlaylistDialog>;

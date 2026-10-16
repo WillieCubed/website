@@ -1,16 +1,16 @@
 'use client';
 
-import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
+import { type ReactNode } from 'react';
 
 import BlueskyIcon from '@/components/icons/BlueskyIcon';
 import Icon from '@/components/icons/Icon';
-import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import WebmentionForm from '@/components/indieweb/WebmentionForm';
 import SiteLink from '@/components/link/SiteLink';
 import Popover from '@/components/site/Popover';
 
 import styles from './PostActions.module.css';
+import PostShareActions from './PostShareActions';
+import { usePostReply } from './usePostReply';
 
 interface PostActionsProps {
   blueskyHref: string;
@@ -29,91 +29,8 @@ export default function PostActions({
   threadsHref,
   title,
 }: PostActionsProps) {
-  const [replyOpen, setReplyOpen] = useState(false);
-  const [shareStatus, setShareStatus] = useState('');
-  const replyId = useId();
-  const replySurface = useRef<HTMLDivElement>(null);
-  const replyTrigger = useRef<HTMLDivElement>(null);
-  const transitioning = useRef(false);
-
-  useEffect(() => {
-    const expanded = window.matchMedia('(min-width: 600px)');
-    function showExpandedDestinations() {
-      const menu =
-        replyTrigger.current?.querySelector<HTMLElement>('[popover]');
-      if (!expanded.matches || !menu?.matches(':popover-open')) return;
-      const restoreFocus = menu.contains(document.activeElement);
-      menu.hidePopover();
-      if (restoreFocus) replyTrigger.current?.querySelector('button')?.focus();
-    }
-    expanded.addEventListener('change', showExpandedDestinations);
-    return () =>
-      expanded.removeEventListener('change', showExpandedDestinations);
-  }, []);
-
-  async function toggleReply() {
-    if (transitioning.current) return;
-    const opening = !replyOpen;
-    const surface = replySurface.current;
-    if (
-      document.startViewTransition == null ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      !surface
-    ) {
-      setReplyOpen(opening);
-      requestAnimationFrame(() =>
-        (opening
-          ? surface?.querySelector('input')
-          : replyTrigger.current?.querySelector('button')
-        )?.focus()
-      );
-      return;
-    }
-
-    transitioning.current = true;
-    document.documentElement.dataset.postReplyTransition = '';
-    surface.style.viewTransitionName = 'post-reply';
-    try {
-      const started = document.startViewTransition(() => {
-        flushSync(() => setReplyOpen(opening));
-      });
-      // ready rejects alongside finished when the browser cancels, and
-      // only finished is awaited here.
-      started.ready.catch(() => undefined);
-      await started.finished;
-      (opening
-        ? surface.querySelector('input')
-        : replyTrigger.current?.querySelector('button')
-      )?.focus();
-    } catch {
-      // The browser can cancel a transition without cancelling its state update.
-    } finally {
-      surface.style.viewTransitionName = '';
-      delete document.documentElement.dataset.postReplyTransition;
-      transitioning.current = false;
-    }
-  }
-
-  async function sharePost() {
-    setShareStatus('');
-    if (typeof navigator.share === 'function') {
-      try {
-        await navigator.share({ title, url: target });
-      } catch (error) {
-        if (!(error instanceof DOMException && error.name === 'AbortError')) {
-          setShareStatus('Sharing failed. Try again.');
-        }
-      }
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(target);
-      setShareStatus('Post link copied.');
-    } catch {
-      setShareStatus('This browser cannot share or copy the post link.');
-    }
-  }
+  const { replyOpen, replyId, replySurface, replyTrigger, toggleReply } =
+    usePostReply();
 
   return (
     <>
@@ -194,51 +111,12 @@ export default function PostActions({
             </Popover>
           )}
         </div>
-        <div
-          className={styles.share}
-          role="group"
-          aria-label="Share this writing"
-        >
-          <button
-            type="button"
-            data-post-action
-            onClick={sharePost}
-            className={`${styles.action} ${styles.splitMain} ${styles.shareMain}`}
-            aria-label={shareStatus || 'Share this writing'}
-            title={shareStatus || 'Share this writing'}
-          >
-            <Icon
-              name={shareStatus === 'Post link copied.' ? 'check' : 'share'}
-              size={16}
-            />
-            <span className={styles.shareLabel}>Share</span>
-          </button>
-          <Popover
-            label="More sharing options"
-            trigger={<Icon name="chevron-down" size={18} />}
-            triggerClassName={`${styles.action} ${styles.splitArrow}`}
-            panelClassName={styles.menu}
-            align="end"
-            width={228}
-          >
-            <SiteLink
-              href={blueskyHref}
-              target="_blank"
-              className={styles.menuAction}
-            >
-              <BlueskyIcon className="size-4" />
-              Share on Bluesky
-            </SiteLink>
-            <SiteLink
-              href={threadsHref}
-              target="_blank"
-              className={styles.menuAction}
-            >
-              <ThreadsIcon className="size-4" />
-              Share on Threads
-            </SiteLink>
-          </Popover>
-        </div>
+        <PostShareActions
+          target={target}
+          title={title}
+          blueskyHref={blueskyHref}
+          threadsHref={threadsHref}
+        />
       </div>
       <div
         ref={replySurface}
@@ -260,9 +138,6 @@ export default function PostActions({
         </div>
         <WebmentionForm target={target} />
       </div>
-      <span role="status" className="sr-only">
-        {shareStatus}
-      </span>
     </>
   );
 }

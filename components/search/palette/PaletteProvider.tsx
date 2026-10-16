@@ -16,6 +16,7 @@ import type { CloseOptions, PaletteData } from '@/lib/search/palette/types';
 import type { Command } from '@/lib/search/palette/types';
 
 import Palette from './Palette';
+import { usePaletteCommands } from './usePaletteCommands';
 
 /** The shared element name the trigger and the palette's card trade. */
 const MORPH_NAME = 'palette';
@@ -147,8 +148,7 @@ type QueuedPaletteOperation = QueuedPaletteClose | QueuedPaletteOpen;
 export default function PaletteProvider({ children }: React.PropsWithChildren) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggers = useRef(new Set<HTMLElement>());
-  const commandRegistry = useRef(new Map<symbol, Command[]>());
-  const [contextCommands, setContextCommands] = useState<Command[]>([]);
+  const { contextCommands, registerCommands } = usePaletteCommands();
   // The element whose container became the card, hidden while it is open,
   // so the page never shows the trigger and the palette at once.
   const sourceRef = useRef<HTMLElement | null>(null);
@@ -267,16 +267,6 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
     triggers.current.add(trigger);
     return () => {
       triggers.current.delete(trigger);
-    };
-  }, []);
-
-  const registerCommands = useCallback((commands: Command[]) => {
-    const key = Symbol('palette commands');
-    commandRegistry.current.set(key, commands);
-    setContextCommands([...commandRegistry.current.values()].flat());
-    return () => {
-      commandRegistry.current.delete(key);
-      setContextCommands([...commandRegistry.current.values()].flat());
     };
   }, []);
 

@@ -56,72 +56,13 @@ export default function WritingCanvas({
   const [media, setMedia] = useState<'link' | 'image' | null>(null);
   const [mediaHeight, setMediaHeight] = useState(0);
   const writingSpace = useRef<HTMLDivElement>(null);
-  const [insertionPosition, setInsertionPosition] = useState({
-    top: 0,
-    bottom: 0,
-    boundary: 0,
-  });
-  useEffect(() => {
-    if (editor === null || !visible) return;
-    let frame = 0;
-    const measure = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const block = editor.view.dom.querySelector('.studio-active-block');
-        const space = writingSpace.current;
-        if (block === null || space === null) return;
-        const bounds = block.getBoundingClientRect();
-        const origin = space.getBoundingClientRect();
-        setInsertionPosition({
-          top: bounds.top - origin.top,
-          bottom: bounds.bottom - origin.top + 8,
-          boundary: bounds.bottom - origin.top + 4,
-        });
-      });
-    };
-    measure();
-    editor.on('transaction', measure);
-    const observer = new ResizeObserver(measure);
-    observer.observe(editor.view.dom);
-    const activeBlock = editor.view.dom.querySelector('.studio-active-block');
-    if (activeBlock) observer.observe(activeBlock);
-    window.addEventListener('resize', measure);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-      editor.off('transaction', measure);
-      window.removeEventListener('resize', measure);
-    };
-  }, [editor, selection, visible]);
-  useEffect(() => {
-    let frame = 0;
-    const release = () => {
-      cancelAnimationFrame(frame);
-      // Let the click finish before the focused block changes its geometry.
-      frame = requestAnimationFrame(() => {
-        const space = writingSpace.current;
-        if (space === null) return;
-        space.removeAttribute('data-focus-press');
-        const reduced = window.matchMedia(
-          '(prefers-reduced-motion: reduce)'
-        ).matches;
-        // Release transitions held during pointer selection without moving its target.
-        for (const animation of space.getAnimations({ subtree: true })) {
-          const effect = animation.effect;
-          if (!effect || (effect.getTiming().delay ?? 0) < 86_400_000) continue;
-          effect.updateTiming({ delay: 0, duration: reduced ? 0 : 200 });
-          animation.currentTime = 0;
-        }
-      });
-    };
-    window.addEventListener('pointerup', release);
-    window.addEventListener('pointercancel', release);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('pointerup', release);
-      window.removeEventListener('pointercancel', release);
-    };
-  }, []);
+  const insertionPosition = useWritingInsertionPosition(
+    editor,
+    writingSpace,
+    selection,
+    visible
+  );
+  useWritingFocusHold(writingSpace);
   function openMedia(kind: 'link' | 'image') {
     rememberRange();
     setMedia(kind);
@@ -243,4 +184,84 @@ export default function WritingCanvas({
       </StudioWritingSurface>
     </>
   );
+}
+
+/** Geometry follows the active editor block without owning its selection. */
+function useWritingInsertionPosition(
+  editor: Editor | null,
+  writingSpace: RefObject<HTMLDivElement | null>,
+  selection: WritingTextSelection | null,
+  visible: boolean
+) {
+  const [insertionPosition, setInsertionPosition] = useState({
+    top: 0,
+    bottom: 0,
+    boundary: 0,
+  });
+  useEffect(() => {
+    if (editor === null || !visible) return;
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const block = editor.view.dom.querySelector('.studio-active-block');
+        const space = writingSpace.current;
+        if (block === null || space === null) return;
+        const bounds = block.getBoundingClientRect();
+        const origin = space.getBoundingClientRect();
+        setInsertionPosition({
+          top: bounds.top - origin.top,
+          bottom: bounds.bottom - origin.top + 8,
+          boundary: bounds.bottom - origin.top + 4,
+        });
+      });
+    };
+    measure();
+    editor.on('transaction', measure);
+    const observer = new ResizeObserver(measure);
+    observer.observe(editor.view.dom);
+    const activeBlock = editor.view.dom.querySelector('.studio-active-block');
+    if (activeBlock) observer.observe(activeBlock);
+    window.addEventListener('resize', measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      editor.off('transaction', measure);
+      window.removeEventListener('resize', measure);
+    };
+  }, [editor, selection, visible]);
+  return insertionPosition;
+}
+
+/** Keep pointer selection stable while the writing surface's focus animation settles. */
+function useWritingFocusHold(writingSpace: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    let frame = 0;
+    const release = () => {
+      cancelAnimationFrame(frame);
+      // Let the click finish before the focused block changes its geometry.
+      frame = requestAnimationFrame(() => {
+        const space = writingSpace.current;
+        if (space === null) return;
+        space.removeAttribute('data-focus-press');
+        const reduced = window.matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches;
+        // Release transitions held during pointer selection without moving its target.
+        for (const animation of space.getAnimations({ subtree: true })) {
+          const effect = animation.effect;
+          if (!effect || (effect.getTiming().delay ?? 0) < 86_400_000) continue;
+          effect.updateTiming({ delay: 0, duration: reduced ? 0 : 200 });
+          animation.currentTime = 0;
+        }
+      });
+    };
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('pointerup', release);
+      window.removeEventListener('pointercancel', release);
+    };
+  }, [writingSpace]);
 }

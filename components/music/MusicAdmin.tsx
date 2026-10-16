@@ -1,19 +1,17 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 
-import { emptyCatalog } from '@/lib/music/types';
 import type {
   MusicAdminCollectionData,
-  MusicCatalog,
   MusicPublication,
-  MusicRevision,
 } from '@/lib/music/types';
 
 import {
-  MusicOperationNotice,
+  MusicLibraryNotices,
+  MusicOperationErrors,
   MusicPublicationNotice,
   MusicRecoveryNotice,
   MusicSaveNotice,
@@ -22,32 +20,28 @@ import MusicExperience from './MusicExperience';
 import MusicRevisionHistory from './MusicRevisionHistory';
 import { adminCollectionView } from './music-admin-collection';
 import { canPublishMusic } from './music-draft-guards';
-import {
-  clearMusicDraftRecovery,
-  rememberMusicDraft,
-} from './music-draft-recovery';
-import { useMusicCollection } from './useMusicCollection';
-import { useMusicDraft } from './useMusicDraft';
-import { useMusicDraftRecovery } from './useMusicDraftRecovery';
+import { useMusicAdminDraft } from './useMusicAdminDraft';
+import { useMusicInitialLoad } from './useMusicInitialLoad';
 import { useMusicLibrary } from './useMusicLibrary';
 import { useMusicPublication } from './useMusicPublication';
 import { useMusicRevisionHistory } from './useMusicRevisionHistory';
 
 export default function MusicAdmin() {
   const [status, setStatus] = useState('Loading playlists…');
-  const [callbackError, setCallbackError] = useState('');
-  const [recoveryError, setRecoveryError] = useState('');
   const [busy, setBusy] = useState(false);
-  const collection = useMusicCollection();
-  const draft = useMusicDraft({
+  const {
+    collection,
+    loadSavedDraft,
+    reloadRestored,
+    draft,
+    recovery,
+    retention,
+    acceptCollection,
+    acceptImportedRevision,
+  } = useMusicAdminDraft({
     busy,
     setStatus,
-    onSaved: collection.acceptRevision,
-    onSettled: settleLocalDraft,
-    onStaged: retainLocalDraft,
-  });
-  const recovery = useMusicDraftRecovery({
-    onRecover: recoverLocalDraft,
+    onStaged: () => publication.clearPublication(),
   });
   const publication = useMusicPublication({
     readDraft: draft.inspect,
@@ -55,20 +49,6 @@ export default function MusicAdmin() {
     setBusy,
   });
 
-  function acceptCollection(catalog: MusicAdminCollectionData) {
-    draft.adopt(catalog.revision, {
-      ...emptyCatalog,
-      order: catalog.playlists.map((playlist) => playlist.id),
-    });
-    collection.accept(catalog);
-  }
-  function acceptImportedRevision(
-    revision: MusicRevision,
-    catalog: MusicAdminCollectionData
-  ) {
-    draft.adopt(revision);
-    collection.accept({ ...catalog, revision });
-  }
   const library = useMusicLibrary({
     acceptCollection,
     acceptImportedRevision,
@@ -80,61 +60,16 @@ export default function MusicAdmin() {
   });
   const history = useMusicRevisionHistory({
     readDraft: draft.inspect,
-    onRestored: reloadRestoredDraft,
+    onRestored: () => reloadRestored(library.load),
     setBusy,
   });
-  useEffect(() => {
-    let active = true;
-    library
-      .load()
-      .then(async ({ catalog, conn }) => {
-        if (!active) return;
-        const params = new URLSearchParams(location.search);
-        if (params.get('connectionError'))
-          setCallbackError(params.get('connectionError')!);
-        recovery.discover(catalog.revision?.body);
-        if (params.has('connected') && conn.connected) {
-          window.history.replaceState(null, '', location.pathname);
-          await library.refresh();
-        }
-      })
-      .catch(() => undefined);
-    return () => {
-      active = false;
-    };
-  }, []);
-  async function loadSavedDraft() {
-    try {
-      await library.load();
-      draft.discardChanges();
-      settleLocalDraft();
-      collection.remount();
-    } catch {
-      // The library owns and displays its failed load.
-    }
-  }
+  const callback = useMusicInitialLoad({
+    load: library.load,
+    refresh: library.refresh,
+    discover: recovery.discover,
+  });
   function retryLoad() {
     void library.load().catch(() => undefined);
-  }
-  function settleLocalDraft() {
-    clearMusicDraftRecovery();
-    setRecoveryError('');
-  }
-  function retainLocalDraft(catalog: MusicCatalog, revisionId: string | null) {
-    publication.clearPublication();
-    if (!rememberMusicDraft(catalog, revisionId))
-      setRecoveryError(
-        'Browser recovery is unavailable. Keep this tab open until the save finishes.'
-      );
-  }
-  function recoverLocalDraft(catalog: MusicCatalog) {
-    collection.recover(catalog, draft.inspect().revisionId);
-    draft.change(catalog);
-  }
-  async function reloadRestoredDraft() {
-    draft.discardChanges();
-    await library.load();
-    collection.remount();
   }
   function retryPublication() {
     return publication.publish(draft.inspect().savedCatalog);
@@ -149,17 +84,11 @@ export default function MusicAdmin() {
     currentDraft.pending,
     draft.state.saving
   );
-  const adminMenuItems: BreadcrumbMenuItem[] = [
-    { label: 'History', onSelect: history.openHistory },
-    ...(!connected
-      ? [
-          {
-            label: 'Reconnect Spotify',
-            onSelect: () => void library.connect(),
-          },
-        ]
-      : []),
-  ];
+  const adminMenuItems = musicAdminMenu(
+    connected,
+    history.openHistory,
+    library.connect
+  );
   return (
     <>
       <noscript>
@@ -175,50 +104,28 @@ export default function MusicAdmin() {
           conflict={draft.state.conflict}
           reconnect={Boolean(library.connection?.reconnect)}
           onRetry={draft.retry}
-          onUseSaved={loadSavedDraft}
+          onUseSaved={() => loadSavedDraft(library.load)}
           onConnect={library.connect}
           onDismiss={draft.dismissError}
         />
-        <MusicOperationNotice
-          error={library.loadError}
-          onDismiss={library.dismissLoadError}
-        >
-          <button className="mp-button mp-tonal" onClick={retryLoad}>
-            Try again
-          </button>
-        </MusicOperationNotice>
-        <MusicOperationNotice
-          error={library.connectError}
-          onDismiss={library.dismissConnectError}
+        <MusicLibraryNotices
+          loadError={library.loadError}
+          connectError={library.connectError}
+          refreshError={library.refreshError}
+          onDismissLoad={library.dismissLoadError}
+          onDismissConnect={library.dismissConnectError}
+          onDismissRefresh={library.dismissRefreshError}
+          reconnect={Boolean(library.connection?.reconnect)}
+          onRetry={retryLoad}
+          onConnect={library.connect}
         />
-        <MusicOperationNotice
-          error={library.refreshError}
-          onDismiss={library.dismissRefreshError}
-        >
-          {library.connection?.reconnect && (
-            <button
-              className="mp-button"
-              onClick={() => void library.connect()}
-            >
-              Reconnect Spotify
-            </button>
-          )}
-        </MusicOperationNotice>
-        <MusicOperationNotice
-          error={history.error}
-          onDismiss={history.dismissError}
-        />
-        <MusicOperationNotice
-          error={publication.error}
-          onDismiss={publication.dismissError}
-        />
-        <MusicOperationNotice
-          error={callbackError}
-          onDismiss={() => setCallbackError('')}
-        />
-        <MusicOperationNotice
-          error={recoveryError}
-          onDismiss={() => setRecoveryError('')}
+        <MusicOperationErrors
+          notices={[
+            { error: history.error, onDismiss: history.dismissError },
+            { error: publication.error, onDismiss: publication.dismissError },
+            { error: callback.error, onDismiss: callback.dismiss },
+            { error: retention.error, onDismiss: retention.dismiss },
+          ]}
         />
         {busy && (
           <p role="status">
@@ -281,4 +188,17 @@ function isPublishedDraft(
     !pending &&
     !saving
   );
+}
+
+function musicAdminMenu(
+  connected: boolean,
+  openHistory: () => void,
+  connect: () => Promise<void>
+): BreadcrumbMenuItem[] {
+  return [
+    { label: 'History', onSelect: openHistory },
+    ...(!connected
+      ? [{ label: 'Reconnect Spotify', onSelect: () => void connect() }]
+      : []),
+  ];
 }

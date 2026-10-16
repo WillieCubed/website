@@ -16,6 +16,11 @@ import {
 import { type MusicDraftSnapshot, canRefreshMusic } from './music-draft-guards';
 import { importMusicLibrary } from './music-library-import';
 
+export interface MusicLibraryLoad {
+  catalog: MusicAdminCollectionData;
+  conn: MusicConnection;
+}
+
 interface SpotifyConnectionRedirect {
   url: string;
 }
@@ -45,7 +50,7 @@ export function useMusicLibrary({
   const [connectError, setConnectError] = useState('');
   const [refreshError, setRefreshError] = useState('');
   const [connection, setConnection] = useState<MusicConnection | null>(null);
-  async function load() {
+  async function load(): Promise<MusicLibraryLoad> {
     setLoadError('');
     try {
       const [catalog, conn] = await Promise.all([

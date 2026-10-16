@@ -138,37 +138,7 @@ export default function Webrings() {
         Webrings
       </h2>
       <div className="site-webrings__controls">
-        {RINGS.map((ring, index) => (
-          <nav className="site-webring" aria-label={ring.name} key={ring.name}>
-            <SiteLink
-              preview={false}
-              className="site-webring__link site-webring__direction"
-              href={ring.previous}
-              aria-label={`Previous site in the ${ring.name}`}
-              data-webring-label={`Previous ${ring.neighbor} site`}
-            >
-              <Icon name="arrow-left" size={18} />
-            </SiteLink>
-            <SiteLink
-              preview={false}
-              className="site-webring__link site-webring__mark"
-              href={ring.directory}
-              aria-label={ring.name}
-              data-webring-label={ring.name}
-            >
-              {index === 0 ? <Icon name="compass" size={18} /> : <UtdIcon />}
-            </SiteLink>
-            <SiteLink
-              preview={false}
-              className="site-webring__link site-webring__direction"
-              href={ring.next}
-              aria-label={`Next site in the ${ring.name}`}
-              data-webring-label={`Next ${ring.neighbor} site`}
-            >
-              <Icon name="arrow-right" size={18} />
-            </SiteLink>
-          </nav>
-        ))}
+        <WebringLinks />
       </div>
       <div
         ref={tooltip}
@@ -179,4 +149,38 @@ export default function Webrings() {
       />
     </section>
   );
+}
+
+function WebringLinks() {
+  return RINGS.map((ring, index) => (
+    <nav className="site-webring" aria-label={ring.name} key={ring.name}>
+      <SiteLink
+        preview={false}
+        className="site-webring__link site-webring__direction"
+        href={ring.previous}
+        aria-label={`Previous site in the ${ring.name}`}
+        data-webring-label={`Previous ${ring.neighbor} site`}
+      >
+        <Icon name="arrow-left" size={18} />
+      </SiteLink>
+      <SiteLink
+        preview={false}
+        className="site-webring__link site-webring__mark"
+        href={ring.directory}
+        aria-label={ring.name}
+        data-webring-label={ring.name}
+      >
+        {index === 0 ? <Icon name="compass" size={18} /> : <UtdIcon />}
+      </SiteLink>
+      <SiteLink
+        preview={false}
+        className="site-webring__link site-webring__direction"
+        href={ring.next}
+        aria-label={`Next site in the ${ring.name}`}
+        data-webring-label={`Next ${ring.neighbor} site`}
+      >
+        <Icon name="arrow-right" size={18} />
+      </SiteLink>
+    </nav>
+  ));
 }

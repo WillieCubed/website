@@ -19,83 +19,19 @@ export default function StudioWidgetGenerator({
   save,
   onApproved,
 }: StudioWidgetGeneratorProps) {
-  const requestKey = `studio-request:${documentId}`;
-  const [restored, setRestored] = useState(false);
-  const restoredRequest = useRef(false);
-  const [prompt, setPrompt] = useState('');
+  const { prompt, editPrompt } = useWidgetPrompt(documentId, revisionId);
   const [generation, setGeneration] = useState<Generation | null>(null);
-  const [proposal, setProposal] = useState<ComponentProposal | null>(null);
   const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [requestBusy, setBusy] = useState(false);
   const [runtimeReady, setRuntimeReady] = useState(false);
-  useEffect(() => {
-    try {
-      const retained = sessionStorage.getItem(
-        `studio-generation:${documentId}`
-      );
-      if (retained)
-        studioRequest<Generation>(`/generations/${retained}`)
-          .then((value) => {
-            if (value.kind === 'component') setGeneration(value);
-          })
-          .catch(() => {});
-    } catch {
-      /* Recovery is optional when browser storage is unavailable. */
-    }
-  }, [documentId]);
-  useEffect(() => {
-    if (generation) {
-      try {
-        sessionStorage.setItem(
-          `studio-generation:${documentId}`,
-          generation.id
-        );
-      } catch {
-        /* Keep the active proposal in memory. */
-      }
-    }
-  }, [generation, documentId]);
-  useEffect(() => {
-    if (!generation || !['pending', 'running'].includes(generation.status))
-      return;
-    const timer = setTimeout(() => {
-      studioRequest<Generation>(`/generations/${generation.id}`)
-        .then((value) => {
-          if (value.kind === 'component') setGeneration(value);
-        })
-        .catch((error) => setMessage(error.message));
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [generation]);
-  useEffect(() => {
-    if (restoredRequest.current) return;
-    restoredRequest.current = true;
-    try {
-      const retained = sessionStorage.getItem(requestKey);
-      if (retained) {
-        const value = JSON.parse(retained);
-        if (value.kind === 'component' && typeof value.prompt === 'string')
-          setPrompt(value.prompt);
-      }
-    } catch {
-      /* The request remains available in memory. */
-    }
-    setRestored(true);
-  }, [requestKey, revisionId]);
-  useEffect(() => {
-    if (!restored) return;
-    try {
-      sessionStorage.setItem(
-        requestKey,
-        JSON.stringify({
-          prompt,
-          kind: 'component',
-        })
-      );
-    } catch {
-      /* Keep the active request in memory. */
-    }
-  }, [restored, requestKey, prompt]);
+  const proposalReview = useWidgetProposal(generation, setMessage);
+  const busy = requestBusy || proposalReview.busy;
+  useWidgetGenerationTracking(
+    documentId,
+    generation,
+    setGeneration,
+    setMessage
+  );
   async function request(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -123,7 +59,7 @@ export default function StudioWidgetGenerator({
         }),
       });
       setGeneration(next);
-      setProposal(null);
+      proposalReview.clear();
       setMessage('');
     } catch (error) {
       setMessage((error as Error).message);
@@ -149,41 +85,6 @@ export default function StudioWidgetGenerator({
       setBusy(false);
     }
   }
-  async function buildComponent() {
-    if (!generation) return;
-    setBusy(true);
-    try {
-      setProposal(
-        await studioRequest<ComponentProposal>('/components', {
-          method: 'POST',
-          body: JSON.stringify({ generationId: generation.id }),
-        })
-      );
-    } catch (error) {
-      setMessage((error as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function approve() {
-    if (!proposal) return;
-    setBusy(true);
-    try {
-      const approved = await studioRequest<ComponentProposal>(
-        `/components/${proposal.id}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({ action: 'approve' }),
-        }
-      );
-      setProposal(approved);
-      setMessage('Widget approved. Ready to insert.');
-    } catch (error) {
-      setMessage((error as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
   return (
     <section className="studio-widget-generator">
       <form onSubmit={request}>
@@ -191,7 +92,7 @@ export default function StudioWidgetGenerator({
           Describe the widget
           <textarea
             value={prompt}
-            onChange={(event) => setPrompt(event.target.value)}
+            onChange={(event) => editPrompt(event.target.value)}
             placeholder="An interactive chart with a static table for feeds…"
             required
           />
@@ -220,35 +121,17 @@ export default function StudioWidgetGenerator({
           generation={generation}
           busy={busy}
           runtimeReady={runtimeReady}
-          buildComponent={buildComponent}
+          buildComponent={proposalReview.build}
           decide={decide}
         />
       )}
-      {proposal && (
-        <div>
-          <h3>{proposal.name}</h3>
-          <p>{proposal.description}</p>
-          <iframe
-            title="Proposed component sandbox"
-            src={`/api/studio/components/${proposal.id}/sandbox`}
-            sandbox="allow-scripts"
-            className="studio-sandbox"
-          />
-          <p>{proposal.accessibility}</p>
-          {proposal.status === 'approved' && (
-            <button
-              className="feeds-button"
-              onClick={() => void onApproved(proposal)}
-            >
-              Insert approved component
-            </button>
-          )}
-          {proposal.status === 'proposed' && (
-            <button className="feeds-button" disabled={busy} onClick={approve}>
-              Approve component for catalog
-            </button>
-          )}
-        </div>
+      {proposalReview.proposal && (
+        <WidgetProposalPreview
+          proposal={proposalReview.proposal}
+          busy={busy}
+          approve={proposalReview.approve}
+          onApproved={onApproved}
+        />
       )}
     </section>
   );
@@ -322,4 +205,182 @@ function GenerationResult({
       )}
     </div>
   );
+}
+
+/** Approval owns its proposal and operation state; generation requests share its busy signal. */
+function useWidgetProposal(
+  generation: Generation | null,
+  setMessage: (message: string) => void
+) {
+  const [proposal, setProposal] = useState<ComponentProposal | null>(null);
+  const [busy, setBusy] = useState(false);
+  async function buildComponent() {
+    if (!generation) return;
+    setBusy(true);
+    try {
+      setProposal(
+        await studioRequest<ComponentProposal>('/components', {
+          method: 'POST',
+          body: JSON.stringify({ generationId: generation.id }),
+        })
+      );
+    } catch (error) {
+      setMessage((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function approve() {
+    if (!proposal) return;
+    setBusy(true);
+    try {
+      const approved = await studioRequest<ComponentProposal>(
+        `/components/${proposal.id}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ action: 'approve' }),
+        }
+      );
+      setProposal(approved);
+      setMessage('Widget approved. Ready to insert.');
+    } catch (error) {
+      setMessage((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return {
+    proposal,
+    busy,
+    build: buildComponent,
+    approve,
+    clear: () => setProposal(null),
+  };
+}
+
+interface WidgetProposalPreviewProps {
+  proposal: ComponentProposal;
+  busy: boolean;
+  approve: () => void;
+  onApproved: (proposal: ComponentProposal) => Promise<void>;
+}
+
+function WidgetProposalPreview({
+  proposal,
+  busy,
+  approve,
+  onApproved,
+}: WidgetProposalPreviewProps) {
+  return (
+    <div>
+      <h3>{proposal.name}</h3>
+      <p>{proposal.description}</p>
+      <iframe
+        title="Proposed component sandbox"
+        src={`/api/studio/components/${proposal.id}/sandbox`}
+        sandbox="allow-scripts"
+        className="studio-sandbox"
+      />
+      <p>{proposal.accessibility}</p>
+      {proposal.status === 'approved' && (
+        <button
+          className="feeds-button"
+          onClick={() => void onApproved(proposal)}
+        >
+          Insert approved component
+        </button>
+      )}
+      {proposal.status === 'proposed' && (
+        <button className="feeds-button" disabled={busy} onClick={approve}>
+          Approve component for catalog
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Retain and poll the generation independently of the prompt and approval form. */
+function useWidgetGenerationTracking(
+  documentId: string,
+  generation: Generation | null,
+  setGeneration: (generation: Generation) => void,
+  setMessage: (message: string) => void
+) {
+  useEffect(() => {
+    try {
+      const retained = sessionStorage.getItem(
+        `studio-generation:${documentId}`
+      );
+      if (retained)
+        studioRequest<Generation>(`/generations/${retained}`)
+          .then((value) => {
+            if (value.kind === 'component') setGeneration(value);
+          })
+          .catch(() => {});
+    } catch {
+      /* Recovery is optional when browser storage is unavailable. */
+    }
+  }, [documentId]);
+  useEffect(() => {
+    if (generation) {
+      try {
+        sessionStorage.setItem(
+          `studio-generation:${documentId}`,
+          generation.id
+        );
+      } catch {
+        /* Keep the active proposal in memory. */
+      }
+    }
+  }, [generation, documentId]);
+  useEffect(() => {
+    if (!generation || !['pending', 'running'].includes(generation.status))
+      return;
+    const timer = setTimeout(() => {
+      studioRequest<Generation>(`/generations/${generation.id}`)
+        .then((value) => {
+          if (value.kind === 'component') setGeneration(value);
+        })
+        .catch((error) => setMessage(error.message));
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [generation]);
+}
+
+/** Keep the widget request draft in browser storage across task switches and reloads. */
+function useWidgetPrompt(documentId: string, revisionId: string) {
+  const requestKey = `studio-request:${documentId}`;
+  const [restored, setRestored] = useState(false);
+  const restoredRequest = useRef(false);
+  const [prompt, setPrompt] = useState('');
+  useEffect(() => {
+    if (restoredRequest.current) return;
+    restoredRequest.current = true;
+    try {
+      const retained = sessionStorage.getItem(requestKey);
+      if (retained) {
+        const value = JSON.parse(retained);
+        if (value.kind === 'component' && typeof value.prompt === 'string')
+          setPrompt(value.prompt);
+      }
+    } catch {
+      /* The request remains available in memory. */
+    }
+    setRestored(true);
+  }, [requestKey, revisionId]);
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      sessionStorage.setItem(
+        requestKey,
+        JSON.stringify({
+          prompt,
+          kind: 'component',
+        })
+      );
+    } catch {
+      /* Keep the active request in memory. */
+    }
+  }, [restored, requestKey, prompt]);
+  return { prompt, editPrompt: setPrompt };
 }

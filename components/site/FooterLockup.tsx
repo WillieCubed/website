@@ -1,8 +1,12 @@
 'use client';
 
 import {
+  type KeyboardEvent,
+  type Ref,
+  type RefObject,
   useEffect,
   useId,
+  useImperativeHandle,
   useRef,
   useState,
   useSyncExternalStore,
@@ -32,8 +36,7 @@ interface FooterLockupProps {
 export default function FooterLockup({ name }: FooterLockupProps) {
   const menuId = useId();
   const markButton = useRef<HTMLButtonElement>(null);
-  const menu = useRef<HTMLDivElement>(null);
-  const firstMenuItem = useRef<HTMLAnchorElement>(null);
+  const menu = useRef<CubeMenuHandle>(null);
   const cubeActivations = useRef(0);
   const header = useSyncExternalStore(
     subscribeTopBar,
@@ -44,8 +47,103 @@ export default function FooterLockup({ name }: FooterLockupProps) {
   const [colorPinned, setColorPinned] = useState(false);
   const [spinSequence, setSpinSequence] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [logoScheme, setLogoScheme] = useState<'light' | 'dark'>('light');
 
+  function handleCubeClick() {
+    setColorPinned((pinned) => !pinned);
+    cubeActivations.current = (cubeActivations.current + 1) % 3;
+    if (cubeActivations.current === 0) {
+      setSpinSequence((sequence) => sequence + 1);
+    }
+  }
+
+  // Each page's top bar registers itself while it is on screen, so the
+  // observer follows it from page to page and is dropped for pages without
+  // one.
+  useEffect(() => {
+    if (!header) {
+      const frame = requestAnimationFrame(() => setRevealed(false));
+      return () => cancelAnimationFrame(frame);
+    }
+    const observer = new IntersectionObserver(([entry]) =>
+      setRevealed(!entry.isIntersecting)
+    );
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [header]);
+
+  return (
+    <>
+      <p
+        className="site-footer__lockup text-headline-small font-semibold text-ink"
+        data-revealed={revealed}
+      >
+        <button
+          ref={markButton}
+          type="button"
+          className="site-footer__mark-button"
+          aria-label="Toggle cube color"
+          aria-pressed={colorPinned}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          aria-controls={menuId}
+          onClick={handleCubeClick}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            menu.current?.openAt(event.clientX, event.clientY);
+          }}
+          onKeyDown={(event) => {
+            if (
+              event.key === 'ContextMenu' ||
+              (event.key === 'F10' && event.shiftKey)
+            ) {
+              event.preventDefault();
+              menu.current?.openFromKeyboard();
+            }
+          }}
+        >
+          <Mark
+            key={spinSequence}
+            className={`site-footer__mark${
+              spinSequence > 0 ? ' site-footer__mark--spinning' : ''
+            }`}
+          />
+        </button>
+        <span className="site-footer__wordmark" data-footer-name>
+          {name}
+        </span>
+      </p>
+      <CubeMenu
+        ref={menu}
+        id={menuId}
+        trigger={markButton}
+        onOpenChange={setMenuOpen}
+      />
+    </>
+  );
+}
+
+interface CubeMenuHandle {
+  openAt: (x: number, y: number) => void;
+  openFromKeyboard: () => void;
+}
+
+interface CubeMenuProps {
+  ref: Ref<CubeMenuHandle>;
+  id: string;
+  trigger: RefObject<HTMLButtonElement | null>;
+  onOpenChange: (open: boolean) => void;
+}
+
+function CubeMenu({
+  ref,
+  id,
+  trigger: markButton,
+  onOpenChange,
+}: CubeMenuProps) {
+  const menu = useRef<HTMLDivElement>(null);
+  const firstMenuItem = useRef<HTMLAnchorElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [logoScheme, setLogoScheme] = useState<'light' | 'dark'>('light');
   function openMenu(x: number, y: number) {
     const popup = menu.current;
     if (!popup || typeof popup.showPopover !== 'function') return;
@@ -88,28 +186,10 @@ export default function FooterLockup({ name }: FooterLockupProps) {
     markButton.current?.focus({ preventScroll: true });
   }
 
-  function handleCubeClick() {
-    setColorPinned((pinned) => !pinned);
-    cubeActivations.current = (cubeActivations.current + 1) % 3;
-    if (cubeActivations.current === 0) {
-      setSpinSequence((sequence) => sequence + 1);
-    }
-  }
-
-  // Each page's top bar registers itself while it is on screen, so the
-  // observer follows it from page to page and is dropped for pages without
-  // one.
-  useEffect(() => {
-    if (!header) {
-      const frame = requestAnimationFrame(() => setRevealed(false));
-      return () => cancelAnimationFrame(frame);
-    }
-    const observer = new IntersectionObserver(([entry]) =>
-      setRevealed(!entry.isIntersecting)
-    );
-    observer.observe(header);
-    return () => observer.disconnect();
-  }, [header]);
+  useImperativeHandle(ref, () => ({
+    openAt: openMenu,
+    openFromKeyboard: openMenuFromKeyboard,
+  }));
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -131,120 +211,85 @@ export default function FooterLockup({ name }: FooterLockupProps) {
       window.removeEventListener('resize', dismiss);
     };
   }, [menuOpen]);
-
   return (
-    <>
-      <p
-        className="site-footer__lockup text-headline-small font-semibold text-ink"
-        data-revealed={revealed}
-      >
-        <button
-          ref={markButton}
-          type="button"
-          className="site-footer__mark-button"
-          aria-label="Toggle cube color"
-          aria-pressed={colorPinned}
-          aria-haspopup="menu"
-          aria-expanded={menuOpen}
-          aria-controls={menuId}
-          onClick={handleCubeClick}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            openMenu(event.clientX, event.clientY);
-          }}
-          onKeyDown={(event) => {
-            if (
-              event.key === 'ContextMenu' ||
-              (event.key === 'F10' && event.shiftKey)
-            ) {
-              event.preventDefault();
-              openMenuFromKeyboard();
-            }
-          }}
-        >
-          <Mark
-            key={spinSequence}
-            className={`site-footer__mark${
-              spinSequence > 0 ? ' site-footer__mark--spinning' : ''
-            }`}
-          />
-        </button>
-        <span className="site-footer__wordmark" data-footer-name>
-          {name}
-        </span>
-      </p>
-      <div
-        ref={menu}
-        id={menuId}
-        popover="manual"
-        role="menu"
-        aria-label="Cube actions"
-        className="site-popover cube-context-popover"
-        onToggle={(event) => setMenuOpen(event.newState === 'open')}
-        onKeyDown={(event) => {
-          const items = Array.from(
-            event.currentTarget.querySelectorAll<HTMLElement>(
-              '[role="menuitem"]'
-            )
-          );
-          const current = items.indexOf(document.activeElement as HTMLElement);
-
-          if (event.key === 'Escape') {
-            event.preventDefault();
-            closeMenu();
-          } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-            event.preventDefault();
-            const step = event.key === 'ArrowDown' ? 1 : -1;
-            items[(current + step + items.length) % items.length]?.focus();
-          } else if (event.key === 'Home') {
-            event.preventDefault();
-            items[0]?.focus();
-          } else if (event.key === 'End') {
-            event.preventDefault();
-            items[items.length - 1]?.focus();
+    <div
+      ref={menu}
+      id={id}
+      popover="manual"
+      role="menu"
+      aria-label="Cube actions"
+      className="site-popover cube-context-popover"
+      onToggle={(event) => {
+        const open = event.newState === 'open';
+        setMenuOpen(open);
+        onOpenChange(open);
+      }}
+      onKeyDown={(event) => navigateMenu(event, closeMenu)}
+      onBlur={(event) => {
+        if (
+          event.relatedTarget instanceof Node &&
+          event.currentTarget.contains(event.relatedTarget)
+        ) {
+          return;
+        }
+        requestAnimationFrame(() => {
+          if (!menu.current?.contains(document.activeElement)) {
+            menu.current?.hidePopover();
           }
-        }}
-        onBlur={(event) => {
-          if (
-            event.relatedTarget instanceof Node &&
-            event.currentTarget.contains(event.relatedTarget)
-          ) {
-            return;
-          }
-          requestAnimationFrame(() => {
-            if (!menu.current?.contains(document.activeElement)) {
-              menu.current?.hidePopover();
-            }
-          });
-        }}
-      >
-        <ul className="cube-context-popover__items">
-          <li role="none">
-            <a
-              ref={firstMenuItem}
-              role="menuitem"
-              // eslint-disable-next-line site/no-raw-internal-anchor -- a file download, not a page
-              href={`/brand/mark/png/williecubed-cube-on-${logoScheme}-512.png`}
-              download={`williecubed-cube-on-${logoScheme}-512.png`}
-              className="cube-context-popover__link"
-              onClick={hideMenu}
-            >
-              Download logo PNG
-            </a>
-          </li>
-          <li role="none">
-            <SiteLink
-              role="menuitem"
-              preview={false}
-              href="/brand"
-              className="cube-context-popover__link"
-              onClick={hideMenu}
-            >
-              Brand page
-            </SiteLink>
-          </li>
-        </ul>
-      </div>
-    </>
+        });
+      }}
+    >
+      <ul className="cube-context-popover__items">
+        <li role="none">
+          <a
+            ref={firstMenuItem}
+            role="menuitem"
+            // eslint-disable-next-line site/no-raw-internal-anchor -- a file download, not a page
+            href={`/brand/mark/png/williecubed-cube-on-${logoScheme}-512.png`}
+            download={`williecubed-cube-on-${logoScheme}-512.png`}
+            className="cube-context-popover__link"
+            onClick={hideMenu}
+          >
+            Download logo PNG
+          </a>
+        </li>
+        <li role="none">
+          <SiteLink
+            role="menuitem"
+            preview={false}
+            href="/brand"
+            className="cube-context-popover__link"
+            onClick={hideMenu}
+          >
+            Brand page
+          </SiteLink>
+        </li>
+      </ul>
+    </div>
   );
+}
+
+function navigateMenu(
+  event: KeyboardEvent<HTMLDivElement>,
+  closeMenu: () => void
+) {
+  const items = Array.from(
+    event.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]')
+  );
+  const current = items.indexOf(document.activeElement as HTMLElement);
+
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeMenu();
+  } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    items[(current + step + items.length) % items.length]?.focus();
+  } else if (event.key === 'Home') {
+    event.preventDefault();
+    items[0]?.focus();
+  } else if (event.key === 'End') {
+    event.preventDefault();
+    items[items.length - 1]?.focus();
+  }
 }

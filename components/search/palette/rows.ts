@@ -36,7 +36,7 @@ export interface Row {
   command?: Command;
   search?: SearchRow;
 }
-interface Section {
+export interface Section {
   label: string;
   rows: Row[];
 }

@@ -83,8 +83,8 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
   page,
 }) => {
   await page.goto('/');
-  // 318px also covers the content budget of a 320px Linux viewport with
-  // a 17px classic scrollbar, rather than the 15px bar on macOS.
+  // Leave room for platform font metrics and wider classic scrollbars:
+  // 318px with a 15px bar has the same content budget as 320px with 17px.
   for (const width of [
     318, 320, 390, 599, 600, 839, 840, 1199, 1200, 1920, 2560,
   ]) {
@@ -127,6 +127,7 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
         firstPage: box('.site-footer__pages a'),
         rings: box('.site-webrings'),
         label: box('.site-webrings__label'),
+        firstArrow: box('.site-webring__direction svg'),
         panel: box('.site-webrings__controls'),
         row: box('.site-footer__row'),
         targets: [...document.querySelectorAll('.site-webring__link')].map(
@@ -146,7 +147,12 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
         Math.min(480, bounds.row.width),
         0
       );
-      expect(bounds.label.right).toBeLessThan(bounds.panel.left);
+      // Adjacent layout boxes may meet. The arrow's own inset must still
+      // visibly separate its glyph from the heading.
+      expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
+      expect(
+        bounds.firstArrow.left - bounds.label.right
+      ).toBeGreaterThanOrEqual(6);
       expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
       expect(bounds.panel.width).toBe(196);
       expect(bounds.rings.right - bounds.panel.right).toBe(12);

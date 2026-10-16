@@ -48,8 +48,8 @@ export default function ColophonPage() {
             <h1 id="colophon-title">Colophon</h1>
             <div className="colophon-intro-copy">
               <p>
-                This site brings my writing, software, music, and organizing
-                together under one address.
+                My corner of the web, with room for writing, software, music,
+                organizing, and whatever comes next.
               </p>
               <p className="colophon-byline">
                 Designed and built by{' '}
@@ -64,51 +64,100 @@ export default function ColophonPage() {
         </section>
 
         <div className="colophon-notes">
-          <section className="colophon-type" aria-labelledby="type-title">
-            <h2 id="type-title">Type</h2>
-            <p>
-              Atkinson Hyperlegible Next is used for reading, and Atkinson
-              Hyperlegible Mono for code and revision identifiers. Both come
-              from the{' '}
-              <SiteLink href="https://www.brailleinstitute.org/freefont/">
-                Braille Institute
-              </SiteLink>
-              . Their distinct character shapes help separate similar letters
-              and numbers.
+          <section className="colophon-purpose" aria-labelledby="purpose-title">
+            <h2 id="purpose-title">A place of my own</h2>
+            <p className="colophon-lead">
+              I like the idea of a web made up of people’s own places. This is
+              mine, shaped around what I want to make and share.
             </p>
+            <p>
+              The <SiteLink href="https://indieweb.org/">IndieWeb</SiteLink> and
+              the older tradition of personal websites inform how I build it:
+              keeping my work at my own address, making it portable, and
+              connecting directly with other people. I want room to change
+              things as my interests and needs change.
+            </p>
+          </section>
+          <section className="colophon-design" aria-labelledby="design-title">
+            <h2 id="design-title">Design</h2>
+            <div className="colophon-prose">
+              <p>
+                Reading and finding things come first. There should also be room
+                for a little play. You can{' '}
+                <SiteLink href="/coffee">ask for coffee</SiteLink> and get a
+                teapot, for instance.
+              </p>
+              <p>
+                Links should feel like links, and things that look interactive
+                should work. Keyboard access, reduced motion, and useful pages
+                without JavaScript are part of how I judge whether an
+                interaction belongs here.
+              </p>
+              <h3 id="type-title">Type</h3>
+              <p>
+                Atkinson Hyperlegible Next is used for reading, and Atkinson
+                Hyperlegible Mono for code and revision identifiers. Both come
+                from the{' '}
+                <SiteLink href="https://www.brailleinstitute.org/freefont/">
+                  Braille Institute
+                </SiteLink>
+                . Their distinct character shapes help separate similar letters
+                and numbers.
+              </p>
+            </div>
             <figure
               className="colophon-specimen"
               aria-label="Atkinson Hyperlegible type specimens"
             >
               <div className="colophon-type-sample colophon-type-sample--sans">
-                <span className="colophon-sample-text">Aa 0O 1Il</span>
+                <span className="colophon-sample-text">0O · 1Il</span>
                 <span className="colophon-sample-name">
                   Atkinson Hyperlegible Next
                 </span>
               </div>
               <div className="colophon-type-sample colophon-type-sample--mono">
-                <span className="colophon-sample-text">Aa 0O 1Il</span>
+                <span className="colophon-sample-text">0O · 1Il</span>
                 <span className="colophon-sample-name">
                   Atkinson Hyperlegible Mono
                 </span>
               </div>
             </figure>
           </section>
+          <section className="colophon-making" aria-labelledby="making-title">
+            <h2 id="making-title">Making it</h2>
+            <p>
+              I use AI to help build the software, interfaces, and maintenance
+              workflows for this site. The intent, decisions, and final say are
+              mine. I care about describing what I want clearly and refining the
+              result until it fits.
+            </p>
+            <p>
+              Maintaining the site is part of the design work, too. I’m building
+              tools around how I actually write and publish: a draft should look
+              like the page it will become, and saving, reviewing, and
+              publishing should be a few clear actions. The goal is to make
+              doing exactly what I want stupidly simple.
+            </p>
+          </section>
           <section
             className="colophon-publishing"
             aria-labelledby="publishing-title"
           >
             <h2 id="publishing-title">Publishing</h2>
-            <p>
-              Original posts live here at their own URLs. Markdown and MDX keep
-              the writing in text files alongside the site’s source, so the
-              words can outlast a particular framework.
-            </p>
-            <p>
-              <SiteLink href="/sitemap">RSS, Atom, and JSON feeds</SiteLink> let
-              readers follow along in the app they choose. Webmention connects
-              responses from other websites to the posts they reference.
-            </p>
+            <div className="colophon-prose">
+              <p>
+                Everything in <SiteLink href="/writings">Writings</SiteLink> is
+                written by me. Posts live at their own URLs. Markdown and MDX
+                keep the published writing in text files alongside the site’s
+                source, so the words can outlast a particular framework.
+              </p>
+              <p>
+                <SiteLink href="/sitemap">RSS, Atom, and JSON feeds</SiteLink>{' '}
+                let readers follow along in the app they choose. Webmention
+                connects responses from other websites to the posts they
+                reference.
+              </p>
+            </div>
           </section>
           <section className="colophon-credits" aria-labelledby="credits-title">
             <h2 id="credits-title">Credits</h2>

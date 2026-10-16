@@ -67,7 +67,8 @@ export default function ColophonPage() {
             <h2 id="purpose-title">A place of my own</h2>
             <p className="colophon-lead">
               I’m building this website to follow IndieWeb principles and ideas
-              of the old web, with human intent always at the forefront.
+              of the old web, with <strong>human intent</strong> always at the
+              forefront.
             </p>
             <p>
               The <SiteLink href="https://indieweb.org/">IndieWeb</SiteLink>{' '}
@@ -78,30 +79,34 @@ export default function ColophonPage() {
           </section>
           <section className="colophon-design" aria-labelledby="design-title">
             <h2 id="design-title">Design</h2>
-            <div className="colophon-prose">
-              <p>
-                I like modern, playful illustrations that draw attention to
-                parts of a page. There’s room for a joke, too: you can{' '}
-                <SiteLink href="/coffee">ask for coffee</SiteLink> and get a
-                teapot.
-              </p>
-              <p>
-                Links should feel like links, and things that look interactive
-                should work. Keyboard access, reduced motion, and useful pages
-                without JavaScript are part of how I judge whether an
-                interaction belongs here.
-              </p>
-              <h3 id="type-title">Type</h3>
-              <p>
-                Atkinson Hyperlegible Next is used for reading, and Atkinson
-                Hyperlegible Mono for code and revision identifiers. Both come
-                from the{' '}
-                <SiteLink href="https://www.brailleinstitute.org/freefont/">
-                  Braille Institute
-                </SiteLink>
-                . Their distinct character shapes help separate similar letters
-                and numbers.
-              </p>
+            <div className="colophon-prose colophon-design-prose">
+              <div className="colophon-design-notes">
+                <p>
+                  I like modern, playful illustrations that draw attention to
+                  parts of a page. There’s room for a joke, too: you can{' '}
+                  <SiteLink href="/coffee">ask for coffee</SiteLink> and get a
+                  teapot.
+                </p>
+                <p>
+                  Links should feel like links, and things that look interactive
+                  should work. Keyboard access, reduced motion, and useful pages
+                  without JavaScript are part of how I judge whether an
+                  interaction belongs here.
+                </p>
+              </div>
+              <div className="colophon-type-notes">
+                <h3 id="type-title">Type</h3>
+                <p>
+                  Atkinson Hyperlegible Next is used for reading, and Atkinson
+                  Hyperlegible Mono for code and revision identifiers. Both come
+                  from the{' '}
+                  <SiteLink href="https://www.brailleinstitute.org/freefont/">
+                    Braille Institute
+                  </SiteLink>
+                  . Their distinct character shapes help separate similar
+                  letters and numbers.
+                </p>
+              </div>
             </div>
             <figure
               className="colophon-specimen"
@@ -124,16 +129,21 @@ export default function ColophonPage() {
           <section className="colophon-making" aria-labelledby="making-title">
             <h2 id="making-title">Making it</h2>
             <p>
-              Handwriting code isn’t really that important to me. I think one of
-              the best uses of AI is efficiently creating workflows and
-              interfaces catered to my exact taste, when I can properly describe
-              it. That’s how I’m building the software behind this site.
+              <span className="colophon-statement">
+                Handwriting code isn’t really that important to me.
+              </span>
+              I think one of the best uses of AI is efficiently creating
+              workflows and interfaces catered to my exact taste, when I can
+              properly describe it. That’s how I’m building the software behind
+              this site.
             </p>
             <p>
-              Developer experience is at the forefront, too. I’m the maintainer,
-              and it should be stupidly simple for me to do exactly what I want
-              to do. The workflows are bespoke and need to be designed well,
-              with my intent guiding how they work.
+              <span className="colophon-statement">
+                Developer experience is at the forefront, too.
+              </span>
+              I’m the maintainer, and it should be stupidly simple for me to do
+              exactly what I want to do. The workflows are bespoke and need to
+              be designed well, with my intent guiding how they work.
             </p>
           </section>
           <section

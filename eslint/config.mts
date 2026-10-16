@@ -200,6 +200,20 @@ const eslintConfig: Linter.Config[] = [
   },
   {
     files: [
+      'app/**/*.{js,jsx,ts,tsx,mjs,mts}',
+      'components/**/*.{js,jsx,ts,tsx,mjs,mts}',
+    ],
+    rules: {
+      // Size identifies review targets; responsibility and state ownership need review.
+      'max-lines-per-function': [
+        'warn',
+        { max: 150, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
+      'max-statements': ['warn', 30],
+    },
+  },
+  {
+    files: [
       'components/writings/StandardSocialControls.tsx',
       'components/writings/StandardSignInDialog.tsx',
       'components/writings/useStandardSocialControls.ts',

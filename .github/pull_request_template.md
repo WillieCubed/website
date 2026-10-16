@@ -12,6 +12,14 @@
 opened and at what widths and colour schemes, and any production check that
 has to wait until after deploy. -->
 
+<!-- For UI changes, complete these checks and explain retained size warnings in
+Changes. For other changes, say that the UI checks are not applicable. -->
+
+- [ ] Reviewed reported UI size warnings and explained retained large functions.
+- [ ] Checked each component or hook's responsibility and public interface.
+- [ ] Checked state ownership and draft, native-input, selection, and focus lifetimes.
+- [ ] Each extraction owns a distinct responsibility or lifecycle and reduces caller coordination.
+
 ## Follow-ups and Next Work
 
 <!-- Anything left undone, found along the way, or unblocked by this PR.

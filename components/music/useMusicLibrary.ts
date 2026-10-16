@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 
+import { appendImportedPlaylistOrder } from '@/lib/music/catalog-edits';
 import type {
   MusicAdminCollectionData,
   MusicConnection,
@@ -99,23 +100,18 @@ export function useMusicLibrary({
       const imported = await importMusicLibrary();
       const result = await load();
       const body = result.catalog.revision?.body ?? emptyCatalog;
-      const order = [
-        ...body.order,
-        ...result.catalog.playlists
-          .map((p) => p.id)
-          .filter((id) => !body.order.includes(id)),
-      ];
-      if (
-        JSON.stringify(order) !== JSON.stringify(body.order) ||
-        !result.catalog.revision
-      ) {
+      const catalog = appendImportedPlaylistOrder(
+        body,
+        result.catalog.playlists.map((playlist) => playlist.id)
+      );
+      if (catalog !== body || !result.catalog.revision) {
         const next = await musicAdminRequest<MusicRevisionResponse>(
           '/catalog',
           {
             method: 'PUT',
             body: JSON.stringify({
               expectedRevisionId: result.catalog.revision?.id ?? null,
-              catalog: { ...body, order },
+              catalog,
             }),
           }
         );

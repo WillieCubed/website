@@ -120,14 +120,15 @@ export function useMusicDraft({
       setError((e as Error).message);
     }
   }
-  function change(catalog: MusicCatalog) {
-    if (busy) return;
+  function change(catalog: MusicCatalog): boolean {
+    if (busy) return false;
     pending.current = catalog;
     setStatus('Saving…');
     setSaving(true);
     onStaged(catalog, base.current);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => void drain(), 650);
+    return true;
   }
 
   return {

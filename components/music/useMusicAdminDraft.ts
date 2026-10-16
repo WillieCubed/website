@@ -5,9 +5,9 @@ import {
   type MusicAdminCollectionData,
   type MusicCatalog,
   type MusicRevision,
-  emptyCatalog,
 } from '@/lib/music/types';
 
+import { loadedMusicCatalog } from './music-admin-collection';
 import {
   clearMusicDraftRecovery,
   rememberMusicDraft,
@@ -34,10 +34,7 @@ export function useMusicAdminDraft({ busy, setStatus, onStaged }: Options) {
   });
   const recovery = useMusicDraftRecovery({ onRecover: recover });
   function acceptCollection(catalog: MusicAdminCollectionData) {
-    draft.adopt(catalog.revision, {
-      ...emptyCatalog,
-      order: catalog.playlists.map((playlist) => playlist.id),
-    });
+    draft.adopt(catalog.revision, loadedMusicCatalog(catalog));
     collection.accept(catalog);
   }
   function acceptImportedRevision(
@@ -58,9 +55,10 @@ export function useMusicAdminDraft({ busy, setStatus, onStaged }: Options) {
         'Browser recovery is unavailable. Keep this tab open until the save finishes.'
       );
   }
-  function recover(catalog: MusicCatalog) {
-    collection.recover(catalog, draft.inspect().revisionId);
-    draft.change(catalog);
+  function recover(catalog: MusicCatalog): boolean {
+    if (!draft.change(catalog)) return false;
+    collection.recover(catalog);
+    return true;
   }
   async function loadSavedDraft(load: () => Promise<unknown>) {
     try {

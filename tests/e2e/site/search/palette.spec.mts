@@ -127,6 +127,49 @@ test('a query returns Pagefind results with the hit marked', async ({
   ).toBeVisible();
 });
 
+test('search recovery follows the current failed or timed-out query', async ({
+  page,
+}) => {
+  await page.route('**/pagefind/pagefind.js', (route) =>
+    route.fulfill({
+      contentType: 'text/javascript',
+      body: `
+      export async function options() {}
+      export async function init() {}
+      export async function debouncedSearch(query) {
+        if (query === 'zzz-failed') throw new Error('Index request failed');
+        if (query === 'zzz-pending') return new Promise(() => {});
+        return { results: [] };
+      }
+    `,
+    })
+  );
+  await page.goto('/');
+  await page.locator('.palette-trigger').first().click();
+  await expect(combobox(page)).toBeFocused();
+  await settled(page);
+  await page.clock.install();
+  await combobox(page).fill('zzz-failed');
+  const recovery = palette(page).getByRole('link', {
+    name: 'Search without instant search',
+  });
+  await expect(recovery).toHaveAttribute('href', '/search?q=zzz-failed');
+  await combobox(page).fill('zzz-pending');
+  await expect(palette(page).getByRole('status').first()).toHaveText(
+    'Searching…'
+  );
+  await expect(recovery).toHaveCount(0);
+  await page.clock.fastForward(10_001);
+  await expect(recovery).toHaveAttribute('href', '/search?q=zzz-pending');
+  await combobox(page).fill('z');
+  await expect(recovery).toHaveCount(0);
+  await combobox(page).fill('zzz-empty');
+  await expect(palette(page).getByRole('status').first()).toContainText(
+    'Nothing on the site matches'
+  );
+  await expect(recovery).toHaveCount(0);
+});
+
 test('brew sends a real POST /coffee and shows the 418', async ({ page }) => {
   await page.goto('/');
   await page.locator('.palette-trigger').first().click();

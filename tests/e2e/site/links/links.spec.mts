@@ -1,5 +1,40 @@
 import { expect, test } from '@playwright/test';
 
+test('a registry response after hover ends cannot reopen a preview', async ({
+  page,
+}) => {
+  let releaseRegistry!: () => void;
+  const registryReady = new Promise<void>((resolve) => {
+    releaseRegistry = resolve;
+  });
+  await page.route('**/entities.json', async (route) => {
+    await registryReady;
+    await route.continue();
+  });
+  await page.goto('/');
+  const link = page.locator('.p-note').getByRole('link', {
+    name: 'Las Vegans for Better Transit',
+  });
+  const requested = page.waitForRequest('**/entities.json');
+  await link.hover();
+  await requested;
+  await page.mouse.move(0, 0);
+  const responded = page.waitForResponse('**/entities.json');
+  releaseRegistry();
+  await (await responded).finished();
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      )
+  );
+  await expect(page.locator('.link-preview:popover-open')).toHaveCount(0);
+  await link.hover();
+  await expect(page.locator('.link-preview:popover-open')).toContainText(
+    'Las Vegans for Better Transit'
+  );
+});
+
 test('a headline venture shows its card on hover and on keyboard focus', async ({
   page,
 }) => {

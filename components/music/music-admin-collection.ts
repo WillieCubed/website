@@ -15,28 +15,39 @@ export interface AdminCollectionView {
 }
 export function adminCollectionView(
   data: MusicAdminCollectionData | null,
-  connection: MusicConnection | null
+  connection: MusicConnection | null,
+  editorCatalog: MusicCatalog | null = null
 ): AdminCollectionView {
   const playlists = data?.playlists ?? [];
-  const initialCatalog = data?.revision?.body ?? {
-    ...emptyCatalog,
-    order: playlists.map((playlist) => playlist.id),
-  };
+  const initialCatalog = editorCatalog ?? loadedMusicCatalog(data);
   return {
     playlists,
     initialCatalog,
     loading: !data || !connection,
     connected: connection?.connected ?? false,
-    setupInitially: needsSetup(data, initialCatalog),
+    setupInitially: needsSetup(data, initialCatalog, editorCatalog !== null),
   };
+}
+
+/** An imported library starts with its saved choices or an unselected authored order. */
+export function loadedMusicCatalog(
+  data: MusicAdminCollectionData | null
+): MusicCatalog {
+  return (
+    data?.revision?.body ?? {
+      ...emptyCatalog,
+      order: data?.playlists.map((playlist) => playlist.id) ?? [],
+    }
+  );
 }
 function needsSetup(
   data: MusicAdminCollectionData | null,
-  catalog: MusicCatalog
+  catalog: MusicCatalog,
+  recovered: boolean
 ): boolean {
   return Boolean(
     data &&
-    (!data.revision ||
+    ((!data.revision && !recovered) ||
       (catalog.selected.length === 0 &&
         data.playlists.some((playlist) => playlist.eligible)))
   );

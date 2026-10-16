@@ -1,18 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import Button from '@/components/site/Button';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
-import { useHydrated } from '@/lib/dom/hydrated';
 import { formatDate } from '@/lib/site/dates';
 import type { Draft, EditorNode } from '@/lib/studio/types';
 
+import NewWriting from './NewWriting';
 import { studioRequest } from './api';
 
 interface StudioDocumentsResponse {
@@ -29,33 +27,25 @@ function noteExcerpt(node: EditorNode): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
+type StudioLibraryStatus = 'loading' | 'ready' | 'failed';
+
 export default function StudioLibrary() {
-  const router = useRouter();
-  const hydrated = useHydrated();
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
   const [documents, setDocuments] = useState<Draft[]>([]);
-  const [status, setStatus] = useState('Loading your writings…');
-  const [creating, setCreating] = useState(false);
+  const [status, setStatus] = useState<StudioLibraryStatus>('loading');
   async function load(signal?: AbortSignal) {
-    setLoading(true);
-    setFailed(false);
-    setStatus('Loading your writings…');
+    setStatus('loading');
     try {
       const data = await studioRequest<StudioDocumentsResponse>('/documents', {
         signal,
       });
       if (!signal?.aborted) {
         setDocuments(data.documents);
-        setStatus('');
+        setStatus('ready');
       }
     } catch {
       if (!signal?.aborted) {
-        setFailed(true);
-        setStatus('Your writings could not load. Try again.');
+        setStatus('failed');
       }
-    } finally {
-      if (!signal?.aborted) setLoading(false);
     }
   }
   useEffect(() => {
@@ -63,31 +53,9 @@ export default function StudioLibrary() {
     void load(controller.signal);
     return () => controller.abort();
   }, []);
-  async function create() {
-    setCreating(true);
-    setStatus('Creating your writing…');
-    try {
-      const slug = `untitled-${crypto.randomUUID()}`;
-      const draft = await studioRequest<Draft>('/documents', {
-        method: 'POST',
-        body: JSON.stringify({
-          slug,
-          body: {
-            title: '',
-            description: '',
-            tags: [],
-            postType: 'article',
-            document: { type: 'doc', content: [{ type: 'paragraph' }] },
-          },
-        }),
-      });
-      setStatus('Opening your writing…');
-      router.push(`/studio/${draft.id}?compose=1`);
-    } catch (error) {
-      setStatus((error as Error).message);
-      setCreating(false);
-    }
-  }
+  let message = `${documents.length} ${documents.length === 1 ? 'writing' : 'writings'}`;
+  if (status === 'loading') message = 'Loading your writings…';
+  if (status === 'failed') message = 'Your writings could not load. Try again.';
   return (
     <>
       <TopBar
@@ -103,17 +71,7 @@ export default function StudioLibrary() {
             <h1 className="text-headline-medium medium:text-display-small">
               Your writings
             </h1>
-            <Button
-              className="site-button site-button-surface site-button-tonal min-h-11"
-              type="button"
-              disabled={creating || !hydrated}
-              aria-busy={creating}
-              style={{ minWidth: 134 }}
-              onClick={() => void create()}
-            >
-              <Icon name="pen-line" size={16} />
-              <span>{creating ? 'Opening…' : 'New writing'}</span>
-            </Button>
+            <NewWriting />
           </div>
           <p className="mt-3 text-body-medium text-muted">
             <SiteLink
@@ -138,10 +96,11 @@ export default function StudioLibrary() {
           aria-live="polite"
           className="mt-3 min-h-6 text-body-medium text-muted"
         >
-          {status ||
-            `${documents.length} ${documents.length === 1 ? 'writing' : 'writings'}`}
+          {message}
         </p>
-        {failed && <Button onClick={() => void load()}>Try again</Button>}
+        {status === 'failed' && (
+          <Button onClick={() => void load()}>Try again</Button>
+        )}
         <noscript>
           <p>
             This editor needs JavaScript. You can still{' '}
@@ -150,15 +109,17 @@ export default function StudioLibrary() {
         </noscript>
         <section
           aria-label="Your writings"
-          aria-busy={loading}
+          aria-busy={status === 'loading'}
           className="space-y-3 pb-6 pt-2"
           style={{ minHeight: 440 }}
         >
-          {loading && documents.length === 0 && <WritingCardsPlaceholder />}
+          {status === 'loading' && documents.length === 0 && (
+            <WritingCardsPlaceholder />
+          )}
           {documents.map((draft) => (
             <WritingCard key={draft.id} draft={draft} />
           ))}
-          {!status && documents.length === 0 && (
+          {status === 'ready' && documents.length === 0 && (
             <p className="text-body-large text-muted">
               No working copies yet. Start a writing, or open a published
               writing to edit it.

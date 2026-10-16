@@ -187,5 +187,18 @@ export function useDetailPresentation(
     modal.close();
     modal.showModal();
   }, []);
-  return { openId, dialogRef, mediaRef, selfClosedRef, show, swap, hide };
+  const consumePresentationClose = () => {
+    const selfClosed = selfClosedRef.current;
+    selfClosedRef.current = false;
+    return selfClosed;
+  };
+  return {
+    openId,
+    dialogRef,
+    mediaRef,
+    consumePresentationClose,
+    show,
+    swap,
+    hide,
+  };
 }

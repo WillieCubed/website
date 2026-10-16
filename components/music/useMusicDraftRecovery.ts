@@ -10,7 +10,7 @@ import {
 } from './music-draft-recovery';
 
 interface Options {
-  onRecover: (catalog: MusicCatalog) => void;
+  onRecover: (catalog: MusicCatalog) => boolean;
 }
 
 /** Optional browser recovery survives failed saves without becoming the server base. */
@@ -21,8 +21,7 @@ export function useMusicDraftRecovery({ onRecover }: Options) {
     if (local) setRecovery(local);
   }
   function recover() {
-    if (!recovery) return;
-    onRecover(recovery.catalog);
+    if (!recovery || !onRecover(recovery.catalog)) return;
     setRecovery(null);
   }
   function discard() {

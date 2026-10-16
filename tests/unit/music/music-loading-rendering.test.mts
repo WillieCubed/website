@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
+import { adminCollectionView } from '../../../components/music/music-admin-collection';
 import { type MusicPlaylist, emptyCatalog } from '../../../lib/music/types';
 
 registerHooks({
@@ -78,3 +79,31 @@ test('known curation content remains readable while editing controls wait for th
     /<input\b(?=[^>]*type="checkbox")(?=[^>]*disabled="")/
   );
 });
+
+for (const hasRevision of [false, true]) {
+  test(`a recovered editor seed stays distinct from the ${hasRevision ? 'confirmed' : 'missing'} server revision`, () => {
+    const recovered = {
+      ...emptyCatalog,
+      order: [playlist.id],
+      selected: [playlist.id],
+    };
+    const revision = hasRevision
+      ? {
+          id: 'saved-head',
+          body: emptyCatalog,
+          createdAt: '2026-10-16T12:00:00.000Z',
+          conflict: false,
+        }
+      : null;
+    const data = { revision, playlists: [playlist] };
+    const view = adminCollectionView(
+      data,
+      { connected: true, configured: true, reconnect: false, ownerId: 'owner' },
+      recovered
+    );
+    assert.equal(view.initialCatalog, recovered);
+    assert.equal(view.setupInitially, false);
+    assert.equal(data.revision, revision);
+    assert.equal(data.revision?.body, hasRevision ? emptyCatalog : undefined);
+  });
+}

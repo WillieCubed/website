@@ -5,6 +5,7 @@ import type { ComponentProposal, Draft, Generation } from '@/lib/studio/types';
 
 import StudioRuntimePicker from './StudioRuntimePicker';
 import { studioRequest } from './api';
+import { useWidgetGeneration } from './useWidgetGeneration';
 
 interface StudioWidgetGeneratorProps {
   documentId: string;
@@ -20,18 +21,13 @@ export default function StudioWidgetGenerator({
   onApproved,
 }: StudioWidgetGeneratorProps) {
   const { prompt, editPrompt } = useWidgetPrompt(documentId, revisionId);
-  const [generation, setGeneration] = useState<Generation | null>(null);
+  const { generation, connectionError, acceptGeneration } =
+    useWidgetGeneration(documentId);
   const [message, setMessage] = useState('');
   const [requestBusy, setBusy] = useState(false);
   const [runtimeReady, setRuntimeReady] = useState(false);
   const proposalReview = useWidgetProposal(generation, setMessage);
   const busy = requestBusy || proposalReview.busy;
-  useWidgetGenerationTracking(
-    documentId,
-    generation,
-    setGeneration,
-    setMessage
-  );
   async function request(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -58,7 +54,7 @@ export default function StudioWidgetGenerator({
           prompt,
         }),
       });
-      setGeneration(next);
+      acceptGeneration(next);
       proposalReview.clear();
       setMessage('');
     } catch (error) {
@@ -78,7 +74,7 @@ export default function StudioWidgetGenerator({
           body: JSON.stringify({ action, expectedRevisionId: revisionId }),
         }
       );
-      setGeneration(result);
+      acceptGeneration(result);
     } catch (error) {
       setMessage((error as Error).message);
     } finally {
@@ -114,7 +110,7 @@ export default function StudioWidgetGenerator({
         </button>
       </form>
       <p role="status" aria-live="polite">
-        {message}
+        {message || connectionError}
       </p>
       {generation && (
         <GenerationResult
@@ -297,54 +293,6 @@ function WidgetProposalPreview({
       )}
     </div>
   );
-}
-
-/** Retain and poll the generation independently of the prompt and approval form. */
-function useWidgetGenerationTracking(
-  documentId: string,
-  generation: Generation | null,
-  setGeneration: (generation: Generation) => void,
-  setMessage: (message: string) => void
-) {
-  useEffect(() => {
-    try {
-      const retained = sessionStorage.getItem(
-        `studio-generation:${documentId}`
-      );
-      if (retained)
-        studioRequest<Generation>(`/generations/${retained}`)
-          .then((value) => {
-            if (value.kind === 'component') setGeneration(value);
-          })
-          .catch(() => {});
-    } catch {
-      /* Recovery is optional when browser storage is unavailable. */
-    }
-  }, [documentId]);
-  useEffect(() => {
-    if (generation) {
-      try {
-        sessionStorage.setItem(
-          `studio-generation:${documentId}`,
-          generation.id
-        );
-      } catch {
-        /* Keep the active proposal in memory. */
-      }
-    }
-  }, [generation, documentId]);
-  useEffect(() => {
-    if (!generation || !['pending', 'running'].includes(generation.status))
-      return;
-    const timer = setTimeout(() => {
-      studioRequest<Generation>(`/generations/${generation.id}`)
-        .then((value) => {
-          if (value.kind === 'component') setGeneration(value);
-        })
-        .catch((error) => setMessage(error.message));
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [generation]);
 }
 
 /** Keep the widget request draft in browser storage across task switches and reloads. */

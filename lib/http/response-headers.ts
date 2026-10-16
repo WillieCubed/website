@@ -9,6 +9,12 @@ export interface HeaderRule {
   headers: Array<{ key: string; value: string }>;
 }
 
+export const homepageNegotiationHeaders = {
+  Vary: 'Accept, User-Agent, X-Original',
+  // Next owns HTML Cache-Control; CDN policy must survive that override.
+  'CDN-Cache-Control': 'no-store',
+};
+
 /**
  * The routes that answer with a page, as `headers()` sources. Everything
  * other endpoint returns protocol data, an asset, or an image, which a Link
@@ -40,6 +46,15 @@ const PAGE_SOURCES = [
  * generated widget documents are sandboxed even when opened directly.
  */
 export const siteHeaders: HeaderRule[] = [
+  {
+    source: '/',
+    headers: [
+      {
+        key: 'CDN-Cache-Control',
+        value: homepageNegotiationHeaders['CDN-Cache-Control'],
+      },
+    ],
+  },
   {
     source: '/:path*',
     headers: [

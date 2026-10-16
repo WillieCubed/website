@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { terminalHome, terminalHomeHeaders } from '@/lib/http/terminal-home';
 import { authorizeStudio } from '@/lib/studio/auth';
 import { isPrivatePreview, privateHeaders } from '@/lib/studio/config';
 import { StudioError } from '@/lib/studio/errors';
@@ -18,7 +19,14 @@ export function proxy(request: NextRequest) {
       target.pathname = tagPath(tag);
       return NextResponse.redirect(target, 308);
     }
-    return NextResponse.next();
+    const terminal = terminalHome(request);
+    if (terminal) return terminal;
+    const response = NextResponse.next();
+    if (path === '/') {
+      for (const [key, value] of Object.entries(terminalHomeHeaders))
+        response.headers.set(key, value);
+    }
+    return response;
   }
   return privateProxy(request);
 }

@@ -33,6 +33,9 @@ covers their hosting context.
 
 ## Terminal homepage
 
+The [component boundaries](../../concepts/publishing/terminal-home.md) explain
+where request selection, rendering, and public content visibility belong.
+
 Maintainers changing the homepage negotiation should preserve these request
 rules. The public, query-free `/` responds to `curl -L https://willie.page`
 with an ANSI-styled layout of the existing site identity, ventures, projects,

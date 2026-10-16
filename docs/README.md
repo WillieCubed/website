@@ -23,6 +23,8 @@ Understand why the site works this way and how its parts fit together.
 
 ### Publishing
 
+- [Terminal homepage boundaries](./concepts/publishing/terminal-home.md): request
+  selection, rendering, and the public content boundary for curl.
 - [Independent publishing](./concepts/publishing/independent-publishing.md): how
   identity, content, feeds, responses, and AT Protocol fit together.
 - [ActivityPub proposal](./concepts/publishing/activitypub.md): a future

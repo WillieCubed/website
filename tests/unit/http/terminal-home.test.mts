@@ -64,6 +64,32 @@ test('ordinary curl uses only foreground color and emphasis escapes', async () =
   assert.ok(body.endsWith('\n'));
 });
 
+test('hidden organizations and projects are omitted without breaking either text format', async () => {
+  for (const id of ['lvbt', 'hypertext', 'rtc', 'transitmapper']) {
+    const saved = entries[id];
+    // The hidden flag removes a venture from this registry at module load.
+    delete entries[id];
+    try {
+      for (const accept of ['*/*', 'text/plain']) {
+        const response = terminalHome(
+          request({ 'User-Agent': 'curl/8', Accept: accept })
+        );
+        assert.ok(response, `${id}: ${accept} still gets a terminal response`);
+        assert.equal(response.status, 200);
+        const body = (await response.text()).replace(/\s+/g, ' ');
+        assert.ok(
+          !body.includes(saved.detail.body[0]),
+          `${id} description is omitted`
+        );
+        assert.ok(body.includes(`❖ ${site.shortName}`));
+        assert.ok(body.includes(products.docket.detail.body[0]));
+      }
+    } finally {
+      entries[id] = saved;
+    }
+  }
+});
+
 test('Accept preferences override curl detection and honor specific exclusions', () => {
   for (const accept of [
     'text/html',

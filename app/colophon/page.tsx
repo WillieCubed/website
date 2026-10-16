@@ -77,41 +77,7 @@ export default function ColophonPage() {
             </p>
           </section>
           <section className="colophon-design" aria-labelledby="design-title">
-            <div className="colophon-section-title">
-              <h2 id="design-title">Design</h2>
-              <svg
-                className="colophon-decoration colophon-palette"
-                viewBox="0 0 160 144"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <ellipse
-                  cx="73"
-                  cy="82"
-                  rx="61"
-                  ry="47"
-                  fill="var(--color-tertiary-container)"
-                  transform="rotate(-16 73 82)"
-                />
-                <path
-                  d="M87 13c8 21 13 26 34 34-21 8-26 13-34 34-8-21-13-26-34-34 21-8 26-13 34-34Z"
-                  fill="var(--color-primary)"
-                />
-                <circle
-                  cx="118"
-                  cy="101"
-                  r="25"
-                  fill="var(--color-primary-container)"
-                />
-                <circle
-                  cx="118"
-                  cy="101"
-                  r="8"
-                  fill="var(--color-on-primary-container)"
-                />
-                <circle cx="38" cy="90" r="10" fill="var(--color-tertiary)" />
-              </svg>
-            </div>
+            <h2 id="design-title">Design</h2>
             <div className="colophon-prose">
               <p>
                 I like modern, playful illustrations that draw attention to
@@ -141,6 +107,34 @@ export default function ColophonPage() {
               className="colophon-specimen"
               aria-label="Atkinson Hyperlegible type specimens"
             >
+              <svg
+                className="colophon-decoration colophon-palette"
+                viewBox="0 0 800 120"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <ellipse
+                  cx="210"
+                  cy="64"
+                  rx="184"
+                  ry="43"
+                  fill="var(--color-tertiary-container)"
+                  transform="rotate(-3 210 64)"
+                />
+                <ellipse
+                  cx="602"
+                  cy="64"
+                  rx="177"
+                  ry="45"
+                  fill="var(--color-primary-container)"
+                  transform="rotate(3 602 64)"
+                />
+                <path
+                  d="M400 8c5 13 8 16 21 21-13 5-16 8-21 21-5-13-8-16-21-21 13-5 16-8 21-21Z"
+                  fill="var(--color-primary)"
+                />
+              </svg>
               <div className="colophon-type-sample colophon-type-sample--sans">
                 <span className="colophon-sample-text">0O · 1Il</span>
                 <span className="colophon-sample-name">
@@ -174,53 +168,7 @@ export default function ColophonPage() {
             className="colophon-publishing"
             aria-labelledby="publishing-title"
           >
-            <div className="colophon-section-title">
-              <h2 id="publishing-title">Publishing</h2>
-              <svg
-                className="colophon-decoration colophon-paper"
-                viewBox="0 0 160 152"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <g transform="rotate(-9 74 77)">
-                  <path
-                    d="M34 16h57l27 27v78c0 9-7 16-16 16H34c-9 0-16-7-16-16V32c0-9 7-16 16-16Z"
-                    fill="var(--color-primary-container)"
-                  />
-                  <path
-                    d="M91 16v19c0 5 3 8 8 8h19Z"
-                    fill="var(--color-primary)"
-                  />
-                  <path
-                    d="M38 60h51M38 78h38M38 96h25"
-                    fill="none"
-                    stroke="var(--color-on-primary-container)"
-                    strokeWidth="6"
-                    strokeLinecap="round"
-                  />
-                </g>
-                <circle
-                  cx="122"
-                  cy="114"
-                  r="34"
-                  fill="var(--color-tertiary-container)"
-                />
-                <g
-                  fill="none"
-                  stroke="var(--color-on-tertiary-container)"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                >
-                  <path d="M107 97c18 0 32 14 32 32M107 112c9 0 17 8 17 17" />
-                </g>
-                <circle
-                  cx="107"
-                  cy="129"
-                  r="3"
-                  fill="var(--color-on-tertiary-container)"
-                />
-              </svg>
-            </div>
+            <h2 id="publishing-title">Publishing</h2>
             <div className="colophon-prose">
               <p>
                 Everything in <SiteLink href="/writings">Writings</SiteLink> is
@@ -229,7 +177,53 @@ export default function ColophonPage() {
                 source, so the words can outlast a particular framework.
               </p>
               <p>
-                <SiteLink href="/sitemap">RSS, Atom, and JSON feeds</SiteLink>{' '}
+                <SiteLink className="colophon-feed-link" href="/sitemap">
+                  <svg
+                    className="colophon-decoration colophon-paper"
+                    viewBox="0 0 160 152"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <g transform="rotate(-9 74 77)">
+                      <path
+                        d="M34 16h57l27 27v78c0 9-7 16-16 16H34c-9 0-16-7-16-16V32c0-9 7-16 16-16Z"
+                        fill="var(--color-primary-container)"
+                      />
+                      <path
+                        d="M91 16v19c0 5 3 8 8 8h19Z"
+                        fill="var(--color-primary)"
+                      />
+                      <path
+                        d="M38 60h51M38 78h38M38 96h25"
+                        fill="none"
+                        stroke="var(--color-on-primary-container)"
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                      />
+                    </g>
+                    <circle
+                      cx="122"
+                      cy="114"
+                      r="34"
+                      fill="var(--color-tertiary-container)"
+                    />
+                    <g
+                      fill="none"
+                      stroke="var(--color-on-tertiary-container)"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                    >
+                      <path d="M107 97c18 0 32 14 32 32M107 112c9 0 17 8 17 17" />
+                    </g>
+                    <circle
+                      cx="107"
+                      cy="129"
+                      r="3"
+                      fill="var(--color-on-tertiary-container)"
+                    />
+                  </svg>
+                  <span>RSS, Atom, and JSON feeds</span>
+                </SiteLink>{' '}
                 let readers follow along in the app they choose. Webmention
                 connects responses from other websites to the posts they
                 reference.

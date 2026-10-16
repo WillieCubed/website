@@ -1,15 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
-import type { Draft, DraftContent } from '@/lib/studio/types';
+import type { Draft } from '@/lib/studio/types';
 
 import { studioRequest } from './api';
-import type {
-  DraftUpdate,
-  WritingDocument,
-  WritingSnapshot,
-} from './writing-contracts';
+import { useWritingContent } from './useWritingContent';
+import { useWritingAutosave, useWritingRecovery } from './useWritingRecovery';
+import type { WritingDocument, WritingSnapshot } from './writing-contracts';
 
 /** Autosave snapshots against the expected revision; newer local edits remain queued. */
 interface SaveFailure extends Error {
@@ -18,75 +16,30 @@ interface SaveFailure extends Error {
 
 export function useWritingDocument(initial: Draft): WritingDocument {
   const [draft, setDraft] = useState(initial);
-  const [body, setBody] = useState(initial.head.body);
-  const bodyRef = useRef(body);
-  const editVersion = useRef(0);
   const headRef = useRef(initial.head.id);
-  const saved = useRef(JSON.stringify(body));
+  const saved = useRef(JSON.stringify(initial.head.body));
   const saving = useRef(false);
   const [saveQueue, setSaveQueue] = useState(0);
   const [status, setStatus] = useState('All changes saved');
   const [conflict, setConflict] = useState(false);
   const conflictRef = useRef(false);
-  const [recovery, setRecovery] = useState<DraftContent | null>(null);
-  const recoveryKey = `studio-draft:${initial.id}`;
-  const update = useCallback(
-    (change: DraftUpdate) => {
-      const next =
-        typeof change === 'function' ? change(bodyRef.current) : change;
-      editVersion.current += 1;
-      bodyRef.current = next;
-      setBody(next);
-      setStatus(
-        navigator.onLine
-          ? 'Unsaved changes'
-          : 'Offline · changes kept in this tab'
-      );
-      try {
-        sessionStorage.setItem(recoveryKey, JSON.stringify(next));
-      } catch {
-        setStatus('Unsaved changes · browser recovery storage is unavailable');
-      }
-    },
-    [recoveryKey]
+  const reportStatus = useCallback((message: string) => setStatus(message), []);
+  const content = useWritingContent(initial.head.body, (next) =>
+    retained.retain(next)
   );
-  const captureSnapshot = useCallback(
-    (): WritingSnapshot => ({
-      body: bodyRef.current,
-      editVersion: editVersion.current,
-    }),
-    []
-  );
-  const isCurrent = useCallback(
-    (snapshot: WritingSnapshot) => snapshot.editVersion === editVersion.current,
-    []
-  );
-
-  useEffect(() => {
-    try {
-      const local = sessionStorage.getItem(recoveryKey);
-      if (
-        local &&
-        local !== saved.current &&
-        local !== JSON.stringify(bodyRef.current)
-      )
-        setRecovery(JSON.parse(local));
-    } catch {
-      /* The server revision remains available. */
-    }
-  }, [recoveryKey]);
-  function handleSaveError(error: unknown): void {
-    if ((error as SaveFailure).status === 409) {
+  const { body, captureSnapshot, isCurrent } = content;
+  const retained = useWritingRecovery(initial, captureSnapshot, reportStatus);
+  function reportSaveFailure(error: unknown) {
+    const failure = describeSaveFailure(error);
+    if (failure.conflict) {
       conflictRef.current = true;
       setConflict(true);
-      setStatus(
-        'Another revision was saved. Your changes are kept in this tab.'
-      );
-    } else setStatus(`Could not save · ${(error as Error).message}`);
+    }
+    setStatus(failure.message);
   }
   const save = useCallback(async (): Promise<boolean> => {
     if (saving.current || conflictRef.current) return false;
-    const snapshot = bodyRef.current;
+    const snapshot = captureSnapshot().body;
     const serialized = JSON.stringify(snapshot);
     if (serialized === saved.current) {
       setStatus('All changes saved');
@@ -112,46 +65,34 @@ export function useWritingDocument(initial: Draft): WritingDocument {
       committed = true;
       setDraft(next);
       setStatus(
-        serialized === JSON.stringify(bodyRef.current)
+        serialized === JSON.stringify(captureSnapshot().body)
           ? 'All changes saved'
           : 'Unsaved changes'
       );
-      if (serialized === JSON.stringify(bodyRef.current))
-        sessionStorage.removeItem(recoveryKey);
-      return serialized === JSON.stringify(bodyRef.current);
+      if (serialized === JSON.stringify(captureSnapshot().body))
+        retained.clear();
+      return serialized === JSON.stringify(captureSnapshot().body);
     } catch (error) {
-      handleSaveError(error);
+      reportSaveFailure(error);
       return false;
     } finally {
       saving.current = false;
-      if (committed && serialized !== JSON.stringify(bodyRef.current))
+      if (committed && serialized !== JSON.stringify(captureSnapshot().body))
         setSaveQueue((value) => value + 1);
     }
-  }, [initial.id, recoveryKey]);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!recovery) void save();
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [body, save, recovery, saveQueue]);
-  useEffect(() => {
-    const online = () => {
-      void save();
-    };
-    const offline = () => setStatus('Offline · changes kept in this tab');
-    const leave = (event: BeforeUnloadEvent) => {
-      if (JSON.stringify(bodyRef.current) !== saved.current)
-        event.preventDefault();
-    };
-    window.addEventListener('online', online);
-    window.addEventListener('offline', offline);
-    window.addEventListener('beforeunload', leave);
-    return () => {
-      window.removeEventListener('online', online);
-      window.removeEventListener('offline', offline);
-      window.removeEventListener('beforeunload', leave);
-    };
-  }, [save]);
+  }, [initial.id, retained.clear, captureSnapshot]);
+  const hasUnsavedChanges = useCallback(
+    () => JSON.stringify(captureSnapshot().body) !== saved.current,
+    [captureSnapshot]
+  );
+  useWritingAutosave({
+    body,
+    save,
+    recoveryPending: retained.recovery !== null,
+    saveQueue,
+    hasUnsavedChanges,
+    reportStatus,
+  });
   async function rebaseChanges() {
     try {
       const remote = await studioRequest<Draft>(`/documents/${draft.id}`);
@@ -168,21 +109,6 @@ export function useWritingDocument(initial: Draft): WritingDocument {
     }
   }
 
-  function recoverChanges(replaceDocument: (body: DraftContent) => void) {
-    if (!recovery) return;
-    replaceDocument(recovery);
-    setRecovery(null);
-  }
-  function discardRecovery() {
-    try {
-      sessionStorage.removeItem(recoveryKey);
-      setRecovery(null);
-    } catch {
-      setStatus(
-        'Browser recovery storage is unavailable. Your saved revision is still available.'
-      );
-    }
-  }
   async function selectSavedRevision(snapshot: WritingSnapshot) {
     if (!(await save())) {
       setStatus('Save your changes before reviewing publication.');
@@ -222,26 +148,35 @@ export function useWritingDocument(initial: Draft): WritingDocument {
       setStatus((error as Error).message);
     }
   }, [initial.id]);
-  const reportStatus = useCallback((message: string) => {
-    setStatus(message);
-  }, []);
 
   return {
+    ...content,
     draft,
-    body,
     dirty: JSON.stringify(body) !== saved.current,
     status,
     reportStatus,
     conflict,
-    recovery,
-    recoverChanges,
-    discardRecovery,
-    update,
-    captureSnapshot,
-    isCurrent,
+    recovery: retained.recovery,
+    recoverChanges: retained.recoverChanges,
+    discardRecovery: retained.discardRecovery,
     save,
     rebaseChanges,
     selectSavedRevision,
     refreshPublicationMetadata,
+  };
+}
+
+interface SaveFailureDescription {
+  conflict: boolean;
+  message: string;
+}
+
+function describeSaveFailure(error: unknown): SaveFailureDescription {
+  const conflict = (error as SaveFailure).status === 409;
+  return {
+    conflict,
+    message: conflict
+      ? 'Another revision was saved. Your changes are kept in this tab.'
+      : `Could not save · ${(error as Error).message}`,
   };
 }

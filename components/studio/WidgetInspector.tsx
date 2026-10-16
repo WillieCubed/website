@@ -35,6 +35,98 @@ export default function WidgetInspector({
 }: WidgetInspectorProps) {
   const status = useContext(StudioSaveContext);
   const host = useContext(StudioInspectorHostContext);
+  const { dialog, closing, onDismiss, backdrop } = useInspectorPresentation(
+    host,
+    onDismissed
+  );
+  return (
+    host &&
+    createPortal(
+      <dialog
+        ref={dialog}
+        id={id}
+        className="studio-widget-inspector"
+        data-closing={closing || undefined}
+        aria-labelledby={`${id}-title`}
+        onCancel={(event) => {
+          event.preventDefault();
+          onDismiss();
+        }}
+        onClose={(event) => {
+          // A responsive mode change closes then immediately reopens this same
+          // dialog; its queued close event must not end the edit session.
+          if (!event.currentTarget.open) onDismiss();
+        }}
+        onKeyDown={(event) => {
+          event.stopPropagation();
+          trapModalTab(event);
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            onDismiss();
+          }
+        }}
+        {...backdrop}
+      >
+        <header className="studio-inspector-header scroller">
+          <h2 id={`${id}-title`} tabIndex={-1}>
+            {name}
+          </h2>
+          <Button
+            variant="quiet"
+            iconOnly
+            aria-label="Close widget settings"
+            onClick={onDismiss}
+          >
+            <Icon name="x" />
+          </Button>
+        </header>
+        <div className="studio-inspector-content scroller">{children}</div>
+        <footer className="studio-inspector-footer scroller">
+          <Button variant="quiet" onClick={onRemove}>
+            Remove block
+          </Button>
+          <p className="studio-inspector-save">
+            {status === 'All changes saved'
+              ? 'Saved'
+              : status === 'Unsaved changes'
+                ? 'Editing'
+                : status}
+          </p>
+        </footer>
+      </dialog>,
+      host
+    )
+  );
+}
+
+function trapModalTab(event: React.KeyboardEvent<HTMLDialogElement>): void {
+  if (event.key === 'Tab' && event.currentTarget.matches(':modal')) {
+    const controls = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), summary, a[href], [tabindex="0"]'
+      )
+    ).filter((element) => element.getClientRects().length > 0);
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (
+      event.shiftKey &&
+      (document.activeElement === first ||
+        !controls.includes(document.activeElement as HTMLElement))
+    ) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  }
+}
+
+/** Dialog lifetime owns responsive modality, keyboard fitting and animated dismissal. */
+function useInspectorPresentation(
+  host: HTMLElement | null,
+  onDismissed: () => void
+) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [closing, setClosing] = useState(false);
   const pendingClose = useRef(false);
@@ -132,85 +224,5 @@ export default function WidgetInspector({
       element.close();
     };
   }, [host]);
-  return (
-    host &&
-    createPortal(
-      <dialog
-        ref={dialog}
-        id={id}
-        className="studio-widget-inspector"
-        data-closing={closing || undefined}
-        aria-labelledby={`${id}-title`}
-        onCancel={(event) => {
-          event.preventDefault();
-          onDismiss();
-        }}
-        onClose={(event) => {
-          // A responsive mode change closes then immediately reopens this same
-          // dialog; its queued close event must not end the edit session.
-          if (!event.currentTarget.open) onDismiss();
-        }}
-        onKeyDown={(event) => {
-          event.stopPropagation();
-          trapModalTab(event);
-          if (event.key === 'Escape') {
-            event.preventDefault();
-            onDismiss();
-          }
-        }}
-        {...backdrop}
-      >
-        <header className="studio-inspector-header scroller">
-          <h2 id={`${id}-title`} tabIndex={-1}>
-            {name}
-          </h2>
-          <Button
-            variant="quiet"
-            iconOnly
-            aria-label="Close widget settings"
-            onClick={onDismiss}
-          >
-            <Icon name="x" />
-          </Button>
-        </header>
-        <div className="studio-inspector-content scroller">{children}</div>
-        <footer className="studio-inspector-footer scroller">
-          <Button variant="quiet" onClick={onRemove}>
-            Remove block
-          </Button>
-          <p className="studio-inspector-save">
-            {status === 'All changes saved'
-              ? 'Saved'
-              : status === 'Unsaved changes'
-                ? 'Editing'
-                : status}
-          </p>
-        </footer>
-      </dialog>,
-      host
-    )
-  );
-}
-
-function trapModalTab(event: React.KeyboardEvent<HTMLDialogElement>): void {
-  if (event.key === 'Tab' && event.currentTarget.matches(':modal')) {
-    const controls = Array.from(
-      event.currentTarget.querySelectorAll<HTMLElement>(
-        'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), summary, a[href], [tabindex="0"]'
-      )
-    ).filter((element) => element.getClientRects().length > 0);
-    const first = controls[0];
-    const last = controls.at(-1);
-    if (
-      event.shiftKey &&
-      (document.activeElement === first ||
-        !controls.includes(document.activeElement as HTMLElement))
-    ) {
-      event.preventDefault();
-      last?.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first?.focus();
-    }
-  }
+  return { dialog, closing, onDismiss, backdrop };
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef, useState } from 'react';
 import readingTime from 'reading-time';
 
 import type { ComponentProposal, Draft, Revision } from '@/lib/studio/types';
@@ -10,11 +9,9 @@ import {
   StudioCatalogStatusContext,
 } from './StudioNodes';
 import { StudioSaveContext } from './StudioSaveContext';
-import StudioWritingLayout from './StudioWritingLayout';
 import WritingCanvas from './WritingCanvas';
 import WritingControls from './WritingControls';
-import WritingHeading from './WritingHeading';
-import WritingMetadata from './WritingMetadata';
+import WritingDraftLayout from './WritingDraftLayout';
 import WritingNotices from './WritingNotices';
 import WritingPublicationNotice from './WritingPublicationNotice';
 import WritingReview from './WritingReview';
@@ -70,10 +67,6 @@ export default function Writing({
       document.reportStatus((error as Error).message);
     }
   }
-  const [showHeading, setShowHeading] = useState(
-    Boolean(initial.head.body.title || initial.head.body.description)
-  );
-  const titleField = useRef<HTMLTextAreaElement>(null);
   const published = String(
     document.body.frontmatter?.published || document.draft.head.createdAt
   );
@@ -81,7 +74,7 @@ export default function Writing({
     readingTime(proseText(document.body.document)).minutes
   );
   const control = 'site-button site-button-surface';
-  const { body, status } = document;
+  const { status } = document;
   const { task, mode } = interaction;
   return (
     <StudioCatalogContext.Provider value={catalog.entries}>
@@ -98,36 +91,11 @@ export default function Writing({
             onDiscard={document.discardRecovery}
             onRebase={document.rebaseChanges}
           />
-          <StudioWritingLayout
+          <WritingDraftLayout
+            document={document}
             hidden={mode !== 'write'}
-            compact={
-              !(
-                body.postType === 'article' &&
-                (showHeading || body.title || body.description)
-              )
-            }
-            heading={
-              <WritingHeading
-                showHeading={showHeading}
-                titleField={titleField}
-                body={document.body}
-                update={document.update}
-              />
-            }
-            metadata={
-              <WritingMetadata
-                draft={document.draft}
-                showHeading={showHeading}
-                setShowHeading={setShowHeading}
-                titleField={titleField}
-                body={document.body}
-                dirty={document.dirty}
-                status={document.status}
-                update={document.update}
-                published={published}
-                minutes={minutes}
-              />
-            }
+            published={published}
+            minutes={minutes}
             controls={
               <WritingControls
                 conflict={document.conflict}
@@ -173,7 +141,7 @@ export default function Writing({
               setStatus={document.reportStatus}
               visible={task === 'write' && mode === 'write'}
             />
-          </StudioWritingLayout>
+          </WritingDraftLayout>
           {mode !== 'write' && (
             <WritingReview
               draft={document.draft}

@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { type RefObject, useEffect, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
 
 import {
   type Catalog,
+  type SamplePlaylist,
   listeningTime,
   playlists,
   sampleTracks,
@@ -85,222 +86,23 @@ export default function MusicSetupPrototype({
         </ol>
         <main id="main" className="ms-main">
           {step === 0 ? (
-            <section className="ms-connect" aria-labelledby="ms-title">
-              <div className="ms-connect-copy">
-                <h1 id="ms-title" ref={title} tabIndex={-1}>
-                  Your playlists.
-                  <br />
-                  Your call.
-                </h1>
-                <p className="ms-intro">
-                  Bring your Spotify playlists here. Choose what belongs, give
-                  your favorites room, and keep every track in its place.
-                </p>
-                <button
-                  className="ms-button ms-primary ms-connect-button"
-                  onClick={() => setStep(1)}
-                >
-                  <SpotifyIcon />
-                  Connect Spotify
-                  <Icon name="arrow-right" />
-                </button>
-                <p className="ms-permission">
-                  Read your playlists. Never change them.
-                  <br />
-                  You choose what goes in the gallery.
-                </p>
-              </div>
-              <div className="ms-cover-arrangement" aria-hidden="true">
-                <div className="ms-art ms-art-back">
-                  <SampleCover playlist={playlists[4]} />
-                </div>
-                <div className="ms-art ms-art-middle">
-                  <SampleCover playlist={playlists[1]} />
-                </div>
-                <div className="ms-art ms-art-front">
-                  <SampleCover playlist={playlists[0]} />
-                </div>
-              </div>
-              <div className="ms-connect-details">
-                <div>
-                  <Icon name="check" />
-                  <p>
-                    Include a few favorites.
-                    <span>The rest can stay on Spotify.</span>
-                  </p>
-                </div>
-                <div>
-                  <Icon name="music" />
-                  <p>
-                    Keep the sequence.
-                    <span>Track order stays exactly as you made it.</span>
-                  </p>
-                </div>
-                <div>
-                  <Icon name="file" />
-                  <p>
-                    Make room for a series.
-                    <span>Group and order playlists during curation.</span>
-                  </p>
-                </div>
-              </div>
-            </section>
+            <PrototypeConnect title={title} onConnect={() => setStep(1)} />
           ) : step === 1 ? (
-            <section aria-labelledby="ms-title">
-              <div className="ms-selection-heading">
-                <div>
-                  <h1 id="ms-title" ref={title} tabIndex={-1}>
-                    What belongs here?
-                  </h1>
-                  <p className="ms-intro">
-                    Choose the playlists you want in your collection. You can
-                    change this later.
-                  </p>
-                </div>
-                <label className="ms-search">
-                  <Icon name="search" />
-                  <input
-                    type="search"
-                    aria-label="Search available playlists"
-                    placeholder="Find a playlist"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                </label>
-              </div>
-              <div className="ms-source">
-                <SpotifyIcon />
-                <span>Sample Spotify library</span>
-                <span>{playlists.length} playlists</span>
-              </div>
-              <fieldset className="ms-playlists">
-                <legend className="sr-only">Choose playlists</legend>
-                {playlists
-                  .filter((playlist) =>
-                    playlist.title.toLowerCase().includes(search.toLowerCase())
-                  )
-                  .map((playlist) => (
-                    <label
-                      className="ms-playlist"
-                      key={playlist.id}
-                      data-selected={
-                        selected.includes(playlist.id) || undefined
-                      }
-                    >
-                      <div className="ms-playlist-art">
-                        <SampleCover playlist={playlist} />
-                      </div>
-                      <span className="ms-playlist-copy">
-                        <span className="ms-playlist-title">
-                          {playlist.title}
-                        </span>
-                        <span className="ms-playlist-meta">
-                          {sampleTracks.length} tracks ·{' '}
-                          {listeningTime(sampleTracks)}
-                        </span>
-                      </span>
-                      <MusicSelectionControl
-                        aria-label={`Select ${playlist.title}`}
-                        checked={selected.includes(playlist.id)}
-                        onChange={() => toggle(playlist.id)}
-                      />
-                    </label>
-                  ))}
-              </fieldset>
-              {!playlists.some((playlist) =>
-                playlist.title.toLowerCase().includes(search.toLowerCase())
-              ) && (
-                <p className="ms-empty">
-                  No playlists match “{search}”. Try another name.
-                </p>
-              )}
-            </section>
+            <PrototypeChoose
+              title={title}
+              selected={selected}
+              toggle={toggle}
+              search={search}
+              onSearch={setSearch}
+            />
           ) : (
-            <section aria-labelledby="ms-title">
-              <h1 id="ms-title" ref={title} tabIndex={-1}>
-                Give it your shape.
-              </h1>
-              <p className="ms-intro">
-                Put one playlist up front, or give them equal space. Order,
-                notes, and series come next.
-              </p>
-              <div className="ms-preview-layout">
-                <div
-                  className="ms-gallery-preview"
-                  aria-label="Collection preview"
-                >
-                  <h2>Music</h2>
-                  {featured ? (
-                    <div className="ms-feature-preview">
-                      <SampleCover playlist={featured} />
-                      <div>
-                        <h3>{featured.title}</h3>
-                        <p>
-                          {sampleTracks.length} tracks ·{' '}
-                          {listeningTime(sampleTracks)}
-                        </p>
-                      </div>
-                    </div>
-                  ) : null}
-                  <div className="ms-preview-grid">
-                    {collection
-                      .filter((playlist) => playlist.id !== lead)
-                      .map((playlist) => (
-                        <div key={playlist.id}>
-                          <SampleCover playlist={playlist} />
-                          <h3>{playlist.title}</h3>
-                        </div>
-                      ))}
-                  </div>
-                  <p className="ms-preview-caption">
-                    Your collection · {collection.length}{' '}
-                    {collection.length === 1 ? 'playlist' : 'playlists'}
-                  </p>
-                </div>
-                <fieldset className="ms-feature-options">
-                  <legend>Featured playlist</legend>
-                  <p>Choose one playlist, or give them equal space.</p>
-                  <label
-                    className="ms-feature-option ms-feature-none"
-                    data-selected={!lead || undefined}
-                  >
-                    <span className="ms-feature-option-copy">
-                      No featured playlist
-                    </span>
-                    <MusicSelectionControl
-                      type="radio"
-                      name="setup-feature"
-                      aria-label="No featured playlist"
-                      indicator="equal"
-                      checked={!lead}
-                      onChange={() => setLead(null)}
-                    />
-                  </label>
-                  <div className="ms-feature-playlists">
-                    {collection.map((playlist) => (
-                      <label
-                        className="ms-feature-option"
-                        key={playlist.id}
-                        data-selected={lead === playlist.id || undefined}
-                      >
-                        <SampleCover playlist={playlist} />
-                        <span className="ms-feature-option-copy">
-                          {playlist.title}
-                        </span>
-                        <MusicSelectionControl
-                          type="radio"
-                          name="setup-feature"
-                          aria-label={`Feature ${playlist.title}`}
-                          indicator="feature"
-                          checked={lead === playlist.id}
-                          onChange={() => setLead(playlist.id)}
-                        />
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              </div>
-            </section>
+            <PrototypePreview
+              title={title}
+              collection={collection}
+              featured={featured}
+              lead={lead}
+              setLead={setLead}
+            />
           )}
         </main>
         {step > 0 && (
@@ -337,5 +139,249 @@ export default function MusicSetupPrototype({
         )}
       </div>
     </>
+  );
+}
+
+interface HeadingProps {
+  title: RefObject<HTMLHeadingElement | null>;
+}
+interface ConnectProps extends HeadingProps {
+  onConnect: () => void;
+}
+function PrototypeConnect({ title, onConnect }: ConnectProps) {
+  return (
+    <section className="ms-connect" aria-labelledby="ms-title">
+      <div className="ms-connect-copy">
+        <h1 id="ms-title" ref={title} tabIndex={-1}>
+          Your playlists.
+          <br />
+          Your call.
+        </h1>
+        <p className="ms-intro">
+          Bring your Spotify playlists here. Choose what belongs, give your
+          favorites room, and keep every track in its place.
+        </p>
+        <button
+          className="ms-button ms-primary ms-connect-button"
+          onClick={onConnect}
+        >
+          <SpotifyIcon />
+          Connect Spotify
+          <Icon name="arrow-right" />
+        </button>
+        <p className="ms-permission">
+          Read your playlists. Never change them.
+          <br />
+          You choose what goes in the gallery.
+        </p>
+      </div>
+      <div className="ms-cover-arrangement" aria-hidden="true">
+        <div className="ms-art ms-art-back">
+          <SampleCover playlist={playlists[4]} />
+        </div>
+        <div className="ms-art ms-art-middle">
+          <SampleCover playlist={playlists[1]} />
+        </div>
+        <div className="ms-art ms-art-front">
+          <SampleCover playlist={playlists[0]} />
+        </div>
+      </div>
+      <div className="ms-connect-details">
+        <div>
+          <Icon name="check" />
+          <p>
+            Include a few favorites.
+            <span>The rest can stay on Spotify.</span>
+          </p>
+        </div>
+        <div>
+          <Icon name="music" />
+          <p>
+            Keep the sequence.
+            <span>Track order stays exactly as you made it.</span>
+          </p>
+        </div>
+        <div>
+          <Icon name="file" />
+          <p>
+            Make room for a series.
+            <span>Group and order playlists during curation.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+interface ChooseProps extends HeadingProps {
+  selected: string[];
+  toggle: (id: string) => void;
+  search: string;
+  onSearch: (value: string) => void;
+}
+function PrototypeChoose({
+  title,
+  selected,
+  toggle,
+  search,
+  onSearch,
+}: ChooseProps) {
+  return (
+    <section aria-labelledby="ms-title">
+      <div className="ms-selection-heading">
+        <div>
+          <h1 id="ms-title" ref={title} tabIndex={-1}>
+            What belongs here?
+          </h1>
+          <p className="ms-intro">
+            Choose the playlists you want in your collection. You can change
+            this later.
+          </p>
+        </div>
+        <label className="ms-search">
+          <Icon name="search" />
+          <input
+            type="search"
+            aria-label="Search available playlists"
+            placeholder="Find a playlist"
+            value={search}
+            onChange={(event) => onSearch(event.target.value)}
+          />
+        </label>
+      </div>
+      <div className="ms-source">
+        <SpotifyIcon />
+        <span>Sample Spotify library</span>
+        <span>{playlists.length} playlists</span>
+      </div>
+      <fieldset className="ms-playlists">
+        <legend className="sr-only">Choose playlists</legend>
+        {playlists
+          .filter((playlist) =>
+            playlist.title.toLowerCase().includes(search.toLowerCase())
+          )
+          .map((playlist) => (
+            <label
+              className="ms-playlist"
+              key={playlist.id}
+              data-selected={selected.includes(playlist.id) || undefined}
+            >
+              <div className="ms-playlist-art">
+                <SampleCover playlist={playlist} />
+              </div>
+              <span className="ms-playlist-copy">
+                <span className="ms-playlist-title">{playlist.title}</span>
+                <span className="ms-playlist-meta">
+                  {sampleTracks.length} tracks · {listeningTime(sampleTracks)}
+                </span>
+              </span>
+              <MusicSelectionControl
+                aria-label={`Select ${playlist.title}`}
+                checked={selected.includes(playlist.id)}
+                onChange={() => toggle(playlist.id)}
+              />
+            </label>
+          ))}
+      </fieldset>
+      {!playlists.some((playlist) =>
+        playlist.title.toLowerCase().includes(search.toLowerCase())
+      ) && (
+        <p className="ms-empty">
+          No playlists match “{search}”. Try another name.
+        </p>
+      )}
+    </section>
+  );
+}
+interface PreviewProps extends HeadingProps {
+  collection: SamplePlaylist[];
+  featured?: SamplePlaylist;
+  lead: string | null;
+  setLead: (id: string | null) => void;
+}
+function PrototypePreview({
+  title,
+  collection,
+  featured,
+  lead,
+  setLead,
+}: PreviewProps) {
+  return (
+    <section aria-labelledby="ms-title">
+      <h1 id="ms-title" ref={title} tabIndex={-1}>
+        Give it your shape.
+      </h1>
+      <p className="ms-intro">
+        Put one playlist up front, or give them equal space. Order, notes, and
+        series come next.
+      </p>
+      <div className="ms-preview-layout">
+        <div className="ms-gallery-preview" aria-label="Collection preview">
+          <h2>Music</h2>
+          {featured ? (
+            <div className="ms-feature-preview">
+              <SampleCover playlist={featured} />
+              <div>
+                <h3>{featured.title}</h3>
+                <p>
+                  {sampleTracks.length} tracks · {listeningTime(sampleTracks)}
+                </p>
+              </div>
+            </div>
+          ) : null}
+          <div className="ms-preview-grid">
+            {collection
+              .filter((playlist) => playlist.id !== lead)
+              .map((playlist) => (
+                <div key={playlist.id}>
+                  <SampleCover playlist={playlist} />
+                  <h3>{playlist.title}</h3>
+                </div>
+              ))}
+          </div>
+          <p className="ms-preview-caption">
+            Your collection · {collection.length}{' '}
+            {collection.length === 1 ? 'playlist' : 'playlists'}
+          </p>
+        </div>
+        <fieldset className="ms-feature-options">
+          <legend>Featured playlist</legend>
+          <p>Choose one playlist, or give them equal space.</p>
+          <label
+            className="ms-feature-option ms-feature-none"
+            data-selected={!lead || undefined}
+          >
+            <span className="ms-feature-option-copy">No featured playlist</span>
+            <MusicSelectionControl
+              type="radio"
+              name="setup-feature"
+              aria-label="No featured playlist"
+              indicator="equal"
+              checked={!lead}
+              onChange={() => setLead(null)}
+            />
+          </label>
+          <div className="ms-feature-playlists">
+            {collection.map((playlist) => (
+              <label
+                className="ms-feature-option"
+                key={playlist.id}
+                data-selected={lead === playlist.id || undefined}
+              >
+                <SampleCover playlist={playlist} />
+                <span className="ms-feature-option-copy">{playlist.title}</span>
+                <MusicSelectionControl
+                  type="radio"
+                  name="setup-feature"
+                  aria-label={`Feature ${playlist.title}`}
+                  indicator="feature"
+                  checked={lead === playlist.id}
+                  onChange={() => setLead(playlist.id)}
+                />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+    </section>
   );
 }

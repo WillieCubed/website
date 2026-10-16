@@ -58,26 +58,9 @@ export function useWritingInteraction(
   interactive: boolean
 ): WritingInteraction {
   const { body, update, captureSnapshot } = document;
-  const [mode, setMode] = useState<WritingMode>('write');
-  const [task, setTask] = useState<WritingTask>('write');
-  useEffect(() => {
-    const address = new URL(window.location.href);
-    if (address.searchParams.get('components') !== '1') return;
-    setTask('components');
-    address.searchParams.delete('components');
-    window.history.replaceState(window.history.state, '', address);
-  }, []);
-  useEffect(() => {
-    if (mode !== 'write')
-      window.dispatchEvent(
-        new CustomEvent('studio:widget-settings', { detail: '' })
-      );
-  }, [mode]);
   const cursor = useRef(1);
   const insertAnchor = useRef<WritingInsertionBounds | null>(null);
   const insertionRect = useCallback(() => insertAnchor.current, []);
-  const taskRange = useRef<WritingReturnPoint>({ from: 1, to: 1, scroll: 0 });
-  const taskHeading = useRef<HTMLHeadingElement>(null);
   const [selection, setSelection] = useState<WritingTextSelection | null>(null);
   const editor = useEditor({
     immediatelyRender: false,
@@ -147,6 +130,68 @@ export function useWritingInteraction(
     window.history.replaceState(window.history.state, '', address);
     editor.commands.focus('end', { scrollIntoView: false });
   }, [editor, interactive]);
+  function replaceDocument(next: DraftContent) {
+    editor?.commands.setContent(next.document, { emitUpdate: false });
+    update(next);
+  }
+  const navigation = useWritingNavigation(editor, interactive);
+  function insert(entry: CatalogEntry) {
+    if (!editor) return;
+    const at = editor.state.doc.resolve(
+      Math.min(cursor.current, editor.state.doc.content.size)
+    );
+    const boundary = at.depth > 0 ? at.after(1) : at.pos;
+    editor.commands.insertContentAt(boundary, {
+      type: 'catalogBlock',
+      attrs: {
+        id: entry.id,
+        version: entry.version,
+        props: entry.example,
+        children: ['callout', 'reference'].includes(entry.id) ? '' : null,
+        instance: crypto.randomUUID(),
+      },
+    });
+    editor?.commands.focus();
+    navigation.finishInsertion();
+  }
+  function closePopover(event: React.MouseEvent) {
+    (
+      event.currentTarget.closest('[popover]') as HTMLElement | null
+    )?.hidePopover();
+  }
+
+  return {
+    ...navigation,
+    cursor,
+    insertAnchor,
+    insertionRect,
+    selection,
+    editor,
+    replaceDocument,
+    insert,
+    closePopover,
+  };
+}
+
+/** Task navigation retains the editor return point while task panels or previews have focus. */
+function useWritingNavigation(editor: Editor | null, interactive: boolean) {
+  const [mode, setMode] = useState<WritingMode>('write');
+  const [task, setTask] = useState<WritingTask>('write');
+  useEffect(() => {
+    const address = new URL(window.location.href);
+    if (address.searchParams.get('components') !== '1') return;
+    setTask('components');
+    address.searchParams.delete('components');
+    window.history.replaceState(window.history.state, '', address);
+  }, []);
+  useEffect(() => {
+    if (mode !== 'write')
+      window.dispatchEvent(
+        new CustomEvent('studio:widget-settings', { detail: '' })
+      );
+  }, [mode]);
+  const taskRange = useRef<WritingReturnPoint>({ from: 1, to: 1, scroll: 0 });
+  const taskHeading = useRef<HTMLHeadingElement>(null);
   function rememberRange() {
     if (editor)
       taskRange.current = {
@@ -199,54 +244,18 @@ export function useWritingInteraction(
   function showPreview(nextMode: WritingPreviewMode) {
     setMode(nextMode);
   }
-  function replaceDocument(next: DraftContent) {
-    editor?.commands.setContent(next.document, { emitUpdate: false });
-    update(next);
-  }
   useEffect(() => {
     if (interactive && task !== 'write') taskHeading.current?.focus();
   }, [task, interactive]);
-  function insert(entry: CatalogEntry) {
-    if (!editor) return;
-    const at = editor.state.doc.resolve(
-      Math.min(cursor.current, editor.state.doc.content.size)
-    );
-    const boundary = at.depth > 0 ? at.after(1) : at.pos;
-    editor.commands.insertContentAt(boundary, {
-      type: 'catalogBlock',
-      attrs: {
-        id: entry.id,
-        version: entry.version,
-        props: entry.example,
-        children: ['callout', 'reference'].includes(entry.id) ? '' : null,
-        instance: crypto.randomUUID(),
-      },
-    });
-    editor?.commands.focus();
-    setTask('write');
-  }
-  function closePopover(event: React.MouseEvent) {
-    (
-      event.currentTarget.closest('[popover]') as HTMLElement | null
-    )?.hidePopover();
-  }
-
   return {
     mode,
-    showPreview,
     task,
-    taskHeading,
-    cursor,
-    insertAnchor,
-    insertionRect,
     taskRange,
-    selection,
-    editor,
+    taskHeading,
     rememberRange,
     openTask,
     returnToWriting,
-    replaceDocument,
-    insert,
-    closePopover,
+    showPreview,
+    finishInsertion: () => setTask('write'),
   };
 }

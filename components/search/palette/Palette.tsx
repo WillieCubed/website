@@ -16,6 +16,7 @@ import type {
 } from '@/lib/search/palette/types';
 
 import './palette.css';
+import type { Row, Section } from './rows';
 
 interface ReadoutViewProps {
   readout: Readout;
@@ -137,6 +138,90 @@ function PaletteSearchStatus({
   );
 }
 
+interface PaletteResultsProps {
+  id: string;
+  listboxId: string;
+  sections: Section[];
+  active: number;
+  onActive: (index: number) => void;
+  onChoose: (row: Row) => void;
+}
+
+/** Results know selection and activation, without access to query or command state. */
+function PaletteResults({
+  id,
+  listboxId,
+  sections,
+  active,
+  onActive,
+  onChoose,
+}: PaletteResultsProps) {
+  let optionIndex = -1;
+  return (
+    <div
+      id={listboxId}
+      role="listbox"
+      aria-label="Results"
+      className="palette-list scroller flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain"
+    >
+      {sections.map((section) => (
+        <div
+          key={section.label}
+          role="group"
+          aria-labelledby={`${id}-${section.label}`}
+          className="palette-group rounded-2xl bg-card px-2 pt-2 pb-2"
+        >
+          <div
+            id={`${id}-${section.label}`}
+            className="palette-group__label px-3 pt-3 pb-2 text-xs leading-4 font-semibold tracking-[.05em] text-muted"
+          >
+            {section.label}
+          </div>
+          {section.rows.map((row) => {
+            optionIndex += 1;
+            const index = optionIndex;
+            return (
+              <div
+                key={row.key}
+                id={`${id}-option-${index}`}
+                role="option"
+                aria-selected={index === active}
+                className="palette-option grid grid-cols-[20px_minmax(0,1fr)] items-center gap-x-4 rounded-xl p-3 cursor-pointer transition-[background-color,color] duration-[160ms] ease-site aria-selected:bg-secondary-container aria-selected:text-on-secondary-container"
+                onPointerMove={() => {
+                  if (index !== active) onActive(index);
+                }}
+                onPointerDown={(event) => {
+                  // Keeps focus in the input, where the keys work.
+                  event.preventDefault();
+                }}
+                onClick={() => onChoose(row)}
+              >
+                <Icon
+                  name={row.icon}
+                  size={20}
+                  className="palette-option__icon text-muted"
+                />
+                <span className="palette-option__title overflow-hidden text-ellipsis whitespace-nowrap font-semibold">
+                  {row.title}
+                </span>
+                {row.excerpt ? (
+                  <Excerpt parts={row.excerpt} />
+                ) : (
+                  row.detail && (
+                    <span className="palette-option__detail overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-5 text-muted">
+                      {row.detail}
+                    </span>
+                  )
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface PaletteBodyProps {
   data: PaletteData;
   contextCommands: Command[];
@@ -176,7 +261,6 @@ function PaletteBody({
     onKeyDown,
   } = usePaletteSession({ data, contextCommands, open, onClose });
   const showList = rows.length > 0;
-  let optionIndex = -1;
 
   return (
     <>
@@ -209,67 +293,14 @@ function PaletteBody({
       <div className="palette-body flex h-[min(320px,45dvh)] min-h-0 flex-1 flex-col gap-3">
         <PendingReadout readout={readout} pending={pending} />
         {showList && (
-          <div
-            id={listboxId}
-            role="listbox"
-            aria-label="Results"
-            className="palette-list scroller flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain"
-          >
-            {sections.map((section) => (
-              <div
-                key={section.label}
-                role="group"
-                aria-labelledby={`${id}-${section.label}`}
-                className="palette-group rounded-2xl bg-card px-2 pt-2 pb-2"
-              >
-                <div
-                  id={`${id}-${section.label}`}
-                  className="palette-group__label px-3 pt-3 pb-2 text-xs leading-4 font-semibold tracking-[.05em] text-muted"
-                >
-                  {section.label}
-                </div>
-                {section.rows.map((row) => {
-                  optionIndex += 1;
-                  const index = optionIndex;
-                  return (
-                    <div
-                      key={row.key}
-                      id={`${id}-option-${index}`}
-                      role="option"
-                      aria-selected={index === active}
-                      className="palette-option grid grid-cols-[20px_minmax(0,1fr)] items-center gap-x-4 rounded-xl p-3 cursor-pointer transition-[background-color,color] duration-[160ms] ease-site aria-selected:bg-secondary-container aria-selected:text-on-secondary-container"
-                      onPointerMove={() => {
-                        if (index !== active) setActive(index);
-                      }}
-                      onPointerDown={(event) => {
-                        // Keeps focus in the input, where the keys work.
-                        event.preventDefault();
-                      }}
-                      onClick={() => choose(row)}
-                    >
-                      <Icon
-                        name={row.icon}
-                        size={20}
-                        className="palette-option__icon text-muted"
-                      />
-                      <span className="palette-option__title overflow-hidden text-ellipsis whitespace-nowrap font-semibold">
-                        {row.title}
-                      </span>
-                      {row.excerpt ? (
-                        <Excerpt parts={row.excerpt} />
-                      ) : (
-                        row.detail && (
-                          <span className="palette-option__detail overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-5 text-muted">
-                            {row.detail}
-                          </span>
-                        )
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          <PaletteResults
+            id={id}
+            listboxId={listboxId}
+            sections={sections}
+            active={active}
+            onActive={setActive}
+            onChoose={choose}
+          />
         )}
         {searchStatusAvailable(readout, pending, typed, egg) && (
           <PaletteSearchStatus

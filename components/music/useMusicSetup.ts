@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import type { Catalog, MusicMode } from '@/lib/music/presentation';
@@ -8,17 +8,11 @@ interface Options {
   mode: MusicMode;
   initiallyOpen: boolean;
   acceptCatalog: (catalog: Catalog) => void;
-  focusCuration: () => void;
-  focusSetup: () => void;
 }
 
-export function useMusicSetup({
-  mode,
-  initiallyOpen,
-  acceptCatalog,
-  focusCuration,
-  focusSetup,
-}: Options) {
+export function useMusicSetup({ mode, initiallyOpen, acceptCatalog }: Options) {
+  const curateToggle = useRef<HTMLButtonElement>(null);
+  const setupToggle = useRef<HTMLButtonElement>(null);
   const [isOpen, setOpen] = useState(initiallyOpen);
   useEffect(() => {
     if (mode === 'prototype')
@@ -42,12 +36,14 @@ export function useMusicSetup({
       if (catalog) acceptCatalog(catalog);
       setOpen(false);
     });
-    if (catalog) focusCuration();
-    else focusSetup();
+    if (catalog) curateToggle.current?.focus({ preventScroll: true });
+    else setupToggle.current?.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
   return {
     isOpen,
+    curateToggle,
+    setupToggle,
     open,
     cancel: () => leave(),
     complete: (catalog: Catalog) => leave(catalog),

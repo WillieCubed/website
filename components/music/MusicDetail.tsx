@@ -1,8 +1,12 @@
 'use client';
-import type { ComponentType, RefObject } from 'react';
+import type { ComponentType } from 'react';
 
-import type { DialogBackdropHandlers } from '@/components/site/useBackdropDismiss';
-
+import {
+  toggleCatalogFeature,
+  toggleCatalogMembership,
+  toggleCatalogSelection,
+  updateCatalogNote,
+} from '@/lib/music/catalog-edits';
 import {
   type Catalog,
   type MusicMode,
@@ -20,55 +24,46 @@ import {
   MusicPlaylistTracks,
 } from './MusicPlaylistDetails';
 import { detailDialogKeyDown } from './music-dialog';
+import type { MusicPlaylistNavigation } from './useMusicPlaylistDialog';
 
-interface PlaylistDetailsContext {
+interface Props {
+  initialDetail?: string;
   mode: MusicMode;
   editing: boolean;
   catalog: Catalog;
   draft: Catalog;
-  updateNote: (id: string, note: string) => void;
-  toggleFeature: (id: string) => void;
-  select: (id: string) => void;
-  membership: (id: string, member: string) => void;
-  currentIndex: number;
-  focusIds: string[];
-  series: MusicSeries | undefined;
-  openPlaylist: (id: string, source?: HTMLElement) => void;
-  closePlaylist: () => void;
-}
-interface Props extends PlaylistDetailsContext {
-  initialDetail?: string;
-  focused: string | null;
+  playlists: PlaylistView[];
   reordering: boolean;
   closeHref: string;
-  current: PlaylistView | undefined;
-  dialog: RefObject<HTMLDialogElement | null>;
   Cover?: ComponentType<MusicCoverProps>;
-  backdrop: DialogBackdropHandlers;
+  series: MusicSeries | undefined;
+  navigation: MusicPlaylistNavigation;
+  onChange: (next: Catalog) => void;
 }
 export default function MusicDetail({
-  current,
   initialDetail,
-  focused,
-  reordering,
-  closeHref,
-  dialog,
-  backdrop,
-  editing,
-  Cover = MusicCover,
   mode,
+  editing,
   catalog,
   draft,
-  updateNote,
-  toggleFeature,
-  select,
-  membership,
-  currentIndex,
-  focusIds,
+  playlists,
+  reordering,
+  closeHref,
+  Cover = MusicCover,
   series,
-  openPlaylist,
-  closePlaylist,
+  navigation,
+  onChange,
 }: Props) {
+  const {
+    focused,
+    dialog,
+    backdrop,
+    currentIndex,
+    focusIds,
+    openPlaylist,
+    closePlaylist,
+  } = navigation;
+  const current = playlists.find((playlist) => playlist.id === focused);
   return (
     <dialog
       ref={dialog}
@@ -115,10 +110,18 @@ export default function MusicDetail({
               <MusicPlaylistEditor
                 playlistId={current.id}
                 draft={draft}
-                onUpdateNote={(note) => updateNote(current.id, note)}
-                onToggleSelection={() => select(current.id)}
-                onToggleFeature={() => toggleFeature(current.id)}
-                onToggleMembership={(id) => membership(id, current.id)}
+                onUpdateNote={(note) =>
+                  onChange(updateCatalogNote(draft, current.id, note))
+                }
+                onToggleSelection={() =>
+                  onChange(toggleCatalogSelection(draft, current.id))
+                }
+                onToggleFeature={() =>
+                  onChange(toggleCatalogFeature(draft, current.id))
+                }
+                onToggleMembership={(id) =>
+                  onChange(toggleCatalogMembership(draft, id, current.id))
+                }
               />
             )}
             <MusicPlaylistTracks

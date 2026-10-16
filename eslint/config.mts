@@ -204,12 +204,12 @@ const eslintConfig: Linter.Config[] = [
       'components/**/*.{js,jsx,ts,tsx,mjs,mts}',
     ],
     rules: {
-      // Size identifies review targets; responsibility and state ownership need review.
+      // Size limits complement responsibility and state-ownership review.
       'max-lines-per-function': [
-        'warn',
+        'error',
         { max: 150, skipBlankLines: true, skipComments: true, IIFEs: true },
       ],
-      'max-statements': ['warn', 30],
+      'max-statements': ['error', 30],
     },
   },
   {

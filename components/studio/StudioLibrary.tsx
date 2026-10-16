@@ -154,64 +154,10 @@ export default function StudioLibrary() {
           className="space-y-3 pb-6 pt-2"
           style={{ minHeight: 440 }}
         >
-          {loading &&
-            documents.length === 0 &&
-            Array.from({ length: 3 }, (_, i) => (
-              <article
-                key={i}
-                aria-hidden="true"
-                className="-mx-3 min-h-32 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5"
-              >
-                <div className="studio-opening-line studio-opening-title" />
-                <div className="studio-opening-line studio-opening-description" />
-                <div className="studio-opening-line studio-opening-date" />
-              </article>
-            ))}
-          {documents.map((draft) => {
-            const { state, identity } = writingCardIdentity(draft);
-            return (
-              <article
-                key={draft.id}
-                className="group relative -mx-3 min-h-32 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent"
-              >
-                <SiteLink
-                  href={`/studio/${draft.id}`}
-                  preview={false}
-                  className="absolute inset-0 z-10 rounded-2xl"
-                  aria-label={`Edit ${identity}`}
-                />
-                <div className="pointer-events-none relative space-y-2">
-                  {draft.head.body.postType === 'note' ? (
-                    <p dir="auto" className="text-body-large text-ink">
-                      {identity}
-                    </p>
-                  ) : (
-                    <>
-                      <h2 className="text-title-large font-semibold text-ink transition-colors group-hover:text-accent">
-                        <SharedTitle id={`writing-${draft.slug}`} size="small">
-                          <span dir="auto" className="inline-block">
-                            {identity}
-                          </span>
-                        </SharedTitle>
-                      </h2>
-                      {draft.head.body.description && (
-                        <p dir="auto" className="text-body-medium text-muted">
-                          {draft.head.body.description}
-                        </p>
-                      )}
-                    </>
-                  )}
-                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label-medium text-muted">
-                    <time dateTime={draft.head.createdAt}>
-                      {formatDate(draft.head.createdAt, 'short')}
-                    </time>
-                    <span aria-hidden="true">·</span>
-                    <span>{state}</span>
-                  </p>
-                </div>
-              </article>
-            );
-          })}
+          {loading && documents.length === 0 && <WritingCardsPlaceholder />}
+          {documents.map((draft) => (
+            <WritingCard key={draft.id} draft={draft} />
+          ))}
           {!status && documents.length === 0 && (
             <p className="text-body-large text-muted">
               No working copies yet. Start a writing, or open a published
@@ -249,4 +195,65 @@ function writingCardTitle(draft: Draft): string {
     (sentence.length > 120 ? `${sentence.slice(0, 117).trimEnd()}…` : sentence);
 
   return identity;
+}
+
+interface WritingCardProps {
+  draft: Draft;
+}
+
+function WritingCard({ draft }: WritingCardProps) {
+  const { state, identity } = writingCardIdentity(draft);
+  return (
+    <article className="group relative -mx-3 min-h-32 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5 transition-colors hover:border-accent">
+      <SiteLink
+        href={`/studio/${draft.id}`}
+        preview={false}
+        className="absolute inset-0 z-10 rounded-2xl"
+        aria-label={`Edit ${identity}`}
+      />
+      <div className="pointer-events-none relative space-y-2">
+        {draft.head.body.postType === 'note' ? (
+          <p dir="auto" className="text-body-large text-ink">
+            {identity}
+          </p>
+        ) : (
+          <>
+            <h2 className="text-title-large font-semibold text-ink transition-colors group-hover:text-accent">
+              <SharedTitle id={`writing-${draft.slug}`} size="small">
+                <span dir="auto" className="inline-block">
+                  {identity}
+                </span>
+              </SharedTitle>
+            </h2>
+            {draft.head.body.description && (
+              <p dir="auto" className="text-body-medium text-muted">
+                {draft.head.body.description}
+              </p>
+            )}
+          </>
+        )}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label-medium text-muted">
+          <time dateTime={draft.head.createdAt}>
+            {formatDate(draft.head.createdAt, 'short')}
+          </time>
+          <span aria-hidden="true">·</span>
+          <span>{state}</span>
+        </p>
+      </div>
+    </article>
+  );
+}
+
+function WritingCardsPlaceholder() {
+  return Array.from({ length: 3 }, (_, i) => (
+    <article
+      key={i}
+      aria-hidden="true"
+      className="-mx-3 min-h-32 rounded-2xl border border-line bg-card px-3 py-4 medium:-mx-5 medium:px-5"
+    >
+      <div className="studio-opening-line studio-opening-title" />
+      <div className="studio-opening-line studio-opening-description" />
+      <div className="studio-opening-line studio-opening-date" />
+    </article>
+  ));
 }

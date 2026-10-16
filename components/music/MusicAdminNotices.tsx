@@ -183,3 +183,60 @@ function publicationStatusMessage(publication: MusicPublication) {
     return 'Publishing the reviewed collection…';
   return publication.error ?? 'Publication failed.';
 }
+
+interface MusicOperationError {
+  error: string;
+  onDismiss: () => void;
+  action?: ReactNode;
+}
+interface MusicOperationErrorsProps {
+  notices: MusicOperationError[];
+}
+export function MusicOperationErrors({ notices }: MusicOperationErrorsProps) {
+  return notices.map(({ error, onDismiss, action }, index) => (
+    <MusicOperationNotice key={index} error={error} onDismiss={onDismiss}>
+      {action}
+    </MusicOperationNotice>
+  ));
+}
+
+interface MusicLibraryNoticesProps {
+  loadError: string;
+  connectError: string;
+  refreshError: string;
+  onDismissLoad: () => void;
+  onDismissConnect: () => void;
+  onDismissRefresh: () => void;
+  reconnect: boolean;
+  onRetry: () => void;
+  onConnect: () => Promise<void>;
+}
+export function MusicLibraryNotices({
+  loadError,
+  connectError,
+  refreshError,
+  onDismissLoad,
+  onDismissConnect,
+  onDismissRefresh,
+  reconnect,
+  onRetry,
+  onConnect,
+}: MusicLibraryNoticesProps) {
+  return (
+    <>
+      <MusicOperationNotice error={loadError} onDismiss={onDismissLoad}>
+        <button className="mp-button mp-tonal" onClick={onRetry}>
+          Try again
+        </button>
+      </MusicOperationNotice>
+      <MusicOperationNotice error={connectError} onDismiss={onDismissConnect} />
+      <MusicOperationNotice error={refreshError} onDismiss={onDismissRefresh}>
+        {reconnect && (
+          <button className="mp-button" onClick={() => void onConnect()}>
+            Reconnect Spotify
+          </button>
+        )}
+      </MusicOperationNotice>
+    </>
+  );
+}

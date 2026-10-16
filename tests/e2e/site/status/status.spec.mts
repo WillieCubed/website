@@ -294,8 +294,12 @@ test('the footer preserves a normal city name across compact breakpoints', async
       window.scrollTo(0, document.documentElement.scrollHeight)
     );
     await expect
-      .poll(() =>
-        city.evaluate((element) => element.scrollWidth <= element.clientWidth)
+      .poll(
+        () =>
+          city.evaluate(
+            (element) => element.scrollWidth <= element.clientWidth
+          ),
+        { message: `City name should fit at ${width}px` }
       )
       .toBe(true);
   }

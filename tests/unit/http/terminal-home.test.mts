@@ -25,6 +25,7 @@ test('explicit plain text includes published descriptions without terminal contr
     'text/plain; charset=utf-8'
   );
   assert.ok(body.includes(site.name));
+  assert.ok(body.includes(`❖ ${site.shortName}`));
   for (const venture of site.ventures) assert.ok(body.includes(venture.url));
   assert.ok(body.includes(site.author.email));
   const unwrapped = body.replace(/\s+/g, ' ');
@@ -133,7 +134,7 @@ test('curl cannot bypass private preview authentication', async () => {
       request({ 'User-Agent': 'curl/8', Accept: 'text/plain' })
     );
     assert.notEqual(response.status, 200);
-    assert.ok(!(await response.text()).includes('W I L L I E C U B E D'));
+    assert.ok(!(await response.text()).includes(`❖ ${site.shortName}`));
   } finally {
     if (saved === undefined) delete process.env.SITE_MODE;
     else process.env.SITE_MODE = saved;

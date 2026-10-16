@@ -14,7 +14,7 @@ test('the production server isolates terminal and HTML homepage responses', asyn
     expect(response.headers()['cdn-cache-control']).toBe('no-store');
     expect(response.headers().vary).toContain('Accept');
     const body = await response.text();
-    expect(body).toContain('W I L L I E C U B E D');
+    expect(body).toContain('❖ WillieCubed');
     expect(body.replace(/\s+/g, ' ')).toContain(
       'One tool for planning, scheduling, and tracking every kind of work.'
     );

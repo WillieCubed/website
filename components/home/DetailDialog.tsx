@@ -2,8 +2,8 @@
 
 import { Body, Media } from '@/components/home/DetailContent.tsx';
 import { brandStyle, useHome } from '@/components/home/HomeContext';
-import { Icon } from '@/components/home/Icon';
 import { useDetailDialog } from '@/components/home/useDetailDialog';
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import Modal from '@/components/site/Modal';
 
@@ -122,7 +122,7 @@ export function DetailDialog({
             requestClose();
           }}
         >
-          <Icon name="close" />
+          <Icon name="close" className="icon" />
         </SiteLink>
       </div>
       <DetailContents

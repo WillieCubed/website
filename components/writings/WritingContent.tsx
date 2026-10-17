@@ -2,6 +2,7 @@ import SiteLink from '@/components/link/SiteLink';
 import NativeVideo from '@/components/media/NativeVideo';
 import References from '@/components/references/References';
 import TableOfContents from '@/components/writings/TableOfContents';
+import TagChips, { CATEGORY_CHIP } from '@/components/writings/TagChips';
 import WritingDetailsView from '@/components/writings/WritingDetailsView';
 
 import type { ResponseMedia } from '@/lib/indieweb/webmention/types';
@@ -23,7 +24,6 @@ import {
   propertyUrl,
 } from '@/lib/writings/properties';
 import { extractReferences } from '@/lib/writings/references';
-import { tagPath } from '@/lib/writings/tags';
 import type { WritingEvent } from '@/lib/writings/types';
 
 import SeriesNav from './SeriesNav';
@@ -230,7 +230,7 @@ function WritingCategories({ writing }: WritingCategoriesProps) {
                   <li key={person.url}>
                     <SiteLink
                       href={person.url}
-                      className="u-category h-card inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
+                      className={`u-category h-card ${CATEGORY_CHIP}`}
                     >
                       {person.name}
                     </SiteLink>
@@ -240,20 +240,7 @@ function WritingCategories({ writing }: WritingCategoriesProps) {
             </div>
           )}
 
-          {writing.tags.length > 0 && (
-            <ul className="flex flex-wrap gap-2" aria-label="Tags">
-              {writing.tags.map((tag) => (
-                <li key={tag}>
-                  <SiteLink
-                    href={tagPath(tag)}
-                    className="p-category inline-block rounded-full border border-line bg-ground px-3 py-1 text-label-medium text-ink transition-colors hover:border-accent hover:text-accent"
-                  >
-                    {tag}
-                  </SiteLink>
-                </li>
-              ))}
-            </ul>
-          )}
+          <TagChips tags={writing.tags} chipClassName="p-category" />
         </div>
       )}
     </>

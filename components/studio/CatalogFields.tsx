@@ -1,5 +1,3 @@
-'use client';
-
 import type { CatalogEntry, CatalogProperty } from '@/lib/studio/catalog';
 
 interface FieldProps {

@@ -1,4 +1,3 @@
-'use client';
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import TopBar from '@/components/site/TopBar';
 

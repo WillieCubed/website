@@ -1,10 +1,12 @@
 'use client';
 import { useSyncExternalStore } from 'react';
 
-const subscribe = () => () => {};
+/** A store that never changes: its value only differs between server and client. */
+export const subscribeToNothing = () => () => {};
+
 export function useHydrated() {
   return useSyncExternalStore(
-    subscribe,
+    subscribeToNothing,
     () => true,
     () => false
   );

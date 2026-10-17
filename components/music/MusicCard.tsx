@@ -1,5 +1,3 @@
-'use client';
-
 import MusicCardControls from './MusicCardControls';
 import { MusicCardCaption, MusicCardOpenTarget } from './MusicCardOpening';
 import MusicFeaturedPlaylist from './MusicFeaturedPlaylist';

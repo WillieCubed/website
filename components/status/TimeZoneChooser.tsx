@@ -1,5 +1,3 @@
-'use client';
-
 import Popover from '@/components/site/Popover';
 
 interface TimeZoneChooserProps {

@@ -1,5 +1,3 @@
-'use client';
-
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
 

@@ -1,3 +1,4 @@
+import type { SpawnSyncReturns } from 'node:child_process';
 import { unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -18,7 +19,9 @@ interface LocalBindings {
 }
 
 // Wrangler bundles and serves Hyperdrive bindings locally only with a
-// connection string; a placeholder is enough when nothing queries it.
+// connection string; a placeholder is enough when nothing queries it. A
+// non-empty `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_<BINDING>` still
+// takes precedence, without its credentials being written to this file.
 const LOCAL_HYPERDRIVE_URL =
   'postgresql://preview:preview@127.0.0.1:5432/preview';
 
@@ -39,9 +42,7 @@ const translators: Partial<
     bindings.hyperdrive.push({
       binding: name,
       id,
-      localConnectionString:
-        process.env[`CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_${name}`] ??
-        LOCAL_HYPERDRIVE_URL,
+      localConnectionString: LOCAL_HYPERDRIVE_URL,
     });
   },
   r2: (bindings, name, binding) => {
@@ -61,7 +62,10 @@ const translators: Partial<
   },
 };
 
-function translateBindings(env: Record<string, unknown>): LocalBindings {
+function translateBindings(
+  env: Record<string, unknown>,
+  skipUnknownBindings: boolean
+): LocalBindings {
   const bindings: LocalBindings = {
     vars: {},
     hyperdrive: [],
@@ -73,12 +77,13 @@ function translateBindings(env: Record<string, unknown>): LocalBindings {
   for (const [name, value] of Object.entries(env)) {
     const binding = value as Binding;
     const translate = translators[binding.type];
-    if (!translate) {
+    if (translate) {
+      translate(bindings, name, binding);
+    } else if (!skipUnknownBindings) {
       throw new Error(
         `${name} uses the ${binding.type} binding, which the local Wrangler config does not translate yet.`
       );
     }
-    translate(bindings, name, binding);
   }
   return bindings;
 }
@@ -91,7 +96,10 @@ function translateBindings(env: Record<string, unknown>): LocalBindings {
  * Routes and custom domains are left out: a local preview serves its
  * loopback hostname, and the configured domains redirect to production.
  */
-async function localWranglerConfig(mode: string | undefined) {
+async function localWranglerConfig({
+  mode,
+  skipUnknownBindings = false,
+}: LocalWranglerConfigOptions) {
   const { accountId, worker } = await cloudflareConfig({
     isPreview: false,
     mode,
@@ -122,35 +130,59 @@ async function localWranglerConfig(mode: string | undefined) {
     workers_dev: worker.workersDev,
     preview_urls: worker.previewUrls,
     assets: { directory: tooling.assetsDirectory, binding: assetsBinding },
-    ...translateBindings(env),
+    ...translateBindings(env, skipUnknownBindings),
     migrations: [{ tag: 'v1', new_sqlite_classes: sqliteClasses }],
     observability: worker.observability,
   };
 }
 
+interface LocalWranglerConfigOptions {
+  /** The Worker config mode, such as `preview`; production when omitted. */
+  mode?: string;
+  /**
+   * Leave out bindings the translation does not cover instead of failing.
+   * The OpenNext build reads only Worker-level settings, so it should not
+   * fail on a binding type that only a local preview would need.
+   */
+  skipUnknownBindings?: boolean;
+}
+
 /**
- * Writes the Wrangler config for a Worker config mode and returns its path
- * with a function that removes it.
+ * Writes the Wrangler config and returns its path with a function that
+ * removes it.
  */
-export async function writeLocalWranglerConfig(root: string, mode?: string) {
+export async function writeLocalWranglerConfig(
+  root: string,
+  options: LocalWranglerConfigOptions = {}
+) {
   const path = join(root, `.wrangler.local-${process.pid}.json`);
   await writeFile(
     path,
-    `${JSON.stringify(await localWranglerConfig(mode), null, 2)}\n`
+    `${JSON.stringify(await localWranglerConfig(options), null, 2)}\n`
   );
-  // Ctrl-C reaches the child command too; staying alive until it exits lets
-  // the caller remove this file instead of leaving it in the checkout.
+  return { path, remove: () => unlink(path).catch(() => undefined) };
+}
+
+/**
+ * Runs a synchronous child command with the Wrangler config in place, then
+ * removes the config. Ctrl-C reaches the child, which shares the terminal's
+ * process group, so this process ignores SIGINT until the child exits and
+ * can still clean up.
+ */
+export async function runWithLocalWranglerConfig<T>(
+  root: string,
+  options: LocalWranglerConfigOptions,
+  run: (configPath: string) => SpawnSyncReturns<T>
+) {
+  const config = await writeLocalWranglerConfig(root, options);
   const ignore = () => undefined;
   process.on('SIGINT', ignore);
-  process.on('SIGTERM', ignore);
-  return {
-    path,
-    remove: async () => {
-      process.off('SIGINT', ignore);
-      process.off('SIGTERM', ignore);
-      await unlink(path).catch(() => undefined);
-    },
-  };
+  try {
+    return run(config.path);
+  } finally {
+    process.off('SIGINT', ignore);
+    await config.remove();
+  }
 }
 
 /** Arguments that start OpenNext's local Worker preview with a config. */

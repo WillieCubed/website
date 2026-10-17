@@ -1,7 +1,7 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 
 import { isMain } from '../shared/command.mts';
-import { writeLocalWranglerConfig } from './local-wrangler-config.mts';
+import { runWithLocalWranglerConfig } from './local-wrangler-config.mts';
 
 export async function runCloudflareBuild() {
   const target = process.argv[2] || 'production';
@@ -15,26 +15,29 @@ export async function runCloudflareBuild() {
   const revision = execFileSync('git', ['rev-parse', 'HEAD'], {
     encoding: 'utf8',
   }).trim();
-  const config = await writeLocalWranglerConfig(
+  const build = await runWithLocalWranglerConfig(
     process.cwd(),
-    target === 'preview' ? 'preview' : undefined
-  );
-  const build = spawnSync(
-    'pnpm',
-    ['exec', 'opennextjs-cloudflare', 'build', '--config', config.path],
     {
-      stdio: 'inherit',
-      env: {
-        ...process.env,
-        NEXT_PUBLIC_SITE_REVISION: revision,
-        NEXT_PUBLIC_SITE_ORIGIN: origin,
-        SITE_MODE: target,
-        NEXT_PUBLIC_ATPROTO_DID: 'did:plc:iyn6nc3ffqm2e3555exyrgvv',
-        NEXT_PUBLIC_BLUESKY_HANDLE: 'williecubed.me',
-      },
-    }
+      mode: target === 'preview' ? 'preview' : undefined,
+      skipUnknownBindings: true,
+    },
+    (configPath) =>
+      spawnSync(
+        'pnpm',
+        ['exec', 'opennextjs-cloudflare', 'build', '--config', configPath],
+        {
+          stdio: 'inherit',
+          env: {
+            ...process.env,
+            NEXT_PUBLIC_SITE_REVISION: revision,
+            NEXT_PUBLIC_SITE_ORIGIN: origin,
+            SITE_MODE: target,
+            NEXT_PUBLIC_ATPROTO_DID: 'did:plc:iyn6nc3ffqm2e3555exyrgvv',
+            NEXT_PUBLIC_BLUESKY_HANDLE: 'williecubed.me',
+          },
+        }
+      )
   );
-  await config.remove();
   if (build.error) throw build.error;
   if (build.status !== 0) process.exit(build.status ?? 1);
   execFileSync(

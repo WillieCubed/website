@@ -3,6 +3,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { randomUUID } from 'node:crypto';
 
 import { MEDIA_TYPES } from '@/lib/indieweb/media';
+import { site } from '@/lib/site/identity';
 
 import { StudioError } from './errors';
 import { getStudioPool } from './store';
@@ -95,10 +96,8 @@ export async function promoteAssets(
       await publishedBucket().put(key, asset.bytes, {
         httpMetadata: { contentType: asset.contentType },
       });
-      url = new URL(
-        `/${key}`,
-        process.env.STUDIO_PUBLIC_ORIGIN || 'https://willie.page'
-      ).href;
+      url = new URL(`/${key}`, process.env.STUDIO_PUBLIC_ORIGIN || site.origin)
+        .href;
       await getStudioPool().query(
         'INSERT INTO studio_asset_promotions(publication_id,asset_id,public_url) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',
         [publicationId, id, url]

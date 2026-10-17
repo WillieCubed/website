@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 
+import { site } from '@/lib/site/identity';
 import type { Reference } from '@/lib/writings/references';
 
 import './references.css';
@@ -84,7 +85,7 @@ export function References({ items }: ReferencesProps) {
 
 function host(href: string): string {
   try {
-    return new URL(href, 'https://willie.page').hostname;
+    return new URL(href, site.origin).hostname;
   } catch {
     return '';
   }

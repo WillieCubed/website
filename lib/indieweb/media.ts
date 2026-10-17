@@ -1,5 +1,7 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
+import { site } from '@/lib/site/identity';
+
 interface MediaBucket {
   put(
     key: string,
@@ -75,10 +77,7 @@ export function getMediaStore(): MediaStore | null {
   try {
     const bucket = getCloudflareContext().env.MEDIA_BUCKET;
     if (!bucket) return null;
-    return r2MediaStore(
-      bucket,
-      process.env.NEXT_PUBLIC_SITE_ORIGIN || 'https://willie.page'
-    );
+    return r2MediaStore(bucket, site.origin);
   } catch {
     return null;
   }

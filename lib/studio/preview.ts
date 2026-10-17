@@ -2,6 +2,7 @@ import sanitizeHtml from 'sanitize-html';
 
 import { renderFeedHtml } from '@/lib/indieweb/feeds/html';
 import { imageMetadata } from '@/lib/media/geometry';
+import { absoluteUrl } from '@/lib/site/urls';
 import { escapeHtml } from '@/lib/text/html';
 
 import { catalogEntry } from './catalog';
@@ -41,7 +42,7 @@ export async function websitePreviewBody(
   slug: string,
   lookupProposal: ProposalLookup = (id) => getStudioStore().proposal(id)
 ): Promise<string> {
-  const canonical = `https://willie.page/writings/${encodeURIComponent(slug)}`;
+  const canonical = absoluteUrl(`/writings/${encodeURIComponent(slug)}`);
   async function prose(source: string) {
     try {
       return clean(await renderFeedHtml(source, canonical));

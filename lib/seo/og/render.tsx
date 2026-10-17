@@ -2,6 +2,8 @@ import { ImageResponse } from 'next/og';
 import { readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
+import { site } from '@/lib/site/identity';
+
 import EntityImage, { type EntityImageProps } from './EntityImage';
 import { loadOgFonts } from './fonts';
 
@@ -33,7 +35,7 @@ export async function publicImageDataUri(
       const { getCloudflareContext } = await import('@opennextjs/cloudflare');
       const assets = getCloudflareContext().env.ASSETS;
       if (!assets) return undefined;
-      const response = await assets.fetch(new URL(src, 'https://willie.page'));
+      const response = await assets.fetch(new URL(src, site.origin));
       if (!response.ok) return undefined;
       const bytes = Buffer.from(await response.arrayBuffer());
       return `data:${type};base64,${bytes.toString('base64')}`;

@@ -109,7 +109,7 @@ test('keyboard tooltips dismiss with Escape without changing the link', async ({
   await expect(link).toHaveAttribute('href', 'https://xn--sr8hvo.ws');
 });
 
-test('the footer keeps aligned containers and stacks the rings on phones', async ({
+test('the footer aligns ring padding and keeps all six targets on one row', async ({
   page,
 }) => {
   await page.goto('/');
@@ -161,6 +161,7 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
       const box = (selector: string) =>
         document.querySelector(selector)!.getBoundingClientRect().toJSON();
       return {
+        footer: box('.site-footer'),
         page: box('body > .grow'),
         name: box('.site-footer__lockup'),
         pages: box('.site-footer__pages'),
@@ -188,10 +189,7 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
       expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
       expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
       expect(bounds.rings.left).toBeCloseTo(bounds.row.left, 0);
-      expect(bounds.rings.width).toBeCloseTo(
-        Math.min(480, bounds.row.width),
-        0
-      );
+      expect(bounds.rings.width).toBeCloseTo(bounds.row.width, 0);
       const sharedRow = bounds.label.bottom > bounds.panel.top;
       if (sharedRow) {
         expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
@@ -203,13 +201,17 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
       }
       expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
       expectUsableTargets(bounds.targets, bounds.panel);
-      expect(bounds.panel.right).toBeLessThanOrEqual(bounds.rings.right);
+      expect(bounds.panel.left).toBeGreaterThanOrEqual(bounds.footer.left + 6);
+      expect(bounds.panel.right).toBeLessThanOrEqual(bounds.footer.right - 6);
       expect(bounds.panel.top).toBeGreaterThan(bounds.pages.bottom);
-    } else {
-      expect(bounds.panel.bottom).toBeLessThan(bounds.row.top);
-      expect(bounds.rings.right).toBeCloseTo(bounds.row.right, 0);
-      expect(bounds.pages.right).toBeLessThan(bounds.panel.left);
     }
+    expect(bounds.rings.top).toBeGreaterThanOrEqual(bounds.row.bottom);
+    expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
+    expect(
+      Math.abs(bounds.firstArrow.left - bounds.label.left)
+    ).toBeLessThanOrEqual(2);
+    expectUsableTargets(bounds.targets, bounds.panel);
+    expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
   }
 });
 
@@ -264,6 +266,7 @@ for (const width of [390, 1440]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
     await page.goto('/writings');
+    await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
     const link = page.locator('.site-webring__mark').first();
     await link.scrollIntoViewIfNeeded();
     const surface = link.locator('.site-control__surface');

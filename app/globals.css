@@ -430,6 +430,7 @@ h4 {
   --rail-w: 400px;
   --rail-gap: clamp(32px, 4vw, 64px);
   --footer-row-h: 48px;
+  --footer-contact-h: 48px;
   --footer-inset: 16px;
   --lockup-h: 48px;
   /* The cube's drawn proportion. */

@@ -594,7 +594,7 @@ html[data-music-motion] {
   --mp-icon-foreground: var(--color-ink);
   --control-fill: var(--mp-icon-background);
   --control-ink: var(--mp-icon-foreground);
-  --control-rest-radius: 999px;
+  --control-rest-radius: calc(var(--control-target) / 2);
   display: inline-grid;
   place-items: center;
   width: var(--control-target);

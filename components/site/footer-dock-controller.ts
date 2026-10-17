@@ -23,7 +23,14 @@ function dockElements(footer: HTMLElement) {
 type DockElements = ReturnType<typeof dockElements>;
 
 /** Measurements change on layout, while progress changes on every scroll frame. */
-function dockGeometry({ footer, root, surface, rings, row }: DockElements) {
+function dockGeometry({
+  footer,
+  root,
+  surface,
+  rings,
+  row,
+  contact,
+}: DockElements) {
   let footerHeight = 0;
   let scrollHeight = 0;
   return {
@@ -34,6 +41,10 @@ function dockGeometry({ footer, root, surface, rings, row }: DockElements) {
       );
       surface?.style.setProperty('--page-w', String(surface.offsetWidth));
       root.style.setProperty('--footer-row-h', `${row?.offsetHeight ?? 48}px`);
+      root.style.setProperty(
+        '--footer-contact-h',
+        `${contact?.offsetHeight ?? 48}px`
+      );
       footer.style.setProperty(
         '--footer-webrings-h',
         `${rings?.offsetHeight ?? 0}px`
@@ -151,6 +162,7 @@ function resetDock(elements: DockElements) {
   surface?.style.removeProperty('--page-w');
   root.style.removeProperty('--page-w');
   root.style.removeProperty('--footer-row-h');
+  root.style.removeProperty('--footer-contact-h');
   root.style.removeProperty('--footer-p');
   root.style.removeProperty('--sheet-p');
   root.removeAttribute('data-footer-sheet');

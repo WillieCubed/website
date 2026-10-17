@@ -60,7 +60,7 @@
   min-width: var(--control-target);
   min-height: var(--control-target);
   border: var(--control-border, 1px solid transparent);
-  border-radius: var(--control-rest-radius, 999px);
+  border-radius: var(--control-rest-radius, calc(var(--control-target) / 2));
   background: var(--control-fill, transparent);
   color: var(--control-ink, currentColor);
   outline: var(--control-focus-width) solid transparent;
@@ -78,6 +78,9 @@
 .site-control[data-control-size='large'] {
   --control-target: var(--control-target-large);
   --control-pressed-radius: var(--control-pressed-radius-large);
+}
+.site-control[hidden] {
+  display: none;
 }
 .site-control:hover:not(:disabled):not([aria-disabled='true']) {
   background: color-mix(

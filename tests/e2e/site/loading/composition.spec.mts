@@ -645,6 +645,14 @@ test('populated curation keeps long titles, series, filtering and ordering usabl
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
   const card = page.locator('.mp-card').first();
+  const inclusion = card.locator('.mp-check input');
+  await page.keyboard.press('Tab');
+  await inclusion.focus();
+  await expect(card.locator('.mp-check')).toHaveCSS('outline-width', '3px');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await expect(card.locator('.mp-check')).toHaveCSS('outline-width', '3px');
+  await expect(inclusion).toBeChecked();
+  await page.emulateMedia({ forcedColors: 'none' });
   await expect(card.locator('.mp-order-buttons')).toBeHidden();
   await page
     .getByRole('button', { name: 'Reorder playlists', exact: true })

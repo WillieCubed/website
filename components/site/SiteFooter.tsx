@@ -151,10 +151,9 @@ export default function SiteFooter() {
             </nav>
           </div>
         </div>
-        {/* This row never wraps. When the column gets narrow the labels
-            drop and the icons stay, so the row degrades instead of folding.
-            The contact links come first, on screen and in tab order alike:
-            on the homepage they are the row the footer grows out of. */}
+        {/* Contacts lead in both visual and tab order. Narrow columns hide
+            profile labels and place status/feeds below the profiles, keeping
+            every target usable. On home this row grows into the footer. */}
         <div className="site-footer__row">
           <ul className="site-footer__profiles" data-footer-contact>
             {ELSEWHERE.map((place) => (

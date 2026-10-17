@@ -22,7 +22,9 @@ These values follow the [button](https://m3.material.io/components/buttons/specs
 and [icon-button](https://m3.material.io/components/icon-buttons/specs) size
 scales. Compact icons may remain visually smaller inside the target. Do not
 shrink, rotate, translate, or resize the semantic target when it is pressed.
-Animate the corner radius and state layer instead. Disabled actions do not
+Animate the corner radius and state layer instead. For a pill, use half the
+target height as its radius; oversized values such as `999px` keep the
+visible corner clamped during a short press and hide the shape feedback. Disabled actions do not
 receive hover or pressed feedback and must remain unavailable through their
 native semantics or existing guarded handler.
 

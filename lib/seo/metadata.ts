@@ -117,6 +117,13 @@ function socialDescription(title: string, description: string) {
   return description && description !== title ? description : undefined;
 }
 
+/** Owner-only pages: never indexed, followed, or archived. */
+export const privateRobots: Metadata['robots'] = {
+  index: false,
+  follow: false,
+  noarchive: true,
+};
+
 /**
  * Build page metadata that keeps the site name out of the OpenGraph title.
  *

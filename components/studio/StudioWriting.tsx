@@ -7,7 +7,7 @@ import type { ComponentProposal, Draft, Revision } from '@/lib/studio/types';
 import {
   StudioCatalogContext,
   StudioCatalogStatusContext,
-} from './StudioNodes';
+} from './StudioNodeViews';
 import { StudioSaveContext } from './StudioSaveContext';
 import WritingCanvas from './WritingCanvas';
 import WritingControls from './WritingControls';

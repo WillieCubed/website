@@ -12,7 +12,6 @@ import '../../../components/status/admin/status-admin.css';
 
 export const metadata: Metadata = {
   title: 'Status admin',
-  robots: { index: false, follow: false },
   referrer: 'same-origin',
 };
 

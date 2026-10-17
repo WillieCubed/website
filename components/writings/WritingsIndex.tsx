@@ -73,9 +73,20 @@ export default async function WritingsIndex({
 
 interface WritingsListProps {
   writings: WritingData[];
+  /** A line shown under a writing's card, by slug. */
+  notes?: Map<string, string>;
+  /** Untitled notes show their text; off where drafts may have no file. */
+  contentPreviews?: boolean;
+  empty?: string;
 }
 
-async function WritingsList({ writings }: WritingsListProps) {
+/** Writing cards with their series resolved and untitled notes' text shown. */
+export async function WritingsList({
+  writings,
+  notes,
+  contentPreviews = true,
+  empty = 'Nothing published yet.',
+}: WritingsListProps) {
   // Resolve every series a listed writing belongs to. A series can be a file
   // or an initiative; the series loader handles both.
   const seriesSlugs = [
@@ -92,7 +103,7 @@ async function WritingsList({ writings }: WritingsListProps) {
   const contentMap = new Map(
     await Promise.all(
       writings
-        .filter((writing) => !writing.hasExplicitTitle)
+        .filter((writing) => contentPreviews && !writing.hasExplicitTitle)
         .map(
           async (writing) =>
             [writing.slug, await getWritingContentHtml(writing.slug)] as const
@@ -101,28 +112,39 @@ async function WritingsList({ writings }: WritingsListProps) {
   );
 
   if (writings.length === 0) {
-    return <p className="text-body-large text-muted">Nothing published yet.</p>;
+    return <p className="text-body-large text-muted">{empty}</p>;
   }
 
   return (
     <div className="collection-items space-y-3">
-      {writings.map((writing) => (
-        <WritingItem
-          key={writing.slug}
-          writing={writing}
-          seriesName={
-            writing.series
-              ? seriesMap.get(writing.series.slug)?.name
-              : undefined
-          }
-          seriesHref={
-            writing.series
-              ? seriesMap.get(writing.series.slug)?.href
-              : undefined
-          }
-          contentHtml={contentMap.get(writing.slug)}
-        />
-      ))}
+      {writings.map((writing) => {
+        const card = (
+          <WritingItem
+            key={writing.slug}
+            writing={writing}
+            seriesName={
+              writing.series
+                ? seriesMap.get(writing.series.slug)?.name
+                : undefined
+            }
+            seriesHref={
+              writing.series
+                ? seriesMap.get(writing.series.slug)?.href
+                : undefined
+            }
+            contentHtml={contentMap.get(writing.slug)}
+          />
+        );
+        const note = notes?.get(writing.slug);
+        return note ? (
+          <div key={writing.slug}>
+            {card}
+            <p className="mt-2 text-label-medium text-muted">{note}</p>
+          </div>
+        ) : (
+          card
+        );
+      })}
     </div>
   );
 }

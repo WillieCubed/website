@@ -9,19 +9,18 @@ import routes, UI components, or operational scripts.
 
 Choose the role first, then the domain that owns the behavior:
 
-| Location                         | Responsibility                                                            |
-| -------------------------------- | ------------------------------------------------------------------------- |
-| `app/`                           | Framework route files, metadata, and page composition                     |
-| `components/<domain>/`           | The domain's views, hooks, and styles, including route-specific UI        |
-| `lib/<domain>/`                  | Application rules, types, parsing, loading, and storage                   |
-| `scripts/`                       | Compatible entrypoints for existing commands                              |
-| `scripts/<domain>/`              | Commands and their helpers, such as `atproto/`, `content/`, and `deploy/` |
-| `tests/unit/<domain>/`           | Individual functions and module behavior                                  |
-| `tests/integration/<domain>/`    | Modules working together with an explicitly configured test database      |
-| `tests/e2e/site/<domain>/`       | Playwright tests of the built website                                     |
-| `tests/e2e/publishing/<domain>/` | End-to-end publishing scenarios using real services                       |
-| `tests/support/`                 | Reusable test helpers, setup, and recovery                                |
-| `tests/fixtures/`                | Test inputs and standalone assets copied into test infrastructure         |
+| Location                      | Responsibility                                                            |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `app/`                        | Framework route files, metadata, and page composition                     |
+| `components/<domain>/`        | The domain's views, hooks, and styles, including route-specific UI        |
+| `lib/<domain>/`               | Application rules, types, parsing, loading, and storage                   |
+| `scripts/`                    | Compatible entrypoints for existing commands                              |
+| `scripts/<domain>/`           | Commands and their helpers, such as `atproto/`, `content/`, and `deploy/` |
+| `tests/unit/<domain>/`        | Individual functions and module behavior                                  |
+| `tests/integration/<domain>/` | Modules working together with an explicitly configured test database      |
+| `tests/e2e/site/<domain>/`    | Playwright tests of the built website                                     |
+| `tests/support/`              | Reusable test helpers, setup, and recovery                                |
+| `tests/fixtures/`             | Test inputs and standalone assets copied into test infrastructure         |
 
 Keep a scenario's private types and helpers beside it. Move a helper into
 `tests/support/` when other scenarios need it or it manages shared test
@@ -171,31 +170,13 @@ accessibility overrides depend on the cascade. Extracting a component must not
 add a wrapper element or change its focus, transition, or accessible-name
 contract. Follow [links](../../reference/design/links.md) and [design principles](../design/design-principles.md).
 
-## Publishing end-to-end tests
+## Publishing verification
 
-Retained identity, social capture, hosted response, Standard.site, and media
-verification commands keep their existing filenames and CLI options. The retired
-Vercel-only bootstrap, TOTP setup, cutover, migration, and live-media creation
-commands have no current entrypoint; their dated evidence remains in the archive. Their
-entrypoints guard execution; importing one does not run it. Implementations
-live under `tests/e2e/publishing`, grouped by protocol. Shared accounts,
-fixtures, browser helpers, and recovery code live under
-`tests/support/publishing`. The standalone SMTP receiver copied into the test
-PDS lives under `tests/fixtures/atproto`. Test resources are separate from
-maintenance commands in `scripts/`.
-
-Existing root scripts delegate to those modules and retain the old filenames,
-CLI options, and exports for saved commands and recovery instructions. New
-code imports its owning module directly. Scenario entrypoints can also run
-directly; importing them does not initiate provider operations. Shared
-`tests/support/publishing/runtime.mts` resolves checkout paths independently
-of the caller's working directory.
-
-Retained runtime identifiers, journal formats, ownership checks, cleanup
-ordering, and private-file permissions remain part of the recovery contract.
-An extraction is not a reason to accept a foreign record or adopt an
-unjournaled mutation. Offline tests exercise journal ownership and interrupted
-mutation recovery using temporary files and injected operations.
+No hosted publishing runner is current. The October 2026 acceptance suite
+targeted a retired Vercel project and was removed; the
+[publishing verification guide](../../guides/publishing/publishing-verification.md)
+describes what a new runner must establish. Keep any new runner's shared
+helpers under `tests/support/` and its fixtures under `tests/fixtures/`.
 
 New verification receipts can include `verifierSourceFiles`; callback-delivery
 proofs also include `probeSourceFiles`. These maps hash the entrypoint and its

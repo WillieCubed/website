@@ -36,7 +36,7 @@ export default function TimeZoneChooser({
     <Popover
       label={`Change time zone, currently ${selected.label}, ${zone}`}
       trigger={zone || '—'}
-      triggerClassName="zone"
+      triggerClassName="zone site-control"
       panelClassName="status-timezones"
       width={224}
     >
@@ -49,6 +49,7 @@ export default function TimeZoneChooser({
           <button
             key={option.value}
             type="button"
+            className="site-control"
             aria-pressed={current === option.value}
             onClick={(event) => {
               onChange(option.value);

@@ -50,7 +50,7 @@ export default function MusicFeaturedPlaylist({
         href={href(playlist.id)}
         preview={false}
         prefetch={false}
-        className="mp-button mp-tonal mp-feature-action"
+        className="site-control mp-button mp-tonal mp-feature-action"
         onClick={(event) => {
           if (!isPlainClick(event)) return;
           event.preventDefault();

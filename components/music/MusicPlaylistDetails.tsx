@@ -66,7 +66,7 @@ export function MusicPlaylistSummary({
           {playlist.trackCount} items{runtime && ` · ${runtime}`}
         </p>
         <a
-          className="mp-button mp-spotify"
+          className="site-control mp-button mp-spotify"
           href={playlist.url}
           target="_blank"
           rel="noopener noreferrer"

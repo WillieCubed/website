@@ -156,7 +156,7 @@ function WebringLinks() {
     <nav className="site-webring" aria-label={ring.name} key={ring.name}>
       <SiteLink
         preview={false}
-        className="site-webring__link site-webring__direction"
+        className="site-webring__link site-control site-webring__direction"
         href={ring.previous}
         aria-label={`Previous site in the ${ring.name}`}
         data-webring-label={`Previous ${ring.neighbor} site`}
@@ -165,7 +165,7 @@ function WebringLinks() {
       </SiteLink>
       <SiteLink
         preview={false}
-        className="site-webring__link site-webring__mark"
+        className="site-webring__link site-control site-webring__mark"
         href={ring.directory}
         aria-label={ring.name}
         data-webring-label={ring.name}
@@ -174,7 +174,7 @@ function WebringLinks() {
       </SiteLink>
       <SiteLink
         preview={false}
-        className="site-webring__link site-webring__direction"
+        className="site-webring__link site-control site-webring__direction"
         href={ring.next}
         aria-label={`Next site in the ${ring.name}`}
         data-webring-label={`Next ${ring.neighbor} site`}

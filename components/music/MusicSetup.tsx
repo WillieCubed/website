@@ -81,7 +81,8 @@ export default function MusicSetup({
           <div className="ms-header-actions">
             <PaletteTrigger size="compact" />
             <button
-              className="ms-button ms-tonal ms-exit"
+              className="site-control ms-button ms-tonal ms-exit"
+              data-control-size="medium"
               onClick={onCancel}
               aria-label="Exit setup"
             >
@@ -155,7 +156,11 @@ function SetupActions({
   return (
     step > 0 && (
       <div className="ms-actions" role="group" aria-label="Setup actions">
-        <button className="ms-button ms-tonal" onClick={onBack}>
+        <button
+          className="site-control ms-button ms-tonal"
+          data-control-size="medium"
+          onClick={onBack}
+        >
           <Icon name="arrow-left" />
           Back
         </button>
@@ -165,7 +170,8 @@ function SetupActions({
             : 'Nothing goes live from setup.'}
         </p>
         <button
-          className="ms-button ms-primary"
+          className="site-control ms-button ms-primary"
+          data-control-size="medium"
           disabled={selectedCount === 0}
           onClick={onContinue}
         >

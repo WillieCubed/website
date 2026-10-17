@@ -63,7 +63,7 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
         ref={button}
         type="button"
         popoverTarget={id}
-        className="feeds-button"
+        className="feeds-button site-control"
         aria-expanded={open}
         aria-controls={id}
       >
@@ -110,7 +110,7 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
               </a>
               <button
                 type="button"
-                className="feeds-popover__copy"
+                className="feeds-popover__copy site-control"
                 aria-label={`Copy the ${feed.label} link`}
                 onClick={async () => {
                   try {

@@ -154,7 +154,7 @@ function SignInForm({ action, slug, id, login }: SignInFormProps) {
         type="submit"
         disabled={pending}
         aria-busy={pending}
-        className={styles.continue}
+        className={`site-control ${styles.continue}`}
         title={error.service}
         aria-describedby={error.service ? id + '-login-error' : undefined}
       >
@@ -192,7 +192,7 @@ export default function StandardSignInDialog({
         </span>
         <button
           type="button"
-          className={styles.close}
+          className={`site-control ${styles.close}`}
           aria-label="Cancel"
           onClick={login.dismiss}
         >

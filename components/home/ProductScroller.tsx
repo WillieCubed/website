@@ -101,6 +101,7 @@ export function ProductScroller({ products, loading }: ProductScrollerProps) {
           <button
             key={product.id}
             type="button"
+            className="site-control"
             disabled={!hydrated}
             aria-label={product.name}
             aria-current={i === current}

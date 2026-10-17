@@ -130,6 +130,7 @@ body:has(.studio-widget-inspector:modal) {
   min-width: 0;
 }
 .studio-portable-settings > summary {
+  min-height: var(--control-target-small);
   display: flex;
   align-items: center;
   justify-content: space-between;

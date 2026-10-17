@@ -89,7 +89,7 @@ export default function Popover({
         type="button"
         disabled={disabled}
         popoverTarget={id}
-        className={triggerClassName}
+        className={`site-control ${triggerClassName}`}
         aria-label={label}
         aria-current={current ? 'page' : undefined}
         aria-controls={id}

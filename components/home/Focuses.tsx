@@ -58,7 +58,9 @@ function LiveFocus({ focus }: LiveFocusProps) {
     <button
       type="button"
       disabled={!hydrated}
-      className={lit.includes(focus.id) ? 'focus hit' : 'focus'}
+      className={
+        lit.includes(focus.id) ? 'focus site-control hit' : 'focus site-control'
+      }
       data-focus={focus.id}
       data-branded={focus.style ? '' : undefined}
       style={focus.style}

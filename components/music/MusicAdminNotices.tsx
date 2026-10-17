@@ -23,7 +23,7 @@ function MusicOperationNotice({
       <div className="music-admin-notice__actions">
         {children}
         <button
-          className="music-admin-notice__close"
+          className="site-control music-admin-notice__close"
           aria-label="Dismiss message"
           onClick={onDismiss}
         >
@@ -61,7 +61,7 @@ export function MusicSaveNotice({
         <div className="music-admin-notice__actions">
           {blocked && (
             <button
-              className="mp-button mp-tonal"
+              className="site-control mp-button mp-tonal"
               onClick={() => void onRetry()}
             >
               {conflict ? 'Save my version' : 'Retry save'}
@@ -69,20 +69,23 @@ export function MusicSaveNotice({
           )}
           {conflict && (
             <button
-              className="mp-button mp-tonal"
+              className="site-control mp-button mp-tonal"
               onClick={() => void onUseSaved()}
             >
               Use current saved draft
             </button>
           )}
           {reconnect && (
-            <button className="mp-button" onClick={() => void onConnect()}>
+            <button
+              className="site-control mp-button"
+              onClick={() => void onConnect()}
+            >
               Reconnect Spotify
             </button>
           )}
           {!blocked && !reconnect && (
             <button
-              className="music-admin-notice__close"
+              className="site-control music-admin-notice__close"
               aria-label="Dismiss message"
               onClick={() => onDismiss()}
             >
@@ -112,11 +115,15 @@ export function MusicRecoveryNotice({
       <div className="music-admin-notice" role="status">
         <p>This browser has an unsaved draft.</p>
         <div className="music-admin-notice__actions">
-          <button className="mp-button" disabled={disabled} onClick={onRecover}>
+          <button
+            className="site-control mp-button"
+            disabled={disabled}
+            onClick={onRecover}
+          >
             Recover draft
           </button>
           <button
-            className="mp-button mp-tonal"
+            className="site-control mp-button mp-tonal"
             disabled={disabled}
             onClick={onDiscard}
           >
@@ -147,7 +154,10 @@ export function MusicPublicationNotice({
         <p>{publicationStatusMessage(publication)}</p>
         <div className="music-admin-notice__actions">
           {publication.status === 'failed' && (
-            <button className="mp-button" onClick={() => void onRetry()}>
+            <button
+              className="site-control mp-button"
+              onClick={() => void onRetry()}
+            >
               Retry publication
             </button>
           )}
@@ -168,7 +178,7 @@ export function MusicPublicationNotice({
           {publication.status !== 'publishing' &&
             publication.status !== 'deploying' && (
               <button
-                className="music-admin-notice__close"
+                className="site-control music-admin-notice__close"
                 aria-label="Dismiss publication message"
                 onClick={() => onDismiss()}
               >
@@ -230,14 +240,17 @@ export function MusicLibraryNotices({
   return (
     <>
       <MusicOperationNotice error={loadError} onDismiss={onDismissLoad}>
-        <button className="mp-button mp-tonal" onClick={onRetry}>
+        <button className="site-control mp-button mp-tonal" onClick={onRetry}>
           Try again
         </button>
       </MusicOperationNotice>
       <MusicOperationNotice error={connectError} onDismiss={onDismissConnect} />
       <MusicOperationNotice error={refreshError} onDismiss={onDismissRefresh}>
         {reconnect && (
-          <button className="mp-button" onClick={() => void onConnect()}>
+          <button
+            className="site-control mp-button"
+            onClick={() => void onConnect()}
+          >
             Reconnect Spotify
           </button>
         )}

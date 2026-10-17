@@ -55,7 +55,7 @@ export default function PostShareActions({
           type="button"
           data-post-action
           onClick={sharePost}
-          className={`${styles.action} ${styles.splitMain} ${styles.shareMain}`}
+          className={`site-control ${styles.action} ${styles.splitMain} ${styles.shareMain}`}
           aria-label={shareStatus || 'Share this writing'}
           title={shareStatus || 'Share this writing'}
         >
@@ -68,7 +68,7 @@ export default function PostShareActions({
         <Popover
           label="More sharing options"
           trigger={<Icon name="chevron-down" size={18} />}
-          triggerClassName={`${styles.action} ${styles.splitArrow}`}
+          triggerClassName={`site-control ${styles.action} ${styles.splitArrow}`}
           panelClassName={styles.menu}
           align="end"
           width={228}
@@ -76,7 +76,7 @@ export default function PostShareActions({
           <SiteLink
             href={blueskyHref}
             target="_blank"
-            className={styles.menuAction}
+            className={`site-control ${styles.menuAction}`}
           >
             <BlueskyIcon className="size-4" />
             Share on Bluesky
@@ -84,7 +84,7 @@ export default function PostShareActions({
           <SiteLink
             href={threadsHref}
             target="_blank"
-            className={styles.menuAction}
+            className={`site-control ${styles.menuAction}`}
           >
             <ThreadsIcon className="size-4" />
             Share on Threads

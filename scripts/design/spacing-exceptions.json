@@ -7,13 +7,6 @@
     "reason": "Deliberately violates clear space in the brand guide example showing what not to do."
   },
   {
-    "file": "components/home/styles/pager.css",
-    "selector": ".pager button[aria-current='true']::after",
-    "property": "left",
-    "value": "1px",
-    "reason": "Centers the 22px active mark inside its unchanged 24px hit target: (24 - 22) / 2."
-  },
-  {
     "file": "components/music/music-prototype.css",
     "selector": ".mp-announcement, .mp-visually-hidden",
     "property": "margin",
@@ -49,13 +42,6 @@
     "reason": "Centers the 16px icon artwork beside the first 24px text line."
   },
   {
-    "file": "components/site/footer-dock.css",
-    "selector": ".site-webring__link::before",
-    "property": "inset",
-    "value": "2px",
-    "reason": "Insets only the painted state layer; navigation target size and position do not change."
-  },
-  {
     "file": "components/status/status.css",
     "selector": ".status-expanded .unit",
     "property": "margin-left",
@@ -82,5 +68,12 @@
     "property": "margin-top",
     "value": "2px",
     "reason": "Centers the 20px ending icon beside its 24px first text line: (24 - 20) / 2."
+  },
+  {
+    "file": "components/site/styles/interactions.css",
+    "selector": ":root",
+    "property": "--control-group-gap",
+    "value": "2px",
+    "reason": "Material 3 Expressive connected button groups use a 2px internal gap; each control retains its accessible target."
   }
 ]

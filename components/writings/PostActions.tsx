@@ -46,7 +46,7 @@ export default function PostActions({
           <button
             type="button"
             data-post-action
-            className={`${styles.action} ${styles.replyAction} ${styles.replyMain}`}
+            className={`site-control ${styles.action} ${styles.replyAction} ${styles.replyMain}`}
             aria-label="Reply via IndieWeb"
             aria-expanded={replyOpen}
             aria-controls={replyId}
@@ -69,7 +69,7 @@ export default function PostActions({
               href={blueskyReplyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`${styles.action} ${styles.replyAction} ${styles.replyDestination}`}
+              className={`site-control ${styles.action} ${styles.replyAction} ${styles.replyDestination}`}
             >
               <BlueskyIcon className="size-4" />
               Reply on Bluesky
@@ -79,13 +79,13 @@ export default function PostActions({
             <Popover
               label="Reply options"
               trigger={<Icon name="chevron-down" size={18} />}
-              triggerClassName={`${styles.action} ${styles.replyAction} ${styles.splitArrow} ${styles.replyArrow}`}
+              triggerClassName={`site-control ${styles.action} ${styles.replyAction} ${styles.splitArrow} ${styles.replyArrow}`}
               panelClassName={styles.menu}
               width={228}
             >
               <button
                 type="button"
-                className={styles.menuAction}
+                className={`site-control ${styles.menuAction}`}
                 aria-controls={replyId}
                 aria-expanded={replyOpen}
                 onClick={(event) => {
@@ -103,7 +103,7 @@ export default function PostActions({
                 href={blueskyReplyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={styles.menuAction}
+                className={`site-control ${styles.menuAction}`}
               >
                 <BlueskyIcon className="size-4" />
                 Reply on Bluesky
@@ -129,7 +129,7 @@ export default function PostActions({
           <h2>Reply via IndieWeb</h2>
           <button
             type="button"
-            className={`${styles.action} ${styles.close}`}
+            className={`site-control ${styles.action} ${styles.close}`}
             aria-label="Close IndieWeb reply"
             onClick={toggleReply}
           >

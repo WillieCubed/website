@@ -1,28 +1,24 @@
 /* The feeds button and its popover. The popover borrows the hover card's
    surface so every floating panel on the site reads as one family. */
 .feeds-button {
-  display: inline-flex;
-  align-items: center;
+  --control-fill: var(--color-card);
+  --control-ink: var(--color-ink);
+  --control-border: 1px solid var(--color-line);
+  --control-rest-radius: 20px;
   gap: 8px;
   padding: 8px var(--spacing-control-inline);
-  border: 1px solid var(--color-line);
-  border-radius: 20px;
-  background: var(--color-card);
-  color: var(--color-ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    border-color 160ms var(--ease-site),
-    color 160ms var(--ease-site),
-    background-color 160ms var(--ease-site),
-    border-radius 160ms var(--ease-site);
+  font: 500 14px/20px var(--font-sans);
 }
-.feeds-button:hover,
-.feeds-button:focus-visible {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+.feeds-button[aria-expanded='true'] {
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
+  --control-border: 1px solid transparent;
+}
+.feeds-popover__copy {
+  --control-ink: var(--color-muted);
+  --control-rest-radius: 12px;
+  padding: 8px;
+  margin-right: 4px;
 }
 .site-popover {
   position: fixed;
@@ -70,7 +66,9 @@
   list-style: none;
 }
 .cube-context-popover__link {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
   padding: 8px var(--spacing-md);
   border-radius: 10px;
   color: inherit;
@@ -81,11 +79,13 @@
     background-color 160ms var(--ease-site),
     color 160ms var(--ease-site);
 }
-.cube-context-popover__link:hover,
-.cube-context-popover__link:focus-visible {
+.cube-context-popover__link:hover {
   background: var(--color-tray);
   color: var(--color-accent);
-  outline: none;
+}
+.cube-context-popover__link:focus-visible {
+  outline: var(--control-focus-width) solid var(--color-primary);
+  outline-offset: var(--control-focus-offset);
 }
 .feeds-popover ul {
   list-style: none;
@@ -125,18 +125,4 @@
 .feeds-popover__quiet .feeds-popover__link {
   font-weight: 400;
   color: var(--color-muted);
-}
-.feeds-popover__copy {
-  display: inline-flex;
-  padding: 8px;
-  margin-right: 4px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-muted);
-  cursor: pointer;
-}
-.feeds-popover__copy:hover,
-.feeds-popover__copy:focus-visible {
-  color: var(--color-accent);
 }

@@ -150,6 +150,26 @@ html[data-detail-morph]::view-transition-new(root) {
   .home *::after {
     transition-duration: 0ms !important;
   }
+  .home
+    :is(
+      .tile,
+      .tile.hit,
+      .product,
+      .product:hover,
+      .product:focus-visible,
+      .stack,
+      .stack i
+    ) {
+    scale: 1 !important;
+    translate: none !important;
+    rotate: none !important;
+  }
+  .home :is(.product:hover, .product:focus-visible) img {
+    scale: 1;
+  }
+  .home .d-links a:hover .icon {
+    translate: none;
+  }
   .home .shot[data-media],
   .home .atlas-field[data-media] {
     transform: none;

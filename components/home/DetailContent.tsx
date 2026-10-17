@@ -94,7 +94,7 @@ export function Body({ detail, onOpen }: BodyProps) {
       )}
       <div className="d-links">
         {detail.links.map((link) => (
-          <a key={link.href} href={link.href}>
+          <a key={link.href} href={link.href} className="site-control">
             {link.label}
             <Icon name="outward" className="icon" />
           </a>

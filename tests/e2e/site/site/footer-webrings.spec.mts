@@ -1,5 +1,27 @@
 import { expect, test } from '@playwright/test';
 
+type TargetBounds = Pick<
+  DOMRect,
+  'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'
+>;
+
+function expectUsableTargets(targets: TargetBounds[], panel: TargetBounds) {
+  for (const [index, target] of targets.entries()) {
+    expect(target.width).toBe(48);
+    expect(target.height).toBe(48);
+    expect(target.left).toBeGreaterThanOrEqual(panel.left);
+    expect(target.right).toBeLessThanOrEqual(panel.right);
+    for (const previous of targets.slice(0, index)) {
+      expect(
+        target.left >= previous.right ||
+          target.right <= previous.left ||
+          target.top >= previous.bottom ||
+          target.bottom <= previous.top
+      ).toBe(true);
+    }
+  }
+}
+
 test('both rings expose previous, directory, and next destinations', async ({
   page,
 }) => {
@@ -91,6 +113,9 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
   page,
 }) => {
   await page.goto('/');
+  // If scrolling reaches the server footer before hydration, FooterFrame
+  // intentionally retains that plain footer. This test exercises the dock.
+  await expect(page.locator('.site-footer')).toHaveAttribute('data-dock', '');
   await page.evaluate(() => document.fonts.ready);
   // Leave room for platform font metrics and wider classic scrollbars:
   // 318px with a 15px bar has the same content budget as 320px with 17px.
@@ -98,14 +123,20 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
     318, 320, 390, 599, 600, 839, 840, 1199, 1200, 1920, 2560,
   ]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.evaluate(() =>
-      window.scrollTo(0, document.documentElement.scrollHeight)
-    );
+    // A resize can wrap the contact row and increase the document height on
+    // the dock's measurement frame. Follow the current end until it settles.
     await expect
-      .poll(() =>
-        page
-          .locator('.site-footer')
-          .evaluate((e) => Number(e.style.getPropertyValue('--p')))
+      .poll(
+        () =>
+          page.evaluate(() => {
+            window.scrollTo(0, document.documentElement.scrollHeight);
+            return Number(
+              document
+                .querySelector<HTMLElement>('.site-footer')!
+                .style.getPropertyValue('--p')
+            );
+          }),
+        { message: `${width}px footer opens after resizing` }
       )
       .toBe(1);
     // Resizing updates the sheet's measured width on the next frame. Wait
@@ -161,35 +192,19 @@ test('the footer keeps aligned containers and stacks the rings on phones', async
         Math.min(480, bounds.row.width),
         0
       );
-      // Adjacent layout boxes may meet. The arrow's own inset must still
-      // visibly separate its glyph from the heading.
-      expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
-      expect(
-        bounds.firstArrow.left - bounds.label.right
-      ).toBeGreaterThanOrEqual(6);
+      const sharedRow = bounds.label.bottom > bounds.panel.top;
+      if (sharedRow) {
+        expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
+        expect(
+          bounds.firstArrow.left - bounds.label.right
+        ).toBeGreaterThanOrEqual(6);
+      } else {
+        expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
+      }
       expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
-      expect(bounds.panel.width).toBe(196);
-      expect(bounds.rings.right - bounds.panel.right).toBe(
-        width < 360 ? 8 : 12
-      );
-      expect(bounds.targets[3].left - bounds.targets[2].right).toBe(4);
-      expect(bounds.label.top + bounds.label.height / 2).toBeCloseTo(
-        bounds.panel.top + bounds.panel.height / 2,
-        0
-      );
+      expectUsableTargets(bounds.targets, bounds.panel);
       expect(bounds.panel.right).toBeLessThanOrEqual(bounds.rings.right);
       expect(bounds.panel.top).toBeGreaterThan(bounds.pages.bottom);
-      for (const [index, target] of bounds.targets.entries()) {
-        expect(target.width).toBe(32);
-        expect(target.height).toBe(32);
-        expect(target.left).toBeGreaterThanOrEqual(bounds.panel.left);
-        expect(target.right).toBeLessThanOrEqual(bounds.panel.right);
-        if (index > 0) {
-          expect(target.left).toBeGreaterThanOrEqual(
-            bounds.targets[index - 1].right
-          );
-        }
-      }
     } else {
       expect(bounds.panel.bottom).toBeLessThan(bounds.row.top);
       expect(bounds.rings.right).toBeCloseTo(bounds.row.right, 0);

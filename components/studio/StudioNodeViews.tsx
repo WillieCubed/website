@@ -129,7 +129,7 @@ function PortableSettings({
 }: PortableSettingsProps) {
   return (
     <details className="studio-portable-settings">
-      <summary>
+      <summary className="site-control studio-disclosure">
         <span id={`${fieldsId}-portable-label`}>Feed alternative</span>
         <span className="studio-alternative-status" role="status">
           {reviewed ? 'Reviewed' : 'Needs review'}
@@ -172,7 +172,9 @@ function RetainedWidgetText({ attrs }: RetainedWidgetTextProps) {
     !['callout', 'reference'].includes(String(attrs.id)) &&
     String(attrs.children || '').trim() && (
       <details className="studio-block-details">
-        <summary>Previously saved text</summary>
+        <summary className="site-control studio-disclosure">
+          Previously saved text
+        </summary>
         <p>
           This widget does not display this text. It is preserved here so you
           can copy it into your writing.

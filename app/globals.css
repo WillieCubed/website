@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '../components/site/styles/interactions.css';
 @plugin '@tailwindcss/typography';
 
 /*
@@ -360,7 +361,7 @@ h4 {
 
 @media (forced-colors: active) {
   :is(a, button, input, summary, [tabindex]):focus-visible {
-    outline: 2px solid Highlight !important;
+    outline: var(--control-focus-width) solid Highlight !important;
     outline-offset: 3px;
   }
 }
@@ -428,7 +429,7 @@ h4 {
   --shell-gutter: 20px;
   --rail-w: 400px;
   --rail-gap: clamp(32px, 4vw, 64px);
-  --footer-row-h: 40px;
+  --footer-row-h: 48px;
   --footer-inset: 16px;
   --lockup-h: 48px;
   /* The cube's drawn proportion. */

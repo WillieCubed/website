@@ -57,14 +57,14 @@ export default function TableOfContents({
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-left desktop:hidden"
+        className="site-control w-full justify-between px-4 py-3 text-left desktop:hidden [--control-rest-radius:8px] [--control-border:1px_solid_var(--color-outline-variant)] [--control-fill:var(--color-surface-container)]"
         aria-expanded={isExpanded}
         aria-controls={contentsId}
       >
         <span className="text-title-small font-medium">Contents</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          className={`h-5 w-5 transition-transform motion-reduce:transition-none ${isExpanded ? 'rotate-180' : ''}`}
           aria-hidden="true"
           fill="none"
           viewBox="0 0 24 24"

@@ -17,19 +17,8 @@
   .site-popover {
     border: 1px solid CanvasText;
   }
-}
-.site-footer .feeds-button:is(:active, [aria-expanded='true']) {
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
-  border-color: transparent;
-  border-radius: 12px;
-}
-.site-footer .feeds-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 3px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .site-footer .feeds-button {
-    transition: none;
+  header[data-column]
+    .site-breadcrumb:not(.site-control):focus-visible::before {
+    outline: none;
   }
 }

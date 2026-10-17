@@ -35,7 +35,7 @@ export default function MusicDetailNavigation({
       <SiteLink
         href={closeHref}
         preview={false}
-        className="mp-icon-button mp-detail-close"
+        className="site-control mp-icon-button mp-detail-close"
         onClick={(event) => {
           if (!isPlainClick(event)) return;
           event.preventDefault();
@@ -64,7 +64,7 @@ export default function MusicDetailNavigation({
           aria-label="Playlist navigation"
         >
           <button
-            className="mp-icon-button mp-icon-button--tonal"
+            className="site-control mp-icon-button mp-icon-button--tonal"
             disabled={index <= 0}
             onClick={() => onOpen(ids[index - 1])}
             aria-label="Previous playlist"
@@ -72,7 +72,7 @@ export default function MusicDetailNavigation({
             <Icon name="arrow-left" size={24} />
           </button>
           <button
-            className="mp-icon-button mp-icon-button--filled"
+            className="site-control mp-icon-button mp-icon-button--filled"
             disabled={index < 0 || index >= ids.length - 1}
             onClick={() => onOpen(ids[index + 1])}
             aria-label="Next playlist"

@@ -7,7 +7,7 @@
 
 .reply {
   display: flex;
-  gap: var(--spacing-related);
+  gap: var(--control-group-gap);
   flex: 1;
   min-width: 0;
 }
@@ -18,10 +18,9 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-inline);
-  min-height: 40px;
-  border-radius: 20px;
+  --control-rest-radius: 20px;
   padding: 8px 12px;
-  color: var(--color-ink);
+  --control-ink: var(--color-ink);
   font-size: 14px;
   font-weight: 600;
   line-height: 20px;
@@ -31,35 +30,17 @@
 
 .action {
   position: relative;
-  --state-layer: 0%;
-  background: color-mix(
-    in srgb,
-    var(--color-ink) var(--state-layer),
-    var(--color-tray)
-  );
-  transition:
-    background 160ms var(--ease-site),
-    border-radius 220ms var(--ease-site);
-}
-
-.action::before {
-  content: '';
-  position: absolute;
-  inset: -4px 0;
+  --control-fill: var(--color-tray);
 }
 
 .replyAction {
+  --control-ink: var(--color-on-secondary-container);
+  --control-fill: var(--color-secondary-container);
   width: 100%;
-  color: var(--color-on-secondary-container);
-  background: color-mix(
-    in srgb,
-    var(--color-on-secondary-container) var(--state-layer),
-    var(--color-secondary-container)
-  );
 }
 
 .replyMain {
-  min-width: 0;
+  min-width: var(--control-target-small);
   flex: 1;
 }
 
@@ -79,17 +60,13 @@
 
 .share {
   display: flex;
-  gap: var(--spacing-related);
+  gap: var(--control-group-gap);
   flex: none;
 }
 
 .share > button {
-  color: var(--color-on-primary);
-  background: color-mix(
-    in srgb,
-    var(--color-on-primary) var(--state-layer),
-    var(--color-primary)
-  );
+  --control-ink: var(--color-on-primary);
+  --control-fill: var(--color-primary);
 }
 
 .shareMain,
@@ -101,10 +78,10 @@
 
 .splitMain,
 .reply[data-split] .replyMain {
-  border-radius: 20px 4px 4px 20px;
+  --control-rest-radius: 20px 8px 8px 20px;
 }
 .splitArrow {
-  border-radius: 4px 20px 20px 4px;
+  --control-rest-radius: 8px 20px 20px 8px;
 }
 .splitArrow svg {
   transform: translateX(-1px);
@@ -131,14 +108,9 @@
   width: 100%;
   min-height: 48px;
   gap: 12px;
-  border-radius: 14px;
-  background: transparent;
+  --control-rest-radius: 14px;
+  --control-fill: transparent;
 }
-.menuAction:hover {
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
-}
-
 .form {
   margin-top: 16px;
   padding: 20px;
@@ -165,42 +137,8 @@
   padding: 0;
 }
 
-.actions :is(button, a):focus-visible,
-.menuAction:focus-visible,
-.close:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 3px;
-}
-.action:active {
-  --state-layer: 10%;
-}
-.splitMain:is(:focus-visible, :active),
-.reply[data-split] .replyMain:is(:focus-visible, :active) {
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-.splitArrow:is(:focus-visible, :active) {
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
-}
-
-@media (hover: hover) {
-  .action:hover {
-    --state-layer: 8%;
-  }
-  .splitMain:hover,
-  .reply[data-split] .replyMain:hover {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-  }
-  .splitArrow:hover {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
-  }
-}
-
 .splitArrow[aria-expanded='true'] {
-  border-radius: 20px;
+  --control-rest-radius: 20px;
 }
 
 @media (max-width: 379px), (min-width: 600px) and (max-width: 699px) {
@@ -244,11 +182,11 @@
   }
   .replyDestination {
     display: inline-flex;
-    min-width: 0;
+    min-width: var(--control-target-small);
     flex: 1;
   }
   .reply[data-split] .replyMain {
-    border-radius: 20px;
+    --control-rest-radius: 20px;
   }
   .replyAction {
     width: auto;
@@ -271,7 +209,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .action,
   .splitArrow svg {
     transition: none;
   }

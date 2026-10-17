@@ -49,7 +49,7 @@ function SubscriptionOptions({
       label="Subscription options"
       disabled={pending === 'action'}
       trigger={<Icon name="chevron-down" size={22} />}
-      triggerClassName={styles.arrow}
+      triggerClassName={`site-control ${styles.arrow}`}
       panelClassName={styles.menu}
       align="end"
       width={156}
@@ -59,7 +59,7 @@ function SubscriptionOptions({
         type="button"
         disabled={pending !== null}
         aria-busy={pending === 'logout'}
-        className={styles.signOut}
+        className={`site-control ${styles.signOut}`}
         title={failure?.message}
         aria-label={failure ? 'Try again to sign out' : undefined}
         onClick={onSignOut}
@@ -100,7 +100,7 @@ function SocialActionButton({
     <button
       ref={buttonRef}
       type="button"
-      className={styles.action}
+      className={`site-control ${styles.action}`}
       disabled={pending !== null || display.blocked}
       aria-pressed={active}
       aria-busy={pending === 'action'}
@@ -201,7 +201,7 @@ function SocialFallback({ action, slug }: SocialFallbackProps) {
     <div className={styles.actions}>
       <SiteLink
         preview={false}
-        className={styles.action}
+        className={`site-control ${styles.action}`}
         href={
           subscription
             ? '/writings/feed.xml'

@@ -162,32 +162,21 @@
     height: 0;
   }
   .d-close {
-    position: absolute;
-    top: var(--spacing-lg);
-    right: var(--spacing-lg);
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: color-mix(
+    --control-fill: color-mix(
       in srgb,
       var(--color-surface-container-lowest) 92%,
       transparent
     );
+    --control-ink: var(--color-ink);
+    position: absolute;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    width: 48px;
+    height: 48px;
+    padding: 0;
     box-shadow: 0 1px 3px
       color-mix(in srgb, var(--color-scrim) 20%, transparent);
     font-size: 22px;
-    cursor: pointer;
-    transition:
-      rotate 280ms var(--ease-site),
-      outline-offset 280ms var(--ease-site),
-      outline-color 200ms var(--ease-site);
-  }
-  .d-close:hover {
-    rotate: 90deg;
   }
   .d-kicker {
     color: var(--color-muted);
@@ -267,25 +256,17 @@
     margin-top: 24px;
   }
   .d-links a {
-    display: inline-flex;
-    align-items: center;
+    --control-fill: var(--color-tray);
+    --control-ink: var(--color-ink);
+    --control-rest-radius: 10px;
     gap: var(--spacing-inline);
     padding: var(--spacing-md) var(--spacing-control-inline);
-    border-radius: 10px;
-    background: var(--color-tray);
     font-size: 15px;
     font-weight: 600;
-    transition:
-      translate 240ms var(--ease-site),
-      outline-offset 280ms var(--ease-site),
-      outline-color 200ms var(--ease-site);
   }
   .d-links a:first-child {
-    background: var(--color-ink);
-    color: var(--color-ground);
-  }
-  .d-links a:hover {
-    translate: 0 -2px;
+    --control-fill: var(--color-ink);
+    --control-ink: var(--color-ground);
   }
   .d-links .icon {
     font-size: 16px;

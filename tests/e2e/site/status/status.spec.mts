@@ -165,7 +165,7 @@ test('missing weather shows a pending state during refresh and an error only aft
   await page.screenshot({ path: testInfo.outputPath('weather-loaded.png') });
 });
 
-test('footer status adapts within one row even with a long city name', async ({
+test('footer status adapts without overlapping compact targets even with a long city name', async ({
   page,
 }) => {
   await page.route('**/api/status', (route) =>
@@ -209,22 +209,16 @@ test('footer status adapts within one row even with a long city name', async ({
           const [profiles, status, feeds] = controls.map((e) =>
             e.getBoundingClientRect()
           );
-          const height = row.getBoundingClientRect().height;
           const lastContact = Math.max(
             ...[...controls[0].querySelectorAll('a')]
               .filter((e) => e.getClientRects().length > 0)
               .map((e) => e.getBoundingClientRect().right)
           );
           return (
-            height <=
-              Math.max(profiles.height, status.height, feeds.height) + 1 &&
+            (profiles.bottom <= status.y || lastContact <= status.x) &&
             Math.abs(
               status.y + status.height / 2 - feeds.y - feeds.height / 2
             ) < 1 &&
-            Math.abs(
-              status.y + status.height / 2 - profiles.y - profiles.height / 2
-            ) < 1 &&
-            lastContact <= status.x &&
             status.right <= feeds.x &&
             document.documentElement.scrollWidth <= innerWidth
           );

@@ -109,7 +109,7 @@ function CollectionLoadStatus({
     >
       {collectionStatusText(loading, loadError, editing, count, inSeries)}
       {loading && loadError && onRetry && (
-        <button className="mp-text-button" onClick={onRetry}>
+        <button className="site-control mp-text-button" onClick={onRetry}>
           Try again
         </button>
       )}

@@ -40,7 +40,7 @@
   justify-self: end;
   align-items: center;
   gap: 12px;
-  min-height: 44px;
+  min-height: 48px;
   color: var(--color-muted);
   font: 400 14px/1.5 var(--font-sans);
   border-radius: 6px;
@@ -50,8 +50,8 @@
   color: var(--color-ink);
 }
 .microstatus:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 4px;
+  outline: var(--control-focus-width) solid var(--color-accent);
+  outline-offset: var(--control-focus-offset);
 }
 [data-clock] {
   font-variant-numeric: tabular-nums;
@@ -131,11 +131,11 @@
 }
 
 .status-expanded .zone {
+  --control-fill: var(--color-surface-container-high);
+  --control-ink: var(--color-on-surface-variant);
+  --control-rest-radius: 12px;
   font: 500 12px/1 var(--font-sans);
   letter-spacing: 0;
-  background: var(--color-surface-container-high);
-  color: var(--color-on-surface-variant);
-  border-radius: 8px;
   padding: 8px;
 }
 .status-expanded .weather-picture {
@@ -164,9 +164,20 @@
   z-index: 2;
   margin: 0 -8px -8px 0;
   padding: 16px 20px;
+}
+.weather-reading:not(.site-control) {
   background: var(--color-primary-container);
   color: var(--color-on-primary-container);
   border-radius: 28px 28px 10px 28px;
+}
+.weather-reading.site-control {
+  --control-fill: var(--color-primary-container);
+  --control-ink: var(--color-on-primary-container);
+  --control-rest-radius: 28px 28px 10px 28px;
+}
+.weather-reading.site-control :is(.temperature, .condition) {
+  background: transparent;
+  color: inherit;
 }
 .status-expanded .temperature {
   display: block;
@@ -415,27 +426,10 @@
 }
 /* The hidden status must not make the collapsed contact row taller than the rail reserves. */
 .site-footer[data-dock] .microstatus {
-  min-height: var(--footer-row-h);
+  min-height: var(--control-target-small);
   padding-block: 0;
 }
 
-button.weather-reading {
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    border-radius 180ms ease;
-}
-button.weather-reading:is(:hover, :focus-visible) {
-  transform: translateY(-3px);
-  border-radius: 24px 32px 24px 12px;
-}
-button.weather-reading:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 4px;
-}
-button.weather-reading:active {
-  transform: scale(0.96);
-}
 @media (max-width: 599px) {
   .status-weather-group {
     order: -1;
@@ -457,29 +451,10 @@ button.weather-reading:active {
 .status-page-sheet > header {
   width: 100%;
 }
-.status-expanded button.zone {
-  border: 0;
-  cursor: pointer;
-  min-height: 36px;
-  padding-inline: var(--spacing-md);
-  transition:
-    background-color 160ms ease,
-    border-radius 160ms ease;
-}
-.status-expanded button.zone:is(:hover, [aria-expanded='true']) {
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
-  border-radius: 12px;
-}
 .status-expanded button.zone[aria-expanded='true'] {
-  border-radius: 16px;
-}
-.status-expanded button.zone:active {
-  border-radius: 18px;
-}
-.status-expanded button.zone:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 3px;
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
+  --control-rest-radius: 16px;
 }
 .status-timezones {
   overflow: auto;
@@ -490,27 +465,18 @@ button.weather-reading:active {
   gap: var(--spacing-related);
 }
 .status-timezones__options button {
-  display: flex;
-  align-items: center;
+  --control-ink: var(--color-ink);
+  --control-rest-radius: 10px;
   justify-content: space-between;
   gap: 16px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--color-ink);
   font: 500 14px/1.4 var(--font-sans);
-  min-height: 44px;
   padding: 8px var(--spacing-md);
   text-align: left;
-  cursor: pointer;
 }
-.status-timezones__options button:is(:hover, [aria-pressed='true']) {
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
-}
-.status-timezones__options button:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
+.status-timezones__options button[aria-pressed='true'] {
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
+  --control-rest-radius: 14px;
 }
 .status-timezones__time {
   font-size: 12px;

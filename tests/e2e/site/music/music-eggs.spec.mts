@@ -566,6 +566,129 @@ test('opening motion keeps tracks visible immediately and honors reduced motion'
   await expect(page.locator('html')).not.toHaveAttribute('data-music-motion');
 });
 
+test('arrow navigation preserves the detail container shape throughout its transition', async ({
+  page,
+}, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(`/music?detail=${entries[0].id}`);
+  const supported = await page.evaluate(
+    () =>
+      typeof document.startViewTransition === 'function' &&
+      CSS.supports('view-transition-group', 'contain')
+  );
+  if (!supported) {
+    const dialog = page.locator('dialog.mp-detail');
+    const radius = await dialog.evaluate(
+      (el) => getComputedStyle(el).borderRadius
+    );
+    const bounds = await dialog.boundingBox();
+    for (const direction of ['Next playlist', 'Previous playlist']) {
+      await page.getByRole('button', { name: direction, exact: true }).click();
+      await expect(dialog).toHaveCSS('border-radius', radius);
+      expect(await dialog.boundingBox()).toEqual(bounds);
+    }
+    await page.screenshot({ path: testInfo.outputPath('detail-shape.png') });
+    return;
+  }
+  await page.evaluate(() => {
+    const start = document.startViewTransition.bind(document);
+    const state = window as typeof window & {
+      swapShapes?: { radius: string; clip: string; expected: string }[];
+    };
+    state.swapShapes = [];
+    document.startViewTransition = (update) => {
+      const transition = start(update);
+      void transition.ready.then(async () => {
+        const root = document.documentElement;
+        if (root.dataset.musicMotion !== 'swap') return;
+        do {
+          const surface = getComputedStyle(
+            root,
+            '::view-transition-image-pair(music-prototype-surface)'
+          );
+          state.swapShapes!.push({
+            radius: surface.borderRadius,
+            clip: surface.overflow,
+            expected: getComputedStyle(document.querySelector('.mp-detail')!)
+              .borderRadius,
+          });
+          await new Promise(requestAnimationFrame);
+        } while (root.dataset.musicMotion === 'swap');
+      });
+      return transition;
+    };
+  });
+  for (const direction of ['Next playlist', 'Previous playlist']) {
+    await page.getByRole('button', { name: direction, exact: true }).click();
+    await expect(page.locator('html')).not.toHaveAttribute('data-music-motion');
+  }
+  const samples = await page.evaluate(
+    () =>
+      (
+        window as typeof window & {
+          swapShapes: { radius: string; clip: string; expected: string }[];
+        }
+      ).swapShapes
+  );
+  expect(samples.length).toBeGreaterThan(1);
+  for (const sample of samples) {
+    expect(sample.radius).toBe(sample.expected);
+    expect(sample.clip).toBe('clip');
+  }
+  await page.screenshot({ path: testInfo.outputPath('detail-shape.png') });
+});
+
+test('Music action controls use expressive pressed shapes while the panel stays fixed', async ({
+  page,
+}, testInfo) => {
+  for (const motion of ['no-preference', 'reduce'] as const) {
+    await page.emulateMedia({ reducedMotion: motion });
+    await page.goto(`/music?detail=${entries[0].id}`);
+    const dialog = page.locator('dialog.mp-detail');
+    const panel = await dialog.boundingBox();
+    const panelRadius = await dialog.evaluate(
+      (el) => getComputedStyle(el).borderRadius
+    );
+    const next = page.getByRole('button', {
+      name: 'Next playlist',
+      exact: true,
+    });
+    for (const target of [
+      page.getByRole('link', { name: 'Close playlist', exact: true }),
+      next,
+      page.getByRole('link', { name: 'Open in Spotify', exact: true }),
+    ]) {
+      const bounds = (await target.boundingBox())!;
+      expect(bounds.width).toBeGreaterThanOrEqual(48);
+      expect(bounds.height).toBeGreaterThanOrEqual(48);
+      await page.mouse.move(
+        bounds.x + bounds.width / 2,
+        bounds.y + bounds.height / 2
+      );
+      await page.mouse.down();
+      await expect(target).toHaveCSS('border-radius', '8px');
+      expect(await target.boundingBox()).toEqual(bounds);
+      await expect(dialog).toHaveCSS('border-radius', panelRadius);
+      expect(await dialog.boundingBox()).toEqual(panel);
+      if (target === next && motion === 'no-preference')
+        await page.screenshot({
+          path: testInfo.outputPath('expressive-pressed.png'),
+        });
+      await page.mouse.move(5, 5);
+      await page.mouse.up();
+      await expect(dialog).toBeVisible();
+    }
+    await page.keyboard.press('Tab');
+    await next.focus();
+    await expect(next).toHaveCSS('outline-style', 'solid');
+    await page.keyboard.down('Space');
+    await expect(next).toHaveCSS('border-radius', '8px');
+    await page.keyboard.up('Space');
+    await expect(page.locator('html')).not.toHaveAttribute('data-music-motion');
+    await expect(dialog).toHaveCSS('border-radius', panelRadius);
+  }
+});
+
 test('track links and long metadata remain readable across compact and expanded layouts', async ({
   page,
 }) => {

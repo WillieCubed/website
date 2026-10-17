@@ -1,7 +1,7 @@
 /* The restored writing workspace uses the site's Material surface roles. */
 :is(.studio-editor, .writing-studio) {
-  --control-target: 44px;
-  --focus-width: 2px;
+  --control-target: var(--control-target-small);
+  --focus-width: var(--control-focus-width);
   --shape-full: 999px;
   --duration-fast: 160ms;
   --duration-standard: 200ms;
@@ -36,8 +36,16 @@
   :is(input, textarea, select):focus-visible {
   outline: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  :is(.studio-editor, .writing-studio) .site-button {
-    transition: none;
-  }
+
+/* Native disclosures retain markers and flow; actions share target and state layers. */
+.studio-disclosure {
+  --control-fill: transparent;
+  --control-ink: var(--color-ink);
+  --control-rest-radius: 8px;
+  display: list-item;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+[open] > .studio-disclosure {
+  --control-fill: var(--color-surface-container-high);
+  --control-rest-radius: 12px;
 }

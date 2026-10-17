@@ -77,7 +77,7 @@ export default function MediaMention({ mention }: MediaMentionProps) {
           </p>
           {mention.excerpt && (
             <details className="media-mention__excerpt">
-              <summary className="text-label-medium">
+              <summary className="site-control text-label-medium">
                 Excerpt
                 <Icon name="chevron-down" size={13} />
               </summary>

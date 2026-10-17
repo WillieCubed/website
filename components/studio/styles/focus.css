@@ -168,7 +168,9 @@
 /* Mobile Insert occupies the focused boundary, outside the block's padding. */
 @media (max-width: 839px) {
   .studio-writing-surface {
-    --studio-focus-block-gap: var(--spacing-2xl);
+    --studio-focus-block-gap: calc(
+      var(--control-target-small) + 2 * var(--spacing-sm)
+    );
     --studio-focus-block-inset: var(--spacing-md);
   }
   .studio-editor .studio-prose > :first-child {

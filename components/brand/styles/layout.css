@@ -160,26 +160,13 @@
   overflow-x: auto;
 }
 .brand-page .brand-asset .brand-downloads a {
-  flex: none;
-  min-height: 36px;
-  padding: var(--spacing-control-block) 12px;
-  white-space: nowrap;
-}
-.brand-downloads a {
-  display: inline-flex;
-  align-items: baseline;
+  --control-fill: var(--color-card);
+  --control-ink: var(--color-ink);
+  --control-rest-radius: 12px;
   gap: var(--spacing-inline);
   padding: var(--spacing-md) 20px;
-  border-radius: 8px;
-  background: var(--color-card);
-  color: var(--color-ink);
   font-size: 13px;
   font-weight: 600;
-}
-.brand-downloads a:hover {
-  background: var(--color-ink);
-  color: var(--color-ground);
-  translate: 0 -1px;
 }
 .brand-size {
   color: var(--color-muted);
@@ -194,8 +181,8 @@
 }
 .brand-intro .brand-downloads a {
   padding: var(--spacing-md) 20px;
-  background: var(--color-accent);
-  color: var(--color-on-primary);
+  --control-fill: var(--color-accent);
+  --control-ink: var(--color-on-primary);
   font-size: 15px;
 }
 .brand-intro .brand-downloads .brand-size {
@@ -287,24 +274,9 @@
   font-size: 13px;
 }
 
-.brand-page a {
-  outline: 2px solid transparent;
-  outline-offset: 10px;
-  transition:
-    outline-offset 280ms var(--ease-site),
-    outline-color 200ms var(--ease-site);
-}
-.brand-page a:focus-visible {
-  outline-color: var(--color-ink);
-  outline-offset: 3px;
-}
-.brand-page .brand-downloads a {
-  transition:
-    background-color 200ms var(--ease-site),
-    color 200ms var(--ease-site),
-    translate 200ms var(--ease-site),
-    outline-offset 280ms var(--ease-site),
-    outline-color 200ms var(--ease-site);
+.brand-page a:not(.site-control):focus-visible {
+  outline: var(--control-focus-width) solid var(--color-ink);
+  outline-offset: var(--control-focus-offset);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -317,11 +289,10 @@
 .brand-page h2 {
   scroll-margin-top: 100px;
 }
-.brand-page summary,
-.brand-copy button {
+.brand-page summary {
+  --control-ink: var(--color-ink);
+  --control-rest-radius: 8px;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  color: var(--color-ink);
-  cursor: pointer;
+  min-height: 48px;
 }

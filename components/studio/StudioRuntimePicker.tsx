@@ -1,6 +1,8 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 
+import Button from '@/components/site/Button';
+
 import type { RuntimeChoice, RuntimeSelection } from '@/lib/studio/lattice';
 
 import { studioRequest } from './api';
@@ -121,9 +123,9 @@ export default function StudioRuntimePicker({
         {message}
       </p>
       <p>Requests run on your selected personal device.</p>
-      <button type="button" disabled={busy} onClick={() => void refresh()}>
+      <Button type="button" disabled={busy} onClick={() => void refresh()}>
         Refresh devices
-      </button>
+      </Button>
     </div>
   );
 }

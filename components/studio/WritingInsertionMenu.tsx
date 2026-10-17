@@ -42,7 +42,7 @@ export default function WritingInsertionMenu({
           <span className="studio-add-label">Insert block</span>
         </>
       }
-      triggerClassName={`${control} site-button-icon`}
+      triggerClassName={`site-control ${control} site-button-icon`}
       panelClassName="studio-action-menu"
       width={280}
     >
@@ -85,6 +85,7 @@ export default function WritingInsertionMenu({
         ] satisfies WritingBlockOption[]
       ).map(([label, node]) => (
         <button
+          className="site-control"
           key={label}
           onClick={(event) => {
             closePopover(event);
@@ -95,6 +96,7 @@ export default function WritingInsertionMenu({
         </button>
       ))}
       <button
+        className="site-control"
         onClick={(event) => {
           closePopover(event);
           onImage();
@@ -104,6 +106,7 @@ export default function WritingInsertionMenu({
       </button>
       {catalog.map((entry) => (
         <button
+          className="site-control"
           key={`${entry.id}:${entry.version}`}
           title={entry.description}
           aria-label={entry.name}
@@ -120,6 +123,7 @@ export default function WritingInsertionMenu({
         </button>
       ))}
       <button
+        className="site-control"
         onClick={(event) => {
           closePopover(event);
           onCreateWidget();

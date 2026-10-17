@@ -156,7 +156,7 @@ test('collapsed footer controls stay out of the tab order', async ({
   );
 });
 
-test('the studio pager keeps 24px targets without changing its dot design', async ({
+test('the studio pager keeps 48px targets without changing its dot design', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -165,8 +165,8 @@ test('the studio pager keeps 24px targets without changing its dot design', asyn
   await expect(buttons.first()).toBeVisible();
   for (const button of await buttons.all()) {
     const box = await button.boundingBox();
-    expect(box?.width).toBeGreaterThanOrEqual(24);
-    expect(box?.height).toBeGreaterThanOrEqual(24);
+    expect(box?.width).toBeGreaterThanOrEqual(48);
+    expect(box?.height).toBeGreaterThanOrEqual(48);
   }
 });
 

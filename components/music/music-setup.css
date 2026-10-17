@@ -24,18 +24,13 @@
   letter-spacing: -0.04em;
 }
 .ms-button {
+  --control-rest-radius: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  min-height: 52px;
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-radius: 18px;
+  padding: var(--spacing-md) var(--spacing-xl);
   font-weight: 600;
-  transition:
-    border-radius 220ms var(--mp-effects),
-    background 180ms var(--mp-effects),
-    scale 220ms var(--mp-spatial);
 }
 .ms-button svg {
   width: 22px;
@@ -43,17 +38,14 @@
   flex-shrink: 0;
 }
 .ms-primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  --control-fill: var(--color-primary);
+  --control-ink: var(--color-on-primary);
 }
 .ms-tonal {
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
 }
-.ms-button:active {
-  scale: 0.97;
-  border-radius: 12px;
-}
+
 .ms-steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -123,10 +115,9 @@
   font-size: clamp(48px, 5.6vw, 76px);
 }
 .ms-connect-button {
+  --control-rest-radius: 22px;
   margin-top: 32px;
-  min-height: 60px;
   padding: var(--spacing-lg) 24px;
-  border-radius: 22px;
   font-size: 18px;
 }
 .ms-permission {
@@ -459,10 +450,6 @@
   margin-top: var(--spacing-sm);
 }
 @media (hover: hover) {
-  .ms-button:hover {
-    border-radius: 28px;
-    filter: brightness(0.94);
-  }
   .ms-playlist:hover,
   .ms-feature-option:hover {
     background: var(--color-surface-container-highest);
@@ -530,14 +517,12 @@
     display: none;
   }
   .ms-header-actions .palette-trigger {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
+    width: var(--control-target-small);
+    height: var(--control-target-small);
     padding: 0;
     justify-content: center;
   }
   .ms-exit {
-    min-height: 44px;
     padding: var(--spacing-md) var(--spacing-lg);
     font-size: 14px;
   }
@@ -605,7 +590,6 @@
   .ms-connect-button {
     width: 100%;
     margin-top: 24px;
-    min-height: 56px;
   }
   .ms-permission {
     text-align: center;
@@ -659,11 +643,10 @@
     text-align: center;
   }
   .ms-actions .ms-button {
-    min-height: 48px;
     padding: 12px;
     gap: 8px;
     font-size: 14px;
-    border-radius: 16px;
+    --control-rest-radius: 16px;
   }
   .ms-actions .ms-button svg {
     width: 18px;
@@ -700,7 +683,6 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-button,
   .ms-playlist,
   .ms-feature-option {
     transition: none;

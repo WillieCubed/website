@@ -66,7 +66,7 @@ function MusicPublicPlaceholder({ loadError }: MusicPublicPlaceholderProps) {
           </form>
         )}
         <SiteLink
-          className="mp-button mp-public-placeholder-link"
+          className="site-control mp-button mp-public-placeholder-link"
           href={spotifyProfileUrl}
           target="_blank"
         >
@@ -108,6 +108,7 @@ export function MusicLibraryFilters({
           ] as const
         ).map(([value, label]) => (
           <button
+            className="site-control"
             key={value}
             aria-pressed={libraryFilter === value}
             disabled={loading}
@@ -154,7 +155,7 @@ export function MusicEmptyCollection({
         hasLibrary={hasLibrary}
       />
       {(editing ? hasLibrary : hasSelection) && (
-        <button className="mp-button" onClick={onBrowse}>
+        <button className="site-control mp-button" onClick={onBrowse}>
           Browse all playlists
         </button>
       )}

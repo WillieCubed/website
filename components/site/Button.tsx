@@ -21,6 +21,7 @@ export default function Button({
       className={Array.from(
         new Set([
           'site-button',
+          'site-control',
           `site-button-${variant}`,
           ...(iconOnly ? ['site-button-icon'] : []),
           ...className.split(' '),

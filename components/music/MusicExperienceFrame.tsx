@@ -15,7 +15,6 @@ interface Props extends LayoutProps {
   reordering: boolean;
   loading: boolean;
   loadError?: string;
-  ready: boolean;
   interactionLocked: boolean;
 }
 export default function MusicExperienceFrame({
@@ -24,7 +23,6 @@ export default function MusicExperienceFrame({
   reordering,
   loading,
   loadError,
-  ready,
   interactionLocked,
   children,
   setupView,
@@ -37,7 +35,7 @@ export default function MusicExperienceFrame({
       className="music-prototype"
       data-editing={(!setup && editing) || undefined}
       data-reordering={(!setup && editing && reordering) || undefined}
-      aria-busy={(loading && !loadError) || !ready || interactionLocked}
+      aria-busy={(loading && !loadError) || interactionLocked}
       aria-disabled={interactionLocked || undefined}
       inert={interactionLocked}
     >

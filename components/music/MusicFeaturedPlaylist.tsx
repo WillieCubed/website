@@ -1,5 +1,4 @@
 'use client';
-import type { ComponentType } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 
@@ -7,7 +6,7 @@ import { isPlainClick } from '@/lib/dom/click';
 import { type PlaylistView, listeningTime } from '@/lib/music/presentation';
 import type { MusicTrack } from '@/lib/music/types';
 
-import type { MusicCoverProps } from './MusicCover';
+import MusicCover from './MusicCover';
 import type { MusicSeriesPreview } from './music-gallery';
 
 interface FeaturedPlaylistProps {
@@ -15,7 +14,6 @@ interface FeaturedPlaylistProps {
   playlist: PlaylistView;
   note: string | undefined;
   memberships: MusicSeriesPreview[];
-  Cover: ComponentType<MusicCoverProps>;
   openPlaylist: (id: string, source?: HTMLElement) => void;
 }
 
@@ -24,7 +22,6 @@ export default function MusicFeaturedPlaylist({
   href,
   note,
   memberships,
-  Cover,
   openPlaylist,
 }: FeaturedPlaylistProps) {
   const sampleTracks = playlist.tracks;
@@ -48,7 +45,6 @@ export default function MusicFeaturedPlaylist({
           key={item.id}
           series={item}
           href={href}
-          Cover={Cover}
           openPlaylist={openPlaylist}
         />
       ))}
@@ -97,15 +93,9 @@ function OpeningTracks({ tracks }: OpeningTracksProps) {
 interface SeriesPreviewProps {
   href: (id: string) => string;
   series: MusicSeriesPreview;
-  Cover: ComponentType<MusicCoverProps>;
   openPlaylist: (id: string, source?: HTMLElement) => void;
 }
-function SeriesPreview({
-  series,
-  href,
-  Cover,
-  openPlaylist,
-}: SeriesPreviewProps) {
+function SeriesPreview({ series, href, openPlaylist }: SeriesPreviewProps) {
   return (
     <div className="mp-feature-series">
       <p className="mp-feature-series-context">
@@ -138,7 +128,7 @@ function SeriesPreview({
             >
               <span className="mp-series-cover-frame" data-card-surface="">
                 <span data-card-cover="">
-                  <Cover playlist={related} />
+                  <MusicCover playlist={related} />
                 </span>
               </span>
             </SiteLink>

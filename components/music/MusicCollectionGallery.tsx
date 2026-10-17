@@ -1,16 +1,13 @@
 'use client';
-import type { ComponentType } from 'react';
 
 import {
   type Catalog,
-  type MusicMode,
   type PlaylistView,
   canReorderPlaylists,
 } from '@/lib/music/presentation';
 import { gallerySelection } from '@/lib/music/presentation';
 
 import MusicCollectionHeader from './MusicCollectionHeader';
-import type { MusicCoverProps } from './MusicCover';
 import MusicGallery, {
   MusicEmptyCollection,
   MusicLibraryFilters,
@@ -42,13 +39,10 @@ type MusicGallerySelection = ReturnType<typeof gallerySelection>;
 interface Props {
   catalog: Catalog;
   playlists: PlaylistView[];
-  mode: MusicMode;
   editing: boolean;
   loading: boolean;
   loadError?: string;
-  storageError: string;
   onRetry?: () => void;
-  Cover?: ComponentType<MusicCoverProps>;
   selection: MusicGallerySelection;
   browsing: MusicGalleryBrowsing;
   navigation: MusicGalleryNavigation;
@@ -59,13 +53,10 @@ interface Props {
 export default function MusicCollectionGallery({
   catalog,
   playlists,
-  mode,
   editing,
   loading,
   loadError,
-  storageError,
   onRetry,
-  Cover,
   selection,
   browsing,
   navigation,
@@ -134,8 +125,6 @@ export default function MusicCollectionGallery({
       <MusicGallery
         publicEmpty={publicEmpty}
         loadError={loadError}
-        storageError={storageError}
-        mode={mode}
         header={
           <MusicCollectionHeader
             series={series}
@@ -179,7 +168,6 @@ export default function MusicCollectionGallery({
           href={(id) => navigation.href(seriesId, id)}
           collectionKey={`${seriesId}:${editing}:${displayed.join(',')}`}
           gallery={gallery}
-          Cover={Cover}
           onDragStart={drag.start}
           onDrop={drag.drop}
           openPlaylist={navigation.openPlaylist}

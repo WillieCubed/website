@@ -1,5 +1,4 @@
 'use client';
-import type { ComponentType } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
@@ -12,7 +11,7 @@ import type {
 } from '@/lib/music/presentation';
 import type { MusicSeries } from '@/lib/music/types';
 
-import type { MusicCoverProps } from './MusicCover';
+import MusicCover from './MusicCover';
 import MusicPlaylistSeries from './MusicPlaylistSeries';
 import MusicSelectionControl from './MusicSelectionControl';
 import PlaylistCredits from './PlaylistCredits';
@@ -22,14 +21,12 @@ import { musicHref } from './useMusicPlaylistHistory';
 
 interface ArtworkProps {
   playlist: PlaylistView;
-  Cover: ComponentType<MusicCoverProps>;
   series: MusicSeries[];
   editing: boolean;
   onToggleMembership: (id: string) => void;
 }
 export function MusicPlaylistArtwork({
   playlist,
-  Cover,
   series,
   editing,
   onToggleMembership,
@@ -37,7 +34,7 @@ export function MusicPlaylistArtwork({
   return (
     <div className="mp-detail-art-column">
       <div className="mp-detail-art" data-focus-cover="">
-        <Cover playlist={playlist} />
+        <MusicCover playlist={playlist} />
       </div>
       <div className="mp-detail-context">
         <MusicPlaylistSeries
@@ -53,13 +50,11 @@ export function MusicPlaylistArtwork({
 interface SummaryProps {
   playlist: PlaylistView;
   runtime: string | null;
-  mode: MusicMode;
   note: string | undefined;
 }
 export function MusicPlaylistSummary({
   playlist,
   runtime,
-  mode,
   note,
 }: SummaryProps) {
   return (
@@ -71,28 +66,17 @@ export function MusicPlaylistSummary({
       <div className="mp-detail-summary">
         <p className="mp-detail-meta">
           {playlist.trackCount} items{runtime && ` · ${runtime}`}
-          {mode === 'prototype' && ' · Sample sequence'}
         </p>
-        {mode === 'prototype' ? (
-          <>
-            <button className="mp-button mp-spotify" disabled>
-              Open in Spotify
-              <Icon name="external" />
-            </button>
-            <p className="mp-spotify-note">Sample playlist · No Spotify link</p>
-          </>
-        ) : (
-          <a
-            className="mp-button mp-spotify"
-            href={playlist.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <SpotifyIcon />
-            Open in Spotify
-            <Icon name="external" />
-          </a>
-        )}
+        <a
+          className="mp-button mp-spotify"
+          href={playlist.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <SpotifyIcon />
+          Open in Spotify
+          <Icon name="external" />
+        </a>
       </div>
       {note && <p className="mp-playlist-note">{note}</p>}
     </div>

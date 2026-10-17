@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { flushSync } from 'react-dom';
 
 import type { Catalog, MusicMode } from '@/lib/music/presentation';
 
@@ -27,7 +26,6 @@ export function useMusicCuration({
   const [editing, setEditing] = useState(mode === 'admin');
   const [announcement, announce] = useState('');
   const setup = useMusicSetup({
-    mode,
     initiallyOpen: setupInitially,
     acceptCatalog: (next) => {
       catalogDocument.acceptSetup(next);
@@ -44,17 +42,7 @@ export function useMusicCuration({
     clearFilter();
   }
   async function applyReview() {
-    if (mode !== 'prototype') {
-      await onPublish?.(catalogDocument.draft);
-      return;
-    }
-    flushSync(() => {
-      catalogDocument.apply();
-      setEditing(false);
-      clearFilter();
-    });
-    announce('Changes applied to this prototype.');
-    setup.curateToggle.current?.focus();
+    await onPublish?.(catalogDocument.draft);
   }
   return {
     editing,

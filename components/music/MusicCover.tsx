@@ -5,7 +5,7 @@ import Icon from '@/components/icons/Icon';
 
 import type { PlaylistView } from '@/lib/music/presentation';
 
-export interface MusicCoverProps {
+interface MusicCoverProps {
   playlist: PlaylistView;
 }
 

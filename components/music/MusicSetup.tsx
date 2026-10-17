@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { type ComponentType, type RefObject } from 'react';
+import { type RefObject } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
@@ -9,12 +9,11 @@ import PaletteTrigger from '@/components/search/palette/PaletteTrigger';
 
 import {
   type Catalog,
-  type MusicMode,
   type PlaylistView,
   listeningTime,
 } from '@/lib/music/presentation';
 
-import MusicCover, { type MusicCoverProps } from './MusicCover';
+import MusicCover from './MusicCover';
 import MusicSelectionControl from './MusicSelectionControl';
 import './music-setup.css';
 import { useMusicSetupPalette } from './useMusicSetupPalette';
@@ -24,8 +23,6 @@ const steps = ['Connect', 'Choose', 'Preview'];
 interface MusicSetupProps {
   catalog: Catalog;
   playlists: PlaylistView[];
-  Cover?: ComponentType<MusicCoverProps>;
-  mode?: MusicMode;
   connected?: boolean;
   onConnect?: () => Promise<void>;
   onCancel: () => void;
@@ -35,31 +32,20 @@ interface MusicSetupProps {
 export default function MusicSetup({
   catalog,
   playlists: library,
-  Cover = MusicCover,
-  mode = 'public',
   connected = false,
   onConnect,
   onCancel,
   onComplete,
 }: MusicSetupProps) {
   const playlists = useMemo(
-    () =>
-      mode === 'admin'
-        ? library.filter((playlist) => playlist.eligible)
-        : library,
-    [library, mode]
+    () => library.filter((playlist) => playlist.eligible),
+    [library]
   );
   const [step, setStep] = useState(connected ? 1 : 0);
-  const [selected, setSelected] = useState<string[]>(
-    mode === 'admin'
-      ? catalog.selected.filter((id) =>
-          playlists.some((p) => p.id === id && p.eligible)
-        )
-      : []
+  const [selected, setSelected] = useState<string[]>(() =>
+    catalog.selected.filter((id) => playlists.some((p) => p.id === id))
   );
-  const [lead, setLead] = useState<string | null>(
-    mode === 'admin' ? catalog.lead : null
-  );
+  const [lead, setLead] = useState<string | null>(catalog.lead);
   const title = useRef<HTMLHeadingElement>(null);
   const collection = catalog.order.flatMap((id) => {
     const playlist = playlists.find((item) => item.id === id);
@@ -94,11 +80,6 @@ export default function MusicSetup({
 
   return (
     <>
-      {mode === 'prototype' && (
-        <div className="mp-prototype-bar ms-prototype-notice">
-          <span>Local prototype · Spotify connection is simulated.</span>
-        </div>
-      )}
       <div className="ms-shell">
         <header className="ms-header">
           <span className="ms-wordmark">Music</span>
@@ -132,19 +113,13 @@ export default function MusicSetup({
           {step === 0 ? (
             <ConnectStep
               title={title}
-              mode={mode}
               playlists={playlists}
-              Cover={Cover}
-              onConnect={() =>
-                mode === 'prototype' ? setStep(1) : void onConnect?.()
-              }
+              onConnect={() => void onConnect?.()}
             />
           ) : step === 1 ? (
             <ChooseStep
               title={title}
-              mode={mode}
               playlists={playlists}
-              Cover={Cover}
               selected={selected}
               toggle={toggle}
             />
@@ -153,7 +128,6 @@ export default function MusicSetup({
               title={title}
               collection={collection}
               featured={featured}
-              Cover={Cover}
               lead={lead}
               setLead={setLead}
             />
@@ -172,14 +146,12 @@ export default function MusicSetup({
 
 interface StepHeading {
   title: RefObject<HTMLHeadingElement | null>;
-  Cover: ComponentType<MusicCoverProps>;
 }
 interface ConnectStepProps extends StepHeading {
-  mode: MusicMode;
   playlists: PlaylistView[];
   onConnect: () => void;
 }
-function ConnectStep({ title, playlists, Cover, onConnect }: ConnectStepProps) {
+function ConnectStep({ title, playlists, onConnect }: ConnectStepProps) {
   return (
     <section className="ms-connect" aria-labelledby="ms-title">
       <div className="ms-connect-copy">
@@ -209,21 +181,21 @@ function ConnectStep({ title, playlists, Cover, onConnect }: ConnectStepProps) {
       <div className="ms-cover-arrangement" aria-hidden="true">
         <div className="ms-art ms-art-back">
           {playlists[4] != null ? (
-            <Cover playlist={playlists[4]} />
+            <MusicCover playlist={playlists[4]} />
           ) : (
             <SpotifyIcon />
           )}
         </div>
         <div className="ms-art ms-art-middle">
           {playlists[1] != null ? (
-            <Cover playlist={playlists[1]} />
+            <MusicCover playlist={playlists[1]} />
           ) : (
             <Icon name="music" />
           )}
         </div>
         <div className="ms-art ms-art-front">
           {playlists[0] != null ? (
-            <Cover playlist={playlists[0]} />
+            <MusicCover playlist={playlists[0]} />
           ) : (
             <Icon name="music" />
           )}
@@ -256,20 +228,12 @@ function ConnectStep({ title, playlists, Cover, onConnect }: ConnectStepProps) {
   );
 }
 interface ChooseStepProps extends StepHeading {
-  mode: MusicMode;
   playlists: PlaylistView[];
   selected: string[];
   toggle: (id: string) => void;
 }
 
-function ChooseStep({
-  title,
-  mode,
-  playlists,
-  Cover,
-  selected,
-  toggle,
-}: ChooseStepProps) {
+function ChooseStep({ title, playlists, selected, toggle }: ChooseStepProps) {
   return (
     <section aria-labelledby="ms-title">
       <div className="ms-selection-heading">
@@ -285,11 +249,7 @@ function ChooseStep({
       </div>
       <div className="ms-source">
         <SpotifyIcon />
-        <span>
-          {mode === 'prototype'
-            ? 'Sample Spotify library'
-            : 'Your public Spotify playlists'}
-        </span>
+        <span>Your public Spotify playlists</span>
         <span>{playlists.length} playlists</span>
       </div>
       <fieldset className="ms-playlists">
@@ -302,7 +262,7 @@ function ChooseStep({
             data-selected={selected.includes(playlist.id) || undefined}
           >
             <div className="ms-playlist-art">
-              <Cover playlist={playlist} />
+              <MusicCover playlist={playlist} />
             </div>
             <span className="ms-playlist-copy">
               <span className="ms-playlist-title">{playlist.title}</span>
@@ -338,7 +298,6 @@ function PreviewStep({
   title,
   collection,
   featured,
-  Cover,
   lead,
   setLead,
 }: PreviewStepProps) {
@@ -356,7 +315,7 @@ function PreviewStep({
           <h2>Music</h2>
           {featured ? (
             <div className="ms-feature-preview">
-              <Cover playlist={featured} />
+              <MusicCover playlist={featured} />
               <div>
                 <h3>{featured.title}</h3>
                 <p>
@@ -371,7 +330,7 @@ function PreviewStep({
               .filter((playlist) => playlist.id !== lead)
               .map((playlist) => (
                 <div key={playlist.id}>
-                  <Cover playlist={playlist} />
+                  <MusicCover playlist={playlist} />
                   <h3>{playlist.title}</h3>
                 </div>
               ))}
@@ -405,7 +364,7 @@ function PreviewStep({
                 key={playlist.id}
                 data-selected={lead === playlist.id || undefined}
               >
-                <Cover playlist={playlist} />
+                <MusicCover playlist={playlist} />
                 <span className="ms-feature-option-copy">{playlist.title}</span>
                 <MusicSelectionControl
                   type="radio"

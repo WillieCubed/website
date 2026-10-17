@@ -134,9 +134,8 @@ commands such as recovering a draft or restoring a revision. They do not
 receive mutable save refs. Browser recovery must be accepted by the draft
 owner before replacing the editor session or dismissing the recovery offer.
 A recovered editor catalog is a session seed, separate from the last confirmed
-server revision. The browsing experience separates catalog editing
-and prototype storage from setup and review transitions. Its rail owns series
-text editing, and its review dialog owns its DOM and focus lifecycle. Their
+server revision. The browsing experience separates catalog editing from setup
+and review transitions. Its rail owns series text editing, and its review dialog owns its DOM and focus lifecycle. Their
 common owner coordinates opening across siblings so those local interactions
 share one consistent view of which surface is open. Playlist navigation keeps
 URL history, modal focus, and motion together. Cards receive prepared playlist
@@ -154,9 +153,8 @@ snapshot; expanded clock and weather views own timezone, temperature units, and
 animation. Compact views do not create those detail-only interactions.
 
 Keep hook interfaces cohesive. A catalog document exposes edits to its live and
-draft values; prototype storage reports readiness and storage errors; a modal
-owns opening, dismissal, and focus. Compose these owners where their workflows
-meet. Do not flatten unrelated state, setters, refs, and commands into a single
+draft values; a modal owns opening, dismissal, and focus. Compose these
+owners where their workflows meet. Do not flatten unrelated state, setters, refs, and commands into a single
 hook result or conceal that result under a few broad object keys. Each interface
 should express a domain responsibility that its consumers can understand on its
 own. Pure catalog transformations belong in the music domain rather than inside

@@ -34,7 +34,6 @@
     "test": "tsx --env-file=tests/unit/test.env --test --test-concurrency=2 'tests/unit/**/*.test.mts'",
     "test:e2e": "playwright test",
     "search:index": "tsx scripts/search/generate-index.mts",
-    "music:shots": "tsx tests/e2e/site/music/capture.mts",
     "websub:ping": "tsx scripts/indieweb/websub/ping.mts",
     "webmentions:send": "tsx scripts/indieweb/webmention/send.mts",
     "webmentions:moderate": "tsx scripts/indieweb/webmention/moderate.mts",

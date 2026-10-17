@@ -1,5 +1,4 @@
 'use client';
-import { type ComponentType } from 'react';
 
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 
@@ -12,7 +11,6 @@ import {
 
 import MusicChrome from './MusicChrome';
 import MusicCollectionGallery from './MusicCollectionGallery';
-import type { MusicCoverProps } from './MusicCover';
 import MusicCurationReview from './MusicCurationReview';
 import MusicDetail from './MusicDetail';
 import MusicExperienceFrame from './MusicExperienceFrame';
@@ -31,8 +29,6 @@ export interface MusicExperienceProps {
   playlists: PlaylistView[];
   initialCatalog: Catalog;
   mode?: MusicMode;
-  validCatalog?: (value: unknown) => value is Catalog;
-  Cover?: ComponentType<MusicCoverProps>;
   onChange?: (catalog: Catalog) => void;
   onPublish?: (reviewed: Catalog) => Promise<void>;
   saveStatus?: string;
@@ -54,8 +50,6 @@ export default function MusicExperience({
   loadError,
   onRetry,
   mode = 'public',
-  validCatalog,
-  Cover,
   onChange,
   onPublish,
   saveStatus,
@@ -68,12 +62,8 @@ export default function MusicExperience({
   adminMenuItems,
   setupInitially = false,
 }: MusicExperienceProps) {
-  const {
-    document: catalogDocument,
-    prototype,
-    changed,
-  } = useMusicDocument(
-    { initialCatalog, onChange, loading, setupInitially, mode, validCatalog },
+  const { document: catalogDocument, changed } = useMusicDocument(
+    { initialCatalog, onChange, loading, setupInitially },
     (open) => curation.setup.restore(open)
   );
   const curation = useMusicCuration({
@@ -87,7 +77,7 @@ export default function MusicExperience({
   const { editing, announcement, changeCatalog, announce } = curation;
   const setup = curation.setup;
   const draft = catalogDocument.draft;
-  const catalog = catalogForViewing(catalogDocument.live, draft, mode, editing);
+  const catalog = catalogForViewing(catalogDocument.live, draft, mode);
   const browsing = useMusicBrowsing({
     catalog,
     initialCatalog,
@@ -108,14 +98,11 @@ export default function MusicExperience({
       reordering={reordering}
       loading={loading}
       loadError={loadError}
-      ready={prototype.ready}
       interactionLocked={interactionLocked}
       publicEmpty={publicEmpty}
       setupView={
         <MusicSetup
           playlists={playlists}
-          Cover={Cover}
-          mode={mode}
           connected={connected}
           onConnect={onConnect}
           catalog={draft}
@@ -130,8 +117,6 @@ export default function MusicExperience({
           onToggleCuration={curation.toggle}
           onOpenSetup={setup.open}
           onRefresh={onRefresh}
-          setupToggle={setup.setupToggle}
-          curateToggle={setup.curateToggle}
           adminMenuItems={adminMenuItems}
         />
       }
@@ -149,7 +134,6 @@ export default function MusicExperience({
             editing={editing}
             reordering={reordering}
             closeHref={navigation.href(seriesId, null)}
-            Cover={Cover}
             series={series}
             navigation={navigation}
             onChange={changeCatalog}
@@ -157,16 +141,13 @@ export default function MusicExperience({
           <MusicCurationReview
             key={String(editing)}
             editing={editing}
-            mode={mode}
             changed={changed}
             published={published}
-            storageError={prototype.error}
             saveStatus={saveStatus}
             loading={loading}
             canReview={canReview}
             draft={draft}
             playlists={playlists}
-            Cover={Cover}
             onEditOrder={browsing.editOrder}
             applyReview={curation.applyReview}
           />
@@ -176,13 +157,10 @@ export default function MusicExperience({
       <MusicCollectionGallery
         catalog={catalog}
         playlists={playlists}
-        mode={mode}
         editing={editing}
         loading={loading}
         loadError={loadError}
-        storageError={prototype.error}
         onRetry={onRetry}
-        Cover={Cover}
         selection={browsing.selection}
         browsing={browsing}
         navigation={navigation}

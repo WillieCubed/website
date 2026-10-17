@@ -4,14 +4,10 @@ import { useLayoutEffect, useRef } from 'react';
 import Icon from '@/components/icons/Icon';
 import Button from '@/components/site/Button';
 
-import type { MusicMode } from '@/lib/music/presentation';
-
 interface Props {
   visible: boolean;
-  mode: MusicMode;
   changed: boolean;
   published?: boolean;
-  storageError: string;
   saveStatus?: string;
   loading: boolean;
   canReview?: boolean;
@@ -19,10 +15,8 @@ interface Props {
 }
 export default function MusicPublicationBar({
   visible,
-  mode,
   changed,
   published = false,
-  storageError,
   saveStatus,
   loading,
   canReview = true,
@@ -73,16 +67,10 @@ export default function MusicPublicationBar({
       aria-label="Collection publication"
     >
       <span className="mp-status-dot" />
-      <PublicationSummary
-        mode={mode}
-        changed={changed}
-        published={published}
-        storageError={storageError}
-        saveStatus={saveStatus}
-      />
+      <PublicationSummary published={published} saveStatus={saveStatus} />
       <Button
         variant={changed ? 'primary' : 'tonal'}
-        disabled={loading || (mode === 'prototype' ? !changed : !canReview)}
+        disabled={loading || !canReview}
         onClick={(event) => {
           // Pointer activation does not focus buttons on every platform.
           event.currentTarget.focus({ preventScroll: true });
@@ -97,39 +85,14 @@ export default function MusicPublicationBar({
 }
 
 interface SummaryProps {
-  mode: MusicMode;
-  changed: boolean;
   published: boolean;
-  storageError: string;
   saveStatus?: string;
 }
-function PublicationSummary({
-  mode,
-  changed,
-  published,
-  storageError,
-  saveStatus,
-}: SummaryProps) {
+function PublicationSummary({ published, saveStatus }: SummaryProps) {
   return (
     <>
-      <span>
-        {mode === 'prototype'
-          ? changed
-            ? 'Unapplied changes'
-            : 'No unapplied changes'
-          : published
-            ? 'Live collection'
-            : 'Private draft'}
-      </span>
-      <small>
-        {mode === 'prototype'
-          ? storageError
-            ? 'This tab only'
-            : 'Saved in this browser'
-          : published
-            ? 'On willie.page'
-            : saveStatus}
-      </small>
+      <span>{published ? 'Live collection' : 'Private draft'}</span>
+      <small>{published ? 'On willie.page' : saveStatus}</small>
     </>
   );
 }

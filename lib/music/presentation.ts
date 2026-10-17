@@ -1,20 +1,18 @@
 import type { MusicCatalog, MusicPlaylist } from './types';
 
-export type MusicMode = 'prototype' | 'admin' | 'public';
+export type MusicMode = 'admin' | 'public';
 export type MusicLibraryFilter = 'all' | 'selected' | 'unselected';
 
 export type Catalog = MusicCatalog;
 export type PlaylistView = MusicPlaylist & { color?: string };
 
-/** Curation previews its draft; ordinary browsing reads the applied catalog. */
+/** The studio previews its draft; the public page reads the applied catalog. */
 export function catalogForViewing(
   live: Catalog,
   draft: Catalog,
-  mode: MusicMode,
-  editing: boolean
+  mode: MusicMode
 ): Catalog {
-  if (mode === 'admin') return draft;
-  return editing ? draft : live;
+  return mode === 'admin' ? draft : live;
 }
 
 /** Filtered lists cannot be reordered without changing the hidden sequence. */

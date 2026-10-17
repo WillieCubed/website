@@ -1,16 +1,12 @@
 'use client';
-import { type ComponentType, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 
 import Icon from '@/components/icons/Icon';
 
-import {
-  type Catalog,
-  type MusicMode,
-  type PlaylistView,
-} from '@/lib/music/presentation';
+import { type Catalog, type PlaylistView } from '@/lib/music/presentation';
 
-import MusicCover, { type MusicCoverProps } from './MusicCover';
+import MusicCover from './MusicCover';
 import { scrollDialogContent } from './music-dialog';
 
 interface Props {
@@ -19,8 +15,6 @@ interface Props {
   onEditOrder: () => void;
   draft: Catalog;
   playlists: PlaylistView[];
-  Cover?: ComponentType<MusicCoverProps>;
-  mode: MusicMode;
   canReview?: boolean;
   applyReview: () => Promise<void>;
 }
@@ -30,8 +24,6 @@ export default function MusicReview({
   onEditOrder,
   draft,
   playlists,
-  Cover = MusicCover,
-  mode,
   canReview = true,
   applyReview,
 }: Props) {
@@ -95,7 +87,6 @@ export default function MusicReview({
         <MusicReviewCollection
           draft={draft}
           playlists={playlists}
-          Cover={Cover}
           onEditOrder={() => {
             closeReview();
             onEditOrder();
@@ -103,23 +94,19 @@ export default function MusicReview({
         />
       </div>
       <footer className="mp-review-actions scroller">
-        <p>
-          {mode === 'prototype'
-            ? 'This action stays in this browser.'
-            : 'Publish this saved collection to willie.page.'}
-        </p>
+        <p>Publish this saved collection to willie.page.</p>
         <button className="mp-button mp-tonal" onClick={closeReview}>
           Back to editing
         </button>
         <button
           className="mp-button mp-primary"
-          disabled={mode !== 'prototype' && !canReview}
+          disabled={!canReview}
           onClick={() => {
             closeReview();
             void applyReview();
           }}
         >
-          {mode === 'prototype' ? 'Apply to prototype' : 'Publish collection'}
+          Publish collection
           <Icon name="check" />
         </button>
       </footer>
@@ -130,13 +117,11 @@ export default function MusicReview({
 interface MusicReviewCollectionProps {
   draft: Catalog;
   playlists: PlaylistView[];
-  Cover: ComponentType<MusicCoverProps>;
   onEditOrder: () => void;
 }
 function MusicReviewCollection({
   draft,
   playlists,
-  Cover,
   onEditOrder,
 }: MusicReviewCollectionProps) {
   return (
@@ -173,7 +158,7 @@ function MusicReviewCollection({
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <span className="mp-review-cover">
-                    <Cover playlist={playlist} />
+                    <MusicCover playlist={playlist} />
                   </span>
                   <div>
                     <span className="mp-review-playlist-title">
@@ -199,7 +184,7 @@ function MusicReviewCollection({
           {draft.lead ? (
             <>
               <div className="mp-review-feature-cover">
-                <Cover
+                <MusicCover
                   playlist={playlists.find((item) => item.id === draft.lead)!}
                 />
               </div>

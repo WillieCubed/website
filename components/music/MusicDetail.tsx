@@ -1,5 +1,4 @@
 'use client';
-import type { ComponentType } from 'react';
 
 import {
   toggleCatalogFeature,
@@ -15,7 +14,6 @@ import {
 } from '@/lib/music/presentation';
 import type { MusicSeries } from '@/lib/music/types';
 
-import MusicCover, { type MusicCoverProps } from './MusicCover';
 import MusicDetailNavigation from './MusicDetailNavigation';
 import {
   MusicPlaylistArtwork,
@@ -35,7 +33,6 @@ interface Props {
   playlists: PlaylistView[];
   reordering: boolean;
   closeHref: string;
-  Cover?: ComponentType<MusicCoverProps>;
   series: MusicSeries | undefined;
   navigation: MusicPlaylistNavigation;
   onChange: (next: Catalog) => void;
@@ -49,7 +46,6 @@ export default function MusicDetail({
   playlists,
   reordering,
   closeHref,
-  Cover = MusicCover,
   series,
   navigation,
   onChange,
@@ -102,12 +98,10 @@ export default function MusicDetail({
             <MusicPlaylistSummary
               playlist={current}
               runtime={listeningTime(current.tracks)}
-              mode={mode}
               note={editing ? undefined : catalog.notes[current.id]}
             />
             <MusicPlaylistArtwork
               playlist={current}
-              Cover={Cover}
               series={catalog.series}
               editing={editing}
               onToggleMembership={(id) =>

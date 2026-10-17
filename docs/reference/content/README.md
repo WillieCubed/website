@@ -28,7 +28,7 @@ maintained URL list. The [IndieWeb reference](../publishing/indieweb.md) covers
 the publishing endpoints and machine-readable HTML annotations (microformats)
 that connect posts to other sites.
 
-[Profile proposals](./public-profile.md) records the approval boundary for About
+[Profile pages](./public-profile.md) records the approval boundary for About
 and Research. [Status data and admin](./status.md) defines the separate owner
 editor for the public city and weather display. Neither is ordinary MDX
 authoring.

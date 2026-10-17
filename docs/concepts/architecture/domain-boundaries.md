@@ -45,9 +45,7 @@ pattern, with the palette under `components/search/palette/` and
 
 Shared HTTP responses live in `lib/http/`, theme behavior in `lib/theme/`,
 and small protocol endpoints in `lib/protocols/`. Keep configuration and the
-required framework filenames at their framework-defined locations. Keep
-parked routes, unapproved proposals, and unused retained components under
-their explicit private or `legacy/` boundaries.
+required framework filenames at their framework-defined locations.
 
 ## Shared foundations
 
@@ -74,9 +72,7 @@ revalidation rather than Cache Components.
 `lib/content` owns shared Markdown file IO, date-derived status, and draft
 visibility defaults.
 Each domain keeps its schema, reserved slugs, ordering, and draft policy.
-Collections separate file reading from series composition. Retained loaders
-for parked pages live under `lib/legacy/content`; their presence does not make
-those pages public or ready for restoration.
+Collections separate file reading from series composition.
 
 Micropub, IndieAuth, and Webmention internals live in their own directories
 under `lib/indieweb`. Types belong to their protocol; small shared HTTP and

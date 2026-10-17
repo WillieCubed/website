@@ -3,8 +3,7 @@
 
 /*
  * The site's design tokens. Components consume Material roles rather than
- * palette values, so the role values below are the only theme boundary. The
- * older site names remain aliases while parked pages are rebuilt.
+ * palette values, so the role values below are the only theme boundary.
  */
 @theme static {
   /* Material 3 roles as light-dark() pairs: each follows color-scheme, which
@@ -57,35 +56,6 @@
   --color-accent: var(--color-primary);
   --color-mint: var(--color-primary-container);
   --color-signal: var(--color-error);
-
-  /* Compatibility aliases for the older page components. */
-  --color-maverick-50: var(--color-surface-container-low);
-  --color-maverick-100: var(--color-primary-container);
-  --color-maverick-200: var(--color-primary-container);
-  --color-maverick-300: var(--color-primary-container);
-  --color-maverick-400: var(--color-primary);
-  --color-maverick-500: var(--color-primary);
-  --color-maverick-600: var(--color-primary);
-  --color-maverick-700: var(--color-primary-container);
-  --color-maverick-800: var(--color-surface-container-high);
-  --color-maverick-900: var(--color-surface-container);
-  --color-maverick-950: var(--color-surface-container-low);
-  --color-primary-light-1: var(--color-primary-container);
-  --color-primary-light-2: var(--color-primary-container);
-  --color-primary-dark-1: var(--color-primary);
-  --color-primary-dark-2: var(--color-primary);
-  --color-secondary-light-1: var(--color-secondary-container);
-  --color-secondary-dark-1: var(--color-secondary);
-  --color-accent-light-1: var(--color-primary-container);
-  --color-surface-foreground: var(--color-surface-container-lowest);
-  --color-surface-foreground-dark: var(--color-surface-container-lowest);
-  --color-on-surface-foreground: var(--color-on-surface);
-  --color-on-surface-foreground-dark: var(--color-on-surface);
-  --color-on-surface-border: var(--color-outline-variant);
-  --color-on-surface-border-dark: var(--color-outline-variant);
-  --color-on-light: var(--color-on-surface);
-  --color-on-dark: var(--color-on-surface);
-  --color-dark: var(--color-surface);
 
   /* Type */
   --font-sans:

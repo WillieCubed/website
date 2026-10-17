@@ -77,8 +77,8 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
   resource catalog.
 - [Status data and admin](./reference/content/status.md): status sources,
   sign-in, and caching.
-- [Profile proposals](./reference/content/public-profile.md): retained About and
-  Research sources and their publication constraints.
+- [Profile pages](./reference/content/public-profile.md): the approval boundary
+  for About and Research.
 
 ### Publishing
 

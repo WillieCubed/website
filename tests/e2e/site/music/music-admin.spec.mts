@@ -296,7 +296,7 @@ test('the public Music gallery loads, passes axe, and fits the viewport', async 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Music', exact: true })
   ).toBeVisible();
-  await expect(page.locator('.music-prototype')).toHaveAttribute(
+  await expect(page.locator('.music-experience')).toHaveAttribute(
     'aria-busy',
     'false'
   );
@@ -485,7 +485,7 @@ test('a Spotify refresh keeps the reviewed draft aligned with the saved revision
   await expect(
     page.locator('.music-admin-notices [role="status"]')
   ).toContainText('Importing Spotify playlists…');
-  await expect(page.locator('.music-prototype')).toHaveAttribute('inert', '');
+  await expect(page.locator('.music-experience')).toHaveAttribute('inert', '');
   await expect(selection).toBeDisabled();
   const dir = '.playwright-mcp/music/iterations/2026-10-13-refresh-locked';
   await mkdir(dir, { recursive: true });

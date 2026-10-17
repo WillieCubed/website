@@ -190,7 +190,7 @@ test('Music curation keeps its shell through a failed load and retry', async ({
   await expect(
     page.getByRole('button', { name: 'Try again', exact: true })
   ).toBeVisible();
-  await expect(page.locator('.music-prototype')).toHaveAttribute(
+  await expect(page.locator('.music-experience')).toHaveAttribute(
     'aria-busy',
     'false'
   );
@@ -445,7 +445,7 @@ test('public Music has usable playlist destinations without scripting', async ({
   });
   const page = await context.newPage();
   await page.goto('/music');
-  await expect(page.locator('.music-prototype')).toHaveAttribute(
+  await expect(page.locator('.music-experience')).toHaveAttribute(
     'aria-busy',
     'false'
   );

@@ -7,7 +7,7 @@
   height: 36px;
   color: var(--color-muted);
 }
-.music-prototype .mp-selection-control > input {
+.music-experience .mp-selection-control > input {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -17,7 +17,7 @@
   cursor: pointer;
   z-index: 1;
 }
-.music-prototype .mp-selection-control > input:focus-visible {
+.music-experience .mp-selection-control > input:focus-visible {
   outline: none;
 }
 .mp-selection-state {
@@ -76,7 +76,7 @@
   .mp-selection-state {
   background: transparent;
 }
-.music-prototype
+.music-experience
   :is(.ms-playlist, .ms-feature-option, .mp-check):has(.mp-selection-control) {
   position: relative;
   cursor: pointer;
@@ -85,14 +85,14 @@
     color 160ms var(--mp-effects),
     border-radius var(--control-shape-duration) var(--control-shape-ease);
 }
-.music-prototype
+.music-experience
   :is(.ms-playlist, .ms-feature-option, .mp-check):has(
     .mp-selection-control input:focus-visible
   ) {
   outline: var(--control-focus-width) solid var(--color-primary);
   outline-offset: var(--control-focus-offset);
 }
-.music-prototype
+.music-experience
   :is(.ms-playlist, .ms-feature-option, .mp-check):has(
     .mp-selection-control input:enabled
   ):active {
@@ -104,7 +104,7 @@
 .mp-selection-control:has(input:disabled) {
   opacity: 0.38;
 }
-.music-prototype .mp-selection-control > input:disabled {
+.music-experience .mp-selection-control > input:disabled {
   cursor: default;
 }
 @media (hover: hover) {
@@ -118,7 +118,7 @@
 @media (prefers-reduced-motion: reduce) {
   .mp-selection-state,
   .mp-selection-state svg,
-  .music-prototype
+  .music-experience
     :is(.ms-playlist, .ms-feature-option, .mp-check):has(
       .mp-selection-control
     ) {
@@ -126,7 +126,7 @@
   }
 }
 @media (forced-colors: active) {
-  .music-prototype
+  .music-experience
     :is(.ms-playlist, .ms-feature-option, .mp-check):has(
       .mp-selection-control input:focus-visible
     ) {

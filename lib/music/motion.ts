@@ -33,7 +33,7 @@ export function playlistMotion(
     for (const [part, element] of Object.entries(parts)) {
       if (kind === 'swap' && part === 'controls') continue;
       if (!element || element.getBoundingClientRect().height === 0) continue;
-      element.style.viewTransitionName = `music-prototype-${part}`;
+      element.style.viewTransitionName = `music-experience-${part}`;
       named.add(element);
     }
   };

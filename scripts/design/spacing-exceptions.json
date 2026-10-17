@@ -7,13 +7,6 @@
     "reason": "Deliberately violates clear space in the brand guide example showing what not to do."
   },
   {
-    "file": "components/music/styles/gallery.css",
-    "selector": ".music-announcement, .music-visually-hidden",
-    "property": "margin",
-    "value": "-1px",
-    "reason": "Clipped screen-reader-only announcement box; the standard -1px margin prevents layout interference."
-  },
-  {
     "file": "components/music/styles/detail.css",
     "selector": ".music-track-number, .music-track-duration",
     "property": "padding-top",
@@ -54,13 +47,6 @@
     "property": "margin-inline-start",
     "value": "1px",
     "reason": "Optical spacing of the temperature unit glyph at the compact text scale."
-  },
-  {
-    "file": "components/music/styles/admin.css",
-    "selector": ".music-admin-notices > p[role='status']",
-    "property": "margin",
-    "value": "-1px",
-    "reason": "Clipped screen-reader-only announcement box; the standard -1px margin prevents layout interference."
   },
   {
     "file": "components/music/styles/detail.css",

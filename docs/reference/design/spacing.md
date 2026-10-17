@@ -37,7 +37,6 @@ whole files or components. Remove an entry when the source no longer needs it.
 The permitted cases are:
 
 - Material 3 connected button groups use the shared 2px internal gap.
-- Clipped screen-reader-only boxes retain their standard -1px margin.
 - Large music headings compensate for the left glyph bearing; small track
   and review numbers compensate for the adjacent text's baseline.
 - The setup information icon aligns its artwork with the first text line.

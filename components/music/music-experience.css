@@ -2744,6 +2744,6 @@ img.mp-cover {
 
 .mp-detail-pagination .site-control__surface,
 .mp-order-buttons .site-control__surface {
-  width: 100%;
+  width: var(--control-target);
   height: var(--control-container-size);
 }

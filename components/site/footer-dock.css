@@ -604,7 +604,7 @@
   }
 }
 .site-webring {
-  --ring-target: var(--control-target-small);
+  --ring-target: 44px;
   display: grid;
   grid-template-columns: repeat(3, var(--ring-target));
   align-content: center;
@@ -628,11 +628,12 @@
 }
 
 .site-footer .site-webring__link {
+  --control-target: var(--ring-target);
   --control-ink: var(--color-muted);
   --control-rest-radius: 16px;
   width: var(--ring-target);
   min-width: var(--ring-target);
-  height: var(--control-target-small);
+  height: var(--ring-target);
   padding: 0;
   text-decoration: none;
   touch-action: manipulation;

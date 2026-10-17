@@ -19,7 +19,7 @@ export async function runCloudflareBuild() {
     process.cwd(),
     {
       mode: target === 'preview' ? 'preview' : undefined,
-      skipUnknownBindings: true,
+      skipUntranslated: true,
     },
     (configPath) =>
       spawnSync(

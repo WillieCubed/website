@@ -51,7 +51,7 @@ function extractLinksFromContent(content: string): string[] {
  * Build a map of all internal links between writings.
  * Returns a map where keys are target slugs and values are arrays of source slugs.
  */
-export async function extractInternalLinks(): Promise<LinkMap> {
+async function extractInternalLinks(): Promise<LinkMap> {
   if (cachedLinkMap) {
     return cachedLinkMap;
   }
@@ -125,11 +125,4 @@ export async function getBacklinksForPost(slug: string): Promise<Backlink[]> {
       (a, b) =>
         new Date(b.published).getTime() - new Date(a.published).getTime()
     );
-}
-
-/**
- * Clear the cached link map (useful for development/hot reload).
- */
-export function clearBacklinksCache(): void {
-  cachedLinkMap = null;
 }

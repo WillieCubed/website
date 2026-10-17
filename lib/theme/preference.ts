@@ -15,7 +15,7 @@ function root(): HTMLElement {
 const inBrowser = () => typeof window !== 'undefined';
 
 /** The scheme the operating system asks for. */
-export function systemScheme(): Scheme {
+function systemScheme(): Scheme {
   return inBrowser() &&
     window.matchMedia('(prefers-color-scheme: dark)').matches
     ? 'dark'

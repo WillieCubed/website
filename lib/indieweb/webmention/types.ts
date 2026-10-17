@@ -85,7 +85,7 @@ export type ResponseActivity = PublishingResponse & {
   verifiedAt?: Date;
 };
 
-export interface ActivityFeedIndieWebMetadata {
+interface ActivityFeedIndieWebMetadata {
   type: WebmentionType;
   source: string;
   target: string;
@@ -142,17 +142,6 @@ export interface WebmentionPublishResult {
   unsupported: number;
 }
 
-export interface OutgoingWebmention {
-  id: string;
-  sourceUrl: string;
-  targetUrl: string;
-  endpointUrl?: string;
-  status: 'pending' | WebmentionDeliveryStatus;
-  responseCode?: number;
-  sentAt?: Date;
-  createdAt: Date;
-}
-
 export interface OutgoingWebmentionRecord {
   id: string;
   sourceUrl: string;
@@ -160,13 +149,6 @@ export interface OutgoingWebmentionRecord {
   contentHash: string;
   status: string;
   sentAt: Date | null;
-}
-
-export interface PendingOutgoingWebmention {
-  id: string;
-  sourceUrl: string;
-  targetUrl: string;
-  postSlug: string;
 }
 
 /** The parts of a writing that decide where its webmentions go. */
@@ -186,20 +168,10 @@ export interface WebmentionSourceDocument {
   content: string;
 }
 
-export interface SendAllWebmentionsRequest {
-  slugs?: string[];
-  dryRun?: boolean;
-}
-
 export interface SentWebmentionSummary {
   targetUrl: string;
   success: boolean;
   error?: string;
-}
-
-export interface SendAllWebmentionsWritingResult {
-  slug: string;
-  results: SentWebmentionSummary[];
 }
 
 export interface UpdateVerifiedWebmentionData {
@@ -212,10 +184,6 @@ export interface UpdateVerifiedWebmentionData {
   contentHtml?: string;
   publishedAt?: Date;
   rawMf2?: object;
-}
-
-export interface GetAllWebmentionActivitiesOptions {
-  limit?: number;
 }
 
 export type WebmentionModerationAction = 'approve' | 'reject';
@@ -234,7 +202,7 @@ export interface WebmentionModerationStore {
  * A verified webmention stored without an author photo, with the h-entry the
  * verifier kept as `raw_mf2_json`.
  */
-export interface WebmentionAuthorBackfillRow {
+interface WebmentionAuthorBackfillRow {
   id: string;
   rawMf2: unknown;
 }

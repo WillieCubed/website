@@ -36,7 +36,7 @@ export const INDIEAUTH_ME = `${SITE_URL}/`;
  * Scopes a client may be granted. `profile` and `email` shape the sign-in
  * response; the rest are the Micropub scopes.
  */
-export const INDIEAUTH_SCOPES = [
+const INDIEAUTH_SCOPES = [
   'profile',
   'email',
   'create',
@@ -52,7 +52,7 @@ export const AUTHORIZATION_CODE_LIFETIME_MS = 10 * 60 * 1000;
 /** New access tokens last one hour; stored legacy expiries remain intact. */
 export const ACCESS_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
 /** Each successful rotation restarts the refresh inactivity deadline. */
-export const REFRESH_TOKEN_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 
 const SUPPORTED_SCOPES = new Set<string>(INDIEAUTH_SCOPES);
 // RFC 7636: 43 to 128 characters from the unreserved set.
@@ -103,7 +103,7 @@ export function parseScope(value: string | null | undefined): string[] {
 }
 
 /** A fresh 256-bit secret, base64url encoded, for a code or a token. */
-export function newSecret(): string {
+function newSecret(): string {
   return randomBytes(32).toString('base64url');
 }
 
@@ -112,7 +112,7 @@ export function hashSecret(secret: string): string {
   return createHash('sha256').update(secret).digest('hex');
 }
 
-export function isValidCodeVerifier(verifier: string): boolean {
+function isValidCodeVerifier(verifier: string): boolean {
   return CODE_VERIFIER_PATTERN.test(verifier);
 }
 

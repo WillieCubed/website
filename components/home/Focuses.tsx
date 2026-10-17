@@ -19,7 +19,7 @@ export interface FocusItem {
   stack: StackPicture[];
 }
 
-export interface StackPicture {
+interface StackPicture {
   src: string;
   width?: number;
   height?: number;

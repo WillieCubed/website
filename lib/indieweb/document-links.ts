@@ -11,7 +11,7 @@ function* elements(node: Parent): Generator<Element> {
 }
 const attribute = (node: Element, name: string) =>
   node.attrs.find((attr) => attr.name === name)?.value;
-export interface LinkedMicroformatEntry {
+interface LinkedMicroformatEntry {
   html: string;
   links: string[];
 }

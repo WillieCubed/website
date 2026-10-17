@@ -2,7 +2,7 @@ import { site } from '@/lib/site/identity';
 
 import { studioOrigin } from './config';
 
-export const LATTICE_CLIENT_METADATA_PATH = '/.well-known/lattice-client.json';
+const LATTICE_CLIENT_METADATA_PATH = '/.well-known/lattice-client.json';
 export const STUDIO_LATTICE_SCOPE =
   'openid offline_access lattice:compute:inference';
 

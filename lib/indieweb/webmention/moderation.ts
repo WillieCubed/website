@@ -31,11 +31,11 @@ export const MODERATION_PAST_TENSE: Record<WebmentionModerationAction, string> =
     reject: 'rejected',
   };
 
-export function isWebmentionId(value: unknown): value is string {
+function isWebmentionId(value: unknown): value is string {
   return typeof value === 'string' && UUID_PATTERN.test(value);
 }
 
-export function isModerationAction(
+function isModerationAction(
   value: unknown
 ): value is WebmentionModerationAction {
   return value === 'approve' || value === 'reject';

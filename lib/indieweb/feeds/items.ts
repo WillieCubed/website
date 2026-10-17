@@ -69,7 +69,7 @@ export async function getTagFeedItems(tag: string): Promise<FeedItem[]> {
 }
 
 /** Every published, dated initiative with its full body, newest first. */
-export async function getInitiativeFeedItems(): Promise<FeedItem[]> {
+async function getInitiativeFeedItems(): Promise<FeedItem[]> {
   const initiatives = (await getInitiatives()).filter(
     (initiative) => !initiative.draft
   );
@@ -85,7 +85,7 @@ export async function getInitiativeFeedItems(): Promise<FeedItem[]> {
 }
 
 /** Every published project with a real date and only its public body. */
-export async function getProjectFeedItems(): Promise<FeedItem[]> {
+async function getProjectFeedItems(): Promise<FeedItem[]> {
   const projects = await getPublishedProjects();
   const items = await Promise.all(
     projects.map(async (project) =>

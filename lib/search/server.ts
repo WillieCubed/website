@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 
 import { readFileSync } from '../content/runtime-files';
-import { generateSearchIndex } from './index';
+import { collectSearchDocuments } from './collect';
 import { rankItems, tokenize } from './rank';
 import type {
   SearchContentType,
@@ -21,7 +21,7 @@ let indexPromise: Promise<SearchableItem[]> | null = null;
  * server, fresh checkout, stale file) the index is built from the content
  * directory on first use and cached for the process.
  */
-export async function loadSearchIndex(): Promise<SearchableItem[]> {
+async function loadSearchIndex(): Promise<SearchableItem[]> {
   if (!indexPromise) {
     indexPromise = Promise.resolve()
       .then(() => readFileSync(INDEX_PATH, 'utf8'))
@@ -32,7 +32,7 @@ export async function loadSearchIndex(): Promise<SearchableItem[]> {
         }
         return items;
       })
-      .catch(() => generateSearchIndex())
+      .catch(() => collectSearchDocuments())
       .catch((error) => {
         indexPromise = null;
         throw error;

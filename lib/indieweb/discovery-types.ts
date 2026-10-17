@@ -26,7 +26,7 @@ export interface OEmbedHtmlParts {
   url: string;
 }
 
-export interface WebFingerLink {
+interface WebFingerLink {
   rel: string;
   type?: string;
   href: string;
@@ -38,7 +38,7 @@ export interface WebFingerResponse {
   links: WebFingerLink[];
 }
 
-export interface HostMetaLink {
+interface HostMetaLink {
   rel: string;
   template: string;
 }

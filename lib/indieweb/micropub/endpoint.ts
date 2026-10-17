@@ -73,7 +73,7 @@ export interface MicropubEndpointOptions extends PrivateMicropubOptions {
   now?: () => Date;
 }
 
-export function micropubEnvironment(
+function micropubEnvironment(
   env: NodeJS.ProcessEnv = process.env
 ): MicropubRouteEnvironment {
   return {

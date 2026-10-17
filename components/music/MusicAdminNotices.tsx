@@ -12,7 +12,7 @@ interface MusicOperationNoticeProps {
   children?: ReactNode;
 }
 
-export function MusicOperationNotice({
+function MusicOperationNotice({
   error,
   onDismiss,
   children,

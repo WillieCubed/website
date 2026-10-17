@@ -13,7 +13,7 @@ export interface KitDownload {
   bytes: number;
 }
 
-export interface KitFile {
+interface KitFile {
   /** The path inside its group, as the kit's folders spell it. */
   name: string;
   href: string;
@@ -22,7 +22,7 @@ export interface KitFile {
 }
 
 /** A box in a file's own units. */
-export interface KitBox {
+interface KitBox {
   x: number;
   y: number;
   width: number;
@@ -49,7 +49,7 @@ export interface KitUsage {
   minSize?: { px: number; mm: number };
 }
 
-export interface KitMark {
+interface KitMark {
   name: string;
   label: string;
   note: string;
@@ -62,7 +62,7 @@ export interface KitMark {
   usage: KitUsage;
 }
 
-export interface KitLockup {
+interface KitLockup {
   name: string;
   label: string;
   note: string;
@@ -78,7 +78,7 @@ export interface KitLockup {
 }
 
 /** Rules shared by the brand page and its downloadable guidelines. */
-export interface KitRules {
+interface KitRules {
   /** x as a share of the cube's drawn height. */
   clearSpace: number;
   /** At or below this height in CSS pixels, a mark switches to its small cut. */
@@ -95,7 +95,7 @@ export interface KitRules {
   guidelines: KitDownload[];
 }
 
-export interface KitColor {
+interface KitColor {
   key: string;
   name: string;
   role: string;
@@ -104,7 +104,7 @@ export interface KitColor {
   oklch: string;
 }
 
-export interface KitAppIcon {
+interface KitAppIcon {
   appearance: string;
   preview: string;
   downloads: KitDownload[];

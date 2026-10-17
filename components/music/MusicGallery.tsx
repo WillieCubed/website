@@ -42,9 +42,7 @@ interface MusicPublicPlaceholderProps {
   loadError?: string;
 }
 
-export function MusicPublicPlaceholder({
-  loadError,
-}: MusicPublicPlaceholderProps) {
+function MusicPublicPlaceholder({ loadError }: MusicPublicPlaceholderProps) {
   return (
     <section
       className="mp-public-placeholder"

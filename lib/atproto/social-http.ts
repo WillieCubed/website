@@ -20,12 +20,12 @@ export interface BrowserSession {
   did: string;
   id: string;
 }
-export interface SocialAuthorization {
+interface SocialAuthorization {
   did: string;
   intent: LoginIntent;
 }
 
-export interface SocialLoginRequest extends LoginIntent {
+interface SocialLoginRequest extends LoginIntent {
   handle: string;
 }
 

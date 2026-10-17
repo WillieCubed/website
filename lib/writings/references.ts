@@ -11,7 +11,7 @@ import { visit } from 'unist-util-visit';
  * number in order of appearance, a popover on the mark, and an entry in the
  * list at the end of the page.
  */
-export interface ReferenceTarget {
+interface ReferenceTarget {
   id: string;
   kind: 'note' | 'link';
   /** The note's text, or the link's title. */

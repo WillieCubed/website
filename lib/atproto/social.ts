@@ -4,11 +4,11 @@ import {
   SiteStandardGraphSubscription,
 } from '@atcute/standard-site';
 
-export type GraphCollection =
+type GraphCollection =
   | 'site.standard.graph.subscription'
   | 'site.standard.graph.recommend';
 export type SocialAction = 'subscription' | 'recommendation';
-export interface GraphRecord {
+interface GraphRecord {
   uri: string;
   value: Record<string, unknown>;
 }

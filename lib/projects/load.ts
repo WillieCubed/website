@@ -40,7 +40,7 @@ function readProject(filePath: string, slug: string, now: Date): Project {
 const time = (date?: Date) => (date ? date.getTime() : Number.MIN_SAFE_INTEGER);
 
 /** Pinned work first, then the most recent start, undated last, then by title. */
-export function sortProjects(projects: Project[]): Project[] {
+function sortProjects(projects: Project[]): Project[] {
   return [...projects].sort((a, b) => {
     const byWeight = b.weight - a.weight;
     if (byWeight !== 0 && !Number.isNaN(byWeight)) return byWeight;

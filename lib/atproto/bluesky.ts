@@ -38,7 +38,7 @@ export function blueskyHandlePostUrl(actor: string, rkey: string): string {
   return `${blueskyProfileUrl(actor)}/post/${encodeURIComponent(rkey)}`;
 }
 
-export function parseBlueskyPostUrl(
+function parseBlueskyPostUrl(
   value: string
 ): { actor: string; rkey: string } | null {
   try {

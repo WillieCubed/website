@@ -25,7 +25,7 @@ export async function getPaletteData(): Promise<PaletteData> {
  * The palette's data from loaded writings and initiatives. Kept apart from
  * the cached loader so it runs under plain Node in tests.
  */
-export function paletteData(
+function paletteData(
   writings: WritingData[],
   initiatives: Initiative[]
 ): PaletteData {

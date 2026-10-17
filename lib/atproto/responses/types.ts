@@ -1,6 +1,6 @@
 import type { ResponseGroup } from '@/lib/indieweb/webmention/types';
 
-export interface ResponseLabel {
+interface ResponseLabel {
   val: string;
   neg?: boolean;
 }
@@ -28,7 +28,7 @@ export interface PostEmbed {
   external?: { uri: string; title?: string; description?: string };
 }
 
-export interface PostRecord {
+interface PostRecord {
   text?: string;
   createdAt?: string;
   reply?: { parent?: { uri?: string }; root?: { uri?: string } };

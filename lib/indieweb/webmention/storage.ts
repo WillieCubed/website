@@ -1,17 +1,10 @@
 import { sql } from '@/lib/db/postgres';
-import {
-  extractWritingSlugFromTarget,
-  getActivityDate,
-  sortWebmentionActivities,
-} from '@/lib/indieweb/activity-feed';
 import type { VouchStore } from '@/lib/indieweb/vouch';
 import type {
-  GetAllWebmentionActivitiesOptions,
   PublicWebmention,
   PublicWebmentionResponse,
   UpdateVerifiedWebmentionData,
   Webmention,
-  WebmentionActivity,
   WebmentionAuthorBackfillStore,
   WebmentionGroup,
   WebmentionModerationStore,
@@ -20,67 +13,7 @@ import type {
   WebmentionTargetRequest,
   WebmentionType,
 } from '@/lib/indieweb/webmention/types';
-import { site } from '@/lib/site/identity';
 import type { RSVPStatus } from '@/lib/writings/types';
-
-const SITE_URL = site.origin;
-
-/**
- * Initialize the webmentions table if it doesn't exist.
- * Run this once during setup or as a migration.
- */
-export async function initializeWebmentionsTable() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS webmentions (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      source_url TEXT NOT NULL,
-      target_url TEXT NOT NULL,
-      type TEXT,
-      author_name TEXT,
-      author_url TEXT,
-      author_photo TEXT,
-      content TEXT,
-      published_at TIMESTAMPTZ,
-      received_at TIMESTAMPTZ DEFAULT NOW(),
-      verified_at TIMESTAMPTZ,
-      is_verified BOOLEAN DEFAULT FALSE,
-      is_approved BOOLEAN DEFAULT FALSE,
-      raw_mf2_json JSONB,
-      UNIQUE(source_url, target_url)
-    )
-  `;
-
-  await sql`
-    CREATE INDEX IF NOT EXISTS idx_webmentions_target
-    ON webmentions(target_url)
-  `;
-
-  await sql`
-    CREATE INDEX IF NOT EXISTS idx_webmentions_verified
-    ON webmentions(is_verified, is_approved)
-  `;
-
-  await initializeWebmentionRateLimitTable();
-}
-
-/**
- * Initialize the receiving endpoint's request counter. Existing databases
- * receive the same table through the rate-limit migration.
- */
-export async function initializeWebmentionRateLimitTable() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS webmention_rate_limits (
-      key TEXT PRIMARY KEY,
-      window_start TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      hits INTEGER NOT NULL DEFAULT 1
-    )
-  `;
-
-  await sql`
-    CREATE INDEX IF NOT EXISTS idx_webmention_rate_limits_window
-    ON webmention_rate_limits(window_start)
-  `;
-}
 
 /**
  * Store a new webmention (unverified).
@@ -128,7 +61,7 @@ export async function updateVerifiedWebmention(
  * Approve a verified webmention for display. Resolves to false when the id
  * names no verified, unrejected webmention.
  */
-export async function approveWebmention(id: string): Promise<boolean> {
+async function approveWebmention(id: string): Promise<boolean> {
   const result = await sql`
     UPDATE webmentions
     SET is_approved = TRUE
@@ -137,16 +70,6 @@ export async function approveWebmention(id: string): Promise<boolean> {
       AND (is_deleted IS NULL OR is_deleted = FALSE)
   `;
   return (result.rowCount ?? 0) > 0;
-}
-
-/**
- * Delete a webmention.
- */
-export async function deleteWebmention(id: string): Promise<void> {
-  await sql`
-    DELETE FROM webmentions
-    WHERE id = ${id}
-  `;
 }
 
 /**
@@ -166,7 +89,7 @@ export async function markWebmentionDeleted(id: string): Promise<void> {
  * same source stays hidden. Resolves to false when the id names no webmention
  * that is still live.
  */
-export async function rejectWebmention(id: string): Promise<boolean> {
+async function rejectWebmention(id: string): Promise<boolean> {
   const result = await sql`
     UPDATE webmentions
     SET is_deleted = TRUE, deleted_at = NOW(), is_approved = FALSE
@@ -264,15 +187,6 @@ export async function getWebmention(id: string): Promise<Webmention | null> {
 }
 
 /**
- * Get all verified and approved webmentions for a post.
- */
-export async function getWebmentionsForPost(
-  slug: string
-): Promise<WebmentionGroup> {
-  return getWebmentionsForTarget(`${SITE_URL}/writings/${slug}`);
-}
-
-/**
  * Get all verified and approved webmentions for any page, by its canonical
  * address, grouped by kind.
  */
@@ -353,66 +267,10 @@ export async function listApprovedWebmentions(): Promise<Webmention[]> {
 }
 
 /**
- * Get all verified and approved webmention activities for a post.
- */
-export async function getWebmentionActivitiesForPost(
-  slug: string
-): Promise<WebmentionActivity[]> {
-  const group = await getWebmentionsForPost(slug);
-  return sortWebmentionActivities(
-    [
-      ...group.likes,
-      ...group.reposts,
-      ...group.replies,
-      ...group.mentions,
-      ...group.bookmarks,
-      ...group.rsvps,
-    ].map(toWebmentionActivity)
-  );
-}
-
-/**
- * Get recent verified and approved webmention activities across all writings.
- */
-export async function getAllWebmentionActivities({
-  limit = 100,
-}: GetAllWebmentionActivitiesOptions = {}): Promise<WebmentionActivity[]> {
-  const result = await sql`
-    SELECT
-      id,
-      source_url,
-      target_url,
-      type,
-      author_name,
-      author_url,
-      author_photo,
-      rsvp,
-      raw_mf2_json #>> '{properties,name,0}' AS name,
-      content,
-      content_html,
-      published_at,
-      received_at,
-      verified_at,
-      is_verified,
-      is_approved
-    FROM webmentions
-    WHERE is_verified = TRUE
-      AND is_approved = TRUE
-      AND (is_deleted IS NULL OR is_deleted = FALSE)
-    ORDER BY published_at DESC NULLS LAST, received_at DESC
-    LIMIT ${limit}
-  `;
-
-  return sortWebmentionActivities(
-    rowsToWebmentions(result.rows).map(toWebmentionActivity)
-  );
-}
-
-/**
  * Get webmentions awaiting moderation: not yet approved and not rejected.
  * Unverified ones are listed too, though only verified ones can be approved.
  */
-export async function getPendingWebmentions(): Promise<Webmention[]> {
+async function getPendingWebmentions(): Promise<Webmention[]> {
   const result = await sql`
     SELECT
       id,
@@ -579,44 +437,6 @@ export const salmentionStore = {
   },
 };
 
-/**
- * Get public, grouped webmentions for any approved target on this site.
- */
-export async function getPublicWebmentionsForTarget(
-  targetUrl: string
-): Promise<PublicWebmentionResponse> {
-  const result = await sql`
-    SELECT
-      id,
-      source_url,
-      target_url,
-      type,
-      author_name,
-      author_url,
-      author_photo,
-      rsvp,
-      raw_mf2_json #>> '{properties,name,0}' AS name,
-      content,
-      content_html,
-      published_at,
-      received_at,
-      verified_at,
-      is_verified,
-      is_approved
-    FROM webmentions
-    WHERE target_url = ${targetUrl}
-      AND is_verified = TRUE
-      AND is_approved = TRUE
-      AND (is_deleted IS NULL OR is_deleted = FALSE)
-    ORDER BY published_at DESC NULLS LAST, received_at DESC
-  `;
-
-  return buildPublicWebmentionResponse(
-    targetUrl,
-    rowsToWebmentions(result.rows)
-  );
-}
-
 function rowsToWebmentions(rows: unknown[]): Webmention[] {
   return rows.map((row) => rowToWebmention(row as WebmentionRow));
 }
@@ -666,14 +486,6 @@ function citedName(
     return undefined;
   }
   return title;
-}
-
-function toWebmentionActivity(webmention: Webmention): WebmentionActivity {
-  return {
-    ...webmention,
-    activityDate: getActivityDate(webmention),
-    targetSlug: extractWritingSlugFromTarget(webmention.targetUrl) ?? undefined,
-  };
 }
 
 export function buildPublicWebmentionResponse(

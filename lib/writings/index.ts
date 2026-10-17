@@ -169,27 +169,6 @@ export async function getAllSeriesWithWritings(): Promise<
 }
 
 /**
- * Gets the series name for a given slug.
- * Returns the slug if series not found.
- */
-export async function getSeriesName(slug: string): Promise<string> {
-  try {
-    const series = await getSeries(slug);
-    return series.name;
-  } catch {
-    return slug;
-  }
-}
-
-/**
- * Gets featured writings based on config.
- */
-export async function getFeaturedWritings(): Promise<WritingData[]> {
-  const writings = await getAllWritings();
-  return writings.filter((writing) => writing.featured);
-}
-
-/**
  * Gets the previous and next writings relative to a given writing.
  * Uses chronological order (sorted by published date, newest first).
  *

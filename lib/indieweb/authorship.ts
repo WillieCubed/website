@@ -10,7 +10,7 @@ export type MicroformatProperty = MicroformatRoot['properties'][string][number];
 const AUTHOR_PAGE_TIMEOUT_MS = 5000;
 
 /** An author page fetched and parsed, or null when it could not be read. */
-export interface AuthorPage {
+interface AuthorPage {
   url: string;
   html: string;
 }
@@ -106,7 +106,7 @@ function sameUrl(left: string | undefined, right: string): boolean {
  * alt is not kept: the avatar is labelled with the author's name, and the
  * whole entry is stored as `rawMf2` anyway.
  */
-export function cardAuthor(card: MicroformatRoot): ExtractedWebmentionAuthor {
+function cardAuthor(card: MicroformatRoot): ExtractedWebmentionAuthor {
   const { name, url, photo } = card.properties;
   const author: ExtractedWebmentionAuthor = {
     name: text(name?.[0]),

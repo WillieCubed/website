@@ -41,37 +41,10 @@ interface ReplyContextRow {
 }
 
 /**
- * Initialize the reply context cache table.
- * This should be run during database setup/migrations.
- */
-export async function initializeReplyContextTable() {
-  await sql`
-    CREATE TABLE IF NOT EXISTS reply_context_cache (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      target_url TEXT NOT NULL UNIQUE,
-      author_name TEXT,
-      author_url TEXT,
-      author_photo TEXT,
-      title TEXT,
-      content_preview TEXT,
-      published_at TIMESTAMPTZ,
-      site_name TEXT,
-      fetched_at TIMESTAMPTZ DEFAULT NOW(),
-      raw_mf2_json JSONB
-    )
-  `;
-
-  await sql`
-    CREATE INDEX IF NOT EXISTS idx_reply_context_url
-    ON reply_context_cache(target_url)
-  `;
-}
-
-/**
  * Get cached reply context for a URL.
  * Returns null if not cached or cache is stale (older than 7 days).
  */
-export async function getCachedReplyContext(
+async function getCachedReplyContext(
   url: string,
   maxAgeHours = 168 // 7 days default
 ): Promise<ReplyContext | null> {
@@ -102,7 +75,7 @@ export async function getCachedReplyContext(
 /**
  * Store reply context in the cache.
  */
-export async function cacheReplyContext(
+async function cacheReplyContext(
   context: ReplyContext,
   rawMf2?: object
 ): Promise<void> {
@@ -220,10 +193,10 @@ function extractDescription(html: string): string | undefined {
 }
 
 /**
- * Fetch and parse reply context from a URL.
+ * Get reply context for a URL, using the cache when it is fresh.
  * Reads the first h-entry, then fills the gaps from Open Graph and meta tags.
  */
-export async function fetchReplyContext(url: string): Promise<ReplyContext> {
+export async function getReplyContext(url: string): Promise<ReplyContext> {
   // First check cache
   const cached = await getCachedReplyContext(url);
   if (cached) {
@@ -382,52 +355,6 @@ export function extractMicroformats(
   Object.assign(context, authorContext(props.author?.[0]));
 
   return context;
-}
-
-/**
- * Get reply context for a URL, using cache if available.
- * This is the main function to use for displaying reply context.
- */
-export async function getReplyContext(url: string): Promise<ReplyContext> {
-  return fetchReplyContext(url);
-}
-
-/**
- * Batch fetch reply contexts for multiple URLs.
- * Useful for build-time fetching of all interaction post targets.
- */
-export async function batchFetchReplyContexts(
-  urls: string[]
-): Promise<Map<string, ReplyContext>> {
-  const results = new Map<string, ReplyContext>();
-
-  // Fetch in parallel with concurrency limit
-  const CONCURRENCY = 5;
-  for (let i = 0; i < urls.length; i += CONCURRENCY) {
-    const batch = urls.slice(i, i + CONCURRENCY);
-    const contexts = await Promise.all(
-      batch.map((url) =>
-        fetchReplyContext(url).catch(() => ({ url, fetchedAt: new Date() }))
-      )
-    );
-    contexts.forEach((ctx) => results.set(ctx.url, ctx));
-  }
-
-  return results;
-}
-
-/**
- * Clear stale reply context entries from the cache.
- */
-export async function clearStaleContextCache(
-  maxAgeHours = 168
-): Promise<number> {
-  const result = await sql`
-    DELETE FROM reply_context_cache
-    WHERE fetched_at < NOW() - INTERVAL '1 hour' * ${maxAgeHours}
-    RETURNING id
-  `;
-  return result.rowCount ?? 0;
 }
 
 function contextFromRow(row: ReplyContextRow): ReplyContext {

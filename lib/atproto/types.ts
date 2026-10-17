@@ -12,9 +12,7 @@ export interface LocalBlob {
   bytes: Uint8Array;
 }
 
-export type RecordValue =
-  | SiteStandardPublication.Main
-  | SiteStandardDocument.Main;
+type RecordValue = SiteStandardPublication.Main | SiteStandardDocument.Main;
 
 /** A record as the site's content says it should be. */
 export interface DesiredRecord {

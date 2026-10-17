@@ -34,17 +34,16 @@ export const DateSchema = z.preprocess((value) => {
   return value;
 }, z.date());
 
-export const StatusSchema = z.enum([
+const StatusSchema = z.enum([
   'planned',
   'active',
   'paused',
   'complete',
   'archived',
 ]);
-export type InitiativeStatus = z.infer<typeof StatusSchema>;
+type InitiativeStatus = z.infer<typeof StatusSchema>;
 
-export const KindSchema = z.enum(['campaign', 'series', 'project']);
-export type InitiativeKind = z.infer<typeof KindSchema>;
+const KindSchema = z.enum(['campaign', 'series', 'project']);
 
 export const MediaSchema = z
   .object({
@@ -61,7 +60,7 @@ export const MediaSchema = z
   });
 export type Media = z.infer<typeof MediaSchema>;
 
-export const PlaceSchema = z.object({
+const PlaceSchema = z.object({
   name: z.string().min(1),
   region: z.string().optional(),
   lat: z.number().min(-90).max(90),
@@ -69,28 +68,26 @@ export const PlaceSchema = z.object({
 });
 export type Place = z.infer<typeof PlaceSchema>;
 
-export const MilestoneSchema = z.object({
+const MilestoneSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
   date: DateSchema,
   /** Set once the milestone happened. */
   done: z.boolean().default(false),
 });
-export type Milestone = z.infer<typeof MilestoneSchema>;
 
-export const LinkSchema = z.object({
+const LinkSchema = z.object({
   label: z.string().min(1),
   href: z.string().min(1),
 });
-export type InitiativeLink = z.infer<typeof LinkSchema>;
 
-export const SyndicationSchema = z.object({
+const SyndicationSchema = z.object({
   platform: z.string().min(1),
   url: z.string().url(),
 });
 
 /** Grid spans the homepage tile grid understands (columns × rows). */
-export const TileSizeSchema = z.enum([
+const TileSizeSchema = z.enum([
   'w2 h2',
   'w2 h3',
   'w3 h2',
@@ -98,10 +95,9 @@ export const TileSizeSchema = z.enum([
   'w4 h3',
   'w6 h3',
 ]);
-export type TileSize = z.infer<typeof TileSizeSchema>;
 
 /** The homepage goals a featured initiative serves. */
-export const FocusSchema = z.enum(FOCUS_IDS);
+const FocusSchema = z.enum(FOCUS_IDS);
 
 /** How an initiative shows up on the homepage tile grid. */
 export const FeatureSchema = z.object({
@@ -114,7 +110,7 @@ export const FeatureSchema = z.object({
 });
 export type Feature = z.infer<typeof FeatureSchema>;
 
-export const TrailerSchema = z.object({
+const TrailerSchema = z.object({
   title: z.string().min(1),
   /** Missing until the video is published; the page shows a poster instead. */
   youtubeId: z.string().min(1).optional(),
@@ -157,7 +153,7 @@ export const InitiativeFrontmatterSchema = z.object({
   feature: FeatureSchema.optional(),
   draft: z.boolean().default(false),
 });
-export type InitiativeFrontmatter = z.infer<typeof InitiativeFrontmatterSchema>;
+type InitiativeFrontmatter = z.infer<typeof InitiativeFrontmatterSchema>;
 
 export const PartFrontmatterSchema = z.object({
   number: z.number().int().positive(),
@@ -174,7 +170,7 @@ export const PartFrontmatterSchema = z.object({
   milestones: z.array(MilestoneSchema).default([]),
   draft: z.boolean().default(false),
 });
-export type PartFrontmatter = z.infer<typeof PartFrontmatterSchema>;
+type PartFrontmatter = z.infer<typeof PartFrontmatterSchema>;
 
 export interface Part extends Omit<PartFrontmatter, 'status'> {
   /** `part-1`, the URL segment. */

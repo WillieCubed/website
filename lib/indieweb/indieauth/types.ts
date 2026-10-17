@@ -50,7 +50,7 @@ export interface IndieAuthTokenGrant extends IndieAuthTokenRecord {
 }
 
 /** Replacement credentials for one atomic refresh rotation. */
-export interface IndieAuthRefreshRotation {
+interface IndieAuthRefreshRotation {
   refreshTokenHash: string;
   clientId: string;
   /** Null preserves the original approved access scopes. */
@@ -62,7 +62,7 @@ export interface IndieAuthRefreshRotation {
   refreshExpiresAt: Date;
 }
 
-export type IndieAuthRefreshResult =
+type IndieAuthRefreshResult =
   | { ok: true; record: IndieAuthTokenRecord }
   | { ok: false; error: 'invalid_grant' | 'invalid_scope' };
 
@@ -111,7 +111,7 @@ export interface IndieAuthClientInfo {
   redirectUris: string[];
 }
 
-export type IndieAuthClientFetcher = (
+type IndieAuthClientFetcher = (
   clientId: string
 ) => Promise<IndieAuthClientInfo>;
 
@@ -120,7 +120,7 @@ export interface OwnerAuthenticator {
   verify: (request: Request) => Promise<OwnerCheck>;
 }
 
-export type OwnerCheck = { ok: true } | { ok: false; reason: 'invalid' };
+type OwnerCheck = { ok: true } | { ok: false; reason: 'invalid' };
 
 export interface IndieAuthEndpointOptions {
   store: IndieAuthStore;

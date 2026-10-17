@@ -18,7 +18,7 @@ export interface WritingDocument extends WritingSummary {
   markdown: string;
 }
 
-export interface InitiativeSummary {
+interface InitiativeSummary {
   slug: string;
   title: string;
   description: string;
@@ -80,10 +80,7 @@ function writingUrl(slug: string): string {
 }
 
 /** Registers the site's read-only tools. Nothing here writes anything. */
-export function registerSiteTools(
-  server: McpServer,
-  content: SiteContent
-): void {
+function registerSiteTools(server: McpServer, content: SiteContent): void {
   server.registerTool(
     'get_profile',
     {

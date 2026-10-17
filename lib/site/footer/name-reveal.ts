@@ -18,7 +18,7 @@ import { clamp01, ramp } from './dock';
 export const STAGES = 8;
 
 /** The registered highlight name for each letter stage. */
-export function stageName(stage: number): string {
+function stageName(stage: number): string {
   return `footer-name-${stage}`;
 }
 

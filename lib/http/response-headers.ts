@@ -15,7 +15,7 @@ export interface HeaderRule {
  * header would only mislabel. A unit test checks routed pages and fails when a page
  * is missing here or a route handler matches.
  */
-export const PAGE_SOURCES = [
+const PAGE_SOURCES = [
   '/',
   '/:page(projects|brand|search|writings|initiatives|media|music|sitemap|status|500)',
   '/:section(writings|initiatives|projects)/:slug((?!opengraph-image$)[^/.]+)',

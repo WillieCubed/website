@@ -20,7 +20,7 @@ export const CLIENT_DOCUMENT_MAX_BYTES = 1024 * 1024;
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 const IPV4_PATTERN = /^\d{1,3}(\.\d{1,3}){3}$/;
 
-export function isLoopbackHost(hostname: string): boolean {
+function isLoopbackHost(hostname: string): boolean {
   return LOOPBACK_HOSTS.has(hostname);
 }
 

@@ -20,16 +20,7 @@ const ACTIVITY_VERBS: Record<WebmentionType, string> = {
   rsvp: 'RSVPed to',
 };
 
-const ACTIVITY_LABELS: Record<WebmentionType, string> = {
-  like: 'Like',
-  repost: 'Repost',
-  reply: 'Reply',
-  mention: 'Mention',
-  bookmark: 'Bookmark',
-  rsvp: 'RSVP',
-};
-
-export function getActivityDate(webmention: Webmention): Date {
+function getActivityDate(webmention: Webmention): Date {
   return webmention.publishedAt ?? webmention.receivedAt;
 }
 
@@ -48,15 +39,7 @@ export function flattenWebmentionActivities(
     .sort((a, b) => b.activityDate.getTime() - a.activityDate.getTime());
 }
 
-export function sortWebmentionActivities(
-  activities: WebmentionActivity[]
-): WebmentionActivity[] {
-  return [...activities].sort(
-    (a, b) => b.activityDate.getTime() - a.activityDate.getTime()
-  );
-}
-
-export function activityAuthorName(activity: ResponseActivity): string {
+function activityAuthorName(activity: ResponseActivity): string {
   return (
     activity.author.name?.trim() ||
     activity.author.url?.trim() ||
@@ -64,15 +47,11 @@ export function activityAuthorName(activity: ResponseActivity): string {
   );
 }
 
-export function activityLabel(type: WebmentionType): string {
-  return ACTIVITY_LABELS[type];
-}
-
-export function activityVerb(type: WebmentionType): string {
+function activityVerb(type: WebmentionType): string {
   return ACTIVITY_VERBS[type];
 }
 
-export function activitySummary(activity: ResponseActivity): string {
+function activitySummary(activity: ResponseActivity): string {
   const author = activityAuthorName(activity);
   const fallback = `${author} ${activityVerb(activity.type)} this post.`;
   const content = activity.content?.trim();

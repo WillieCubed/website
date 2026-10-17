@@ -36,18 +36,6 @@ export default function StudioDocumentFrame({
   );
 }
 
-interface StudioDocumentPendingProps {
-  error?: string;
-}
-
-export function StudioDocumentPending({ error }: StudioDocumentPendingProps) {
-  return (
-    <StudioDocumentFrame>
-      <StudioDocumentPendingContent error={error} />
-    </StudioDocumentFrame>
-  );
-}
-
 interface StudioDocumentPendingContentProps {
   error?: string;
 }

@@ -113,7 +113,7 @@ export async function parseMediaUpload(request: Request): Promise<File> {
   return file;
 }
 
-export async function validateMediaFile(file: File): Promise<void> {
+async function validateMediaFile(file: File): Promise<void> {
   if (file.size === 0) {
     throw new MediaUploadError('The uploaded file is empty.');
   }
@@ -157,7 +157,7 @@ export function storeMedia(
   return store.put(mediaPathname(file, now), file, file.type);
 }
 
-export const MAX_MEDIA_BYTES = 4 * 1024 * 1024;
+const MAX_MEDIA_BYTES = 4 * 1024 * 1024;
 const MAX_UPLOAD_BODY_BYTES = MAX_MEDIA_BYTES + 64 * 1024;
 
 async function boundedUploadBody(
@@ -289,15 +289,6 @@ function matchesSignature(bytes: Uint8Array, mime: string): boolean {
       signatureText(bytes, 8, 4) === riffType
     );
   return false;
-}
-
-export function mediaKindForType(
-  mimeType: string
-): 'image' | 'audio' | 'video' | 'file' {
-  if (mimeType.startsWith('image/')) return 'image';
-  if (mimeType.startsWith('audio/')) return 'audio';
-  if (mimeType.startsWith('video/')) return 'video';
-  return 'file';
 }
 
 export function mediaMimeForUrl(

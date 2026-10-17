@@ -42,7 +42,7 @@ export function unseal<T>(value: string, encryptionKey?: string): T {
     throw new StudioError(503, 'Reconnect your Lattice account.');
   }
 }
-export function oauthConfig(origin: string) {
+function oauthConfig(origin: string) {
   return {
     issuer: required('STUDIO_LATTICE_ISSUER').replace(/\/$/, ''),
     clientId: required('STUDIO_LATTICE_CLIENT_ID'),

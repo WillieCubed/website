@@ -7,7 +7,7 @@ import type { Project, ProjectStatus } from './schema';
  * The only interface words a project page adds, mirroring the statuses
  * Willie uses in Docket. Everything else on the page is his.
  */
-export const STATUS_LABELS: Record<ProjectStatus, string> = {
+const STATUS_LABELS: Record<ProjectStatus, string> = {
   planned: 'Planned',
   active: 'Active',
   paused: 'Paused',

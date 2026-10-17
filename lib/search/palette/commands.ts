@@ -22,12 +22,7 @@ import type { Command, CommandGroup, PaletteData, Readout } from './types';
 export type { Command, CommandGroup, PaletteData, Readout };
 
 /** The order groups appear in, whatever order the matches came in. */
-export const GROUP_ORDER: CommandGroup[] = [
-  'Playlists',
-  'Latest',
-  'Go to',
-  'Do',
-];
+const GROUP_ORDER: CommandGroup[] = ['Playlists', 'Latest', 'Go to', 'Do'];
 
 /** Feed commands available across the site. */
 const FEEDS = [

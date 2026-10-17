@@ -5,8 +5,7 @@ import { extname, join } from 'node:path';
 import EntityImage, { type EntityImageProps } from './EntityImage';
 import { loadOgFonts } from './fonts';
 
-export const OG_SIZE = { width: 1200, height: 630 };
-export const OG_CONTENT_TYPE = 'image/png';
+const OG_SIZE = { width: 1200, height: 630 };
 
 const MIME: Record<string, string> = {
   '.png': 'image/png',

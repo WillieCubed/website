@@ -136,7 +136,7 @@ function kindOf(type: string | undefined): SearchKind {
 }
 
 /** Maps one Pagefind result to a palette row. */
-export function toSearchRow(data: PagefindResultData): SearchRow {
+function toSearchRow(data: PagefindResultData): SearchRow {
   return {
     id: `search:${data.url}`,
     title: data.meta.title || data.url,

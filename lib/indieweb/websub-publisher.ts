@@ -22,7 +22,7 @@ export const SITE_FEED_PATHS = [
 export const HTML_FEED_PATHS = ['/writings'];
 
 /** A tag's page, which is an h-feed, and its three feeds. */
-export function tagTopicPaths(tag: string): string[] {
+function tagTopicPaths(tag: string): string[] {
   const feeds = tagFeedPaths(tag);
   return [tagPath(tag), feeds.rss, feeds.atom, feeds.json];
 }

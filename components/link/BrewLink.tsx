@@ -1,6 +1,4 @@
-import type { PropsWithChildren, ReactNode } from 'react';
-
-import { splitBrews } from '@/lib/writings/remark-brews';
+import type { PropsWithChildren } from 'react';
 
 /**
  * "Coffee" or "tea" in running copy, leading to the teapot. Quiet on
@@ -23,23 +21,5 @@ export default function BrewLink({ href, children }: BrewLinkProps) {
     >
       {children}
     </a>
-  );
-}
-
-/**
- * Links the brew words in a hand-written string, for JSX copy that never
- * passes through MDX. Copy without them comes back unchanged.
- */
-export function withBrewLinks(text: string): ReactNode {
-  const segments = splitBrews(text);
-  if (!segments) return text;
-  return segments.map((segment, i) =>
-    typeof segment === 'string' ? (
-      segment
-    ) : (
-      <BrewLink key={i} href={segment.href}>
-        {segment.word}
-      </BrewLink>
-    )
   );
 }

@@ -16,7 +16,7 @@ import { Agent, buildConnector, fetch as undiciFetch } from 'undici';
 /** How long a connection may take to open before it is given up. */
 const CONNECT_TIMEOUT_MS = 5000;
 /** Bytes read from a document before giving up on it, unless a caller says. */
-export const PUBLIC_DOCUMENT_MAX_BYTES = 1024 * 1024;
+const PUBLIC_DOCUMENT_MAX_BYTES = 1024 * 1024;
 const MAX_REDIRECTS = 3;
 
 /** Special-purpose IPv4 ranges (IANA registry) that are never fetched. */
@@ -109,7 +109,7 @@ export function isPublicAddress(address: string): boolean {
   }
 }
 
-export interface ResolvedAddress {
+interface ResolvedAddress {
   address: string;
   family: number;
 }
@@ -210,7 +210,7 @@ export function createPublicOnlyAgent(
 }
 
 /** How documents are requested. Tests pass their own. */
-export interface DocumentFetchRequest {
+interface DocumentFetchRequest {
   headers: Record<string, string>;
   method?: string;
   body?: URLSearchParams;
@@ -285,7 +285,7 @@ const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
  * Read a body as text, stopping once it passes `limit` bytes. Resolves null
  * for a body that is too large, without reading the rest of it.
  */
-export async function readCappedBytes(
+async function readCappedBytes(
   body: ReadableStream<Uint8Array> | null,
   limit: number
 ): Promise<Uint8Array | null> {

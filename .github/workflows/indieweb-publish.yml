@@ -1,60 +1,40 @@
 name: IndieWeb publish notifications
 
 on:
+  check_run:
+    types: [completed]
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 permissions:
   contents: read
-
-concurrency:
-  group: indieweb-publish-${{ github.ref }}
-  cancel-in-progress: true
+  checks: read
 
 jobs:
   notify:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'check_run' &&
+       github.event.check_run.app.id == 85455 &&
+       github.event.check_run.app.slug == 'cloudflare-workers-and-pages' &&
+       github.event.check_run.name == 'Workers Builds: willie-page' &&
+       github.event.check_run.conclusion == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      PRODUCTION_SECRET: ${{ secrets.INDIEWEB_NOTIFY_SECRET_PRODUCTION }}
+    timeout-minutes: 10
+    concurrency:
+      # Serialize publishing without replacing another revision's pending job.
+      group: indieweb-publish-production
+      queue: max
+      cancel-in-progress: false
     steps:
-      - name: Wait for Cloudflare to serve this revision and notify subscribers
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Verify the deployed revision and notify subscribers
         env:
-          REVISION: ${{ github.sha }}
-        run: |
-          origin=https://willie.page
-          secret=$PRODUCTION_SECRET
-          atproto_required=true
-          if [ -z "$secret" ]; then
-            echo "Notifications are disabled for $origin until its secret is configured."
-            exit 1
-          fi
-          for attempt in $(seq 1 60); do
-            deployed=$(curl --silent --max-time 10 -H 'Cache-Control: no-cache' "$origin/api/indieweb/revision?poll=$attempt" | jq -r '.sha // empty' 2>/dev/null || true)
-            if [ "$deployed" = "$REVISION" ]; then
-              response=$(mktemp)
-              code=$(curl --silent --show-error --max-time 300 -o "$response" -w '%{http_code}' \
-                -X POST "$origin/api/indieweb/notify" \
-                -H "Authorization: Bearer $secret" \
-                -H 'Content-Type: application/json' \
-                -d "{\"sha\":\"$REVISION\",\"atprotoRequired\":$atproto_required}" || true)
-              if [ "$code" = 200 ]; then
-                cat "$response"
-                exit 0
-              fi
-              if [ "$code" = 409 ]; then
-                echo "The alias changed between revision discovery and notification. Retrying."
-                sleep 10
-                continue
-              fi
-              cat "$response"
-              echo "Notification failed with HTTP $code."
-              exit 1
-            fi
-            echo "Waiting for $origin to serve $REVISION (attempt $attempt/60)."
-            sleep 10
-          done
-          echo "The public alias did not serve $REVISION within 10 minutes."
-          exit 1
+          GITHUB_TOKEN: ${{ github.token }}
+          PRODUCTION_SECRET: ${{ secrets.INDIEWEB_NOTIFY_SECRET_PRODUCTION }}
+        run: node scripts/indieweb/publish-notifications.mts

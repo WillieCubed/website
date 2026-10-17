@@ -111,6 +111,7 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
               <button
                 type="button"
                 className="feeds-popover__copy site-control"
+                data-control-size="extra-small"
                 aria-label={`Copy the ${feed.label} link`}
                 onClick={async () => {
                   try {
@@ -123,10 +124,12 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
                   }
                 }}
               >
-                <Icon
-                  name={copied === feed.href ? 'check' : 'copy'}
-                  size={14}
-                />
+                <span className="site-control__surface">
+                  <Icon
+                    name={copied === feed.href ? 'check' : 'copy'}
+                    size={14}
+                  />
+                </span>
               </button>
             </li>
           ))}

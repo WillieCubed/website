@@ -880,10 +880,10 @@ html:has(dialog.mp-detail[open], dialog.mp-review[open]) {
   height: 48px;
 }
 .mp-detail-pagination .mp-icon-button:first-child {
-  --control-rest-radius: 24px 8px 8px 24px;
+  --control-rest-radius: 20px 8px 8px 20px;
 }
 .mp-detail-pagination .mp-icon-button:last-child {
-  --control-rest-radius: 8px 24px 24px 8px;
+  --control-rest-radius: 8px 20px 20px 8px;
 }
 
 .mp-detail-bar .mp-detail-close {
@@ -1868,7 +1868,7 @@ html[data-music-motion='swap']::view-transition-new(music-experience-editor) {
 }
 .mp-heading .mp-new-series {
   flex-shrink: 0;
-  min-height: 48px;
+  min-height: var(--control-target);
   padding: var(--spacing-md) 16px;
   white-space: nowrap;
 }
@@ -2045,7 +2045,7 @@ html[data-music-motion='swap']::view-transition-new(music-experience-editor) {
 }
 .mp-grid-editing .mp-order-buttons .mp-icon-button {
   --control-rest-radius: 12px;
-  --control-fill: var(--color-surface-container-high);
+  --control-fill: transparent;
   width: var(--control-target);
   height: var(--control-target);
 }
@@ -2740,4 +2740,10 @@ img.mp-cover {
     grid-column: 1 / -1;
     margin-top: 0;
   }
+}
+
+.mp-detail-pagination .site-control__surface,
+.mp-order-buttons .site-control__surface {
+  width: 100%;
+  height: var(--control-container-size);
 }

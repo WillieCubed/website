@@ -50,7 +50,9 @@ export default function WritingTasks({
             <h2 ref={taskHeading} tabIndex={-1} className="text-title-large">
               {WRITING_TASKS[task].heading}
             </h2>
-            <Button onClick={returnToWriting}>Back to writing</Button>
+            <Button variant="quiet" size="small" onClick={returnToWriting}>
+              Back to writing
+            </Button>
           </div>
           {task === 'components' && (
             <WidgetCatalogStatus message={catalogStatus} retry={retryCatalog} />
@@ -122,7 +124,11 @@ function WidgetCatalogStatus({ message, retry }: WidgetCatalogStatusProps) {
   return (
     <div>
       <p role="status">{message}</p>
-      {retry && <Button onClick={retry}>Retry widgets</Button>}
+      {retry && (
+        <Button variant="quiet" size="small" onClick={retry}>
+          Retry widgets
+        </Button>
+      )}
     </div>
   );
 }

@@ -28,6 +28,7 @@ export default function MusicCardControls({
       >
         <MusicSelectionControl
           checked={selected}
+          data-control-size="small"
           disabled={controls.selectionDisabled}
           onChange={() => select(playlist.id)}
           aria-label={`Include ${playlist.title}${!playlist.eligible ? ', unavailable for publication' : ''}`}
@@ -38,19 +39,25 @@ export default function MusicCardControls({
         <span className="mp-order-label">Order</span>
         <button
           className="site-control mp-icon-button"
+          data-control-size="small"
           disabled={controls.earlierDisabled}
           onClick={() => reorder(playlist.id, -1)}
           aria-label={`Move ${playlist.title} earlier`}
         >
-          <Icon name="arrow-left" />
+          <span className="site-control__surface">
+            <Icon name="arrow-left" />
+          </span>
         </button>
         <button
           className="site-control mp-icon-button"
+          data-control-size="small"
           disabled={controls.laterDisabled}
           onClick={() => reorder(playlist.id, 1)}
           aria-label={`Move ${playlist.title} later`}
         >
-          <Icon name="arrow-right" />
+          <span className="site-control__surface">
+            <Icon name="arrow-right" />
+          </span>
         </button>
       </div>
     </div>

@@ -65,7 +65,9 @@ export default function WritingReview({
           >
             {review ? 'Review publication' : 'Read your writing'}
           </h1>
-          <Button onClick={returnToWriting}>Back to writing</Button>
+          <Button variant="quiet" size="small" onClick={returnToWriting}>
+            Back to writing
+          </Button>
         </div>
         <p className="mt-4 text-body-large text-muted">
           {review
@@ -81,6 +83,8 @@ export default function WritingReview({
           {(['read', 'portable'] as const).map((item) => (
             <Button
               key={item}
+              variant="quiet"
+              size="small"
               aria-pressed={mode === item}
               onClick={() => onViewChange(item)}
             >
@@ -207,6 +211,8 @@ function PublicationChecks({
         <p>No preview validation issues.</p>
       )}
       <Button
+        variant="primary"
+        size="small"
         disabled={busy || preview.issues.length > 0 || conflict}
         onClick={publish}
       >

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import PaletteTrigger from '@/components/search/palette/PaletteTrigger';
+import Button from '@/components/site/Button';
 
 import { type Catalog, type PlaylistView } from '@/lib/music/presentation';
 
@@ -80,15 +81,16 @@ export default function MusicSetup({
           <span className="ms-wordmark">Music</span>
           <div className="ms-header-actions">
             <PaletteTrigger size="compact" />
-            <button
-              className="site-control ms-button ms-tonal ms-exit"
-              data-control-size="medium"
+            <Button
+              className="ms-exit"
+              variant="quiet"
+              size="small"
               onClick={onCancel}
               aria-label="Exit setup"
             >
               <span>Exit setup</span>
               <Icon name="x" />
-            </button>
+            </Button>
           </div>
         </header>
         <ol className="ms-steps" aria-label="Setup progress">

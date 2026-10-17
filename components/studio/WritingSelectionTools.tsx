@@ -84,6 +84,8 @@ export default function WritingSelectionTools({
         {(['bold', 'italic'] as const).map((mark) => (
           <Button
             key={mark}
+            variant="quiet"
+            size="small"
             aria-pressed={editor?.isActive(mark) || false}
             onPointerDown={(event) => event.preventDefault()}
             onClick={() =>
@@ -102,6 +104,8 @@ export default function WritingSelectionTools({
           </Button>
         ))}
         <Button
+          variant="quiet"
+          size="small"
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => {
             onLink();

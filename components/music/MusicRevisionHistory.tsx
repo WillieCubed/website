@@ -1,3 +1,4 @@
+import Button from '@/components/site/Button';
 import Modal from '@/components/site/Modal';
 
 import type { MusicRevision } from '@/lib/music/types';
@@ -26,12 +27,9 @@ export default function MusicRevisionHistory({
       >
         <div>
           <h2 id="music-history-title">Saved revisions</h2>
-          <button
-            className="site-control mp-button mp-tonal"
-            onClick={() => onClose()}
-          >
+          <Button variant="quiet" size="small" onClick={() => onClose()}>
             Close history
-          </button>
+          </Button>
           <ol>
             {revisions.map((r) => (
               <li key={r.id}>
@@ -40,13 +38,14 @@ export default function MusicRevisionHistory({
                   {r.body.selected.length} playlists
                   {r.conflict ? ' · Conflict copy' : ''}
                 </span>
-                <button
-                  className="site-control mp-button"
+                <Button
+                  variant="outlined"
+                  size="small"
                   disabled={busy || r.id === currentRevisionId}
                   onClick={() => void onRestore(r.id)}
                 >
                   Restore
-                </button>
+                </Button>
               </li>
             ))}
           </ol>

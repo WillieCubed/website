@@ -35,11 +35,14 @@ export default function CopyHex({ name, value }: CopyHexProps) {
         <button
           type="button"
           className="site-control"
+          data-control-size="extra-small"
           disabled={!hydrated}
           aria-label={`Copy ${name} hex value`}
           onClick={copy}
         >
-          <Icon name="copy" size={16} />
+          <span className="site-control__surface">
+            <Icon name="copy" size={16} />
+          </span>
         </button>
       </div>
       <span role="status">{status}</span>

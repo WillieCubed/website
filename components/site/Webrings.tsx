@@ -156,30 +156,39 @@ function WebringLinks() {
     <nav className="site-webring" aria-label={ring.name} key={ring.name}>
       <SiteLink
         preview={false}
+        data-control-size="extra-small"
         className="site-webring__link site-control site-webring__direction"
         href={ring.previous}
         aria-label={`Previous site in the ${ring.name}`}
         data-webring-label={`Previous ${ring.neighbor} site`}
       >
-        <Icon name="arrow-left" size={18} />
+        <span className="site-control__surface">
+          <Icon name="arrow-left" size={18} />
+        </span>
       </SiteLink>
       <SiteLink
         preview={false}
+        data-control-size="extra-small"
         className="site-webring__link site-control site-webring__mark"
         href={ring.directory}
         aria-label={ring.name}
         data-webring-label={ring.name}
       >
-        {index === 0 ? <Icon name="compass" size={18} /> : <UtdIcon />}
+        <span className="site-control__surface">
+          {index === 0 ? <Icon name="compass" size={18} /> : <UtdIcon />}
+        </span>
       </SiteLink>
       <SiteLink
         preview={false}
+        data-control-size="extra-small"
         className="site-webring__link site-control site-webring__direction"
         href={ring.next}
         aria-label={`Next site in the ${ring.name}`}
         data-webring-label={`Next ${ring.neighbor} site`}
       >
-        <Icon name="arrow-right" size={18} />
+        <span className="site-control__surface">
+          <Icon name="arrow-right" size={18} />
+        </span>
       </SiteLink>
     </nav>
   ));

@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { flushSync } from 'react-dom';
 
 import Icon from '@/components/icons/Icon';
+import Button from '@/components/site/Button';
 import Modal from '@/components/site/Modal';
 
 import { type Catalog, type PlaylistView } from '@/lib/music/presentation';
@@ -55,13 +56,15 @@ export default function MusicReview({
           </h2>
           <p>Check the order and context before applying changes.</p>
         </div>
-        <button
-          className="site-control mp-icon-button mp-icon-button--tonal"
+        <Button
+          variant="quiet"
+          size="small"
+          iconOnly
           aria-label="Close review"
           onClick={closeReview}
         >
           <Icon name="x" size={24} />
-        </button>
+        </Button>
       </header>
       <div
         className="mp-review-body scroller"
@@ -80,14 +83,12 @@ export default function MusicReview({
       </div>
       <footer className="mp-review-actions scroller">
         <p>Publish this saved collection to willie.page.</p>
-        <button
-          className="site-control mp-button mp-tonal"
-          onClick={closeReview}
-        >
+        <Button variant="quiet" size="small" onClick={closeReview}>
           Back to editing
-        </button>
-        <button
-          className="site-control mp-button mp-primary"
+        </Button>
+        <Button
+          variant="primary"
+          size="small"
           disabled={!canReview}
           onClick={() => {
             closeReview();
@@ -96,7 +97,7 @@ export default function MusicReview({
         >
           Publish collection
           <Icon name="check" />
-        </button>
+        </Button>
       </footer>
     </Modal>
   );
@@ -131,9 +132,9 @@ function MusicReviewCollection({
       <section className="mp-review-order">
         <div className="mp-review-section-heading">
           <h3>Gallery order</h3>
-          <button className="site-control mp-text-button" onClick={onEditOrder}>
+          <Button variant="quiet" size="small" onClick={onEditOrder}>
             Edit order
-          </button>
+          </Button>
         </div>
         <ol>
           {draft.order

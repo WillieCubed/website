@@ -104,7 +104,15 @@ export default function StudioWidgetGenerator({
             returnTo={`/studio/${documentId}?components=1`}
           />
         </details>
-        <Button disabled={busy || !prompt.trim() || !runtimeReady}>
+        <Button
+          variant={
+            generation && !['accepted', 'rejected'].includes(generation.status)
+              ? 'outlined'
+              : 'primary'
+          }
+          size="small"
+          disabled={busy || !prompt.trim() || !runtimeReady}
+        >
           Generate widget
         </Button>
       </form>
@@ -116,6 +124,7 @@ export default function StudioWidgetGenerator({
           generation={generation}
           busy={busy}
           runtimeReady={runtimeReady}
+          reviewingProposal={proposalReview.proposal !== null}
           buildComponent={proposalReview.build}
           decide={decide}
         />
@@ -136,6 +145,7 @@ interface GenerationResultProps {
   generation: Generation;
   busy: boolean;
   runtimeReady: boolean;
+  reviewingProposal: boolean;
   buildComponent: () => void;
   decide: (action: 'reject' | 'retry') => void;
 }
@@ -144,6 +154,7 @@ function GenerationResult({
   generation,
   busy,
   runtimeReady,
+  reviewingProposal,
   buildComponent,
   decide,
 }: GenerationResultProps) {
@@ -173,10 +184,20 @@ function GenerationResult({
       )}
       {generation.status === 'ready' && (
         <div>
-          <Button disabled={busy} onClick={buildComponent}>
+          <Button
+            variant={reviewingProposal ? 'outlined' : 'primary'}
+            size="small"
+            disabled={busy}
+            onClick={buildComponent}
+          >
             Build isolated preview
           </Button>
-          <Button disabled={busy} onClick={() => decide('reject')}>
+          <Button
+            variant="quiet"
+            size="small"
+            disabled={busy}
+            onClick={() => decide('reject')}
+          >
             Reject
           </Button>
         </div>
@@ -185,6 +206,8 @@ function GenerationResult({
         (generation.status === 'running' &&
           Date.parse(generation.startedAt ?? '') < Date.now() - 180_000)) && (
         <Button
+          variant="primary"
+          size="small"
           disabled={busy || !runtimeReady}
           onClick={() => decide('retry')}
         >
@@ -271,12 +294,21 @@ function WidgetProposalPreview({
       />
       <p>{proposal.accessibility}</p>
       {proposal.status === 'approved' && (
-        <Button onClick={() => void onApproved(proposal)}>
+        <Button
+          variant="primary"
+          size="small"
+          onClick={() => void onApproved(proposal)}
+        >
           Insert approved component
         </Button>
       )}
       {proposal.status === 'proposed' && (
-        <Button disabled={busy} onClick={approve}>
+        <Button
+          variant="primary"
+          size="small"
+          disabled={busy}
+          onClick={approve}
+        >
           Approve component for catalog
         </Button>
       )}

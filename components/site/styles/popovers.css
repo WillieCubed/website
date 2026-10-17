@@ -126,3 +126,8 @@
   font-weight: 400;
   color: var(--color-muted);
 }
+
+.feeds-popover__copy > .site-control__surface {
+  width: var(--control-container-size);
+  height: var(--control-container-size);
+}

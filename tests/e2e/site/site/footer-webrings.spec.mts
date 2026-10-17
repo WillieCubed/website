@@ -257,3 +257,76 @@ test('both rings remain usable without JavaScript', async ({
   }
   await context.close();
 });
+
+for (const width of [390, 1440]) {
+  test(`webrings stay visually quiet inside usable targets at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+    await page.goto('/writings');
+    const link = page.locator('.site-webring__mark').first();
+    await link.scrollIntoViewIfNeeded();
+    const surface = link.locator('.site-control__surface');
+    await expect(surface).toHaveCount(1);
+    const box = (await link.boundingBox())!;
+    const visual = (await surface.boundingBox())!;
+    expect(box.width).toBe(48);
+    expect(box.height).toBe(48);
+    expect(visual.width).toBe(32);
+    expect(visual.height).toBe(32);
+    await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(surface).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await page.screenshot({ path: testInfo.outputPath('rest-webrings.png') });
+    await page.keyboard.press('Tab');
+    await link.focus();
+    await expect(link).toHaveCSS('outline-width', '3px');
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    try {
+      await expect(surface).toHaveCSS('border-radius', '8px');
+      expect(await link.boundingBox()).toEqual(box);
+      await page.screenshot({
+        path: testInfo.outputPath('compact-webrings.png'),
+      });
+    } finally {
+      await page.mouse.move(0, 0);
+      await page.mouse.up();
+    }
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(link).toHaveCSS('transition-duration', '0s');
+    await page.emulateMedia({ forcedColors: 'active' });
+    await link.focus();
+    await expect(link).toHaveCSS('outline-style', 'solid');
+  });
+}
+
+test('the invisible padding around a compact webring remains a native touch target', async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({
+    baseURL,
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    javaScriptEnabled: false,
+  });
+  try {
+    const page = await context.newPage();
+    const destination = 'https://xn--sr8hvo.ws/next';
+    await page.route(destination, (route) =>
+      route.fulfill({
+        contentType: 'text/html',
+        body: '<title>Next site</title>',
+      })
+    );
+    await page.goto('/writings');
+    const link = page.getByRole('link', {
+      name: 'Next site in the IndieWeb Webring',
+      exact: true,
+    });
+    await link.tap({ position: { x: 2, y: 24 } });
+    await expect(page).toHaveURL(destination);
+  } finally {
+    await context.close();
+  }
+});

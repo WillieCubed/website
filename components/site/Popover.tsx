@@ -16,6 +16,7 @@ interface PopoverProps {
   placement?: 'default' | 'breadcrumb';
   width?: number;
   disabled?: boolean;
+  controlSize?: 'extra-small' | 'small';
   anchorRect?: () => AnchorBounds | null;
 }
 
@@ -31,6 +32,7 @@ export default function Popover({
   width: preferredWidth = 240,
   disabled = false,
   anchorRect,
+  controlSize,
 }: PopoverProps) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -88,6 +90,7 @@ export default function Popover({
         ref={button}
         type="button"
         disabled={disabled}
+        data-control-size={controlSize}
         popoverTarget={id}
         className={`site-control ${triggerClassName}`}
         aria-label={label}
@@ -95,7 +98,11 @@ export default function Popover({
         aria-controls={id}
         aria-expanded={open}
       >
-        {trigger}
+        {controlSize ? (
+          <span className="site-control__surface">{trigger}</span>
+        ) : (
+          trigger
+        )}
       </button>
       <div
         ref={panel}

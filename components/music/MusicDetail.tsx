@@ -65,7 +65,7 @@ export default function MusicDetail({
     <Modal
       ref={dialog}
       initiallyOpen={Boolean(initialDetail) && focused === initialDetail}
-      className="music-detail"
+      className="music-detail site-scrim"
       data-editing={editing || undefined}
       data-reordering={(editing && reordering) || undefined}
       aria-labelledby="music-detail-title"

@@ -185,7 +185,7 @@ export default function StandardSignInDialog({
       open={open}
       initialFocus='input[name="handle"]'
       id={id}
-      className="standard-social-dialog"
+      className="standard-social-dialog site-scrim"
       aria-labelledby={id + '-title'}
       aria-describedby={id + '-description'}
       onDismiss={login.dismiss}

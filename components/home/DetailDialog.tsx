@@ -102,7 +102,7 @@ export function DetailDialog({
     <Modal
       ref={dialogRef}
       initiallyOpen={Boolean(openId)}
-      className="detail scroller"
+      className="detail scroller site-scrim"
       aria-labelledby="d-title"
       data-brand={entry?.brand}
       data-branded={entry && style ? '' : undefined}

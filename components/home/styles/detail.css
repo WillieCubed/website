@@ -32,17 +32,15 @@
      page crossfade into a blurred copy of itself instead showed every line
      of text twice while the two overlapped. */
   dialog.detail::backdrop {
-    background-color: transparent;
-    backdrop-filter: blur(0);
     transition:
       background-color 320ms var(--ease-site),
       backdrop-filter 320ms var(--ease-site),
       overlay 320ms allow-discrete,
       display 320ms allow-discrete;
   }
-  dialog.detail[open]::backdrop {
-    background-color: color-mix(in srgb, var(--color-scrim) 30%, transparent);
-    backdrop-filter: blur(6px);
+  dialog.detail:not([open])::backdrop {
+    background-color: transparent;
+    backdrop-filter: blur(0);
   }
   @starting-style {
     dialog.detail[open]::backdrop {

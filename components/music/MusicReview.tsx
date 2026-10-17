@@ -42,7 +42,7 @@ export default function MusicReview({
       ref={reviewDialog}
       open
       initialFocus="#music-review-title"
-      className="music-review"
+      className="music-review site-scrim"
       aria-labelledby="music-review-title"
       onDismiss={closeReview}
       onKeyDown={(event) =>

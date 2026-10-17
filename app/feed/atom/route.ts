@@ -1,21 +1,15 @@
-import { generateAtomFeed } from '@/lib/indieweb/feeds/index';
+import { siteFeedChannel } from '@/lib/indieweb/feeds/index';
 import { getSiteFeedItems } from '@/lib/indieweb/feeds/items';
-
-async function buildFeed() {
-  return generateAtomFeed(await getSiteFeedItems());
-}
+import { feedResponse } from '@/lib/indieweb/feeds/response';
 
 /**
  * Return published writings, dated initiatives, and projects, newest first,
  * as Atom.
  */
 export async function GET() {
-  const feed = await buildFeed();
-
-  return new Response(feed, {
-    headers: {
-      'Content-Type': 'application/atom+xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
-    },
-  });
+  return feedResponse(
+    'atom',
+    await getSiteFeedItems(),
+    siteFeedChannel('atom')
+  );
 }

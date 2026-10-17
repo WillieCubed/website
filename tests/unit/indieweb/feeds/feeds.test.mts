@@ -3,23 +3,18 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 
-import { writingActivityFeedConfig } from '@/lib/indieweb/activity-feed-config';
 import { WEBSUB_HUB } from '@/lib/indieweb/constants';
 import { renderFeedHtml } from '@/lib/indieweb/feeds/html';
 import {
   type FeedItem,
-  generateActivityAtomFeed,
-  generateActivityRssFeed,
+  activityFeedChannel,
   generateAtomFeed,
   generateJsonFeed,
   generateRssFeed,
-  generateTagAtomFeed,
-  generateTagJsonFeed,
-  generateTagRssFeed,
-  generateWritingsAtomFeed,
-  generateWritingsJsonFeed,
-  generateWritingsRssFeed,
   initiativeToFeedItem,
+  serializeActivityFeed,
+  tagFeedChannel,
+  writingsFeedChannel,
 } from '@/lib/indieweb/feeds/index';
 import type { Initiative } from '@/lib/initiatives/index';
 import { site } from '@/lib/site/identity';
@@ -52,7 +47,10 @@ test('the site Atom feed has a well-formed id', () => {
 
 test('the site and writings Atom feeds have different ids', () => {
   const siteId = feedElement(generateAtomFeed([item]), 'id');
-  const writingsId = feedElement(generateWritingsAtomFeed([item]), 'id');
+  const writingsId = feedElement(
+    generateAtomFeed([item], writingsFeedChannel('atom')),
+    'id'
+  );
 
   assert.equal(writingsId, `${site.origin}/writings/feed/atom`);
   assert.notEqual(siteId, writingsId);
@@ -72,20 +70,16 @@ test('an activity RSS description carries a reply’s text as text, not markup',
       target: `${site.origin}/writings/original-post`,
     },
   };
-  const rss = generateActivityRssFeed([reply], {
-    title: 'Activity',
-    description: 'Activity',
-    feedUrl: `${site.origin}/activity/feed.xml`,
-  });
+  const rss = serializeActivityFeed('rss', [reply], activityFeedChannel('rss'));
   assert.match(
     rss,
     /<description>Try &amp;lt;img src=x onerror=alert\(1\)&amp;gt; &amp;amp; see<\/description>/
   );
-  const atom = generateActivityAtomFeed([reply], {
-    title: 'Activity',
-    subtitle: 'Activity',
-    feedUrl: `${site.origin}/activity/feed/atom`,
-  });
+  const atom = serializeActivityFeed(
+    'atom',
+    [reply],
+    activityFeedChannel('atom')
+  );
   assert.match(
     atom,
     /<summary>Try &lt;img src=x onerror=alert\(1\)&gt; &amp; see<\/summary>/
@@ -93,13 +87,14 @@ test('an activity RSS description carries a reply’s text as text, not markup',
 });
 
 test('an activity Atom feed takes its id from its own URL', () => {
-  const config = writingActivityFeedConfig('original-post', 'atom');
-  const xml = generateActivityAtomFeed([], {
-    ...config,
-    subtitle: config.description,
-  });
+  const channel = activityFeedChannel('atom', 'original-post');
+  const xml = serializeActivityFeed('atom', [], channel);
 
-  assert.equal(feedElement(xml, 'id'), config.feedUrl);
+  assert.equal(
+    feedElement(xml, 'id'),
+    `${site.origin}/writings/original-post/activity/feed/atom`
+  );
+  assert.equal(feedElement(xml, 'id'), channel.feedUrl);
 });
 
 test('a feed with entries reports its newest date as updated', () => {
@@ -129,7 +124,7 @@ test('an empty RSS feed reports when it was built, not 1970', () => {
 });
 
 test('the writings Atom feed describes and links to the writings page', () => {
-  const xml = generateWritingsAtomFeed([item]);
+  const xml = generateAtomFeed([item], writingsFeedChannel('atom'));
 
   assert.equal(feedElement(xml, 'title'), 'Willie&apos;s Writings');
   assert.notEqual(feedElement(xml, 'subtitle'), site.description);
@@ -144,14 +139,24 @@ test('the site Atom feed links to the homepage', () => {
   assert.equal(alternateLink(xml), `${site.origin}/`);
 });
 
-test('a writing activity Atom feed links to its writing', () => {
-  const config = writingActivityFeedConfig('original-post', 'atom');
-  const xml = generateActivityAtomFeed([], {
-    ...config,
-    subtitle: config.description,
-  });
+test('a writing activity feed links to its writing in every format', () => {
+  const page = `${site.origin}/writings/original-post`;
+  const channel = (format: 'rss' | 'atom' | 'json') =>
+    activityFeedChannel(format, 'original-post');
 
-  assert.equal(alternateLink(xml), `${site.origin}/writings/original-post`);
+  assert.equal(
+    alternateLink(serializeActivityFeed('atom', [], channel('atom'))),
+    page
+  );
+  assert.match(
+    serializeActivityFeed('rss', [], channel('rss')),
+    new RegExp(`<link>${page}</link>`)
+  );
+  assert.equal(
+    JSON.parse(serializeActivityFeed('json', [], channel('json')))
+      .home_page_url,
+    page
+  );
 });
 
 test('the generated RSS, Atom, and JSON feeds declare the WebSub hub', () => {
@@ -195,21 +200,13 @@ test('no feed route writes its own XML or names the hub', async () => {
   }
 });
 
-test('the site, writings, and tag feeds share generators and set cache headers', async () => {
-  // Activity feeds use their dedicated route adapter instead.
-  const routes = (await feedRoutes()).filter(
-    (route) => !route.includes(`${path.sep}activity${path.sep}`)
-  );
-  assert.equal(routes.length, 9);
-
-  for (const route of routes) {
+test('every feed route responds through the shared feed response', async () => {
+  for (const route of await feedRoutes()) {
     const source = await readFile(route, 'utf8');
-    assert.match(source, /from '@\/lib\/indieweb\/feeds\/index'/, route);
-    assert.match(source, /from '@\/lib\/indieweb\/feeds\/items'/, route);
-    assert.match(source, /Cache-Control.*public.*s-maxage=3600/, route);
+    assert.match(source, /from '@\/lib\/indieweb\/feeds\/response'/, route);
+    assert.doesNotMatch(source, /new Response\(feed|Cache-Control/, route);
   }
 });
-
 const full: FeedItem = {
   ...item,
   content: '<p>The <em>whole</em> post &amp; more.</p>',
@@ -251,7 +248,7 @@ test('an item without content leaves the content element out', () => {
 });
 
 test('the writings RSS and JSON feeds describe and link to the writings page', () => {
-  const rss = generateWritingsRssFeed([item]);
+  const rss = generateRssFeed([item], writingsFeedChannel('rss'));
   assert.match(rss, /<title>Willie&apos;s Writings<\/title>/);
   assert.match(rss, new RegExp(`<link>${site.origin}/writings</link>`));
   assert.match(
@@ -259,7 +256,9 @@ test('the writings RSS and JSON feeds describe and link to the writings page', (
     new RegExp(`<atom:link href="${site.origin}/writings/feed.xml" rel="self"`)
   );
 
-  const json = JSON.parse(generateWritingsJsonFeed([item]));
+  const json = JSON.parse(
+    generateJsonFeed([item], writingsFeedChannel('json'))
+  );
   assert.equal(json.title, "Willie's Writings");
   assert.equal(json.home_page_url, `${site.origin}/writings`);
   assert.equal(json.feed_url, `${site.origin}/writings/feed/json`);
@@ -268,7 +267,7 @@ test('the writings RSS and JSON feeds describe and link to the writings page', (
 test('the tag feeds name the tag and link to its page and themselves', () => {
   const page = `${site.origin}/writings/tags/fall-tour-2026`;
 
-  const rss = generateTagRssFeed('Fall-Tour-2026', [item]);
+  const rss = generateRssFeed([item], tagFeedChannel('Fall-Tour-2026', 'rss'));
   assert.match(rss, /<title>Willie&apos;s Writings: #fall-tour-2026<\/title>/);
   assert.match(rss, new RegExp(`<link>${page}</link>`));
   assert.ok(
@@ -277,13 +276,18 @@ test('the tag feeds name the tag and link to its page and themselves', () => {
   );
   assert.ok(rss.includes(`<atom:link href="${WEBSUB_HUB}" rel="hub"/>`));
 
-  const atom = generateTagAtomFeed('fall-tour-2026', [item]);
+  const atom = generateAtomFeed(
+    [item],
+    tagFeedChannel('fall-tour-2026', 'atom')
+  );
   assert.equal(feedElement(atom, 'id'), `${page}/feed/atom`);
   assert.equal(alternateLink(atom), page);
   assert.match(feedElement(atom, 'subtitle') ?? '', /tagged fall-tour-2026/);
   assert.ok(atom.includes(`<link href="${WEBSUB_HUB}" rel="hub"/>`));
 
-  const json = JSON.parse(generateTagJsonFeed('fall-tour-2026', [item]));
+  const json = JSON.parse(
+    generateJsonFeed([item], tagFeedChannel('fall-tour-2026', 'json'))
+  );
   assert.equal(json.title, "Willie's Writings: #fall-tour-2026");
   assert.equal(json.home_page_url, page);
   assert.equal(json.feed_url, `${page}/feed/json`);
@@ -292,8 +296,8 @@ test('the tag feeds name the tag and link to its page and themselves', () => {
 
 test('a tag feed never shares an id with the writings feed', () => {
   assert.notEqual(
-    feedElement(generateTagAtomFeed('note', [item]), 'id'),
-    feedElement(generateWritingsAtomFeed([item]), 'id')
+    feedElement(generateAtomFeed([item], tagFeedChannel('note', 'atom')), 'id'),
+    feedElement(generateAtomFeed([item], writingsFeedChannel('atom')), 'id')
   );
 });
 

@@ -1,14 +1,12 @@
-import { globalActivityFeedConfig } from '@/lib/indieweb/activity-feed-config';
 import { getGlobalActivityFeedItems } from '@/lib/indieweb/activity-feed-data';
-import { createActivityFeedResponse } from '@/lib/indieweb/activity-feed-route';
+import { activityFeedChannel } from '@/lib/indieweb/feeds/index';
+import { activityFeedResponse } from '@/lib/indieweb/feeds/response';
 
 /** Return recent public reactions and replies across the site as Atom. */
 export async function GET() {
-  const items = await getGlobalActivityFeedItems();
-
-  return createActivityFeedResponse({
-    items,
-    format: 'atom',
-    config: globalActivityFeedConfig('atom'),
-  });
+  return activityFeedResponse(
+    'atom',
+    await getGlobalActivityFeedItems(),
+    activityFeedChannel('atom')
+  );
 }

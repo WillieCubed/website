@@ -9,11 +9,13 @@ initiatives, and dated projects; writings and tag feeds offer narrower choices.
 Activity feeds contain approved responses from other websites, called
 Webmentions, rather than new articles.
 
-In the implementation, `lib/indieweb/feeds/items.ts` selects site and writings content,
-`lib/indieweb/feeds/index.ts` converts and serializes it, and the route handlers serve
-the response. Activity uses `lib/indieweb/activity-feed-route.ts`. This
-separation matters when extending a feed: selecting an item and expressing it as
-RSS are different changes.
+In the implementation, `lib/indieweb/feeds/items.ts` selects site and writings
+content, and `lib/indieweb/activity-feed-data.ts` selects activity.
+`lib/indieweb/feeds/index.ts` names each feed's channel (its title,
+description, page, and own address) and serializes items in the requested
+format, and `lib/indieweb/feeds/response.ts` sets the content type and cache
+headers every feed route returns. This separation matters when extending a
+feed: selecting an item and expressing it as RSS are different changes.
 
 ## Routes and discovery
 
@@ -126,8 +128,7 @@ facts-only projects supply neither private body text nor media. Drafts stay out
 of every feed. These omissions avoid inventing chronology or allowing a feed to
 expose material the page loader has withheld.
 
-The site and writings RSS routes advertise `s-maxage=3600` with
-`stale-while-revalidate=600`; their Atom and JSON routes advertise
-`max-age=3600, s-maxage=3600`. A browser or shared cache can therefore serve an
+Every feed route advertises `max-age=3600, s-maxage=3600,
+stale-while-revalidate=600`. A browser or shared cache can therefore serve an
 earlier feed after a content change. These are HTTP cache policies; the item
 loaders no longer declare a separate Next.js `use cache` / `cacheLife` policy.

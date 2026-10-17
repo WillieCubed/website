@@ -1,15 +1,11 @@
-import { generateTagRssFeed } from '@/lib/indieweb/feeds/index';
+import { tagFeedChannel } from '@/lib/indieweb/feeds/index';
 import { getTagFeedItems } from '@/lib/indieweb/feeds/items';
+import { feedResponse } from '@/lib/indieweb/feeds/response';
 import { getTagParams } from '@/lib/writings';
 import { tagFromParam } from '@/lib/writings/tags';
 
 export async function generateStaticParams() {
   return getTagParams();
-}
-
-async function buildTagFeed(tag: string) {
-  const items = await getTagFeedItems(tag);
-  return items.length > 0 ? generateTagRssFeed(tag, items) : null;
 }
 
 /**
@@ -20,13 +16,8 @@ export async function GET(
   _request: Request,
   props: RouteContext<'/writings/tags/[tag]/feed.xml'>
 ) {
-  const feed = await buildTagFeed(tagFromParam((await props.params).tag));
-  if (!feed) return new Response('Not found', { status: 404 });
-
-  return new Response(feed, {
-    headers: {
-      'Content-Type': 'application/rss+xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
-    },
-  });
+  const tag = tagFromParam((await props.params).tag);
+  const items = await getTagFeedItems(tag);
+  if (items.length === 0) return new Response('Not found', { status: 404 });
+  return feedResponse('rss', items, tagFeedChannel(tag, 'rss'));
 }

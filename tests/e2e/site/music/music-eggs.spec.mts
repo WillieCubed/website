@@ -83,6 +83,60 @@ test.beforeEach(async () => {
 
 const longTrackTitle =
   'A quiet, luminous evening that keeps unfolding long after the last train has left the station (Live at the end of the world)';
+
+test('tabbing between playlists never flashes a ring on the previous artwork', async ({
+  page,
+  browserName,
+}, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/music');
+  const cards = page.locator('.mp-card');
+  const first = cards.nth(0).locator('.mp-card-open');
+  const second = cards.nth(1).locator('.mp-card-open');
+  await first.focus();
+  await expect(first).toBeFocused();
+  await first.evaluate(async (el) => {
+    await Promise.all(
+      el.getAnimations({ subtree: true }).map((a) => a.finished)
+    );
+  });
+  // WebKit follows macOS's default: Option+Tab includes links.
+  const keys =
+    browserName === 'webkit'
+      ? ['Alt+Tab', 'Alt+Shift+Tab']
+      : ['Tab', 'Shift+Tab'];
+  for (const [index, key] of keys.entries()) {
+    await page.keyboard.press(key);
+    await expect(index === 0 ? second : first).toBeFocused();
+    const flashes = await page.locator('.mp-grid').evaluate(async (grid) => {
+      const frames = [...grid.querySelectorAll('.mp-art-frame')].slice(0, 2);
+      const flashes: string[] = [];
+      const start = performance.now();
+      do {
+        for (const frame of frames) {
+          const style = getComputedStyle(frame);
+          if (
+            style.outlineStyle !== 'none' &&
+            parseFloat(style.outlineWidth) > 0 &&
+            style.outlineColor !== 'rgba(0, 0, 0, 0)'
+          )
+            flashes.push(style.outline);
+        }
+        await new Promise(requestAnimationFrame);
+      } while (performance.now() - start < 240);
+      return flashes;
+    });
+    expect(flashes, `Artwork outlines while pressing ${key}`).toEqual([]);
+  }
+  await expect(cards.nth(0)).toHaveCSS('outline-style', 'solid');
+  await expect(cards.nth(1)).toHaveCSS('outline-style', 'none');
+  await page.screenshot({ path: testInfo.outputPath('keyboard-focus.png') });
+  await page.keyboard.press('Enter');
+  await expect(page.locator('dialog.mp-detail')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(first).toBeFocused();
+});
+
 async function seedLongTrackList() {
   const tracks = Array.from({ length: 105 }, (_, index) => ({
     title: index === 100 ? longTrackTitle : `Song ${index + 1}`,

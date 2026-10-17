@@ -262,7 +262,9 @@ html[data-music-motion] {
   );
 }
 .mp-grid:not(.mp-grid-editing) .mp-card-open:focus-visible .mp-art-frame {
-  outline: none;
+  /* Keep the color transparent on blur; `none` resets it to currentColor,
+     which flashes when the resting outline becomes solid again. */
+  outline-color: transparent;
   box-shadow: none;
 }
 .mp-grid:not(.mp-grid-editing) > .mp-card:has(> .mp-card-open:active) {

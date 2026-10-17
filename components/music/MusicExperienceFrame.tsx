@@ -31,7 +31,7 @@ export default function MusicExperienceFrame({
 }: Props) {
   return (
     <div
-      className="music-prototype"
+      className="music-experience"
       data-editing={(!setup && editing) || undefined}
       data-reordering={(!setup && editing && reordering) || undefined}
       aria-busy={(loading && !loadError) || interactionLocked}

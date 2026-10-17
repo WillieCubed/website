@@ -437,7 +437,7 @@
 .ms-feature-playlists .ms-feature-option[data-selected] {
   border-radius: 14px;
 }
-.music-prototype
+.music-experience
   .ms-feature-playlists
   .ms-feature-option:has(.mp-selection-control input:focus-visible) {
   z-index: 2;

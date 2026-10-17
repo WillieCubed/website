@@ -490,11 +490,11 @@ test('opening motion keeps tracks visible immediately and honors reduced motion'
         const root = document.documentElement;
         const tracks = getComputedStyle(
           root,
-          '::view-transition-new(music-prototype-tracks)'
+          '::view-transition-new(music-experience-tracks)'
         );
         const cover = getComputedStyle(
           root,
-          '::view-transition-group(music-prototype-cover)'
+          '::view-transition-group(music-experience-cover)'
         );
         state.musicMotionSample = {
           opacity: tracks.opacity,
@@ -503,18 +503,18 @@ test('opening motion keeps tracks visible immediately and honors reduced motion'
           duration: cover.animationDuration,
           surfaceClip: getComputedStyle(
             root,
-            '::view-transition-group-children(music-prototype-surface)'
+            '::view-transition-group-children(music-experience-surface)'
           ).overflow,
           viewportClip: getComputedStyle(
             root,
-            '::view-transition-group-children(music-prototype-viewport)'
+            '::view-transition-group-children(music-experience-viewport)'
           ).overflow,
           viewportGroup: getComputedStyle(
             document.querySelector('.mp-detail-scroll')!
           ).getPropertyValue('view-transition-group'),
           surfaceBackground: getComputedStyle(
             root,
-            '::view-transition-new(music-prototype-surface)'
+            '::view-transition-new(music-experience-surface)'
           ).backgroundColor,
           ground: getComputedStyle(document.querySelector('dialog.mp-detail')!)
             .backgroundColor,
@@ -604,7 +604,7 @@ test('arrow navigation preserves the detail container shape throughout its trans
         do {
           const surface = getComputedStyle(
             root,
-            '::view-transition-image-pair(music-prototype-surface)'
+            '::view-transition-image-pair(music-experience-surface)'
           );
           state.swapShapes!.push({
             radius: surface.borderRadius,

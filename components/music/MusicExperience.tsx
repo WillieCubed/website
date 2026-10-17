@@ -15,7 +15,7 @@ import MusicCurationReview from './MusicCurationReview';
 import MusicDetail from './MusicDetail';
 import MusicExperienceFrame from './MusicExperienceFrame';
 import MusicSetup from './MusicSetup';
-import './music-prototype.css';
+import './music-experience.css';
 import { useMusicBrowsing } from './useMusicBrowsing';
 import { useMusicCuration } from './useMusicCuration';
 import { useMusicDocument } from './useMusicDocument';

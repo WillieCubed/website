@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 
-import { formatRange } from '@/components/initiatives/dates';
-
+import { formatRange } from '@/lib/initiatives/dates';
 import { getPart } from '@/lib/initiatives/index';
 import { publicImageDataUri, renderEntityImage } from '@/lib/seo/og/render';
 

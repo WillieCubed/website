@@ -13,7 +13,6 @@ export const HUMANS_COMPONENTS: Array<[pkg: string, name: string]> = [
   ['shiki', 'Shiki'],
   ['pagefind', 'Pagefind'],
   ['zod', 'Zod'],
-  ['date-fns', 'date-fns'],
   ['microformats-parser', 'microformats-parser'],
 ];
 

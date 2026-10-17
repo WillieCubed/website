@@ -1,8 +1,8 @@
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
+import { formatRange } from '@/lib/initiatives/dates';
 import { type Initiative, getInitiatives } from '@/lib/initiatives/index';
 import { type Project, getPublishedProjects } from '@/lib/projects';
 import { formatDate } from '@/lib/site/dates';
-import { site } from '@/lib/site/identity';
 import { isInternalHref } from '@/lib/site/urls';
 import { type WritingData, getAllWritings } from '@/lib/writings/index';
 
@@ -14,15 +14,6 @@ import type { EntityCard } from './types';
 import { VENTURE_CARDS } from './ventures';
 
 export type { EntityCard };
-
-function range(starts: Date, ends: Date) {
-  const short = new Intl.DateTimeFormat('en-US', {
-    timeZone: site.timeZone,
-    month: 'short',
-    day: 'numeric',
-  });
-  return `${short.format(starts)} – ${short.format(ends)}`;
-}
 
 function writingCover(writing: WritingData) {
   if (!writing.featuredImage) return undefined;
@@ -78,7 +69,7 @@ function initiativeCards(initiative: Initiative): EntityCard[] {
     brand,
     meta:
       initiative.starts && initiative.ends
-        ? range(initiative.starts, initiative.ends)
+        ? formatRange(initiative.starts, initiative.ends)
         : undefined,
   });
   for (const part of initiative.parts) {
@@ -89,7 +80,7 @@ function initiativeCards(initiative: Initiative): EntityCard[] {
       description: part.tagline ?? part.description ?? initiative.tagline,
       cover: part.cover ?? initiative.cover,
       brand,
-      meta: `${initiative.title} · ${initiative.partLabel} ${part.number} of ${initiative.parts.length} · ${range(part.starts, part.ends)}`,
+      meta: `${initiative.title} · ${initiative.partLabel} ${part.number} of ${initiative.parts.length} · ${formatRange(part.starts, part.ends)}`,
     });
   }
   return cards;

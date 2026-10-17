@@ -110,15 +110,17 @@ html[data-detail-morph]::view-transition-new(root) {
   }
 }
 
-/* The expanded rail wraps more text than the large layout. Let its two
-   breathing spaces yield to that content before it reaches the dock. */
-@media (min-width: 840px) and (max-width: 1199px) {
+/* The rail's two breathing spaces yield to its content before it reaches
+   the dock. On a roomy window they take their full size; their floors leave
+   room for full-size focus targets on a short one, even where the platform's
+   text runs a line longer. */
+@media (min-width: 840px) {
   .home .lead {
     display: grid;
     height: 100%;
     grid-template-rows:
-      minmax(24px, clamp(48px, 12svh, 120px))
-      max-content max-content minmax(24px, 56px) max-content;
+      minmax(var(--spacing-sm), clamp(48px, 12svh, 120px))
+      max-content max-content minmax(var(--spacing-lg), 56px) max-content;
     align-content: start;
   }
   .home .intro {
@@ -133,6 +135,15 @@ html[data-detail-morph]::view-transition-new(root) {
   }
   .home .statement {
     margin-top: 0;
+  }
+}
+
+/* A short large window keeps its compact spacing: both spaces cap at 24px. */
+@media (min-width: 1200px) and (max-height: 800px) {
+  .home .lead {
+    grid-template-rows:
+      minmax(var(--spacing-sm), 24px)
+      max-content max-content minmax(var(--spacing-lg), 24px) max-content;
   }
 }
 

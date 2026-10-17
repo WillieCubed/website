@@ -189,7 +189,7 @@ last good result for at most 24 hours.
 ### Local verification
 
 Run `STUDIO_TEST_DATABASE_URL=... pnpm test` for database integration checks.
-Run `MUSIC_E2E=1 node scripts/studio-e2e.mjs` for authenticated admin browser
+Run `MUSIC_E2E=1 pnpm test:studio` for authenticated admin browser
 checks and full desktop/phone captures in both themes. The local harness uses
 signed JWTs and an isolated PostgreSQL schema; it has no auth bypass.
 

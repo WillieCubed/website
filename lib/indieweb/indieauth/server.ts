@@ -18,8 +18,8 @@ import type {
   IndieAuthStore,
   IndieAuthTokenRecord,
 } from '@/lib/indieweb/indieauth/types';
-import { absoluteSiteUrl } from '@/lib/indieweb/utils';
 import { site } from '@/lib/site/identity';
+import { absoluteUrl } from '@/lib/site/urls';
 
 /**
  * The protocol half of the site's IndieAuth server
@@ -63,25 +63,16 @@ const S256_CHALLENGE_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 export function buildIndieAuthMetadata() {
   return {
     issuer: INDIEAUTH_ISSUER,
-    authorization_endpoint: absoluteSiteUrl(
-      INDIEAUTH_AUTHORIZATION_ENDPOINT,
-      SITE_URL
-    ),
-    token_endpoint: absoluteSiteUrl(INDIEAUTH_TOKEN_ENDPOINT, SITE_URL),
-    introspection_endpoint: absoluteSiteUrl(
-      INDIEAUTH_INTROSPECTION_ENDPOINT,
-      SITE_URL
-    ),
+    authorization_endpoint: absoluteUrl(INDIEAUTH_AUTHORIZATION_ENDPOINT),
+    token_endpoint: absoluteUrl(INDIEAUTH_TOKEN_ENDPOINT),
+    introspection_endpoint: absoluteUrl(INDIEAUTH_INTROSPECTION_ENDPOINT),
     introspection_endpoint_auth_methods_supported: ['Bearer'],
-    revocation_endpoint: absoluteSiteUrl(
-      INDIEAUTH_REVOCATION_ENDPOINT,
-      SITE_URL
-    ),
+    revocation_endpoint: absoluteUrl(INDIEAUTH_REVOCATION_ENDPOINT),
     revocation_endpoint_auth_methods_supported: ['none'],
     scopes_supported: [...INDIEAUTH_SCOPES],
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
-    userinfo_endpoint: absoluteSiteUrl('/indieauth/userinfo', SITE_URL),
+    userinfo_endpoint: absoluteUrl('/indieauth/userinfo'),
     token_endpoint_auth_methods_supported: ['none'],
     service_documentation: 'https://indieauth.spec.indieweb.org/',
     code_challenge_methods_supported: ['S256'],
@@ -326,7 +317,7 @@ export function buildProfile(scope: string[]): IndieAuthProfile | undefined {
   return {
     name: site.author.name,
     url: INDIEAUTH_ME,
-    photo: absoluteSiteUrl(site.author.photo, SITE_URL),
+    photo: absoluteUrl(site.author.photo),
     ...(scope.includes('email') ? { email: site.author.email } : {}),
   };
 }

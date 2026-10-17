@@ -82,7 +82,3 @@ export function formStringList(formData: FormData, key: string): string[] {
       .filter(Boolean)
   );
 }
-
-export function absoluteSiteUrl(path: string, siteUrl: string): string {
-  return new URL(path, siteUrl).toString();
-}

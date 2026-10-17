@@ -10,6 +10,7 @@ import {
   auditPortableContent,
   renderFeedHtml,
 } from '@/lib/indieweb/feeds/html';
+import { absoluteUrl } from '@/lib/site/urls';
 
 import { type CatalogEntry, catalogEntry } from './catalog';
 import { StudioError } from './errors';
@@ -474,7 +475,7 @@ export async function portablePreview(body: DraftContent, slug: string) {
   try {
     portableHtml = await renderFeedHtml(
       source,
-      `https://willie.page/writings/${slug}`
+      absoluteUrl(`/writings/${slug}`)
     );
   } catch {
     issues.push('A block needs a valid portable alternative.');

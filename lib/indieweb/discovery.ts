@@ -15,7 +15,7 @@ import {
   type AtProtocolResources,
   getPublicResources,
 } from '@/lib/indieweb/resources';
-import { absoluteSiteUrl } from '@/lib/indieweb/utils';
+import { absoluteUrl } from '@/lib/site/urls';
 
 /**
  * The resources WebFinger answers for: the author's acct: URI and the home
@@ -53,11 +53,11 @@ export function buildWebFingerResponse(
       },
       {
         rel: 'http://webmention.org/',
-        href: absoluteSiteUrl(WEBMENTION_ENDPOINT, SITE_URL),
+        href: absoluteUrl(WEBMENTION_ENDPOINT),
       },
       {
         rel: 'micropub',
-        href: absoluteSiteUrl(MICROPUB_ENDPOINT, SITE_URL),
+        href: absoluteUrl(MICROPUB_ENDPOINT),
       },
       {
         rel: 'http://purl.org/indieauth',
@@ -66,7 +66,7 @@ export function buildWebFingerResponse(
       // The same IndieAuth links the HTML head carries.
       ...INDIEAUTH_DISCOVERY_LINKS.map(({ rel, href }) => ({
         rel,
-        href: absoluteSiteUrl(href, SITE_URL),
+        href: absoluteUrl(href),
       })),
     ],
   };

@@ -7,7 +7,7 @@ type TargetBounds = Pick<
 
 function expectUsableTargets(targets: TargetBounds[], panel: TargetBounds) {
   for (const [index, target] of targets.entries()) {
-    expect(target.width).toBe(48);
+    expect(target.width).toBe(32);
     expect(target.height).toBe(48);
     expect(target.left).toBeGreaterThanOrEqual(panel.left);
     expect(target.right).toBeLessThanOrEqual(panel.right);
@@ -221,14 +221,14 @@ test('the footer aligns ring padding and keeps all six targets on one row', asyn
   }
 });
 
-test('footer contacts and utilities share a row when they fit', async ({
+test('footer contacts stay compact and share one mobile row with status', async ({
   page,
 }, testInfo) => {
   await page.goto('/writings');
   await expect(page.locator('.microstatus')).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
-  for (const width of [390, 480, 600, 840, 1000, 1440]) {
+  for (const width of [318, 320, 360, 390, 480, 600, 840, 1000, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.locator('.site-webrings').scrollIntoViewIfNeeded();
     const geometry = await page.evaluate(() => {
@@ -248,15 +248,23 @@ test('footer contacts and utilities share a row when they fit', async ({
     });
     expect(geometry.overflow, `${width}px footer overflow`).toBe(false);
     for (const link of geometry.links) {
-      expect(link.width).toBeGreaterThanOrEqual(48);
+      expect(link.width).toBeGreaterThanOrEqual(24);
       expect(link.height).toBeGreaterThanOrEqual(48);
     }
-    if (width === 480 || width >= 840) {
+    if (width <= 480 || width >= 840) {
       expect(
         geometry.contacts.top,
         `${width}px uses available row space`
       ).toBeCloseTo(geometry.utilities.top, 0);
       expect(geometry.contacts.right).toBeLessThan(geometry.utilities.left);
+    }
+    if (width <= 480) {
+      for (const [index, link] of geometry.links.entries()) {
+        if (index > 0)
+          expect(
+            link.left - geometry.links[index - 1].left
+          ).toBeLessThanOrEqual(32);
+      }
     }
     await page.screenshot({
       path: testInfo.outputPath(`footer-fit-${width}.png`),
@@ -322,7 +330,7 @@ for (const width of [390, 1440]) {
     await expect(surface).toHaveCount(1);
     const box = (await link.boundingBox())!;
     const visual = (await surface.boundingBox())!;
-    expect(box.width).toBe(48);
+    expect(box.width).toBe(32);
     expect(box.height).toBe(48);
     expect(visual.width).toBe(32);
     expect(visual.height).toBe(32);

@@ -150,7 +150,7 @@ function CompactStatus({
       <span className="microstatus-place">
         <Icon name="map-pin" />
         {unavailable ? (
-          'Status unavailable'
+          <span className="status-city">Status unavailable</span>
         ) : (
           <StatusCity city={location.city} />
         )}

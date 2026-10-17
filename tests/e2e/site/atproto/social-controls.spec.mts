@@ -214,3 +214,25 @@ test('RSS fallback retains native navigation and a visible keyboard indicator', 
   ).toBe('3px');
   expect((await fallback.boundingBox())!.height).toBeGreaterThanOrEqual(48);
 });
+
+test('the writings subscription action stays at the header trailing edge', async ({
+  page,
+}) => {
+  await page.route('**/api/atproto/social*', (route) =>
+    route.fulfill({
+      json: { enabled: true, ready: true, signedIn: false, subscribed: false },
+    })
+  );
+  for (const width of [318, 390, 480, 600, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/writings');
+    const root = page.locator('.collection-header .standard-social-root');
+    await expect(root).toBeVisible();
+    const actions = root.locator('.standard-social-actions');
+    const last = actions.locator('button, a').last();
+    await expect(last).toBeVisible();
+    const header = await root.boundingBox();
+    const target = await last.boundingBox();
+    expect(target!.x + target!.width).toBeCloseTo(header!.x + header!.width, 0);
+  }
+});

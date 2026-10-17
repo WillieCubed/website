@@ -325,8 +325,8 @@ into the output.
 `tests/integration/atproto/oauth.test.mts` exercises encrypted state expiry,
 cancellation, callback replay, browser isolation, sign-out, and nested
 distributed locks against an isolated acceptance database. Load acceptance
-configuration into the process environment before running it with `tsx --test
---test-concurrency=1`. Never run fixture tests against the production database.
+configuration into the process environment before running it with
+`pnpm test:integration`. Never run fixture tests against the production database.
 
 ### Simulated browser checks
 

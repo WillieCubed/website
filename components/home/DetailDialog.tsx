@@ -5,6 +5,7 @@ import { brandStyle, useHome } from '@/components/home/HomeContext';
 import { Icon } from '@/components/home/Icon';
 import { useDetailDialog } from '@/components/home/useDetailDialog';
 import SiteLink from '@/components/link/SiteLink';
+import Modal from '@/components/site/Modal';
 
 import { isPlainClick } from '@/lib/dom/click';
 import { type Entry, entries } from '@/lib/home/ventures';
@@ -92,29 +93,22 @@ export function DetailDialog({
     requestOpen,
     requestClose,
     onNativeClose,
-    backdrop,
   } = useDetailDialog(registerOpener, initialId);
   const { brands } = useHome();
   const entry = openId ? entries[openId] : null;
   const style = brandStyle(brands, entry?.brand);
 
   return (
-    <dialog
+    <Modal
       ref={dialogRef}
-      open={Boolean(openId)}
+      initiallyOpen={Boolean(openId)}
       className="detail scroller"
       aria-labelledby="d-title"
       data-brand={entry?.brand}
       data-branded={entry && style ? '' : undefined}
       style={style}
-      onCancel={(event) => {
-        event.preventDefault();
-        requestClose();
-      }}
-      // The browser can close the dialog without a cancel to intercept, such
-      // as on a second Escape in a row. Close the view with it.
-      onClose={onNativeClose}
-      {...backdrop}
+      onDismiss={requestClose}
+      onForcedClose={onNativeClose}
     >
       <div className="d-bar">
         <SiteLink
@@ -137,6 +131,6 @@ export function DetailDialog({
         countdown={countdown}
         onOpen={requestOpen}
       />
-    </dialog>
+    </Modal>
   );
 }

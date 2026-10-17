@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom';
 
 import Icon from '@/components/icons/Icon';
 import Button from '@/components/site/Button';
-import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
+import Modal from '@/components/site/Modal';
 
 import { StudioInspectorHostContext } from './StudioInspectorHost';
 import { StudioSaveContext } from './StudioSaveContext';
@@ -35,28 +35,23 @@ export default function WidgetInspector({
 }: WidgetInspectorProps) {
   const status = useContext(StudioSaveContext);
   const host = useContext(StudioInspectorHostContext);
-  const { dialog, closing, onDismiss, backdrop } = useInspectorPresentation(
+  const { dialog, closing, onDismiss } = useInspectorPresentation(
     host,
     onDismissed
   );
   return (
     host &&
     createPortal(
-      <dialog
+      <Modal
         ref={dialog}
         id={id}
         className="studio-widget-inspector"
         data-closing={closing || undefined}
         aria-labelledby={`${id}-title`}
-        onCancel={(event) => {
-          event.preventDefault();
-          onDismiss();
-        }}
-        onClose={(event) => {
-          // A responsive mode change closes then immediately reopens this same
-          // dialog; its queued close event must not end the edit session.
-          if (!event.currentTarget.open) onDismiss();
-        }}
+        onDismiss={onDismiss}
+        // A responsive mode change closes then reopens this same dialog,
+        // which Modal ignores, so a forced close always ends the session.
+        onForcedClose={onDismiss}
         onKeyDown={(event) => {
           event.stopPropagation();
           trapModalTab(event);
@@ -65,7 +60,6 @@ export default function WidgetInspector({
             onDismiss();
           }
         }}
-        {...backdrop}
       >
         <header className="studio-inspector-header scroller">
           <h2 id={`${id}-title`} tabIndex={-1}>
@@ -93,7 +87,7 @@ export default function WidgetInspector({
                 : status}
           </p>
         </footer>
-      </dialog>,
+      </Modal>,
       host
     )
   );
@@ -146,7 +140,6 @@ function useInspectorPresentation(
   // Effect callbacks read the latest handlers without reopening the dialog.
   const dismissFromEffect = useEffectEvent(onDismiss);
   const finishFromEffect = useEffectEvent(finishDismissal);
-  const backdrop = useBackdropDismiss(onDismiss);
   useEffect(() => {
     if (!closing) return;
     let active = true;
@@ -224,5 +217,5 @@ function useInspectorPresentation(
       element.close();
     };
   }, [host]);
-  return { dialog, closing, onDismiss, backdrop };
+  return { dialog, closing, onDismiss };
 }

@@ -1,8 +1,9 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { flushSync } from 'react-dom';
 
 import Icon from '@/components/icons/Icon';
+import Modal from '@/components/site/Modal';
 
 import { type Catalog, type PlaylistView } from '@/lib/music/presentation';
 
@@ -28,37 +29,21 @@ export default function MusicReview({
   applyReview,
 }: Props) {
   const reviewDialog = useRef<HTMLDialogElement>(null);
-  const returnFocus = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    const dialog = reviewDialog.current;
-    if (!open || !dialog) return;
-    returnFocus.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    dialog.showModal();
-    dialog.querySelector<HTMLElement>('#mp-review-title')?.focus({
-      preventScroll: true,
-    });
-    dialog.scrollTop = 0;
-    return () => dialog.close();
-  }, [open]);
 
+  // Closing first returns focus, so an action that moves focus runs after it.
   function closeReview() {
     flushSync(onClose);
-    returnFocus.current?.focus({ preventScroll: true });
   }
 
   if (!open) return null;
   return (
-    <dialog
+    <Modal
       ref={reviewDialog}
+      open
+      initialFocus="#mp-review-title"
       className="mp-review"
       aria-labelledby="mp-review-title"
-      onCancel={(event) => {
-        event.preventDefault();
-        closeReview();
-      }}
+      onDismiss={closeReview}
       onKeyDown={(event) =>
         scrollDialogContent(event, reviewDialog.current, '.mp-review-body')
       }
@@ -110,7 +95,7 @@ export default function MusicReview({
           <Icon name="check" />
         </button>
       </footer>
-    </dialog>
+    </Modal>
   );
 }
 

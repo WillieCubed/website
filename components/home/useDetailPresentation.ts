@@ -116,10 +116,7 @@ export function useDetailPresentation(
       setName(dialog, 'card');
       setName(media, 'media');
       if (!dialog.matches(':modal')) {
-        if (dialog.open) {
-          selfClosedRef.current = true;
-          dialog.close();
-        }
+        if (dialog.open) dialog.close();
         dialog.showModal();
       }
       dialog.scrollTop = 0;
@@ -183,7 +180,6 @@ export function useDetailPresentation(
     const modal = dialogRef.current;
     if (!initial || !modal || modal.matches(':modal')) return;
     // Upgrade the readable server dialog on the same node.
-    selfClosedRef.current = true;
     modal.close();
     modal.showModal();
   }, []);

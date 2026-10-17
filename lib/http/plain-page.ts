@@ -1,4 +1,5 @@
 import { site } from '@/lib/site/identity';
+import { escapeHtml } from '@/lib/text/html';
 import { themeSchemes } from '@/lib/theme/tokens';
 import { THEME_COLORS, THEME_STORAGE_KEY } from '@/lib/theme/transition';
 
@@ -7,18 +8,6 @@ export interface PlainPage {
   title: string;
   /** One entry per line of body text; an empty string is a blank line. */
   lines: string[];
-}
-
-const ESCAPES: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;',
-};
-
-function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, (char) => ESCAPES[char]);
 }
 
 function wantsHtml(request: Request): boolean {

@@ -2,7 +2,13 @@ import { randomUUID } from 'node:crypto';
 
 import { required } from '../studio/config';
 import { StudioError } from '../studio/errors';
-import { GitHubError, github } from '../studio/github';
+import {
+  GitHubError,
+  findOrOpenPullRequest,
+  github,
+  githubOptional,
+  rebaseMergePullRequest,
+} from '../studio/github';
 import { approvedManifest, cacheApproved, suppressApproved } from './public';
 import { matchesMusicProof, musicArtifact } from './publication-artifact';
 import { musicPublicationMessage } from './publication-message';
@@ -16,11 +22,6 @@ import { emptyCatalog } from './types';
 
 interface GitHubObject {
   sha: string;
-}
-interface GitHubPullRequest {
-  head: GitHubObject;
-  number: number;
-  html_url: string;
 }
 interface GitHubCheckRun {
   name: string;
@@ -37,7 +38,7 @@ type Publication = MusicPublication & {
 };
 const path = 'content/music/catalog.json';
 async function githubCatalog(ref: string) {
-  const file = await optional(
+  const file = await githubOptional(
     `contents/${path}?ref=${encodeURIComponent(ref)}`
   );
   if (!file) return { sha: null, catalog: emptyCatalog };
@@ -75,16 +76,8 @@ async function patch(id: string, value: Partial<Publication>) {
   );
   return get(id);
 }
-async function optional(path: string): Promise<Record<string, unknown> | null> {
-  try {
-    return await github(path);
-  } catch (e) {
-    if (e instanceof GitHubError && e.githubStatus === 404) return null;
-    throw e;
-  }
-}
 async function fileSha(ref: string) {
-  const file = await optional(
+  const file = await githubOptional(
     `contents/${path}?ref=${encodeURIComponent(ref)}`
   );
   return (file?.sha as string | undefined) ?? null;
@@ -206,7 +199,7 @@ async function recoverMergedPublication(p: Publication) {
 }
 async function ensureProposalCommit(p: Publication, base: string) {
   if (!p.proposalCommit) {
-    const existing = await optional(
+    const existing = await githubOptional(
       `git/ref/heads/${encodeURIComponent(p.branch!)}`
     );
     if (existing) {
@@ -234,7 +227,7 @@ async function ensureProposalCommit(p: Publication, base: string) {
   return p;
 }
 async function ensureProposalBranch(p: Publication) {
-  let branchRef = await optional(
+  let branchRef = await githubOptional(
     `git/ref/heads/${encodeURIComponent(p.branch!)}`
   );
   if (!branchRef) {
@@ -252,18 +245,12 @@ async function ensureProposalBranch(p: Publication) {
 }
 async function ensurePullRequest(p: Publication, branch: string) {
   if ((p.pullRequestNumber ?? 0) === 0) {
-    const owner = required('STUDIO_GITHUB_REPOSITORY').split('/')[0];
-    const matches = (await github(
-      `pulls?state=all&head=${encodeURIComponent(`${owner}:${p.branch}`)}&base=${encodeURIComponent(branch)}`
-    )) as unknown as GitHubPullRequest[];
-    const pr =
-      matches[0] ??
-      (await github('pulls', 'POST', {
-        title: message(p).split('\n')[0],
-        head: p.branch,
-        base: branch,
-        body: `## TL;DR\n\nPublish the reviewed Music collection.\n\n## Changes\n\n${message(p).split('\n\n').slice(1).join('\n\n')}\n\n## Verification\n\nMusic validated the immutable revision and rechecked each selected playlist with Spotify. Required repository checks must pass before rebase merge.\n\n## Follow-ups and Next Work\n\nMusic verifies the deployed revision and source hash before reporting Live.`,
-      }));
+    const pr = await findOrOpenPullRequest({
+      title: message(p).split('\n')[0],
+      head: p.branch!,
+      base: branch,
+      body: `## TL;DR\n\nPublish the reviewed Music collection.\n\n## Changes\n\n${message(p).split('\n\n').slice(1).join('\n\n')}\n\n## Verification\n\nMusic validated the immutable revision and rechecked each selected playlist with Spotify. Required repository checks must pass before rebase merge.\n\n## Follow-ups and Next Work\n\nMusic verifies the deployed revision and source hash before reporting Live.`,
+    });
     p = await patch(p.id, {
       pullRequestNumber: Number(pr.number),
       pullRequestUrl: String(pr.html_url),
@@ -345,18 +332,11 @@ async function recheckSelectedPlaylists(p: Publication) {
     );
 }
 async function mergeProposal(p: Publication): Promise<Publication> {
-  try {
-    const merged = await github(`pulls/${p.pullRequestNumber}/merge`, 'PUT', {
-      sha: p.proposalCommit,
-      merge_method: 'rebase',
-    });
-    if (merged.merged)
-      return patch(p.id, { status: 'deploying', commit: String(merged.sha) });
-  } catch (e) {
-    if (!(e instanceof GitHubError) || ![405, 409].includes(e.githubStatus))
-      throw e;
-  }
-  return p;
+  const commit = await rebaseMergePullRequest(
+    p.pullRequestNumber!,
+    p.proposalCommit!
+  );
+  return commit ? patch(p.id, { status: 'deploying', commit }) : p;
 }
 async function preparePublication(
   revision: MusicRevision

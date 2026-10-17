@@ -6,7 +6,12 @@ import { compileSandbox } from './components';
 import { required } from './config';
 import { exportMdx, validatePublication } from './document';
 import { StudioError } from './errors';
-import { GitHubError, github } from './github';
+import {
+  findOrOpenPullRequest,
+  github,
+  githubOptional,
+  rebaseMergePullRequest,
+} from './github';
 import { effectivePortable } from './portable';
 import { getStudioPool, getStudioStore } from './store';
 import type {
@@ -124,15 +129,6 @@ export async function preparePublicationPreview(
   body: DraftContent
 ): Promise<DraftContent> {
   return (await artifacts(body, { compileBundles: false })).body;
-}
-
-async function optionalGithub(path: string) {
-  try {
-    return await github(path);
-  } catch (error) {
-    if (error instanceof GitHubError && error.githubStatus === 404) return null;
-    throw error;
-  }
 }
 
 // Publication metadata lives in the durable JSON body; the store's status updater
@@ -315,18 +311,12 @@ async function publicationPullRequest(
   if (publication.pullRequestNumber !== undefined) {
     pr = await github(`pulls/${publication.pullRequestNumber}`);
   } else {
-    const owner = required('STUDIO_GITHUB_REPOSITORY').split('/')[0];
-    const pulls = (await github(
-      `pulls?state=all&head=${encodeURIComponent(`${owner}:${publication.publicationBranch}`)}&base=${encodeURIComponent(branch)}&per_page=100`
-    )) as unknown as Record<string, unknown>[];
-    pr =
-      pulls[0] ??
-      (await github('pulls', 'POST', {
-        title: messageFor(publication.id),
-        head: publication.publicationBranch,
-        base: branch,
-        body: await proposalBody(publication),
-      }));
+    pr = await findOrOpenPullRequest({
+      title: messageFor(publication.id),
+      head: publication.publicationBranch!,
+      base: branch,
+      body: await proposalBody(publication),
+    });
     await remember(publication.id, {
       pullRequestNumber: Number(pr.number),
       pullRequestUrl: String(pr.html_url),
@@ -440,27 +430,16 @@ async function mergePublication(
   publication: Publication,
   pr: Record<string, unknown>
 ): Promise<void> {
-  const store = getStudioStore();
-  try {
-    const result = await github(`pulls/${pr.number}/merge`, 'PUT', {
-      sha: publication.proposalCommit,
-      merge_method: 'rebase',
+  const commit = await rebaseMergePullRequest(
+    Number(pr.number),
+    publication.proposalCommit!
+  );
+  if (commit)
+    await getStudioStore().updatePublication(publication.id, {
+      status: 'deploying',
+      commit,
+      error: null,
     });
-    if (result.merged) {
-      await store.updatePublication(publication.id, {
-        status: 'deploying',
-        commit: String(result.sha),
-        error: null,
-      });
-    }
-  } catch (error) {
-    // Policy/review/check races are waiting states, never a reason to bypass.
-    if (
-      !(error instanceof GitHubError) ||
-      ![405, 409].includes(error.githubStatus)
-    )
-      throw error;
-  }
 }
 
 export async function publishRevision(
@@ -539,7 +518,7 @@ async function preparePublicationProposal(
     await completeRebase(publication, branch);
     publication = (await store.getPublication(publication.id))!;
   }
-  const proposalRef = await optionalGithub(
+  const proposalRef = await githubOptional(
     `git/ref/heads/${encodeURIComponent(publicationBranch)}`
   );
   if (proposalRef) {

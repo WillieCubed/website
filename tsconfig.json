@@ -28,6 +28,7 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
+    "app/.well-known/**/*.ts",
     "**/*.mts",
     "**/*.tsx",
     "*.mjs",

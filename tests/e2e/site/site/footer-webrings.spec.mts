@@ -109,6 +109,34 @@ test('keyboard tooltips dismiss with Escape without changing the link', async ({
   await expect(link).toHaveAttribute('href', 'https://xn--sr8hvo.ws');
 });
 
+test('a keyboard tooltip stays with its link when the page scrolls', async ({
+  page,
+}) => {
+  await page.goto('/writings');
+  const link = page.getByRole('link', {
+    name: 'IndieWeb Webring',
+    exact: true,
+  });
+  await link.scrollIntoViewIfNeeded();
+  await page
+    .getByRole('link', {
+      name: 'Previous site in the IndieWeb Webring',
+      exact: true,
+    })
+    .focus();
+  await page.keyboard.press('Tab');
+  const tooltip = page.getByRole('tooltip');
+  await expect(tooltip).toHaveText('IndieWeb Webring');
+  // Focus scrolling its link into view must not dismiss the tooltip.
+  await page.evaluate(() => window.scrollBy(0, -40));
+  await expect(tooltip).toBeVisible();
+  const [tip, target] = await Promise.all([
+    tooltip.boundingBox(),
+    link.boundingBox(),
+  ]);
+  expect(Math.abs(tip!.y + tip!.height + 8 - target!.y)).toBeLessThan(2);
+});
+
 test('the footer aligns ring padding and keeps all six targets on one row', async ({
   page,
 }) => {

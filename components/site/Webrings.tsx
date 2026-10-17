@@ -47,17 +47,26 @@ export default function Webrings() {
       if (popup.matches(':popover-open')) popup.hidePopover();
       active = null;
     };
+    const place = (link: HTMLAnchorElement) => {
+      const box = link.getBoundingClientRect();
+      popup.style.left = `${Math.min(window.innerWidth - popup.offsetWidth - 12, Math.max(12, box.left + (box.width - popup.offsetWidth) / 2))}px`;
+      const above = box.top - popup.offsetHeight - 8;
+      popup.style.top = `${above >= 12 ? above : box.bottom + 8}px`;
+    };
     const show = (link: HTMLAnchorElement) => {
       if (link.closest('[inert]')) return;
       hide();
       active = link;
       popup.textContent = link.dataset.webringLabel ?? '';
       popup.showPopover();
-      const box = link.getBoundingClientRect();
-      popup.style.left = `${Math.min(window.innerWidth - popup.offsetWidth - 12, Math.max(12, box.left + (box.width - popup.offsetWidth) / 2))}px`;
-      const above = box.top - popup.offsetHeight - 8;
-      popup.style.top = `${above >= 12 ? above : box.bottom + 8}px`;
+      place(link);
       link.setAttribute('aria-describedby', popup.id);
+    };
+    // Focus can scroll its link into view, so a keyboard tooltip follows the
+    // scroll; a hover tooltip closes because the pointer has left its link.
+    const scroll = () => {
+      if (active && active === focused) place(active);
+      else hide();
     };
     const leave = () => {
       if (
@@ -119,7 +128,7 @@ export default function Webrings() {
     popup.addEventListener('pointerenter', retain);
     popup.addEventListener('pointerleave', leave);
     document.addEventListener('keydown', onKey);
-    window.addEventListener('scroll', hide, { passive: true });
+    window.addEventListener('scroll', scroll, { passive: true });
     window.addEventListener('resize', hide);
     return () => {
       hide();
@@ -127,7 +136,7 @@ export default function Webrings() {
       popup.removeEventListener('pointerenter', retain);
       popup.removeEventListener('pointerleave', leave);
       document.removeEventListener('keydown', onKey);
-      window.removeEventListener('scroll', hide);
+      window.removeEventListener('scroll', scroll);
       window.removeEventListener('resize', hide);
     };
   }, []);

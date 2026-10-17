@@ -81,14 +81,14 @@ sequenceDiagram
   Hook->>Check: pnpm content:check
   Check-->>Hook: pass or fail
   Hook-->>Author: allow or block push
-  Author->>CI: push branch
-  CI->>Check: pnpm content:check
+  Author->>CI: open pull request
   CI->>Build: build on pull request or main
   Build->>Check: prebuild check
 ```
 
-The pre-push hook catches an omission while it is still local. CI checks every
-branch push, and the build's prebuild step runs the validator again. Micropub
+The pre-push hook catches an omission while it is still local. CI builds every
+pull request and push to main, and the build's prebuild step runs the validator
+again. Micropub
 applies the same description policy before writing a post, covering the
 authoring path that bypasses a local checkout.
 

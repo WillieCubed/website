@@ -1,15 +1,12 @@
 'use client';
-import type { ComponentType } from 'react';
 
 import MusicCardControls from './MusicCardControls';
 import { MusicCardCaption, MusicCardOpenTarget } from './MusicCardOpening';
-import type { MusicCoverProps } from './MusicCover';
 import MusicFeaturedPlaylist from './MusicFeaturedPlaylist';
 import type { MusicGalleryItem } from './music-gallery';
 
 interface Props {
   item: MusicGalleryItem;
-  Cover: ComponentType<MusicCoverProps>;
   editing: boolean;
   href: (id: string) => string;
   onDragStart: (id: string) => void;
@@ -20,7 +17,6 @@ interface Props {
 }
 export default function MusicCard({
   item,
-  Cover,
   editing,
   href,
   onDragStart,
@@ -58,7 +54,6 @@ export default function MusicCard({
     >
       <MusicCardOpenTarget
         playlist={playlist}
-        Cover={Cover}
         onOpen={openPlaylist}
         href={href(playlist.id)}
       >
@@ -76,7 +71,6 @@ export default function MusicCard({
           playlist={playlist}
           note={note}
           memberships={memberships}
-          Cover={Cover}
           openPlaylist={openPlaylist}
           href={href}
         />

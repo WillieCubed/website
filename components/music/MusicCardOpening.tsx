@@ -1,5 +1,5 @@
 'use client';
-import type { ComponentType, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
@@ -7,19 +7,17 @@ import SiteLink from '@/components/link/SiteLink';
 import { isPlainClick } from '@/lib/dom/click';
 import type { PlaylistView } from '@/lib/music/presentation';
 
-import type { MusicCoverProps } from './MusicCover';
+import MusicCover from './MusicCover';
 
 interface OpeningProps {
   href: string;
   playlist: PlaylistView;
-  Cover: ComponentType<MusicCoverProps>;
   onOpen: (id: string, source?: HTMLElement) => void;
   children: ReactNode;
 }
 export function MusicCardOpenTarget({
   playlist,
   href,
-  Cover,
   onOpen,
   children,
 }: OpeningProps) {
@@ -42,7 +40,7 @@ export function MusicCardOpenTarget({
           data-card-cover=""
           style={{ background: playlist.color }}
         >
-          <Cover playlist={playlist} />
+          <MusicCover playlist={playlist} />
         </div>
       </div>
       {children}

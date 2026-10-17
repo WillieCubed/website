@@ -1,8 +1,7 @@
 'use client';
-import type { ComponentType, RefObject } from 'react';
+import type { RefObject } from 'react';
 
 import MusicCard from './MusicCard';
-import MusicCover, { type MusicCoverProps } from './MusicCover';
 import MusicScrollCue from './MusicScrollCue';
 import MusicSelectionControl from './MusicSelectionControl';
 import type { MusicGalleryItem } from './music-gallery';
@@ -15,7 +14,6 @@ interface Props {
   href: (id: string) => string;
   collectionKey: string;
   gallery: RefObject<HTMLDivElement | null>;
-  Cover?: ComponentType<MusicCoverProps>;
   onDragStart: (id: string) => void;
   onDrop: (id: string) => void;
   openPlaylist: (id: string, source?: HTMLElement) => void;
@@ -30,7 +28,6 @@ export default function MusicPlaylistGrid({
   href,
   collectionKey,
   gallery,
-  Cover = MusicCover,
   onDragStart,
   onDrop,
   openPlaylist,
@@ -50,7 +47,6 @@ export default function MusicPlaylistGrid({
             <MusicCard
               key={item.playlist.id}
               item={item}
-              Cover={Cover}
               editing={editing}
               href={href}
               onDragStart={onDragStart}

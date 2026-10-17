@@ -8,8 +8,7 @@ export interface MusicCatalogDocument {
   draft: Catalog;
   commit: (next: Catalog) => void;
   acceptSetup: (next: Catalog) => void;
-  restore: (live: Catalog, draft: Catalog) => void;
-  apply: () => void;
+  restore: (catalog: Catalog) => void;
 }
 
 /** The applied catalog and the editable copy have separate update paths. */
@@ -28,12 +27,9 @@ export function useMusicCatalog(
     setDraft(next);
     onChange?.(next);
   }
-  function restore(nextLive: Catalog, nextDraft: Catalog) {
-    setLive(nextLive);
-    setDraft(nextDraft);
+  function restore(catalog: Catalog) {
+    setLive(catalog);
+    setDraft(catalog);
   }
-  function apply() {
-    setLive(structuredClone(draft));
-  }
-  return { live, draft, commit, acceptSetup, restore, apply };
+  return { live, draft, commit, acceptSetup, restore };
 }

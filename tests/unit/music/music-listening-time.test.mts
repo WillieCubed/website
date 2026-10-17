@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { listeningTime } from '../../../lib/prototypes/music.ts';
+import { listeningTime } from '../../../lib/music/presentation.ts';
 
 test('listening time counts repeated tracks and formats hours', () => {
   assert.equal(

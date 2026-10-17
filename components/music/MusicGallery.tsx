@@ -6,15 +6,13 @@ import SpotifyIcon from '@/components/icons/SpotifyIcon';
 import SiteLink from '@/components/link/SiteLink';
 import Button from '@/components/site/Button';
 
-import type { MusicLibraryFilter, MusicMode } from '@/lib/music/presentation';
+import type { MusicLibraryFilter } from '@/lib/music/presentation';
 import { spotifyProfileUrl } from '@/lib/site/identity';
 
 interface Props {
   publicEmpty: boolean;
   header: ReactNode;
   loadError?: string;
-  storageError: string;
-  mode: MusicMode;
   filters?: ReactNode;
   empty?: ReactNode;
   children: ReactNode;
@@ -23,8 +21,6 @@ export default function MusicGallery({
   publicEmpty,
   header,
   loadError,
-  storageError,
-  mode,
   filters,
   empty,
   children,
@@ -34,21 +30,10 @@ export default function MusicGallery({
     <section className="mp-collection" aria-labelledby="mp-collection-title">
       {header}
       {filters}
-      {storageError && (
-        <p className="mp-notice" role="status">
-          {storageError}
-        </p>
-      )}
       {children}
       {empty}
       <p className="mp-sample-note">
-        {mode === 'prototype' ? (
-          'These covers and tracks are illustrative fixtures for design review.'
-        ) : (
-          <>
-            <SpotifyIcon /> Playlist artwork and track information from Spotify.
-          </>
-        )}
+        <SpotifyIcon /> Playlist artwork and track information from Spotify.
       </p>
     </section>
   );

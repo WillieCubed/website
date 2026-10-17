@@ -88,11 +88,6 @@ export function musicHref(
   const params = new URLSearchParams();
   if (nextSeries) params.set('series', nextSeries);
   if (detail) params.set('detail', detail);
-  const path =
-    mode === 'prototype'
-      ? '/prototypes/music'
-      : mode === 'admin'
-        ? '/studio/music'
-        : '/music';
+  const path = mode === 'admin' ? '/studio/music' : '/music';
   return `${path}${params.size > 0 ? `?${params}` : ''}`;
 }

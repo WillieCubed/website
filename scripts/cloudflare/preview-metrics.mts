@@ -1,10 +1,14 @@
 import { type Browser, chromium } from '@playwright/test';
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
-import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { performance } from 'node:perf_hooks';
 
 import { isMain } from '../shared/command.mts';
+import {
+  openNextPreviewArgs,
+  writeLocalWranglerConfig,
+} from './local-wrangler-config.mts';
 
 const BASE_URL = 'http://127.0.0.1:8787';
 const ROUTES = ['/', '/search', '/writings'];
@@ -269,54 +273,24 @@ export async function sampleRoute(browser: MetricsBrowser, path: string) {
 function startLocalPreview(root: string, configPath: string): ChildProcess {
   return spawn(
     'pnpm',
-    [
-      'exec',
-      'opennextjs-cloudflare',
-      'preview',
-      '--config',
-      configPath,
-      '--ip',
-      '127.0.0.1',
-      '--port',
-      '8787',
-    ],
+    openNextPreviewArgs(configPath, ['--ip', '127.0.0.1', '--port', '8787']),
     {
       cwd: root,
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: process.platform !== 'win32',
-      env: {
-        ...process.env,
-        CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-          process.env
-            .CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE ??
-          'postgresql://preview:preview@127.0.0.1:5432/preview',
-      },
     }
   );
 }
 
 export async function runCloudflarePreviewMetrics() {
   const root = process.cwd();
-  const configPath = join(root, `.wrangler.metrics-${process.pid}.jsonc`);
+  const config = await writeLocalWranglerConfig(root);
   let preview: ReturnType<typeof spawn> | undefined;
-  let configCreated = false;
   let capturedOutput = '';
   let spawnError: Error | undefined;
   let browser: Browser | undefined;
   try {
-    const sourceConfig = await readFile(join(root, 'wrangler.jsonc'), 'utf8');
-    const config = JSON.parse(
-      sourceConfig.replace(/,\s*([}\]])/g, '$1')
-    ) as Record<string, unknown>;
-    // Local preview should use its loopback hostname instead of Wrangler's
-    // configured custom domains, which intentionally redirect to production.
-    delete config.routes;
-    await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, {
-      flag: 'wx',
-    });
-    configCreated = true;
-
-    preview = startLocalPreview(root, configPath);
+    preview = startLocalPreview(root, config.path);
     preview.on('error', (error) => {
       spawnError = error;
     });
@@ -357,7 +331,7 @@ export async function runCloudflarePreviewMetrics() {
       try {
         if (preview) await stopPreview(preview);
       } finally {
-        if (configCreated) await unlink(configPath).catch(() => undefined);
+        await config.remove();
       }
     }
   }

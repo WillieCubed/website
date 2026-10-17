@@ -117,8 +117,8 @@ unavailable personal runtime retains the request and offers retry.
 
 ### Deploy behind the owner Access policy
 
-Deploy the preview Worker with the preview bindings in `cloudflare.config.ts`
-and `wrangler.preview.jsonc`. Attach `preview.willie.page` only after the direct
+Deploy the preview Worker with the preview bindings in `cloudflare.config.ts`.
+Attach `preview.willie.page` only after the direct
 Worker has passed signed Access, private database, and media checks. The
 existing Owner access application covers the entire preview hostname. The Worker
 independently validates RS256 signatures, issuer, audience, expiry, and owner; a

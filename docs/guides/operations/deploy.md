@@ -52,8 +52,10 @@ The route redirects also send `/apps` to `/projects` with a 307 while
 OpenNext packages the Next.js app for the `willie-page` Worker. The deployment
 source of truth is `cloudflare.config.ts`; its `preview` mode selects the
 isolated `willie-page-preview` Worker. `wrangler.config.ts` holds bundler
-settings for the beta `cf` CLI, while `wrangler.jsonc` and
-`wrangler.preview.jsonc` remain for OpenNext's adapter build.
+settings for the beta `cf` CLI. There is no Wrangler JSON file: the OpenNext
+build and local preview generate a temporary one from both TypeScript files,
+and the metrics bundle check reads them with Wrangler's
+`--experimental-new-config`.
 
 Prepare the account and runtime resources below before deploying. Build with
 `pnpm build:cloudflare`, deploy with

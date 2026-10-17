@@ -12,7 +12,7 @@ overrides:
   '@tailwindcss/typography>postcss-selector-parser': 7.1.6
 
 patchedDependencies:
-  gray-matter@4.0.3: 6867093d18e007f9f610b1c4c6871b64734503b546ffcd3bc7a3675dd11f2188
+  gray-matter@4.0.3: 82198c3ee34e2823c4e9793c5209cf97bd566d5610c3f6582dc3f044ca423d6f
   next@16.3.8: 1001ca8e7e36804e9d1ee43be909cd2e815de1194694b2cdcbfada691edf6087
 
 importers:
@@ -108,7 +108,7 @@ importers:
         version: 22.1.1
       gray-matter:
         specifier: ^4.0.3
-        version: 4.0.3(patch_hash=6867093d18e007f9f610b1c4c6871b64734503b546ffcd3bc7a3675dd11f2188)
+        version: 4.0.3(patch_hash=82198c3ee34e2823c4e9793c5209cf97bd566d5610c3f6582dc3f044ca423d6f)
       hls.js:
         specifier: ^1.7.3
         version: 1.7.3
@@ -7129,7 +7129,7 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  gray-matter@4.0.3(patch_hash=6867093d18e007f9f610b1c4c6871b64734503b546ffcd3bc7a3675dd11f2188):
+  gray-matter@4.0.3(patch_hash=82198c3ee34e2823c4e9793c5209cf97bd566d5610c3f6582dc3f044ca423d6f):
     dependencies:
       js-yaml: 4.3.2
       kind-of: 6.0.3

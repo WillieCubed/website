@@ -12,6 +12,7 @@
 /.next/
 /.open-next/
 .wrangler/
+.wrangler.local-*.json
 .cloudflare/
 next-env.d.ts
 /out/

@@ -17,12 +17,12 @@ pnpm test:e2e
 The browser suite uses that build. Changes to publishing logic also need the
 unit and browser tests; live tests provide additional coverage when needed.
 
-| Tests                 | What they answer                                                     | Where they live         | How they run                                         |
-| --------------------- | -------------------------------------------------------------------- | ----------------------- | ---------------------------------------------------- |
-| Unit                  | Does this function or module handle its inputs correctly?            | `tests/unit/`           | `pnpm test`, locally and in CI                       |
-| Integration           | Do these modules work together against a real test database?         | `tests/integration/`    | Explicitly, with the isolated database configuration |
-| Website end-to-end    | Can someone navigate and use the built website?                      | `tests/e2e/site/`       | `pnpm test:e2e`, locally and in CI                   |
-| Publishing end-to-end | Does publishing work through the website and real external services? | `tests/e2e/publishing/` | Explicitly, with isolated accounts and services      |
+| Tests                 | What they answer                                                     | Where they live         | How they run                                                      |
+| --------------------- | -------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------- |
+| Unit                  | Does this function or module handle its inputs correctly?            | `tests/unit/`           | `pnpm test`, locally and in CI                                    |
+| Integration           | Do these modules work together against a real test database?         | `tests/integration/`    | `pnpm test:integration`, with the isolated database configuration |
+| Website end-to-end    | Can someone navigate and use the built website?                      | `tests/e2e/site/`       | `pnpm test:e2e`, locally and in CI                                |
+| Publishing end-to-end | Does publishing work through the website and real external services? | `tests/e2e/publishing/` | Explicitly, with isolated accounts and services                   |
 
 The browser suite also checks route responses, feeds, discovery documents,
 accessibility, and protocol behavior. Some cases need an explicitly configured
@@ -34,8 +34,10 @@ test database or writing and skip without those fixtures. See the
 `tests/integration/atproto/oauth.test.mts` tests OAuth state, session storage, and
 locking against the isolated database. It uses test identities and provider
 fixtures. It is distinct from publishing end-to-end tests that complete real
-provider authorization. See the [AT Protocol guide](../publishing/atproto.md) for its
-configuration and invocation.
+provider authorization. Load the isolated configuration into the environment
+and run `pnpm test:integration`. The Postgres portability test skips unless
+`WEBSITE_TEST_DATABASE_URL` is set. See the [AT Protocol guide](../publishing/atproto.md)
+for the OAuth test's configuration.
 
 ## Private writing and music
 

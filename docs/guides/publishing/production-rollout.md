@@ -7,7 +7,7 @@ for present release gates.
 
 That rollout established the production services while keeping authored drafts
 private. The
-[isolated acceptance record](../../evidence/publishing/verification-2026-09-23-followup.md)
+[isolated acceptance record](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/publishing/verification-2026-09-23-followup.md)
 contains the tested URLs and outside responses;
 [publication review](publication-review.md) covers the approval needed before an
 original writing becomes public.

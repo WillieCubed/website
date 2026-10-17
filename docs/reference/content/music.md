@@ -204,5 +204,5 @@ desktop in both themes.
 
 A passing build does not prove Spotify consent, owner eligibility, GitHub token
 permissions, or publication. Complete the hosted checklist in the [launch
-plan](../../superpowers/plans/2026-10-12-music-production-launch.md). Never
+plan](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/superpowers/plans/2026-10-12-music-production-launch.md). Never
 publish fixture data or choose editorial selections for the owner.

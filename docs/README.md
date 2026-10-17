@@ -144,34 +144,7 @@ Complete a task in an existing checkout or deployment.
 
 ## Archive
 
-Design proposals, implementation plans, and dated verification records. Use the
+Design proposals, implementation plans, and dated verification records are not
+kept in the tree. The last revision that contained them is
+[`566f37b5`](https://github.com/WillieCubed/website/tree/566f37b570df167f917f20217ee6fcd5131d12a8/docs); read them there for historical context, and use the
 references and guides above for current behavior and procedures.
-
-- [Search and metadata design](./superpowers/specs/2026-09-18-static-search-and-metadata-design.md)
-  and [plan](./superpowers/plans/2026-09-19-static-search-and-metadata.md).
-- [Adaptive theme plan](./plans/2026-09-19-adaptive-theme.md).
-- [Atmosphere design](./superpowers/specs/2026-10-02-atmosphere-design.md),
-  [Standard.site plan](./superpowers/plans/2026-10-02-standard-site.md), and
-  [Bluesky plan](./superpowers/plans/2026-10-02-bluesky-posse.md).
-- [Project model plan](./superpowers/plans/2026-09-28-project-model-and-pages.md).
-- [Command palette design](./superpowers/specs/2026-09-23-command-palette-design.md),
-  [footer sheet design](./superpowers/specs/2026-09-23-footer-sheet-design.md),
-  and
-  [rail focuses design](./superpowers/specs/2026-09-23-rail-focuses-design.md).
-- [Scrollbar design](./superpowers/specs/2026-09-28-scrollbars-design.md) and
-  [plan](./superpowers/plans/2026-09-28-scrollbars.md).
-- [Acceptance identity plan](./superpowers/plans/2026-10-08-acceptance-identities.md).
-- [September 23 verification](./evidence/publishing/verification-2026-09-23.md)
-  and [follow-up](./evidence/publishing/verification-2026-09-23-followup.md).
-- [Evidence artifacts](./evidence/): dated receipts and screenshots, interpreted
-  by the conformance and verification documents.
-
-Recent hosting and publishing records:
-
-- [Website issue plan](./plans/2026-10-11-website-issues.md).
-- [Private writing preview plan](./superpowers/plans/2026-10-10-private-writing-preview.md).
-- [Music launch plan](./superpowers/plans/2026-10-12-music-production-launch.md).
-- [Cloudflare migration plan](./superpowers/plans/2026-10-13-cloudflare-migration.md)
-  and [design](./superpowers/specs/2026-10-13-cloudflare-migration-design.md).
-- [Cloudflare precutover evidence](./evidence/cloudflare-precutover-2026-10-13.md)
-  and [preview evidence](./evidence/cloudflare-preview-2026-10-13.md).

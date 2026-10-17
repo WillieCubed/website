@@ -61,10 +61,14 @@ README cannot compensate for a broken link beside the code someone is editing.
 
 ### Give historical material an explicit home
 
-Implementation plans remain under `docs/plans` or `docs/superpowers`. Dated
-verification records and artifacts live under `docs/evidence`. Keep them because
-they explain decisions and establish what a particular run observed; do not let
-them silently replace current operating instructions.
+Do not commit implementation plans, design specs, or dated verification
+records and artifacts. They describe a moment rather than the current system,
+and they outlive their usefulness quickly. Keep the decision a plan produced in
+the Concept or Reference page it changed, and keep a run's receipts in the pull
+request or task that needed them. When a document must cite a historical record,
+link a permalink to the commit that contained it; the
+[archive](../../README.md#archive) names the last revision with the retired
+plans and evidence.
 
 Conceptual proposals belong in Concepts and must identify their proposed status.
 A detailed example does not make a proposed integration implemented. If a guide

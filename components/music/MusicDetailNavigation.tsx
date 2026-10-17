@@ -31,11 +31,11 @@ export default function MusicDetailNavigation({
   closeHref,
 }: Props) {
   return (
-    <div className="mp-detail-bar scroller">
+    <div className="music-detail-bar scroller">
       <SiteLink
         href={closeHref}
         preview={false}
-        className="site-control mp-icon-button mp-detail-close"
+        className="site-control music-icon-button music-detail-close"
         onClick={(event) => {
           if (!isPlainClick(event)) return;
           event.preventDefault();
@@ -50,21 +50,21 @@ export default function MusicDetailNavigation({
         title={title}
         dialogRef={dialog}
       />
-      <div className="mp-detail-actions">
+      <div className="music-detail-actions">
         {!series && (
-          <div className="mp-detail-position">
+          <div className="music-detail-position">
             <span>
               {index + 1} of {ids.length}
             </span>
           </div>
         )}
         <div
-          className="mp-detail-pagination"
+          className="music-detail-pagination"
           role="group"
           aria-label="Playlist navigation"
         >
           <button
-            className="site-control mp-icon-button mp-icon-button--tonal"
+            className="site-control music-icon-button music-tonal"
             data-control-size="small"
             disabled={index <= 0}
             onClick={() => onOpen(ids[index - 1])}
@@ -75,7 +75,7 @@ export default function MusicDetailNavigation({
             </span>
           </button>
           <button
-            className="site-control mp-icon-button mp-icon-button--tonal"
+            className="site-control music-icon-button music-tonal"
             data-control-size="small"
             disabled={index < 0 || index >= ids.length - 1}
             onClick={() => onOpen(ids[index + 1])}

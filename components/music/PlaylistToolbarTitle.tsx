@@ -12,12 +12,14 @@ export default function PlaylistToolbarTitle({ title, dialogRef }: Props) {
   const label = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const text = label.current;
-    const scroller =
-      dialogRef.current?.querySelector<HTMLElement>('.mp-detail-scroll');
-    const heading =
-      dialogRef.current?.querySelector<HTMLElement>('#mp-detail-title');
+    const scroller = dialogRef.current?.querySelector<HTMLElement>(
+      '.music-detail-scroll'
+    );
+    const heading = dialogRef.current?.querySelector<HTMLElement>(
+      '#music-detail-title'
+    );
     if (!text || !scroller || !heading) return;
-    const bar = text.closest('.mp-detail-bar');
+    const bar = text.closest('.music-detail-bar');
     const update = () => {
       bar?.toggleAttribute('data-scrolled', scroller.scrollTop > 0);
       const bounds = heading.getBoundingClientRect();
@@ -49,7 +51,7 @@ export default function PlaylistToolbarTitle({ title, dialogRef }: Props) {
   return (
     <span
       ref={label}
-      className="mp-detail-toolbar-title"
+      className="music-detail-toolbar-title"
       aria-hidden="true"
       title={title}
     >

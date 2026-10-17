@@ -37,7 +37,7 @@ export default function MusicPublicationBar({
       const bounds = bar.getBoundingClientRect();
       if (
         focused instanceof HTMLElement &&
-        focused.closest('.mp-grid') &&
+        focused.closest('.music-grid') &&
         focused.getBoundingClientRect().top < bounds.bottom &&
         focused.getBoundingClientRect().bottom > bounds.top - 16
       ) {
@@ -62,11 +62,11 @@ export default function MusicPublicationBar({
   return (
     <div
       ref={publicationBar}
-      className="mp-draft-note"
+      className="music-draft-note"
       role="region"
       aria-label="Collection publication"
     >
-      <span className="mp-status-dot" />
+      <span className="music-status-dot" />
       <PublicationSummary published={published} saveStatus={saveStatus} />
       <Button
         variant={changed ? 'primary' : 'tonal'}

@@ -8,6 +8,8 @@ import Button from '@/components/site/Button';
 import type { MusicLibraryFilter } from '@/lib/music/presentation';
 import { spotifyProfileUrl } from '@/lib/site/identity';
 
+import './styles/gallery.css';
+
 interface Props {
   publicEmpty: boolean;
   header: ReactNode;
@@ -26,12 +28,15 @@ export default function MusicGallery({
 }: Props) {
   if (publicEmpty) return <MusicPublicPlaceholder loadError={loadError} />;
   return (
-    <section className="mp-collection" aria-labelledby="mp-collection-title">
+    <section
+      className="music-collection"
+      aria-labelledby="music-collection-title"
+    >
       {header}
       {filters}
       {children}
       {empty}
-      <p className="mp-sample-note">
+      <p className="music-sample-note">
         <SpotifyIcon /> Playlist artwork and track information from Spotify.
       </p>
     </section>
@@ -44,13 +49,13 @@ interface MusicPublicPlaceholderProps {
 function MusicPublicPlaceholder({ loadError }: MusicPublicPlaceholderProps) {
   return (
     <section
-      className="mp-public-placeholder"
-      aria-labelledby="mp-public-placeholder-title"
+      className="music-public-placeholder"
+      aria-labelledby="music-public-placeholder-title"
     >
-      <span className="mp-public-placeholder-icon" aria-hidden="true">
+      <span className="music-public-placeholder-icon" aria-hidden="true">
         <Icon name="music" size={32} />
       </span>
-      <h2 id="mp-public-placeholder-title">
+      <h2 id="music-public-placeholder-title">
         {loadError
           ? 'Playlists are unavailable right now.'
           : 'No playlists to show right now.'}
@@ -59,14 +64,14 @@ function MusicPublicPlaceholder({ loadError }: MusicPublicPlaceholderProps) {
         {loadError ??
           'My playlists normally appear here. You can still explore them on Spotify.'}
       </p>
-      <div className="mp-public-placeholder-actions">
+      <div className="music-public-placeholder-actions">
         {loadError && (
           <form action="/music" method="get">
             <Button variant="tonal">Try again</Button>
           </form>
         )}
         <SiteLink
-          className="site-control mp-button mp-public-placeholder-link"
+          className="site-control music-button music-public-placeholder-link"
           href={spotifyProfileUrl}
           target="_blank"
         >
@@ -95,7 +100,7 @@ export function MusicLibraryFilters({
   return (
     <>
       <div
-        className="mp-library-filters"
+        className="music-library-filters"
         inert={loading || undefined}
         role="group"
         aria-label="Library filter"
@@ -118,7 +123,7 @@ export function MusicLibraryFilters({
           </button>
         ))}
       </div>
-      <p className="mp-visually-hidden">
+      <p className="music-visually-hidden">
         Include playlists in the public gallery. Open a playlist to add notes
         and series.
       </p>
@@ -147,7 +152,7 @@ export function MusicEmptyCollection({
 }: EmptyCollectionProps) {
   if (loading || count > 0) return null;
   return (
-    <div className="mp-empty">
+    <div className="music-empty">
       <Icon name="music" size={32} />
       <EmptyCollectionMessage
         editing={editing}
@@ -155,7 +160,7 @@ export function MusicEmptyCollection({
         hasLibrary={hasLibrary}
       />
       {(editing ? hasLibrary : hasSelection) && (
-        <button className="site-control mp-button" onClick={onBrowse}>
+        <button className="site-control music-button" onClick={onBrowse}>
           Browse all playlists
         </button>
       )}

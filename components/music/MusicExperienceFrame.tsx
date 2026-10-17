@@ -31,7 +31,7 @@ export default function MusicExperienceFrame({
 }: Props) {
   return (
     <div
-      className="music-experience"
+      className="music"
       data-editing={(!setup && editing) || undefined}
       data-reordering={(!setup && editing && reordering) || undefined}
       aria-busy={(loading && !loadError) || interactionLocked}
@@ -67,7 +67,7 @@ function MusicExperienceLayout({
       <main
         hidden={setup}
         id={setup ? undefined : 'main'}
-        className={`mp-shell${publicEmpty ? ' mp-shell-public-empty' : ''}`}
+        className={`music-shell${publicEmpty ? ' music-shell-public-empty' : ''}`}
       >
         {children}
       </main>

@@ -25,7 +25,7 @@ export function MusicCardOpenTarget({
       href={href}
       preview={false}
       prefetch={false}
-      className="mp-card-open"
+      className="music-card-open"
       onClick={(event) => {
         if (!isPlainClick(event)) return;
         event.preventDefault();
@@ -33,9 +33,9 @@ export function MusicCardOpenTarget({
       }}
       aria-label={`Open ${playlist.title}`}
     >
-      <div className="mp-art-frame" data-card-surface="">
+      <div className="music-art-frame" data-card-surface="">
         <div
-          className="mp-art"
+          className="music-art"
           data-card-cover=""
           style={{ background: playlist.color }}
         >
@@ -60,15 +60,15 @@ export function MusicCardCaption({
   total,
 }: PlaylistCaptionProps) {
   return (
-    <div className="mp-card-caption">
+    <div className="music-card-caption">
       <div>
         <h3>{playlist.title}</h3>
-        <p className="mp-small">
+        <p className="music-small">
           {inSeries ? `${index + 1} of ${total} · ` : ''}
           {playlist.trackCount} {playlist.trackCount === 1 ? 'track' : 'tracks'}
         </p>
       </div>
-      <span className="mp-open-icon">
+      <span className="music-open-icon">
         <Icon name="arrow-right" size={20} />
       </span>
     </div>

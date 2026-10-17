@@ -20,19 +20,19 @@ function TrackRow({ track, index }: TrackRowProps) {
   const destination = status ? null : track.url;
   const content = (
     <>
-      <span className="mp-track-copy">
-        <span className="mp-track-title">{track.title}</span>
+      <span className="music-track-copy">
+        <span className="music-track-title">{track.title}</span>
         {track.artist && (
-          <span className="mp-track-artist">{track.artist}</span>
+          <span className="music-track-artist">{track.artist}</span>
         )}
-        {status && <span className="mp-track-status">{status}</span>}
+        {status && <span className="music-track-status">{status}</span>}
       </span>
-      <span className="mp-track-trailing">
-        <span className="mp-track-metadata">
-          <span className="mp-track-number" aria-hidden="true">
+      <span className="music-track-trailing">
+        <span className="music-track-metadata">
+          <span className="music-track-number" aria-hidden="true">
             #{String(index + 1).padStart(2, '0')}
           </span>
-          <span className="mp-track-duration">{track.duration}</span>
+          <span className="music-track-duration">{track.duration}</span>
         </span>
         {destination && <Icon name="external" size={14} />}
       </span>
@@ -42,7 +42,7 @@ function TrackRow({ track, index }: TrackRowProps) {
     <li value={index + 1}>
       {destination ? (
         <a
-          className="mp-track-row"
+          className="music-track-row"
           href={destination}
           target="_blank"
           rel="noopener noreferrer"
@@ -51,7 +51,7 @@ function TrackRow({ track, index }: TrackRowProps) {
           {content}
         </a>
       ) : (
-        <div className="mp-track-row">{content}</div>
+        <div className="music-track-row">{content}</div>
       )}
     </li>
   );
@@ -61,21 +61,21 @@ function TrackRow({ track, index }: TrackRowProps) {
 export default function PlaylistTracks({ tracks }: Props) {
   return (
     <>
-      <div className="mp-track-heading">
-        <h3 id="mp-track-list-heading">Track list</h3>
+      <div className="music-track-heading">
+        <h3 id="music-track-list-heading">Track list</h3>
       </div>
       <ol
-        id="mp-track-list"
-        className="mp-track-list"
+        id="music-track-list"
+        className="music-track-list"
         role="list"
-        aria-labelledby="mp-track-list-heading"
+        aria-labelledby="music-track-list-heading"
       >
         {tracks.map((track, index) => (
           <TrackRow key={index} track={track} index={index} />
         ))}
       </ol>
       {tracks.length === 0 && (
-        <p className="mp-track-empty">No tracks to display.</p>
+        <p className="music-track-empty">No tracks to display.</p>
       )}
     </>
   );

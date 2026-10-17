@@ -7,29 +7,29 @@
     "reason": "Deliberately violates clear space in the brand guide example showing what not to do."
   },
   {
-    "file": "components/music/music-experience.css",
-    "selector": ".mp-announcement, .mp-visually-hidden",
+    "file": "components/music/styles/gallery.css",
+    "selector": ".music-announcement, .music-visually-hidden",
     "property": "margin",
     "value": "-1px",
     "reason": "Clipped screen-reader-only announcement box; the standard -1px margin prevents layout interference."
   },
   {
-    "file": "components/music/music-experience.css",
-    "selector": ".mp-track-number, .mp-track-duration",
+    "file": "components/music/styles/detail.css",
+    "selector": ".music-track-number, .music-track-duration",
     "property": "padding-top",
     "value": "2px",
     "reason": "Centers the 20px metadata line box against the 24px first title line: (24 - 20) / 2."
   },
   {
-    "file": "components/music/music-experience.css",
-    "selector": ".mp-heading h1",
+    "file": "components/music/styles/rail.css",
+    "selector": ".music-heading h1",
     "property": "margin",
     "value": "0 0 20px -3px",
     "reason": "Corrects the left glyph bearing at 64px display type; the 80px heading uses a 4px correction."
   },
   {
-    "file": "components/music/music-experience.css",
-    "selector": ".mp-review-number",
+    "file": "components/music/styles/admin.css",
+    "selector": ".music-review-number",
     "property": "padding-top",
     "value": "2px",
     "reason": "Aligns the small mono ordinal with the larger playlist title in a review row."
@@ -56,15 +56,15 @@
     "reason": "Optical spacing of the temperature unit glyph at the compact text scale."
   },
   {
-    "file": "components/music/music-admin.css",
+    "file": "components/music/styles/admin.css",
     "selector": ".music-admin-notices > p[role='status']",
     "property": "margin",
     "value": "-1px",
     "reason": "Clipped screen-reader-only announcement box; the standard -1px margin prevents layout interference."
   },
   {
-    "file": "components/music/music-experience.css",
-    "selector": ".mp-playlist-ending > svg",
+    "file": "components/music/styles/detail.css",
+    "selector": ".music-playlist-ending > svg",
     "property": "margin-top",
     "value": "2px",
     "reason": "Centers the 20px ending icon beside its 24px first text line: (24 - 20) / 2."

@@ -25,7 +25,7 @@ export default function MusicSeriesNavigation({
 }: Props) {
   return (
     <nav
-      className="mp-series-nav"
+      className="music-series-nav"
       aria-label="Playlist series"
       inert={loading || undefined}
       aria-disabled={loading || undefined}
@@ -46,7 +46,7 @@ export default function MusicSeriesNavigation({
         <span>All playlists</span>
         <span>
           {loading ? (
-            <span className="mp-pending-count" />
+            <span className="music-pending-count" />
           ) : editing ? (
             playlistCount
           ) : (

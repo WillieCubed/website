@@ -54,7 +54,7 @@ function markup(
 test('known gallery cards stay in place with identical markup while other data loads', () => {
   const pending = markup(true, [playlist]);
   const ready = markup(false, [playlist]);
-  assert.doesNotMatch(pending, /mp-card-pending/);
+  assert.doesNotMatch(pending, /music-card-pending/);
   assert.match(pending, /A long playlist title/);
   const cards = (html: string) => html.match(/<article\b[\s\S]*?<\/article>/g);
   assert.deepEqual(cards(pending), cards(ready));
@@ -62,7 +62,7 @@ test('known gallery cards stay in place with identical markup while other data l
 test('an unknown collection uses decorative cards without invented titles or counts', () => {
   const pending = markup(true, []);
   assert.equal(
-    (pending.match(/class="mp-card mp-card-pending"/g) || []).length,
+    (pending.match(/class="music-card music-card-pending"/g) || []).length,
     6
   );
   assert.doesNotMatch(pending, /A long playlist title/);
@@ -71,7 +71,7 @@ test('an unknown collection uses decorative cards without invented titles or cou
 test('known curation content remains readable while editing controls wait for the load', () => {
   const pending = markup(true, [playlist], 'admin');
   const ready = markup(false, [playlist], 'admin');
-  assert.doesNotMatch(pending, /mp-card-pending/);
+  assert.doesNotMatch(pending, /music-card-pending/);
   assert.match(pending, /A long playlist title/);
   assert.match(pending, /<input\b(?=[^>]*type="checkbox")(?=[^>]*disabled="")/);
   assert.doesNotMatch(

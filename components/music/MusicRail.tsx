@@ -4,6 +4,8 @@ import { type FormEvent, type ReactNode, useState } from 'react';
 import Icon from '@/components/icons/Icon';
 import Button from '@/components/site/Button';
 
+import './styles/rail.css';
+
 interface Props {
   editing: boolean;
   loading: boolean;
@@ -29,14 +31,14 @@ export default function MusicRail({
   }
 
   return (
-    <aside className="mp-rail">
-      <div className="mp-heading">
+    <aside className="music-rail">
+      <div className="music-heading">
         <h1>Music</h1>
         {editing && (
           <Button
             variant="primary"
             size="medium"
-            className="mp-new-series"
+            className="music-new-series"
             disabled={loading}
             onClick={() => setNewSeries('')}
           >
@@ -47,10 +49,10 @@ export default function MusicRail({
       </div>
       {!publicEmpty && !editing && seriesNavigation}
       {newSeries !== null && (
-        <form className="mp-new-series-form" onSubmit={addSeries}>
-          <label htmlFor="mp-series-title">Series name</label>
+        <form className="music-new-series-form" onSubmit={addSeries}>
+          <label htmlFor="music-series-title">Series name</label>
           <input
-            id="mp-series-title"
+            id="music-series-title"
             autoFocus
             value={newSeries}
             onChange={(event) => setNewSeries(event.target.value)}

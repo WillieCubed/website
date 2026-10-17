@@ -21,9 +21,9 @@ export default function MusicCardControls({
   reorder,
 }: PlaylistControlsProps) {
   return (
-    <div className="mp-card-controls">
+    <div className="music-card-controls">
       <label
-        className="mp-check"
+        className="music-check"
         title={!playlist.eligible ? 'Unavailable for publication' : undefined}
       >
         <MusicSelectionControl
@@ -35,10 +35,10 @@ export default function MusicCardControls({
         />
         {!playlist.eligible ? 'Unavailable' : selected ? 'Included' : 'Include'}
       </label>
-      <div className="mp-order-buttons" hidden={controls.reorderHidden}>
-        <span className="mp-order-label">Order</span>
+      <div className="music-order-buttons" hidden={controls.reorderHidden}>
+        <span className="music-order-label">Order</span>
         <button
-          className="site-control mp-icon-button"
+          className="site-control music-icon-button"
           data-control-size="small"
           disabled={controls.earlierDisabled}
           onClick={() => reorder(playlist.id, -1)}
@@ -49,7 +49,7 @@ export default function MusicCardControls({
           </span>
         </button>
         <button
-          className="site-control mp-icon-button"
+          className="site-control music-icon-button"
           data-control-size="small"
           disabled={controls.laterDisabled}
           onClick={() => reorder(playlist.id, 1)}

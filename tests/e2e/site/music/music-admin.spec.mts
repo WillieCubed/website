@@ -296,10 +296,7 @@ test('the public Music gallery loads, passes axe, and fits the viewport', async 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Music', exact: true })
   ).toBeVisible();
-  await expect(page.locator('.music-experience')).toHaveAttribute(
-    'aria-busy',
-    'false'
-  );
+  await expect(page.locator('.music')).toHaveAttribute('aria-busy', 'false');
   await page.evaluate(() => document.fonts.ready);
   const { violations } = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
@@ -485,7 +482,7 @@ test('a Spotify refresh keeps the reviewed draft aligned with the saved revision
   await expect(
     page.locator('.music-admin-notices [role="status"]')
   ).toContainText('Importing Spotify playlists…');
-  await expect(page.locator('.music-experience')).toHaveAttribute('inert', '');
+  await expect(page.locator('.music')).toHaveAttribute('inert', '');
   await expect(selection).toBeDisabled();
   const dir = '.playwright-mcp/music/iterations/2026-10-13-refresh-locked';
   await mkdir(dir, { recursive: true });
@@ -549,7 +546,7 @@ test('publication feedback stays out of the page layout', async ({
     page.evaluate(() =>
       Array.from(
         document.querySelectorAll(
-          'header[data-column],.mp-rail,.mp-grid,.mp-sample-note,.mp-draft-note'
+          'header[data-column],.music-rail,.music-grid,.music-sample-note,.music-draft-note'
         )
       ).map((element) => {
         const box = element.getBoundingClientRect();
@@ -571,7 +568,7 @@ test('publication feedback stays out of the page layout', async ({
   const message = await notice.boundingBox();
   expect(bar).not.toBeNull();
   expect(message).not.toBeNull();
-  const actions = await page.locator('.mp-draft-note').boundingBox();
+  const actions = await page.locator('.music-draft-note').boundingBox();
   // The action surface can now park above the footer while the snackbar
   // stays at the viewport edge. They must remain separate in either position.
   expect(

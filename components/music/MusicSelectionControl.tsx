@@ -16,9 +16,9 @@ export default function MusicSelectionControl({
   ...props
 }: MusicSelectionControlProps) {
   return (
-    <span className="mp-selection-control" data-indicator={indicator}>
+    <span className="music-selection-control" data-indicator={indicator}>
       <input {...props} type={type} />
-      <span className="mp-selection-state" aria-hidden="true">
+      <span className="music-selection-state" aria-hidden="true">
         {indicator !== 'feature' && (
           <svg
             viewBox="0 0 24 24"
@@ -27,7 +27,7 @@ export default function MusicSelectionControl({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="mp-choice-off"
+            className="music-choice-off"
           >
             <path
               d={
@@ -45,7 +45,7 @@ export default function MusicSelectionControl({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="mp-choice-on"
+          className="music-choice-on"
         >
           <path d="m5 12 4 4L19 6" />
         </svg>

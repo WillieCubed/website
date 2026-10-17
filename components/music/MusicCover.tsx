@@ -15,7 +15,7 @@ export default function MusicCover({ playlist }: MusicCoverProps) {
     // Spotify artwork is rendered uncropped and unmodified.
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      className="mp-cover"
+      className="music-cover"
       src={playlist.image}
       alt=""
       aria-hidden="true"
@@ -24,7 +24,7 @@ export default function MusicCover({ playlist }: MusicCoverProps) {
       onError={() => setFailed(true)}
     />
   ) : (
-    <span className="mp-cover mp-cover-missing" aria-hidden="true">
+    <span className="music-cover music-cover-missing" aria-hidden="true">
       <Icon name="music" size={64} />
     </span>
   );

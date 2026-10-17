@@ -51,8 +51,8 @@ test('Music curation retains its gallery shell while the collection arrives', as
     route.fulfill({ json: { connected: true } })
   );
   await page.goto('/studio/music');
-  await expect(page.locator('.mp-rail h1')).toHaveText('Music');
-  await expect(page.locator('.mp-collection')).toBeVisible();
+  await expect(page.locator('.music-rail h1')).toHaveText('Music');
+  await expect(page.locator('.music-collection')).toBeVisible();
   await expect(
     page.getByRole('group', { name: 'Library filter' })
   ).toBeVisible();
@@ -61,9 +61,9 @@ test('Music curation retains its gallery shell while the collection arrives', as
     path: info.outputPath('music-pending.png'),
     fullPage: false,
   });
-  const heading = page.locator('.mp-rail h1');
+  const heading = page.locator('.music-rail h1');
   const before = await heading.boundingBox();
-  const pendingCard = await page.locator('.mp-card').first().boundingBox();
+  const pendingCard = await page.locator('.music-card').first().boundingBox();
   await heading.evaluate((node) => {
     (window as Window & { __musicHeading?: Element }).__musicHeading = node;
   });
@@ -82,7 +82,7 @@ test('Music curation retains its gallery shell while the collection arrives', as
     )
   ).toBe(true);
   expect(await heading.boundingBox()).toEqual(before);
-  expect(await page.locator('.mp-card').first().boundingBox()).toEqual(
+  expect(await page.locator('.music-card').first().boundingBox()).toEqual(
     pendingCard
   );
   await page.screenshot({
@@ -185,15 +185,12 @@ test('Music curation keeps its shell through a failed load and retry', async ({
     route.fulfill({ json: { connected: true } })
   );
   await page.goto('/studio/music');
-  const heading = page.locator('.mp-rail h1');
+  const heading = page.locator('.music-rail h1');
   await expect(heading).toHaveText('Music');
   await expect(
     page.getByRole('button', { name: 'Try again', exact: true })
   ).toBeVisible();
-  await expect(page.locator('.music-experience')).toHaveAttribute(
-    'aria-busy',
-    'false'
-  );
+  await expect(page.locator('.music')).toHaveAttribute('aria-busy', 'false');
   await heading.evaluate((node) =>
     Object.assign(window, { __musicHeading: node })
   );
@@ -445,16 +442,13 @@ test('public Music has usable playlist destinations without scripting', async ({
   });
   const page = await context.newPage();
   await page.goto('/music');
-  await expect(page.locator('.music-experience')).toHaveAttribute(
-    'aria-busy',
-    'false'
-  );
-  const card = page.locator('.mp-card-open').first();
+  await expect(page.locator('.music')).toHaveAttribute('aria-busy', 'false');
+  const card = page.locator('.music-card-open').first();
   await expect(card).toHaveAttribute('href', /detail=/);
   await card.click();
-  await expect(page.locator('dialog.mp-detail')).toBeVisible();
-  await expect(page.locator('#mp-detail-title')).not.toBeEmpty();
+  await expect(page.locator('dialog.music-detail')).toBeVisible();
+  await expect(page.locator('#music-detail-title')).not.toBeEmpty();
   await page.getByRole('link', { name: 'Close playlist', exact: true }).click();
-  await expect(page.locator('dialog.mp-detail')).toBeHidden();
+  await expect(page.locator('dialog.music-detail')).toBeHidden();
   await context.close();
 });

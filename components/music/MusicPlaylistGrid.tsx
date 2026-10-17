@@ -37,7 +37,7 @@ export default function MusicPlaylistGrid({
     <>
       <div
         ref={gallery}
-        className={`mp-grid${editing ? ' mp-grid-editing' : ''}`}
+        className={`music-grid${editing ? ' music-grid-editing' : ''}`}
       >
         {loading && playlistCount === 0 ? (
           <MusicPendingCards editing={editing} />
@@ -70,26 +70,30 @@ interface MusicPendingCardsProps {
 
 function MusicPendingCards({ editing }: MusicPendingCardsProps) {
   return Array.from({ length: 6 }, (_, index) => (
-    <article className="mp-card mp-card-pending" key={index} aria-hidden="true">
-      <div className="mp-card-open">
-        <div className="mp-art-frame">
-          <div className="mp-art" />
+    <article
+      className="music-card music-card-pending"
+      key={index}
+      aria-hidden="true"
+    >
+      <div className="music-card-open">
+        <div className="music-art-frame">
+          <div className="music-art" />
         </div>
-        <div className="mp-card-caption">
+        <div className="music-card-caption">
           <div>
-            <span className="mp-pending-line" />
-            <p className="mp-small">
-              <span className="mp-pending-line mp-pending-line-short" />
+            <span className="music-pending-line" />
+            <p className="music-small">
+              <span className="music-pending-line music-pending-line-short" />
             </p>
           </div>
-          <span className="mp-open-icon" />
+          <span className="music-open-icon" />
         </div>
       </div>
       {editing && (
-        <div className="mp-card-controls">
-          <label className="mp-check">
+        <div className="music-card-controls">
+          <label className="music-check">
             <MusicSelectionControl disabled tabIndex={-1} />
-            <span className="mp-pending-line mp-pending-control" />
+            <span className="music-pending-line music-pending-control" />
           </label>
         </div>
       )}

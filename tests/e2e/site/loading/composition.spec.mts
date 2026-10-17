@@ -45,7 +45,7 @@ async function assertPublicationBarLeavesTargetsClear(targets: Locator[]) {
         target.evaluate((node) => {
           const box = node.getBoundingClientRect();
           const surface = document
-            .querySelector('.mp-draft-note')!
+            .querySelector('.music-draft-note')!
             .getBoundingClientRect();
           const hit = document.elementFromPoint(
             box.x + box.width / 2,
@@ -88,11 +88,11 @@ test('public music introduces Willie and retains a native destination without sc
     'content',
     'Willie Chalmers III’s taste in music, collected in playlists and series.'
   );
-  await expect(native.locator('.mp-card-open').first()).toHaveAttribute(
+  await expect(native.locator('.music-card-open').first()).toHaveAttribute(
     'href',
     /^\/music\?detail=[A-Za-z0-9]{22}$/
   );
-  await expect(native.locator('.mp-card').first()).toBeVisible();
+  await expect(native.locator('.music-card').first()).toBeVisible();
   await native.screenshot({
     path: info.outputPath('music-public-no-script.png'),
     fullPage: false,
@@ -127,13 +127,13 @@ test('curation prioritizes playlists and keeps the same composition through load
     includeHidden: true,
   });
   await expect(create).toBeDisabled();
-  const filters = page.locator('.mp-library-filters');
+  const filters = page.locator('.music-library-filters');
   for (const button of await filters
     .getByRole('button', { includeHidden: true })
     .all())
     await expect(button).toBeDisabled();
-  await expect(page.locator('.mp-collection-header')).not.toContainText('—');
-  const pending = await page.locator('.mp-card').first().boundingBox();
+  await expect(page.locator('.music-collection-header')).not.toContainText('—');
+  const pending = await page.locator('.music-card').first().boundingBox();
   await page.screenshot({
     path: info.outputPath('music-pending.png'),
     fullPage: false,
@@ -143,8 +143,8 @@ test('curation prioritizes playlists and keeps the same composition through load
     page.getByRole('link', { name: `Open ${playlist.title}`, exact: true })
   ).toBeVisible();
   await expect(create).toBeEnabled();
-  await expect(page.locator('.mp-shell')).not.toContainText(/\byour\b/i);
-  await expect(page.locator('.mp-series-nav')).toHaveCount(0);
+  await expect(page.locator('.music-shell')).not.toContainText(/\byour\b/i);
+  await expect(page.locator('.music-series-nav')).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Reorder playlists', exact: true })
   ).toBeDisabled();
@@ -160,24 +160,27 @@ test('curation prioritizes playlists and keeps the same composition through load
   expect(creationStyle.radius).toBeGreaterThanOrEqual(24);
   expect(creationStyle.height).toBe(56);
 
-  await expect(page.locator('.mp-collection-header')).toContainText(
+  await expect(page.locator('.music-collection-header')).toContainText(
     '1 playlist'
   );
-  await expect(page.locator('.mp-collection-header')).not.toContainText(
+  await expect(page.locator('.music-collection-header')).not.toContainText(
     '1 playlists'
   );
   await expect(
     page.getByRole('button', { name: /Move .* (earlier|later)/ })
   ).toHaveCount(0);
-  const card = await page.locator('.mp-card').first().boundingBox();
+  const card = await page.locator('.music-card').first().boundingBox();
   expect(card).toEqual(pending);
   if (info.project.name.startsWith('mobile')) {
     expect(card!.width).toBeGreaterThan(330);
     expect(card!.y).toBeLessThan(320);
     expect(card!.height).toBeLessThan(220);
   }
-  const review = await page.locator('.mp-draft-note').boundingBox();
-  await expect(page.locator('.mp-draft-note')).toHaveCSS('position', 'sticky');
+  const review = await page.locator('.music-draft-note').boundingBox();
+  await expect(page.locator('.music-draft-note')).toHaveCSS(
+    'position',
+    'sticky'
+  );
   expect(review!.y + review!.height).toBeLessThanOrEqual(
     page.viewportSize()!.height
   );
@@ -266,11 +269,11 @@ test('curation cards stay capped and adapt to available space in both loading an
           )
       );
       const cards = await page
-        .locator('.mp-grid-editing .mp-card')
+        .locator('.music-grid-editing .music-card')
         .evaluateAll((nodes) =>
           nodes.map((node) => node.getBoundingClientRect().toJSON())
         );
-      const grid = (await page.locator('.mp-grid-editing').boundingBox())!;
+      const grid = (await page.locator('.music-grid-editing').boundingBox())!;
       expect(cards).toHaveLength(6);
       for (const card of cards) {
         expect(card.width, `${state} at ${width}px`).toBeLessThanOrEqual(480);
@@ -279,16 +282,18 @@ test('curation cards stay capped and adapt to available space in both loading an
           grid.x + grid.width + 0.1
         );
       }
-      const first = page.locator('.mp-grid-editing .mp-card').first();
-      const caption = (await first.locator('.mp-card-caption').boundingBox())!;
+      const first = page.locator('.music-grid-editing .music-card').first();
+      const caption = (await first
+        .locator('.music-card-caption')
+        .boundingBox())!;
       const title = (await first
-        .locator(state === 'loaded' ? 'h3' : '.mp-pending-line')
+        .locator(state === 'loaded' ? 'h3' : '.music-pending-line')
         .first()
         .boundingBox())!;
-      const arrow = (await first.locator('.mp-open-icon').boundingBox())!;
-      const metadata = (await first.locator('.mp-small').boundingBox())!;
-      const art = (await first.locator('.mp-art-frame').boundingBox())!;
-      const selection = (await first.locator('.mp-check').boundingBox())!;
+      const arrow = (await first.locator('.music-open-icon').boundingBox())!;
+      const metadata = (await first.locator('.music-small').boundingBox())!;
+      const art = (await first.locator('.music-art-frame').boundingBox())!;
+      const selection = (await first.locator('.music-check').boundingBox())!;
       expect(
         selection.y - art.y - art.height,
         `${state} at ${width}px`
@@ -329,7 +334,7 @@ test('curation cards stay capped and adapt to available space in both loading an
   }
   const pending = await measure('loading');
   release();
-  await expect(page.locator('.mp-card-pending')).toHaveCount(0);
+  await expect(page.locator('.music-card-pending')).toHaveCount(0);
   const loaded = await measure('loaded');
   expect(loaded).toEqual(pending);
   const before = loaded[widths.indexOf(1199)][0].width;
@@ -340,18 +345,20 @@ test('curation cards stay capped and adapt to available space in both loading an
     .getByRole('button', { name: 'Choose playlist collection', exact: true })
     .click();
   await page
-    .locator('.mp-series-nav')
+    .locator('.music-series-nav')
     .getByRole('link', { name: /Long evenings and the journeys/ })
     .click();
-  await expect(page.locator('.mp-card')).toHaveCount(1);
-  expect((await page.locator('.mp-card').boundingBox())!.width).toBe(
+  await expect(page.locator('.music-card')).toHaveCount(1);
+  expect((await page.locator('.music-card').boundingBox())!.width).toBe(
     loaded.at(-1)![0].width
   );
   for (const width of [320, 390, 839, 1199, 1920]) {
     await page.setViewportSize({ width, height: 900 });
-    const card = page.locator('.mp-card');
+    const card = page.locator('.music-card');
     const bounds = (await card.boundingBox())!;
-    const controls = (await card.locator('.mp-card-controls').boundingBox())!;
+    const controls = (await card
+      .locator('.music-card-controls')
+      .boundingBox())!;
     await expect(card.locator('h3')).toHaveCSS('-webkit-line-clamp', '4');
     expect(bounds.height).toBe(172);
     expect(controls.y + controls.height).toBeLessThanOrEqual(
@@ -362,23 +369,23 @@ test('curation cards stay capped and adapt to available space in both loading an
     .getByRole('button', { name: 'Choose playlist collection', exact: true })
     .click();
   await page
-    .locator('.mp-series-nav')
+    .locator('.music-series-nav')
     .getByRole('link', { name: /All playlists/ })
     .click();
   await page.setViewportSize({ width: 320, height: 900 });
   await page
     .getByRole('button', { name: 'Reorder playlists', exact: true })
     .click();
-  const narrow = page.locator('.mp-card').first();
-  await expect(narrow.locator('.mp-order-buttons')).toBeVisible();
+  const narrow = page.locator('.music-card').first();
+  await expect(narrow.locator('.music-order-buttons')).toBeVisible();
   expect((await narrow.boundingBox())!.height).toBe(220);
   const title = (await narrow.locator('h3').boundingBox())!;
-  const caption = (await narrow.locator('.mp-card-caption').boundingBox())!;
+  const caption = (await narrow.locator('.music-card-caption').boundingBox())!;
   expect(title.width).toBe(caption.width);
   await page
     .getByRole('button', { name: 'Finish reordering', exact: true })
     .click();
-  await expect(narrow.locator('.mp-order-buttons')).toBeHidden();
+  await expect(narrow.locator('.music-order-buttons')).toBeHidden();
   expect((await narrow.boundingBox())!.height).toBe(172);
   await page
     .getByRole('button', { name: 'Reorder playlists', exact: true })
@@ -387,13 +394,13 @@ test('curation cards stay capped and adapt to available space in both loading an
     .getByRole('button', { name: 'Choose playlist collection', exact: true })
     .click();
   await page
-    .locator('.mp-series-nav')
+    .locator('.music-series-nav')
     .getByRole('link', { name: /Long evenings and the journeys/ })
     .click();
   await expect(
     page.getByRole('button', { name: 'Reorder playlists', exact: true })
   ).toBeDisabled();
-  await expect(page.locator('.mp-order-buttons')).toBeHidden();
+  await expect(page.locator('.music-order-buttons')).toBeHidden();
 });
 
 test('gallery arrows share the metadata row and leave titles the full card width', async ({
@@ -450,7 +457,7 @@ test('gallery arrows share the metadata row and leave titles the full card width
     .getByRole('button', { name: 'Open menu for Music', exact: true })
     .click();
   await page.getByRole('button', { name: 'View gallery', exact: true }).click();
-  await expect(page.locator('.mp-loading-status')).toHaveText(
+  await expect(page.locator('.music-loading-status')).toHaveText(
     'Loading Willie’s playlists…'
   );
   const pendingSizes = new Map<number, { width: number; height: number }>();
@@ -464,18 +471,20 @@ test('gallery arrows share the metadata row and leave titles the full card width
           )
       );
       const card = page
-        .locator('.mp-grid:not(.mp-grid-editing) .mp-card')
+        .locator('.music-grid:not(.music-grid-editing) .music-card')
         .first();
       await card.scrollIntoViewIfNeeded();
-      const caption = (await card.locator('.mp-card-caption').boundingBox())!;
+      const caption = (await card
+        .locator('.music-card-caption')
+        .boundingBox())!;
       const title = (await card
-        .locator(state === 'loaded' ? 'h3' : '.mp-pending-line')
+        .locator(state === 'loaded' ? 'h3' : '.music-pending-line')
         .first()
         .boundingBox())!;
-      const arrow = (await card.locator('.mp-open-icon').boundingBox())!;
+      const arrow = (await card.locator('.music-open-icon').boundingBox())!;
       const bounds = (await card.boundingBox())!;
       expect(bounds.height).toBeLessThanOrEqual(608);
-      const artwork = (await card.locator('.mp-art-frame').boundingBox())!;
+      const artwork = (await card.locator('.music-art-frame').boundingBox())!;
       expect(artwork.x - bounds.x).toBeCloseTo(12, 1);
       expect(artwork.y - bounds.y).toBeCloseTo(12, 1);
       expect(bounds.x + bounds.width - artwork.x - artwork.width).toBeCloseTo(
@@ -493,7 +502,9 @@ test('gallery arrows share the metadata row and leave titles the full card width
         );
         const short = await checkLoadedGalleryRows(bounds);
         const shortTitle = (await short.locator('h3').boundingBox())!;
-        const shortMetadata = (await short.locator('.mp-small').boundingBox())!;
+        const shortMetadata = (await short
+          .locator('.music-small')
+          .boundingBox())!;
         expect(
           shortMetadata.y - shortTitle.y - shortTitle.height
         ).toBeLessThanOrEqual(16.1);
@@ -502,7 +513,7 @@ test('gallery arrows share the metadata row and leave titles the full card width
           .evaluate((node) => parseFloat(getComputedStyle(node).lineHeight));
         expect(title.height).toBeLessThanOrEqual(lineHeight * 4);
         expect(title.width).toBeCloseTo(caption.width, 1);
-        const metadata = (await card.locator('.mp-small').boundingBox())!;
+        const metadata = (await card.locator('.music-small').boundingBox())!;
         expect(arrow.y + arrow.height / 2).toBeCloseTo(
           metadata.y + metadata.height / 2,
           1
@@ -531,17 +542,17 @@ test('gallery arrows share the metadata row and leave titles the full card width
     }
   }
   async function checkLoadedGalleryRows(bounds: { y: number; height: number }) {
-    const short = page.locator('.mp-card').nth(1);
+    const short = page.locator('.music-card').nth(1);
     const shortBounds = (await short.boundingBox())!;
     if (Math.abs(shortBounds.y - bounds.y) < 0.1) {
       expect(shortBounds.height).toBeCloseTo(bounds.height, 1);
       expect(
-        (await short.locator('.mp-card-open').boundingBox())!.height
+        (await short.locator('.music-card-open').boundingBox())!.height
       ).toBeCloseTo(shortBounds.height - 24, 1);
     } else {
       expect(shortBounds.height).toBeLessThan(bounds.height);
     }
-    const rows = await page.locator('.mp-card').evaluateAll((nodes) =>
+    const rows = await page.locator('.music-card').evaluateAll((nodes) =>
       nodes.map((node) => {
         const { y, height } = node.getBoundingClientRect();
         return { y, height };
@@ -557,30 +568,32 @@ test('gallery arrows share the metadata row and leave titles the full card width
   }
   await check('loading');
   release();
-  await expect(page.locator('.mp-card-pending')).toHaveCount(0);
+  await expect(page.locator('.music-card-pending')).toHaveCount(0);
   await check('loaded');
-  const navigation = page.locator('.mp-series-nav');
+  const navigation = page.locator('.music-series-nav');
   await navigation.getByRole('link', { name: /A quiet interlude/ }).click();
-  await expect(page.locator('.mp-empty')).toContainText(
+  await expect(page.locator('.music-empty')).toContainText(
     'Explore All playlists for more of Willie’s music.'
   );
-  await expect(page.locator('.mp-empty')).not.toContainText(
+  await expect(page.locator('.music-empty')).not.toContainText(
     'add it to this series'
   );
   await navigation.getByRole('link', { name: /All playlists/ }).click();
   await page
-    .locator('.mp-card')
+    .locator('.music-card')
     .first()
     .getByRole('link', { name: `Open ${playlists[0].title}`, exact: true })
     .click();
-  await expect(page.locator('#mp-detail-title')).toHaveText(playlists[0].title);
+  await expect(page.locator('#music-detail-title')).toHaveText(
+    playlists[0].title
+  );
   featured = true;
   await page.goto('/studio/music');
   await page
     .getByRole('button', { name: 'Open menu for Music', exact: true })
     .click();
   await page.getByRole('button', { name: 'View gallery', exact: true }).click();
-  const feature = page.locator('.mp-card-lead');
+  const feature = page.locator('.music-card-lead');
   await expect(feature).toBeVisible();
   for (const width of [390, 1920]) {
     await page.setViewportSize({ width, height: 900 });
@@ -641,19 +654,19 @@ test('populated curation keeps long titles, series, filtering and ordering usabl
     route.fulfill({ json: { connected: true } })
   );
   await page.goto('/studio/music');
-  await expect(page.locator('.mp-card')).toHaveCount(3);
+  await expect(page.locator('.music-card')).toHaveCount(3);
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
-  const card = page.locator('.mp-card').first();
-  const inclusion = card.locator('.mp-check input');
+  const card = page.locator('.music-card').first();
+  const inclusion = card.locator('.music-check input');
   await page.keyboard.press('Tab');
   await inclusion.focus();
-  await expect(card.locator('.mp-check')).toHaveCSS('outline-width', '3px');
+  await expect(card.locator('.music-check')).toHaveCSS('outline-width', '3px');
   await page.emulateMedia({ forcedColors: 'active' });
-  await expect(card.locator('.mp-check')).toHaveCSS('outline-width', '3px');
+  await expect(card.locator('.music-check')).toHaveCSS('outline-width', '3px');
   await expect(inclusion).toBeChecked();
   await page.emulateMedia({ forcedColors: 'none' });
-  await expect(card.locator('.mp-order-buttons')).toBeHidden();
+  await expect(card.locator('.music-order-buttons')).toBeHidden();
   await page
     .getByRole('button', { name: 'Reorder playlists', exact: true })
     .click();
@@ -662,17 +675,17 @@ test('populated curation keeps long titles, series, filtering and ordering usabl
   await expect(earlier).toBeDisabled();
   await expect(later).toBeEnabled();
   await later.click();
-  await expect(page.locator('.mp-card').first()).toContainText(
+  await expect(page.locator('.music-card').first()).toContainText(
     playlists[1].title
   );
   await page
-    .locator('.mp-library-filters')
+    .locator('.music-library-filters')
     .getByRole('button', { name: /^Not included/ })
     .click();
-  await expect(page.locator('.mp-card')).toHaveCount(1);
-  await expect(page.locator('.mp-card')).toContainText('Summer in the city');
+  await expect(page.locator('.music-card')).toHaveCount(1);
+  await expect(page.locator('.music-card')).toContainText('Summer in the city');
   await page
-    .locator('.mp-library-filters')
+    .locator('.music-library-filters')
     .getByRole('button', { name: /^All/ })
     .click();
   await page
@@ -681,7 +694,7 @@ test('populated curation keeps long titles, series, filtering and ordering usabl
   await page
     .getByRole('link', { name: /Long evenings and the journeys/ })
     .click();
-  await expect(page.locator('.mp-card')).toHaveCount(2);
+  await expect(page.locator('.music-card')).toHaveCount(2);
   await expect(
     page.getByRole('heading', {
       name: 'Long evenings and the journeys between them',
@@ -711,7 +724,7 @@ test('populated curation keeps long titles, series, filtering and ordering usabl
       )
     ).toBe(false);
     for (const button of await page
-      .locator('.mp-library-filters button')
+      .locator('.music-library-filters button')
       .all()) {
       await expect(button).toBeInViewport();
       expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
@@ -868,24 +881,26 @@ test('playlist series context identifies the series and keeps its position intac
     route.fulfill({ json: { connected: true } })
   );
   await page.goto(`/studio/music?series=cinematic&detail=${ids[1]}`);
-  const context = page.locator('.mp-detail-context');
-  await expect(context.locator('.mp-detail-series-label')).toHaveText('Series');
-  await expect(context.locator('.mp-detail-series-name')).toHaveText(title);
-  await expect(context.locator('.mp-detail-series-position')).toContainText(
+  const context = page.locator('.music-detail-context');
+  await expect(context.locator('.music-detail-series-label')).toHaveText(
+    'Series'
+  );
+  await expect(context.locator('.music-detail-series-name')).toHaveText(title);
+  await expect(context.locator('.music-detail-series-position')).toContainText(
     '02 / 23'
   );
-  await expect(page.locator('.mp-detail-bar .mp-detail-position')).toHaveCount(
-    0
-  );
-  await expect(page.locator('.mp-detail-series-name')).toHaveCount(1);
+  await expect(
+    page.locator('.music-detail-bar .music-detail-position')
+  ).toHaveCount(0);
+  await expect(page.locator('.music-detail-series-name')).toHaveCount(1);
   await expect(context.getByRole('checkbox')).toBeChecked();
   for (const width of [320, 390, 600, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => document.fonts.ready);
     const layout = await context.evaluate((row) => {
-      const name = row.querySelector<HTMLElement>('.mp-detail-series-name')!;
+      const name = row.querySelector<HTMLElement>('.music-detail-series-name')!;
       const position = row.querySelector<HTMLElement>(
-        '.mp-detail-series-position'
+        '.music-detail-series-position'
       )!;
       const visible = position.querySelector<HTMLElement>('[aria-hidden]')!;
       const text = document.createRange();
@@ -905,14 +920,14 @@ test('playlist series context identifies the series and keeps its position intac
     });
     if (width < 840) {
       const identity = await page
-        .locator('.mp-detail-scroll')
+        .locator('.music-detail-scroll')
         .evaluate((scroller) => {
           const title = scroller.querySelector('h2')!.getBoundingClientRect();
           const art = scroller
-            .querySelector('.mp-detail-art')!
+            .querySelector('.music-detail-art')!
             .getBoundingClientRect();
           const series = scroller
-            .querySelector('.mp-detail-context')!
+            .querySelector('.music-detail-context')!
             .getBoundingClientRect();
           const css = getComputedStyle(scroller);
           return {
@@ -989,19 +1004,19 @@ test('ending navigation keeps Close and browser Back consistent after leaving a 
     .getByRole('button', { name: 'Open menu for Music', exact: true })
     .click();
   await page.getByRole('button', { name: 'View gallery', exact: true }).click();
-  await expect(page.locator('.mp-card')).toHaveCount(1);
+  await expect(page.locator('.music-card')).toHaveCount(1);
   await page
     .getByRole('link', {
       name: 'Open 36 Hours of Willie: A Playlist',
       exact: true,
     })
     .click();
-  const dialog = page.locator('dialog.mp-detail');
+  const dialog = page.locator('dialog.music-detail');
   await dialog
     .getByRole('complementary', { name: 'Playlist ending' })
     .getByRole('link', { name: 'Williecore', exact: true })
     .click();
-  await expect(page.locator('#mp-detail-title')).toHaveText('Williecore');
+  await expect(page.locator('#music-detail-title')).toHaveText('Williecore');
   await dialog
     .getByRole('link', { name: 'Close playlist', exact: true })
     .click();
@@ -1012,7 +1027,7 @@ test('ending navigation keeps Close and browser Back consistent after leaving a 
       .getByRole('navigation', { name: 'Playlist series' })
       .getByRole('link', { name: /^All playlists/ })
   ).toHaveAttribute('aria-current', 'page');
-  await expect(page.locator('.mp-card')).toHaveCount(2);
+  await expect(page.locator('.music-card')).toHaveCount(2);
   await page.goBack();
   await expect(page).toHaveURL(/\/studio\/music\?series=cinematic$/);
   await expect(
@@ -1020,7 +1035,7 @@ test('ending navigation keeps Close and browser Back consistent after leaving a 
       .getByRole('navigation', { name: 'Playlist series' })
       .getByRole('link', { name: /^Cinematic/ })
   ).toHaveAttribute('aria-current', 'page');
-  await expect(page.locator('.mp-card')).toHaveCount(1);
+  await expect(page.locator('.music-card')).toHaveCount(1);
   await expect(dialog).toBeHidden();
 });
 
@@ -1117,10 +1132,10 @@ for (const count of [1, 12]) {
       route.fulfill({ json: { connected: true } })
     );
     await page.goto('/studio/music');
-    await expect(page.locator('.mp-card')).toHaveCount(count);
+    await expect(page.locator('.music-card')).toHaveCount(count);
     await page.evaluate(() => document.fonts.ready);
     await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
-    const bar = page.locator('.mp-draft-note');
+    const bar = page.locator('.music-draft-note');
     await expect(bar).toHaveCSS('position', 'sticky');
     await bar.evaluate((node) => {
       (window as Window & { __publicationBar?: Element }).__publicationBar =
@@ -1161,7 +1176,7 @@ for (const count of [1, 12]) {
         expect(bounds!.width).toBeLessThanOrEqual(520);
         expect(bounds!.y + bounds!.height).toBe(height - 24);
       }
-      const lastCard = page.locator('.mp-card').last();
+      const lastCard = page.locator('.music-card').last();
       await lastCard.evaluate((node) =>
         node.scrollIntoView({ block: 'end', behavior: 'instant' })
       );
@@ -1227,7 +1242,7 @@ for (const count of [1, 12]) {
             barTop: box.top,
             focusClear:
               !(focused instanceof HTMLElement) ||
-              !focused.closest('.mp-grid, .site-footer') ||
+              !focused.closest('.music-grid, .site-footer') ||
               focused.getBoundingClientRect().bottom <= box.top ||
               focused.getBoundingClientRect().top >= box.bottom,
             contained:
@@ -1317,7 +1332,7 @@ test('page scrollbar gutters keep start and end spacing balanced', async ({
         )
       ).toBe(false);
       if (path === '/studio/music') {
-        await expect(page.locator('.mp-card')).toHaveCount(1);
+        await expect(page.locator('.music-card')).toHaveCount(1);
         await expect(
           page.getByRole('link', {
             name: `Open ${playlist.title}`,
@@ -1327,37 +1342,37 @@ test('page scrollbar gutters keep start and end spacing balanced', async ({
         const creation = await page
           .getByRole('button', { name: 'Create a series' })
           .boundingBox();
-        const rail = await page.locator('.mp-rail').boundingBox();
+        const rail = await page.locator('.music-rail').boundingBox();
         expect(creation!.x).toBeGreaterThanOrEqual(rail!.x);
         expect(creation!.x + creation!.width).toBeLessThanOrEqual(
           rail!.x + rail!.width + 1
         );
-        const before = await page.locator('.mp-card').first().boundingBox();
+        const before = await page.locator('.music-card').first().boundingBox();
         await page
           .getByRole('link', { name: `Open ${playlist.title}`, exact: true })
           .click();
-        await expect(page.locator('dialog.mp-detail')).toBeVisible();
+        await expect(page.locator('dialog.music-detail')).toBeVisible();
         const dialogBounds = await page
-          .locator('dialog.mp-detail')
+          .locator('dialog.music-detail')
           .boundingBox();
         expect(
           Math.abs(
             dialogBounds!.x - (width - dialogBounds!.x - dialogBounds!.width)
           )
         ).toBeLessThanOrEqual(1);
-        const after = await page.locator('.mp-card').first().boundingBox();
+        const after = await page.locator('.music-card').first().boundingBox();
         expect(after!.x).toBe(before!.x);
         expect(after!.width).toBe(before!.width);
-        await expect(page.locator('.mp-detail-scroll')).toHaveCSS(
+        await expect(page.locator('.music-detail-scroll')).toHaveCSS(
           'scrollbar-width',
           'thin'
         );
-        await expect(page.locator('.mp-detail-bar')).toHaveCSS(
+        await expect(page.locator('.music-detail-bar')).toHaveCSS(
           'scrollbar-gutter',
           'stable both-edges'
         );
         const details = await page
-          .locator('.mp-detail-scroll')
+          .locator('.music-detail-scroll')
           .evaluate((node) => {
             const frame = node.getBoundingClientRect();
             const boxes = Array.from(node.children)
@@ -1376,7 +1391,7 @@ test('page scrollbar gutters keep start and end spacing balanced', async ({
         await page
           .getByRole('link', { name: 'Close playlist', exact: true })
           .click();
-        await expect(page.locator('dialog.mp-detail')).not.toBeVisible();
+        await expect(page.locator('dialog.music-detail')).not.toBeVisible();
         await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
         await page.screenshot({
           path: info.outputPath(`music-gutters-${width}.png`),
@@ -1384,21 +1399,21 @@ test('page scrollbar gutters keep start and end spacing balanced', async ({
         });
         await page.getByRole('button', { name: 'Review changes' }).click();
         const reviewBounds = await page
-          .locator('dialog.mp-review')
+          .locator('dialog.music-review')
           .boundingBox();
         expect(
           Math.abs(
             reviewBounds!.x - (width - reviewBounds!.x - reviewBounds!.width)
           )
         ).toBeLessThanOrEqual(1);
-        await expect(page.locator('.mp-review-body')).toHaveCSS(
+        await expect(page.locator('.music-review-body')).toHaveCSS(
           'scrollbar-width',
           'thin'
         );
         for (const selector of [
-          '.mp-review-header',
-          '.mp-review-body',
-          '.mp-review-actions',
+          '.music-review-header',
+          '.music-review-body',
+          '.music-review-actions',
         ])
           await expect(page.locator(selector)).toHaveCSS(
             'scrollbar-gutter',
@@ -1406,13 +1421,13 @@ test('page scrollbar gutters keep start and end spacing balanced', async ({
           );
         const review = await page.evaluate(() => {
           const title = document
-            .querySelector('#mp-review-title')!
+            .querySelector('#music-review-title')!
             .getBoundingClientRect();
           const summary = document
-            .querySelector('.mp-review-summary')!
+            .querySelector('.music-review-summary')!
             .getBoundingClientRect();
           const body = document
-            .querySelector('.mp-review-body')!
+            .querySelector('.music-review-body')!
             .getBoundingClientRect();
           return {
             heading: title.left,

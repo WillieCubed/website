@@ -1,4 +1,4 @@
-.mp-selection-control {
+.music-selection-control {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -7,7 +7,7 @@
   height: 36px;
   color: var(--color-muted);
 }
-.music-experience .mp-selection-control > input {
+.music .music-selection-control > input {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -17,10 +17,10 @@
   cursor: pointer;
   z-index: 1;
 }
-.music-experience .mp-selection-control > input:focus-visible {
+.music .music-selection-control > input:focus-visible {
   outline: none;
 }
-.mp-selection-state {
+.music-selection-state {
   position: relative;
   display: grid;
   place-items: center;
@@ -30,109 +30,111 @@
   background: var(--color-surface-container-highest);
   pointer-events: none;
   transition:
-    background 160ms var(--mp-effects),
-    color 160ms var(--mp-effects),
-    border-radius 320ms var(--mp-spatial);
+    background 160ms var(--music-effects),
+    color 160ms var(--music-effects),
+    border-radius 320ms var(--music-spatial);
 }
-.mp-selection-state svg {
+.music-selection-state svg {
   position: absolute;
   width: 20px;
   height: 20px;
   transition:
-    opacity 120ms var(--mp-effects),
-    scale 320ms var(--mp-spatial),
-    rotate 320ms var(--mp-spatial);
+    opacity 120ms var(--music-effects),
+    scale 320ms var(--music-spatial),
+    rotate 320ms var(--music-spatial);
 }
-.mp-choice-off {
+.music-choice-off {
   opacity: 1;
   scale: 1;
   rotate: 0deg;
 }
-.mp-choice-on {
+.music-choice-on {
   opacity: 0;
   scale: 0.5;
   rotate: -20deg;
 }
-.mp-selection-control:has(input:checked) .mp-choice-off {
+.music-selection-control:has(input:checked) .music-choice-off {
   opacity: 0;
   scale: 0.5;
   rotate: 20deg;
 }
-.mp-selection-control:has(input:checked) .mp-choice-on {
+.music-selection-control:has(input:checked) .music-choice-on {
   opacity: 1;
   scale: 1;
   rotate: 0deg;
 }
-.mp-selection-control:has(input:checked) .mp-selection-state {
+.music-selection-control:has(input:checked) .music-selection-state {
   background: var(--color-primary);
   color: var(--color-on-primary);
   border-radius: 50%;
 }
-.mp-selection-control[data-indicator='feature']:has(input:checked)
-  .mp-selection-state {
+.music-selection-control[data-indicator='feature']:has(input:checked)
+  .music-selection-state {
   border-radius: 10px;
 }
-.mp-selection-control[data-indicator='feature']:has(input:not(:checked))
-  .mp-selection-state {
+.music-selection-control[data-indicator='feature']:has(input:not(:checked))
+  .music-selection-state {
   background: transparent;
 }
-.music-experience
-  :is(.ms-playlist, .ms-feature-option, .mp-check):has(.mp-selection-control) {
+.music
+  :is(.ms-playlist, .ms-feature-option, .music-check):has(
+    .music-selection-control
+  ) {
   position: relative;
   cursor: pointer;
   transition:
-    background 160ms var(--mp-effects),
-    color 160ms var(--mp-effects),
+    background 160ms var(--music-effects),
+    color 160ms var(--music-effects),
     border-radius var(--control-shape-duration) var(--control-shape-ease);
 }
-.music-experience
-  :is(.ms-playlist, .ms-feature-option, .mp-check):has(
-    .mp-selection-control input:focus-visible
+.music
+  :is(.ms-playlist, .ms-feature-option, .music-check):has(
+    .music-selection-control input:focus-visible
   ) {
   outline: var(--control-focus-width) solid var(--color-primary);
   outline-offset: var(--control-focus-offset);
 }
-.music-experience
-  :is(.ms-playlist, .ms-feature-option, .mp-check):has(
-    .mp-selection-control input:enabled
+.music
+  :is(.ms-playlist, .ms-feature-option, .music-check):has(
+    .music-selection-control input:enabled
   ):active {
   border-radius: var(--control-pressed-radius-small);
 }
-.mp-check:has(.mp-selection-control input:checked) {
+.music-check:has(.music-selection-control input:checked) {
   font-weight: 600;
 }
-.mp-selection-control:has(input:disabled) {
+.music-selection-control:has(input:disabled) {
   opacity: 0.38;
 }
-.music-experience .mp-selection-control > input:disabled {
+.music .music-selection-control > input:disabled {
   cursor: default;
 }
 @media (hover: hover) {
-  .mp-check:has(.mp-selection-control input:enabled):hover {
+  .music-check:has(.music-selection-control input:enabled):hover {
     background: var(--color-surface-container-highest);
   }
-  .mp-check:has(.mp-selection-control input:checked:enabled):hover {
+  .music-check:has(.music-selection-control input:checked:enabled):hover {
     background: var(--color-secondary-container);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mp-selection-state,
-  .mp-selection-state svg,
-  .music-experience
-    :is(.ms-playlist, .ms-feature-option, .mp-check):has(
-      .mp-selection-control
+  .music-selection-state,
+  .music-selection-state svg,
+  .music
+    :is(.ms-playlist, .ms-feature-option, .music-check):has(
+      .music-selection-control
     ) {
     transition: none;
   }
 }
 @media (forced-colors: active) {
-  .music-experience
-    :is(.ms-playlist, .ms-feature-option, .mp-check):has(
-      .mp-selection-control input:focus-visible
+  .music
+    :is(.ms-playlist, .ms-feature-option, .music-check):has(
+      .music-selection-control input:focus-visible
     ) {
     outline-color: Highlight;
   }
-  .mp-selection-control:has(input:checked) .mp-selection-state {
+  .music-selection-control:has(input:checked) .music-selection-state {
     forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;

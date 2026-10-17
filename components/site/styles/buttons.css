@@ -52,3 +52,20 @@
     border-color: GrayText;
   }
 }
+
+.site-button[data-control-size] > .site-control__surface {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-lg);
+}
+.site-button[data-control-size='extra-small'] > .site-control__surface {
+  padding-block: var(--spacing-xs);
+}
+.site-button-icon[data-control-size] > .site-control__surface {
+  width: var(--control-container-size);
+  height: var(--control-container-size);
+  padding: 0;
+}
+.site-control__surface > svg {
+  display: block;
+  flex: none;
+}

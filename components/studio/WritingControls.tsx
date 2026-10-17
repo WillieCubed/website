@@ -39,6 +39,8 @@ export default function WritingControls({
     <>
       <nav className="studio-document-controls" aria-label="Writing controls">
         <Button
+          variant="quiet"
+          size="small"
           aria-label="Writing details"
           onClick={() => openTask('details')}
         >
@@ -46,6 +48,8 @@ export default function WritingControls({
           <span>Details</span>
         </Button>
         <Button
+          variant="quiet"
+          size="small"
           aria-label="Read preview"
           disabled={busy}
           onClick={() => void generatePreview('read')}

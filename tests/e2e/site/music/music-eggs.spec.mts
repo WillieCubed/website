@@ -653,6 +653,23 @@ test('Music action controls use expressive pressed shapes while the panel stays 
       name: 'Next playlist',
       exact: true,
     });
+    const previous = page.getByRole('button', {
+      name: 'Previous playlist',
+      exact: true,
+    });
+    await expect(next.locator('.site-control__surface')).toHaveCSS(
+      'height',
+      '40px'
+    );
+    expect(
+      await next.evaluate((element) =>
+        getComputedStyle(element).getPropertyValue('--control-fill').trim()
+      )
+    ).toBe(
+      await previous.evaluate((element) =>
+        getComputedStyle(element).getPropertyValue('--control-fill').trim()
+      )
+    );
     for (const target of [
       page.getByRole('link', { name: 'Close playlist', exact: true }),
       next,

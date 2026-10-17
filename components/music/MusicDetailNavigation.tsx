@@ -65,19 +65,25 @@ export default function MusicDetailNavigation({
         >
           <button
             className="site-control mp-icon-button mp-icon-button--tonal"
+            data-control-size="small"
             disabled={index <= 0}
             onClick={() => onOpen(ids[index - 1])}
             aria-label="Previous playlist"
           >
-            <Icon name="arrow-left" size={24} />
+            <span className="site-control__surface">
+              <Icon name="arrow-left" size={24} />
+            </span>
           </button>
           <button
-            className="site-control mp-icon-button mp-icon-button--filled"
+            className="site-control mp-icon-button mp-icon-button--tonal"
+            data-control-size="small"
             disabled={index < 0 || index >= ids.length - 1}
             onClick={() => onOpen(ids[index + 1])}
             aria-label="Next playlist"
           >
-            <Icon name="arrow-right" size={24} />
+            <span className="site-control__surface">
+              <Icon name="arrow-right" size={24} />
+            </span>
           </button>
         </div>
       </div>

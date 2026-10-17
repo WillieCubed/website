@@ -122,3 +122,24 @@ html:has(.music-experience[data-editing] .mp-draft-note) .music-admin-notices {
   align-items: center;
   margin: 12px 0;
 }
+
+@media (max-width: 839px) {
+  .mp-review .mp-review-actions .site-button {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    gap: 8px;
+  }
+  .mp-review .mp-review-actions .site-control__surface {
+    padding-inline: 12px;
+  }
+  .mp-review .mp-review-actions .site-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+@media (max-width: 359px) {
+  .mp-review .mp-review-actions .site-button {
+    flex-basis: 100%;
+  }
+}

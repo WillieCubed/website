@@ -559,14 +559,11 @@
   align-self: start;
   display: grid;
   justify-items: stretch;
-  row-gap: 8px;
+  row-gap: 0;
   margin: 0;
   margin-block-start: var(--footer-space);
-  padding: 8px;
-  border-radius: var(--radius-2xl);
+  padding: 0;
   background: transparent;
-  outline: 1px solid var(--color-outline-variant);
-  outline-offset: -1px;
 }
 .site-webrings__controls {
   display: grid;
@@ -650,15 +647,15 @@
   text-decoration: none;
   touch-action: manipulation;
 }
-.site-footer .site-webring__mark {
-  --control-fill: var(--color-secondary-container);
-  --control-ink: var(--color-on-secondary-container);
+.site-footer .site-webring__link > .site-control__surface {
+  width: var(--control-container-size);
+  height: var(--control-container-size);
 }
-.site-webring__link > svg {
+.site-webring__link svg {
   width: 18px;
   height: 18px;
 }
-.site-webring__mark > svg[viewBox='0 0 640 480'] {
+.site-webring__mark svg[viewBox='0 0 640 480'] {
   width: 24px;
   height: 18px;
 }

@@ -20,8 +20,12 @@ export default function WritingNotices({
       {recovery && (
         <section className="studio-notice" aria-label="Recovered writing">
           <p>There are unsaved changes from your last visit.</p>
-          <Button onClick={onRecover}>Recover changes</Button>
-          <Button onClick={onDiscard}>Keep saved revision</Button>
+          <Button variant="primary" size="small" onClick={onRecover}>
+            Recover changes
+          </Button>
+          <Button variant="quiet" size="small" onClick={onDiscard}>
+            Keep saved revision
+          </Button>
         </section>
       )}
       {conflict && (
@@ -30,7 +34,7 @@ export default function WritingNotices({
             A newer revision exists. Your writing is still here. Load its
             revision number before explicitly saving your retained changes.
           </p>
-          <Button onClick={onRebase}>
+          <Button variant="outlined" size="small" onClick={onRebase}>
             Keep my changes against latest revision
           </Button>
         </section>

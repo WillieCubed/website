@@ -12,21 +12,41 @@ Add `site-control` to an action button or an action-like navigation link.
 the hit target, pressed shape, focus indicator, disabled treatment, and reduced
 motion. Component styles own the resting shape and Material color roles.
 
-| Size                                  | Minimum target | Pressed corner |
-| ------------------------------------- | -------------- | -------------- |
-| Small (default)                       | 48px           | 8px            |
-| Medium (`data-control-size="medium"`) | 56px           | 12px           |
-| Large (`data-control-size="large"`)   | 96px           | 16px           |
+Material offers five visual sizes. Size and emphasis communicate an action's
+role; the clickable area is a separate accessibility decision.
 
-These values follow the [button](https://m3.material.io/components/buttons/specs)
-and [icon-button](https://m3.material.io/components/icon-buttons/specs) size
-scales. Compact icons may remain visually smaller inside the target. Do not
-shrink, rotate, translate, or resize the semantic target when it is pressed.
-Animate the corner radius and state layer instead. For a pill, use half the
-target height as its radius; oversized values such as `999px` keep the
-visible corner clamped during a short press and hide the shape feedback. Disabled actions do not
-receive hover or pressed feedback and must remain unavailable through their
-native semantics or existing guarded handler.
+| Size        | Visible height | Minimum hit area | Pressed corner |
+| ----------- | -------------- | ---------------- | -------------- |
+| Extra small | 32px           | 48px             | 8px            |
+| Small       | 40px           | 48px             | 8px            |
+| Medium      | 56px           | 56px             | 12px           |
+| Large       | 96px           | 96px             | 16px           |
+| Extra large | 136px          | 136px            | 16px           |
+
+Use `Button size="small"` for ordinary form actions and toolbar controls, and
+`size="extra-small"` for repeated utilities. A `.site-control__surface` inside
+the semantic control paints the smaller container; the transparent padding
+remains clickable. Raw action links can use the same surface and
+`data-control-size`. Unsized controls retain their existing 48px treatment;
+do not resize every control merely because a shared default changed.
+
+These sizes follow the [button](https://m3.material.io/components/buttons/specs)
+and [icon-button](https://m3.material.io/components/icon-buttons/specs) scales.
+Choose visual emphasis independently: primary fill for the current forward or
+commit action, quiet treatment for cancel, refresh, formatting and secondary
+navigation. Equal previous/next actions receive equal treatment. A navigation
+link must not look persistently selected simply because it opens a directory.
+
+Webrings use quiet extra-small surfaces with 48px targets. Playlist navigation
+uses small connected surfaces; Create a series and New writing are prominent
+labelled creation actions. Existing selected states, featured project links
+and the homepage search field retain their deliberate emphasis.
+
+Do not shrink, rotate, translate, or resize the semantic target when pressed.
+Animate the visible corner radius and state layer instead. For a pill, use
+half its visible height as the radius; oversized values such as `999px` hide
+short-press shape feedback. Disabled actions remain unavailable through native
+semantics or their guarded handler, and receive no hover or press feedback.
 
 Keyboard focus supplies one visible 3px outline, offset by 3px, and a focus
 state layer. It does not imply a press, selection, or expanded menu. Focus

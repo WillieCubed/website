@@ -123,7 +123,13 @@ export default function StudioRuntimePicker({
         {message}
       </p>
       <p>Requests run on your selected personal device.</p>
-      <Button type="button" disabled={busy} onClick={() => void refresh()}>
+      <Button
+        variant="quiet"
+        size="small"
+        type="button"
+        disabled={busy}
+        onClick={() => void refresh()}
+      >
         Refresh devices
       </Button>
     </div>

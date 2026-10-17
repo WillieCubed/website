@@ -37,6 +37,7 @@ export default function TimeZoneChooser({
       label={`Change time zone, currently ${selected.label}, ${zone}`}
       trigger={zone || '—'}
       triggerClassName="zone site-control"
+      controlSize="extra-small"
       panelClassName="status-timezones"
       width={224}
     >

@@ -52,7 +52,11 @@ export default function WritingHistory({
       {error && (
         <div>
           <p role="alert">{error}</p>
-          <Button onClick={() => setAttempt((value) => value + 1)}>
+          <Button
+            variant="quiet"
+            size="small"
+            onClick={() => setAttempt((value) => value + 1)}
+          >
             Retry history
           </Button>
         </div>
@@ -99,7 +103,9 @@ function RevisionCard({ revision, onRestore }: RevisionCardProps) {
           </p>
         )}
       </details>
-      <Button onClick={onRestore}>Restore as draft</Button>
+      <Button variant="outlined" size="small" onClick={onRestore}>
+        Restore as draft
+      </Button>
     </div>
   );
 }

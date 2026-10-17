@@ -34,7 +34,8 @@ export default function MusicRail({
         <h1>Music</h1>
         {editing && (
           <Button
-            variant="tonal"
+            variant="primary"
+            size="medium"
             className="mp-new-series"
             disabled={loading}
             onClick={() => setNewSeries('')}
@@ -55,16 +56,17 @@ export default function MusicRail({
             onChange={(event) => setNewSeries(event.target.value)}
           />
           <div>
-            <button className="site-control mp-button" type="submit">
+            <Button variant="primary" size="small" type="submit">
               Create series
-            </button>
-            <button
-              className="site-control mp-text-button"
+            </Button>
+            <Button
+              variant="quiet"
+              size="small"
               type="button"
               onClick={() => setNewSeries(null)}
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       )}

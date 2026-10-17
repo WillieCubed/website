@@ -551,3 +551,7 @@
     gap: 8px;
   }
 }
+
+.status-expanded .zone > .site-control__surface {
+  padding-inline: var(--spacing-sm);
+}

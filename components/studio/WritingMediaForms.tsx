@@ -135,10 +135,16 @@ export function WritingImageForm({
           placeholder="What does this image add to the writing?"
         />
       </label>
-      <Button type="submit" disabled={uploading}>
+      <Button variant="primary" size="small" type="submit" disabled={uploading}>
         {uploading ? 'Uploading…' : 'Insert image'}
       </Button>
-      <Button type="button" disabled={uploading} onClick={onCancel}>
+      <Button
+        variant="quiet"
+        size="small"
+        type="button"
+        disabled={uploading}
+        onClick={onCancel}
+      >
         Cancel
       </Button>
     </form>
@@ -189,8 +195,10 @@ export function WritingLinkForm({
           placeholder="https://"
         />
       </label>
-      <Button type="submit">Add link</Button>
-      <Button type="button" onClick={onCancel}>
+      <Button variant="primary" size="small" type="submit">
+        Add link
+      </Button>
+      <Button variant="quiet" size="small" type="button" onClick={onCancel}>
         Cancel
       </Button>
     </form>

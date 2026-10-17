@@ -99,6 +99,7 @@ test('a short press visibly changes a rounded action before release', async ({
   const action = page.getByRole('button', { name: 'New writing', exact: true });
   await expect(action).toBeEnabled();
   const box = (await action.boundingBox())!;
+  expect(box.height).toBeGreaterThanOrEqual(56);
   await action.hover();
   await page.mouse.down();
   try {
@@ -1478,7 +1479,7 @@ test('inline controls follow a middle paragraph and preserve selected prose', as
 test('an unfinished image retains its file and description across tasks and previews', async ({
   page,
   request,
-}) => {
+}, testInfo) => {
   const draft = await createWriting(request, 'An image draft');
   await page.goto(`/studio/${draft.id}`);
   const editor = page.getByRole('textbox', { name: 'Writing content' });
@@ -1496,6 +1497,24 @@ test('an unfinished image retains its file and description across tasks and prev
     buffer: Buffer.from('image draft'),
   });
   await description.fill('A description still being composed.');
+  await page.mouse.move(0, 0);
+  const insert = page.getByRole('button', {
+    name: 'Insert image',
+    exact: true,
+  });
+  const cancel = page.getByRole('button', { name: 'Cancel', exact: true });
+  await expect(insert.locator('.site-control__surface')).not.toHaveCSS(
+    'background-color',
+    'rgba(0, 0, 0, 0)'
+  );
+  await expect(cancel.locator('.site-control__surface')).toHaveCSS(
+    'background-color',
+    'rgba(0, 0, 0, 0)'
+  );
+  await insert.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath('media-action-hierarchy.png'),
+  });
   await writingAction(page, 'Writing details');
   await page
     .getByRole('button', { name: 'Back to writing', exact: true })

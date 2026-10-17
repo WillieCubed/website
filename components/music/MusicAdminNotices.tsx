@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
+import Button from '@/components/site/Button';
 
 import type { MusicPublication } from '@/lib/music/types';
 
@@ -22,13 +23,15 @@ function MusicOperationNotice({
       <p>{error}</p>
       <div className="music-admin-notice__actions">
         {children}
-        <button
-          className="site-control music-admin-notice__close"
+        <Button
+          variant="quiet"
+          size="small"
+          iconOnly
           aria-label="Dismiss message"
           onClick={onDismiss}
         >
           <Icon name="x" size={18} />
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -60,37 +63,42 @@ export function MusicSaveNotice({
         <p>{error}</p>
         <div className="music-admin-notice__actions">
           {blocked && (
-            <button
-              className="site-control mp-button mp-tonal"
+            <Button
+              variant={conflict ? 'outlined' : 'primary'}
+              size="small"
               onClick={() => void onRetry()}
             >
               {conflict ? 'Save my version' : 'Retry save'}
-            </button>
+            </Button>
           )}
           {conflict && (
-            <button
-              className="site-control mp-button mp-tonal"
+            <Button
+              variant="outlined"
+              size="small"
               onClick={() => void onUseSaved()}
             >
               Use current saved draft
-            </button>
+            </Button>
           )}
           {reconnect && (
-            <button
-              className="site-control mp-button"
+            <Button
+              variant="primary"
+              size="small"
               onClick={() => void onConnect()}
             >
               Reconnect Spotify
-            </button>
+            </Button>
           )}
           {!blocked && !reconnect && (
-            <button
-              className="site-control music-admin-notice__close"
+            <Button
+              variant="quiet"
+              size="small"
+              iconOnly
               aria-label="Dismiss message"
               onClick={() => onDismiss()}
             >
               <Icon name="x" size={18} />
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -115,20 +123,22 @@ export function MusicRecoveryNotice({
       <div className="music-admin-notice" role="status">
         <p>This browser has an unsaved draft.</p>
         <div className="music-admin-notice__actions">
-          <button
-            className="site-control mp-button"
+          <Button
+            variant="primary"
+            size="small"
             disabled={disabled}
             onClick={onRecover}
           >
             Recover draft
-          </button>
-          <button
-            className="site-control mp-button mp-tonal"
+          </Button>
+          <Button
+            variant="quiet"
+            size="small"
             disabled={disabled}
             onClick={onDiscard}
           >
             Use saved draft
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -154,12 +164,13 @@ export function MusicPublicationNotice({
         <p>{publicationStatusMessage(publication)}</p>
         <div className="music-admin-notice__actions">
           {publication.status === 'failed' && (
-            <button
-              className="site-control mp-button"
+            <Button
+              variant="primary"
+              size="small"
               onClick={() => void onRetry()}
             >
               Retry publication
-            </button>
+            </Button>
           )}
           {publication.pullRequestUrl && publication.status !== 'live' && (
             <SiteLink
@@ -177,13 +188,15 @@ export function MusicPublicationNotice({
           )}
           {publication.status !== 'publishing' &&
             publication.status !== 'deploying' && (
-              <button
-                className="site-control music-admin-notice__close"
+              <Button
+                variant="quiet"
+                size="small"
+                iconOnly
                 aria-label="Dismiss publication message"
                 onClick={() => onDismiss()}
               >
                 <Icon name="x" size={18} />
-              </button>
+              </Button>
             )}
         </div>
       </div>
@@ -240,19 +253,20 @@ export function MusicLibraryNotices({
   return (
     <>
       <MusicOperationNotice error={loadError} onDismiss={onDismissLoad}>
-        <button className="site-control mp-button mp-tonal" onClick={onRetry}>
+        <Button variant="primary" size="small" onClick={onRetry}>
           Try again
-        </button>
+        </Button>
       </MusicOperationNotice>
       <MusicOperationNotice error={connectError} onDismiss={onDismissConnect} />
       <MusicOperationNotice error={refreshError} onDismiss={onDismissRefresh}>
         {reconnect && (
-          <button
-            className="site-control mp-button"
+          <Button
+            variant="primary"
+            size="small"
             onClick={() => void onConnect()}
           >
             Reconnect Spotify
-          </button>
+          </Button>
         )}
       </MusicOperationNotice>
     </>

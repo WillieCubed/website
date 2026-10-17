@@ -158,7 +158,7 @@ test('curation prioritizes playlists and keeps the same composition through load
   });
   expect(creationStyle.background).not.toBe('rgba(0, 0, 0, 0)');
   expect(creationStyle.radius).toBeGreaterThanOrEqual(24);
-  expect(creationStyle.height).toBeGreaterThanOrEqual(44);
+  expect(creationStyle.height).toBe(56);
 
   await expect(page.locator('.mp-collection-header')).toContainText(
     '1 playlist'
@@ -203,7 +203,7 @@ test('curation prioritizes playlists and keeps the same composition through load
         parseFloat(getComputedStyle(button).borderRadius)
       )
     )
-    .toBe(16);
+    .toBe(12);
   await page.screenshot({
     path: info.outputPath('music-pressed.png'),
     fullPage: false,

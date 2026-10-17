@@ -5,7 +5,7 @@ import { type Server, createServer } from 'node:http';
 import { userInfo } from 'node:os';
 import { Pool } from 'pg';
 
-import { isMain } from '../publishing/runtime.mts';
+import { isMain } from '../../../scripts/shared/command.mts';
 import { seedStudioDatabase } from './fixtures.mts';
 
 export async function runStudioTests() {

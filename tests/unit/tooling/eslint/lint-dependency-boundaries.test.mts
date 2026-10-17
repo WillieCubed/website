@@ -24,20 +24,16 @@ tester.run('site/dependency-boundaries', rule, {
       code: "import value from '../../site/identity';",
     },
     {
-      filename: filename('tests/e2e/publishing/atproto/social.mts'),
-      code: "import value from '../../../support/publishing/callback-proof.mts';",
+      filename: filename('tests/support/studio/run.mts'),
+      code: "import { isMain } from '../../../scripts/shared/command.mts';",
     },
     {
-      filename: filename('tests/support/publishing/fixture.mts'),
+      filename: filename('tests/support/studio/fixture.mts'),
       code: "import value from '../../../lib/atproto/config';",
     },
     {
       filename: filename('lib/example/module.ts'),
       code: "import value from '@vendor/components';",
-    },
-    {
-      filename: filename('scripts/atproto-social-capture.mts'),
-      code: "import value from '../tests/e2e/publishing/atproto/capture/run.mts';",
     },
   ],
   invalid: [
@@ -63,23 +59,18 @@ tester.run('site/dependency-boundaries', rule, {
     },
     {
       filename: filename('components/example/View.tsx'),
-      code: "await import('../../tests/e2e/publishing/atproto/social.mts');",
+      code: "await import('../../tests/e2e/site/music/capture.mts');",
       errors: [{ messageId: 'application' }],
     },
     {
-      filename: filename('tests/support/publishing/fixture.mts'),
-      code: "import run from '../../e2e/publishing/atproto/social.mts';",
+      filename: filename('tests/support/studio/fixture.mts'),
+      code: "import run from '../../e2e/site/music/capture.mts';",
       errors: [{ messageId: 'support' }],
     },
     {
-      filename: filename('tests/support/publishing/fixture.mts'),
-      code: "import run from '../../../scripts/atproto-social-capture.mts';",
+      filename: filename('tests/support/studio/fixture.mts'),
+      code: "import run from '../../../scripts/atproto/sync.mts';",
       errors: [{ messageId: 'support' }],
-    },
-    {
-      filename: filename('tests/e2e/publishing/atproto/social.mts'),
-      code: "import helper from '../../../../scripts/atproto-fixture-source.mts';",
-      errors: [{ messageId: 'scenario' }],
     },
   ],
 });

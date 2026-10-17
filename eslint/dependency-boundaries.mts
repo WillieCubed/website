@@ -17,8 +17,6 @@ const rule: Rule.RuleModule = {
         'Application modules cannot depend on command entrypoints, tests, or test support; libraries also cannot depend on UI.',
       support:
         'Test support cannot depend on test scenarios or command entrypoints. Put reusable helpers in tests/support.',
-      scenario:
-        'Publishing tests must import application modules or tests/support directly, rather than legacy script entrypoints.',
     },
   },
   create(context) {
@@ -81,13 +79,13 @@ function dependencyViolation(source: string, target: string) {
         ['app', 'components'].some((dir) => within(target, dir))))
   )
     return 'application';
-  else if (
+  // Shared command helpers are not entrypoints, so test support may reuse them.
+  if (
     within(source, 'tests/support') &&
     ['tests/e2e', 'tests/integration', 'tests/unit', 'scripts'].some((dir) =>
       within(target, dir)
-    )
+    ) &&
+    !within(target, 'scripts/shared')
   )
     return 'support';
-  else if (within(source, 'tests/e2e/publishing') && within(target, 'scripts'))
-    return 'scenario';
 }

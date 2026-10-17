@@ -20,11 +20,8 @@ owning module. Package commands use the domain paths directly. New commands
 belong under their domain. Application behavior belongs in `lib/`, not in a
 command module.
 
-Publishing test scenarios live in [`tests/e2e/publishing/`](../tests/README.md).
-Their shared account, authorization, fixture, and recovery helpers live in
-`tests/support/publishing/`. Retained acceptance and verification script names
-remain thin compatibility entrypoints so documented commands and saved
-recovery instructions keep working. Do not add test implementations here.
+Do not add test implementations here; tests and their helpers live under
+[`tests/`](../tests/README.md).
 
 Import helpers from their owning module instead of importing a command
 entrypoint. A compatibility re-export is retained only for existing callers;

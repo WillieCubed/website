@@ -36,7 +36,7 @@
   min-width: 0;
   min-height: 52px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   background: var(--field);
   color: var(--text);
   padding: 12px 16px;
@@ -50,7 +50,7 @@
 }
 .status-admin .editor {
   padding: 20px 24px 24px;
-  border-radius: 24px;
+  border-radius: var(--radius-3xl);
   background: var(--container);
 }
 .status-admin .field-heading {
@@ -77,14 +77,14 @@
   --control-rest-radius: 24px;
   --control-ink: var(--primary);
   text-decoration: none;
-  font-size: 14px;
+  font-size: var(--text-label-large);
   font-weight: 600;
 }
 .status-admin .location {
   min-width: 0;
 }
 .status-admin .city {
-  font-size: 24px;
+  font-size: var(--text-headline-small);
   line-height: 1.3;
   font-weight: 500;
   margin: 0;
@@ -92,13 +92,13 @@
 }
 .status-admin .region {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-body-small);
   margin: 8px 0 0;
   overflow-wrap: anywhere;
 }
 .status-admin label {
   display: block;
-  font-size: 14px;
+  font-size: var(--text-title-small);
   font-weight: 500;
   margin-bottom: 8px;
 }
@@ -107,7 +107,7 @@
   min-width: 0;
   min-height: 52px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   background: var(--field);
   color: var(--text);
   padding: 12px 16px;
@@ -128,7 +128,7 @@
   width: calc(100% + 24px);
   min-height: 52px;
   background: var(--field);
-  font-size: 24px;
+  font-size: var(--text-headline-small);
   line-height: 1.3;
   font-weight: 500;
 }
@@ -154,7 +154,7 @@
   font-weight: 400;
 }
 .status-admin .results strong {
-  font-size: 16px;
+  font-size: var(--text-body-medium);
   font-weight: 600;
 }
 .status-admin .results button[aria-selected='true'] {
@@ -164,7 +164,7 @@
 .status-admin .results span {
   display: block;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--text-body-small);
   margin-top: var(--spacing-xs);
   overflow-wrap: anywhere;
 }
@@ -182,11 +182,11 @@
   width: fit-content;
   margin-top: 24px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-label-medium);
 }
 .status-admin .message {
   margin: 16px 0 0;
-  font-size: 14px;
+  font-size: var(--text-body-small);
   color: var(--primary);
 }
 

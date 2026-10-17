@@ -76,7 +76,7 @@
     height: auto;
     max-height: 84%;
     object-fit: contain;
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     box-shadow: 0 24px 50px -30px
       color-mix(in srgb, var(--color-scrim) 60%, transparent);
   }
@@ -98,7 +98,7 @@
     max-width: 22ch;
     margin-top: var(--spacing-stack);
     color: var(--color-muted);
-    font-size: 18px;
+    font-size: var(--text-body-large);
     line-height: 1.35;
   }
   .d-stack {
@@ -176,7 +176,7 @@
     padding: 0;
     box-shadow: 0 1px 3px
       color-mix(in srgb, var(--color-scrim) 20%, transparent);
-    font-size: 22px;
+    font-size: var(--text-title-large);
   }
   .d-kicker {
     color: var(--color-muted);
@@ -211,7 +211,7 @@
   .d-list li {
     padding: 12px;
     margin-block: 8px;
-    border-radius: 16px;
+    border-radius: var(--radius-2xl);
     background: var(--color-surface-container);
   }
   .d-list b {
@@ -237,7 +237,7 @@
     gap: var(--spacing-inline);
   }
   .d-list :is(button, a) b .icon {
-    font-size: 16px;
+    font-size: var(--text-body-medium);
     opacity: 0;
     translate: -4px 0;
     transition:
@@ -269,7 +269,7 @@
     --control-ink: var(--color-ground);
   }
   .d-links .icon {
-    font-size: 16px;
+    font-size: var(--text-body-medium);
     transition: translate 240ms var(--ease-site);
   }
   .d-links a:hover .icon {

@@ -233,7 +233,7 @@
   justify-content: space-between;
   padding: var(--spacing-md);
   margin-block: var(--spacing-sm);
-  border-radius: 16px;
+  border-radius: var(--radius-2xl);
   background: var(--color-surface-container);
 }
 .studio-editor pre {
@@ -278,7 +278,7 @@
   visibility: visible;
 }
 .studio-add-symbol {
-  font-size: 24px;
+  font-size: var(--text-headline-small);
   line-height: 1;
 }
 .studio-add-label {

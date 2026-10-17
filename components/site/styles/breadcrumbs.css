@@ -3,7 +3,7 @@
   align-items: center;
   min-height: 48px;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   color: var(--color-ink);
   transition: background-color 160ms var(--ease-site);
 }
@@ -33,7 +33,7 @@
   align-items: center;
   min-height: 48px;
   padding: 4px var(--home-crumb-padding-x) 4px 0;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
 }
 .site-breadcrumb-name__mark {
   display: none;
@@ -305,7 +305,7 @@ header[data-column] .site-breadcrumb:not(.site-control):focus-visible::before {
   flex: 0 0 auto;
   margin-left: auto;
   color: var(--color-muted);
-  font-size: 12px;
+  font-size: var(--text-label-medium);
   font-weight: 500;
   white-space: nowrap;
 }

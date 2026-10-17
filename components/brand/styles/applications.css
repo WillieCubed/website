@@ -15,7 +15,7 @@
 .brand-type-group-heading h4 {
   margin: 0;
   color: var(--color-ink);
-  font-size: 18px;
+  font-size: var(--text-body-large);
   font-weight: 600;
 }
 .brand-type-group-heading p {
@@ -54,7 +54,7 @@
 }
 .brand-type-role-description code {
   color: var(--color-accent);
-  font-size: 12px;
+  font-size: var(--text-label-medium);
   overflow-wrap: anywhere;
 }
 .brand-type-role-preview {
@@ -100,20 +100,20 @@
   max-width: 72ch;
   margin: -8px 0 20px;
   color: var(--color-ink);
-  font-size: 16px;
+  font-size: var(--text-body-medium);
   line-height: 1.65;
 }
 
 .brand-platform-guide {
   color: var(--color-muted);
-  font-size: 14px;
+  font-size: var(--text-body-small);
   line-height: 1.6;
 }
 .brand-platform-guide p {
   margin: 0 0 12px;
 }
 .brand-platform-guide code {
-  font-size: 12px;
+  font-size: var(--text-label-medium);
   overflow-wrap: anywhere;
 }
 .brand-platform-guide a,
@@ -152,7 +152,7 @@
   max-width: 300px;
   border-radius: 12px 12px 0 0;
   background: var(--color-tray);
-  font-size: 14px;
+  font-size: var(--text-body-small);
 }
 .brand-browser-example span:last-child {
   margin-left: auto;
@@ -224,7 +224,7 @@
   align-items: center;
   min-height: 48px;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   text-decoration: none;
 }
 @media (hover: hover) {

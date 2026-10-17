@@ -272,7 +272,7 @@
     gap: 8px;
   }
   .site-footer[data-dock] .site-footer__pages a {
-    font-size: 22px;
+    font-size: var(--text-title-large);
     line-height: 28px;
   }
 }
@@ -471,7 +471,7 @@
   font-size: calc(20px + (36px - 20px) * var(--p));
 }
 .site-footer:not([data-dock]) .site-footer__lockup {
-  font-size: 36px;
+  font-size: var(--text-display-small);
   line-height: 1;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -496,7 +496,7 @@
   gap: 8px 40px;
 }
 .site-footer .site-footer__pages a {
-  font-size: 22px;
+  font-size: var(--text-title-large);
   line-height: 32px;
   font-weight: 500;
   padding-block: 8px;
@@ -563,7 +563,7 @@
   margin: 0;
   margin-block-start: var(--footer-space);
   padding: 8px;
-  border-radius: 16px;
+  border-radius: var(--radius-2xl);
   background: transparent;
   outline: 1px solid var(--color-outline-variant);
   outline-offset: -1px;

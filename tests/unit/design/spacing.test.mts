@@ -81,3 +81,28 @@ test('inline React styles and CSS inside interpolated HTML remain covered', () =
   assert.equal(entries.length, 4);
   assert.ok(entries.some((entry) => entry.selector === '.card'));
 });
+
+test('raw type sizes and radii that a token holds must name the token', async () => {
+  const { scanTokenEquivalents, tokenScale } =
+    await import('../../../scripts/design/token-equivalents.mts');
+  const scale = tokenScale([
+    ':root { --text-label-large: 14px; --text-title-small: 14px; --text-body-small: 14px; --text-label-medium: 12px; }',
+    ':root { --radius-2xl: 1rem; --radius-xl: 0.75rem; }',
+  ]);
+  const values = scanTokenEquivalents(
+    'fixture.css',
+    `.label { font-size: 14px; font-weight: 600; }
+     .title { font-size: 14px; font-weight: 500; }
+     .body { font-size: 14px; }
+     .card { border-radius: 16px; }
+     .odd { font-size: 13px; border-radius: 14px; }
+     .token { font-size: var(--text-label-medium); --size: 12px; }`,
+    scale
+  ).map((entry) => `${entry.selector} ${entry.value}`);
+  assert.deepEqual(values, [
+    '.label 14px (use var(--text-label-large))',
+    '.title 14px (use var(--text-title-small))',
+    '.body 14px (use var(--text-body-small))',
+    '.card 16px (use var(--radius-2xl))',
+  ]);
+});

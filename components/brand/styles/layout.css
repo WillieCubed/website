@@ -133,7 +133,7 @@
 .brand-asset figcaption p {
   margin: 4px 0 0;
   color: var(--color-muted);
-  font-size: 14px;
+  font-size: var(--text-body-small);
 }
 
 .brand-page .brand-downloads {
@@ -223,7 +223,7 @@
   gap: var(--spacing-related) var(--spacing-inline);
   margin-block: 0;
   color: var(--color-ink);
-  font-size: 12px;
+  font-size: var(--text-label-medium);
 }
 .brand-swatch dt {
   color: var(--color-muted);
@@ -248,7 +248,7 @@
 .brand-files li {
   padding: 8px 12px;
   margin-block: 4px;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   background: var(--color-surface-container);
 }
 .brand-files a {

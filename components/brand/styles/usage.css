@@ -209,7 +209,7 @@
   margin: 0;
   padding: 12px 16px 16px;
   color: var(--color-ink);
-  font-size: 14px;
+  font-size: var(--text-body-small);
   line-height: 1.5;
 }
 .brand-avoid p > span:last-child {
@@ -240,14 +240,14 @@
   filter: drop-shadow(0 8px 10px rgb(0 0 0 / 0.45));
   outline: 3px solid var(--brand-ink);
   outline-offset: 4px;
-  border-radius: 16px;
+  border-radius: var(--radius-2xl);
 }
 .brand-avoid-crowd {
   display: flex;
   align-items: center;
   gap: 3px;
   color: var(--brand-ink);
-  font-size: 18px;
+  font-size: var(--text-body-large);
   font-weight: 700;
 }
 .brand-avoid-rebuild {

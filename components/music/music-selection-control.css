@@ -26,7 +26,7 @@
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   background: var(--color-surface-container-highest);
   pointer-events: none;
   transition:

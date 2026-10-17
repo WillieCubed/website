@@ -709,6 +709,15 @@
     margin-inline-start: calc(-1 * var(--footer-link-inset) * var(--dock));
   }
 }
+/* Icon-only targets already provide separation. Visible labels need a gap
+   between destinations as the homepage dock opens. */
+@container footer (width > 1120px) {
+  .site-footer[data-dock] .site-footer__profiles {
+    --profile-gap: calc(
+      20px * (1 - var(--dock)) + var(--spacing-md) * var(--dock)
+    );
+  }
+}
 /* The actual footer column determines when the two navigation groups fit,
    including narrower reading columns in a desktop window. */
 @container footer (min-width: 600px) {

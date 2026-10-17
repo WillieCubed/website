@@ -121,7 +121,7 @@ export default function MusicExperience({
       }
       overlays={
         <>
-          <p className="music-announcement" role="status" aria-live="polite">
+          <p className="sr-only" role="status" aria-live="polite">
             {announcement}
           </p>
           <MusicDetail

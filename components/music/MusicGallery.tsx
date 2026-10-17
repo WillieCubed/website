@@ -123,7 +123,7 @@ export function MusicLibraryFilters({
           </button>
         ))}
       </div>
-      <p className="music-visually-hidden">
+      <p className="sr-only">
         Include playlists in the public gallery. Open a playlist to add notes
         and series.
       </p>

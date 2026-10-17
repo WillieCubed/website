@@ -36,7 +36,7 @@ export default function MusicCollectionHeader({
     <header
       className={
         !editing && !series && !loadError
-          ? 'music-visually-hidden'
+          ? 'sr-only'
           : 'music-collection-header'
       }
     >
@@ -78,7 +78,7 @@ function CollectionTitle({ series, editing }: CollectionTitleProps) {
   return (
     <h2
       id="music-collection-title"
-      className={editing || !series ? 'music-visually-hidden' : undefined}
+      className={editing || !series ? 'sr-only' : undefined}
     >
       {series?.title ?? (editing ? 'Playlists' : 'Willie’s playlists')}
     </h2>
@@ -104,7 +104,7 @@ function CollectionLoadStatus({
 }: LoadStatusProps) {
   return (
     <p
-      className={`music-loading-status${editing && hasSeries ? ' music-visually-hidden' : ''}`}
+      className={`music-loading-status${editing && hasSeries ? ' sr-only' : ''}`}
       role="status"
     >
       {collectionStatusText(loading, loadError, editing, count, inSeries)}

@@ -130,7 +130,7 @@ export default function MusicAdmin() {
           ]}
         />
         {busy && (
-          <p role="status">
+          <p className="sr-only" role="status">
             {status === 'Importing Spotify playlists…' ? status : 'Working…'}
           </p>
         )}

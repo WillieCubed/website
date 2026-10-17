@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
 type TargetBounds = Pick<
   DOMRect,
@@ -7,7 +7,7 @@ type TargetBounds = Pick<
 
 function expectUsableTargets(targets: TargetBounds[], panel: TargetBounds) {
   for (const [index, target] of targets.entries()) {
-    expect(target.width).toBe(32);
+    expect(target.width).toBe(48);
     expect(target.height).toBe(48);
     expect(target.left).toBeGreaterThanOrEqual(panel.left);
     expect(target.right).toBeLessThanOrEqual(panel.right);
@@ -19,6 +19,90 @@ function expectUsableTargets(targets: TargetBounds[], panel: TargetBounds) {
           target.bottom <= previous.top
       ).toBe(true);
     }
+  }
+}
+
+type MobileRingLayout = Record<
+  | 'rings'
+  | 'row'
+  | 'pages'
+  | 'footer'
+  | 'label'
+  | 'panel'
+  | 'firstArrow'
+  | 'firstPage',
+  TargetBounds
+> & { targets: TargetBounds[] };
+
+function expectMobileRingLayout(bounds: MobileRingLayout, width: number) {
+  expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
+  expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
+  if (width >= 360) {
+    expect(bounds.rings.left).toBeCloseTo(bounds.row.left, 0);
+    expect(bounds.rings.width).toBeCloseTo(bounds.row.width, 0);
+  } else {
+    expect(bounds.rings.left).toBeGreaterThanOrEqual(bounds.footer.left);
+    expect(bounds.rings.right).toBeLessThanOrEqual(bounds.footer.right);
+  }
+  const sharedRow = bounds.label.bottom > bounds.panel.top;
+  if (sharedRow) {
+    expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
+    expect(bounds.firstArrow.left - bounds.label.right).toBeGreaterThanOrEqual(
+      6
+    );
+  } else {
+    expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
+  }
+  expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
+  expectUsableTargets(bounds.targets, bounds.panel);
+  expect(bounds.panel.left).toBeGreaterThanOrEqual(bounds.footer.left + 6);
+  expect(bounds.panel.right).toBeLessThanOrEqual(bounds.footer.right - 6);
+  expect(bounds.panel.top).toBeGreaterThan(bounds.pages.bottom);
+}
+
+async function expectFooterTouchTargets(
+  page: Page,
+  footer: TargetBounds,
+  width: number
+) {
+  const utilityWidth = await page
+    .locator('.site-footer__utilities')
+    .evaluate((element) => element.getBoundingClientRect().width);
+  expect(
+    utilityWidth,
+    `${width}px utilities retain their column`
+  ).toBeGreaterThan(48);
+  const targets = await page
+    .locator(
+      '.site-footer__row a, .site-footer__row .feeds-button, .site-webring__link'
+    )
+    .evaluateAll((links) =>
+      links.flatMap((link) => {
+        const r = link.getBoundingClientRect();
+        if (r.width === 0) return [];
+        return [
+          {
+            label: link.getAttribute('aria-label') ?? link.textContent,
+            bounds: r.toJSON(),
+            edgeHits: [
+              [r.left + 2, r.top + r.height / 2],
+              [r.right - 2, r.top + r.height / 2],
+              [r.left + r.width / 2, r.top + 2],
+              [r.left + r.width / 2, r.bottom - 2],
+            ].map(([x, y]) => link.contains(document.elementFromPoint(x, y))),
+          },
+        ];
+      })
+    );
+  for (const target of targets) {
+    const message = `${width}px ${target.label}`;
+    expect(target.bounds.width, message).toBeGreaterThanOrEqual(48);
+    expect(target.bounds.height, message).toBeGreaterThanOrEqual(48);
+    expect(target.bounds.left, message).toBeGreaterThanOrEqual(footer.left);
+    expect(target.bounds.right, message).toBeLessThanOrEqual(footer.right);
+    expect(target.edgeHits, `${message} native padding accepts input`).toEqual(
+      Array(4).fill(true)
+    );
   }
 }
 
@@ -137,10 +221,11 @@ test('a keyboard tooltip stays with its link when the page scrolls', async ({
   expect(Math.abs(tip!.y + tip!.height + 8 - target!.y)).toBeLessThan(2);
 });
 
-test('the footer aligns ring padding and keeps all six targets on one row', async ({
+test('the restored ring group contains full touch targets at every width', async ({
   page,
 }) => {
   await page.goto('/');
+  await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
   // If scrolling reaches the server footer before hydration, FooterFrame
   // intentionally retains that plain footer. This test exercises the dock.
   await expect(page.locator('.site-footer')).toHaveAttribute('data-dock', '');
@@ -213,43 +298,26 @@ test('the footer aligns ring padding and keeps all six targets on one row', asyn
     expect(bounds.page.left).toBeCloseTo(bounds.row.left, 0);
     expect(bounds.page.right).toBeCloseTo(bounds.row.right, 0);
     expect(bounds.ringsLast).toBe(true);
-    if (width < 600) {
-      expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
-      expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
-      expect(bounds.rings.left).toBeCloseTo(bounds.row.left, 0);
-      expect(bounds.rings.width).toBeCloseTo(bounds.row.width, 0);
-      const sharedRow = bounds.label.bottom > bounds.panel.top;
-      if (sharedRow) {
-        expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
-        expect(
-          bounds.firstArrow.left - bounds.label.right
-        ).toBeGreaterThanOrEqual(6);
-      } else {
-        expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
-      }
-      expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
-      expectUsableTargets(bounds.targets, bounds.panel);
-      expect(bounds.panel.left).toBeGreaterThanOrEqual(bounds.footer.left + 6);
-      expect(bounds.panel.right).toBeLessThanOrEqual(bounds.footer.right - 6);
-      expect(bounds.panel.top).toBeGreaterThan(bounds.pages.bottom);
-    }
+    if (width < 600) expectMobileRingLayout(bounds, width);
     if (width >= 840) {
       expect(bounds.rings.left).toBeGreaterThan(bounds.pages.right);
       expect(bounds.rings.top).toBeLessThan(bounds.pages.bottom);
       expect(bounds.rings.bottom).toBeLessThan(bounds.row.top);
-    } else if (width < 600) {
-      expect(bounds.rings.top).toBeGreaterThanOrEqual(bounds.row.bottom);
-      expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
     }
-    expect(
-      Math.abs(bounds.firstArrow.left - bounds.label.left)
-    ).toBeLessThanOrEqual(2);
     expectUsableTargets(bounds.targets, bounds.panel);
-    expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
+    await expectFooterTouchTargets(page, bounds.footer, width);
+
+    for (let i = 0; i < bounds.targets.length; i += 3) {
+      expect(
+        new Set(bounds.targets.slice(i, i + 3).map((target) => target.top)).size
+      ).toBe(1);
+    }
+    if (width < 600)
+      expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
   }
 });
 
-test('footer contacts stay compact and share one mobile row with status', async ({
+test('footer contacts retain full touch targets without overflow', async ({
   page,
 }, testInfo) => {
   await page.goto('/writings');
@@ -265,6 +333,7 @@ test('footer contacts stay compact and share one mobile row with status', async 
       return {
         contacts: box('.site-footer__profiles'),
         utilities: box('.site-footer__utilities'),
+        status: box('.site-footer__utilities .microstatus'),
         row: box('.site-footer__row'),
         links: [...document.querySelectorAll('.site-footer__profiles a')]
           .filter((element) => element.getBoundingClientRect().width > 0)
@@ -275,24 +344,24 @@ test('footer contacts stay compact and share one mobile row with status', async 
       };
     });
     expect(geometry.overflow, `${width}px footer overflow`).toBe(false);
+    expect(
+      geometry.utilities.width,
+      `${width}px utilities retain their column`
+    ).toBeGreaterThan(48);
+    expect(
+      geometry.status.width,
+      `${width}px status stays readable`
+    ).toBeGreaterThanOrEqual(48);
     for (const link of geometry.links) {
-      expect(link.width).toBeGreaterThanOrEqual(24);
+      expect(link.width).toBeGreaterThanOrEqual(48);
       expect(link.height).toBeGreaterThanOrEqual(48);
     }
-    if (width <= 480 || width >= 840) {
+    if (width === 390 || width === 480 || width >= 840) {
       expect(
         geometry.contacts.top,
         `${width}px uses available row space`
       ).toBeCloseTo(geometry.utilities.top, 0);
       expect(geometry.contacts.right).toBeLessThan(geometry.utilities.left);
-    }
-    if (width <= 480) {
-      for (const [index, link] of geometry.links.entries()) {
-        if (index > 0)
-          expect(
-            link.left - geometry.links[index - 1].left
-          ).toBeLessThanOrEqual(32);
-      }
     }
     await page.screenshot({
       path: testInfo.outputPath(`footer-fit-${width}.png`),
@@ -346,7 +415,7 @@ test('both rings remain usable without JavaScript', async ({
 });
 
 for (const width of [390, 1440]) {
-  test(`webrings stay visually quiet inside usable targets at ${width}px`, async ({
+  test(`webrings retain their outlined group and tonal centers at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
@@ -358,12 +427,19 @@ for (const width of [390, 1440]) {
     await expect(surface).toHaveCount(1);
     const box = (await link.boundingBox())!;
     const visual = (await surface.boundingBox())!;
-    expect(box.width).toBe(32);
+    expect(box.width).toBe(48);
     expect(box.height).toBe(48);
     expect(visual.width).toBe(32);
     expect(visual.height).toBe(32);
-    await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-    await expect(surface).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(page.locator('.site-webrings')).toHaveCSS(
+      'outline-width',
+      '1px'
+    );
+    await expect(page.locator('.site-webrings')).toHaveCSS(
+      'outline-style',
+      'solid'
+    );
+    await expect(surface).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await page.screenshot({ path: testInfo.outputPath('rest-webrings.png') });
     await page.keyboard.press('Tab');
     await link.focus();

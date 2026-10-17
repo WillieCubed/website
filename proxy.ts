@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { terminalHome, terminalHomeHeaders } from '@/lib/http/terminal-home';
 import { authorizeStudio } from '@/lib/studio/auth';
 import { isPrivatePreview, privateHeaders } from '@/lib/studio/config';
 import { StudioError } from '@/lib/studio/errors';
 import { tagPath } from '@/lib/writings/tags';
 
-export function proxy(request: NextRequest) {
+/**
+ * Route public traffic and enforce private-preview access before rendering.
+ * Public deployments hide Studio routes, preserve legacy tag redirects, and
+ * negotiate the homepage. Authenticated previews keep their private routing
+ * and response policies without exposing the public terminal page.
+ */
+export function proxy(request: NextRequest): Response | Promise<Response> {
   const path = request.nextUrl.pathname;
   if (!isPrivatePreview()) {
     if (/^\/(?:studio|api\/studio)(?:\/|$)/.test(path))
@@ -18,7 +25,14 @@ export function proxy(request: NextRequest) {
       target.pathname = tagPath(tag);
       return NextResponse.redirect(target, 308);
     }
-    return NextResponse.next();
+    const terminal = terminalHome(request);
+    if (terminal) return terminal;
+    const response = NextResponse.next();
+    if (path === '/') {
+      for (const [key, value] of Object.entries(terminalHomeHeaders))
+        response.headers.set(key, value);
+    }
+    return response;
   }
   return privateProxy(request);
 }

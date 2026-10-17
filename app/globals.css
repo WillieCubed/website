@@ -456,7 +456,7 @@ h4 {
 @layer components {
   .prose :where(blockquote) {
     border: 0;
-    border-radius: 16px;
+    border-radius: var(--radius-2xl);
     padding: 20px;
     background: var(--color-surface-container);
   }

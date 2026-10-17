@@ -19,7 +19,7 @@
   gap: var(--spacing-inline);
 }
 .ms-wordmark {
-  font-size: 24px;
+  font-size: var(--text-headline-small);
   font-weight: 600;
   letter-spacing: -0.04em;
 }
@@ -75,7 +75,7 @@
   height: 28px;
   border-radius: 50%;
   background: var(--color-surface-container-highest);
-  font-size: 14px;
+  font-size: var(--text-body-small);
 }
 .ms-step-number svg {
   width: 18px;
@@ -118,10 +118,10 @@
   --control-rest-radius: 22px;
   margin-top: 32px;
   padding: var(--spacing-lg) 24px;
-  font-size: 18px;
+  font-size: var(--text-body-large);
 }
 .ms-permission {
-  font-size: 14px;
+  font-size: var(--text-body-small);
   line-height: 1.6;
   color: var(--color-muted);
   margin: var(--spacing-stack) 0 0;
@@ -182,7 +182,7 @@
 }
 .ms-connect-details span {
   display: block;
-  font-size: 14px;
+  font-size: var(--text-body-small);
   color: var(--color-muted);
   font-weight: 400;
   margin-top: 4px;
@@ -202,7 +202,7 @@
   gap: var(--spacing-inline);
   margin: 28px 0 var(--spacing-stack);
   color: var(--color-muted);
-  font-size: 14px;
+  font-size: var(--text-body-small);
 }
 .ms-source > span:last-child {
   margin-left: auto;
@@ -239,7 +239,7 @@
 .ms-playlist-art {
   width: 104px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 .ms-playlist-copy {
@@ -265,7 +265,7 @@
 .ms-empty {
   padding: 32px;
   background: var(--color-surface-container);
-  border-radius: 24px;
+  border-radius: var(--radius-3xl);
 }
 .ms-actions {
   display: flex;
@@ -290,7 +290,7 @@
   flex: 1;
   margin: 0;
   color: var(--color-muted);
-  font-size: 14px;
+  font-size: var(--text-body-small);
 }
 .ms-preview-layout {
   display: grid;
@@ -305,7 +305,7 @@
   background: var(--color-surface-container);
 }
 .ms-gallery-preview h2 {
-  font-size: 32px;
+  font-size: var(--text-headline-large);
   letter-spacing: -0.04em;
   margin: 0 0 24px;
   line-height: 1;
@@ -318,7 +318,7 @@
   margin-bottom: 24px;
 }
 .ms-feature-preview h3 {
-  font-size: 28px;
+  font-size: var(--text-headline-medium);
   letter-spacing: -0.04em;
   line-height: 1.1;
   margin: 0;
@@ -352,13 +352,13 @@
   border: 0;
 }
 .ms-feature-options legend {
-  font-size: 22px;
+  font-size: var(--text-title-large);
   font-weight: 500;
   letter-spacing: -0.02em;
 }
 .ms-feature-options > p {
   color: var(--color-muted);
-  font-size: 14px;
+  font-size: var(--text-body-small);
   margin: 8px 0 20px;
 }
 .ms-feature-option {
@@ -375,7 +375,7 @@
 }
 .ms-feature-option[data-selected] {
   background: var(--color-secondary-container);
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
 }
 .ms-feature-option {
   transition:
@@ -396,8 +396,8 @@
   min-height: 52px;
   padding: 8px var(--spacing-lg);
   margin-bottom: 16px;
-  border-radius: 16px;
-  font-size: 14px;
+  border-radius: var(--radius-2xl);
+  font-size: var(--text-body-small);
   background: var(--color-surface-container-high);
 }
 .ms-feature-none .mp-selection-control,
@@ -415,7 +415,7 @@
 }
 .ms-feature-none[data-selected] {
   background: var(--color-secondary-container);
-  border-radius: 16px;
+  border-radius: var(--radius-2xl);
 }
 .ms-feature-playlists {
   display: flex;
@@ -424,7 +424,7 @@
 }
 .ms-feature-playlists .ms-feature-option {
   margin: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
 }
 .ms-feature-playlists .ms-feature-option:first-child {
   border-start-start-radius: 20px;
@@ -445,7 +445,7 @@
 }
 .ms-feature-option small {
   display: block;
-  font-size: 12px;
+  font-size: var(--text-label-medium);
   color: var(--color-muted);
   margin-top: var(--spacing-sm);
 }
@@ -499,7 +499,7 @@
     gap: 12px;
   }
   .ms-actions p {
-    font-size: 12px;
+    font-size: var(--text-label-medium);
   }
 }
 @media (max-width: 599px) {
@@ -510,7 +510,7 @@
     padding: var(--spacing-lg) 0;
   }
   .ms-wordmark {
-    font-size: 22px;
+    font-size: var(--text-title-large);
   }
   .ms-header-actions .palette-trigger__label,
   .ms-header-actions .palette-trigger__key {
@@ -524,7 +524,7 @@
   }
   .ms-exit {
     padding: var(--spacing-md) var(--spacing-lg);
-    font-size: 14px;
+    font-size: var(--text-body-small);
   }
   .ms-exit svg {
     width: 18px;
@@ -543,14 +543,14 @@
   .ms-step-number {
     width: 22px;
     height: 22px;
-    font-size: 12px;
+    font-size: var(--text-label-medium);
     flex-shrink: 0;
   }
   .ms-main h1 {
     font-size: 38px;
   }
   .ms-intro {
-    font-size: 16px;
+    font-size: var(--text-body-medium);
     margin-top: var(--spacing-stack);
   }
   .ms-connect {
@@ -593,19 +593,19 @@
   }
   .ms-permission {
     text-align: center;
-    font-size: 12px;
+    font-size: var(--text-label-medium);
     margin-top: var(--spacing-stack);
   }
   .ms-connect-details {
     padding: var(--spacing-xl);
     gap: var(--spacing-group);
-    border-radius: 24px;
+    border-radius: var(--radius-3xl);
   }
   .ms-selection-heading {
     gap: 20px;
   }
   .ms-source {
-    font-size: 12px;
+    font-size: var(--text-label-medium);
     margin: 24px 0 var(--spacing-stack);
   }
   .ms-playlists {
@@ -621,10 +621,10 @@
     width: 72px;
   }
   .ms-playlist-title {
-    font-size: 18px;
+    font-size: var(--text-body-large);
   }
   .ms-playlist-meta {
-    font-size: 12px;
+    font-size: var(--text-label-medium);
     margin-top: var(--spacing-sm);
   }
   .ms-actions {
@@ -635,7 +635,7 @@
     width: calc(100% - 24px);
     margin: 0;
     bottom: var(--spacing-md);
-    border-radius: 24px;
+    border-radius: var(--radius-3xl);
   }
   .ms-actions p {
     grid-column: 1 / -1;
@@ -645,7 +645,7 @@
   .ms-actions .ms-button {
     padding: 12px;
     gap: 8px;
-    font-size: 14px;
+    font-size: var(--text-body-small);
     --control-rest-radius: 16px;
   }
   .ms-actions .ms-button svg {
@@ -654,10 +654,10 @@
   }
   .ms-gallery-preview {
     padding: 20px;
-    border-radius: 24px;
+    border-radius: var(--radius-3xl);
   }
   .ms-gallery-preview h2 {
-    font-size: 28px;
+    font-size: var(--text-headline-medium);
     margin-bottom: 20px;
   }
   .ms-preview-grid {
@@ -673,7 +673,7 @@
     margin-inline: auto;
   }
   .ms-feature-preview h3 {
-    font-size: 24px;
+    font-size: var(--text-headline-small);
   }
   .ms-feature-preview p {
     margin-top: 8px;

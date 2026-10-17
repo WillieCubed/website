@@ -14,11 +14,11 @@
   min-height: 44px;
   padding: var(--spacing-md) 16px;
   list-style: none;
-  border-radius: 16px;
+  border-radius: var(--radius-2xl);
   background: var(--color-surface-container);
   color: var(--color-ink);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--text-label-large);
   font-weight: 600;
 }
 .mp-credits > summary::-webkit-details-marker {
@@ -46,7 +46,7 @@
 .mp-credits-controls p {
   margin: 0;
   color: var(--color-muted);
-  font-size: 12px;
+  font-size: var(--text-label-medium);
   line-height: 20px;
 }
 .mp-credits-reader {
@@ -57,7 +57,7 @@
   scrollbar-gutter: stable both-edges;
   scroll-behavior: auto;
   padding: 32px 20px;
-  border-radius: 24px;
+  border-radius: var(--radius-3xl);
   background: var(--color-surface-container);
   color: var(--color-ink);
   text-align: center;
@@ -82,7 +82,7 @@
 }
 .mp-credits-artist {
   margin-top: 8px;
-  font-size: 14px;
+  font-size: var(--text-body-small);
   line-height: 22px;
   color: var(--color-muted);
 }

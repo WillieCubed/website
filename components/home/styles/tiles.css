@@ -10,7 +10,7 @@
   .tile {
     position: relative;
     overflow: hidden;
-    border-radius: 12px;
+    border-radius: var(--radius-xl);
     background: var(--color-tray);
     scale: 1;
     transition:
@@ -181,7 +181,7 @@
   .count > span {
     max-width: 26ch;
     color: var(--color-muted);
-    font-size: 14px;
+    font-size: var(--text-body-small);
     line-height: 1.3;
   }
   .active {
@@ -189,7 +189,7 @@
     padding: 12px 0 0;
 
     color: var(--color-muted);
-    font-size: 14px;
+    font-size: var(--text-body-small);
   }
   .active b {
     color: var(--color-ink);

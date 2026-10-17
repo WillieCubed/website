@@ -35,7 +35,7 @@
   border-radius: 14px;
   background: var(--color-card);
   color: var(--color-ink);
-  font-size: 14px;
+  font-size: var(--text-body-small);
   line-height: 1.5;
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--color-ink) 6%, transparent),
@@ -67,14 +67,14 @@
 }
 .ref-popover__num {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-label-medium);
   color: var(--color-muted);
   margin-inline-end: 8px;
 }
 .ref-popover__host {
   display: block;
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--text-label-medium);
   color: var(--color-muted);
 }
 
@@ -82,7 +82,7 @@
    only folds the rest; it never disappears. */
 .references__title {
   margin: 0 0 var(--spacing-md);
-  font-size: 12px;
+  font-size: var(--text-label-medium);
   font-weight: 500;
   color: var(--color-muted);
 }
@@ -98,7 +98,7 @@
   grid-template-columns: 2.2em minmax(0, 1fr) auto;
   gap: 8px;
   align-items: baseline;
-  font-size: 14px;
+  font-size: var(--text-body-small);
   line-height: 1.5;
   color: var(--color-muted);
   scroll-margin-top: 80px;
@@ -116,7 +116,7 @@
 }
 .references__num {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-label-medium);
 }
 .references__back {
   color: var(--color-accent);

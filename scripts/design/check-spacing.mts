@@ -1,9 +1,11 @@
 import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 
 import exceptions from './spacing-exceptions.json' with { type: 'json' };
 import { inspectSpacingTokens } from './spacing-tokens.mts';
 import { type SpacingFinding, scanFile } from './spacing-values.mts';
+import { scanTokenEquivalents, tokenScale } from './token-equivalents.mts';
 
 function key(entry: Omit<SpacingFinding, 'line'>): string {
   return JSON.stringify([
@@ -41,9 +43,21 @@ const sources = await Promise.all(
 const tokens = inspectSpacingTokens(
   sources.filter(({ file }) => file.endsWith('.css'))
 );
+// A raw type size or corner radius that a token already holds names the token.
+const scale = tokenScale([
+  await readFile('app/globals.css', 'utf8'),
+  await readFile(
+    createRequire(import.meta.url).resolve('tailwindcss/theme.css'),
+    'utf8'
+  ),
+]);
+const equivalents = sources
+  .filter(({ file }) => file.endsWith('.css'))
+  .flatMap(({ file, source }) => scanTokenEquivalents(file, source, scale));
 const findings = [
   ...sources.flatMap(({ file, source }) => scanFile(file, source)),
   ...tokens.hidden,
+  ...equivalents,
 ];
 const allowed = new Set(exceptions.map(key));
 const present = new Set(findings.map(key));
@@ -62,11 +76,11 @@ for (const entry of tokens.missing)
   console.error(`${entry.file}: Undefined spacing token ${entry.name}`);
 if (violations.length > 0 || stale.length > 0 || tokens.missing.length > 0) {
   console.error(
-    `${violations.length} unexplained off-grid spacing declarations; ${stale.length} stale exceptions; ${tokens.missing.length} undefined spacing tokens.`
+    `${violations.length} unexplained off-grid spacing or raw token values; ${stale.length} stale exceptions; ${tokens.missing.length} undefined spacing tokens.`
   );
   process.exitCode = 1;
 } else {
   console.log(
-    `Spacing check passed: ${exceptions.length} documented optical/accessibility exceptions; no unexplained fixed spacing.`
+    `Spacing check passed: ${exceptions.length} documented optical/accessibility exceptions; no unexplained fixed spacing or raw type sizes and radii that a token holds.`
   );
 }

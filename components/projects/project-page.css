@@ -58,7 +58,7 @@
   );
   --control-ink: var(--b-on-secondary-container, var(--color-on-surface));
   padding: 0 1rem;
-  font-size: 0.875rem;
+  font-size: var(--text-label-large);
   font-weight: 600;
 }
 .project-links a.primary {

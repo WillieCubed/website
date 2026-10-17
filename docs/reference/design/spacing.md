@@ -65,6 +65,12 @@ spacing, embedded HTML styles, and spacing tokens. It fails on unexplained
 fixed values and stale exception entries. The check also runs through lint
 and `pnpm check`.
 
+The same check rejects a raw `font-size` or `border-radius` whose value a
+design token already holds, and names the token to use: a `--text-*` size or
+a `--radius-*` corner. A size several text roles share goes to the role that
+matches the rule's weight: label at 600 and above, title at 500, and body
+otherwise. Values with no token, such as a 13px caption, stay as written.
+
 For visual changes, compare uncropped desktop and mobile viewport screenshots
 in both appearances, then inspect bounds at the affected breakpoints. Source
 validation does not establish that a composition fits or that a control is

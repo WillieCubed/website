@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
 import { isPlainClick } from '@/lib/dom/click';
@@ -13,7 +14,6 @@ import {
   useHome,
   usePreviewHandlers,
 } from './HomeContext';
-import { Icon } from './Icon';
 
 interface TileProps {
   id: string;
@@ -116,7 +116,7 @@ export function Tile({
         <span className="hint" aria-hidden="true">
           <span>{hint}</span>
           <i>
-            <Icon name="outward" />
+            <Icon name="outward" className="icon" />
           </i>
         </span>
       </div>

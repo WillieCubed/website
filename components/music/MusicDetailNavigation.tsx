@@ -1,4 +1,3 @@
-'use client';
 import type { RefObject } from 'react';
 
 import Icon from '@/components/icons/Icon';

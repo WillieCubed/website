@@ -1,5 +1,3 @@
-'use client';
-
 import { type IconName } from '@/components/icons/Icon';
 
 import { groupCommands } from '@/lib/search/palette/commands';

@@ -1,4 +1,3 @@
-'use client';
 import SiteLink from '@/components/link/SiteLink';
 
 import { isPlainClick } from '@/lib/dom/click';

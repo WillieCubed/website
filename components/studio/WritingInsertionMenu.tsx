@@ -1,4 +1,3 @@
-'use client';
 import Icon from '@/components/icons/Icon';
 import Popover from '@/components/site/Popover';
 

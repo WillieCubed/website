@@ -1,7 +1,7 @@
 import Icon from '@/components/icons/Icon';
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
-import SiteLink from '@/components/link/SiteLink';
 import CollectionLayout from '@/components/site/CollectionLayout';
+import TagChips from '@/components/writings/TagChips';
 import WritingItem from '@/components/writings/WritingItem';
 
 import { socialSettings } from '@/lib/atproto/config';
@@ -13,7 +13,6 @@ import {
   getAllWritings,
   getSeries,
 } from '@/lib/writings/index';
-import { tagPath } from '@/lib/writings/tags';
 
 import StandardSocialControls from './StandardSocialControls';
 
@@ -128,11 +127,6 @@ async function WritingsList({ writings }: WritingsListProps) {
   );
 }
 
-const CHIP =
-  'shrink-0 rounded-full px-3 py-2 text-label-large transition-colors';
-const CHIP_SELECTED = `${CHIP} bg-primary text-on-primary`;
-const CHIP_IDLE = `${CHIP} border border-line bg-card text-ink hover:border-accent hover:text-accent`;
-
 interface TagFilterProps {
   currentTag?: string;
 }
@@ -145,25 +139,14 @@ async function TagFilter({ currentTag }: TagFilterProps) {
   }
 
   return (
-    <div className="no-scrollbar -mx-5 flex items-center gap-2 overflow-x-auto px-5 medium:mx-0 medium:flex-wrap medium:overflow-visible medium:px-0">
+    <div className="no-scrollbar -mx-5 flex items-center gap-2 overflow-x-auto px-5 medium:mx-0 medium:overflow-visible medium:px-0">
       <Icon name="tag" size={14} className="shrink-0 text-muted" />
-      <SiteLink
-        href="/writings"
-        aria-current={!currentTag ? 'page' : undefined}
-        className={!currentTag ? CHIP_SELECTED : CHIP_IDLE}
-      >
-        All
-      </SiteLink>
-      {tags.map((tag) => (
-        <SiteLink
-          key={tag}
-          href={tagPath(tag)}
-          aria-current={currentTag === tag ? 'page' : undefined}
-          className={currentTag === tag ? CHIP_SELECTED : CHIP_IDLE}
-        >
-          {tag}
-        </SiteLink>
-      ))}
+      <TagChips
+        tags={tags}
+        filter
+        currentTag={currentTag}
+        className="flex items-center gap-2 medium:flex-wrap"
+      />
     </div>
   );
 }

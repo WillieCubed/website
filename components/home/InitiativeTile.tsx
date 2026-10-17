@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import SharedTitle from '@/components/site/SharedTitle';
 
 import type { InitiativeTile as InitiativeTileEntry } from '@/lib/home/ventures';
 
 import { useHome, usePreviewHandlers } from './HomeContext';
-import { Icon } from './Icon';
 
 interface InitiativeTileProps {
   tile: InitiativeTileEntry;
@@ -77,7 +77,7 @@ export function InitiativeTile({ tile, children }: InitiativeTileProps) {
         <span className="hint" aria-hidden="true">
           <span>{tile.hint}</span>
           <i>
-            <Icon name="outward" />
+            <Icon name="outward" className="icon" />
           </i>
         </span>
       </div>

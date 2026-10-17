@@ -1,13 +1,13 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import { ViewTransition } from '@/components/site/view-transition';
 
-import { useHydrated } from '@/lib/dom/hydrated';
+import { subscribeToNothing, useHydrated } from '@/lib/dom/hydrated';
 import type { PublicLocation } from '@/lib/status/location';
 import type { PublicStatus, WeatherObservation } from '@/lib/status/types';
 
@@ -206,6 +206,11 @@ function StatusDetails({ data, weather, now, refreshing }: StatusDetailsProps) {
   );
 }
 
+// The server cannot know the device's zone, so the clock offers UTC until
+// hydration reads it.
+const readDeviceTimezone = () =>
+  Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 interface ExpandedClockProps {
   location: PublicLocation;
   now?: Date;
@@ -214,10 +219,11 @@ interface ExpandedClockProps {
 
 function ExpandedClock({ location, now, unavailable }: ExpandedClockProps) {
   const [selectedTimezone, setSelectedTimezone] = useState('local');
-  const [deviceTimezone, setDeviceTimezone] = useState('UTC');
-  useEffect(() => {
-    setDeviceTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  }, []);
+  const deviceTimezone = useSyncExternalStore(
+    subscribeToNothing,
+    readDeviceTimezone,
+    () => 'UTC'
+  );
   const timezone =
     selectedTimezone === 'local'
       ? location.timezone

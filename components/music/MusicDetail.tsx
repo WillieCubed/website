@@ -1,5 +1,3 @@
-'use client';
-
 import Modal from '@/components/site/Modal';
 
 import {

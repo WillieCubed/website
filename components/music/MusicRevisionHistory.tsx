@@ -1,4 +1,3 @@
-'use client';
 import Modal from '@/components/site/Modal';
 
 import type { MusicRevision } from '@/lib/music/types';

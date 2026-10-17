@@ -116,6 +116,7 @@ export default function FooterLockup({ name }: FooterLockupProps) {
         ref={menu}
         id={menuId}
         trigger={markButton}
+        open={menuOpen}
         onOpenChange={setMenuOpen}
       />
     </>
@@ -131,6 +132,8 @@ interface CubeMenuProps {
   ref: Ref<CubeMenuHandle>;
   id: string;
   trigger: RefObject<HTMLButtonElement | null>;
+  /** Whether the popover is showing; the lockup's button reports it too. */
+  open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
@@ -138,11 +141,11 @@ function CubeMenu({
   ref,
   id,
   trigger: markButton,
+  open,
   onOpenChange,
 }: CubeMenuProps) {
   const menu = useRef<HTMLDivElement>(null);
   const firstMenuItem = useRef<HTMLAnchorElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [logoScheme, setLogoScheme] = useState<'light' | 'dark'>('light');
   function openMenu(x: number, y: number) {
     const popup = menu.current;
@@ -192,7 +195,7 @@ function CubeMenu({
   }));
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!open) return;
     const dismiss = () => menu.current?.hidePopover();
     const dismissOutside = (event: PointerEvent) => {
       if (
@@ -210,7 +213,7 @@ function CubeMenu({
       window.removeEventListener('scroll', dismiss);
       window.removeEventListener('resize', dismiss);
     };
-  }, [menuOpen]);
+  }, [open]);
   return (
     <div
       ref={menu}
@@ -219,11 +222,7 @@ function CubeMenu({
       role="menu"
       aria-label="Cube actions"
       className="site-popover cube-context-popover"
-      onToggle={(event) => {
-        const open = event.newState === 'open';
-        setMenuOpen(open);
-        onOpenChange(open);
-      }}
+      onToggle={(event) => onOpenChange(event.newState === 'open')}
       onKeyDown={(event) => navigateMenu(event, closeMenu)}
       onBlur={(event) => {
         if (

@@ -1,7 +1,5 @@
-'use client';
-
 import { Constellation } from '@/components/home/Constellation';
-import { Icon } from '@/components/home/Icon';
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
 import { isPlainClick } from '@/lib/dom/click';
@@ -80,7 +78,7 @@ export function Body({ detail, onOpen }: BodyProps) {
                 >
                   <b>
                     {item.title}
-                    <Icon name="forward" />
+                    <Icon name="forward" className="icon" />
                   </b>
                   <span>{item.text}</span>
                 </SiteLink>
@@ -98,7 +96,7 @@ export function Body({ detail, onOpen }: BodyProps) {
         {detail.links.map((link) => (
           <a key={link.href} href={link.href}>
             {link.label}
-            <Icon name="outward" />
+            <Icon name="outward" className="icon" />
           </a>
         ))}
       </div>

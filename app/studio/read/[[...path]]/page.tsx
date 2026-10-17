@@ -6,6 +6,7 @@ import SiteLink from '@/components/link/SiteLink';
 import CollectionLayout from '@/components/site/CollectionLayout';
 import TopBar from '@/components/site/TopBar';
 import ImportWriting from '@/components/studio/ImportWriting';
+import TagChips from '@/components/writings/TagChips';
 import WritingContent from '@/components/writings/WritingContent';
 import WritingHeader from '@/components/writings/WritingHeader';
 import WritingItem from '@/components/writings/WritingItem';
@@ -31,7 +32,7 @@ import {
   getSeriesWithWritings,
 } from '@/lib/writings';
 import { loadWriting } from '@/lib/writings/load';
-import { normalizeTag, tagFromParam, tagPath } from '@/lib/writings/tags';
+import { normalizeTag, tagFromParam } from '@/lib/writings/tags';
 
 export const metadata: Metadata = {
   ...pageMetadata({
@@ -175,7 +176,13 @@ async function ReadingArticle({
                 />
               </div>
             )}
-            {!publishedContent && <Tags tags={entry.tags} />}
+            {!publishedContent && (
+              <TagChips
+                tags={entry.tags}
+                preview={false}
+                className="mt-4 flex flex-wrap gap-2"
+              />
+            )}
           </div>
         </article>
       </main>
@@ -274,9 +281,11 @@ async function ReadingIndex({
             Your first writing is waiting.
           </p>
         )}
-        <Tags
+        <TagChips
           tags={tags}
           filter
+          preview={false}
+          className="mt-4 flex flex-wrap gap-2"
           currentTag={
             segments[0] === 'tags' && segments[1]
               ? tagFromParam(segments[1])
@@ -330,55 +339,6 @@ function Edit({ entry }: EditProps) {
   ) : (
     <ImportWriting slug={entry.slug} />
   );
-}
-interface TagsProps {
-  tags: string[];
-  filter?: boolean;
-  currentTag?: string;
-}
-
-function Tags({ tags, filter = false, currentTag }: TagsProps) {
-  return tags.length > 0 ? (
-    <ul
-      aria-label={filter ? 'Filter by tag' : 'Tags'}
-      className="mt-4 flex flex-wrap gap-2"
-    >
-      {filter && (
-        <li>
-          <SiteLink
-            href="/writings"
-            preview={false}
-            aria-current={!currentTag ? 'page' : undefined}
-            className={
-              !currentTag
-                ? 'inline-block rounded-full bg-primary px-3 py-2 text-label-large text-on-primary'
-                : 'inline-block rounded-full border border-line bg-card px-3 py-2 text-label-large text-ink transition-colors hover:border-accent hover:text-accent'
-            }
-          >
-            All
-          </SiteLink>
-        </li>
-      )}
-      {tags.map((tag) => (
-        <li key={tag}>
-          <SiteLink
-            href={tagPath(tag)}
-            preview={false}
-            aria-current={
-              filter && currentTag === normalizeTag(tag) ? 'page' : undefined
-            }
-            className={
-              filter && currentTag === normalizeTag(tag)
-                ? 'inline-block rounded-full bg-primary px-3 py-2 text-label-large text-on-primary'
-                : `inline-block rounded-full border border-line ${filter ? 'bg-card py-2 text-label-large' : 'bg-ground py-1 text-label-medium'} px-3 text-ink transition-colors hover:border-accent hover:text-accent`
-            }
-          >
-            {tag}
-          </SiteLink>
-        </li>
-      ))}
-    </ul>
-  ) : null;
 }
 export default async function Page(props: Props) {
   return await Reading(props);

@@ -152,7 +152,7 @@ test('cold publishing imports preserve native HTTPS headers and gzip bodies', as
     const script = `
       await Promise.all([
         import('./lib/atproto/bluesky.ts'),
-        import('./lib/atproto/responses.ts'),
+        import('./lib/atproto/responses/index.ts'),
       ]);
       const response = await fetch('https://127.0.0.1:${address.port}');
       console.log(JSON.stringify({

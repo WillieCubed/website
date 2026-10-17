@@ -71,9 +71,8 @@
     gap: 40px;
   }
 }
-/* The bottom row is its own container and never wraps. Below a width
-   that fits every label, the labels go visually hidden and the icons
-   carry the row; the link text stays for screen readers. */
+/* Labels yield to icons as the contact container narrows; status and feeds
+   take a second row when their combined target budget cannot fit. */
 .site-footer__row {
   container-type: inline-size;
   display: flex;
@@ -294,7 +293,7 @@ body:has(header[data-column='reading'])
 }
 /* The seven 48px profile targets, utility gaps, status and feeds need room
    before sharing one row. Wrap while that combined target budget cannot fit. */
-@container footer (max-width: 776px) {
+@container footer (max-width: 1120px) {
   .site-footer .site-footer__row.site-footer__row:has(.microstatus) {
     grid-template-columns: minmax(0, 1fr) max-content;
     grid-template-areas: 'profiles profiles' 'microstatus feeds';

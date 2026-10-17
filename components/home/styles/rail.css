@@ -4,7 +4,8 @@
     top: 0;
     height: 100svh;
     /* The headline's top inset is independent of the dock's bottom inset. */
-    padding-block: 28px calc(var(--footer-inset) + var(--footer-row-h) + 16px);
+    padding-block: 28px
+      calc(var(--footer-inset) + var(--footer-contact-h) + 16px);
   }
   .statement {
     margin: clamp(48px, 12vh, 120px) 0 0;

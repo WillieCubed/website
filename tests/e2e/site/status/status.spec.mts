@@ -294,7 +294,11 @@ test('the footer preserves a normal city name across compact breakpoints', async
   await page.goto('/');
   const city = page.locator('.microstatus .status-city');
   await expect(page.locator('.microstatus .temperature')).toContainText('102');
-  for (const width of [320, 390, 440, 441, 520, 559, 560, 561, 600, 840]) {
+  for (const width of [
+    320, 390, 440, 441, 520, 559, 560, 561, 600, 839, 840, 880, 900, 920, 960,
+    1000, 1024, 1040, 1080, 1100, 1120, 1140, 1160, 1199, 1200, 1280, 1366,
+    1440, 1600,
+  ]) {
     await page.setViewportSize({ width, height: 844 });
     await page.evaluate(() =>
       window.scrollTo(0, document.documentElement.scrollHeight)

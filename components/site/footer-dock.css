@@ -46,6 +46,8 @@
      page above, which is what keeps the lockup inside the opening as it
      rises: the lockup starts --pad-top lower and moves at the same rate. */
   position: sticky;
+  /* The translated hidden row must not extend the document scroll range. */
+  overflow: clip;
   bottom: 0;
   z-index: 5;
   margin-top: 0;
@@ -57,8 +59,8 @@
   clip-path: inset(
     calc(
         (
-            100% - var(--footer-inset) - var(--footer-row-h) / 2 -
-              (var(--footer-row-h) / 2 + var(--pill-y)) * var(--appear)
+            100% - var(--footer-inset) - var(--footer-contact-h) / 2 -
+              (var(--footer-contact-h) / 2 + var(--pill-y)) * var(--appear)
           ) *
           (1 - var(--p))
       )
@@ -68,8 +70,8 @@
       )
       calc(
         (
-            var(--footer-inset) + var(--footer-row-h) / 2 -
-              (var(--footer-row-h) / 2 + var(--pill-y)) * var(--appear)
+            var(--footer-inset) + var(--footer-contact-h) / 2 -
+              (var(--footer-contact-h) / 2 + var(--pill-y)) * var(--appear)
           ) *
           (1 - var(--wide))
       )
@@ -77,7 +79,7 @@
         (50% - (50% - var(--pill-l) + var(--pill-x)) * var(--appear)) *
           (1 - var(--wide))
       )
-      round calc((var(--footer-row-h) / 2 + var(--pill-y)) * (1 - var(--p)))
+      round calc((var(--footer-contact-h) / 2 + var(--pill-y)) * (1 - var(--p)))
   );
 }
 .site-footer[data-dock] .site-footer__inner {
@@ -104,7 +106,7 @@
     var(--pad-top) +
       (
         100% - var(--pad-top) - var(--footer-inset) -
-          (var(--footer-row-h) + var(--lockup-h)) / 2
+          (var(--footer-contact-h) + var(--lockup-h)) / 2
       ) *
       (1 - var(--p))
   );
@@ -157,6 +159,10 @@
    --dock, so the row changes form continuously. */
 .site-footer[data-dock] .site-footer__row {
   min-height: var(--control-target-small);
+  /* Keep the visible profiles seated in the collapsed dock when the full
+     contact row needs a second line for status and feeds. */
+  translate: 0
+    calc((var(--footer-row-h) - var(--footer-contact-h)) * (1 - var(--p)));
 }
 /* The row changes form in place: the cube lifts out of its seat, the seat
    closes so the links slide onto the lockup's line, and each link makes
@@ -315,7 +321,7 @@
   clip-path: inset(
     0 0
       calc(
-        (var(--footer-inset) + var(--footer-row-h) + var(--footer-pill-y)) *
+        (var(--footer-inset) + var(--footer-contact-h) + var(--footer-pill-y)) *
           (1 - var(--footer-p))
       )
       0 round 0 0 calc(var(--sheet-r) * var(--sheet))
@@ -511,7 +517,10 @@
   .site-footer[data-dock] .site-footer__row {
     translate: 0
       calc(
-        (var(--footer-webrings-h, 48px) + var(--footer-tail-gap)) *
+        (
+            var(--footer-webrings-h, 48px) + var(--footer-tail-gap) +
+              var(--footer-row-h) - var(--footer-contact-h)
+          ) *
           (1 - var(--p))
       );
   }
@@ -691,4 +700,8 @@
   .site-footer .microstatus-weather {
     display: none;
   }
+}
+
+.site-footer[data-flow] .site-footer__row {
+  translate: none;
 }

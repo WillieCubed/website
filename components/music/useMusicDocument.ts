@@ -1,8 +1,9 @@
 'use client';
+import { useEffect, useRef } from 'react';
+
 import type { Catalog } from '@/lib/music/presentation';
 
 import { useMusicCatalog } from './useMusicCatalog';
-import { useMusicCatalogLoading } from './useMusicCatalogLoading';
 
 interface MusicDocumentSource {
   initialCatalog: Catalog;
@@ -21,15 +22,15 @@ export function useMusicDocument(
   restoreSetup: (open: boolean) => void
 ) {
   const document = useMusicCatalog(initialCatalog, onChange);
-  useMusicCatalogLoading(
-    loading,
-    initialCatalog,
-    setupInitially,
-    (next, showSetup) => {
-      document.restore(next);
-      restoreSetup(showSetup);
+  // Adopt incoming data once the pending collection becomes available.
+  const wasLoading = useRef(loading);
+  useEffect(() => {
+    if (wasLoading.current && !loading) {
+      document.restore(initialCatalog);
+      restoreSetup(setupInitially);
     }
-  );
+    wasLoading.current = loading;
+  }, [loading, initialCatalog, setupInitially]);
   const changed =
     JSON.stringify(document.live) !== JSON.stringify(document.draft);
   return { document, changed };

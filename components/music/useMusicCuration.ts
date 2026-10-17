@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
+import { flushSync } from 'react-dom';
 
 import type { Catalog, MusicMode } from '@/lib/music/presentation';
 
 import type { MusicCatalogDocument } from './useMusicCatalog';
-import { useMusicSetup } from './useMusicSetup';
 
 interface Options {
   mode: MusicMode;
@@ -52,5 +52,29 @@ export function useMusicCuration({
     changeCatalog,
     toggle,
     applyReview,
+  };
+}
+
+interface SetupOptions {
+  initiallyOpen: boolean;
+  acceptCatalog: (catalog: Catalog) => void;
+}
+
+function useMusicSetup({ initiallyOpen, acceptCatalog }: SetupOptions) {
+  const [isOpen, setOpen] = useState(initiallyOpen);
+
+  function leave(catalog?: Catalog) {
+    flushSync(() => {
+      if (catalog) acceptCatalog(catalog);
+      setOpen(false);
+    });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+  return {
+    isOpen,
+    open: () => setOpen(true),
+    cancel: () => leave(),
+    complete: (catalog: Catalog) => leave(catalog),
+    restore: setOpen,
   };
 }

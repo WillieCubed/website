@@ -21,7 +21,7 @@ export default function MusicScrollCue({
     let active = true;
     let explored = window.scrollY > 32;
     const next = gallery.current?.querySelector<HTMLElement>(
-      '.mp-card:not(.mp-card-lead)'
+      '.music-card:not(.music-card-lead)'
     );
     const update = () => {
       if (!active) return;
@@ -56,7 +56,7 @@ export default function MusicScrollCue({
   if (!visible) return null;
   return (
     <button
-      className="site-control mp-scroll-cue"
+      className="site-control music-scroll-cue"
       style={{
         bottom: `max(${bottom}px, env(safe-area-inset-bottom))`,
         left: left ?? '50%',
@@ -64,7 +64,7 @@ export default function MusicScrollCue({
       aria-label="Scroll to more playlists"
       onClick={() => {
         const next = gallery.current?.querySelector<HTMLElement>(
-          '.mp-card:not(.mp-card-lead)'
+          '.music-card:not(.music-card-lead)'
         );
         next?.scrollIntoView({
           block: 'start',
@@ -73,7 +73,7 @@ export default function MusicScrollCue({
             : 'smooth',
         });
         next
-          ?.querySelector<HTMLButtonElement>('.mp-card-open')
+          ?.querySelector<HTMLButtonElement>('.music-card-open')
           ?.focus({ preventScroll: true });
         setVisible(false);
       }}
@@ -86,10 +86,10 @@ export default function MusicScrollCue({
 
 function cuePosition(gallery: HTMLDivElement | null, height: number) {
   const cover = gallery
-    ?.querySelector<HTMLElement>('.mp-card-lead .mp-art-frame')
+    ?.querySelector<HTMLElement>('.music-card-lead .music-art-frame')
     ?.getBoundingClientRect();
   const text = gallery?.querySelectorAll<HTMLElement>(
-    '.mp-card-lead .mp-feature-details'
+    '.music-card-lead .music-feature-details'
   );
   const overlapsText = Array.from(text ?? []).some((element) => {
     const box = element.getBoundingClientRect();

@@ -25,16 +25,16 @@ export default function MusicFeaturedPlaylist({
   const sampleTracks = playlist.tracks;
   const runtime = listeningTime(sampleTracks);
   return (
-    <div className="mp-feature-details">
-      <div className="mp-card-caption">
+    <div className="music-feature-details">
+      <div className="music-card-caption">
         <h3>{playlist.title}</h3>
       </div>
-      <p className="mp-small mp-feature-meta">
+      <p className="music-small music-feature-meta">
         {playlist.trackCount} {playlist.trackCount === 1 ? 'track' : 'tracks'}
         {runtime && ` · ${runtime}`}
       </p>
       {note ? (
-        <p className="mp-card-note">{note}</p>
+        <p className="music-card-note">{note}</p>
       ) : (
         <OpeningTracks tracks={sampleTracks} />
       )}
@@ -50,7 +50,7 @@ export default function MusicFeaturedPlaylist({
         href={href(playlist.id)}
         preview={false}
         prefetch={false}
-        className="site-control mp-button mp-tonal mp-feature-action"
+        className="site-control music-button music-tonal music-feature-action"
         onClick={(event) => {
           if (!isPlainClick(event)) return;
           event.preventDefault();
@@ -69,20 +69,20 @@ interface OpeningTracksProps {
 
 function OpeningTracks({ tracks }: OpeningTracksProps) {
   return (
-    <ol className="mp-feature-tracks" aria-label="Opening tracks">
+    <ol className="music-feature-tracks" aria-label="Opening tracks">
       {tracks.slice(0, 3).map((track, index) => (
         <li
           key={index}
-          className={track.unavailable ? 'mp-track-unavailable' : undefined}
+          className={track.unavailable ? 'music-track-unavailable' : undefined}
         >
-          <span className="mp-feature-track-number">
+          <span className="music-feature-track-number">
             {String(index + 1).padStart(2, '0')}
           </span>
-          <span className="mp-feature-track-info">
+          <span className="music-feature-track-info">
             <span>{track.title}</span>
             <span>{track.artist}</span>
           </span>
-          <span className="mp-feature-track-duration">{track.duration}</span>
+          <span className="music-feature-track-duration">{track.duration}</span>
         </li>
       ))}
     </ol>
@@ -95,15 +95,15 @@ interface SeriesPreviewProps {
 }
 function SeriesPreview({ series, href, openPlaylist }: SeriesPreviewProps) {
   return (
-    <div className="mp-feature-series">
-      <p className="mp-feature-series-context">
+    <div className="music-feature-series">
+      <p className="music-feature-series-context">
         <span title={series.title}>{series.title}</span>
         <span>
           Part {series.position} of {series.total}
         </span>
       </p>
       <div
-        className="mp-feature-series-covers"
+        className="music-feature-series-covers"
         role="group"
         aria-label={`Other playlists in ${series.title}`}
       >
@@ -113,7 +113,7 @@ function SeriesPreview({ series, href, openPlaylist }: SeriesPreviewProps) {
               href={href(related.id)}
               preview={false}
               prefetch={false}
-              className="mp-series-cover"
+              className="music-series-cover"
               key={related.id}
               data-playlist-origin={related.id}
               aria-label={`Open ${related.title} from ${series.title}`}
@@ -124,7 +124,7 @@ function SeriesPreview({ series, href, openPlaylist }: SeriesPreviewProps) {
                 openPlaylist(related.id, event.currentTarget);
               }}
             >
-              <span className="mp-series-cover-frame" data-card-surface="">
+              <span className="music-series-cover-frame" data-card-surface="">
                 <span data-card-cover="">
                   <MusicCover playlist={related} />
                 </span>

@@ -3,7 +3,7 @@
   margin: auto;
   padding: 0 40px;
 }
-.ms-shell .mp-cover {
+.ms-shell .music-cover {
   height: auto;
   aspect-ratio: 1;
 }
@@ -25,9 +25,6 @@
 }
 .ms-button {
   --control-rest-radius: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 12px;
   padding: var(--spacing-md) var(--spacing-xl);
   font-weight: 600;
@@ -36,14 +33,6 @@
   width: 22px;
   height: 22px;
   flex-shrink: 0;
-}
-.ms-primary {
-  --control-fill: var(--color-primary);
-  --control-ink: var(--color-on-primary);
-}
-.ms-tonal {
-  --control-fill: var(--color-secondary-container);
-  --control-ink: var(--color-on-secondary-container);
 }
 
 .ms-steps {
@@ -230,8 +219,8 @@
   cursor: pointer;
   background: var(--color-surface-container);
   transition:
-    background 180ms var(--mp-effects),
-    border-radius 220ms var(--mp-effects);
+    background 180ms var(--music-effects),
+    border-radius 220ms var(--music-effects);
 }
 .ms-playlist[data-selected] {
   background: var(--color-secondary-container);
@@ -379,10 +368,10 @@
 }
 .ms-feature-option {
   transition:
-    background 160ms var(--mp-effects),
-    border-radius 300ms var(--mp-spatial);
+    background 160ms var(--music-effects),
+    border-radius 300ms var(--music-spatial);
 }
-.ms-feature-option > .mp-cover {
+.ms-feature-option > .music-cover {
   width: 48px;
   height: 48px;
   flex-shrink: 0;
@@ -400,16 +389,16 @@
   font-size: var(--text-body-small);
   background: var(--color-surface-container-high);
 }
-.ms-feature-none .mp-selection-control,
-.ms-feature-none .mp-selection-state {
+.ms-feature-none .music-selection-control,
+.ms-feature-none .music-selection-state {
   width: 28px;
   height: 28px;
 }
-.ms-feature-none .mp-selection-state {
+.ms-feature-none .music-selection-state {
   border-radius: 10px;
   background: var(--color-surface-container-highest);
 }
-.ms-feature-none .mp-selection-state svg {
+.ms-feature-none .music-selection-state svg {
   width: 18px;
   height: 18px;
 }
@@ -437,9 +426,9 @@
 .ms-feature-playlists .ms-feature-option[data-selected] {
   border-radius: 14px;
 }
-.music-experience
+.music
   .ms-feature-playlists
-  .ms-feature-option:has(.mp-selection-control input:focus-visible) {
+  .ms-feature-option:has(.music-selection-control input:focus-visible) {
   z-index: 2;
   outline-offset: 2px;
 }
@@ -668,7 +657,7 @@
     grid-template-columns: 1fr;
     gap: var(--spacing-stack);
   }
-  .ms-feature-preview > .mp-cover {
+  .ms-feature-preview > .music-cover {
     width: min(100%, 220px);
     margin-inline: auto;
   }

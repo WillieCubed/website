@@ -15,7 +15,6 @@ import MusicCurationReview from './MusicCurationReview';
 import MusicDetail from './MusicDetail';
 import MusicExperienceFrame from './MusicExperienceFrame';
 import MusicSetup from './MusicSetup';
-import './music-experience.css';
 import { useMusicBrowsing } from './useMusicBrowsing';
 import { useMusicCuration } from './useMusicCuration';
 import { useMusicDocument } from './useMusicDocument';
@@ -122,7 +121,7 @@ export default function MusicExperience({
       }
       overlays={
         <>
-          <p className="mp-announcement" role="status" aria-live="polite">
+          <p className="music-announcement" role="status" aria-live="polite">
             {announcement}
           </p>
           <MusicDetail

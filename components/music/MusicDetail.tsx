@@ -22,6 +22,7 @@ import {
   MusicPlaylistTracks,
 } from './MusicPlaylistDetails';
 import { detailDialogKeyDown } from './music-dialog';
+import './styles/detail.css';
 import type { MusicPlaylistNavigation } from './useMusicPlaylistDialog';
 
 interface Props {
@@ -64,10 +65,10 @@ export default function MusicDetail({
     <Modal
       ref={dialog}
       initiallyOpen={Boolean(initialDetail) && focused === initialDetail}
-      className="mp-detail"
+      className="music-detail"
       data-editing={editing || undefined}
       data-reordering={(editing && reordering) || undefined}
-      aria-labelledby="mp-detail-title"
+      aria-labelledby="music-detail-title"
       onKeyDown={(event) => detailDialogKeyDown(event, dialog.current)}
       onDismiss={closePlaylist}
     >
@@ -85,7 +86,7 @@ export default function MusicDetail({
             dialog={dialog}
           />
           <div
-            className="mp-detail-scroll scroller"
+            className="music-detail-scroll scroller"
             role="region"
             aria-label="Playlist details"
             tabIndex={-1}

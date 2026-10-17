@@ -41,17 +41,17 @@ export default function MusicReview({
     <Modal
       ref={reviewDialog}
       open
-      initialFocus="#mp-review-title"
-      className="mp-review"
-      aria-labelledby="mp-review-title"
+      initialFocus="#music-review-title"
+      className="music-review"
+      aria-labelledby="music-review-title"
       onDismiss={closeReview}
       onKeyDown={(event) =>
-        scrollDialogContent(event, reviewDialog.current, '.mp-review-body')
+        scrollDialogContent(event, reviewDialog.current, '.music-review-body')
       }
     >
-      <header className="mp-review-header scroller">
+      <header className="music-review-header scroller">
         <div>
-          <h2 id="mp-review-title" tabIndex={-1}>
+          <h2 id="music-review-title" tabIndex={-1}>
             Review the collection
           </h2>
           <p>Check the order and context before applying changes.</p>
@@ -67,7 +67,7 @@ export default function MusicReview({
         </Button>
       </header>
       <div
-        className="mp-review-body scroller"
+        className="music-review-body scroller"
         role="region"
         aria-label="Collection review"
         tabIndex={-1}
@@ -81,7 +81,7 @@ export default function MusicReview({
           }}
         />
       </div>
-      <footer className="mp-review-actions scroller">
+      <footer className="music-review-actions scroller">
         <p>Publish this saved collection to willie.page.</p>
         <Button variant="quiet" size="small" onClick={closeReview}>
           Back to editing
@@ -115,7 +115,7 @@ function MusicReviewCollection({
 }: MusicReviewCollectionProps) {
   return (
     <>
-      <dl className="mp-review-summary">
+      <dl className="music-review-summary">
         <div>
           <dt>In gallery</dt>
           <dd>{draft.selected.length}</dd>
@@ -129,8 +129,8 @@ function MusicReviewCollection({
           <dd>{draft.series.length}</dd>
         </div>
       </dl>
-      <section className="mp-review-order">
-        <div className="mp-review-section-heading">
+      <section className="music-review-order">
+        <div className="music-review-section-heading">
           <h3>Gallery order</h3>
           <Button variant="quiet" size="small" onClick={onEditOrder}>
             Edit order
@@ -143,23 +143,23 @@ function MusicReviewCollection({
               const playlist = playlists.find((item) => item.id === id)!;
               return (
                 <li key={id}>
-                  <span className="mp-review-number">
+                  <span className="music-review-number">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <span className="mp-review-cover">
+                  <span className="music-review-cover">
                     <MusicCover playlist={playlist} />
                   </span>
                   <div>
-                    <span className="mp-review-playlist-title">
+                    <span className="music-review-playlist-title">
                       {playlist.title}
                     </span>
                     {id === draft.lead && (
-                      <span className="mp-review-feature-label">
+                      <span className="music-review-feature-label">
                         Featured in the public gallery
                       </span>
                     )}
                     {draft.notes[id] && (
-                      <p className="mp-review-note">{draft.notes[id]}</p>
+                      <p className="music-review-note">{draft.notes[id]}</p>
                     )}
                   </div>
                 </li>
@@ -167,12 +167,12 @@ function MusicReviewCollection({
             })}
         </ol>
       </section>
-      <aside className="mp-review-context">
-        <section className="mp-review-feature">
+      <aside className="music-review-context">
+        <section className="music-review-feature">
           <h3>Featured playlist</h3>
           {draft.lead ? (
             <>
-              <div className="mp-review-feature-cover">
+              <div className="music-review-feature-cover">
                 <MusicCover
                   playlist={playlists.find((item) => item.id === draft.lead)!}
                 />
@@ -184,7 +184,7 @@ function MusicReviewCollection({
           )}
         </section>
         {draft.series.map((item) => (
-          <section key={item.id} className="mp-review-series">
+          <section key={item.id} className="music-review-series">
             <h3>{item.title}</h3>
             {item.playlistIds.some((id) => draft.selected.includes(id)) ? (
               <ol>

@@ -13,7 +13,7 @@ interface Props {
 /** A quiet, static discovery after the last song; native navigation is the baseline. */
 export default function PlaylistEnding({ ending, href, onOpen }: Props) {
   return (
-    <aside className="mp-playlist-ending" aria-label="Playlist ending">
+    <aside className="music-playlist-ending" aria-label="Playlist ending">
       <Icon name="music" size={20} />
       <p>
         {ending.message}
@@ -23,7 +23,7 @@ export default function PlaylistEnding({ ending, href, onOpen }: Props) {
             <SiteLink
               href={href}
               preview={false}
-              className="mp-playlist-ending-link"
+              className="music-playlist-ending-link"
               onClick={(event) => {
                 if (!isPlainClick(event)) return;
                 event.preventDefault();

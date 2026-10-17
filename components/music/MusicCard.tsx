@@ -39,7 +39,7 @@ export default function MusicCard({
   return (
     <article
       key={playlist.id}
-      className={`mp-card${featured ? ' mp-card-lead' : ''}${editing && !selected ? ' mp-card-unselected' : ''}`}
+      className={`music-card${featured ? ' music-card-lead' : ''}${editing && !selected ? ' music-card-unselected' : ''}`}
       aria-label={featured ? 'Featured playlist' : undefined}
       data-playlist={playlist.id}
       data-focused={focused || undefined}

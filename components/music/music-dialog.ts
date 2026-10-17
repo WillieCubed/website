@@ -8,7 +8,7 @@ export function detailDialogKeyDown(
     wrapDialogFocus(event, dialog);
     return;
   }
-  scrollDialogContent(event, dialog, '.mp-detail-scroll');
+  scrollDialogContent(event, dialog, '.music-detail-scroll');
 }
 function wrapDialogFocus(
   event: KeyboardEvent<HTMLDialogElement>,

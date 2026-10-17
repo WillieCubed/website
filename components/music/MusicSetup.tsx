@@ -159,7 +159,7 @@ function SetupActions({
     step > 0 && (
       <div className="ms-actions" role="group" aria-label="Setup actions">
         <button
-          className="site-control ms-button ms-tonal"
+          className="site-control ms-button music-tonal"
           data-control-size="medium"
           onClick={onBack}
         >
@@ -172,7 +172,7 @@ function SetupActions({
             : 'Nothing goes live from setup.'}
         </p>
         <button
-          className="site-control ms-button ms-primary"
+          className="site-control ms-button music-primary"
           data-control-size="medium"
           disabled={selectedCount === 0}
           onClick={onContinue}

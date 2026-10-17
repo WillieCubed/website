@@ -36,8 +36,8 @@ export default function MusicCollectionHeader({
     <header
       className={
         !editing && !series && !loadError
-          ? 'mp-visually-hidden'
-          : 'mp-collection-header'
+          ? 'music-visually-hidden'
+          : 'music-collection-header'
       }
     >
       <CollectionTitle series={series} editing={editing} />
@@ -77,8 +77,8 @@ interface CollectionTitleProps {
 function CollectionTitle({ series, editing }: CollectionTitleProps) {
   return (
     <h2
-      id="mp-collection-title"
-      className={editing || !series ? 'mp-visually-hidden' : undefined}
+      id="music-collection-title"
+      className={editing || !series ? 'music-visually-hidden' : undefined}
     >
       {series?.title ?? (editing ? 'Playlists' : 'Willie’s playlists')}
     </h2>
@@ -104,12 +104,12 @@ function CollectionLoadStatus({
 }: LoadStatusProps) {
   return (
     <p
-      className={`mp-loading-status${editing && hasSeries ? ' mp-visually-hidden' : ''}`}
+      className={`music-loading-status${editing && hasSeries ? ' music-visually-hidden' : ''}`}
       role="status"
     >
       {collectionStatusText(loading, loadError, editing, count, inSeries)}
       {loading && loadError && onRetry && (
-        <button className="site-control mp-text-button" onClick={onRetry}>
+        <button className="site-control music-text-button" onClick={onRetry}>
           Try again
         </button>
       )}
@@ -148,13 +148,13 @@ function CollectionPicker({
     <Popover
       label="Choose playlist collection"
       disabled={loading}
-      triggerClassName="mp-collection-picker"
-      panelClassName="mp-collection-menu"
+      triggerClassName="music-collection-picker"
+      panelClassName="music-collection-menu"
       width={320}
       trigger={
         <>
           <span>{title ?? 'All playlists'}</span>
-          <span className="mp-small">{count}</span>
+          <span className="music-small">{count}</span>
           <Icon name="chevron-down" size={16} />
         </>
       }
@@ -183,7 +183,7 @@ function ReorderToggle({
   return (
     <Button
       variant="quiet"
-      className="mp-reorder-toggle"
+      className="music-reorder-toggle"
       aria-label={reordering ? 'Finish reordering' : 'Reorder playlists'}
       aria-pressed={reordering}
       disabled={loading || (!reordering && (count < 2 || !filterAll))}

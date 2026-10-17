@@ -89,7 +89,7 @@ export function useMusicBrowsing({
       });
     }
     const source = gallery.current?.querySelector<HTMLElement>(
-      `[data-playlist="${id}"] .mp-card-open`
+      `[data-playlist="${id}"] .music-card-open`
     );
     source?.scrollIntoView({ behavior: 'instant', block: 'center' });
     navigation.openPlaylist(id, source ?? undefined, destination);
@@ -113,7 +113,7 @@ export function useMusicBrowsing({
     });
     gallery.current
       ?.querySelector<HTMLButtonElement>(
-        '.mp-order-buttons button:not(:disabled)'
+        '.music-order-buttons button:not(:disabled)'
       )
       ?.focus();
   }

@@ -1,0 +1,111 @@
+/* The Music page's rail: its heading and the series navigation.
+   Loaded by MusicRail. */
+.music-shell-public-empty .music-rail {
+  position: static;
+}
+.music-rail {
+  align-self: start;
+  position: sticky;
+  top: 32px;
+}
+.music-heading h1 {
+  margin: calc(-1 * var(--spacing-sm)) 0 24px -4px;
+  font-size: 80px;
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 1.04;
+}
+.music-series-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-inline);
+}
+.music-series-nav > :is(button, a) {
+  --control-rest-radius: 16px;
+  --control-fill: var(--color-surface-container);
+  --control-ink: var(--color-ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 17px;
+}
+
+.music-series-nav > :is(button, a) > span:last-child {
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-label-medium);
+  flex-shrink: 0;
+  text-align: right;
+}
+.music-series-nav > :is(button, a) > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.music-series-nav > :is(button, a):is([aria-pressed='true'], [data-selected]) {
+  --control-fill: var(--color-primary-container);
+  --control-ink: var(--color-on-primary-container);
+  --control-rest-radius: 24px;
+  font-weight: 600;
+}
+.music-series-nav
+  > :is(button, a):is([aria-pressed='true'], [data-selected])
+  > span:last-child {
+  color: inherit;
+}
+.music-series-nav > :is(button, a):first-child {
+  margin-bottom: var(--spacing-stack);
+}
+@media (max-width: 1199px) {
+  .music-heading h1 {
+    font-size: 64px;
+  }
+}
+@media (max-width: 839px) {
+  .music-rail {
+    position: static;
+  }
+  .music-heading {
+    display: flex;
+    flex-direction: column;
+  }
+  .music-heading h1 {
+    margin: 0 0 20px -3px;
+    font-size: 64px;
+  }
+  .music-series-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .music-series-nav > :is(button, a) {
+    margin: 0;
+    gap: 8px;
+    padding: var(--spacing-md) var(--spacing-control-inline);
+    font-size: 15px;
+  }
+  .music-series-nav > :is(button, a):first-child {
+    margin-bottom: 0;
+  }
+}
+@media (max-width: 599px) {
+  .music-heading h1 {
+    font-size: 52px;
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+}
+.music .music-series-nav[inert] > a {
+  --control-ink: var(--color-muted);
+  opacity: 0.45;
+  cursor: default;
+}
+.music-pending-count {
+  display: inline-block;
+  width: 2ch;
+  height: 0.65em;
+  border-radius: 3px;
+  background: var(--color-on-surface-variant);
+}

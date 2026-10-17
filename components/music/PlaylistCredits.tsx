@@ -27,7 +27,7 @@ export default function PlaylistCredits({ tracks }: PlaylistCreditsProps) {
 
   return (
     <details
-      className="mp-credits"
+      className="music-credits"
       data-running={running || undefined}
       onToggle={onToggle}
     >
@@ -35,7 +35,7 @@ export default function PlaylistCredits({ tracks }: PlaylistCreditsProps) {
         Roll credits
         <Icon name="chevron-down" size={16} />
       </summary>
-      <div className="mp-credits-controls">
+      <div className="music-credits-controls">
         <p>Scroll to read the credits.</p>
         {enhanced && !reduced && (
           <Button
@@ -49,7 +49,7 @@ export default function PlaylistCredits({ tracks }: PlaylistCreditsProps) {
       </div>
       <div
         ref={reader}
-        className="mp-credits-reader scroller"
+        className="music-credits-reader scroller"
         role="region"
         aria-label="Film credits, original track order"
         tabIndex={0}
@@ -59,21 +59,21 @@ export default function PlaylistCredits({ tracks }: PlaylistCreditsProps) {
         onKeyDown={pause}
         onFocus={pause}
       >
-        <div className="mp-credits-intro">
+        <div className="music-credits-intro">
           <p>Closing music</p>
           <h3>A soundtrack for the ending.</h3>
         </div>
         <ol role="list">
           {tracks.map((track, index) => (
             <li key={index}>
-              <span className="mp-credits-song">{track.title}</span>
-              <span className="mp-credits-artist">
+              <span className="music-credits-song">{track.title}</span>
+              <span className="music-credits-artist">
                 {track.artist || 'Artist unavailable'}
               </span>
             </li>
           ))}
         </ol>
-        <div className="mp-credits-finale">
+        <div className="music-credits-finale">
           <p>Music supervision</p>
           <h3>Willie Chalmers III</h3>
           <p>The end.</p>

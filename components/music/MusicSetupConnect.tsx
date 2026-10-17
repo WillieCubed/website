@@ -30,7 +30,7 @@ export default function MusicSetupConnect({
           favorites room, and keep every track in its place.
         </p>
         <button
-          className="site-control ms-button ms-primary ms-connect-button"
+          className="site-control ms-button music-primary ms-connect-button"
           data-control-size="medium"
           onClick={onConnect}
         >

@@ -30,11 +30,11 @@ export function MusicPlaylistArtwork({
   onToggleMembership,
 }: ArtworkProps) {
   return (
-    <div className="mp-detail-art-column">
-      <div className="mp-detail-art" data-focus-cover="">
+    <div className="music-detail-art-column">
+      <div className="music-detail-art" data-focus-cover="">
         <MusicCover playlist={playlist} />
       </div>
-      <div className="mp-detail-context">
+      <div className="music-detail-context">
         <MusicPlaylistSeries
           playlistId={playlist.id}
           series={series}
@@ -56,17 +56,17 @@ export function MusicPlaylistSummary({
   note,
 }: SummaryProps) {
   return (
-    <div className="mp-detail-body">
-      <h2 id="mp-detail-title" tabIndex={-1} aria-live="polite">
+    <div className="music-detail-body">
+      <h2 id="music-detail-title" tabIndex={-1} aria-live="polite">
         {playlist.title}
       </h2>
 
-      <div className="mp-detail-summary">
-        <p className="mp-detail-meta">
+      <div className="music-detail-summary">
+        <p className="music-detail-meta">
           {playlist.trackCount} items{runtime && ` · ${runtime}`}
         </p>
         <a
-          className="site-control mp-button mp-spotify"
+          className="site-control music-button music-primary music-spotify"
           href={playlist.url}
           target="_blank"
           rel="noopener noreferrer"
@@ -76,7 +76,7 @@ export function MusicPlaylistSummary({
           <Icon name="external" />
         </a>
       </div>
-      {note && <p className="mp-playlist-note">{note}</p>}
+      {note && <p className="music-playlist-note">{note}</p>}
     </div>
   );
 }
@@ -95,20 +95,20 @@ export function MusicPlaylistEditor({
   onToggleFeature,
 }: EditorProps) {
   return (
-    <div className="mp-context-editor">
-      <div className="mp-context-note">
-        <label htmlFor="mp-playlist-note">Playlist notes</label>
+    <div className="music-context-editor">
+      <div className="music-context-note">
+        <label htmlFor="music-playlist-note">Playlist notes</label>
         <textarea
-          id="mp-playlist-note"
+          id="music-playlist-note"
           rows={3}
           placeholder="What should someone know before listening?"
           value={draft.notes[playlistId] ?? ''}
           onChange={(event) => onUpdateNote(event.target.value)}
         />
       </div>
-      <fieldset className="mp-visibility-editor">
+      <fieldset className="music-visibility-editor">
         <legend>In the public gallery</legend>
-        <label className="mp-check">
+        <label className="music-check">
           <MusicSelectionControl
             aria-label="Include in gallery"
             checked={draft.selected.includes(playlistId)}
@@ -116,7 +116,7 @@ export function MusicPlaylistEditor({
           />
           Include in gallery
         </label>
-        <label className="mp-check">
+        <label className="music-check">
           <MusicSelectionControl
             checked={draft.lead === playlistId}
             onChange={onToggleFeature}
@@ -143,7 +143,7 @@ export function MusicPlaylistTracks({
 }: MusicPlaylistTracksProps) {
   const ending = editing ? null : playlistEnding(playlist, available);
   return (
-    <div className="mp-detail-tracks">
+    <div className="music-detail-tracks">
       {!editing && offersCredits(playlist.id) && playlist.tracks.length > 0 && (
         <PlaylistCredits key={playlist.id} tracks={playlist.tracks} />
       )}

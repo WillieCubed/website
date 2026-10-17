@@ -107,12 +107,13 @@ export function useMusicPlaylistDialog({
         });
         showPlaylistDialog(dialog.current);
         restoreNavigationFocus(dialog.current, focusedControl, alreadyOpen);
-        const scroller =
-          dialog.current?.querySelector<HTMLElement>('.mp-detail-scroll');
+        const scroller = dialog.current?.querySelector<HTMLElement>(
+          '.music-detail-scroll'
+        );
         if (scroller) scroller.scrollTop = 0;
         if (target.related) {
           dialog.current
-            ?.querySelector<HTMLElement>('#mp-detail-title')
+            ?.querySelector<HTMLElement>('#music-detail-title')
             ?.focus({ preventScroll: true });
           playlistHistory.openRelated(target.seriesId, id, alreadyOpen);
         } else playlistHistory.open(target.seriesId, id, alreadyOpen);
@@ -172,19 +173,19 @@ function playlistFocusParts(
 ): PlaylistMotionParts {
   const find = (selector: string) =>
     dialog?.querySelector<HTMLElement>(selector);
-  const body = find('.mp-detail-body');
+  const body = find('.music-detail-body');
   return {
     surface: dialog,
-    viewport: find('.mp-detail-scroll'),
+    viewport: find('.music-detail-scroll'),
     cover: find('[data-focus-cover]'),
-    controls: find('.mp-detail-bar'),
+    controls: find('.music-detail-bar'),
     summary:
       (body?.getBoundingClientRect().height ?? 0) > 0
         ? body
-        : find('#mp-detail-title'),
-    tracks: find('.mp-detail-tracks'),
-    context: find('.mp-detail-context'),
-    editor: find('.mp-context-editor'),
+        : find('#music-detail-title'),
+    tracks: find('.music-detail-tracks'),
+    context: find('.music-detail-context'),
+    editor: find('.music-context-editor'),
   };
 }
 
@@ -200,7 +201,7 @@ function restoreNavigationFocus(
   ) {
     dialog
       ?.querySelector<HTMLElement>(
-        '.mp-detail-pagination button:not(:disabled)'
+        '.music-detail-pagination button:not(:disabled)'
       )
       ?.focus({ preventScroll: true });
   }
@@ -227,13 +228,13 @@ function upgradePlaylistDialog(dialog: HTMLDialogElement | null) {
   if (dialog.open) dialog.close();
   dialog.showModal();
   (
-    readingFocus ?? dialog.querySelector<HTMLElement>('#mp-detail-title')
+    readingFocus ?? dialog.querySelector<HTMLElement>('#music-detail-title')
   )?.focus({ preventScroll: true });
   if (scroller) scroller.scrollTop = readingPosition;
 }
 
 function playlistReadingContext(dialog: HTMLDialogElement) {
-  const scroller = dialog.querySelector<HTMLElement>('.mp-detail-scroll');
+  const scroller = dialog.querySelector<HTMLElement>('.music-detail-scroll');
   const readingPosition = scroller?.scrollTop ?? 0;
   const active = document.activeElement;
   const readingFocus =
@@ -249,14 +250,14 @@ function showPlaylistDialog(dialog: HTMLDialogElement | null) {
   if (dialog?.open) return;
   dialog?.showModal();
   dialog
-    ?.querySelector<HTMLElement>('#mp-detail-title')
+    ?.querySelector<HTMLElement>('#music-detail-title')
     ?.focus({ preventScroll: true });
 }
 
 function cardParts(source?: HTMLElement | null): PlaylistMotionParts {
   const card = source?.querySelector('[data-card-cover]')
     ? source
-    : (source?.closest<HTMLElement>('.mp-card') ?? source);
+    : (source?.closest<HTMLElement>('.music-card') ?? source);
   return {
     surface: card?.querySelector<HTMLElement>('[data-card-surface]'),
     cover: card?.querySelector<HTMLElement>('[data-card-cover]'),
@@ -270,14 +271,14 @@ function playlistReturnTarget(
 ) {
   const originId =
     origin?.dataset.playlistOrigin ??
-    origin?.closest<HTMLElement>('.mp-card')?.dataset.playlist;
+    origin?.closest<HTMLElement>('.music-card')?.dataset.playlist;
   const originVisible =
     origin?.isConnected && origin.getClientRects().length > 0;
   const target =
     originVisible && originId === focused
       ? origin
       : gallery?.querySelector<HTMLElement>(
-          `[data-playlist="${focused}"] .mp-card-open`
+          `[data-playlist="${focused}"] .music-card-open`
         );
   return { originVisible, target };
 }

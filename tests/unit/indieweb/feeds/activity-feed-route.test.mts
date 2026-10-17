@@ -6,17 +6,12 @@ import {
   flattenWebmentionActivities,
 } from '@/lib/indieweb/activity-feed';
 import { WEBSUB_HUB } from '@/lib/indieweb/constants';
-import type {
-  ActivityFeedRouteConfig,
-  WebmentionGroup,
-} from '@/lib/indieweb/webmention/types';
+import { activityFeedChannel } from '@/lib/indieweb/feeds/index';
+import { activityFeedResponse } from '@/lib/indieweb/feeds/response';
+import type { WebmentionGroup } from '@/lib/indieweb/webmention/types';
 import { site } from '@/lib/site/identity';
 
-const config: ActivityFeedRouteConfig = {
-  title: 'Activity',
-  description: 'Recent IndieWeb activity',
-  feedUrl: `${site.origin}/activity/feed/json`,
-};
+const channel = activityFeedChannel('json');
 
 const group: WebmentionGroup = {
   likes: [
@@ -38,19 +33,12 @@ const group: WebmentionGroup = {
   rsvps: [],
 };
 
-test('createActivityFeedResponse serializes IndieWeb metadata in JSON Feed items', async () => {
-  const { createActivityFeedResponse } =
-    await import('@/lib/indieweb/activity-feed-route');
-
+test('activityFeedResponse serializes IndieWeb metadata in JSON Feed items', async () => {
   const items = buildActivityFeedItems(flattenWebmentionActivities(group), {
     titleForTarget: () => 'Original Post',
   });
 
-  const response = createActivityFeedResponse({
-    items,
-    config,
-    format: 'json',
-  });
+  const response = activityFeedResponse('json', items, channel);
 
   const json = await response.json();
 
@@ -60,7 +48,7 @@ test('createActivityFeedResponse serializes IndieWeb metadata in JSON Feed items
   );
   assert.equal(
     response.headers.get('Link'),
-    `<${WEBSUB_HUB}>; rel="hub", <${config.feedUrl}>; rel="self"`
+    `<${WEBSUB_HUB}>; rel="hub", <${site.origin}/activity/feed/json>; rel="self"`
   );
   assert.equal(json.items[0]._indieweb.type, 'like');
   assert.equal(json.items[0]._indieweb.source, 'https://example.com/like');

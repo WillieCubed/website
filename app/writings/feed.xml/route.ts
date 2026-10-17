@@ -1,18 +1,12 @@
-import { generateWritingsRssFeed } from '@/lib/indieweb/feeds/index';
+import { writingsFeedChannel } from '@/lib/indieweb/feeds/index';
 import { getWritingFeedItems } from '@/lib/indieweb/feeds/items';
-
-async function buildWritingsFeed() {
-  return generateWritingsRssFeed(await getWritingFeedItems());
-}
+import { feedResponse } from '@/lib/indieweb/feeds/response';
 
 /** Return published writings, newest first, as RSS. */
 export async function GET() {
-  const feed = await buildWritingsFeed();
-
-  return new Response(feed, {
-    headers: {
-      'Content-Type': 'application/rss+xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
-    },
-  });
+  return feedResponse(
+    'rss',
+    await getWritingFeedItems(),
+    writingsFeedChannel('rss')
+  );
 }

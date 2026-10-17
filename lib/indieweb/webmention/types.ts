@@ -110,14 +110,6 @@ export interface BuildActivityFeedOptions {
   titleForTarget: (targetUrl: string, activity: ResponseActivity) => string;
 }
 
-export interface ActivityFeedRouteConfig {
-  title: string;
-  description: string;
-  feedUrl: string;
-  /** The page the activity is about. Defaults to the homepage. */
-  alternateUrl?: string;
-}
-
 export interface WebmentionGroup<T extends PublishingResponse = Webmention> {
   likes: T[];
   reposts: T[];

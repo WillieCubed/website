@@ -9,7 +9,7 @@ import { site } from '@/lib/site/identity';
 import { absoluteRoute } from '@/lib/site/urls';
 import type { WritingData } from '@/lib/writings/index';
 import { writingAttachments } from '@/lib/writings/media';
-import { normalizeTag, tagFeedPaths, tagPath } from '@/lib/writings/tags';
+import { normalizeTag, tagPath } from '@/lib/writings/tags';
 
 const SITE_TITLE = site.name;
 const SITE_DESCRIPTION = site.description;
@@ -58,48 +58,18 @@ function rssEnclosure(item: FeedItem): string {
     : '';
 }
 
-export interface RssFeedOptions {
+export type FeedFormat = 'rss' | 'atom' | 'json';
+
+/**
+ * What a feed says about itself. Each field falls back to the site-wide
+ * feed's: its title and description, the homepage, and its own address.
+ */
+export interface FeedChannel {
   title?: string;
   description?: string;
   feedUrl?: string;
   /** The page the feed mirrors. Defaults to the homepage. */
   alternateUrl?: string;
-}
-
-export interface AtomFeedOptions {
-  title?: string;
-  subtitle?: string;
-  feedUrl?: string;
-  /** The page the feed mirrors. Defaults to the homepage. */
-  alternateUrl?: string;
-}
-
-export interface JsonFeedOptions {
-  title?: string;
-  description?: string;
-  feedUrl?: string;
-  /** The page the feed mirrors. Defaults to the homepage. */
-  alternateUrl?: string;
-}
-
-export interface ActivityRssFeedOptions {
-  title: string;
-  description: string;
-  feedUrl: string;
-  siteUrl?: string;
-}
-
-export interface ActivityAtomFeedOptions {
-  title: string;
-  subtitle: string;
-  feedUrl: string;
-  alternateUrl?: string;
-}
-
-export interface ActivityJsonFeedOptions {
-  title: string;
-  description: string;
-  feedUrl: string;
 }
 
 /**
@@ -212,7 +182,7 @@ function latestFeedDate(items: FeedItem[]): Date {
  */
 export function generateRssFeed(
   items: FeedItem[],
-  options: RssFeedOptions = {}
+  options: FeedChannel = {}
 ): string {
   const title = options.title || SITE_TITLE;
   const description = options.description || SITE_DESCRIPTION;
@@ -257,10 +227,10 @@ ${itemsXml}
  */
 export function generateAtomFeed(
   items: FeedItem[],
-  options: AtomFeedOptions = {}
+  options: FeedChannel = {}
 ): string {
   const title = options.title || SITE_TITLE;
-  const subtitle = options.subtitle || SITE_DESCRIPTION;
+  const subtitle = options.description || SITE_DESCRIPTION;
   const alternateUrl = options.alternateUrl || absoluteRoute``;
   const feedUrl = options.feedUrl || absoluteRoute`/feed/atom`;
   const authorUri = absoluteRoute``;
@@ -300,74 +270,76 @@ ${entriesXml}
 </feed>`;
 }
 
-/**
- * Generate the writings Atom feed, which describes and links to /writings
- * rather than the whole site.
- */
-export function generateWritingsAtomFeed(items: FeedItem[]): string {
-  return generateAtomFeed(items, {
-    title: WRITINGS_TITLE,
-    subtitle: WRITINGS_DESCRIPTION,
-    alternateUrl: absoluteRoute`/writings`,
-    feedUrl: absoluteRoute`/writings/feed/atom`,
-  });
+/** Serialize items in one of the three feed formats. */
+export function serializeFeed(
+  format: FeedFormat,
+  items: FeedItem[],
+  channel: FeedChannel = {}
+): string {
+  if (format === 'rss') return generateRssFeed(items, channel);
+  if (format === 'atom') return generateAtomFeed(items, channel);
+  return generateJsonFeed(items, channel);
 }
 
-/** Generate the writings RSS feed, which describes and links to /writings. */
-export function generateWritingsRssFeed(items: FeedItem[]): string {
-  return generateRssFeed(items, {
+const FEED_SUFFIXES: Record<FeedFormat, string> = {
+  rss: '/feed.xml',
+  atom: '/feed/atom',
+  json: '/feed/json',
+};
+
+/** A feed's address beside the page it mirrors: `/writings/feed/atom`. */
+function feedUrl(page: string, format: FeedFormat): string {
+  return absoluteRoute`${page === '/' ? '' : page}${FEED_SUFFIXES[format]}`;
+}
+
+/** The site-wide feeds: writings, dated initiatives, and projects. */
+export function siteFeedChannel(format: FeedFormat): FeedChannel {
+  return { feedUrl: feedUrl('/', format) };
+}
+
+/** The writings feeds, which describe and link to /writings. */
+export function writingsFeedChannel(format: FeedFormat): FeedChannel {
+  return {
     title: WRITINGS_TITLE,
     description: WRITINGS_DESCRIPTION,
     alternateUrl: absoluteRoute`/writings`,
-    feedUrl: absoluteRoute`/writings/feed.xml`,
-  });
+    feedUrl: feedUrl('/writings', format),
+  };
 }
 
-/** Generate the writings JSON Feed, which describes and links to /writings. */
-export function generateWritingsJsonFeed(items: FeedItem[]): string {
-  return generateJsonFeed(items, {
-    title: WRITINGS_TITLE,
-    description: WRITINGS_DESCRIPTION,
-    alternateUrl: absoluteRoute`/writings`,
-    feedUrl: absoluteRoute`/writings/feed/json`,
-  });
-}
-
-/** What a tag's three feeds share: their name and the page they mirror. */
-function tagFeedOptions(tag: string) {
+/** A tag's feeds, which describe and link to its page. */
+export function tagFeedChannel(tag: string, format: FeedFormat): FeedChannel {
   const name = normalizeTag(tag);
   return {
     title: `${WRITINGS_TITLE}: #${name}`,
     description: `Writings tagged ${name} from ${AUTHOR_NAME}.`,
     alternateUrl: absoluteRoute`${tagPath(tag)}`,
+    feedUrl: feedUrl(tagPath(tag), format),
   };
 }
 
-/** Generate a tag's RSS feed, which describes and links to its page. */
-export function generateTagRssFeed(tag: string, items: FeedItem[]): string {
-  return generateRssFeed(items, {
-    ...tagFeedOptions(tag),
-    feedUrl: absoluteRoute`${tagFeedPaths(tag).rss}`,
-  });
-}
-
-/** Generate a tag's Atom feed, which describes and links to its page. */
-export function generateTagAtomFeed(tag: string, items: FeedItem[]): string {
-  const { title, description, alternateUrl } = tagFeedOptions(tag);
-  return generateAtomFeed(items, {
-    title,
-    subtitle: description,
-    alternateUrl,
-    feedUrl: absoluteRoute`${tagFeedPaths(tag).atom}`,
-  });
-}
-
-/** Generate a tag's JSON Feed, which describes and links to its page. */
-export function generateTagJsonFeed(tag: string, items: FeedItem[]): string {
-  return generateJsonFeed(items, {
-    ...tagFeedOptions(tag),
-    feedUrl: absoluteRoute`${tagFeedPaths(tag).json}`,
-  });
+/**
+ * The webmention activity feeds: site-wide, or for one writing when a slug
+ * is given.
+ */
+export function activityFeedChannel(
+  format: FeedFormat,
+  slug?: string
+): FeedChannel {
+  if (slug === undefined) {
+    const host = new URL(site.origin).hostname;
+    return {
+      title: `${site.name} - IndieWeb Activity`,
+      description: `Recent likes, reposts, bookmarks, replies, and mentions for ${host}.`,
+      feedUrl: feedUrl('/activity', format),
+    };
+  }
+  return {
+    title: `IndieWeb Activity for ${slug}`,
+    description: `Likes, reposts, bookmarks, replies, and mentions for ${slug}.`,
+    alternateUrl: absoluteRoute`/writings/${slug}`,
+    feedUrl: feedUrl(`/writings/${slug}/activity`, format),
+  };
 }
 
 /**
@@ -375,7 +347,7 @@ export function generateTagJsonFeed(tag: string, items: FeedItem[]): string {
  */
 export function generateJsonFeed(
   items: FeedItem[],
-  options: JsonFeedOptions = {}
+  options: FeedChannel = {}
 ): string {
   const title = options.title || SITE_TITLE;
   const description = options.description || SITE_DESCRIPTION;
@@ -427,45 +399,25 @@ export function generateJsonFeed(
   return JSON.stringify(feed, null, 2);
 }
 
-export function generateActivityRssFeed(
+/**
+ * Serialize webmention activity. Readers render an RSS description as HTML,
+ * and an activity's description is a stranger's plain text, so for RSS it is
+ * escaped once as HTML before the generator escapes it again as XML. Atom and
+ * JSON Feed read it as text.
+ */
+export function serializeActivityFeed(
+  format: FeedFormat,
   items: ActivityFeedItem[],
-  options: ActivityRssFeedOptions
+  channel: FeedChannel
 ): string {
-  // Readers render an RSS description as HTML, and an activity's description
-  // is a stranger's plain text, so it is escaped once as HTML before the
-  // generator escapes it again as XML. Atom and JSON Feed read it as text.
-  const asHtml = items.map((item) => ({
-    ...item,
-    description: escapeXml(item.description),
-  }));
-  return generateRssFeed(asHtml, {
-    title: options.title,
-    description: options.description,
-    feedUrl: options.feedUrl,
-  });
-}
-
-export function generateActivityAtomFeed(
-  items: ActivityFeedItem[],
-  options: ActivityAtomFeedOptions
-): string {
-  return generateAtomFeed(items, {
-    title: options.title,
-    subtitle: options.subtitle,
-    feedUrl: options.feedUrl,
-    alternateUrl: options.alternateUrl,
-  });
-}
-
-export function generateActivityJsonFeed(
-  items: ActivityFeedItem[],
-  options: ActivityJsonFeedOptions
-): string {
-  return generateJsonFeed(items, {
-    title: options.title,
-    description: options.description,
-    feedUrl: options.feedUrl,
-  });
+  const readable =
+    format === 'rss'
+      ? items.map((item) => ({
+          ...item,
+          description: escapeXml(item.description),
+        }))
+      : items;
+  return serializeFeed(format, readable, channel);
 }
 
 function atomAttachments(item: FeedItem): string {

@@ -1,6 +1,6 @@
-import { writingActivityFeedConfig } from '@/lib/indieweb/activity-feed-config';
 import { getActivityFeedItemsForPost } from '@/lib/indieweb/activity-feed-data';
-import { createActivityFeedResponse } from '@/lib/indieweb/activity-feed-route';
+import { activityFeedChannel } from '@/lib/indieweb/feeds/index';
+import { activityFeedResponse } from '@/lib/indieweb/feeds/response';
 import { getPublishedWriting } from '@/lib/writings/index';
 
 /**
@@ -15,11 +15,9 @@ export async function GET(
   // A draft or missing writing has no public activity to syndicate.
   const published = await getPublishedWriting(slug).catch(() => null);
   if (!published) return new Response('Not found', { status: 404 });
-  const items = await getActivityFeedItemsForPost(slug);
-
-  return createActivityFeedResponse({
-    items,
-    format: 'json',
-    config: writingActivityFeedConfig(slug, 'json'),
-  });
+  return activityFeedResponse(
+    'json',
+    await getActivityFeedItemsForPost(slug),
+    activityFeedChannel('json', slug)
+  );
 }

@@ -16,7 +16,6 @@ import type { CloseOptions, PaletteData } from '@/lib/search/palette/types';
 import type { Command } from '@/lib/search/palette/types';
 
 import Palette from './Palette';
-import { usePaletteCommands } from './usePaletteCommands';
 
 /** The shared element name the trigger and the palette's card trade. */
 const MORPH_NAME = 'palette';
@@ -317,4 +316,21 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
       />
     </PaletteContext>
   );
+}
+
+/** Keeps page commands registered for exactly their owner's mounted lifetime. */
+function usePaletteCommands() {
+  const commandRegistry = useRef(new Map<symbol, Command[]>());
+  const [contextCommands, setContextCommands] = useState<Command[]>([]);
+  const registerCommands = useCallback((commands: Command[]) => {
+    const key = Symbol('palette commands');
+    commandRegistry.current.set(key, commands);
+    setContextCommands([...commandRegistry.current.values()].flat());
+    return () => {
+      commandRegistry.current.delete(key);
+      setContextCommands([...commandRegistry.current.values()].flat());
+    };
+  }, []);
+
+  return { contextCommands, registerCommands };
 }

@@ -3,11 +3,12 @@
 import { useCallback, useRef, useState } from 'react';
 
 import type { Draft } from '@/lib/studio/types';
+import type { DraftContent } from '@/lib/studio/types';
 
 import { studioRequest } from './api';
-import { useWritingContent } from './useWritingContent';
 import { useWritingAutosave, useWritingRecovery } from './useWritingRecovery';
 import type { WritingDocument, WritingSnapshot } from './writing-contracts';
+import type { DraftEditing, DraftUpdate } from './writing-contracts';
 
 /** Autosave snapshots against the expected revision; newer local edits remain queued. */
 interface SaveFailure extends Error {
@@ -179,4 +180,37 @@ function describeSaveFailure(error: unknown): SaveFailureDescription {
       ? 'Another revision was saved. Your changes are kept in this tab.'
       : `Could not save · ${(error as Error).message}`,
   };
+}
+
+/** One owner advances working content and edit versions together, including identical edits. */
+function useWritingContent(
+  initial: DraftContent,
+  onEdit: (body: DraftContent) => void
+): DraftEditing {
+  const [body, setBody] = useState(initial);
+  const current = useRef(initial);
+  const editVersion = useRef(0);
+  const update = useCallback(
+    (change: DraftUpdate) => {
+      const next =
+        typeof change === 'function' ? change(current.current) : change;
+      editVersion.current += 1;
+      current.current = next;
+      setBody(next);
+      onEdit(next);
+    },
+    [onEdit]
+  );
+  const captureSnapshot = useCallback(
+    (): WritingSnapshot => ({
+      body: current.current,
+      editVersion: editVersion.current,
+    }),
+    []
+  );
+  const isCurrent = useCallback(
+    (snapshot: WritingSnapshot) => snapshot.editVersion === editVersion.current,
+    []
+  );
+  return { body, update, captureSnapshot, isCurrent };
 }

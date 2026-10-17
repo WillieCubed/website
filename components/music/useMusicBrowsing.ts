@@ -1,7 +1,10 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
+import { usePalette } from '@/components/search/palette/PaletteProvider';
+
+import { musicAliases } from '@/lib/music/easter-eggs';
 import {
   type Catalog,
   type MusicLibraryFilter,
@@ -10,7 +13,6 @@ import {
   gallerySelection,
 } from '@/lib/music/presentation';
 
-import { useMusicPaletteNavigation } from './useMusicPaletteNavigation';
 import { useMusicPlaylistDialog } from './useMusicPlaylistDialog';
 
 interface Options {
@@ -135,3 +137,38 @@ export function useMusicBrowsing({
   };
 }
 export type MusicBrowsing = ReturnType<typeof useMusicBrowsing>;
+
+interface PlaylistSummary {
+  id: string;
+  title: string;
+}
+
+interface PaletteNavigationOptions {
+  enabled: boolean;
+  playlists: PlaylistSummary[];
+  onOpenPlaylist: (id: string) => void;
+}
+function useMusicPaletteNavigation({
+  enabled,
+  playlists,
+  onOpenPlaylist,
+}: PaletteNavigationOptions) {
+  const { close: closePalette, registerCommands } = usePalette();
+  useEffect(() => {
+    if (!enabled) return;
+    return registerCommands(
+      playlists.map((playlist) => ({
+        id: `music:open:${playlist.id}`,
+        title: playlist.title,
+        detail: 'Open playlist',
+        group: 'Playlists' as const,
+        keywords: ['music', 'playlist', ...musicAliases(playlist.id)],
+        kind: 'music' as const,
+        run: async () => {
+          await closePalette({ animate: false, restoreFocus: false });
+          onOpenPlaylist(playlist.id);
+        },
+      }))
+    );
+  }, [enabled, playlists, onOpenPlaylist, registerCommands, closePalette]);
+}

@@ -178,6 +178,9 @@ importers:
       shiki:
         specifier: ^3.23.0
         version: 3.23.0
+      strtok3:
+        specifier: 10.3.5
+        version: 10.3.5
       sucrase:
         specifier: ^3.35.1
         version: 3.35.1

@@ -164,8 +164,8 @@
   translate: 0
     calc(
       (
-          var(--footer-webrings-h, 48px) + var(--footer-tail-gap) +
-            var(--footer-row-h) - var(--footer-contact-h)
+          var(--footer-rings-offset) + var(--footer-row-h) -
+            var(--footer-contact-h)
         ) *
         (1 - var(--p))
     );
@@ -175,7 +175,7 @@
    room for its icon as the icon comes in. While collapsed the row is words
    alone, with no gaps held for what is not there yet. */
 .site-footer[data-dock] .site-footer__profiles {
-  --profile-gap: 20px;
+  --profile-gap: calc(20px - var(--spacing-md) * var(--dock));
   align-items: center;
   column-gap: var(--profile-gap);
 }
@@ -221,14 +221,6 @@
   width: calc(16px * var(--icon-shown));
   opacity: var(--icon-shown);
   scale: calc(0.6 + 0.4 * var(--icon-shown));
-}
-
-/* Status hides the contact labels below this container width. Keep their
-   icons present even while the desktop dock is closed. */
-@container footer (max-width: 1000px) {
-  .site-footer[data-dock] .site-footer__profiles {
-    --profile-icons: 1;
-  }
 }
 
 @media (min-width: 840px) {
@@ -347,12 +339,6 @@
   --rail-w: 360px;
 }
 
-@container footer (max-width: 400px) {
-  .site-footer[data-dock] .site-footer__profiles {
-    --profile-gap: 16px;
-  }
-}
-
 .site-footer[data-dock] .site-footer__profiles a:active {
   color: var(--color-on-secondary-container);
 }
@@ -425,7 +411,7 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: repeat(4, auto);
   row-gap: 0;
-  column-gap: 40px;
+  column-gap: var(--spacing-xl);
   padding-top: clamp(24px, 3vw, 32px);
   padding-inline: var(--footer-panel-edge);
   padding-bottom: var(--footer-inset);
@@ -462,6 +448,9 @@
   scroll-margin-block: 24px;
 }
 .site-footer__row {
+  --footer-rings-offset: calc(
+    var(--footer-webrings-h, 48px) + var(--footer-tail-gap)
+  );
   grid-area: contacts;
   margin-block-start: var(--footer-tail-gap);
 }
@@ -546,8 +535,7 @@
 .site-footer__brand-detail > p {
   margin: 0;
 }
-/* Both rings share one quiet row after contacts. Align the drawn icons
-   with footer text while retaining their larger native touch targets. */
+/* Align the drawn ring icons with their label while retaining native targets. */
 .site-webrings {
   grid-area: webrings;
   align-self: start;
@@ -563,7 +551,7 @@
   display: flex;
   flex-wrap: nowrap;
   gap: var(--spacing-sm);
-  margin-inline-start: calc(var(--footer-content-pad) - var(--spacing-lg));
+  margin-inline: calc(var(--footer-content-pad) - var(--spacing-lg));
 }
 .site-webrings__label {
   margin: 0;
@@ -651,16 +639,8 @@
 
 /* The inset consumes space inside the contact group. Tighten the utility
    gaps before truncating the city; weather yields on the smallest screens. */
-@container footer (max-width: 400px) {
-  .site-footer .site-footer__inner .site-footer__row:has(.microstatus) {
-    column-gap: 8px;
-  }
-}
 
 @container footer (max-width: 320px) {
-  .site-footer .site-footer__inner .site-footer__row:has(.microstatus) {
-    gap: 4px;
-  }
   .site-footer .microstatus-weather {
     display: none;
   }
@@ -668,4 +648,49 @@
 
 .site-footer[data-flow] .site-footer__row {
   translate: none;
+}
+
+/* Labels yield before entire groups wrap. Invisible target padding hangs
+   outside the text line; the collapsed dock retains its original cube seat. */
+@container footer (max-width: 1120px) {
+  .site-footer__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .site-footer__profiles {
+    margin-inline-start: calc(-1 * var(--spacing-lg));
+  }
+  .site-footer[data-dock] .site-footer__profiles {
+    --profile-icons: 1;
+    margin-inline-start: calc(-1 * var(--spacing-lg) * var(--dock));
+  }
+}
+/* The actual footer column determines when the two navigation groups fit,
+   including narrower reading columns in a desktop window. */
+@container footer (min-width: 600px) {
+  .site-footer__brand,
+  .site-footer__row {
+    grid-column: 1 / 3;
+  }
+  .site-webrings {
+    grid-column: 2;
+    grid-row: 2;
+    margin-block-start: var(--footer-space);
+  }
+  .site-footer__row {
+    --footer-rings-offset: 0px;
+  }
+  .site-footer .site-footer__pages ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--spacing-xl);
+  }
+}
+@container footer (min-width: 720px) {
+  .site-footer .site-footer__pages ul {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

@@ -205,13 +205,62 @@ test('the footer aligns ring padding and keeps all six targets on one row', asyn
       expect(bounds.panel.right).toBeLessThanOrEqual(bounds.footer.right - 6);
       expect(bounds.panel.top).toBeGreaterThan(bounds.pages.bottom);
     }
-    expect(bounds.rings.top).toBeGreaterThanOrEqual(bounds.row.bottom);
-    expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
+    if (width >= 840) {
+      expect(bounds.rings.left).toBeGreaterThan(bounds.pages.right);
+      expect(bounds.rings.top).toBeLessThan(bounds.pages.bottom);
+      expect(bounds.rings.bottom).toBeLessThan(bounds.row.top);
+    } else if (width < 600) {
+      expect(bounds.rings.top).toBeGreaterThanOrEqual(bounds.row.bottom);
+      expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
+    }
     expect(
       Math.abs(bounds.firstArrow.left - bounds.label.left)
     ).toBeLessThanOrEqual(2);
     expectUsableTargets(bounds.targets, bounds.panel);
     expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
+  }
+});
+
+test('footer contacts and utilities share a row when they fit', async ({
+  page,
+}, testInfo) => {
+  await page.goto('/writings');
+  await expect(page.locator('.microstatus')).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
+  for (const width of [390, 480, 600, 840, 1000, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.locator('.site-webrings').scrollIntoViewIfNeeded();
+    const geometry = await page.evaluate(() => {
+      const box = (selector: string) =>
+        document.querySelector(selector)!.getBoundingClientRect().toJSON();
+      return {
+        contacts: box('.site-footer__profiles'),
+        utilities: box('.site-footer__utilities'),
+        row: box('.site-footer__row'),
+        links: [...document.querySelectorAll('.site-footer__profiles a')]
+          .filter((element) => element.getBoundingClientRect().width > 0)
+          .map((element) => element.getBoundingClientRect().toJSON()),
+        overflow:
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth,
+      };
+    });
+    expect(geometry.overflow, `${width}px footer overflow`).toBe(false);
+    for (const link of geometry.links) {
+      expect(link.width).toBeGreaterThanOrEqual(48);
+      expect(link.height).toBeGreaterThanOrEqual(48);
+    }
+    if (width === 480 || width >= 840) {
+      expect(
+        geometry.contacts.top,
+        `${width}px uses available row space`
+      ).toBeCloseTo(geometry.utilities.top, 0);
+      expect(geometry.contacts.right).toBeLessThan(geometry.utilities.left);
+    }
+    await page.screenshot({
+      path: testInfo.outputPath(`footer-fit-${width}.png`),
+    });
   }
 });
 

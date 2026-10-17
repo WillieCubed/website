@@ -17,6 +17,9 @@ test('the desktop rail clears the docked footer', async ({ page }) => {
     [1000, 850],
     [1000, 900],
     [1000, 901],
+    [1100, 850],
+    [1120, 850],
+    [1150, 850],
     [1199, 850],
     [1200, 850],
     [1440, 900],
@@ -45,6 +48,16 @@ test('the desktop rail clears the docked footer', async ({ page }) => {
       .all()) {
       await expect(link).toBeVisible();
       expect((await link.boundingBox())!.width).toBeGreaterThanOrEqual(16);
+      const labelClipped = await link
+        .locator('.site-footer__label')
+        .evaluate(
+          (element) => getComputedStyle(element).position === 'absolute'
+        );
+      if (labelClipped) {
+        const icon = link.locator('svg');
+        expect((await icon.boundingBox())!.width).toBeGreaterThanOrEqual(16);
+        await expect(icon).toHaveCSS('opacity', '1');
+      }
     }
   }
 });

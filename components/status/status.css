@@ -28,12 +28,6 @@
   animation-duration: 180ms;
 }
 
-.site-footer .site-footer__row:has(.microstatus) {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content;
-  gap: 28px;
-  align-items: center;
-}
 .site-footer .microstatus {
   display: flex;
   flex-wrap: nowrap;
@@ -229,12 +223,6 @@
 }
 
 @media (max-width: 839px) {
-  .site-footer .site-footer__row:has(.microstatus) {
-    column-gap: 16px;
-  }
-  .site-footer .site-footer__profiles {
-    gap: 16px;
-  }
   .status-composition {
     column-gap: 24px;
     grid-template-columns: minmax(0, 1fr) 280px;
@@ -248,9 +236,6 @@
   }
 }
 @container footer (max-width: 700px) {
-  .site-footer .site-footer__row:has(.microstatus) {
-    gap: 16px;
-  }
   .microstatus-clock {
     display: none;
   }
@@ -259,9 +244,6 @@
   }
 }
 @container footer (max-width: 520px) {
-  .site-footer .site-footer__row:has(.microstatus) {
-    gap: 12px;
-  }
   .microstatus .weather-picture {
     width: 20px;
     height: 20px;
@@ -368,16 +350,6 @@
   );
 }
 
-@container (max-width:1000px) {
-  .site-footer__row:has(.microstatus) .site-footer__label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-}
 .site-footer .microstatus {
   padding: 0;
   border-radius: 0;
@@ -543,12 +515,6 @@
   }
   .microstatus .weather-picture {
     display: none;
-  }
-}
-
-@container footer (max-width: 320px) {
-  .site-footer .site-footer__row:has(.microstatus) {
-    gap: 8px;
   }
 }
 

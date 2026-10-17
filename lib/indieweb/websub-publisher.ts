@@ -3,17 +3,13 @@
  *
  * The hub then fetches each topic and fans it out to subscribers.
  */
-import { groupByTag, tagFeedPaths, tagPath } from '../writings/tags';
+import { feedPaths } from '../site/urls';
+import { groupByTag, tagPath } from '../writings/tags';
 import { WEBSUB_HUB } from './constants';
 
-export const SITE_FEED_PATHS = [
-  '/feed.xml',
-  '/feed/atom',
-  '/feed/json',
-  '/writings/feed.xml',
-  '/writings/feed/atom',
-  '/writings/feed/json',
-];
+export const SITE_FEED_PATHS = ['/', '/writings'].flatMap((page) =>
+  Object.values(feedPaths(page))
+);
 
 /**
  * HTML pages that are h-feeds and name the hub and themselves in their
@@ -23,8 +19,8 @@ export const HTML_FEED_PATHS = ['/writings'];
 
 /** A tag's page, which is an h-feed, and its three feeds. */
 function tagTopicPaths(tag: string): string[] {
-  const feeds = tagFeedPaths(tag);
-  return [tagPath(tag), feeds.rss, feeds.atom, feeds.json];
+  const page = tagPath(tag);
+  return [page, ...Object.values(feedPaths(page))];
 }
 
 /**

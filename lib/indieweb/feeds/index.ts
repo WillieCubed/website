@@ -6,7 +6,8 @@ import type {
 import type { Initiative } from '@/lib/initiatives/index';
 import type { Project } from '@/lib/projects';
 import { site } from '@/lib/site/identity';
-import { absoluteRoute } from '@/lib/site/urls';
+import { absoluteRoute, feedPaths } from '@/lib/site/urls';
+import { escapeHtml } from '@/lib/text/html';
 import type { WritingData } from '@/lib/writings/index';
 import { writingAttachments } from '@/lib/writings/media';
 import { normalizeTag, tagPath } from '@/lib/writings/tags';
@@ -281,15 +282,9 @@ export function serializeFeed(
   return generateJsonFeed(items, channel);
 }
 
-const FEED_SUFFIXES: Record<FeedFormat, string> = {
-  rss: '/feed.xml',
-  atom: '/feed/atom',
-  json: '/feed/json',
-};
-
 /** A feed's address beside the page it mirrors: `/writings/feed/atom`. */
 function feedUrl(page: string, format: FeedFormat): string {
-  return absoluteRoute`${page === '/' ? '' : page}${FEED_SUFFIXES[format]}`;
+  return absoluteRoute`${feedPaths(page)[format]}`;
 }
 
 /** The site-wide feeds: writings, dated initiatives, and projects. */
@@ -414,7 +409,7 @@ export function serializeActivityFeed(
     format === 'rss'
       ? items.map((item) => ({
           ...item,
-          description: escapeXml(item.description),
+          description: escapeHtml(item.description),
         }))
       : items;
   return serializeFeed(format, readable, channel);

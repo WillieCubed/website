@@ -7,6 +7,7 @@ import WritingsIndex from '@/components/writings/WritingsIndex';
 import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/seo/metadata';
 import { sitePage } from '@/lib/site/navigation';
+import { feedAlternates } from '@/lib/site/urls';
 import { getAllWritings } from '@/lib/writings/index';
 
 const WRITINGS_PAGE = sitePage('/writings');
@@ -26,11 +27,7 @@ export const metadata: Metadata = {
   ...writingsMetadata,
   alternates: {
     ...writingsMetadata.alternates,
-    types: {
-      'application/rss+xml': '/writings/feed.xml',
-      'application/atom+xml': '/writings/feed/atom',
-      'application/feed+json': '/writings/feed/json',
-    },
+    types: feedAlternates('/writings'),
   },
 };
 

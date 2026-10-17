@@ -33,7 +33,7 @@ import {
 } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/seo/metadata';
 import { formatDate } from '@/lib/site/dates';
-import { absoluteRoute } from '@/lib/site/urls';
+import { absoluteRoute, feedAlternates } from '@/lib/site/urls';
 import { getBacklinksForPost } from '@/lib/writings/backlinks';
 import {
   SeriesWithWritings,
@@ -108,9 +108,7 @@ export async function generateMetadata(
     alternates: {
       ...metadata.alternates,
       types: {
-        'application/rss+xml': `${canonicalUrl}/activity/feed.xml`,
-        'application/atom+xml': `${canonicalUrl}/activity/feed/atom`,
-        'application/feed+json': `${canonicalUrl}/activity/feed/json`,
+        ...feedAlternates(`${canonicalUrl}/activity`),
         'application/json+oembed': `${SITE_URL}${OEMBED_ENDPOINT}?url=${encodeURIComponent(
           canonicalUrl
         )}`,

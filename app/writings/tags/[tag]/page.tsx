@@ -13,13 +13,9 @@ import {
   websiteLd,
 } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/seo/metadata';
+import { feedAlternates } from '@/lib/site/urls';
 import { getTagGroup, getTagParams } from '@/lib/writings/index';
-import {
-  tagFeedPaths,
-  tagFromParam,
-  tagPath,
-  writingCount,
-} from '@/lib/writings/tags';
+import { tagFromParam, tagPath, writingCount } from '@/lib/writings/tags';
 
 type TagPageProps = PageProps<'/writings/tags/[tag]'>;
 
@@ -35,7 +31,6 @@ async function loadTag(props: TagPageProps) {
 export async function generateMetadata(props: TagPageProps): Promise<Metadata> {
   const { tag, writings } = await loadTag(props);
   const path = tagPath(tag);
-  const feeds = tagFeedPaths(tag);
   const metadata = pageMetadata({
     // A bare tag in a preview on X or iMessage reads as a word; the hash
     // says it is a tag without the site name around it.
@@ -48,11 +43,7 @@ export async function generateMetadata(props: TagPageProps): Promise<Metadata> {
     ...metadata,
     alternates: {
       ...metadata.alternates,
-      types: {
-        'application/rss+xml': feeds.rss,
-        'application/atom+xml': feeds.atom,
-        'application/feed+json': feeds.json,
-      },
+      types: feedAlternates(path),
     },
   };
 }

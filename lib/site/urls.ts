@@ -59,3 +59,30 @@ export function absoluteRoute(
   // whole URL. Rooting the path at a single slash keeps both on this origin.
   return absoluteUrl(`/${path.replace(/^[\s\\/]+/, '')}`);
 }
+
+/**
+ * A page's RSS, Atom, and JSON feeds, which sit beside the page: under it for
+ * a section, at the root for the homepage.
+ */
+export function feedPaths(page: string): {
+  rss: string;
+  atom: string;
+  json: string;
+} {
+  const base = page === '/' ? '' : page;
+  return {
+    rss: `${base}/feed.xml`,
+    atom: `${base}/feed/atom`,
+    json: `${base}/feed/json`,
+  };
+}
+
+/** A page's feeds as the `alternates.types` its metadata advertises. */
+export function feedAlternates(page: string): Record<string, string> {
+  const feeds = feedPaths(page);
+  return {
+    'application/rss+xml': feeds.rss,
+    'application/atom+xml': feeds.atom,
+    'application/feed+json': feeds.json,
+  };
+}

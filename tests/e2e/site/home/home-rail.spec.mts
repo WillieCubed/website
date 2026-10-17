@@ -3,7 +3,23 @@ import { expect, test } from '@playwright/test';
 test('the desktop rail clears the docked footer', async ({ page }) => {
   await page.setViewportSize({ width: 1000, height: 700 });
   await page.goto('/');
+  // Reserve a classic scrollbar gutter even on platforms with overlay bars.
+  await page.addStyleTag({
+    content: 'body { width: calc(100vw - 30px); margin-inline: auto; }',
+  });
   await page.evaluate(() => document.fonts.ready);
+  // Exercise an extra wrapped line, including fallback-font text metrics.
+  await page
+    .locator('.focuses .focus')
+    .first()
+    .evaluate((item) => {
+      const label = item.lastElementChild;
+      if (label) label.append(' everywhere');
+    });
+
+  await page.locator('.description').evaluate((item) => {
+    item.append(' Based in Las Vegas.');
+  });
 
   const footer = page.locator('footer.site-footer');
   await expect(footer).toHaveAttribute('data-dock', '');

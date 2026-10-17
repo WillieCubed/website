@@ -64,13 +64,13 @@
 }
 
 /* A modal's scrim tints and blurs the page behind it. A dialog opts in with
-   .site-scrim and may tune --scrim-tint and --scrim-blur, which its
-   ::backdrop inherits. */
+   .site-scrim and may tune --scrim-color, --scrim-tint and --scrim-filter
+   (none for a flat tint), which its ::backdrop inherits. */
 .site-scrim::backdrop {
   background-color: color-mix(
     in srgb,
-    var(--color-scrim) var(--scrim-tint, 30%),
+    var(--scrim-color, var(--color-scrim)) var(--scrim-tint, 30%),
     transparent
   );
-  backdrop-filter: blur(var(--scrim-blur, 6px));
+  backdrop-filter: var(--scrim-filter, blur(6px));
 }

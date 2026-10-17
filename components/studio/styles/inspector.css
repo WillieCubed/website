@@ -1,5 +1,8 @@
 .studio-widget-inspector {
   --field-fill: var(--color-surface-container-lowest);
+  --scrim-color: var(--color-ink);
+  --scrim-tint: 32%;
+  --scrim-filter: none;
   position: fixed;
   inset: auto 0 var(--inspector-keyboard-inset, 0px);
   width: 100%;
@@ -27,7 +30,6 @@
     forwards;
 }
 .studio-widget-inspector::backdrop {
-  background: color-mix(in srgb, var(--color-ink) 32%, transparent);
   animation: studio-inspector-scrim-enter var(--duration-standard)
     var(--ease-site);
 }

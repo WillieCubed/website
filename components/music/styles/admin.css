@@ -1142,6 +1142,8 @@ html:has(.music[data-editing] .music-draft-note) .music-admin-notices {
   }
 }
 .music-history {
+  --scrim-tint: 53%;
+  --scrim-filter: none;
   border: 0;
   padding: 0;
   border-radius: 28px;
@@ -1149,9 +1151,6 @@ html:has(.music[data-editing] .music-draft-note) .music-admin-notices {
   color: var(--color-on-surface);
   width: min(720px, calc(100% - 32px));
   max-height: 90dvh;
-}
-.music-history::backdrop {
-  background: color-mix(in srgb, var(--color-scrim) 53%, transparent);
 }
 .music-history > div {
   background: var(--color-surface);

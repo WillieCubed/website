@@ -374,7 +374,7 @@ export default function Palette({
   return (
     <Modal
       ref={ref}
-      className="palette box-border mx-auto mt-[12vh] w-[min(640px,calc(100vw_-_32px))] max-w-none max-h-[min(680px,calc(100dvh_-_20vh))] overflow-hidden rounded-[28px] border-0 bg-surface-container p-3 font-sans text-base leading-6 text-ink shadow-[0_4px_16px_-4px_color-mix(in_srgb,var(--color-scrim)_28%,transparent)] [&[open]]:flex [&[open]]:flex-col [&[open]]:gap-3 max-[599px]:w-[calc(100vw_-_16px)] max-[599px]:max-h-[calc(100dvh_-_16px)] max-[599px]:mt-2 max-[599px]:rounded-3xl max-[599px]:p-2 max-[599px]:[&[open]]:gap-2"
+      className="palette site-scrim box-border mx-auto mt-[12vh] w-[min(640px,calc(100vw_-_32px))] max-w-none max-h-[min(680px,calc(100dvh_-_20vh))] overflow-hidden rounded-[28px] border-0 bg-surface-container p-3 font-sans text-base leading-6 text-ink shadow-[0_4px_16px_-4px_color-mix(in_srgb,var(--color-scrim)_28%,transparent)] [&[open]]:flex [&[open]]:flex-col [&[open]]:gap-3 max-[599px]:w-[calc(100vw_-_16px)] max-[599px]:max-h-[calc(100dvh_-_16px)] max-[599px]:mt-2 max-[599px]:rounded-3xl max-[599px]:p-2 max-[599px]:[&[open]]:gap-2"
       aria-label="Command palette"
       // Escape closes through the provider, so the card morphs back.
       onDismiss={onClose}

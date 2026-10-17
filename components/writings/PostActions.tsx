@@ -8,8 +8,8 @@ import WebmentionForm from '@/components/indieweb/WebmentionForm';
 import SiteLink from '@/components/link/SiteLink';
 import Popover from '@/components/site/Popover';
 
-import styles from './PostActions.module.css';
 import PostShareActions from './PostShareActions';
+import './post-actions.css';
 import { usePostReply } from './usePostReply';
 
 interface PostActionsProps {
@@ -34,11 +34,15 @@ export default function PostActions({
 
   return (
     <>
-      <div className={styles.actions} role="group" aria-label="Writing actions">
-        <div className={styles.recommendation}>{recommendation}</div>
+      <div
+        className="post-actions-actions"
+        role="group"
+        aria-label="Writing actions"
+      >
+        <div className="post-actions-recommendation">{recommendation}</div>
         <div
           ref={replyTrigger}
-          className={styles.reply}
+          className="post-actions-reply"
           data-split={blueskyReplyUrl ? '' : undefined}
           role={blueskyReplyUrl ? 'group' : undefined}
           aria-label={blueskyReplyUrl ? 'Reply to this writing' : undefined}
@@ -46,7 +50,7 @@ export default function PostActions({
           <button
             type="button"
             data-post-action
-            className={`site-control ${styles.action} ${styles.replyAction} ${styles.replyMain}`}
+            className="site-control post-actions-action post-actions-reply-action post-actions-reply-main"
             aria-label="Reply via IndieWeb"
             aria-expanded={replyOpen}
             aria-controls={replyId}
@@ -55,8 +59,8 @@ export default function PostActions({
             <Icon name="reply" size={16} />
             {blueskyReplyUrl ? (
               <>
-                <span className={styles.replyCompactLabel}>Reply</span>
-                <span className={styles.replyExpandedLabel}>
+                <span className="post-actions-reply-compact-label">Reply</span>
+                <span className="post-actions-reply-expanded-label">
                   Reply via IndieWeb
                 </span>
               </>
@@ -69,7 +73,7 @@ export default function PostActions({
               href={blueskyReplyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`site-control ${styles.action} ${styles.replyAction} ${styles.replyDestination}`}
+              className="site-control post-actions-action post-actions-reply-action post-actions-reply-destination"
             >
               <BlueskyIcon className="size-4" />
               Reply on Bluesky
@@ -79,13 +83,13 @@ export default function PostActions({
             <Popover
               label="Reply options"
               trigger={<Icon name="chevron-down" size={18} />}
-              triggerClassName={`site-control ${styles.action} ${styles.replyAction} ${styles.splitArrow} ${styles.replyArrow}`}
-              panelClassName={styles.menu}
+              triggerClassName="site-control post-actions-action post-actions-reply-action post-actions-split-arrow post-actions-reply-arrow"
+              panelClassName="post-actions-menu"
               width={228}
             >
               <button
                 type="button"
-                className={`site-control ${styles.menuAction}`}
+                className="site-control post-actions-menu-action"
                 aria-controls={replyId}
                 aria-expanded={replyOpen}
                 onClick={(event) => {
@@ -103,7 +107,7 @@ export default function PostActions({
                 href={blueskyReplyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`site-control ${styles.menuAction}`}
+                className="site-control post-actions-menu-action"
               >
                 <BlueskyIcon className="size-4" />
                 Reply on Bluesky
@@ -123,13 +127,13 @@ export default function PostActions({
         data-reply-surface
         id={replyId}
         hidden={!replyOpen}
-        className={styles.form}
+        className="post-actions-form"
       >
-        <div className={styles.formHeading}>
+        <div className="post-actions-form-heading">
           <h2>Reply via IndieWeb</h2>
           <button
             type="button"
-            className={`site-control ${styles.action} ${styles.close}`}
+            className="site-control post-actions-action post-actions-close"
             aria-label="Close IndieWeb reply"
             onClick={toggleReply}
           >

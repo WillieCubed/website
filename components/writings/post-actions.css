@@ -1,19 +1,19 @@
-.actions {
+.post-actions-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   min-height: 48px;
 }
 
-.reply {
+.post-actions-reply {
   display: flex;
   gap: var(--control-group-gap);
   flex: 1;
   min-width: 0;
 }
 
-.action,
-.menuAction {
+.post-actions-action,
+.post-actions-menu-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -28,70 +28,70 @@
   cursor: pointer;
 }
 
-.action {
+.post-actions-action {
   position: relative;
   --control-fill: var(--color-tray);
 }
 
-.replyAction {
+.post-actions-reply-action {
   --control-ink: var(--color-on-secondary-container);
   --control-fill: var(--color-secondary-container);
   width: 100%;
 }
 
-.replyMain {
+.post-actions-reply-main {
   min-width: var(--control-target-small);
   flex: 1;
 }
 
-.replyExpandedLabel,
-.replyDestination {
+.post-actions-reply-expanded-label,
+.post-actions-reply-destination {
   display: none;
 }
 
-.recommendation {
+.post-actions-recommendation {
   display: none;
   flex: none;
 }
 
-.recommendation:has(> [data-standard-social] > div) {
+.post-actions-recommendation:has(> [data-standard-social] > div) {
   display: block;
 }
 
-.share {
+.post-actions-share {
   display: flex;
   gap: var(--control-group-gap);
   flex: none;
 }
 
-.share > button {
+.post-actions-share > button {
   --control-ink: var(--color-on-primary);
   --control-fill: var(--color-primary);
 }
 
-.shareMain,
-.splitArrow {
+.post-actions-share-main,
+.post-actions-split-arrow {
   width: 48px;
   flex: none;
   padding-inline: 0;
 }
 
-.splitMain,
-.reply[data-split] .replyMain {
+.post-actions-split-main,
+.post-actions-reply[data-split] .post-actions-reply-main {
   --control-rest-radius: 20px 8px 8px 20px;
 }
-.splitArrow {
+.post-actions-split-arrow {
   --control-rest-radius: 8px 20px 20px 8px;
 }
-.splitArrow svg {
+.post-actions-split-arrow svg {
   transform: translateX(-1px);
   transition: transform 220ms var(--ease-site);
 }
-.splitArrow[aria-expanded='true'] svg {
+.post-actions-split-arrow[aria-expanded='true'] svg {
   transform: translateX(0) rotate(180deg);
 }
 
-.shareLabel {
+.post-actions-share-label {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -100,10 +100,10 @@
   white-space: nowrap;
 }
 
-.menu {
+.post-actions-menu {
   border-radius: 20px;
 }
-.menuAction {
+.post-actions-menu-action {
   justify-content: flex-start;
   width: 100%;
   min-height: 48px;
@@ -111,56 +111,57 @@
   --control-rest-radius: 14px;
   --control-fill: transparent;
 }
-.form {
+.post-actions-form {
   margin-top: 16px;
   padding: 20px;
   border-radius: 24px;
   background: var(--color-surface-container);
 }
 
-.form[hidden] {
+.post-actions-form[hidden] {
   display: none;
 }
-.formHeading {
+.post-actions-form-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
 }
-.formHeading h2 {
+.post-actions-form-heading h2 {
   font-size: 16px;
   font-weight: 600;
 }
-.close {
+.post-actions-close {
   width: 48px;
   padding: 0;
 }
 
-.splitArrow[aria-expanded='true'] {
+.post-actions-split-arrow[aria-expanded='true'] {
   --control-rest-radius: 20px;
 }
 
 @media (max-width: 379px), (min-width: 600px) and (max-width: 699px) {
-  .actions {
+  .post-actions-actions {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
   }
-  .reply {
+  .post-actions-reply {
     grid-column: 1 / -1;
   }
-  .recommendation:has(> [data-standard-social] > div) + .reply {
+  .post-actions-recommendation:has(> [data-standard-social] > div)
+    + .post-actions-reply {
     grid-column: 2;
   }
-  .share {
+  .post-actions-share {
     grid-column: 1 / -1;
   }
-  .shareMain {
+  .post-actions-share-main {
     width: auto;
     flex: 1;
     padding-inline: 12px;
   }
-  .shareLabel {
+  .post-actions-share-label {
     position: static;
     width: auto;
     height: auto;
@@ -170,36 +171,36 @@
 }
 
 @media (min-width: 600px) {
-  .reply {
+  .post-actions-reply {
     gap: 8px;
   }
-  .replyArrow,
-  .replyCompactLabel {
+  .post-actions-reply-arrow,
+  .post-actions-reply-compact-label {
     display: none;
   }
-  .replyExpandedLabel {
+  .post-actions-reply-expanded-label {
     display: inline;
   }
-  .replyDestination {
+  .post-actions-reply-destination {
     display: inline-flex;
     min-width: var(--control-target-small);
     flex: 1;
   }
-  .reply[data-split] .replyMain {
+  .post-actions-reply[data-split] .post-actions-reply-main {
     --control-rest-radius: 20px;
   }
-  .replyAction {
+  .post-actions-reply-action {
     width: auto;
     white-space: nowrap;
   }
-  .share {
+  .post-actions-share {
     margin-left: 0;
   }
-  .shareMain {
+  .post-actions-share-main {
     width: auto;
     padding-inline: 12px;
   }
-  .shareLabel {
+  .post-actions-share-label {
     position: static;
     width: auto;
     height: auto;
@@ -209,7 +210,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .splitArrow svg {
+  .post-actions-split-arrow svg {
     transition: none;
   }
 }

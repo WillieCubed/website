@@ -10,13 +10,13 @@ import Popover from '@/components/site/Popover';
 import { site } from '@/lib/site/identity';
 
 import StandardSignInDialog from './StandardSignInDialog';
-import styles from './StandardSocialControls.module.css';
 import {
   type SocialAction,
   type SocialButtonDisplay,
   type SocialFeedback,
   socialButton,
 } from './standard-social';
+import './standard-social.css';
 import { useStandardSocialControls } from './useStandardSocialControls';
 
 interface Props {
@@ -49,8 +49,8 @@ function SubscriptionOptions({
       label="Subscription options"
       disabled={pending === 'action'}
       trigger={<Icon name="chevron-down" size={22} />}
-      triggerClassName={`site-control ${styles.arrow}`}
-      panelClassName={styles.menu}
+      triggerClassName="site-control standard-social-arrow"
+      panelClassName="standard-social-menu"
       align="end"
       width={156}
     >
@@ -59,7 +59,7 @@ function SubscriptionOptions({
         type="button"
         disabled={pending !== null}
         aria-busy={pending === 'logout'}
-        className={`site-control ${styles.signOut}`}
+        className="site-control standard-social-sign-out"
         title={failure?.message}
         aria-label={failure ? 'Try again to sign out' : undefined}
         onClick={onSignOut}
@@ -100,7 +100,7 @@ function SocialActionButton({
     <button
       ref={buttonRef}
       type="button"
-      className={`site-control ${styles.action}`}
+      className="site-control standard-social-action"
       disabled={pending !== null || display.blocked}
       aria-pressed={active}
       aria-busy={pending === 'action'}
@@ -138,12 +138,12 @@ export default function StandardSocialControls({
   );
   return (
     <div
-      className={`${styles.root} ${compact ? styles.compact : ''}`}
+      className={`standard-social-root ${compact ? 'standard-social-compact' : ''}`}
       data-standard-social={action}
     >
       {control.available ? (
         <div
-          className={styles.actions}
+          className="standard-social-actions"
           data-split={split || undefined}
           data-active={control.active}
         >
@@ -198,10 +198,10 @@ interface SocialFallbackProps {
 function SocialFallback({ action, slug }: SocialFallbackProps) {
   const subscription = action === 'subscription';
   return (
-    <div className={styles.actions}>
+    <div className="standard-social-actions">
       <SiteLink
         preview={false}
-        className={`site-control ${styles.action}`}
+        className="site-control standard-social-action"
         href={
           subscription
             ? '/writings/feed.xml'

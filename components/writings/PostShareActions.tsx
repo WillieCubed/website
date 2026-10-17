@@ -6,7 +6,7 @@ import ThreadsIcon from '@/components/icons/ThreadsIcon';
 import SiteLink from '@/components/link/SiteLink';
 import Popover from '@/components/site/Popover';
 
-import styles from './PostActions.module.css';
+import './post-actions.css';
 
 interface PostShareActionsProps {
   target: string;
@@ -47,7 +47,7 @@ export default function PostShareActions({
   return (
     <>
       <div
-        className={styles.share}
+        className="post-actions-share"
         role="group"
         aria-label="Share this writing"
       >
@@ -55,7 +55,7 @@ export default function PostShareActions({
           type="button"
           data-post-action
           onClick={sharePost}
-          className={`site-control ${styles.action} ${styles.splitMain} ${styles.shareMain}`}
+          className="site-control post-actions-action post-actions-split-main post-actions-share-main"
           aria-label={shareStatus || 'Share this writing'}
           title={shareStatus || 'Share this writing'}
         >
@@ -63,20 +63,20 @@ export default function PostShareActions({
             name={shareStatus === 'Post link copied.' ? 'check' : 'share'}
             size={16}
           />
-          <span className={styles.shareLabel}>Share</span>
+          <span className="post-actions-share-label">Share</span>
         </button>
         <Popover
           label="More sharing options"
           trigger={<Icon name="chevron-down" size={18} />}
-          triggerClassName={`site-control ${styles.action} ${styles.splitArrow}`}
-          panelClassName={styles.menu}
+          triggerClassName="site-control post-actions-action post-actions-split-arrow"
+          panelClassName="post-actions-menu"
           align="end"
           width={228}
         >
           <SiteLink
             href={blueskyHref}
             target="_blank"
-            className={`site-control ${styles.menuAction}`}
+            className="site-control post-actions-menu-action"
           >
             <BlueskyIcon className="size-4" />
             Share on Bluesky
@@ -84,7 +84,7 @@ export default function PostShareActions({
           <SiteLink
             href={threadsHref}
             target="_blank"
-            className={`site-control ${styles.menuAction}`}
+            className="site-control post-actions-menu-action"
           >
             <ThreadsIcon className="size-4" />
             Share on Threads

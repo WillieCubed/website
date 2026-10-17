@@ -4,6 +4,7 @@ import type {
   OEmbedHtmlParts,
   OEmbedResponse,
 } from '@/lib/indieweb/discovery-types';
+import { escapeHtml } from '@/lib/text/html';
 
 export function buildOEmbedResponse({
   targetUrl,
@@ -35,12 +36,4 @@ function buildOEmbedHtml({ title, description, url }: OEmbedHtmlParts): string {
   return `<blockquote><p><a href="${escapeHtml(url)}">${escapeHtml(
     title
   )}</a></p>${descriptionHtml}<footer>${SITE_NAME}</footer></blockquote>`;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }

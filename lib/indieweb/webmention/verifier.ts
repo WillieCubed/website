@@ -29,6 +29,7 @@ import type {
   WebmentionType,
   WebmentionVerificationResult,
 } from '@/lib/indieweb/webmention/types';
+import { escapeHtml } from '@/lib/text/html';
 import type { RSVPStatus } from '@/lib/writings/types';
 
 export { extractAuthor } from '@/lib/indieweb/authorship';
@@ -202,7 +203,7 @@ function extractContent(
 
   const value = contentText(content);
   const originalMarkup = contentMarkup(content);
-  let markup = originalMarkup ?? `<p>${escapeMediaAttribute(value)}</p>`;
+  let markup = originalMarkup ?? `<p>${escapeHtml(value)}</p>`;
   const mediaUrls = new Set(
     resolvedDocumentLinks(commentHtml(markup, baseUrl) ?? '', baseUrl).links
   );
@@ -332,20 +333,6 @@ async function verifyLinkedEntry(
   };
 }
 
-function escapeMediaAttribute(value: string): string {
-  return value.replace(
-    /[&<>"']/g,
-    (character) =>
-      ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-      })[character]!
-  );
-}
-
 function contentText(value: MicroformatProperty | undefined): string {
   if (typeof value === 'string') return value;
   return value && 'value' in value && typeof value.value === 'string'
@@ -401,8 +388,8 @@ function mediaMarkup(
       ? item.alt
       : '';
   if (property === 'photo')
-    return `<img src="${escapeMediaAttribute(url)}" alt="${escapeMediaAttribute(alt)}">`;
+    return `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}">`;
   if (property === 'attachment')
-    return `<figure><a class="u-attachment" href="${escapeMediaAttribute(url)}">${escapeMediaAttribute(alt || 'Attachment')}</a></figure>`;
-  return `<${property} src="${escapeMediaAttribute(url)}" controls preload="none"></${property}>`;
+    return `<figure><a class="u-attachment" href="${escapeHtml(url)}">${escapeHtml(alt || 'Attachment')}</a></figure>`;
+  return `<${property} src="${escapeHtml(url)}" controls preload="none"></${property}>`;
 }

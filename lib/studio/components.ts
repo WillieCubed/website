@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 import sanitizeHtml from 'sanitize-html';
 import { transform } from 'sucrase';
 
+import { escapeHtml } from '@/lib/text/html';
+
 import browserRuntime from '../../.studio/browser-runtime';
 import { StudioError } from './errors';
 import { getStudioStore } from './store';
@@ -200,11 +202,7 @@ export async function compileSandbox(
   // The outer wrapper contains no scripts. Distinct opaque origins prevent the
   // component from changing the wrapper's policy or navigating its parent.
   const outerPolicy = `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'; frame-src about:; object-src 'none'`;
-  const escaped = child
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+  const escaped = escapeHtml(child);
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="${outerPolicy}"><title>${proposal.name}</title><style>html,body,iframe{margin:0;width:100%;height:100%;border:0}html,body{min-height:280px}</style></head><body><iframe title="${proposal.name}" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escaped}"></iframe></body></html>`;
 }
 export async function createProposal(

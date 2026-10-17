@@ -1,6 +1,7 @@
 import { type DefaultTreeAdapterMap, parseFragment } from 'parse5';
 
 import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
+import { escapeHtml } from '@/lib/text/html';
 import { stripMdxSyntax } from '@/lib/text/strip-mdx';
 
 import { writingAttachments } from './media';
@@ -69,16 +70,5 @@ export function writingText(
     .join('\n\n');
 }
 export function plainTextHtml(text: string): string {
-  const escaped = text.replace(
-    /[&<>"']/g,
-    (character) =>
-      ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-      })[character]!
-  );
-  return `<p dir="auto">${escaped.replace(/\n/g, '<br>')}</p>`;
+  return `<p dir="auto">${escapeHtml(text).replace(/\n/g, '<br>')}</p>`;
 }

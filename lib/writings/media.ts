@@ -3,6 +3,7 @@ import { type DefaultTreeAdapterMap, parseFragment, serialize } from 'parse5';
 import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import { mediaMimeForUrl } from '@/lib/indieweb/media';
 import type { ResponseMedia } from '@/lib/indieweb/webmention/types';
+import { escapeHtml } from '@/lib/text/html';
 
 import { propertyText, propertyUrl } from './properties';
 import type { WritingData } from './types';
@@ -167,14 +168,6 @@ export function writingAttachments(
   return result;
 }
 
-const escape = (value: string) =>
-  value.replace(
-    /[&<>"']/g,
-    (character) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
-        character
-      ]!
-  );
 export function responseMediaHtml(
   media: ResponseMedia[],
   base: string
@@ -184,11 +177,11 @@ export function responseMediaHtml(
       .map((item) => {
         const body =
           item.kind === 'image'
-            ? `<img src="${escape(item.url)}" alt="${escape(item.description || '')}">`
+            ? `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.description || '')}">`
             : item.kind === 'file'
-              ? `<a href="${escape(item.url)}">${escape(item.description || 'Attachment')}</a>`
-              : `<${item.kind} src="${escape(item.url)}" controls preload="none"></${item.kind}>`;
-        return `<figure>${body}${item.description && item.kind !== 'file' ? `<figcaption>${escape(item.description)}</figcaption>` : ''}</figure>`;
+              ? `<a href="${escapeHtml(item.url)}">${escapeHtml(item.description || 'Attachment')}</a>`
+              : `<${item.kind} src="${escapeHtml(item.url)}" controls preload="none"></${item.kind}>`;
+        return `<figure>${body}${item.description && item.kind !== 'file' ? `<figcaption>${escapeHtml(item.description)}</figcaption>` : ''}</figure>`;
       })
       .join(''),
     base
@@ -208,7 +201,7 @@ export function writingMediaHtml(
     prepared.attachments
       .map((item) =>
         item.kind === 'image'
-          ? `<img src="${escape(item.url)}" alt="${escape(item.description || '')}">`
+          ? `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.description || '')}">`
           : responseMediaHtml([item], base)
       )
       .join(''),

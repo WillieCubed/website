@@ -4,6 +4,7 @@ import type {
   IndieAuthClientInfo,
 } from '@/lib/indieweb/indieauth/types';
 import { site } from '@/lib/site/identity';
+import { escapeHtml } from '@/lib/text/html';
 import { themeSchemes } from '@/lib/theme/tokens';
 
 /**
@@ -22,18 +23,6 @@ const SCOPE_DESCRIPTIONS: Record<string, string> = {
   undelete: 'Restore deleted posts',
   media: 'Upload media',
 };
-
-const ESCAPES: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;',
-};
-
-function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, (char) => ESCAPES[char]);
-}
 
 function document(title: string, body: string): string {
   const light = themeSchemes.light;

@@ -33,7 +33,7 @@
     "brand:seeds": "node brand/resolve-brands.mjs",
     "test": "tsx --env-file=tests/unit/test.env --test --test-concurrency=2 'tests/unit/**/*.test.mts'",
     "test:e2e": "playwright test",
-    "test:integration": "tsx --test --test-concurrency=1 'tests/integration/**/*.test.mts'",
+    "test:integration": "tsx scripts/studio/build-runtime.mts && tsx --test --test-concurrency=1 'tests/integration/**/*.test.mts'",
     "search:index": "tsx scripts/search/generate-index.mts",
     "websub:ping": "tsx scripts/indieweb/websub/ping.mts",
     "webmentions:send": "tsx scripts/indieweb/webmention/send.mts",

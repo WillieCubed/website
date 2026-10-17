@@ -400,7 +400,7 @@
 .site-footer {
   --footer-space: var(--spacing-section);
   --footer-tail-gap: var(--spacing-inline);
-  --footer-link-width: var(--control-container-extra-small);
+  --footer-link-width: var(--control-target-small);
   --footer-link-inset: calc((var(--footer-link-width) - 16px) / 2);
 }
 .site-footer__inner {
@@ -537,42 +537,74 @@
 .site-footer__brand-detail > p {
   margin: 0;
 }
-/* Align the drawn ring icons with their label while retaining native targets. */
+/* Restore the original outlined group, with shared Expressive controls. */
 .site-webrings {
   grid-area: webrings;
   align-self: start;
   display: grid;
-  justify-items: start;
-  row-gap: var(--spacing-xs);
+  justify-items: stretch;
+  row-gap: var(--spacing-sm);
   margin: 0;
   margin-block-start: var(--footer-tail-gap);
-  padding: 0;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-2xl);
   background: transparent;
+  outline: 1px solid var(--color-outline-variant);
+  outline-offset: -1px;
 }
 .site-webrings__controls {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: var(--spacing-sm);
-  margin-inline: calc(var(--footer-content-pad) - var(--spacing-sm));
+  display: grid;
+  gap: var(--spacing-xs);
 }
 .site-webrings__label {
   margin: 0;
-  margin-inline-start: var(--footer-content-pad);
-  padding: 0;
+  padding-inline: var(--spacing-sm);
   color: var(--color-muted);
   font: 500 12px/16px var(--font-sans);
   text-align: start;
 }
+@media (max-width: 599px) {
+  .site-webrings {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-xs) 0;
+    width: 100%;
+    padding-inline: var(--footer-content-pad) var(--spacing-md);
+  }
+  .site-webrings__label {
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .site-webrings__controls {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--spacing-xs);
+  }
+}
+/* Full targets need the frame width on the narrowest phone columns. */
 @media (max-width: 359px) {
   .site-footer {
     --footer-text-edge: var(--spacing-xl);
   }
+  .site-webrings {
+    width: calc(100% + 2 * var(--footer-panel-edge));
+    margin-inline: calc(-1 * var(--footer-panel-edge));
+    padding-inline: var(--spacing-xs);
+  }
+  .site-webrings__label {
+    padding: 0;
+    margin-inline-start: calc(var(--footer-text-edge) - var(--spacing-xs));
+  }
   .site-webrings__controls {
+    margin-inline: auto;
     gap: 0;
   }
 }
 .site-webring {
-  --ring-target: var(--control-container-extra-small);
+  --ring-target: var(--control-target-small);
   display: grid;
   grid-template-columns: repeat(3, var(--ring-target));
   align-content: center;
@@ -609,6 +641,11 @@
   width: var(--control-container-size);
   height: var(--control-container-size);
 }
+/* The ring's directory retains its original tonal emphasis. */
+.site-footer .site-webring__mark {
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
+}
 .site-webring__link svg {
   width: 18px;
   height: 18px;
@@ -643,12 +680,6 @@
 /* The inset consumes space inside the contact group. Tighten the utility
    gaps before truncating the city; weather yields on the smallest screens. */
 
-@container footer (max-width: 340px) {
-  .site-footer__profiles {
-    --footer-link-width: 24px;
-    --footer-link-inset: 4px;
-  }
-}
 @container footer (max-width: 320px) {
   .site-footer .microstatus-weather {
     display: none;

@@ -37,14 +37,12 @@ commit action, quiet treatment for cancel, refresh, formatting and secondary
 navigation. Equal previous/next actions receive equal treatment. A navigation
 link must not look persistently selected simply because it opens a directory.
 
-Icon-only footer destinations use compact inline targets: 32px wide by 48px tall,
-with 32px visible webring surfaces. Profile links narrow to 24px wide in
-footer columns of 340px or less. This is a deliberate density exception to
-the 48px-square action targets above; each link still meets the
-[WCAG 2.2 AA target minimum](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html).
-Targets do not overlap, and status text truncates before the row wraps.
-Feeds and other action controls retain their larger targets. Do not apply
-this footer link density to action buttons elsewhere.
+Footer destinations retain at least 48px by 48px native hit targets.
+Webrings use an outlined group and tonal directory links, with
+32px visible surfaces inside those targets. Do not narrow or overlap hit
+areas to force a row to fit. The label can move above the controls; on the
+narrowest phones, status metadata receives its own line. Weather yields
+before city text when the contact row has limited room.
 
 Playlist navigation uses small connected surfaces; Create a series and New writing are prominent
 labelled creation actions. Existing selected states, featured project links

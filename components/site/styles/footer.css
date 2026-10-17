@@ -251,9 +251,11 @@ body:has(header[data-column='reading'])
 /* Status can shorten inside the remaining width; the feed action stays usable. */
 .site-footer__utilities {
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 0;
   min-width: 0;
+  container: footer-utilities / inline-size;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--spacing-sm);
   margin-inline-start: auto;
 }
@@ -263,4 +265,65 @@ body:has(header[data-column='reading'])
 }
 .site-footer__utilities > .feeds-button {
   flex-shrink: 0;
+}
+
+/* Weather yields before city text when full touch targets consume the row. */
+@container footer-utilities (max-width: 200px) {
+  .site-footer__utilities .microstatus-weather,
+  .site-footer__utilities .microstatus-clock {
+    display: none;
+  }
+}
+/* Very narrow columns and the homepage's complete profile list need two
+   deliberate rows. Keep their visual order identical to keyboard order. */
+@container footer (max-width: 560px) {
+  .site-footer[data-dock] .site-footer__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(var(--control-target-small), auto) var(
+        --control-target-small
+      );
+  }
+  .site-footer[data-dock] .site-footer__profiles {
+    flex-wrap: wrap;
+    width: calc(4 * var(--control-target-small) + var(--footer-content-pad));
+    max-width: 100%;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .site-footer[data-dock] .site-footer__utilities {
+    width: 100%;
+    margin-inline-start: 0;
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .site-footer[data-dock] .site-footer__utilities > .microstatus {
+    margin-inline-start: var(--footer-content-pad);
+  }
+  .site-footer[data-dock] .site-footer__utilities > .feeds-button {
+    margin-inline-start: auto;
+  }
+}
+@container footer (max-width: 340px) {
+  .site-footer__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, var(--control-target-small));
+  }
+  .site-footer__profiles {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .site-footer__utilities {
+    width: 100%;
+    margin-inline-start: 0;
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .site-footer__utilities > .microstatus {
+    margin-inline-start: var(--footer-content-pad);
+  }
+  .site-footer__utilities > .feeds-button {
+    margin-inline-start: auto;
+  }
 }

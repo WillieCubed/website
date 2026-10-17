@@ -78,57 +78,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  flex-wrap: nowrap;
+  gap: var(--spacing-sm) var(--spacing-lg);
+  flex-wrap: wrap;
 }
 .site-footer__profiles {
   display: flex;
   flex-wrap: nowrap;
-  gap: 20px;
+  gap: var(--spacing-sm);
+  flex: 0 0 auto;
   list-style: none;
   margin: 0;
   padding: 0;
   min-width: 0;
-}
-@container (max-width: 680px) {
-  .site-footer__label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-  .site-footer__profiles {
-    gap: 16px;
-  }
-}
-@container (max-width: 320px) {
-  .site-footer:not([data-dock]) .site-footer__profiles {
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .site-footer:not([data-dock]) .site-footer__profiles a {
-    padding-inline: 4px;
-  }
-  .site-footer:not([data-dock]) .site-footer__row:has(.microstatus) {
-    grid-template-columns: minmax(0, 1fr) max-content;
-    grid-template-areas:
-      'profiles profiles'
-      'microstatus feeds';
-    row-gap: 8px;
-  }
-  .site-footer:not([data-dock]) .site-footer__profiles {
-    grid-area: profiles;
-  }
-  .site-footer:not([data-dock]) .microstatus {
-    grid-area: microstatus;
-    justify-self: start;
-    min-width: 24px;
-  }
-  .site-footer:not([data-dock]) .feeds-button {
-    grid-area: feeds;
-  }
 }
 /* The footer carries the column its page's top bar registered. The :has() rules are only the first paint's
    fallback, before any script has run: the document then holds one page,
@@ -284,29 +245,15 @@ body:has(header[data-column='reading'])
 
 .site-footer__profiles a {
   min-height: 48px;
+  min-width: 48px;
+  justify-content: center;
 }
-@container (max-width: 1000px) {
-  .site-footer__profiles a {
-    min-width: 48px;
-    justify-content: center;
-  }
-}
-/* The seven 48px profile targets, utility gaps, status and feeds need room
-   before sharing one row. Wrap while that combined target budget cannot fit. */
-@container footer (max-width: 1120px) {
-  .site-footer .site-footer__row.site-footer__row:has(.microstatus) {
-    grid-template-columns: minmax(0, 1fr) max-content;
-    grid-template-areas: 'profiles profiles' 'microstatus feeds';
-    row-gap: 8px;
-  }
-  .site-footer__profiles {
-    grid-area: profiles;
-  }
-  .site-footer .microstatus {
-    grid-area: microstatus;
-    justify-self: start;
-  }
-  .site-footer .feeds-button {
-    grid-area: feeds;
-  }
+
+/* Status and feeds move together only when their actual width no longer fits. */
+.site-footer__utilities {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-inline-start: auto;
 }

@@ -183,10 +183,12 @@ export default function SiteFooter() {
               </li>
             ))}
           </ul>
-          <Suspense fallback={null}>
-            <LiveStatus />
-          </Suspense>
-          {!isPrivatePreview() && <FeedsButton />}
+          <div className="site-footer__utilities">
+            <Suspense fallback={null}>
+              <LiveStatus />
+            </Suspense>
+            {!isPrivatePreview() && <FeedsButton />}
+          </div>
         </div>
         <Webrings />
       </div>

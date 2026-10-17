@@ -5,8 +5,7 @@ Cloudflare deployment also needs the correct account, provisioned bindings, and
 secrets for the selected Worker. Keep those preparations separate: reading and
 editing the site locally does not require access to its publishing deployment.
 
-The old Vercel bootstrap and preflight commands were removed when the hosting
-provider changed. Use the commands below and the
+Use the commands below and the
 [local setup tutorial](../../tutorials/operations/local-development.md) for a
 complete first-run exercise. Historical acceptance receipts are in the
 [documentation archive](../../README.md#archive); they do not establish the

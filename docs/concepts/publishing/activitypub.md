@@ -38,11 +38,9 @@ would send a published post to the follower's inbox. Discovery, relationship
 state, and delivery need distinct acceptance checks. A searchable actor could
 still fail to accept follows or deliver anything.
 
-The diagram retains the original Vercel Postgres storage proposal. Its
-`/api/ap/` labels abbreviate the `/api/activitypub/` paths listed below. Neither
-the provider label nor the diagram establishes the current hosting arrangement;
-an implementation would need to reconcile storage with the approved deployment
-architecture.
+The `/api/ap/` labels abbreviate the `/api/activitypub/` paths listed below.
+Postgres would be reached through the Worker's Hyperdrive binding like the other
+publishing tables; the diagram does not establish an approved storage design.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -62,7 +60,7 @@ architecture.
 │         └───────────────────┼───────────────────┘                │
 │                             │                                    │
 │                    ┌────────▼────────┐                          │
-│                    │ Vercel Postgres │                          │
+│                    │    Postgres     │                          │
 │                    │  (activitypub)  │                          │
 │                    └─────────────────┘                          │
 │                                                                  │

@@ -268,104 +268,17 @@ providers:
 Local browser and axe checks do not establish human screen-reader or
 hosted-provider acceptance.
 
-## Hosted observations and remaining work
+## Remaining hosted work
 
-The following observations describe particular implementation and deployment
-runs. The earlier Vercel and Blob setup is retained as history; current provider
-setup above uses the Cloudflare Worker, Hyperdrive, and R2. Successful earlier
-widget checks do not settle the later Lattice reconnection and publication
-blockers.
+Deploy private writing changes to the preview Worker deliberately with the
+Cloudflare preview commands; the preview has no Git build connection, so it
+does not duplicate every production build. Lattice is connected on the hosted
+preview, but fresh generation has returned invalid widget output or timed out.
+Generation, proposal approval, and protected publication remain unverified on
+this Worker. Retry the retained publication and verify the exact deployed
+source hash before claiming Live.
 
-### Recorded design review
-
-The native writing iteration was reviewed against the public reading page by a
-separate design critic, including desktop, phone, light/dark, long titles,
-notes, details, history, website review and portable review. The review found
-and corrected mobile byline overlap and formatting tools detached from the
-selected passage. Controls retain natural touch-target geometry; no new site
-palette or typography tokens were introduced.
-
-### October 10–11: Vercel provisioning and TLS
-
-Hosted provisioning on 2026-10-10 used the signed-in personal Cloudflare account
-and its existing single-email allow policy on Zero Trust Free. The Writing
-preview Access application covers the whole hostname; proxied CNAME DNS points
-to the separate `willie-page-preview` Vercel project. Both Vercel environments
-have `SITE_MODE=preview`, signed-token origin validation, and the official cube
-icon. No paid Cloudflare services were enabled.
-
-The dedicated Neon project `willie-page-private-writing` has both migrations and
-four imported drafts, verified by readback. A dedicated private Blob store is
-connected; public promotion uses the existing website media store. The existing
-production publishing token is sensitive and cannot be read back from Vercel. A
-repository-only replacement was created with explicit author approval; its
-regenerated value is stored as a sensitive Vercel secret and GitHub confirms
-write access to this repository. Source draft removals and production
-publication remain gated on hosted verification.
-
-Anonymous probes of the studio, search, feeds and image optimizer redirect to
-Cloudflare Access. An authorized Vercel CLI probe bypassing deployment
-protection still receives the application's 401 without an Access token. On
-2026-10-11 the authenticated browser exposed a Cloudflare 525 rather than a
-client blocker: Vercel had no origin certificate for preview.willie.page. A
-DNS-01 challenge issued the missing certificate while Access and strict TLS
-remained enabled. Direct origin TLS verifies and returns 401 anonymously; the
-custom hostname redirects anonymous requests to Access.
-
-### Widget acceptance and protected publication
-
-Hosted saving and reopening preserve the reviewed widget and author-owned
-metadata. Real widget generation ran on the selected Mac Studio. The deployed
-isolated sandbox supports mouse and keyboard interaction; approval, insertion,
-reload recovery, portable HTML, plain text, and canonical links were verified.
-The acceptance revision is a widget-only note with no generated article title,
-description, or prose. At that review, all 45 desktop, phone, and dark browser
-checks passed.
-
-Public OAuth metadata and revision proof shipped through PR #202. Public widget
-rendering and exact deployed-source proof shipped through PR #203; direct-visit
-response sandboxing shipped through PR #204. All used protected rebase merging
-with required checks. The main ruleset remains unchanged and has no bypass
-actors. PR #201 remains draft and unmerged.
-
-The hosted protected publication attempt saved its immutable artifact proposal
-but stopped at GitHub 403 before opening a pull request. The replacement
-website-only credential has Contents and Pull requests read/write; GitHub's
-protected merge enforces required checks. Its name is present on the preview
-Worker and on the production Worker. Retry the retained publication and verify
-the exact deployed source hash before claiming Live.
-
-### October 13: Worker migration and Lattice recovery
-
-On October 13, `preview.willie.page` moved from a Vercel CNAME to a
-Worker-managed Cloudflare custom domain. Anonymous requests to the Studio, API,
-assets, and revision endpoint redirect to Access; direct `workers.dev` requests
-receive 401 from the Worker. A signed owner browser session loaded all five
-retained drafts through the new hostname. A scratch draft saved, survived a
-reload, and was then soft-deleted from private Postgres; the library returned to
-five drafts. Later on October 13, a private Vercel environment export returned
-the old encryption key. Both Lattice connection rows decrypted successfully, and
-the key was installed on the preview Worker with `cf workers secrets bulk`. The
-exported file was removed. Lattice rejected the saved refresh authorization
-during a hosted device lookup, so the owner still needs to reconnect before
-widget generation can pass. The prior personal-runtime selection remains stored
-and can be checked after reconnection.
-
-The retained ToggleWidget initially fell back on the Cloudflare preview:
-request-time native esbuild could not run from the Worker bundle. The component
-compiler now statically imports its prebuilt React runtime and transforms TSX in
-JavaScript with React-only imports. The hosted retained widget rendered in the
-protected Studio, and clicking its control changed the checkbox from off to on.
-Generation and approval still need a fresh connected personal runtime and a
-hosted proposal acceptance check.
-
-### Deployment connection and remaining release gates
-
-PR #201 merged. The preview Worker's Git build connection was removed to avoid
-duplicating every production build. Deploy private writing changes to preview
-deliberately with the Cloudflare preview commands. The Vercel project has been
-removed. Lattice was reconnected on the hosted preview, but fresh generation
-has returned invalid widget output or timed out; generation, proposal approval,
-and protected publication remain unverified on this Worker.
 The component-only implementation is the required deployment; prose generation
-and generation-driven document replacement are excluded from this product.
+and generation-driven document replacement are excluded from this product. The
+[October 10–13 record](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/guides/publishing/private-writing.md#hosted-observations-and-remaining-work)
+describes the earlier provisioning, design review, and Worker migration.

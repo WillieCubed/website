@@ -47,8 +47,7 @@ provides checkpoints and troubleshooting.
 
 Hosted deployment uses Cloudflare Workers and has separate account, storage, and
 Access requirements. Follow the [deployment guide](docs/guides/operations/deploy.md)
-when preparing those resources. The former Vercel bootstrap and preflight scripts
-have been removed.
+when preparing those resources.
 
 ## Development
 

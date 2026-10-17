@@ -133,18 +133,15 @@ Complete a task in an existing checkout or deployment.
 - [Private writing preview](./guides/publishing/private-writing.md): Access, private storage, draft migration, and owner-approved publication.
 - [Run IndieWeb HTTP checks](./guides/publishing/indieweb-testing.md): local and
   isolated write checks.
-- [Verify publishing](./guides/publishing/publishing-verification.md): account
-  acceptance runners, receipts, recovery, and cleanup.
+- [Verify publishing](./guides/publishing/publishing-verification.md): what a
+  hosted publishing run must observe, and the release checks.
 - [Review writing before publication](./guides/publishing/publication-review.md):
   the draft-specific factual, authorship, and syndication questions to resolve
   before publication.
-- [Production rollout](./guides/publishing/production-rollout.md): September 23
-  rollout record, observed checks, and publication gates; follow current
-  references before acting.
 
 ## Archive
 
-Design proposals, implementation plans, and dated verification records are not
-kept in the tree. The last revision that contained them is
+Design proposals, implementation plans, rollout records, and dated verification
+records are not kept in the tree. The last revision that contained them is
 [`566f37b5`](https://github.com/WillieCubed/website/tree/566f37b570df167f917f20217ee6fcd5131d12a8/docs); read them there for historical context, and use the
 references and guides above for current behavior and procedures.

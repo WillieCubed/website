@@ -8,7 +8,7 @@ at the end.
 
 The configuration and dated observations below incorporate the October 13,
 2026 hosting migration. They preserve the acceptance work still required for
-protected publication, retained data, and retirement of the old Vercel projects.
+protected publication and retained data.
 Use the [setup reference](../../reference/operations/bootstrap.md) for local
 workspace and account preparation.
 
@@ -196,12 +196,10 @@ through the custom domain. The public route gate does not apply to it.
 
 ### Complete authenticated and retained-data acceptance
 
-The three old Vercel website projects (`website`, `willie-page-preview`, and
-`indieweb-acceptance`) have been removed. Their URLs no longer provide a
-rollback or an isolated test site. The retained IndieWeb and AT Protocol
-acceptance helpers still assume the old Vercel project; they are historical
-until adapted to an explicitly isolated Cloudflare test deployment. Do not run
-them against production to compensate for the missing fixture host.
+There is no rollback host or isolated hosted test site: the earlier hosting
+projects were removed, and no hosted acceptance runner targets an isolated
+Cloudflare deployment yet. Do not exercise production to compensate for the
+missing fixture host.
 
 Owner workflows and publishing checks remain separate from the anonymous
 route gate. Record their hosted results before treating the migration as fully
@@ -233,9 +231,9 @@ approach the ceiling.
 
 [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
 charges $0.30 per million requests beyond the included 10 million and $0.02
-per million CPU milliseconds beyond the included 30 million. The recent 2.1
-million Vercel function invocations are only a rough traffic reference, not a
-Worker usage forecast. Measure the account-wide request and CPU totals after
+per million CPU milliseconds beyond the included 30 million. About 2.1 million
+monthly function invocations on the previous host are only a rough traffic
+reference, not a Worker usage forecast. Measure the account-wide request and CPU totals after
 cutover; other Workers share the paid allowance. [R2 Standard's free
 allowance](https://developers.cloudflare.com/r2/pricing/) is 10 GB-month,
 one million Class A operations, and ten million Class B operations monthly.
@@ -424,12 +422,10 @@ incorrectly included the old hostname in the destination path.
 
 The production Worker now owns Custom Domains for `willie.page`,
 `www.willie.page`, `tour.willie.page`, and `diaries.willie.page`. The private
-preview Worker owns `preview.willie.page`; its old Vercel CNAME was replaced
-by a Worker-managed DNS record. Keep `workers_dev` enabled for diagnostics.
+preview Worker owns `preview.willie.page` through a Worker-managed DNS record. Keep `workers_dev` enabled for diagnostics.
 After each production deploy, check the canonical homepage, feeds, search,
 image optimization, social images, IndieAuth, media delivery, Webmention
-writes, and host redirects. Check Cloudflare logs and billing, then retire
-Vercel projects only after protected publishing and retained data pass.
+writes, and host redirects. Check Cloudflare logs and billing.
 
 ## Patched dependencies
 
@@ -456,9 +452,8 @@ its own placeholder socket instead. The reproduction came from CI's “glass
 previews retain detail at 1x” check, which hung with three icons pending. On
 local `next start`, aborting cold image requests wedged 15 of 20 keys before
 the patch and none afterward. That observation covers the local server used
-by the Playwright smoke run. The historical Vercel configuration used its
-separate service for `/_next/image`; the Cloudflare Images path is described
-in the resource section above.
+by the Playwright smoke run; the Cloudflare Images path is described in the
+resource section above.
 
 Next 16.3.8 still contains the original call. On an upgrade:
 

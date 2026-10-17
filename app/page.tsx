@@ -21,6 +21,7 @@ import {
 } from '@/lib/home/ventures';
 import { getFeaturedInitiatives } from '@/lib/initiatives/index';
 import { homeGraph } from '@/lib/seo/jsonld';
+import { pageMetadata } from '@/lib/seo/metadata';
 import { site } from '@/lib/site/identity';
 
 export async function generateMetadata({
@@ -32,35 +33,23 @@ export async function generateMetadata({
   const opened = detailMetadata(Array.isArray(detail) ? detail[0] : detail);
   if (opened) return opened;
 
+  // The site name already heads a link preview, so its title is the
+  // headline sentence rather than the name a second time.
+  const shared = pageMetadata({
+    title: site.shortDescription,
+    description: site.lede,
+    path: '/',
+    type: 'profile',
+  });
   return {
+    ...shared,
     title: { absolute: site.name },
     description: site.description,
-    alternates: { canonical: '/' },
     openGraph: {
-      siteName: site.name,
-      locale: site.locale,
-      // The site name already heads the preview, so the title is the
-      // headline sentence rather than the name a second time.
-      title: site.shortDescription,
-      description: site.lede,
-      url: '/',
+      ...shared.openGraph,
       type: 'profile',
       firstName: site.author.givenName,
       lastName: site.author.familyName,
-      images: [
-        {
-          url: site.ogImage,
-          width: 1200,
-          height: 630,
-          alt: site.shortDescription,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: site.shortDescription,
-      description: site.lede,
-      images: [{ url: site.ogImage, alt: site.shortDescription }],
     },
   };
 }

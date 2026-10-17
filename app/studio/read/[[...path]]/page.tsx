@@ -9,7 +9,7 @@ import ImportWriting from '@/components/studio/ImportWriting';
 import TagChips from '@/components/writings/TagChips';
 import WritingContent from '@/components/writings/WritingContent';
 import WritingHeader from '@/components/writings/WritingHeader';
-import WritingItem from '@/components/writings/WritingItem';
+import { WritingsList } from '@/components/writings/WritingsIndex';
 
 import { pageMetadata } from '@/lib/seo/metadata';
 import { absoluteUrl } from '@/lib/site/urls';
@@ -28,20 +28,16 @@ import {
   type WritingData,
   type WritingDocument,
   getAllWritings,
-  getSeries,
   getSeriesWithWritings,
 } from '@/lib/writings';
 import { loadWriting } from '@/lib/writings/load';
 import { normalizeTag, tagFromParam } from '@/lib/writings/tags';
 
-export const metadata: Metadata = {
-  ...pageMetadata({
-    title: 'Writings',
-    description: 'Private writing preview.',
-    path: '/writings',
-  }),
-  robots: { index: false, follow: false, noarchive: true },
-};
+export const metadata: Metadata = pageMetadata({
+  title: 'Writings',
+  description: 'Private writing preview.',
+  path: '/writings',
+});
 
 type Props = PageProps<'/studio/read/[[...path]]'>;
 
@@ -249,38 +245,25 @@ async function ReadingIndex({
           </div>
           {status}
         </header>
-        <div className="collection-items space-y-3 pb-6">
-          {await Promise.all(
-            items.map(async (entry) => {
-              const writing = readingWritingData(
+        <div className="pb-6">
+          <WritingsList
+            writings={items.map((entry) =>
+              readingWritingData(
                 entry,
                 writings.find((item) => item.slug === entry.slug)
-              );
-              const series = entry.series
-                ? await getSeries(entry.series.slug).catch(() => null)
-                : null;
-              return (
-                <div key={entry.slug}>
-                  <WritingItem
-                    writing={writing}
-                    seriesName={series?.name}
-                    seriesHref={series?.href}
-                  />
-                  {entry.status === 'Unpublished changes' && (
-                    <p className="mt-2 text-label-medium text-muted">
-                      Unpublished changes
-                    </p>
-                  )}
-                </div>
-              );
-            })
-          )}
+              )
+            )}
+            notes={
+              new Map(
+                items
+                  .filter((entry) => entry.status === 'Unpublished changes')
+                  .map((entry) => [entry.slug, 'Unpublished changes'])
+              )
+            }
+            contentPreviews={false}
+            empty="Your first writing is waiting."
+          />
         </div>
-        {items.length === 0 && (
-          <p className="text-body-large text-muted">
-            Your first writing is waiting.
-          </p>
-        )}
         <TagChips
           tags={tags}
           filter

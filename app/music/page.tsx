@@ -4,7 +4,7 @@ import { connection } from 'next/server';
 import MusicExperience from '@/components/music/MusicExperience';
 
 import { publicCollection } from '@/lib/music/public';
-import { canonicalUrl } from '@/lib/site/urls';
+import { pageMetadata } from '@/lib/seo/metadata';
 
 export async function generateMetadata({
   searchParams,
@@ -16,12 +16,12 @@ export async function generateMetadata({
     const collection = await publicCollection();
     title = collection.playlists.find((p) => p.id === detailId)?.title ?? title;
   }
-  return {
+  return pageMetadata({
     title,
     description:
       'Willie Chalmers III’s taste in music, collected in playlists and series.',
-    alternates: { canonical: canonicalUrl('/music') },
-  };
+    path: '/music',
+  });
 }
 export default async function Music({ searchParams }: PageProps<'/music'>) {
   const params = await searchParams;

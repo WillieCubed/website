@@ -75,8 +75,7 @@ app password.
 
 Create the publishing password in the intended account and install it through
 the secret procedure in the [deployment guide](../../guides/operations/deploy.md).
-The current deploy scripts use `cf`; the removed Vercel setup script is not a
-configuration path. Keep the secret out of shell arguments and source files.
+The deploy scripts use `cf`. Keep the secret out of shell arguments and source files.
 Preview must never receive the production publisher's credential.
 
 Verify the account's DID and handle, deploy the checked revision, then inspect

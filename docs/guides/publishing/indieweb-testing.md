@@ -6,8 +6,8 @@ A local response, a deployed writing, and an outside subscriber's receipt answer
 different questions. Keep disposable writings and databases outside production;
 retain skipped or blocked cases alongside the passing ones.
 
-The [verification guide](publishing-verification.md) separates current Cloudflare
-acceptance requirements from the October Vercel receipts and retained runners.
+The [verification guide](publishing-verification.md) describes what a hosted
+Cloudflare publishing run must observe.
 The [conformance record](../../reference/publishing/publishing-conformance.md)
 links those dated results.
 
@@ -136,8 +136,7 @@ automatic deployment.
 Workers Builds deploys the selected repository revision. The current
 `.github/workflows/indieweb-publish.yml` notifies production on `main` and manual
 dispatch; it does not supply an isolated-branch notification job. An acceptance
-run must establish its own authorized trigger instead of assuming the old Vercel
-acceptance workflow remains available.
+run must establish its own authorized trigger.
 
 The production order is:
 
@@ -183,5 +182,5 @@ Record the revision, date, origin, actual requests and outside observations,
 skipped or blocked cases, and cleanup. The
 [September follow-up](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/publishing/verification-2026-09-23-followup.md)
 shows how isolated publication and fixes were recorded. Preserve the historical
-provider and runtime in such evidence; a Vercel receipt does not become Cloudflare
-acceptance because the same route now runs on a Worker.
+provider and runtime in such evidence; a receipt from the earlier host does not
+become Cloudflare acceptance because the same route now runs on a Worker.

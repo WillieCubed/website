@@ -26,7 +26,3 @@ Import helpers from their owning module instead of importing a command
 entrypoint. Keep standalone executable test assets in `tests/fixtures/`, where
 tests can copy their exact bytes without bringing commands into the test
 environment.
-
-The former Vercel bootstrap, cutover, TOTP setup, production migration, and
-live-media creation commands are retired. Their historical evidence retains its
-original command names; it is not an instruction to recreate those commands.

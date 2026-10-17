@@ -123,7 +123,7 @@ export async function commitMicropubWriting(
  * Write a Micropub entry straight into the content directory.
  *
  * This is the path for a self-hosted server with a writable checkout. On a
- * read-only deploy (Vercel, Workers) the write fails and the caller reports
+ * read-only deploy (a Worker) the write fails and the caller reports
  * that instead of pretending the post exists.
  */
 export async function writeMicropubWritingLocally(

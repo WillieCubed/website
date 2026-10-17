@@ -34,7 +34,7 @@ syndication:
   - name: Instagram
     url: https://instagram.com/p/abc
 photo:
-  - url: https://example.blob.vercel-storage.com/media/bus.jpg
+  - url: https://media.example.com/media/bus.jpg
     alt: A bus at dusk
 ---
 
@@ -114,7 +114,7 @@ test('micropubSource maps frontmatter and body to h-entry properties', () => {
       ],
       photo: [
         {
-          value: 'https://example.blob.vercel-storage.com/media/bus.jpg',
+          value: 'https://media.example.com/media/bus.jpg',
           alt: 'A bus at dusk',
         },
       ],

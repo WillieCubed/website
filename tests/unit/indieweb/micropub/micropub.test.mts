@@ -334,8 +334,8 @@ test('buildMicropubWritingFile records actual copy permalinks', () => {
 test('parseMicropubCreateRequest rejects form photos without alt text', async () => {
   const body = new URLSearchParams([
     ['h', 'entry'],
-    ['photo[]', 'https://example.blob.vercel-storage.com/media/a.jpg'],
-    ['photo[]', 'https://example.blob.vercel-storage.com/media/b,c.jpg'],
+    ['photo[]', 'https://media.example.com/media/a.jpg'],
+    ['photo[]', 'https://media.example.com/media/b,c.jpg'],
   ]);
 
   await assert.rejects(
@@ -352,11 +352,11 @@ test('parseMicropubCreateRequest reads JSON photos with alt text', async () => {
         content: ['Sunset over the Strip.'],
         photo: [
           {
-            value: 'https://example.blob.vercel-storage.com/media/sunset.jpg',
+            value: 'https://media.example.com/media/sunset.jpg',
             alt: 'An orange sky behind the Las Vegas skyline',
           },
           {
-            value: 'https://example.blob.vercel-storage.com/media/crowd.jpg',
+            value: 'https://media.example.com/media/crowd.jpg',
             alt: 'People gathering on the Strip',
           },
         ],
@@ -367,11 +367,11 @@ test('parseMicropubCreateRequest reads JSON photos with alt text', async () => {
   assert.equal(entry.postType, 'photo');
   assert.deepEqual(entry.photos, [
     {
-      url: 'https://example.blob.vercel-storage.com/media/sunset.jpg',
+      url: 'https://media.example.com/media/sunset.jpg',
       alt: 'An orange sky behind the Las Vegas skyline',
     },
     {
-      url: 'https://example.blob.vercel-storage.com/media/crowd.jpg',
+      url: 'https://media.example.com/media/crowd.jpg',
       alt: 'People gathering on the Strip',
     },
   ]);

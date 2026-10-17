@@ -99,6 +99,7 @@
     "remark-rehype": "^11.1.2",
     "sanitize-html": "^2.17.7",
     "shiki": "^3.23.0",
+    "strtok3": "10.3.5",
     "sucrase": "^3.35.1",
     "undici": "^8.11.2",
     "unified": "^11.0.5",

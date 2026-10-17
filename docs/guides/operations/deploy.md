@@ -431,6 +431,15 @@ Vercel projects only after protected publishing and retained data pass.
 
 ## Patched dependencies
 
+### Direct strtok3 dependency
+
+`strtok3` is listed in `package.json` although no source file imports it. The
+Next server bundle loads it through `file-type`, and the OpenNext Worker build
+resolves that import from the project root. pnpm only links a direct
+dependency there, so removing the entry fails `pnpm build:cloudflare` with
+`Could not resolve "strtok3"`. Keep its version matched to the one `file-type`
+locks.
+
 ### Next image request isolation
 
 The Next patch addresses image requests that can leave later visitors waiting

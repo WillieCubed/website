@@ -645,6 +645,8 @@ test('Music action controls use expressive pressed shapes while the panel stays 
     await page.emulateMedia({ reducedMotion: motion });
     await page.goto(`/music?detail=${entries[0].id}`);
     const dialog = page.locator('dialog.mp-detail');
+    await expect(page.locator('dialog.mp-detail:modal')).toBeVisible();
+    await expect(page.locator('html')).not.toHaveAttribute('data-music-motion');
     const panel = await dialog.boundingBox();
     const panelRadius = await dialog.evaluate(
       (el) => getComputedStyle(el).borderRadius
@@ -660,6 +662,19 @@ test('Music action controls use expressive pressed shapes while the panel stays 
     await expect(next.locator('.site-control__surface')).toHaveCSS(
       'height',
       '40px'
+    );
+    await expect(next.locator('.site-control__surface')).toHaveCSS(
+      'width',
+      '48px'
+    );
+    const previousSurface = await previous
+      .locator('.site-control__surface')
+      .boundingBox();
+    const nextSurface = await next
+      .locator('.site-control__surface')
+      .boundingBox();
+    expect(nextSurface!.x - previousSurface!.x - previousSurface!.width).toBe(
+      2
     );
     expect(
       await next.evaluate((element) =>

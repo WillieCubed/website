@@ -74,7 +74,6 @@
     "@tiptap/react": "^3.31.4",
     "@tiptap/starter-kit": "^3.31.4",
     "clsx": "^2.1.1",
-    "date-fns": "^4.4.0",
     "file-type": "^22.1.1",
     "gray-matter": "^4.0.3",
     "hls.js": "^1.7.3",

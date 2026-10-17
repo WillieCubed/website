@@ -7,13 +7,13 @@ import Playbill from '@/components/initiatives/Playbill';
 import RouteMap from '@/components/initiatives/RouteMap';
 import TrailerBlock from '@/components/initiatives/TrailerBlock';
 import { initiativeBreadcrumbs } from '@/components/initiatives/breadcrumbs';
-import { formatRange } from '@/components/initiatives/dates';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
 import SharedTitle from '@/components/site/SharedTitle';
 import TopBar from '@/components/site/TopBar';
 
 import { publishedLinks } from '@/lib/entities/registry';
+import { formatRange } from '@/lib/initiatives/dates';
 import {
   type Initiative,
   getChildInitiatives,

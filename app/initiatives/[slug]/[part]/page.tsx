@@ -8,14 +8,10 @@ import PartEvent from '@/components/initiatives/PartEvent';
 import PartNav from '@/components/initiatives/PartNav';
 import RouteMap from '@/components/initiatives/RouteMap';
 import { initiativeBreadcrumbs } from '@/components/initiatives/breadcrumbs';
-import {
-  formatDay,
-  formatRange,
-  isoDate,
-} from '@/components/initiatives/dates';
 import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 
+import { formatDay, formatRange, isoDate } from '@/lib/initiatives/dates';
 import {
   type Part,
   getInitiative,

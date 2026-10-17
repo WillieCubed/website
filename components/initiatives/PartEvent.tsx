@@ -1,9 +1,8 @@
 import { Fragment } from 'react';
 
+import { formatRange, isoDate } from '@/lib/initiatives/dates';
 import { type Initiative, type Part } from '@/lib/initiatives/index';
 import { partTitle } from '@/lib/initiatives/load';
-
-import { formatRange, isoDate } from './dates';
 
 type EventInitiative = Pick<Initiative, 'title' | 'partLabel'>;
 type EventPart = Pick<

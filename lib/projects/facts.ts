@@ -1,5 +1,3 @@
-import { format } from 'date-fns';
-
 import { OWNERS } from './owners';
 import type { Project, ProjectStatus } from './schema';
 
@@ -22,8 +20,10 @@ const OPEN: ProjectStatus[] = ['planned', 'active', 'paused'];
 export function projectYears(
   project: Pick<Project, 'starts' | 'ends' | 'status'>
 ): string | undefined {
-  const from = project.starts ? format(project.starts, 'yyyy') : undefined;
-  const to = project.ends ? format(project.ends, 'yyyy') : undefined;
+  const from = project.starts
+    ? String(project.starts.getFullYear())
+    : undefined;
+  const to = project.ends ? String(project.ends.getFullYear()) : undefined;
   if (from && to) return from === to ? from : `${from}–${to}`;
   if (from) return OPEN.includes(project.status) ? `${from}–` : from;
   return to;

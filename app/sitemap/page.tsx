@@ -10,6 +10,7 @@ import {
   type ResourceGroup,
   getPublicResources,
 } from '@/lib/indieweb/resources';
+import { formatRange } from '@/lib/initiatives/dates';
 import { type Initiative, getInitiatives } from '@/lib/initiatives/index';
 import { type Project, getPublishedProjects } from '@/lib/projects';
 import { projectFacts } from '@/lib/projects/facts';
@@ -153,7 +154,7 @@ function InitiativeDirectory({ initiatives }: InitiativeDirectoryProps) {
                       description={
                         part.description ??
                         part.tagline ??
-                        `${formatDate(part.starts, 'short')}–${formatDate(part.ends, 'short')}`
+                        formatRange(part.starts, part.ends)
                       }
                     />
                   </li>

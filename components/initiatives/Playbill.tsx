@@ -1,9 +1,9 @@
 import SiteLink from '@/components/link/SiteLink';
 
+import { formatRange, isoDate } from '@/lib/initiatives/dates';
 import type { Initiative } from '@/lib/initiatives/index';
 
 import Reveal from './Reveal';
-import { formatRange, isoDate } from './dates';
 
 interface PlaybillProps {
   initiative: Initiative;

@@ -265,7 +265,11 @@
   cursor: default;
   visibility: hidden;
 }
-.studio-writing-space:focus-within .studio-insertion-row,
+/* A block's own toolbar is not a writing position. Revealing the row while
+   one of its controls takes focus would place the row under the pointer
+   between press and release, and the release would land on the row. */
+.studio-writing-space:focus-within:not(:has(.studio-widget-toolbar :focus))
+  .studio-insertion-row,
 .studio-writing-space:has(.studio-widget-frames[data-widget-active])
   .studio-insertion-row,
 .studio-insertion-row:has(:popover-open),

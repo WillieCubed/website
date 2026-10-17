@@ -21,7 +21,7 @@ unit and browser tests; live tests provide additional coverage when needed.
 | --------------------- | -------------------------------------------------------------------- | ----------------------- | ---------------------------------------------------- |
 | Unit                  | Does this function or module handle its inputs correctly?            | `tests/unit/`           | `pnpm test`, locally and in CI                       |
 | Integration           | Do these modules work together against a real test database?         | `tests/integration/`    | Explicitly, with the isolated database configuration |
-| Website end-to-end    | Can someone navigate and use the built website?                      | `tests/e2e/site/`       | `pnpm test:e2e`, locally and in the CI browser job   |
+| Website end-to-end    | Can someone navigate and use the built website?                      | `tests/e2e/site/`       | `pnpm test:e2e`, locally and in CI                   |
 | Publishing end-to-end | Does publishing work through the website and real external services? | `tests/e2e/publishing/` | Explicitly, with isolated accounts and services      |
 
 The browser suite also checks route responses, feeds, discovery documents,

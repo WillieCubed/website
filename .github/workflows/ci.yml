@@ -1,12 +1,13 @@
-# Runs on every pull request and on every merge group, so main only ever
-# receives commits that pass the same checks as `pnpm check`.
+# Runs on pull requests, merge groups, and pushes to main, so main only ever
+# receives commits that pass the same checks as `pnpm check`. Pushes to other
+# branches are left to their pull request, so each run happens once.
 name: CI
 
 on:
   pull_request:
   merge_group:
   push:
-    branches: ['**']
+    branches: [main]
 
 permissions:
   contents: read
@@ -16,24 +17,13 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  content:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - uses: pnpm/action-setup@v6
-        with:
-          cache: true
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm content:check
-
+  # `pnpm build` runs `content:check` in its prebuild step, so content
+  # problems fail here without a job of their own. The browser smoke tests
+  # and axe checks reuse that build through the browser suite's production
+  # server configuration.
   ci:
-    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
@@ -51,29 +41,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
-
-  # Browser smoke tests and axe checks against a production build started
-  # locally using the browser suite's production server configuration.
-  # A separate job so the required `ci` check is not slowed, and not
-  # required itself yet.
-  smoke:
-    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-
-      - uses: pnpm/action-setup@v6
-        with:
-          cache: true
-
-      - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm build
       - run: pnpm test:e2e
 
       - uses: actions/upload-artifact@v7
@@ -83,8 +51,10 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
+  # Times its own OpenNext build and serves it with Wrangler, so it cannot
+  # reuse the Next.js build above.
   metrics:
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

@@ -3,10 +3,7 @@
   --button-ink: var(--color-ink);
   --control-fill: var(--button-fill);
   --control-ink: var(--button-ink);
-  --control-rest-radius: var(--shape-full, 999px);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  --control-rest-radius: calc(var(--control-target) / 2);
   gap: var(--spacing-sm);
   min-height: var(--control-target);
   padding: var(--spacing-sm) var(--spacing-lg);

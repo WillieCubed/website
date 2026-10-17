@@ -86,7 +86,7 @@
     height: var(--control-target-small);
     min-height: var(--control-target-small);
     padding: 0 var(--spacing-sm);
-    --control-rest-radius: var(--shape-full);
+    --control-rest-radius: calc(var(--control-target) / 2);
   }
   .studio-editor .studio-insertion-row > button > svg {
     width: var(--spacing-lg);

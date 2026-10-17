@@ -128,9 +128,9 @@
 @media (forced-colors: active) {
   .music-prototype
     :is(.ms-playlist, .ms-feature-option, .mp-check):has(
-      .mp-selection-control input:checked
+      .mp-selection-control input:focus-visible
     ) {
-    outline: 2px solid Highlight;
+    outline-color: Highlight;
   }
   .mp-selection-control:has(input:checked) .mp-selection-state {
     forced-color-adjust: none;

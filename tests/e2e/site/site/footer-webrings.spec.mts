@@ -63,7 +63,7 @@ test('the open dock keeps all six ring links available while tabbing', async ({
   await expect
     .poll(() =>
       page
-        .locator('.site-footer__row')
+        .locator('[data-footer-contact]')
         .evaluate((row) => innerHeight - row.getBoundingClientRect().bottom)
     )
     .toBeCloseTo(16, 0);

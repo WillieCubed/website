@@ -91,6 +91,49 @@ async function writingAction(
     })
     .click();
 }
+test('a short press visibly changes a rounded action before release', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/studio');
+  const action = page.getByRole('button', { name: 'New writing', exact: true });
+  await expect(action).toBeEnabled();
+  const box = (await action.boundingBox())!;
+  await action.hover();
+  await page.mouse.down();
+  try {
+    const sample = await action.evaluate(async (element) => {
+      await new Promise(requestAnimationFrame);
+      const shapes = element
+        .getAnimations()
+        .filter(
+          (animation) =>
+            animation instanceof CSSTransition &&
+            animation.transitionProperty.includes('radius')
+        );
+      for (const shape of shapes) {
+        shape.pause();
+        shape.currentTime = 60;
+      }
+      return {
+        count: shapes.length,
+        radius: parseFloat(getComputedStyle(element).borderTopLeftRadius),
+      };
+    });
+    expect(sample.count).toBeGreaterThan(0);
+    // An oversized pill radius stays visually clamped to a semicircle during
+    // a short tap, despite the computed radius already interpolating.
+    expect(sample.radius).toBeLessThan(box.height / 2);
+    expect(await action.boundingBox()).toEqual(box);
+  } finally {
+    await action.evaluate((element) =>
+      element.getAnimations().forEach((animation) => animation.play())
+    );
+    await page.mouse.move(0, 0);
+    await page.mouse.up();
+  }
+});
+
 test('the writing workspace keeps its tonal surfaces and editing controls', async ({
   page,
   request,

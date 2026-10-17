@@ -19,6 +19,7 @@ import {
 import MusicExperience from './MusicExperience';
 import MusicRevisionHistory from './MusicRevisionHistory';
 import { adminCollectionView } from './music-admin-collection';
+import './music-admin.css';
 import { canPublishMusic } from './music-draft-guards';
 import { useMusicAdminDraft } from './useMusicAdminDraft';
 import { useMusicInitialLoad } from './useMusicInitialLoad';

@@ -56,7 +56,7 @@
     "reason": "Optical spacing of the temperature unit glyph at the compact text scale."
   },
   {
-    "file": "components/music/music-experience.css",
+    "file": "components/music/music-admin.css",
     "selector": ".music-admin-notices > p[role='status']",
     "property": "margin",
     "value": "-1px",

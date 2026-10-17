@@ -7,8 +7,8 @@ type TargetBounds = Pick<
 
 function expectUsableTargets(targets: TargetBounds[], panel: TargetBounds) {
   for (const [index, target] of targets.entries()) {
-    expect(target.width).toBe(48);
-    expect(target.height).toBe(48);
+    expect(target.width).toBe(44);
+    expect(target.height).toBe(44);
     expect(target.left).toBeGreaterThanOrEqual(panel.left);
     expect(target.right).toBeLessThanOrEqual(panel.right);
     for (const previous of targets.slice(0, index)) {
@@ -83,6 +83,7 @@ async function expectFooterTouchTargets(
         return [
           {
             label: link.getAttribute('aria-label') ?? link.textContent,
+            minimum: link.classList.contains('site-webring__link') ? 44 : 48,
             bounds: r.toJSON(),
             edgeHits: [
               [r.left + 2, r.top + r.height / 2],
@@ -96,8 +97,10 @@ async function expectFooterTouchTargets(
     );
   for (const target of targets) {
     const message = `${width}px ${target.label}`;
-    expect(target.bounds.width, message).toBeGreaterThanOrEqual(48);
-    expect(target.bounds.height, message).toBeGreaterThanOrEqual(48);
+    expect(target.bounds.width, message).toBeGreaterThanOrEqual(target.minimum);
+    expect(target.bounds.height, message).toBeGreaterThanOrEqual(
+      target.minimum
+    );
     expect(target.bounds.left, message).toBeGreaterThanOrEqual(footer.left);
     expect(target.bounds.right, message).toBeLessThanOrEqual(footer.right);
     expect(target.edgeHits, `${message} native padding accepts input`).toEqual(
@@ -427,8 +430,8 @@ for (const width of [390, 1440]) {
     await expect(surface).toHaveCount(1);
     const box = (await link.boundingBox())!;
     const visual = (await surface.boundingBox())!;
-    expect(box.width).toBe(48);
-    expect(box.height).toBe(48);
+    expect(box.width).toBe(44);
+    expect(box.height).toBe(44);
     expect(visual.width).toBe(32);
     expect(visual.height).toBe(32);
     await expect(page.locator('.site-webrings')).toHaveCSS(
@@ -488,7 +491,7 @@ test('the invisible padding around a compact webring remains a native touch targ
       name: 'Next site in the IndieWeb Webring',
       exact: true,
     });
-    await link.tap({ position: { x: 2, y: 24 } });
+    await link.tap({ position: { x: 2, y: 22 } });
     await expect(page).toHaveURL(destination);
   } finally {
     await context.close();

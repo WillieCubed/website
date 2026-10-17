@@ -37,10 +37,13 @@ commit action, quiet treatment for cancel, refresh, formatting and secondary
 navigation. Equal previous/next actions receive equal treatment. A navigation
 link must not look persistently selected simply because it opens a directory.
 
-Footer destinations retain at least 48px by 48px native hit targets.
-Webrings use an outlined group and tonal directory links, with
-32px visible surfaces inside those targets. Do not narrow or overlap hit
-areas to force a row to fit. The label can move above the controls; on the
+Footer contacts and Feeds retain at least 48px by 48px native hit targets.
+Webrings use 44px by 44px native targets with 32px visible surfaces, an
+outlined group, and tonal directory links. This web-specific sizing choice
+meets [WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)
+while remaining below [Material's recommended 48dp target](https://support.google.com/accessibility/android/answer/7101858?hl=en).
+Keep targets separate and their full padding clickable; do not narrow or
+overlap them to force a row to fit. The label can move above the controls; on the
 narrowest phones, status metadata receives its own line. Weather yields
 before city text when the contact row has limited room.
 

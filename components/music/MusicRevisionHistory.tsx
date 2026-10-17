@@ -21,7 +21,7 @@ export default function MusicRevisionHistory({
     revisions && (
       <Modal
         open
-        className="music-history"
+        className="music-history site-scrim"
         onDismiss={onClose}
         aria-labelledby="music-history-title"
       >

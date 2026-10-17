@@ -45,7 +45,7 @@ export default function WidgetInspector({
       <Modal
         ref={dialog}
         id={id}
-        className="studio-widget-inspector"
+        className="studio-widget-inspector site-scrim"
         data-closing={closing || undefined}
         aria-labelledby={`${id}-title`}
         onDismiss={onDismiss}

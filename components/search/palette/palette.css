@@ -37,8 +37,9 @@
 }
 
 /* The card */
-.palette::backdrop {
-  background: color-mix(in srgb, var(--color-scrim) 32%, transparent);
+.palette {
+  --scrim-tint: 32%;
+  --scrim-filter: none;
 }
 
 /* The icon sits beside both lines when there is a second one, and centred

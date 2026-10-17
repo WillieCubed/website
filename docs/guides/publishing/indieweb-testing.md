@@ -174,14 +174,14 @@ Use independent clients when their authentication and browser policy permit it.
 Complete normal S256 IndieAuth consent through the current owner Access path;
 a manually seeded token does not establish that authorization. Keep write cases
 on the isolated publication path and revoke test credentials afterward. The
-[September record](../../evidence/publishing/verification-2026-09-23.md)
+[September record](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/publishing/verification-2026-09-23.md)
 describes earlier client results, not a fresh test of the migrated runtime.
 
 ## Retain results
 
 Record the revision, date, origin, actual requests and outside observations,
 skipped or blocked cases, and cleanup. The
-[September follow-up](../../evidence/publishing/verification-2026-09-23-followup.md)
+[September follow-up](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/publishing/verification-2026-09-23-followup.md)
 shows how isolated publication and fixes were recorded. Preserve the historical
 provider and runtime in such evidence; a Vercel receipt does not become Cloudflare
 acceptance because the same route now runs on a Worker.

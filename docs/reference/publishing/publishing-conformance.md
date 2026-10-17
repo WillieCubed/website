@@ -57,25 +57,25 @@ one writing. Subscription and recommendation records belong to the acting
 visitor. The matrix follows those responsibilities, with external results from
 the recorded acceptance runs.
 
-| Requirement or capability                                                       | Classification                                | Implementation and evidence                                                                                                                                  | External result                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Publication `url`, `name`; document `site`, `title`, `publishedAt`              | Required                                      | Existing identity and stable TID algorithm; strict schema validation before writes                                                                           | Real PDS lifecycle passes; restoration retains the same URI/CID                                                                                                                                                                                         |
-| Optional publication description, icon, theme                                   | Optional, supported                           | Existing site configuration; signature/MIME/size checks; square icon at least 256px; RGB/RGBA schemas                                                        | Real PDS field comparisons pass; production publication HTTP/PDS agreement passes                                                                                                                                                                       |
-| Publication labels and discovery preference                                     | Optional, supported                           | `ATPROTO_PUBLICATION_SETTINGS` supplies self-labels and `preferences.showInDiscover`; omission uses schema default and preserves existing preferences        | Real PDS extension round trips, omission and explicit removal pass                                                                                                                                                                                      |
-| Document path, description, tags, update date, cover, readable text             | Optional, supported                           | Writing frontmatter and AST extraction retain code, lists, tables, quotations, and media descriptions; byte and grapheme limits checked                      | Real PDS text/media comparison and field-limit checks pass                                                                                                                                                                                              |
-| Contributors, self-labels, typed content, typed links, Bluesky strong reference | Optional, supported                           | `atproto` frontmatter; known union schemas validated; other valid `$type` payloads retained; omission preserves, `null` removes                              | Real PDS extension round trips, omission and explicit removal pass                                                                                                                                                                                      |
-| Publication and document public verification                                    | Required for verified discovery/social writes | Well-known publication URI and both head links; target verifier requires exact HTTP/PDS agreement                                                            | Independent Standard.site validator passes all 16 checks on the real isolated document; exact parent cleanup passed                                                                                                                                     |
-| Subscription/recommendation creation, recognition and undo                      | Optional, supported                           | Confidential OAuth; server tokens; durable locks; recognizes and removes matching records from other clients                                                 | Eighteen real API checks pass, including subscriptions, recommendations, foreign-client recognition, concurrent actions and undo; exact graph cleanup passes                                                                                            |
-| Refresh, cancellation, callback replay, browser isolation, logout               | Required for implemented OAuth                | Five acceptance PostgreSQL integration checks pass, including refresh across instances                                                                       | Normal consent, two-process refresh, cancellation, expiry, callback binding/replay, isolation, five UI failure checks and logout pass; representative final craft review passes                                                                         |
-| Explicit Bluesky copies                                                         | Optional, supported                           | Per-writing intent; deterministic document TID; Standard document first; associated document/publication strong refs; retry recovery; immutable announcement | Eleven [real PDS/AppView lifecycle checks](../../evidence/bluesky-live-20261009.json) pass, including concurrent first publication, retry/manual-copy deduplication and unpublish preservation; hosted permalink and source-association proof also pass |
-| Native replies, quotes, likes and reposts                                       | Optional, supported                           | Public AppView; minute cache; source identity, threading, media and moderation; independent from verified Webmention storage                                 | Eight hosted checks pass for real replies, media, quotes, reactions and edit/hide/delete refresh; native playback and combined IndieWeb responses pass                                                                                                  |
+| Requirement or capability                                                       | Classification                                | Implementation and evidence                                                                                                                                  | External result                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Publication `url`, `name`; document `site`, `title`, `publishedAt`              | Required                                      | Existing identity and stable TID algorithm; strict schema validation before writes                                                                           | Real PDS lifecycle passes; restoration retains the same URI/CID                                                                                                                                                                                                                                                                             |
+| Optional publication description, icon, theme                                   | Optional, supported                           | Existing site configuration; signature/MIME/size checks; square icon at least 256px; RGB/RGBA schemas                                                        | Real PDS field comparisons pass; production publication HTTP/PDS agreement passes                                                                                                                                                                                                                                                           |
+| Publication labels and discovery preference                                     | Optional, supported                           | `ATPROTO_PUBLICATION_SETTINGS` supplies self-labels and `preferences.showInDiscover`; omission uses schema default and preserves existing preferences        | Real PDS extension round trips, omission and explicit removal pass                                                                                                                                                                                                                                                                          |
+| Document path, description, tags, update date, cover, readable text             | Optional, supported                           | Writing frontmatter and AST extraction retain code, lists, tables, quotations, and media descriptions; byte and grapheme limits checked                      | Real PDS text/media comparison and field-limit checks pass                                                                                                                                                                                                                                                                                  |
+| Contributors, self-labels, typed content, typed links, Bluesky strong reference | Optional, supported                           | `atproto` frontmatter; known union schemas validated; other valid `$type` payloads retained; omission preserves, `null` removes                              | Real PDS extension round trips, omission and explicit removal pass                                                                                                                                                                                                                                                                          |
+| Publication and document public verification                                    | Required for verified discovery/social writes | Well-known publication URI and both head links; target verifier requires exact HTTP/PDS agreement                                                            | Independent Standard.site validator passes all 16 checks on the real isolated document; exact parent cleanup passed                                                                                                                                                                                                                         |
+| Subscription/recommendation creation, recognition and undo                      | Optional, supported                           | Confidential OAuth; server tokens; durable locks; recognizes and removes matching records from other clients                                                 | Eighteen real API checks pass, including subscriptions, recommendations, foreign-client recognition, concurrent actions and undo; exact graph cleanup passes                                                                                                                                                                                |
+| Refresh, cancellation, callback replay, browser isolation, logout               | Required for implemented OAuth                | Five acceptance PostgreSQL integration checks pass, including refresh across instances                                                                       | Normal consent, two-process refresh, cancellation, expiry, callback binding/replay, isolation, five UI failure checks and logout pass; representative final craft review passes                                                                                                                                                             |
+| Explicit Bluesky copies                                                         | Optional, supported                           | Per-writing intent; deterministic document TID; Standard document first; associated document/publication strong refs; retry recovery; immutable announcement | Eleven [real PDS/AppView lifecycle checks](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/bluesky-live-20261009.json) pass, including concurrent first publication, retry/manual-copy deduplication and unpublish preservation; hosted permalink and source-association proof also pass |
+| Native replies, quotes, likes and reposts                                       | Optional, supported                           | Public AppView; minute cache; source identity, threading, media and moderation; independent from verified Webmention storage                                 | Eight hosted checks pass for real replies, media, quotes, reactions and edit/hide/delete refresh; native playback and combined IndieWeb responses pass                                                                                                                                                                                      |
 
 ### OAuth writes, cleanup, and visual review
 
 The social checks needed to establish more than a button changing appearance:
 a visitor had to authorize the site through their provider, the requested record
 had to appear in their account, and undo had to remove the intended records.
-The [October 9 social receipt](../../evidence/atproto-social-live-20261009.json)
+The [October 9 social receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/atproto-social-live-20261009.json)
 records that path with 18 API checks, five UI failure checks, and logout.
 
 The run covered subscriptions and recommendations, concurrent actions,
@@ -96,7 +96,7 @@ the agent did not inspect all 180 images.
 
 A response importer can return correct data without the deployed page rendering
 or playing its media. The [hosted Atmosphere
-receipt](../../evidence/atmosphere-hosted-live-20261009.json) exercises that second
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/atmosphere-hosted-live-20261009.json) exercises that second
 path: eight checks, 20 hosted captures, and four captures with approved IndieWeb
 replies on the same writing. Here, Atmosphere responses are replies and reactions
 discovered through Bluesky's public AppView, its indexed account view.
@@ -114,7 +114,7 @@ itself. A final screenshot with one actor could otherwise mean that one source
 never loaded. This receipt records the sequence needed to distinguish those
 possibilities.
 
-The [live overlap receipt](../../evidence/atproto-overlap-live-20261009.json)
+The [live overlap receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/atproto-overlap-live-20261009.json)
 records the hosted native repost before the incoming source exists. After the
 actual Webmention receiver verifies the same actor’s repost and the moderator
 approves it, that actor appears once with the retained IndieWeb source. The
@@ -128,7 +128,7 @@ text-reply equivalence or add source-provenance UI.
 An empty response list can mean that nobody responded or that discovery failed.
 The fresh Bluesky lifecycle run passed all eleven checks after importer errors
 stopped being reported as empty success. A [separate read-only error
-check](../../evidence/bluesky-response-error-20261009.json) supplied a real
+check](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/bluesky-response-error-20261009.json) supplied a real
 configured HTTPS endpoint that returned `401`. The importer retained the verified
 copy URL and marked its response result incomplete. This establishes its error
 handling, not a production AppView outage or a hosted render.
@@ -195,7 +195,7 @@ deployment. Neither alone establishes a subscriber receiving a changed feed.
 
 ### Standard.site lifecycle and owned identities
 
-The [October 8 lifecycle receipt](../../evidence/standard-site-live-20261008.json)
+The [October 8 lifecycle receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/standard-site-live-20261008.json)
 asks whether synchronizing a writing preserves the right records through change
 and recovery. Its 14 checks against the isolated PDS covered creation, edits,
 restoration to the same record address (URI) and content identifier (CID), draft
@@ -210,14 +210,14 @@ the independent document-validator result described below.
 
 The tooling owned the two acceptance accounts. Both completed normal email
 confirmation and public AppView federation checks, and final cleanup deactivated
-them. The [identity plan](../../superpowers/plans/2026-10-08-acceptance-identities.md)
+them. The [identity plan](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/superpowers/plans/2026-10-08-acceptance-identities.md)
 records ownership and cleanup. A later run needs usable isolated accounts again;
 provisioning one would still not establish website OAuth consent, a social write,
 or syndication.
 
 ### Hosted IndieWeb publishing and validators
 
-The [hosted IndieWeb receipt](../../evidence/indieweb-live-2026-10-08.json)
+The [hosted IndieWeb receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/indieweb-live-2026-10-08.json)
 follows a client from normal S256 PKCE/TOTP authorization through form,
 multipart, and JSON Micropub operations. PKCE binds code redemption to the client
 that started authorization; TOTP is the owner's authenticator code at consent.
@@ -227,8 +227,8 @@ approved media replies, and an upstream Salmention receipt.
 
 Independent Go and PHP parsers fetched the hosted page. W3C validators fetched
 hosted RSS and Atom feeds and reported zero errors and warnings. The
-[desktop](../../evidence/received-media/received-light-1440.png) and
-[390px](../../evidence/received-media/received-dark-390.png) captures show received
+[desktop](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/received-media/received-light-1440.png) and
+[390px](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/received-media/received-dark-390.png) captures show received
 image, audio, video, code, quotation, and linked PDF in context. These observations
 establish the IndieWeb response path; the Bluesky response path has its own
 hosted receipt.
@@ -253,14 +253,14 @@ of legacy token expiry also used clock-controlled checks. These establish the
 implemented boundary for those inputs, not that a credential remained idle for
 90 real days.
 
-The [independent fixture receipt](../../evidence/indieweb-independent-2026-10-08.json)
+The [independent fixture receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/indieweb-independent-2026-10-08.json)
 records five live Authorship fixtures, 23 live Webmention discovery fixtures,
 and Go/PHP/W3C checks on component and serializer output. Its feed inputs produced
 two warnings, concerning direct-input self URLs and retained BDO text-direction
 markup. That fixture result is distinct from the later zero-warning hosted feed
 result: the validators did not consume the same inputs in the same way.
 
-The [migration 009 receipt](../../evidence/indieauth-code-replay-20261008.json)
+The [migration 009 receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/indieauth-code-replay-20261008.json)
 adds eight real PostgreSQL lock checks with controlled grants. It covers both
 possible orderings of token issuance and authorization-code replay, plus
 preservation of unrelated tokens. These checks establish database behavior under
@@ -273,12 +273,12 @@ signed receipt binds the changed feed bytes to an actual subscription; a
 workflow result records that the publisher trigger completed. Retain both
 observations without extending either claim to the other.
 
-The [WebSub receipt](../../evidence/websub-rss-receipt-20261008.json) records a
+The [WebSub receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/websub-rss-receipt-20261008.json) records a
 topic-bound challenge, a 1,632-byte changed RSS body with verified SHA-256 HMAC,
 matching public feed hash and confirmed unsubscribe. The publisher was triggered
 explicitly. This proves delivery through the independent hub; it does not prove
 the automatic deployment notification workflow. The [cleanup
-receipt](../../evidence/acceptance-final-cleanup-20261008.json) records removal
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/acceptance-final-cleanup-20261008.json) records removal
 of the temporary callback, content, rows, receipt table and source alias. It
 also records restoration of acceptance protection and 22 public HTTP checks.
 Later ATProto runs must retain their own cleanup receipts for any new fixtures.
@@ -298,9 +298,9 @@ prove external responses or account writes.
 ### Independent verification and production publication boundary
 
 The [independent Standard.site
-receipt](../../evidence/standard-site-independent-20261008.json) records a real
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/standard-site-independent-20261008.json) records a real
 browser-observed validator result with 16 successful checks. Its
-[screenshot](../../evidence/screenshots/standard-site-validator-20261008.jpg)
+[screenshot](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/screenshots/standard-site-validator-20261008.jpg)
 shows the hosted writing, resolved PDS records, schema validation and matching
 publication endpoint. The browser observation matters because the capture helper accepts a supplied
 validator report without independently establishing its result. The supplied
@@ -310,7 +310,7 @@ publication, preserved foreign records and drained the required notification
 workflow. That workflow passed with `synced` on acceptance revision `9014e42`.
 
 The [read-only production
-receipt](../../evidence/production-standard-publication-20261008.json) confirms
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/production-standard-publication-20261008.json) confirms
 exact agreement between the publication endpoint and resolved PDS record. That
 inspection found zero Standard.site documents on the owner PDS, four authored
 drafts in production, and no acceptance writing. Production document and
@@ -322,12 +322,12 @@ authored draft public.
 
 The October 9 verification found migrations 005–009 on acceptance and
 production. The [production migration
-receipt](../../evidence/production-publishing-migration-20261009.json) records
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/production-publishing-migration-20261009.json) records
 atomic application of 006–009 and a ready schema. All seven original fields of
 the one legacy access-token row, including its exact expiry, remained unchanged.
 
 The [final notification and cleanup
-receipt](../../evidence/acceptance-notification-final-20261009.json) records the
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/acceptance-notification-final-20261009.json) records the
 clean acceptance revision `4d0ff1f9a76010ff429c84b9917fa6da4416297c` and fixture
 `404`. Its [push
 notification](https://github.com/WillieCubed/website/actions/runs/37919522943)
@@ -365,20 +365,20 @@ and cleanup results.
 ### Final cleanup and production observation
 
 The [final infrastructure
-cleanup](../../evidence/acceptance-infrastructure-cleanup-20261009.json) removed
+cleanup](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/acceptance-infrastructure-cleanup-20261009.json) removed
 the four owned acceptance configuration entries and publication, deactivated
 both accounts, and removed the owned Workers, tunnel and PDS container.
 
 The [focused history
-receipt](../../evidence/publishing-focused-history-20261009.json) verifies
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/publishing-focused-history-20261009.json) verifies
 twelve implementation and verification PRs landed on main with one commit each
 and successful required CI. The documentation PR records the release state
 separately.
 
 The [earlier quota
-receipt](../../evidence/production-rollout-blocked-20261009.json) retains the
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/production-rollout-blocked-20261009.json) retains the
 rejected production attempts. The [October 9 production
-receipt](../../evidence/production-publishing-live-20261009.json) records a
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/production-publishing-live-20261009.json) records a
 ready deployment of `1ba27df040ef489751d1a0be940125235ec65e82`, successful
 required notification with `atproto.status: "synced"` and 29 public checks.
 In that run, OAuth/discovery endpoints were accessible without a firewall

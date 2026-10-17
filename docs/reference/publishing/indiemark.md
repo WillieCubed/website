@@ -69,7 +69,7 @@ must publish the copy and record its exact permalink afterward.
 Micropub advertises only the configured automatic Bluesky destination. A writing
 must explicitly request that destination before the publisher creates a copy.
 The [real isolated Bluesky
-receipt](../../evidence/atmosphere-hosted-live-20261009.json) records
+receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/atmosphere-hosted-live-20261009.json) records
 source-driven publishing, copy association, real responses and playback;
 [#163](https://github.com/WillieCubed/website/issues/163) is complete.
 

@@ -91,6 +91,7 @@ test('profile targets stay unclipped while the footer opens and resizes', async 
   for (const width of [390, 840, 1440, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto('/');
+    await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
     const footer = page.locator('.site-footer');
     await expect(footer).toHaveAttribute('data-dock', '');
     await page.evaluate(() => document.fonts.ready);

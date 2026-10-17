@@ -175,7 +175,7 @@
    room for its icon as the icon comes in. While collapsed the row is words
    alone, with no gaps held for what is not there yet. */
 .site-footer[data-dock] .site-footer__profiles {
-  --profile-gap: calc(20px - var(--spacing-md) * var(--dock));
+  --profile-gap: calc(20px * (1 - var(--dock)));
   align-items: center;
   column-gap: var(--profile-gap);
 }
@@ -400,6 +400,8 @@
 .site-footer {
   --footer-space: var(--spacing-section);
   --footer-tail-gap: var(--spacing-inline);
+  --footer-link-width: var(--control-container-extra-small);
+  --footer-link-inset: calc((var(--footer-link-width) - 16px) / 2);
 }
 .site-footer__inner {
   min-height: 0;
@@ -551,7 +553,7 @@
   display: flex;
   flex-wrap: nowrap;
   gap: var(--spacing-sm);
-  margin-inline: calc(var(--footer-content-pad) - var(--spacing-lg));
+  margin-inline: calc(var(--footer-content-pad) - var(--spacing-sm));
 }
 .site-webrings__label {
   margin: 0;
@@ -570,7 +572,7 @@
   }
 }
 .site-webring {
-  --ring-target: 48px;
+  --ring-target: var(--control-container-extra-small);
   display: grid;
   grid-template-columns: repeat(3, var(--ring-target));
   align-content: center;
@@ -597,7 +599,8 @@
   --control-ink: var(--color-muted);
   --control-rest-radius: 16px;
   width: var(--ring-target);
-  height: var(--ring-target);
+  min-width: var(--ring-target);
+  height: var(--control-target-small);
   padding: 0;
   text-decoration: none;
   touch-action: manipulation;
@@ -640,6 +643,12 @@
 /* The inset consumes space inside the contact group. Tighten the utility
    gaps before truncating the city; weather yields on the smallest screens. */
 
+@container footer (max-width: 340px) {
+  .site-footer__profiles {
+    --footer-link-width: 24px;
+    --footer-link-inset: 4px;
+  }
+}
 @container footer (max-width: 320px) {
   .site-footer .microstatus-weather {
     display: none;
@@ -662,11 +671,11 @@
     white-space: nowrap;
   }
   .site-footer__profiles {
-    margin-inline-start: calc(-1 * var(--spacing-lg));
+    margin-inline-start: calc(-1 * var(--footer-link-inset));
   }
   .site-footer[data-dock] .site-footer__profiles {
     --profile-icons: 1;
-    margin-inline-start: calc(-1 * var(--spacing-lg) * var(--dock));
+    margin-inline-start: calc(-1 * var(--footer-link-inset) * var(--dock));
   }
 }
 /* The actual footer column determines when the two navigation groups fit,

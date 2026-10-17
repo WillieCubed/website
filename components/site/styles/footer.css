@@ -71,20 +71,19 @@
     gap: 40px;
   }
 }
-/* Labels yield to icons as the contact container narrows; status and feeds
-   take a second row when their combined target budget cannot fit. */
+/* Inline destinations stay together; secondary status text yields first. */
 .site-footer__row {
   container-type: inline-size;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-sm) var(--spacing-lg);
-  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  flex-wrap: nowrap;
 }
 .site-footer__profiles {
   display: flex;
   flex-wrap: nowrap;
-  gap: var(--spacing-sm);
+  gap: 0;
   flex: 0 0 auto;
   list-style: none;
   margin: 0;
@@ -245,15 +244,23 @@ body:has(header[data-column='reading'])
 
 .site-footer__profiles a {
   min-height: 48px;
-  min-width: 48px;
+  min-width: var(--footer-link-width);
   justify-content: center;
 }
 
-/* Status and feeds move together only when their actual width no longer fits. */
+/* Status can shorten inside the remaining width; the feed action stays usable. */
 .site-footer__utilities {
   display: flex;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   align-items: center;
   gap: var(--spacing-sm);
   margin-inline-start: auto;
+}
+.site-footer__utilities .microstatus,
+.site-footer__utilities .microstatus-place {
+  min-width: 0;
+}
+.site-footer__utilities > .feeds-button {
+  flex-shrink: 0;
 }

@@ -188,18 +188,6 @@
 .brand-header header[data-scrolled] :is(.site-breadcrumbs, .palette-trigger) {
   box-shadow: 0 1px 4px color-mix(in srgb, var(--color-scrim) 12%, transparent);
 }
-.brand-header
-  header:not([data-scrolled])
-  :is(.site-breadcrumbs.site-glass, .palette-trigger.site-glass) {
-  --control-fill: transparent;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  -apple-visual-effect: none;
-}
-.brand-header header:not([data-scrolled]) .site-breadcrumbs.site-glass {
-  background-color: transparent;
-}
 .brand-header .site-breadcrumbs {
   flex: 0 1 auto;
   min-height: 40px;

@@ -48,3 +48,29 @@
     -apple-visual-effect: -apple-system-glass-material;
   }
 }
+
+/* Until the brand page scrolls, its header controls sit flat on the page. */
+.brand-header
+  header:not([data-scrolled])
+  :is(.site-breadcrumbs.site-glass, .palette-trigger.site-glass) {
+  --control-fill: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  -apple-visual-effect: none;
+}
+.brand-header header:not([data-scrolled]) .site-breadcrumbs.site-glass {
+  background-color: transparent;
+}
+
+/* A modal's scrim tints and blurs the page behind it. A dialog opts in with
+   .site-scrim and may tune --scrim-tint and --scrim-blur, which its
+   ::backdrop inherits. */
+.site-scrim::backdrop {
+  background-color: color-mix(
+    in srgb,
+    var(--color-scrim) var(--scrim-tint, 30%),
+    transparent
+  );
+  backdrop-filter: blur(var(--scrim-blur, 6px));
+}

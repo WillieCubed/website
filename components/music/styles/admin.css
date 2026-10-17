@@ -77,10 +77,6 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-dialog.music-review::backdrop {
-  background: color-mix(in srgb, var(--color-scrim) 35%, transparent);
-  backdrop-filter: blur(6px);
-}
 .music-review-header,
 .music-review-body,
 .music-review-actions {
@@ -157,6 +153,7 @@ dialog.music-review::backdrop {
   padding: 0;
 }
 dialog.music-review {
+  --scrim-tint: 35%;
   margin: auto;
   border: 0;
   background: var(--color-ground);

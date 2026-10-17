@@ -83,6 +83,8 @@
 }
 
 .standard-social-dialog {
+  --scrim-tint: 28%;
+  --scrim-blur: 4px;
   width: min(420px, calc(100% - 32px));
   max-height: calc(100dvh - 32px);
   margin: auto;
@@ -109,8 +111,6 @@
 }
 
 .standard-social-dialog::backdrop {
-  background: color-mix(in srgb, var(--color-scrim) 28%, transparent);
-  backdrop-filter: blur(4px);
   opacity: 0;
   transition:
     opacity 180ms var(--ease-site),

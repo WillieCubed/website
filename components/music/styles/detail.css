@@ -4,6 +4,7 @@ dialog.music-detail {
   view-transition-group: contain;
   --music-detail-inset: 40px;
   --music-toolbar-height: 80px;
+  --scrim-tint: 35%;
   width: min(1080px, calc(100vw - 64px));
   max-width: none;
   height: min(800px, calc(100svh - 80px));
@@ -17,10 +18,6 @@ dialog.music-detail {
   overflow: hidden;
   box-shadow: 0 32px 100px -40px
     color-mix(in srgb, var(--color-scrim) 60%, transparent);
-}
-dialog.music-detail::backdrop {
-  background: color-mix(in srgb, var(--color-scrim) 35%, transparent);
-  backdrop-filter: blur(6px);
 }
 html:has(dialog.music-detail[open], dialog.music-review[open]) {
   overflow: hidden;

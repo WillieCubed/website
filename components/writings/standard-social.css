@@ -1,25 +1,25 @@
-.root {
+.standard-social-root {
   max-width: 100%;
   width: 220px;
   min-height: 48px;
 }
 
-.actions {
+.standard-social-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   min-height: 48px;
 }
 
-.action,
-.arrow,
-.close {
+.standard-social-action,
+.standard-social-arrow,
+.standard-social-close {
   --control-rest-radius: 20px;
   --control-fill: var(--color-secondary-container);
   --control-ink: var(--color-on-secondary-container);
 }
 
-.action {
+.standard-social-action {
   min-width: 168px;
   position: relative;
   gap: var(--spacing-inline);
@@ -29,46 +29,46 @@
   white-space: nowrap;
 }
 
-.action[aria-pressed='true']:not([data-retry]) {
+.standard-social-action[aria-pressed='true']:not([data-retry]) {
   --control-fill: var(--color-primary-container);
   --control-ink: var(--color-on-primary-container);
 }
 
-.actions[data-split] {
+.standard-social-actions[data-split] {
   gap: var(--control-group-gap);
 }
 
-.actions[data-split] .action {
+.standard-social-actions[data-split] .standard-social-action {
   /* Oversized outer radii would also shrink the inner corners during CSS normalization. */
   --control-rest-radius: 20px 8px 8px 20px;
   padding-inline: 16px 12px;
 }
 
-.arrow {
+.standard-social-arrow {
   position: relative;
   width: 48px;
   flex-shrink: 0;
   --control-rest-radius: 8px 20px 20px 8px;
 }
 
-.arrow:enabled[aria-expanded='true'] {
+.standard-social-arrow:enabled[aria-expanded='true'] {
   --control-rest-radius: 20px;
 }
 
-.arrow svg {
+.standard-social-arrow svg {
   transform: translateX(-1px);
   transition: transform 220ms var(--ease-site);
 }
 
-.arrow[aria-expanded='true'] svg {
+.standard-social-arrow[aria-expanded='true'] svg {
   transform: translateX(0) rotate(180deg);
 }
 
-.menu {
+.standard-social-menu {
   padding: var(--spacing-sm);
 }
 
-.signOut {
+.standard-social-sign-out {
   display: flex;
   align-items: center;
   gap: var(--spacing-inline);
@@ -82,7 +82,7 @@
   cursor: pointer;
 }
 
-.dialog {
+.standard-social-dialog {
   width: min(420px, calc(100% - 32px));
   max-height: calc(100dvh - 32px);
   margin: auto;
@@ -103,12 +103,12 @@
     overlay 220ms allow-discrete;
 }
 
-.dialog[open] {
+.standard-social-dialog[open] {
   opacity: 1;
   transform: none;
 }
 
-.dialog::backdrop {
+.standard-social-dialog::backdrop {
   background: color-mix(in srgb, var(--color-scrim) 28%, transparent);
   backdrop-filter: blur(4px);
   opacity: 0;
@@ -118,28 +118,28 @@
     overlay 220ms allow-discrete;
 }
 
-.dialog[open]::backdrop {
+.standard-social-dialog[open]::backdrop {
   opacity: 1;
 }
 
 @starting-style {
-  .dialog[open] {
+  .standard-social-dialog[open] {
     opacity: 0;
     transform: translateY(12px) scale(0.98);
   }
-  .dialog[open]::backdrop {
+  .standard-social-dialog[open]::backdrop {
     opacity: 0;
   }
 }
 
-.dialogHeading {
+.standard-social-dialog-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
 }
 
-.dialogIcon {
+.standard-social-dialog-icon {
   display: grid;
   place-items: center;
   width: 48px;
@@ -149,7 +149,7 @@
   color: var(--color-on-primary-container);
 }
 
-.close {
+.standard-social-close {
   width: 48px;
   --control-rest-radius: 24px;
   margin-right: calc(-1 * var(--spacing-md));
@@ -157,32 +157,32 @@
   --control-ink: var(--color-ink);
 }
 
-.title {
+.standard-social-title {
   font-size: 28px;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.035em;
 }
 
-.description {
+.standard-social-description {
   margin-top: 12px;
   color: var(--color-muted);
   font-size: 16px;
   line-height: 1.5;
 }
 
-.form {
+.standard-social-form {
   display: grid;
   gap: 16px;
   margin-top: 24px;
 }
 
-.label {
+.standard-social-label {
   font-size: 14px;
   font-weight: 600;
 }
 
-.input {
+.standard-social-input {
   display: block;
   width: 100%;
   margin-top: 8px;
@@ -195,12 +195,12 @@
   font-weight: 400;
 }
 
-.input::placeholder {
+.standard-social-input::placeholder {
   color: var(--color-muted);
   opacity: 0.75;
 }
 
-.continue {
+.standard-social-continue {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -214,7 +214,7 @@
   cursor: pointer;
 }
 
-.fieldError {
+.standard-social-field-error {
   display: block;
   margin-top: 8px;
   color: var(--color-error);
@@ -223,40 +223,41 @@
   line-height: 1.4;
 }
 
-.input:focus-visible {
+.standard-social-input:focus-visible {
   outline: var(--control-focus-width) solid var(--color-primary);
   outline-offset: var(--control-focus-offset);
 }
 
-.input[aria-invalid='true'] {
+.standard-social-input[aria-invalid='true'] {
   border-color: var(--color-error);
 }
 
 @media (max-width: 480px) {
-  .dialog {
+  .standard-social-dialog {
     padding: 24px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .arrow svg,
-  .dialog,
-  .dialog::backdrop {
+  .standard-social-arrow svg,
+  .standard-social-dialog,
+  .standard-social-dialog::backdrop {
     transition: none;
   }
 }
 
-.compact .action {
+.standard-social-compact .standard-social-action {
   width: 48px;
   padding-inline: 0;
 }
 
-.compact .action[aria-pressed='false']:not([data-retry]):enabled {
+.standard-social-compact
+  .standard-social-action[aria-pressed='false']:not([data-retry]):enabled {
   --control-ink: var(--color-on-surface-variant);
   --control-fill: var(--color-surface-container-highest);
 }
 
-.compact .action > span:last-child {
+.standard-social-compact .standard-social-action > span:last-child {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -265,34 +266,36 @@
   white-space: nowrap;
 }
 
-.compact .action[aria-pressed='true']:not([data-retry]) > svg {
+.standard-social-compact
+  .standard-social-action[aria-pressed='true']:not([data-retry])
+  > svg {
   fill: currentColor;
 }
 
-.action > svg {
+.standard-social-action > svg {
   width: 24px;
   height: 24px;
   flex-shrink: 0;
 }
-.compact {
+.standard-social-compact {
   width: 48px;
 }
-.compact .action {
+.standard-social-compact .standard-social-action {
   min-width: 48px;
 }
 
 /* Narrow headers retain one stable icon action and its optional account menu. */
 @media (max-width: 480px) {
-  .root {
+  .standard-social-root {
     width: 98px;
   }
-  .action,
-  .actions[data-split] .action {
+  .standard-social-action,
+  .standard-social-actions[data-split] .standard-social-action {
     width: 48px;
     min-width: 48px;
     padding-inline: 0;
   }
-  .action > span:last-child {
+  .standard-social-action > span:last-child {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -300,7 +303,7 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  .compact {
+  .standard-social-compact {
     width: 48px;
   }
 }

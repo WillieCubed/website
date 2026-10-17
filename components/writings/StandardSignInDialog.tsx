@@ -7,13 +7,13 @@ import Modal from '@/components/site/Modal';
 
 import { fetchWithDeadline } from '@/lib/http/fetch';
 
-import styles from './StandardSocialControls.module.css';
 import {
   type SignInError,
   type SocialAction,
   signInFailure,
   socialActions,
 } from './standard-social';
+import './standard-social.css';
 
 interface Props {
   action: SocialAction;
@@ -116,12 +116,12 @@ function SignInForm({ action, slug, id, login }: SignInFormProps) {
       method="post"
       action="/api/atproto/login"
       onSubmit={submit}
-      className={styles.form}
+      className="standard-social-form"
     >
       <input type="hidden" name="action" value={action} />
       {slug && <input type="hidden" name="slug" value={slug} />}
       <div>
-        <label className={styles.label} htmlFor={id + '-handle'}>
+        <label className="standard-social-label" htmlFor={id + '-handle'}>
           Your handle
         </label>
         <input
@@ -135,12 +135,16 @@ function SignInForm({ action, slug, id, login }: SignInFormProps) {
           spellCheck={false}
           autoComplete="username"
           placeholder="you.bsky.social"
-          className={styles.input}
+          className="standard-social-input"
           aria-invalid={Boolean(error.field)}
           aria-describedby={error.field ? id + '-error' : undefined}
         />
         {error.field && (
-          <span id={id + '-error'} role="alert" className={styles.fieldError}>
+          <span
+            id={id + '-error'}
+            role="alert"
+            className="standard-social-field-error"
+          >
             {error.field}
           </span>
         )}
@@ -154,7 +158,7 @@ function SignInForm({ action, slug, id, login }: SignInFormProps) {
         type="submit"
         disabled={pending}
         aria-busy={pending}
-        className={`site-control ${styles.continue}`}
+        className="site-control standard-social-continue"
         title={error.service}
         aria-describedby={error.service ? id + '-login-error' : undefined}
       >
@@ -181,28 +185,28 @@ export default function StandardSignInDialog({
       open={open}
       initialFocus='input[name="handle"]'
       id={id}
-      className={styles.dialog}
+      className="standard-social-dialog"
       aria-labelledby={id + '-title'}
       aria-describedby={id + '-description'}
       onDismiss={login.dismiss}
     >
-      <div className={styles.dialogHeading}>
-        <span className={styles.dialogIcon}>
+      <div className="standard-social-dialog-heading">
+        <span className="standard-social-dialog-icon">
           <Icon name={copy.icon} size={23} />
         </span>
         <button
           type="button"
-          className={`site-control ${styles.close}`}
+          className="site-control standard-social-close"
           aria-label="Cancel"
           onClick={login.dismiss}
         >
           <Icon name="x" size={20} />
         </button>
       </div>
-      <h2 id={id + '-title'} className={styles.title}>
+      <h2 id={id + '-title'} className="standard-social-title">
         {copy.heading}
       </h2>
-      <p id={id + '-description'} className={styles.description}>
+      <p id={id + '-description'} className="standard-social-description">
         {copy.description}
       </p>
       <SignInForm action={action} slug={slug} id={id} login={login} />

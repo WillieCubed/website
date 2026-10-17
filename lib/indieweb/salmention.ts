@@ -38,7 +38,7 @@ export interface SalmentionTiming {
  * The route sends right after revalidating the post, so the first look
  * usually finds the reply; the later ones cover a slow render.
  */
-export const ROUTE_SALMENTION_TIMING: SalmentionTiming = {
+const ROUTE_SALMENTION_TIMING: SalmentionTiming = {
   attempts: 3,
   delayMs: 10_000,
 };
@@ -73,7 +73,7 @@ export interface SalmentionDeps {
   sleep?: (ms: number) => Promise<void>;
 }
 
-export type SalmentionOutcome =
+type SalmentionOutcome =
   | 'sent'
   /** Only a reply starts a salmention. */
   | 'not-a-reply'

@@ -45,18 +45,18 @@ export interface UploadedStudioAsset {
   url: string;
 }
 
-export interface PublicationCommitInput {
+interface PublicationCommitInput {
   tree: string;
   parent: string;
 }
 
-export interface PublicationArtifact {
+interface PublicationArtifact {
   path: string;
   sha: string;
   baseSha: string | null;
 }
 
-export interface PublicationRebaseInput extends PublicationCommitInput {
+interface PublicationRebaseInput extends PublicationCommitInput {
   before: string;
   after?: string;
 }

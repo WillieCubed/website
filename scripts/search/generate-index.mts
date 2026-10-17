@@ -6,7 +6,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { generateSearchIndex } from '../../lib/search/index';
+import { collectSearchDocuments } from '../../lib/search/collect';
 import { buildPagefindIndex } from '../../lib/search/pagefind';
 import { isMain } from '../shared/command.mts';
 
@@ -14,7 +14,7 @@ export async function runSearchIndex() {
   async function main() {
     console.log('Generating search index...');
 
-    const index = await generateSearchIndex();
+    const index = await collectSearchDocuments();
 
     const outputPath = join(process.cwd(), 'public', 'search-index.json');
     writeFileSync(outputPath, JSON.stringify(index, null, 2));

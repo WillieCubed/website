@@ -6,7 +6,7 @@ import { visit } from 'unist-util-visit';
  * Handles that resolve somewhere other than the default Instagram profile.
  * Keys are lowercase without the leading @.
  */
-export const MENTION_TARGETS: Record<string, string> = {
+const MENTION_TARGETS: Record<string, string> = {
   thewilliediaries: 'https://instagram.com/thewilliediaries',
   williecubed: 'https://instagram.com/williecubed',
 };

@@ -12,7 +12,7 @@ import type { Readout } from './types';
  */
 
 /** The path where the MCP server answers. */
-export const MCP_PATH = '/api/mcp';
+const MCP_PATH = '/api/mcp';
 
 /**
  * The line a status would carry over HTTP/1.1. HTTP/2 sends no reason
@@ -178,7 +178,7 @@ export async function securityTxt(): Promise<Readout> {
 }
 
 /** A client config for the MCP server, as most desktop clients read it. */
-export function mcpConfig(): string {
+function mcpConfig(): string {
   return JSON.stringify(
     {
       mcpServers: {

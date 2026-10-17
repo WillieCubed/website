@@ -106,9 +106,8 @@ people:
 
 The page shows each person as a chip after “With.” Its `<a class="u-category
 h-card" href="url">name</a>` markup identifies both the category relationship
-and the person to IndieWeb readers. The publishing sender, `pnpm
-webmentions:send`, and `/api/webmention/send` and `/api/webmention/send-all`
-send a Webmention to the person's URL, allowing a site that accepts these
+and the person to IndieWeb readers. The publishing sender and `pnpm
+webmentions:send` send a Webmention to the person's URL, allowing a site that accepts these
 notifications to show that it was tagged.
 
 Adding a person to a previously sent post causes the next publishing send to

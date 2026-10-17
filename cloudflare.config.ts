@@ -82,7 +82,6 @@ export default defineConfig((context) => {
         ASSETS: bindings.assets(),
         ATPROTO_OAUTH_JWK: bindings.secret(),
         ATPROTO_OAUTH_STORAGE_KEY: bindings.secret(),
-        WEBMENTION_SECRET: bindings.secret(),
         WEBMENTION_MODERATION_SECRET: bindings.secret(),
         INDIEAUTH_INTROSPECTION_SECRET: bindings.secret(),
         INDIEWEB_NOTIFY_SECRET: bindings.secret(),

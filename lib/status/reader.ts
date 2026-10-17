@@ -14,7 +14,7 @@ const cachedLocation = unstable_cache(
   { tags: ['public-status-location'], revalidate: 3 * 60 * 60 }
 );
 
-export async function readLocation() {
+async function readLocation() {
   if (!hasDatabase()) return defaultLocation;
   return cachedLocation();
 }

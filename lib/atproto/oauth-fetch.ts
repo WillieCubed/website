@@ -10,12 +10,12 @@ import {
 
 let dispatcher: Agent | undefined;
 
-export interface OAuthTransportRequest extends RequestInit {
+interface OAuthTransportRequest extends RequestInit {
   dispatcher?: Agent;
   duplex: 'half';
 }
 
-export interface OAuthTransportResponse {
+interface OAuthTransportResponse {
   status: number;
   headers: HeadersInit;
   body: ReadableStream<Uint8Array> | null;

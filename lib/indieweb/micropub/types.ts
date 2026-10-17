@@ -13,7 +13,7 @@ export type MicropubPostType =
 
 export type MicropubRsvpStatus = 'yes' | 'no' | 'maybe' | 'interested';
 
-export interface MicropubPostTypeConfig {
+interface MicropubPostTypeConfig {
   type: MicropubPostType;
   name: string;
 }

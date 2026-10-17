@@ -10,7 +10,7 @@ import { OWNER_KEYS } from './owners';
  * Unknown keys fail the build so a misspelled field cannot silently disappear.
  */
 
-export const ProjectStatusSchema = z.enum([
+const ProjectStatusSchema = z.enum([
   'planned',
   'active',
   'paused',
@@ -21,8 +21,7 @@ export const ProjectStatusSchema = z.enum([
 ]);
 export type ProjectStatus = z.infer<typeof ProjectStatusSchema>;
 
-export const VisibilitySchema = z.enum(['public', 'facts', 'hidden']);
-export type Visibility = z.infer<typeof VisibilitySchema>;
+const VisibilitySchema = z.enum(['public', 'facts', 'hidden']);
 
 const HttpsSchema = z
   .string()
@@ -30,7 +29,7 @@ const HttpsSchema = z
   .regex(/^https:\/\//);
 const SlugSchema = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
 
-export const ProjectMediaSchema = z
+const ProjectMediaSchema = z
   .discriminatedUnion('kind', [
     z.strictObject({
       kind: z.literal('image'),
@@ -94,7 +93,7 @@ export const ProjectFrontmatterSchema = z.strictObject({
     .default([]),
   draft: z.boolean().default(false),
 });
-export type ProjectFrontmatter = z.infer<typeof ProjectFrontmatterSchema>;
+type ProjectFrontmatter = z.infer<typeof ProjectFrontmatterSchema>;
 
 export interface Project extends Omit<ProjectFrontmatter, 'status'> {
   /** The file name without `.mdx`, and the URL segment. */

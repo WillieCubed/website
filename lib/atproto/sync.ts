@@ -32,7 +32,7 @@ import {
 } from './records';
 import type { DesiredRecord, LocalBlob, RepoClient } from './types';
 
-export interface SyncWriteSummary {
+interface SyncWriteSummary {
   action: 'create' | 'update' | 'delete';
   uri: string;
 }

@@ -22,7 +22,6 @@ export async function prepareCloudflareSecrets() {
   const secrets = {
     ATPROTO_OAUTH_JWK: JSON.stringify(signingKey),
     ATPROTO_OAUTH_STORAGE_KEY: randomBytes(32).toString('base64'),
-    WEBMENTION_SECRET: hex(),
     WEBMENTION_MODERATION_SECRET: hex(),
     INDIEAUTH_INTROSPECTION_SECRET: hex(),
     INDIEWEB_NOTIFY_SECRET: hex(),

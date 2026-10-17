@@ -90,7 +90,7 @@ async function readForm(request: Request): Promise<URLSearchParams | null> {
  * does. Every browser that submits the form sends one of the two headers, so
  * a post with neither is refused rather than trusted.
  */
-export function isSameOriginPost(request: Request): boolean {
+function isSameOriginPost(request: Request): boolean {
   const site = request.headers.get('sec-fetch-site');
   if (site) return site === 'same-origin';
   const origin = request.headers.get('origin');

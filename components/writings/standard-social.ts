@@ -71,7 +71,7 @@ export function actionFailure(
   return { message: copy.failure, retry: 'action' };
 }
 
-export function unavailableFeedback(action: SocialAction): SocialFeedback {
+function unavailableFeedback(action: SocialAction): SocialFeedback {
   return { message: socialActions[action].unavailable, retry: null };
 }
 

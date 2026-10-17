@@ -7,8 +7,7 @@ import { SpotifyClient } from './client';
 import { sealMusic, spotifyClientId, unsealMusic } from './credentials';
 import { exchangeToken } from './tokens';
 
-export const callbackUrl = () =>
-  `${studioOrigin()}/api/studio/music/spotify/callback`;
+const callbackUrl = () => `${studioOrigin()}/api/studio/music/spotify/callback`;
 export async function beginSpotify(ownerEmail: string) {
   const state = randomBytes(32).toString('base64url'),
     verifier = randomBytes(64).toString('base64url');

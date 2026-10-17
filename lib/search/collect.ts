@@ -130,7 +130,7 @@ function byNewest(a: SearchableItem, b: SearchableItem): number {
   return new Date(b.published).getTime() - new Date(a.published).getTime();
 }
 
-export function projectToItem(project: Project): SearchableItem {
+function projectToItem(project: Project): SearchableItem {
   return {
     slug: `projects/${project.slug}`,
     path: project.href,

@@ -1,4 +1,4 @@
-export const IMAGE_LAYOUTS = [
+const IMAGE_LAYOUTS = [
   { value: 'default', label: 'Text width' },
   { value: 'wide', label: 'Wide' },
   { value: 'full', label: 'Full bleed' },

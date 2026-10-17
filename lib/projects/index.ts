@@ -20,7 +20,3 @@ export async function getPublishedProjects(): Promise<Project[]> {
 export async function getProject(slug: string): Promise<Project | null> {
   return (await getProjects()).find((project) => project.slug === slug) ?? null;
 }
-
-export async function getProjectSlugs(): Promise<string[]> {
-  return (await getProjects()).map((project) => project.slug);
-}

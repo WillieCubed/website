@@ -16,7 +16,7 @@ function equalSecret(actual: string, expected: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export interface AtprotoNotificationResult {
+interface AtprotoNotificationResult {
   status: SyncReport['status'] | 'failed';
   reason?: string;
 }

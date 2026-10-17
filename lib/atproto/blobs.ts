@@ -7,7 +7,7 @@ import { fetchPublicBytes } from '@/lib/indieweb/public-fetch';
 import type { LocalBlob } from './types';
 
 /** The lexicons' limit for icons and covers, and Bluesky's for thumbs. */
-export const MAX_BLOB_BYTES = 1_000_000;
+const MAX_BLOB_BYTES = 1_000_000;
 const RASTER = /^image\/(png|jpeg|webp|gif)$/;
 
 /**

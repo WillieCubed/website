@@ -70,10 +70,6 @@ export function replyTargetsOf(writing: WritingData): WritingTarget[] {
   return targets;
 }
 
-export function replyTargetOf(writing: WritingData): WritingTarget | null {
-  return replyTargetsOf(writing)[0] ?? null;
-}
-
 const RSVP_WORD: Record<RSVPStatus, string> = {
   yes: 'Going',
   no: 'Not going',

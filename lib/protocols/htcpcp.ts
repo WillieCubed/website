@@ -4,7 +4,7 @@ import { plainPage } from '@/lib/http/plain-page';
  * The additions this pot keeps: the milk types RFC 2324 lists in section
  * 2.2.2.1. Anything else in `Accept-Additions` is a 406.
  */
-export const TEA_ADDITIONS = [
+const TEA_ADDITIONS = [
   'Cream',
   'Half-and-half',
   'Whole-milk',

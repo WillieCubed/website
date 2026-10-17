@@ -52,12 +52,12 @@ export const LVBT_DEADLINE = '2027-02-01';
 const LVBT_DEADLINE_CAPTION =
   'days until the 2027 session decides whether fifteen bus routes survive';
 
-export interface DetailLink {
+interface DetailLink {
   label: string;
   href: string;
 }
 
-export interface DetailListItem {
+interface DetailListItem {
   title: string;
   text: string;
   /** Another entry the item opens in place, such as a studio product. */
@@ -99,7 +99,7 @@ export interface Product {
   detail: Detail & { media: Extract<DetailMedia, { kind: 'image' }> };
 }
 
-export type TileBody =
+type TileBody =
   | {
       kind: 'lead';
       title: string;
@@ -462,7 +462,7 @@ interface TileEntryBase {
   size: string;
 }
 
-export interface VentureTile extends TileEntryBase {
+interface VentureTile extends TileEntryBase {
   kind: 'venture';
   venture: Venture;
 }

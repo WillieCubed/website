@@ -6,7 +6,7 @@ import { SKIP, visit } from 'unist-util-visit';
  * The words that lead to the teapot, and where. Both targets are route
  * handlers speaking HTCPCP, not pages.
  */
-export const BREW_TARGETS: Record<string, string> = {
+const BREW_TARGETS: Record<string, string> = {
   coffee: '/coffee',
   tea: '/tea',
 };
@@ -44,7 +44,7 @@ interface JsxNode {
 }
 
 /** The MDX component used to render a brew word as a link. */
-export const BREW_COMPONENT = 'BrewLink';
+const BREW_COMPONENT = 'BrewLink';
 
 const brewElement = (word: string, href: string) => ({
   type: 'mdxJsxTextElement' as const,

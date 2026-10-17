@@ -67,7 +67,7 @@ export type CommandKind =
   | 'egg';
 
 /** What a command's `run` can ask of the palette. */
-export interface CommandContext {
+interface CommandContext {
   /** Closes the palette, returning focus to whatever opened it. */
   close: () => void;
 }

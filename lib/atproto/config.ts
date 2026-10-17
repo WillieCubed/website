@@ -10,7 +10,7 @@ import { site } from '../site/identity';
  */
 
 /** The account every record lives in: the DID /.well-known/atproto-did serves. */
-export const ATPROTO_DID = site.author.atprotoDid as Did | undefined;
+const ATPROTO_DID = site.author.atprotoDid as Did | undefined;
 
 export const PUBLICATION_COLLECTION = 'site.standard.publication';
 export const DOCUMENT_COLLECTION = 'site.standard.document';

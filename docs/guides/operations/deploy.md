@@ -125,7 +125,7 @@ command arguments.
 
 - OAuth and AT Protocol: `ATPROTO_OAUTH_JWK`, `ATPROTO_OAUTH_STORAGE_KEY`,
   `ATPROTO_APP_PASSWORD`.
-- Webmentions, authorization, and notifications: `WEBMENTION_SECRET`,
+- Webmentions, authorization, and notifications:
   `WEBMENTION_MODERATION_SECRET`, `INDIEAUTH_INTROSPECTION_SECRET`,
   `INDIEWEB_NOTIFY_SECRET`.
 - Owner access: `OWNER_ACCESS_ISSUER`, `OWNER_ACCESS_AUDIENCE`,

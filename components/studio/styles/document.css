@@ -6,15 +6,6 @@
   overflow: hidden;
   clip-path: inset(50%);
 }
-.studio-mark {
-  display: inline-flex;
-  padding: var(--spacing-sm);
-  flex-shrink: 0;
-}
-.studio-mark img {
-  width: 28px;
-  height: 28px;
-}
 /* The private editor is the site's reading page with editable text. These
    rules cover editing affordances; typography and navigation stay native. */
 .studio-editor {

@@ -1,10 +1,7 @@
 import { createHash } from 'crypto';
 
 import { sql } from '@/lib/db/postgres';
-import type {
-  OutgoingWebmentionRecord,
-  PendingOutgoingWebmention,
-} from '@/lib/indieweb/webmention/types';
+import type { OutgoingWebmentionRecord } from '@/lib/indieweb/webmention/types';
 
 /**
  * Create a hash of content for change detection.
@@ -17,7 +14,7 @@ export function hashContent(content: string): string {
 /**
  * Get the stored content hash for a post.
  */
-export async function getStoredHash(slug: string): Promise<string | null> {
+async function getStoredHash(slug: string): Promise<string | null> {
   const result = await sql`
     SELECT content_hash
     FROM outgoing_webmentions
@@ -136,27 +133,6 @@ export async function updateOutgoingWebmentionStatus(
 }
 
 /**
- * Get pending webmentions that need to be sent.
- */
-export async function getPendingOutgoingWebmentions(): Promise<
-  PendingOutgoingWebmention[]
-> {
-  const result = await sql`
-    SELECT id, source_url, target_url, post_slug
-    FROM outgoing_webmentions
-    WHERE status = 'pending'
-    ORDER BY created_at ASC
-  `;
-
-  return result.rows.map((row) => ({
-    id: row.id,
-    sourceUrl: row.source_url,
-    targetUrl: row.target_url,
-    postSlug: row.post_slug,
-  }));
-}
-
-/**
  * Mark a post's webmentions for re-sending (e.g., after content update).
  */
 export async function markForResend(slug: string): Promise<number> {
@@ -165,19 +141,6 @@ export async function markForResend(slug: string): Promise<number> {
     SET status = 'pending'
     WHERE post_slug = ${slug}
     AND status = 'sent'
-    RETURNING id
-  `;
-
-  return result.rowCount ?? 0;
-}
-
-/**
- * Delete tracking entries for a removed post.
- */
-export async function deleteOutgoingWebmentions(slug: string): Promise<number> {
-  const result = await sql`
-    DELETE FROM outgoing_webmentions
-    WHERE post_slug = ${slug}
     RETURNING id
   `;
 

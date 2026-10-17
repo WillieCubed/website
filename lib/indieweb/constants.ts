@@ -4,7 +4,6 @@ import { site } from '../site/identity';
 
 export const SITE_URL = site.origin;
 export const SITE_NAME = site.name;
-export const SITE_AUTHOR_EMAIL = site.author.email;
 export const SITE_AUTHOR_HANDLE = site.author.handle;
 export const AT_PROTOCOL_DID = site.author.atprotoDid;
 export const INDIEAUTH_METADATA_ENDPOINT =

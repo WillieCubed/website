@@ -10,7 +10,7 @@ export interface OwnerAccessConfig {
 
 const keys = new Map<string, JWTVerifyGetKey>();
 
-export function ownerAccessFromEnvironment(
+function ownerAccessFromEnvironment(
   env: Record<string, string | undefined>
 ): OwnerAccessConfig | null {
   const issuer = env.OWNER_ACCESS_ISSUER;

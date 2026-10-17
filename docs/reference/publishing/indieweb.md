@@ -26,7 +26,6 @@ shared configuration. Update the tables and run `pnpm test` when routes change.
 | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | `/webmention` (alias of `/api/webmention`)                         | Receives webmentions, verifies the source, stores them for moderation                                                  | Postgres                                                     |
 | `/webmentions?target=`                                             | Public JSON list of approved webmentions for one page                                                                  | Postgres                                                     |
-| `/api/webmention/send`, `/api/webmention/send-all`                 | Send webmentions for one post or every post; bearer `WEBMENTION_SECRET`                                                | Postgres, `WEBMENTION_SECRET`                                |
 | `/api/webmention/moderate`                                         | `GET` lists pending webmentions; `POST` approves or rejects one; see Moderation                                        | Postgres, `WEBMENTION_MODERATION_SECRET`                     |
 | `/activity/feed.xml`, `/activity/feed/atom`, `/activity/feed/json` | Site-wide feed of approved webmention activity; empty without a database                                               | Postgres (optional)                                          |
 | `/writings/[slug]/activity/feed.*`                                 | Same three formats scoped to one writing                                                                               | Postgres (optional)                                          |
@@ -350,8 +349,7 @@ outage can still fail when the mention is stored. The policy and tests live in
 A writing sends webmentions to the external links in its body, then to the posts
 named by `inReplyTo`, `likeOf`, `repostOf`, `bookmarkOf`, and `rsvp.eventUrl`,
 then to its tagged people. The deploy publisher (`pnpm webmentions:send` and the
-notification endpoint), `/api/webmention/send`, and `/api/webmention/send-all`
-all take that list from `webmentionTargetsForWriting` in
+notification endpoint) takes that list from `webmentionTargetsForWriting` in
 `lib/indieweb/webmention/send.ts`, so a reply whose body never links its parent
 still notifies the parent. The publisher hashes the list with the body, so
 reordering it resends every post once.
@@ -778,7 +776,6 @@ state or deliver to other sites.
 | Variable                                                                                           | Used by                                                                                                                                                                                     | Default                                 |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | `POSTGRES_URL` / `DATABASE_URL`                                                                    | webmentions, reply context, activity feeds, Postgres search                                                                                                                                 | unset, features degrade                 |
-| `WEBMENTION_SECRET`                                                                                | `/api/webmention/send*`                                                                                                                                                                     | unset, routes refuse                    |
 | `WEBMENTION_MODERATION_SECRET`                                                                     | `/api/webmention/moderate`                                                                                                                                                                  | unset, route refuses                    |
 | `OWNER_ACCESS_ISSUER`, `OWNER_ACCESS_AUDIENCE`, `OWNER_ACCESS_EMAIL`                               | owner identity on `/indieauth/consent` and `/admin/*`                                                                                                                                       | unset, owner routes refuse access       |
 | `INDIEAUTH_INTROSPECTION_SECRET`                                                                   | `/indieauth/introspect`                                                                                                                                                                     | unset, route answers 503                |
@@ -803,9 +800,8 @@ bindings; its modes select the production and preview resources.
 The Postgres schema starts with `lib/db/migrations/000_webmentions.sql`.
 Apply it before `lib/db/migrations/001_level4_tables.sql`, which adds
 `outgoing_webmentions`, `reply_context_cache`, and `search_index` and alters
-the Webmention table. The route can also create its base Webmention table
-through `initializeWebmentionsTable()`, but a fresh database must not rely on
-a first request to prepare migrations.
+the Webmention table. No route creates tables, so a fresh database needs these
+migrations before its first request.
 `lib/db/migrations/002_webmention_rate_limits.sql` adds
 `webmention_rate_limits`, which a database created before it needs; apply it
 the same way. `lib/db/migrations/003_indieauth.sql` adds the IndieAuth

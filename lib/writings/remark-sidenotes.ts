@@ -4,8 +4,6 @@ import { visit } from 'unist-util-visit';
 
 import { type Reference, collectReferences } from './references';
 
-export type { Reference as ExtractedFootnote };
-
 interface JsxAttribute {
   type: 'mdxJsxAttribute';
   name: string;

@@ -1,10 +1,10 @@
-.brand-header .site-glass.site-glass {
+.brand-header .site-glass.site-glass:not(.site-control) {
   background-color: var(--site-glass-tint, var(--color-ground));
 }
 
 /* Safari pages use Apple's web material recipe when system material is unavailable. */
 @supports (-webkit-backdrop-filter: blur(20px)) {
-  .brand-header .site-glass.site-glass {
+  .brand-header .site-glass.site-glass:not(.site-control) {
     background-color: color-mix(
       in srgb,
       var(--site-glass-tint, var(--color-ground)) 80%,
@@ -17,8 +17,32 @@
 
 /* System glass takes priority in hosts that enable WebKit's material API. */
 @supports (-apple-visual-effect: -apple-system-glass-material) {
-  .brand-header .site-glass.site-glass {
+  .brand-header .site-glass.site-glass:not(.site-control) {
     background-color: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    -apple-visual-effect: -apple-system-glass-material;
+  }
+}
+
+/* Action roots keep the same glass material while their state layer is shared. */
+.brand-header .site-glass.site-control {
+  --control-fill: var(--site-glass-tint, var(--color-ground));
+}
+@supports (-webkit-backdrop-filter: blur(20px)) {
+  .brand-header .site-glass.site-control {
+    --control-fill: color-mix(
+      in srgb,
+      var(--site-glass-tint, var(--color-ground)) 80%,
+      transparent
+    );
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+}
+@supports (-apple-visual-effect: -apple-system-glass-material) {
+  .brand-header .site-glass.site-control {
+    --control-fill: transparent;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     -apple-visual-effect: -apple-system-glass-material;

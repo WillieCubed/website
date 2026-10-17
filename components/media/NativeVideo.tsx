@@ -100,7 +100,7 @@ export default function NativeVideo({
       {sourceUrl && (
         <SiteLink
           href={sourceUrl}
-          className="mt-2 inline-flex min-h-10 items-center rounded-full bg-tray px-4 text-label-medium text-ink"
+          className="site-control mt-2 px-4 text-label-medium [--control-fill:var(--color-tray)] [--control-ink:var(--color-ink)]"
         >
           {failed ? 'Open video at its source' : 'Video source'}
         </SiteLink>

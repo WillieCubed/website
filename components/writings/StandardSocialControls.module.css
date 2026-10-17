@@ -14,17 +14,9 @@
 .action,
 .arrow,
 .close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition:
-    color 160ms var(--ease-site),
-    background 160ms var(--ease-site),
-    border-radius 220ms var(--ease-site),
-    transform 160ms var(--ease-site);
+  --control-rest-radius: 20px;
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
 }
 
 .action {
@@ -32,78 +24,23 @@
   position: relative;
   gap: var(--spacing-inline);
   padding: 8px 12px;
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-.action,
-.arrow {
-  --state-layer: 0%;
-  background: color-mix(
-    in srgb,
-    var(--color-on-secondary-container) var(--state-layer),
-    var(--color-secondary-container)
-  );
-}
-
-@media (hover: hover) {
-  .action:enabled:hover,
-  .arrow:enabled:hover {
-    --state-layer: 8%;
-  }
-
-  .actions[data-split] .action:enabled:hover {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-  }
-
-  .arrow:enabled:hover {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
-  }
-}
-
-.action:enabled:is(:focus-visible, :active),
-.arrow:enabled:is(:focus-visible, :active, [aria-expanded='true']) {
-  --state-layer: 10%;
-}
-
-.close:hover {
-  background: var(--color-tray);
-}
-
-.continue:active {
-  transform: scale(0.97);
-}
-
-.continue:disabled,
-.signOut:disabled {
-  cursor: wait;
-  opacity: 0.55;
-}
-
-.action:disabled,
-.arrow:disabled {
-  background: color-mix(in srgb, var(--color-ink) 12%, transparent);
-  color: color-mix(in srgb, var(--color-ink) 38%, transparent);
-  cursor: not-allowed;
-}
-
-.action:disabled[aria-busy='true'],
-.arrow:disabled {
-  cursor: wait;
+.action[aria-pressed='true']:not([data-retry]) {
+  --control-fill: var(--color-primary-container);
+  --control-ink: var(--color-on-primary-container);
 }
 
 .actions[data-split] {
-  gap: var(--spacing-related);
+  gap: var(--control-group-gap);
 }
 
 .actions[data-split] .action {
   /* Oversized outer radii would also shrink the inner corners during CSS normalization. */
-  border-radius: 20px 4px 4px 20px;
+  --control-rest-radius: 20px 8px 8px 20px;
   padding-inline: 16px 12px;
 }
 
@@ -111,29 +48,11 @@
   position: relative;
   width: 48px;
   flex-shrink: 0;
-  border-radius: 4px 20px 20px 4px;
-  color: var(--color-on-secondary-container);
-}
-
-.action::before,
-.arrow::before {
-  content: '';
-  position: absolute;
-  inset: -4px 0;
-}
-
-.actions[data-split] .action:enabled:is(:focus-visible, :active) {
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.arrow:enabled:is(:focus-visible, :active) {
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
+  --control-rest-radius: 8px 20px 20px 8px;
 }
 
 .arrow:enabled[aria-expanded='true'] {
-  border-radius: 20px;
+  --control-rest-radius: 20px;
 }
 
 .arrow svg {
@@ -154,24 +73,13 @@
   align-items: center;
   gap: var(--spacing-inline);
   width: 100%;
-  min-height: 44px;
   padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: 10px;
-  background: var(--color-surface-container-high);
-  color: var(--color-ink);
+  --control-rest-radius: 10px;
+  --control-fill: var(--color-surface-container-high);
+  --control-ink: var(--color-ink);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-}
-
-.signOut:hover {
-  background: var(--color-secondary-container);
-  color: var(--color-on-secondary-container);
-}
-
-.root :is(button, input):focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 3px;
 }
 
 .dialog {
@@ -242,12 +150,11 @@
 }
 
 .close {
-  width: 44px;
-  min-height: 44px;
-  border-radius: 22px;
+  width: 48px;
+  --control-rest-radius: 24px;
   margin-right: calc(-1 * var(--spacing-md));
-  background: var(--color-surface-container-high);
-  color: var(--color-ink);
+  --control-fill: var(--color-surface-container-high);
+  --control-ink: var(--color-ink);
 }
 
 .title {
@@ -299,19 +206,12 @@
   justify-content: space-between;
   min-height: 48px;
   padding: 12px var(--spacing-lg);
-  border-radius: 14px;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  --control-rest-radius: 14px;
+  --control-fill: var(--color-primary);
+  --control-ink: var(--color-on-primary);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition:
-    filter 160ms var(--ease-site),
-    transform 160ms var(--ease-site);
-}
-
-.continue:hover {
-  filter: brightness(1.08);
 }
 
 .fieldError {
@@ -321,6 +221,11 @@
   font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
+}
+
+.input:focus-visible {
+  outline: var(--control-focus-width) solid var(--color-primary);
+  outline-offset: var(--control-focus-offset);
 }
 
 .input[aria-invalid='true'] {
@@ -334,11 +239,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .action,
-  .arrow,
   .arrow svg,
-  .close,
-  .continue,
   .dialog,
   .dialog::backdrop {
     transition: none;
@@ -351,12 +252,8 @@
 }
 
 .compact .action[aria-pressed='false']:not([data-retry]):enabled {
-  color: var(--color-on-surface-variant);
-  background: color-mix(
-    in srgb,
-    var(--color-on-surface-variant) var(--state-layer),
-    var(--color-surface-container-highest)
-  );
+  --control-ink: var(--color-on-surface-variant);
+  --control-fill: var(--color-surface-container-highest);
 }
 
 .compact .action > span:last-child {
@@ -382,10 +279,6 @@
 }
 .compact .action {
   min-width: 48px;
-}
-.signOut:disabled[aria-busy='true'],
-.continue:disabled[aria-busy='true'] {
-  opacity: 1;
 }
 
 /* Narrow headers retain one stable icon action and its optional account menu. */

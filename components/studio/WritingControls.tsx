@@ -56,12 +56,13 @@ export default function WritingControls({
         <Popover
           label="Writing actions"
           trigger={<Icon name="more-horizontal" size={20} />}
-          triggerClassName={control}
+          triggerClassName={`site-control ${control}`}
           panelClassName="studio-action-menu"
           align="end"
           width={260}
         >
           <button
+            className="site-control"
             disabled={busy || conflict || !!recovery}
             onClick={(event) => {
               closePopover(event);
@@ -71,6 +72,7 @@ export default function WritingControls({
             Review publication
           </button>
           <button
+            className="site-control"
             onClick={(event) => {
               closePopover(event);
               void history();
@@ -79,6 +81,7 @@ export default function WritingControls({
             Revision history
           </button>
           <button
+            className="site-control"
             disabled={conflict || !!recovery}
             onClick={(event) => {
               closePopover(event);
@@ -88,6 +91,7 @@ export default function WritingControls({
             Save now
           </button>
           <button
+            className="site-control"
             disabled={!editor?.can().undo()}
             onClick={(event) => {
               closePopover(event);
@@ -97,6 +101,7 @@ export default function WritingControls({
             Undo
           </button>
           <button
+            className="site-control"
             disabled={!editor?.can().redo()}
             onClick={(event) => {
               closePopover(event);

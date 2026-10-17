@@ -124,15 +124,15 @@
 }
 
 .media-mention__excerpt summary {
+  --control-ink: var(--color-accent);
+  --control-rest-radius: 8px;
   display: flex;
   align-items: center;
   gap: var(--spacing-related);
   width: fit-content;
-  min-height: 28px;
+  min-height: 48px;
   list-style: none;
-  cursor: pointer;
-  color: var(--color-accent);
-  border-radius: 4px;
+  padding: 4px 8px;
 }
 
 .media-mention__excerpt summary::-webkit-details-marker {
@@ -151,8 +151,8 @@
   padding-top: 8px;
 }
 
-.media-mention :is(a, summary):focus-visible {
-  outline: 2px solid var(--color-accent);
+.media-mention :is(a, summary):not(.site-control):focus-visible {
+  outline: var(--control-focus-width) solid var(--color-accent);
   outline-offset: 3px;
 }
 
@@ -207,6 +207,6 @@
 
 @media (pointer: coarse) {
   .media-mention__excerpt summary {
-    min-height: 44px;
+    min-height: 48px;
   }
 }

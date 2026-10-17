@@ -61,7 +61,7 @@ export default function LiteYouTube({
               event.preventDefault();
               setState('loading');
             }}
-            className="absolute inset-0 flex items-center justify-center text-ground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ground"
+            className="absolute inset-0 flex items-center justify-center text-ground focus-visible:outline-ground focus-visible:-outline-offset-6"
             aria-label={`Play ${title}`}
           >
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-ground/90 text-ink shadow-lg">
@@ -96,6 +96,7 @@ export default function LiteYouTube({
         {state === 'failed' && (
           <button
             type="button"
+            className="site-control px-4 [--control-fill:var(--color-primary-container)] [--control-ink:var(--color-on-primary-container)]"
             onClick={() => {
               setState('loading');
             }}

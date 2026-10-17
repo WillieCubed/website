@@ -114,7 +114,7 @@ export function DetailDialog({
         <SiteLink
           href="/"
           preview={false}
-          className="d-close"
+          className="d-close site-control"
           aria-label="Close"
           onClick={(event) => {
             if (!isPlainClick(event)) return;

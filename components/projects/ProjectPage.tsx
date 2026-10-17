@@ -75,7 +75,9 @@ export default function ProjectPage({
                   <SiteLink
                     key={`${index}:${chip.href}`}
                     href={chip.href}
-                    className={chip.primary ? 'primary' : undefined}
+                    className={
+                      chip.primary ? 'site-control primary' : 'site-control'
+                    }
                   >
                     {chip.label}
                   </SiteLink>

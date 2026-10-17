@@ -70,7 +70,7 @@ export default function BreadcrumbMenu({
           )}
         </>
       }
-      triggerClassName="site-breadcrumb site-breadcrumb-menu-trigger"
+      triggerClassName="site-breadcrumb site-breadcrumb-menu-trigger site-control"
       panelClassName="site-breadcrumb-menu"
     >
       <nav
@@ -82,7 +82,7 @@ export default function BreadcrumbMenu({
             <button
               key={item.label}
               type="button"
-              className="site-breadcrumb-menu__link text-left"
+              className="site-breadcrumb-menu__link site-control text-left"
               data-popover-dismiss
               onClick={item.onSelect}
             >

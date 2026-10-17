@@ -72,7 +72,7 @@ export function References({ items }: ReferencesProps) {
       {condensable && (
         <button
           type="button"
-          className="references__toggle"
+          className="references__toggle site-control"
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}
         >

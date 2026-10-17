@@ -39,7 +39,7 @@ export default function PartNav({ initiative, part }: PartNavProps) {
         <SiteLink
           preview={false}
           href={initiative.href}
-          className="inline-block rounded-full border border-line px-4 py-2 text-label-large text-ink transition-colors hover:bg-tray"
+          className="site-control px-4 py-2 text-label-large [--control-ink:var(--color-ink)] [--control-border:1px_solid_var(--color-line)]"
         >
           All of {initiative.title}
         </SiteLink>

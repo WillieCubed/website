@@ -78,10 +78,6 @@
     width: calc(100% + 24px);
     margin-inline: -12px;
     padding: var(--spacing-md) 12px;
-    border: 0;
-    border-radius: 14px;
-    background: transparent;
-    color: var(--color-ink);
     font: inherit;
     font-size: 16px;
     font-weight: 500;
@@ -90,6 +86,9 @@
     text-wrap: pretty;
   }
   span.focus {
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
     color: var(--color-muted);
     font-weight: 400;
   }
@@ -97,22 +96,18 @@
     opacity: 0.6;
   }
   button.focus {
-    cursor: pointer;
-    transition:
-      background-color 320ms var(--ease-site),
-      color 320ms var(--ease-site),
-      opacity 320ms var(--ease-site),
-      filter 320ms var(--ease-site),
-      scale 180ms var(--ease-site),
-      outline-offset 280ms var(--ease-site),
-      outline-color 200ms var(--ease-site);
+    --control-ink: var(--color-ink);
+    --control-rest-radius: 14px;
   }
-  button.focus:is(:hover, :focus-visible, .hit) {
-    background: var(--color-surface-container-high);
+  button.focus.hit:not(:disabled) {
+    --control-fill: var(--color-surface-container-high);
   }
-  button.focus[data-branded]:is(:hover, :focus-visible, .hit) {
-    background: var(--b-surface-container-high);
-    color: var(--b-on-surface);
+  button.focus[data-branded]:is(:hover, :focus-visible, .hit):not(:disabled) {
+    --control-fill: var(--b-surface-container-high);
+    --control-ink: var(--b-on-surface);
+  }
+  button.focus[aria-pressed='true'] {
+    --control-rest-radius: 10px;
   }
   /* Each focus carries its work's app icons as a small stack that fans
      out when the row is pointed at, the way ja.mt's lists do. Icons, not
@@ -157,26 +152,32 @@
     rotate: -6deg;
     translate: -16px 0;
   }
-  button.focus:is(:hover, :focus-visible, .hit) .stack i:nth-last-child(1) {
+  button.focus:is(:hover, :focus-visible, .hit):not(:disabled)
+    .stack
+    i:nth-last-child(1) {
     translate: 0 -2px;
     scale: 1.05;
   }
-  button.focus:is(:hover, :focus-visible, .hit) .stack i:nth-last-child(2) {
+  button.focus:is(:hover, :focus-visible, .hit):not(:disabled)
+    .stack
+    i:nth-last-child(2) {
     rotate: 12deg;
     translate: 22px -2px;
   }
-  button.focus:is(:hover, :focus-visible, .hit) .stack i:nth-last-child(3) {
+  button.focus:is(:hover, :focus-visible, .hit):not(:disabled)
+    .stack
+    i:nth-last-child(3) {
     rotate: -12deg;
     translate: -22px -2px;
   }
-  button.focus[data-branded]:is(:hover, :focus-visible, .hit)
+  button.focus[data-branded]:is(:hover, :focus-visible, .hit):not(:disabled)
     .stack
     i:last-child {
     box-shadow:
       0 1px 2px color-mix(in srgb, var(--b-primary) 20%, transparent),
       0 6px 14px -4px color-mix(in srgb, var(--b-primary) 50%, transparent);
   }
-  button.focus:active .stack {
+  button.focus:active:not(:disabled) .stack {
     scale: 0.92;
   }
   /* Pointing at one focus sets the others out of focus, the way Jace's

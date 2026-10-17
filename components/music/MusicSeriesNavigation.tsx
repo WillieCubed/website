@@ -31,6 +31,7 @@ export default function MusicSeriesNavigation({
       aria-disabled={loading || undefined}
     >
       <SiteLink
+        className="site-control"
         href={href(null, null)}
         preview={false}
         prefetch={false}
@@ -55,6 +56,7 @@ export default function MusicSeriesNavigation({
       </SiteLink>
       {series.map((item) => (
         <SiteLink
+          className="site-control"
           href={href(item.id, null)}
           preview={false}
           prefetch={false}

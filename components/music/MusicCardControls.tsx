@@ -37,7 +37,7 @@ export default function MusicCardControls({
       <div className="mp-order-buttons" hidden={controls.reorderHidden}>
         <span className="mp-order-label">Order</span>
         <button
-          className="mp-icon-button"
+          className="site-control mp-icon-button"
           disabled={controls.earlierDisabled}
           onClick={() => reorder(playlist.id, -1)}
           aria-label={`Move ${playlist.title} earlier`}
@@ -45,7 +45,7 @@ export default function MusicCardControls({
           <Icon name="arrow-left" />
         </button>
         <button
-          className="mp-icon-button"
+          className="site-control mp-icon-button"
           disabled={controls.laterDisabled}
           onClick={() => reorder(playlist.id, 1)}
           aria-label={`Move ${playlist.title} later`}

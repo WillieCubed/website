@@ -34,6 +34,7 @@ export default function CopyHex({ name, value }: CopyHexProps) {
         <code>{value}</code>
         <button
           type="button"
+          className="site-control"
           disabled={!hydrated}
           aria-label={`Copy ${name} hex value`}
           onClick={copy}

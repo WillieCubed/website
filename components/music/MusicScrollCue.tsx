@@ -56,7 +56,7 @@ export default function MusicScrollCue({
   if (!visible) return null;
   return (
     <button
-      className="mp-scroll-cue"
+      className="site-control mp-scroll-cue"
       style={{
         bottom: `max(${bottom}px, env(safe-area-inset-bottom))`,
         left: left ?? '50%',

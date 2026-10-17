@@ -45,6 +45,8 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
 
 ### Design
 
+- [Interaction states](./reference/design/interactions.md): shared Expressive
+  pressed shapes, keyboard focus, target sizes, and reduced-motion behavior.
 - [Spacing](./reference/design/spacing.md): semantic spacing roles, the 4px
   grid, optical exceptions, and source validation.
 - [Accessibility contract](./reference/design/accessibility.md): image

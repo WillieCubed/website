@@ -38,7 +38,7 @@ export default function WebmentionForm({ target }: WebmentionFormProps) {
               setCopyState('failed');
             }
           }}
-          className="inline-flex items-center gap-1 align-baseline text-label-large font-medium text-primary underline underline-offset-3 transition-colors hover:text-ink"
+          className="site-control gap-1 px-3 align-middle text-label-large font-medium [--control-fill:var(--color-surface-container)] [--control-ink:var(--color-primary)]"
         >
           <Icon name="copy" size={14} />
           {copyState === 'copied' ? 'Copied post URL' : 'Copy post URL'}
@@ -88,14 +88,14 @@ export default function WebmentionForm({ target }: WebmentionFormProps) {
             autoComplete="url"
             required
             placeholder="https://your.site/reply"
-            className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2 text-body-medium text-ink"
+            className="min-h-12 min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2 text-body-medium text-ink"
           />
           <button
             type="submit"
             aria-busy={state === 'sending'}
             style={{ minWidth: 120 }}
             disabled={state === 'sending'}
-            className="rounded-full bg-primary px-4 py-2 text-label-large font-semibold text-on-primary disabled:opacity-60"
+            className="site-control px-4 py-2 text-label-large font-semibold [--control-fill:var(--color-primary)] [--control-ink:var(--color-on-primary)]"
           >
             {state === 'sending' ? 'Submitting…' : 'Submit reply'}
           </button>

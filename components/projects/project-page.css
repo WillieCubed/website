@@ -52,19 +52,18 @@
   margin-top: var(--spacing-group);
 }
 .project-links a {
-  display: inline-flex;
-  align-items: center;
-  height: 2.5rem;
+  --control-fill: var(
+    --b-secondary-container,
+    var(--color-surface-container-high)
+  );
+  --control-ink: var(--b-on-secondary-container, var(--color-on-surface));
   padding: 0 1rem;
-  border-radius: 999px;
-  background: var(--b-secondary-container, var(--color-surface-container-high));
-  color: var(--b-on-secondary-container, var(--color-on-surface));
   font-size: 0.875rem;
   font-weight: 600;
 }
 .project-links a.primary {
-  background: var(--b-primary, var(--color-primary));
-  color: var(--b-on-primary, var(--color-on-primary));
+  --control-fill: var(--b-primary, var(--color-primary));
+  --control-ink: var(--b-on-primary, var(--color-on-primary));
 }
 .project-has-hero .project-band {
   padding-bottom: 12rem;

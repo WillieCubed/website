@@ -53,7 +53,7 @@ function LocationEditor({ initial, onAccessExpired }: LocationEditorProps) {
             name="edit"
             value={editing ? '' : '1'}
             ref={control}
-            className="edit-control"
+            className="site-control edit-control"
             data-edit-button
             aria-controls="city-field"
             disabled={pending}
@@ -105,7 +105,9 @@ function LocationEditor({ initial, onAccessExpired }: LocationEditorProps) {
               onKeyDown={onKeyDown}
             />
             <noscript>
-              <button type="submit">Search cities</button>
+              <button className="site-control" type="submit">
+                Search cities
+              </button>
             </noscript>
           </form>
         )}
@@ -139,6 +141,7 @@ function LocationEditor({ initial, onAccessExpired }: LocationEditorProps) {
             <input type="hidden" name="action" value="save" />
             <input type="hidden" name="city" value={JSON.stringify(city)} />
             <button
+              className="site-control"
               type="submit"
               role="option"
               aria-selected={index === selected}

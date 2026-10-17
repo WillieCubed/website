@@ -1,0 +1,129 @@
+/* Action controls opt in; cards, prose links, inputs and editor selections do not. */
+:root {
+  --control-target-small: 48px;
+  --control-target-medium: 56px;
+  --control-target-large: 96px;
+  --control-pressed-radius-small: 8px;
+  --control-pressed-radius-medium: 12px;
+  --control-pressed-radius-large: 16px;
+  --control-focus-width: 3px;
+  --control-focus-offset: 3px;
+  --control-group-gap: 2px;
+  --control-effects-duration: 160ms;
+  --control-effects-ease: cubic-bezier(0.2, 0, 0, 1);
+  --control-shape-duration: 350ms;
+  --control-shape-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --control-shape-ease: linear(
+      0,
+      0.1076,
+      0.3214,
+      0.54,
+      0.7193,
+      0.8483,
+      0.9316,
+      0.9798,
+      1.004,
+      1.0136,
+      1.0151,
+      1.0128,
+      1.0095,
+      1.0063,
+      1.0037,
+      1.002,
+      1.0008,
+      1.0002,
+      0.9999,
+      0.9998,
+      1
+    );
+  }
+}
+@layer base {
+  :where(a, button, summary):focus-visible {
+    outline: var(--control-focus-width) solid var(--color-primary);
+    outline-offset: var(--control-focus-offset);
+  }
+}
+@layer components {
+  .site-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+.site-control {
+  --control-target: var(--control-target-small);
+  --control-pressed-radius: var(--control-pressed-radius-small);
+  min-width: var(--control-target);
+  min-height: var(--control-target);
+  border: var(--control-border, 1px solid transparent);
+  border-radius: var(--control-rest-radius, 999px);
+  background: var(--control-fill, transparent);
+  color: var(--control-ink, currentColor);
+  outline: var(--control-focus-width) solid transparent;
+  outline-offset: var(--control-focus-offset);
+  cursor: pointer;
+  transition:
+    background-color var(--control-effects-duration) var(--control-effects-ease),
+    color var(--control-effects-duration) var(--control-effects-ease),
+    border-radius var(--control-shape-duration) var(--control-shape-ease);
+}
+.site-control[data-control-size='medium'] {
+  --control-target: var(--control-target-medium);
+  --control-pressed-radius: var(--control-pressed-radius-medium);
+}
+.site-control[data-control-size='large'] {
+  --control-target: var(--control-target-large);
+  --control-pressed-radius: var(--control-pressed-radius-large);
+}
+.site-control:hover:not(:disabled):not([aria-disabled='true']) {
+  background: color-mix(
+    in srgb,
+    var(--control-ink, currentColor) 8%,
+    var(--control-fill, transparent)
+  );
+}
+.site-control:focus-visible {
+  outline-color: var(--control-focus-color, var(--color-primary));
+}
+.site-control:focus-visible:not(:disabled):not([aria-disabled='true']),
+.site-control:active:not(:disabled):not([aria-disabled='true']) {
+  background: color-mix(
+    in srgb,
+    var(--control-ink, currentColor) 10%,
+    var(--control-fill, transparent)
+  );
+}
+.site-control:active:not(:disabled):not([aria-disabled='true']) {
+  border-radius: var(--control-pressed-radius);
+}
+.site-control:is(:disabled, [aria-disabled='true']) {
+  background: var(
+    --control-disabled-fill,
+    color-mix(in srgb, var(--color-on-surface) 12%, transparent)
+  );
+  color: color-mix(in srgb, var(--color-on-surface) 38%, transparent);
+  border-color: var(--control-disabled-border, transparent);
+  opacity: 1;
+  cursor: default;
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-control {
+    transition: none;
+    /* Override the site's generic event-preserving reduced-motion reset. */
+    transition-duration: 0s !important;
+  }
+}
+@media (forced-colors: active) {
+  .site-control:focus-visible {
+    outline-color: Highlight;
+  }
+  .site-control:is(:disabled, [aria-disabled='true']) {
+    color: GrayText;
+    border-color: GrayText;
+  }
+}

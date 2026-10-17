@@ -168,7 +168,6 @@ export default function MusicAdmin() {
       />
       <MusicRevisionHistory
         revisions={history.history}
-        dialog={history.historyDialog}
         busy={busy}
         currentRevisionId={currentDraft.revisionId}
         onClose={history.closeHistory}

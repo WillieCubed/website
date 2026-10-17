@@ -1,15 +1,9 @@
 'use client';
 
-import {
-  type FormEvent,
-  type RefObject,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
-import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
+import Modal from '@/components/site/Modal';
 
 import { fetchWithDeadline } from '@/lib/http/fetch';
 
@@ -37,13 +31,11 @@ interface SignInFormState {
 }
 
 interface SignInController extends SignInFormState {
-  dialog: RefObject<HTMLDialogElement | null>;
   dismiss(): void;
 }
 
 /** The dialog owns its form and cancels its request when it closes. */
 function useSignIn(open: boolean, onDismiss: () => void): SignInController {
-  const dialog = useRef<HTMLDialogElement>(null);
   const request = useRef<AbortController | null>(null);
   const [error, setError] = useState<SignInError>({});
   const [pending, setPending] = useState(false);
@@ -59,20 +51,12 @@ function useSignIn(open: boolean, onDismiss: () => void): SignInController {
   }
 
   useEffect(() => {
-    const modal = dialog.current;
-    if (!modal) return;
-    if (!open) {
-      modal.close();
-      return;
-    }
-    modal.showModal();
-    modal.querySelector<HTMLInputElement>('input[name="handle"]')?.focus();
+    if (!open) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       request.current?.abort();
       request.current = null;
-      modal.close();
       document.body.style.overflow = previousOverflow;
     };
   }, [open]);
@@ -113,7 +97,7 @@ function useSignIn(open: boolean, onDismiss: () => void): SignInController {
     }
   }
 
-  return { dialog, error, pending, announcement, submit, dismiss };
+  return { error, pending, announcement, submit, dismiss };
 }
 
 interface SignInFormProps {
@@ -191,18 +175,16 @@ export default function StandardSignInDialog({
   onDismiss,
 }: Props) {
   const login = useSignIn(open, onDismiss);
-  const backdrop = useBackdropDismiss(login.dismiss);
   const copy = socialActions[action];
   return (
-    <dialog
-      ref={login.dialog}
+    <Modal
+      open={open}
+      initialFocus='input[name="handle"]'
       id={id}
       className={styles.dialog}
       aria-labelledby={id + '-title'}
       aria-describedby={id + '-description'}
-      onCancel={login.dismiss}
-      onClose={login.dismiss}
-      {...backdrop}
+      onDismiss={login.dismiss}
     >
       <div className={styles.dialogHeading}>
         <span className={styles.dialogIcon}>
@@ -224,6 +206,6 @@ export default function StandardSignInDialog({
         {copy.description}
       </p>
       <SignInForm action={action} slug={slug} id={id} login={login} />
-    </dialog>
+    </Modal>
   );
 }

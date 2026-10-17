@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import type { MusicRevision } from '@/lib/music/types';
 
@@ -22,11 +22,6 @@ export function useMusicRevisionHistory({
 }: Options) {
   const [error, setError] = useState('');
   const [history, setHistory] = useState<MusicRevision[] | null>(null);
-  const historyDialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    if (history) historyDialog.current?.showModal();
-    else historyDialog.current?.close();
-  }, [history]);
   function openHistory() {
     setError('');
     void musicAdminRequest<MusicRevisionHistoryResponse>('/history')
@@ -61,7 +56,6 @@ export function useMusicRevisionHistory({
     error,
     dismissError: () => setError(''),
     history,
-    historyDialog,
     openHistory,
     closeHistory: () => setHistory(null),
     restore,

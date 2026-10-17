@@ -1,5 +1,7 @@
 'use client';
 
+import Modal from '@/components/site/Modal';
+
 import {
   toggleCatalogFeature,
   toggleCatalogMembership,
@@ -53,7 +55,6 @@ export default function MusicDetail({
   const {
     focused,
     dialog,
-    backdrop,
     currentIndex,
     focusIds,
     openPlaylist,
@@ -62,19 +63,15 @@ export default function MusicDetail({
   } = navigation;
   const current = playlists.find((playlist) => playlist.id === focused);
   return (
-    <dialog
+    <Modal
       ref={dialog}
-      open={initialDetail && focused === initialDetail ? true : undefined}
+      initiallyOpen={Boolean(initialDetail) && focused === initialDetail}
       className="mp-detail"
       data-editing={editing || undefined}
       data-reordering={(editing && reordering) || undefined}
       aria-labelledby="mp-detail-title"
       onKeyDown={(event) => detailDialogKeyDown(event, dialog.current)}
-      onCancel={(event) => {
-        event.preventDefault();
-        closePlaylist();
-      }}
-      {...backdrop}
+      onDismiss={closePlaylist}
     >
       {current && (
         <>
@@ -135,6 +132,6 @@ export default function MusicDetail({
           </div>
         </>
       )}
-    </dialog>
+    </Modal>
   );
 }

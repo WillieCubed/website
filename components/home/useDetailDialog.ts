@@ -3,8 +3,6 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
-import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
-
 import { entries } from '@/lib/home/ventures';
 
 import { useHome } from './HomeContext';
@@ -131,7 +129,6 @@ export function useDetailDialog(
     void settle();
   };
 
-  const backdrop = useBackdropDismiss(requestClose);
   const requestOpen = (id: string, from?: HTMLElement | null) => {
     wantRef.current = id;
     if (from !== undefined) fromRef.current = from;
@@ -170,6 +167,5 @@ export function useDetailDialog(
     requestOpen,
     requestClose,
     onNativeClose,
-    backdrop,
   };
 }

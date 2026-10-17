@@ -2,8 +2,6 @@
 import { type RefObject, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
-import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
-
 import { type PlaylistMotionParts, playlistMotion } from '@/lib/music/motion';
 import {
   Catalog,
@@ -146,8 +144,6 @@ export function useMusicPlaylistDialog({
     );
   }
 
-  const backdrop = useBackdropDismiss(closePlaylist);
-
   function openRelatedPlaylist(id: string) {
     openPlaylist(id, null, {
       seriesId: null,
@@ -165,7 +161,6 @@ export function useMusicPlaylistDialog({
     openPlaylist,
     openRelatedPlaylist,
     closePlaylist,
-    backdrop,
     chooseSeries,
     href: (series: string | null, detail: string | null) =>
       musicHref(series, detail, mode),

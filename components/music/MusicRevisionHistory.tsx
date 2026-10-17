@@ -1,11 +1,10 @@
 'use client';
-import type { RefObject } from 'react';
+import Modal from '@/components/site/Modal';
 
 import type { MusicRevision } from '@/lib/music/types';
 
 interface Props {
   revisions: MusicRevision[] | null;
-  dialog: RefObject<HTMLDialogElement | null>;
   busy: boolean;
   currentRevisionId: string | null;
   onClose: () => void;
@@ -13,7 +12,6 @@ interface Props {
 }
 export default function MusicRevisionHistory({
   revisions,
-  dialog,
   busy,
   currentRevisionId,
   onClose,
@@ -21,11 +19,10 @@ export default function MusicRevisionHistory({
 }: Props) {
   return (
     revisions && (
-      <dialog
-        ref={dialog}
+      <Modal
+        open
         className="music-history"
-        onCancel={() => onClose()}
-        onClose={() => onClose()}
+        onDismiss={onClose}
         aria-labelledby="music-history-title"
       >
         <div>
@@ -52,7 +49,7 @@ export default function MusicRevisionHistory({
             ))}
           </ol>
         </div>
-      </dialog>
+      </Modal>
     )
   );
 }

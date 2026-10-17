@@ -5,7 +5,7 @@ import React from 'react';
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 import { usePaletteSession } from '@/components/search/palette/usePaletteSession';
-import { useBackdropDismiss } from '@/components/site/useBackdropDismiss';
+import Modal from '@/components/site/Modal';
 
 import { type ExcerptPart } from '@/lib/search/palette/search';
 import type {
@@ -371,19 +371,14 @@ export default function Palette({
   onClose,
   onForcedClose,
 }: PaletteProps) {
-  const backdrop = useBackdropDismiss(onClose);
   return (
-    <dialog
+    <Modal
       ref={ref}
       className="palette box-border mx-auto mt-[12vh] w-[min(640px,calc(100vw_-_32px))] max-w-none max-h-[min(680px,calc(100dvh_-_20vh))] overflow-hidden rounded-[28px] border-0 bg-surface-container p-3 font-sans text-base leading-6 text-ink shadow-[0_4px_16px_-4px_color-mix(in_srgb,var(--color-scrim)_28%,transparent)] [&[open]]:flex [&[open]]:flex-col [&[open]]:gap-3 max-[599px]:w-[calc(100vw_-_16px)] max-[599px]:max-h-[calc(100dvh_-_16px)] max-[599px]:mt-2 max-[599px]:rounded-3xl max-[599px]:p-2 max-[599px]:[&[open]]:gap-2"
       aria-label="Command palette"
-      onCancel={(event) => {
-        // Escape closes through the provider, so the card morphs back.
-        event.preventDefault();
-        onClose();
-      }}
-      onClose={onForcedClose}
-      {...backdrop}
+      // Escape closes through the provider, so the card morphs back.
+      onDismiss={onClose}
+      onForcedClose={onForcedClose}
     >
       {/* Mounted from the first opening on, so the card keeps its contents
           while it morphs or fades away on close. */}
@@ -396,6 +391,6 @@ export default function Palette({
           onClose={onClose}
         />
       )}
-    </dialog>
+    </Modal>
   );
 }

@@ -1,6 +1,7 @@
 import { type SpawnSyncReturns, spawnSync } from 'node:child_process';
 
 import { isMain } from '../shared/command.mts';
+import { localHyperdriveEnvironment } from './local-wrangler-config.mts';
 
 export async function runCloudflareDeploy() {
   const target = process.argv[2] || 'production';
@@ -14,7 +15,7 @@ export async function runCloudflareDeploy() {
     args.push('--profile', process.env.CLOUDFLARE_PROFILE);
   }
 
-  const env = deploymentEnvironment();
+  const env = await deploymentEnvironment(target);
   const deploy = spawnSync('pnpm', args, {
     encoding: 'utf8',
     env,
@@ -25,22 +26,16 @@ export async function runCloudflareDeploy() {
 
 if (isMain(import.meta.url)) await runCloudflareDeploy();
 
-function deploymentEnvironment() {
-  // The Wrangler bundler that cf uses needs a local Hyperdrive URL while
-  // preparing the upload. The deployed Worker uses the Hyperdrive ID in
-  // the deployment configuration instead of this placeholder.
-  const localHyperdriveUrl = 'postgres://unused:unused@127.0.0.1:5432/unused';
-  const env = {
+// The Wrangler bundler that cf uses needs a local Hyperdrive URL while
+// preparing the upload. The deployed Worker uses the Hyperdrive ID in the
+// deployment configuration instead of this placeholder.
+async function deploymentEnvironment(target: string) {
+  return {
     ...process.env,
-    CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-      process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE ||
-      localHyperdriveUrl,
-    CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_STUDIO_HYPERDRIVE:
-      process.env
-        .CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_STUDIO_HYPERDRIVE ||
-      localHyperdriveUrl,
+    ...(await localHyperdriveEnvironment(
+      target === 'preview' ? 'preview' : undefined
+    )),
   };
-  return env;
 }
 
 function forwardDeploymentResult(deploy: SpawnSyncReturns<string>) {

@@ -30,7 +30,12 @@ const LOCAL_HYPERDRIVE_URL =
 const translators: Partial<
   Record<
     string,
-    (bindings: LocalBindings, name: string, binding: Binding) => void
+    (
+      bindings: LocalBindings,
+      name: string,
+      binding: Binding,
+      workerName: string
+    ) => void
   >
 > = {
   text: (bindings, name, { value }) => {
@@ -54,8 +59,12 @@ const translators: Partial<
   worker: (bindings, name, { worker }) => {
     bindings.services.push({ binding: name, service: worker });
   },
-  'durable-object': (bindings, name, { exportName }) => {
-    bindings.durable_objects.bindings.push({ name, class_name: exportName });
+  'durable-object': (bindings, name, { exportName, worker }, workerName) => {
+    bindings.durable_objects.bindings.push({
+      name,
+      class_name: exportName,
+      ...(worker === workerName ? {} : { script_name: worker }),
+    });
   },
   images: (bindings, name) => {
     bindings.images = { binding: name };
@@ -64,7 +73,8 @@ const translators: Partial<
 
 function translateBindings(
   env: Record<string, unknown>,
-  skipUnknownBindings: boolean
+  workerName: string,
+  skipUntranslated: boolean
 ): LocalBindings {
   const bindings: LocalBindings = {
     vars: {},
@@ -78,14 +88,63 @@ function translateBindings(
     const binding = value as Binding;
     const translate = translators[binding.type];
     if (translate) {
-      translate(bindings, name, binding);
-    } else if (!skipUnknownBindings) {
+      translate(bindings, name, binding, workerName);
+    } else if (!skipUntranslated) {
       throw new Error(
         `${name} uses the ${binding.type} binding, which the local Wrangler config does not translate yet.`
       );
     }
   }
   return bindings;
+}
+
+// Worker settings the translation below covers. Domains and triggers are
+// left out on purpose; any other field fails the translation rather than
+// being silently dropped.
+const TRANSLATED_WORKER_FIELDS = new Set([
+  'name',
+  'compatibilityDate',
+  'compatibilityFlags',
+  'entrypoint',
+  'assets',
+  'domains',
+  'triggers',
+  'env',
+  'exports',
+  'workersDev',
+  'previewUrls',
+  'observability',
+]);
+const TRANSLATED_ASSETS_FIELDS = new Set([
+  'htmlHandling',
+  'notFoundHandling',
+  'runWorkerFirst',
+]);
+
+/**
+ * Splits Durable Object exports into the classes a first migration creates.
+ * Renamed, deleted, and transferred classes, and other export types, are
+ * reported as untranslated.
+ */
+function durableObjectMigration(workerExports: Record<string, unknown>) {
+  const sqlite: string[] = [];
+  const kv: string[] = [];
+  const untranslated: string[] = [];
+  for (const [name, value] of Object.entries(workerExports)) {
+    const entry = value as Binding;
+    const created =
+      entry.type === 'durable-object' && entry.state === undefined;
+    if (created && entry.storage === 'sqlite') sqlite.push(name);
+    else if (created && entry.storage === 'legacy-kv') kv.push(name);
+    else untranslated.push(name);
+  }
+  return {
+    classes: {
+      new_sqlite_classes: sqlite,
+      ...(kv.length > 0 ? { new_classes: kv } : {}),
+    },
+    untranslated,
+  };
 }
 
 /**
@@ -98,7 +157,7 @@ function translateBindings(
  */
 async function localWranglerConfig({
   mode,
-  skipUnknownBindings = false,
+  skipUntranslated = false,
 }: LocalWranglerConfigOptions) {
   const { accountId, worker } = await cloudflareConfig({
     isPreview: false,
@@ -114,9 +173,21 @@ async function localWranglerConfig({
   const assetsBinding = Object.entries(env).find(
     ([, value]) => (value as Binding).type === 'assets'
   )?.[0];
-  const sqliteClasses = Object.entries(worker.exports ?? {})
-    .filter(([, value]) => (value as Binding).storage === 'sqlite')
-    .map(([name]) => name);
+  const assets: Record<string, unknown> =
+    (worker as { assets?: Record<string, unknown> }).assets ?? {};
+  const migration = durableObjectMigration(worker.exports ?? {});
+  const untranslated = [
+    ...Object.keys(worker).filter((key) => !TRANSLATED_WORKER_FIELDS.has(key)),
+    ...Object.keys(assets)
+      .filter((key) => !TRANSLATED_ASSETS_FIELDS.has(key))
+      .map((key) => `assets.${key}`),
+    ...migration.untranslated.map((name) => `exports.${name}`),
+  ];
+  if (untranslated.length > 0 && !skipUntranslated) {
+    throw new Error(
+      `The local Wrangler config does not translate ${untranslated.join(', ')} yet.`
+    );
+  }
 
   return {
     account_id: accountId,
@@ -129,9 +200,15 @@ async function localWranglerConfig({
     compatibility_flags: worker.compatibilityFlags,
     workers_dev: worker.workersDev,
     preview_urls: worker.previewUrls,
-    assets: { directory: tooling.assetsDirectory, binding: assetsBinding },
-    ...translateBindings(env, skipUnknownBindings),
-    migrations: [{ tag: 'v1', new_sqlite_classes: sqliteClasses }],
+    assets: {
+      directory: tooling.assetsDirectory,
+      binding: assetsBinding,
+      html_handling: assets.htmlHandling,
+      not_found_handling: assets.notFoundHandling,
+      run_worker_first: assets.runWorkerFirst,
+    },
+    ...translateBindings(env, worker.name, skipUntranslated),
+    migrations: [{ tag: 'v1', ...migration.classes }],
     observability: worker.observability,
   };
 }
@@ -140,11 +217,12 @@ interface LocalWranglerConfigOptions {
   /** The Worker config mode, such as `preview`; production when omitted. */
   mode?: string;
   /**
-   * Leave out bindings the translation does not cover instead of failing.
-   * The OpenNext build reads only Worker-level settings, so it should not
-   * fail on a binding type that only a local preview would need.
+   * Leave out bindings and settings the translation does not cover instead
+   * of failing. The OpenNext build reads only the compatibility date and
+   * asset routing, so it should not fail on what only a local preview
+   * would need.
    */
-  skipUnknownBindings?: boolean;
+  skipUntranslated?: boolean;
 }
 
 /**
@@ -183,6 +261,22 @@ export async function runWithLocalWranglerConfig<T>(
     process.off('SIGINT', ignore);
     await config.remove();
   }
+}
+
+/**
+ * Placeholder local connection strings for every Hyperdrive binding, for
+ * tools that read the TypeScript configuration directly. A non-empty value
+ * already in the environment is kept.
+ */
+export async function localHyperdriveEnvironment(mode?: string) {
+  const { worker } = await cloudflareConfig({ isPreview: false, mode });
+  const env: Record<string, string> = {};
+  for (const [name, value] of Object.entries(worker.env ?? {})) {
+    if ((value as Binding).type !== 'hyperdrive') continue;
+    const variable = `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_${name}`;
+    env[variable] = process.env[variable] || LOCAL_HYPERDRIVE_URL;
+  }
+  return env;
 }
 
 /** Arguments that start OpenNext's local Worker preview with a config. */

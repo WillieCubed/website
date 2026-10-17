@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { constants } from 'node:os';
 
 import { isMain } from '../shared/command.mts';
 import {
@@ -17,7 +18,10 @@ export async function runCloudflarePreview(args = process.argv.slice(2)) {
       })
   );
   if (preview.error) throw preview.error;
-  process.exitCode = preview.status ?? 1;
+  // A child stopped by a signal reports the conventional 128 + signal code.
+  process.exitCode =
+    preview.status ??
+    (preview.signal ? 128 + constants.signals[preview.signal] : 1);
 }
 
 if (isMain(import.meta.url)) await runCloudflarePreview();

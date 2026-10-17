@@ -98,7 +98,7 @@ function InitiativeHeading({ initiative }: InitiativeHeadingProps) {
         <p className="mt-6">
           <SiteLink
             href={initiative.website}
-            className="initiative-site inline-flex items-center gap-2 rounded-full px-5 py-3 text-label-large font-semibold"
+            className="initiative-site site-control gap-2 px-5 py-3 text-label-large font-semibold"
           >
             Visit {new URL(initiative.website).hostname}
             <span aria-hidden="true">↗</span>
@@ -206,7 +206,7 @@ export default async function InitiativePage(
                 <li key={link.href}>
                   <SiteLink
                     href={link.href}
-                    className="inline-block rounded-full border border-line px-4 py-2 text-label-large text-ink transition-colors hover:bg-tray"
+                    className="site-control px-4 py-2 text-label-large [--control-ink:var(--color-ink)] [--control-border:1px_solid_var(--color-line)]"
                   >
                     {link.label}
                   </SiteLink>

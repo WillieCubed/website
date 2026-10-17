@@ -156,7 +156,7 @@
    links once open. Every difference between the two is a function of
    --dock, so the row changes form continuously. */
 .site-footer[data-dock] .site-footer__row {
-  min-height: var(--footer-row-h);
+  min-height: var(--control-target-small);
 }
 /* The row changes form in place: the cube lifts out of its seat, the seat
    closes so the links slide onto the lockup's line, and each link makes
@@ -350,8 +350,8 @@
     display: none;
   }
   .site-footer .feeds-button {
-    inline-size: 40px;
-    block-size: 40px;
+    inline-size: 48px;
+    block-size: 48px;
     justify-content: center;
     padding: 0;
     gap: 0;
@@ -594,6 +594,8 @@
     flex: 0 0 auto;
     margin-inline-start: auto;
     display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
     align-items: center;
     justify-content: start;
     gap: 4px;
@@ -607,7 +609,7 @@
   }
 }
 .site-webring {
-  --ring-target: 32px;
+  --ring-target: 48px;
   display: grid;
   grid-template-columns: repeat(3, var(--ring-target));
   align-content: center;
@@ -631,98 +633,25 @@
 }
 
 .site-footer .site-webring__link {
-  position: relative;
-  isolation: isolate;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  --control-ink: var(--color-muted);
+  --control-rest-radius: 16px;
   width: var(--ring-target);
   height: var(--ring-target);
-  min-width: var(--ring-target);
-  min-height: var(--ring-target);
   padding: 0;
-  color: var(--color-muted);
   text-decoration: none;
-  border-radius: 16px;
   touch-action: manipulation;
-  transition: color 160ms var(--ease-site);
-}
-.site-webring__link::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  z-index: -1;
-  border-radius: 16px;
-  background: transparent;
-  pointer-events: none;
-  transition:
-    background-color 160ms var(--ease-site),
-    border-radius 160ms var(--ease-site);
 }
 .site-footer .site-webring__mark {
-  color: var(--color-on-secondary-container);
-}
-.site-webring__mark::before {
-  background: var(--color-secondary-container);
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
 }
 .site-webring__link > svg {
   width: 18px;
   height: 18px;
-  transition: transform 160ms var(--ease-site);
 }
 .site-webring__mark > svg[viewBox='0 0 640 480'] {
   width: 24px;
   height: 18px;
-}
-@media (hover: hover) {
-  .site-footer .site-webring__link:hover {
-    color: var(--color-accent);
-  }
-  .site-webring__link:hover::before {
-    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-  }
-  .site-webring__mark:hover::before {
-    background: color-mix(
-      in srgb,
-      var(--color-on-secondary-container) 8%,
-      var(--color-secondary-container)
-    );
-  }
-}
-.site-footer .site-webring__link:focus-visible {
-  color: var(--color-accent);
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
-}
-.site-webring__link:focus-visible::before {
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-}
-.site-webring__mark:focus-visible::before {
-  background: color-mix(
-    in srgb,
-    var(--color-on-secondary-container) 10%,
-    var(--color-secondary-container)
-  );
-}
-.site-footer .site-webring__link:active {
-  color: var(--color-on-secondary-container);
-}
-.site-webring__link:active::before {
-  background: var(--color-secondary-container);
-  border-radius: 12px;
-}
-.site-webring__link:active > svg {
-  transform: scale(0.94);
-}
-@media (prefers-reduced-motion: reduce) {
-  .site-footer .site-webring__link,
-  .site-webring__link::before,
-  .site-webring__link > svg {
-    transition: none;
-  }
-  .site-webring__link:active > svg {
-    transform: none;
-  }
 }
 .webring-tooltip {
   position: fixed;

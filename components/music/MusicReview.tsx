@@ -56,7 +56,7 @@ export default function MusicReview({
           <p>Check the order and context before applying changes.</p>
         </div>
         <button
-          className="mp-icon-button mp-icon-button--tonal"
+          className="site-control mp-icon-button mp-icon-button--tonal"
           aria-label="Close review"
           onClick={closeReview}
         >
@@ -80,11 +80,14 @@ export default function MusicReview({
       </div>
       <footer className="mp-review-actions scroller">
         <p>Publish this saved collection to willie.page.</p>
-        <button className="mp-button mp-tonal" onClick={closeReview}>
+        <button
+          className="site-control mp-button mp-tonal"
+          onClick={closeReview}
+        >
           Back to editing
         </button>
         <button
-          className="mp-button mp-primary"
+          className="site-control mp-button mp-primary"
           disabled={!canReview}
           onClick={() => {
             closeReview();
@@ -128,7 +131,7 @@ function MusicReviewCollection({
       <section className="mp-review-order">
         <div className="mp-review-section-heading">
           <h3>Gallery order</h3>
-          <button className="mp-text-button" onClick={onEditOrder}>
+          <button className="site-control mp-text-button" onClick={onEditOrder}>
             Edit order
           </button>
         </div>

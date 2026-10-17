@@ -83,10 +83,10 @@
   }
   .studio-editor .studio-insertion-row > button {
     width: 100%;
-    height: var(--spacing-xl);
-    min-height: var(--spacing-xl);
+    height: var(--control-target-small);
+    min-height: var(--control-target-small);
     padding: 0 var(--spacing-sm);
-    border-radius: var(--shape-full);
+    --control-rest-radius: var(--shape-full);
   }
   .studio-editor .studio-insertion-row > button > svg {
     width: var(--spacing-lg);
@@ -141,11 +141,6 @@
 .studio-review-screen {
   animation: studio-task-enter var(--duration-fast) var(--ease-site);
 }
-.studio-editor .studio-inline-trigger {
-  transition:
-    background-color var(--duration-fast) var(--ease-site),
-    color var(--duration-fast) var(--ease-site);
-}
 @keyframes studio-task-enter {
   from {
     opacity: 0;
@@ -160,10 +155,6 @@
   .studio-task,
   .studio-review-screen {
     animation: none;
-  }
-  :is(.studio-editor, .writing-studio) .site-button,
-  .studio-editor .studio-inline-trigger {
-    transition: none;
   }
 }
 

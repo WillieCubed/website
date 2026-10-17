@@ -291,7 +291,7 @@ function ExpandedWeather({ weather, refreshing }: ExpandedWeatherProps) {
       {weather ? (
         <button
           type="button"
-          className="weather-reading"
+          className="weather-reading site-control"
           disabled={!hydrated}
           onClick={toggleTemperature}
           aria-label={`Show temperature in degrees ${celsius ? 'Fahrenheit' : 'Celsius'}`}

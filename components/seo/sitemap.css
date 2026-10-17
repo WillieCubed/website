@@ -99,8 +99,8 @@
   text-decoration: none;
 }
 .sitemap-page a:focus-visible {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 3px;
+  outline: var(--control-focus-width) solid var(--color-primary);
+  outline-offset: var(--control-focus-offset);
 }
 .sitemap-page-link:focus-visible {
   background: var(--color-tray);

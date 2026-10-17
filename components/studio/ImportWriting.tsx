@@ -1,7 +1,8 @@
 'use client';
-
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+
+import Button from '@/components/site/Button';
 
 import { fetchWithDeadline } from '@/lib/http/fetch';
 
@@ -40,16 +41,16 @@ export default function ImportWriting({ slug }: ImportWritingProps) {
   }
   return (
     <div>
-      <button
+      <Button
         type="button"
         disabled={pending}
         aria-busy={pending}
         style={{ minWidth: 130 }}
         onClick={openEditor}
-        className="link-animated text-label-large text-accent disabled:opacity-60"
+        variant="tonal"
       >
         {pending ? 'Opening editor…' : 'Edit writing'}
-      </button>
+      </Button>
       {error && (
         <p role="alert" className="mt-2 text-body-small">
           {error}

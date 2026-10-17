@@ -26,7 +26,10 @@ export default function MusicRevisionHistory({
       >
         <div>
           <h2 id="music-history-title">Saved revisions</h2>
-          <button className="mp-button mp-tonal" onClick={() => onClose()}>
+          <button
+            className="site-control mp-button mp-tonal"
+            onClick={() => onClose()}
+          >
             Close history
           </button>
           <ol>
@@ -38,7 +41,7 @@ export default function MusicRevisionHistory({
                   {r.conflict ? ' · Conflict copy' : ''}
                 </span>
                 <button
-                  className="mp-button"
+                  className="site-control mp-button"
                   disabled={busy || r.id === currentRevisionId}
                   onClick={() => void onRestore(r.id)}
                 >

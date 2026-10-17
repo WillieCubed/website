@@ -41,7 +41,7 @@ export default function NewWriting() {
   return (
     <>
       <Button
-        className="site-button site-button-surface site-button-tonal min-h-11"
+        className="site-button site-button-surface site-button-tonal"
         type="button"
         disabled={creating || !hydrated}
         aria-busy={creating}

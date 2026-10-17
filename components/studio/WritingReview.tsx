@@ -105,7 +105,9 @@ export default function WritingReview({
             )}
             {mode === 'portable' && (
               <details className="mt-4">
-                <summary>Plain text version</summary>
+                <summary className="site-control studio-disclosure">
+                  Plain text version
+                </summary>
                 <pre>{preview.portableText}</pre>
               </details>
             )}

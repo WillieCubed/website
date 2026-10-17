@@ -204,22 +204,13 @@ body:has(header[data-column='reading'])
   flex-shrink: 0;
 }
 .site-footer__mark-button {
-  display: inline-flex;
+  --control-ink: var(--color-ink);
+  --control-rest-radius: 12px;
   flex: 0 0 auto;
-  align-items: center;
   margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: inherit;
+  padding: 8px;
   font: inherit;
   line-height: inherit;
-  cursor: pointer;
-}
-.site-footer__mark-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 4px;
 }
 .site-footer__mark path {
   transition:
@@ -289,5 +280,34 @@ body:has(header[data-column='reading'])
   }
   .site-footer__mark--spinning {
     animation: none;
+  }
+}
+
+.site-footer__profiles a {
+  min-height: 48px;
+}
+@container (max-width: 1000px) {
+  .site-footer__profiles a {
+    min-width: 48px;
+    justify-content: center;
+  }
+}
+/* The seven 48px profile targets, utility gaps, status and feeds need room
+   before sharing one row. Wrap while that combined target budget cannot fit. */
+@container footer (max-width: 776px) {
+  .site-footer .site-footer__row.site-footer__row:has(.microstatus) {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas: 'profiles profiles' 'microstatus feeds';
+    row-gap: 8px;
+  }
+  .site-footer__profiles {
+    grid-area: profiles;
+  }
+  .site-footer .microstatus {
+    grid-area: microstatus;
+    justify-self: start;
+  }
+  .site-footer .feeds-button {
+    grid-area: feeds;
   }
 }

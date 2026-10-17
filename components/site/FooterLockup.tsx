@@ -80,7 +80,7 @@ export default function FooterLockup({ name }: FooterLockupProps) {
         <button
           ref={markButton}
           type="button"
-          className="site-footer__mark-button"
+          className="site-footer__mark-button site-control"
           aria-label="Toggle cube color"
           aria-pressed={colorPinned}
           aria-haspopup="menu"

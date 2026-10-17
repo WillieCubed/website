@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 
+import Button from '@/components/site/Button';
+
 import type { ComponentProposal, Draft, Generation } from '@/lib/studio/types';
 
 import StudioRuntimePicker from './StudioRuntimePicker';
@@ -94,7 +96,7 @@ export default function StudioWidgetGenerator({
           />
         </label>
         <details className="studio-connection" open={!runtimeReady}>
-          <summary>
+          <summary className="site-control studio-disclosure">
             {runtimeReady ? 'Personal device connected' : 'Connect Lattice'}
           </summary>
           <StudioRuntimePicker
@@ -102,12 +104,9 @@ export default function StudioWidgetGenerator({
             returnTo={`/studio/${documentId}?components=1`}
           />
         </details>
-        <button
-          className="feeds-button"
-          disabled={busy || !prompt.trim() || !runtimeReady}
-        >
+        <Button disabled={busy || !prompt.trim() || !runtimeReady}>
           Generate widget
-        </button>
+        </Button>
       </form>
       <p role="status" aria-live="polite">
         {message || connectionError}
@@ -166,38 +165,31 @@ function GenerationResult({
       {generation.error && <p>{generation.error}</p>}
       {generation.result && (
         <details className="studio-block-details">
-          <summary>View device output</summary>
+          <summary className="site-control studio-disclosure">
+            View device output
+          </summary>
           <pre className="studio-proposal-text">{generation.result}</pre>
         </details>
       )}
       {generation.status === 'ready' && (
         <div>
-          <button
-            className="feeds-button"
-            disabled={busy}
-            onClick={buildComponent}
-          >
+          <Button disabled={busy} onClick={buildComponent}>
             Build isolated preview
-          </button>
-          <button
-            className="feeds-button"
-            disabled={busy}
-            onClick={() => decide('reject')}
-          >
+          </Button>
+          <Button disabled={busy} onClick={() => decide('reject')}>
             Reject
-          </button>
+          </Button>
         </div>
       )}
       {(['failed', 'waiting'].includes(generation.status) ||
         (generation.status === 'running' &&
           Date.parse(generation.startedAt ?? '') < Date.now() - 180_000)) && (
-        <button
-          className="feeds-button"
+        <Button
           disabled={busy || !runtimeReady}
           onClick={() => decide('retry')}
         >
           Retry request
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -279,17 +271,14 @@ function WidgetProposalPreview({
       />
       <p>{proposal.accessibility}</p>
       {proposal.status === 'approved' && (
-        <button
-          className="feeds-button"
-          onClick={() => void onApproved(proposal)}
-        >
+        <Button onClick={() => void onApproved(proposal)}>
           Insert approved component
-        </button>
+        </Button>
       )}
       {proposal.status === 'proposed' && (
-        <button className="feeds-button" disabled={busy} onClick={approve}>
+        <Button disabled={busy} onClick={approve}>
           Approve component for catalog
-        </button>
+        </Button>
       )}
     </div>
   );

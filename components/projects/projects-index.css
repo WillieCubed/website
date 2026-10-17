@@ -49,8 +49,9 @@
     translate 260ms var(--ease-site);
 }
 .projects-card:focus-visible {
-  outline: 3px solid var(--b-primary, var(--color-primary));
-  outline-offset: 4px;
+  outline: var(--control-focus-width) solid
+    var(--b-primary, var(--color-primary));
+  outline-offset: var(--control-focus-offset);
 }
 .projects-card:is(:hover, :focus-visible) {
   background: var(--b-surface-container-high, var(--color-tray));

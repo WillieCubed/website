@@ -3,6 +3,36 @@ import { expect, test } from '@playwright/test';
 
 import kit from '../../../../lib/brand/kit.json' with { type: 'json' };
 
+test('brand actions keep separate focus and press states with usable targets', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/brand');
+  const action = page
+    .getByRole('button', { name: 'More formats', exact: true })
+    .first();
+  await action.scrollIntoViewIfNeeded();
+  await action.focus();
+  await expect(action).toHaveCSS('outline-width', '3px');
+  await expect(action).toHaveCSS('border-radius', '12px');
+  const before = (await action.boundingBox())!;
+  expect(before.width).toBeGreaterThanOrEqual(48);
+  expect(before.height).toBeGreaterThanOrEqual(48);
+  await action.hover();
+  await page.mouse.down();
+  await expect(action).toHaveCSS('border-radius', '8px');
+  expect(await action.boundingBox()).toEqual(before);
+  await page.mouse.up();
+  await page.keyboard.press('Escape');
+
+  const copies = page.locator('.brand-copy button');
+  for (const copy of await copies.all()) {
+    const box = (await copy.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(48);
+    expect(box.height).toBeGreaterThanOrEqual(48);
+  }
+});
+
 test('typography guide shows composition and the complete role catalog', async ({
   page,
 }) => {

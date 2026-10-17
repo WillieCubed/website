@@ -23,7 +23,12 @@ function Download({
   shortLabel,
 }: DownloadProps) {
   return (
-    <a href={file.href} download aria-label={shortLabel ? label : undefined}>
+    <a
+      className="site-control"
+      href={file.href}
+      download
+      aria-label={shortLabel ? label : undefined}
+    >
       {shortLabel ? (
         <>
           <span className="brand-download-label-full">{label}</span>
@@ -86,7 +91,7 @@ export function AssetDownloads({
         <Popover
           label="More formats"
           trigger={<Icon name="more-horizontal" size={18} />}
-          triggerClassName="brand-more-formats"
+          triggerClassName="brand-more-formats site-control"
           panelClassName="brand-picker-panel"
           align="end"
         >
@@ -164,7 +169,7 @@ export function PlatformFiles({ title }: PlatformFilesProps) {
   return (
     <div className="brand-platform">
       <details>
-        <summary aria-label={`${title}: browse files`}>
+        <summary className="site-control" aria-label={`${title}: browse files`}>
           {title}: files and setup
         </summary>
         <h4>{title}</h4>

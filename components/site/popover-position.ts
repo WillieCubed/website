@@ -12,8 +12,8 @@ interface PlacementOptions {
 
 function anchorEdges(anchor: AnchorBounds, breadcrumb: boolean) {
   return {
-    top: anchor.top + (breadcrumb ? 8 : 0),
-    bottom: anchor.bottom - (breadcrumb ? 8 : 0),
+    top: anchor.top,
+    bottom: anchor.bottom,
     gap: breadcrumb ? 4 : 8,
   };
 }
@@ -75,7 +75,7 @@ export function positionPopover(
   );
   const belowTop = Math.max(
     edges.bottom + edges.gap,
-    breadcrumb ? searchBottom(button, left, width) : 0
+    breadcrumb ? searchBottom(button, left, width) + edges.gap : 0
   );
   const belowSpace = Math.max(0, innerHeight - verticalInset - belowTop);
   const aboveSpace = Math.max(0, edges.top - verticalInset - edges.gap);

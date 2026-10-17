@@ -12,12 +12,9 @@
   margin: 0;
 }
 
-/* Doubled so the homepage's `.home button { color: inherit }` cannot win. */
-.palette-trigger.palette-trigger {
-  color: var(--color-muted);
-}
-.palette-trigger.palette-trigger:hover {
-  color: var(--color-ink);
+.palette-trigger {
+  --control-fill: var(--color-tray);
+  --control-ink: var(--color-muted);
 }
 
 /* The sticky rail cannot scroll, so hide this row before it reaches the

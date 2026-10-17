@@ -83,7 +83,8 @@ for (const width of [320, 390, 1440]) {
         .querySelector('.palette-trigger--compact')!
         .getBoundingClientRect();
       return {
-        visibleGap: menuRect.top - (triggerRect.bottom - 8),
+        visibleGap:
+          menuRect.top - Math.max(triggerRect.bottom, searchRect.bottom),
         textOffset:
           linkRect.left +
           parseFloat(getComputedStyle(firstLink).paddingLeft) -

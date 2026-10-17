@@ -79,7 +79,7 @@ function RevisionCard({ revision, onRestore }: RevisionCardProps) {
   return (
     <div className="studio-revision">
       <details className="studio-history-inspection">
-        <summary>
+        <summary className="site-control studio-disclosure">
           Revision {revision.number} · {formatDate(revision.createdAt)}
         </summary>
         {revision.body.title && (

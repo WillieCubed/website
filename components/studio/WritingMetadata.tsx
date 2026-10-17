@@ -47,7 +47,7 @@ export default function WritingMetadata({
         <Popover
           label="Edit writing date"
           trigger={<time dateTime={published}>{formatDate(published)}</time>}
-          triggerClassName="studio-inline-trigger"
+          triggerClassName="site-control studio-inline-trigger"
           panelClassName="studio-task-form"
           width={280}
         >
@@ -112,7 +112,7 @@ export default function WritingMetadata({
               <span>{body.tags.filter(Boolean).join(', ') || 'Add tags'}</span>
             </>
           }
-          triggerClassName="studio-tag-trigger"
+          triggerClassName="site-control studio-tag-trigger"
           panelClassName="studio-task-form"
           width={300}
         >
@@ -160,7 +160,7 @@ function AddWritingTitle({ body, showHeading, onAdd }: AddWritingTitleProps) {
   )
     return null;
   return (
-    <button className="studio-inline-trigger" onClick={onAdd}>
+    <button className="site-control studio-inline-trigger" onClick={onAdd}>
       Add a title
     </button>
   );

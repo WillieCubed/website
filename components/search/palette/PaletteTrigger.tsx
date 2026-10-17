@@ -65,7 +65,8 @@ export default function PaletteTrigger({
       <button
         ref={ref}
         type="submit"
-        className={`palette-trigger inline-flex items-center border-0 bg-tray [font-family:inherit] [line-height:inherit] no-underline cursor-pointer active:scale-[.98] focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-[3px] hover:bg-surface-container-highest [transition:background-color_200ms_var(--ease-site),scale_160ms_var(--ease-site),outline-offset_280ms_var(--ease-site),outline-color_200ms_var(--ease-site)] ${size === 'rail' ? 'w-full max-w-[720px] h-14 gap-3 rounded-[28px] py-0 pr-6 pl-5 text-base' : 'palette-trigger--compact h-10 gap-2 rounded-[20px] py-0 pr-4 pl-3 text-sm leading-5 font-semibold max-[599px]:w-10 max-[599px]:justify-center max-[599px]:p-0'}${glass ? ' site-glass' : ''}`}
+        data-control-size={size === 'rail' ? 'medium' : undefined}
+        className={`palette-trigger site-control [font-family:inherit] [line-height:inherit] no-underline ${size === 'rail' ? 'w-full max-w-[720px] gap-3 py-0 pr-6 pl-5 text-base [--control-rest-radius:28px]' : 'palette-trigger--compact gap-2 py-0 pr-4 pl-3 text-sm leading-5 font-semibold [--control-rest-radius:20px] max-[599px]:p-0'}${glass ? ' site-glass' : ''}`}
         aria-haspopup="dialog"
         aria-label={size === 'compact' ? 'Search' : 'Search or jump to'}
         aria-keyshortcuts="Meta+K Control+K"

@@ -83,22 +83,20 @@
   transition:
     background 160ms var(--mp-effects),
     color 160ms var(--mp-effects),
-    border-radius 320ms var(--mp-spatial),
-    scale 320ms var(--mp-spatial);
+    border-radius var(--control-shape-duration) var(--control-shape-ease);
 }
 .music-prototype
   :is(.ms-playlist, .ms-feature-option, .mp-check):has(
     .mp-selection-control input:focus-visible
   ) {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 4px;
+  outline: var(--control-focus-width) solid var(--color-primary);
+  outline-offset: var(--control-focus-offset);
 }
 .music-prototype
   :is(.ms-playlist, .ms-feature-option, .mp-check):has(
-    .mp-selection-control
+    .mp-selection-control input:enabled
   ):active {
-  scale: 0.985;
-  border-radius: 10px;
+  border-radius: var(--control-pressed-radius-small);
 }
 .mp-check:has(.mp-selection-control input:checked) {
   font-weight: 600;
@@ -110,10 +108,10 @@
   cursor: default;
 }
 @media (hover: hover) {
-  .mp-check:has(.mp-selection-control):hover {
+  .mp-check:has(.mp-selection-control input:enabled):hover {
     background: var(--color-surface-container-highest);
   }
-  .mp-check:has(.mp-selection-control input:checked):hover {
+  .mp-check:has(.mp-selection-control input:checked:enabled):hover {
     background: var(--color-secondary-container);
   }
 }

@@ -1308,9 +1308,12 @@ test('inline controls follow a middle paragraph and preserve selected prose', as
     const button = await add.boundingBox();
     expect(block).not.toBeNull();
     expect(button).not.toBeNull();
+    expect(button!.height).toBeGreaterThanOrEqual(48);
     if (testInfo.project.name === 'studio-phone') {
       expect(button!.y).toBeGreaterThanOrEqual(block!.y + block!.height);
       expect(button!.y - block!.y - block!.height).toBeLessThan(20);
+      const next = await page.locator('.studio-prose > p').nth(9).boundingBox();
+      expect(next!.y).toBeGreaterThanOrEqual(button!.y + button!.height);
     } else {
       expect(Math.abs(button!.y - block!.y)).toBeLessThan(5);
       expect(button!.x + button!.width).toBeLessThanOrEqual(block!.x);
@@ -1325,8 +1328,30 @@ test('inline controls follow a middle paragraph and preserve selected prose', as
     selection.addRange(range);
     document.dispatchEvent(new Event('selectionchange'));
   });
-  await page.getByRole('button', { name: 'Bold', exact: true }).click();
+  const bold = page.getByRole('button', { name: 'Bold', exact: true });
+  await expect(bold).toBeVisible();
+  await expect(bold).toHaveAttribute('aria-pressed', 'false');
+  const boldBounds = (await bold.boundingBox())!;
+  await page.mouse.move(
+    boldBounds.x + boldBounds.width / 2,
+    boldBounds.y + boldBounds.height / 2
+  );
+  await page.mouse.down();
+  try {
+    await expect
+      .poll(() =>
+        bold.evaluate((element) => getComputedStyle(element).borderRadius)
+      )
+      .toBe('8px');
+    expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(
+      'Paragraph 9'
+    );
+    expect(await bold.boundingBox()).toEqual(boldBounds);
+  } finally {
+    await page.mouse.up();
+  }
   await expect(paragraph.locator('strong')).toHaveText('Paragraph 9');
+  await expect(bold).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'Link', exact: true }).click();
   const linkAddress = page.getByRole('textbox', { name: 'Link address' });
   await expect(linkAddress).toBeFocused();

@@ -18,10 +18,9 @@
 }
 .studio-inline-trigger,
 .studio-tag-trigger {
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  color: var(--color-muted);
+  --control-fill: transparent;
+  --control-ink: var(--color-muted);
+  --control-rest-radius: var(--radius-sm);
   padding: 0 var(--spacing-2xs);
   font: inherit;
 }
@@ -43,12 +42,6 @@
 .studio-tag-trigger > span {
   min-width: 0;
   overflow-wrap: anywhere;
-}
-.studio-tag-trigger:focus-visible,
-.studio-inline-trigger:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: var(--spacing-2xs);
-  border-radius: var(--radius-sm);
 }
 .studio-document-metadata {
   display: flex;
@@ -78,31 +71,19 @@
   font-size: var(--text-label-large);
 }
 
-.studio-inline-trigger:hover {
-  color: var(--color-accent);
-}
 .studio-action-menu button,
 .studio-format-menu button {
   display: block;
   width: 100%;
   padding: var(--spacing-md) var(--spacing-md);
-  border: 0;
-  border-radius: var(--radius-lg);
+  --control-rest-radius: var(--radius-lg);
+  --control-fill: transparent;
+  --control-ink: var(--color-ink);
   text-align: left;
-  background: transparent;
-  color: var(--color-ink);
   font: inherit;
-  cursor: pointer;
 }
-.studio-action-menu button:hover,
-.studio-format-menu button:hover,
 .studio-format-menu button[aria-pressed='true'] {
-  background: var(--color-surface-container-highest);
-}
-.studio-editor button:disabled,
-.studio-action-menu button:disabled {
-  opacity: 0.55;
-  cursor: default;
+  --control-fill: var(--color-surface-container-highest);
 }
 .studio-task,
 .studio-editor .studio-notice,
@@ -187,8 +168,10 @@
   gap: var(--spacing-sm);
   margin: var(--spacing-xl) 0;
 }
-.studio-preview-tabs [aria-pressed='true'] {
-  background: var(--color-tray);
+.studio-preview-tabs [aria-pressed='true'],
+.studio-selection-tools [aria-pressed='true'] {
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
 }
 .studio-editor .studio-preview,
 .studio-editor .studio-sandbox,

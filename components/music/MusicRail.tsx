@@ -55,11 +55,11 @@ export default function MusicRail({
             onChange={(event) => setNewSeries(event.target.value)}
           />
           <div>
-            <button className="mp-button" type="submit">
+            <button className="site-control mp-button" type="submit">
               Create series
             </button>
             <button
-              className="mp-text-button"
+              className="site-control mp-text-button"
               type="button"
               onClick={() => setNewSeries(null)}
             >

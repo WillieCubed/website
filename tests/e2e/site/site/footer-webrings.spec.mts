@@ -494,3 +494,47 @@ test('the invisible padding around a compact webring remains a native touch targ
     await context.close();
   }
 });
+
+test('labelled homepage contacts stay visually separate', async ({
+  page,
+}, testInfo) => {
+  await page.goto('/');
+  await expect(page.locator('.site-footer')).toHaveAttribute('data-dock', '');
+  await page.evaluate(() => document.fonts.ready);
+  for (const width of [1200, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    );
+    await expect
+      .poll(() =>
+        page
+          .locator('.site-footer')
+          .evaluate((e) =>
+            Number((e as HTMLElement).style.getPropertyValue('--p'))
+          )
+      )
+      .toBe(1);
+    const gaps = await page
+      .locator('.site-footer__profiles a')
+      .evaluateAll((links) =>
+        links
+          .slice(1)
+          .map(
+            (link, index) =>
+              link.querySelector('svg')!.getBoundingClientRect().left -
+              links[index]
+                .querySelector('.site-footer__label')!
+                .getBoundingClientRect().right
+          )
+      );
+    for (const gap of gaps)
+      expect(
+        gap,
+        `${width}px labelled contact separation`
+      ).toBeGreaterThanOrEqual(8);
+    await page.screenshot({
+      path: testInfo.outputPath(`labelled-contacts-${width}.png`),
+    });
+  }
+});

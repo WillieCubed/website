@@ -10,7 +10,6 @@ export const HUMANS_COMPONENTS: Array<[pkg: string, name: string]> = [
   ['tailwindcss', 'Tailwind CSS'],
   ['@mdx-js/react', 'MDX'],
   ['@material/material-color-utilities', 'Material Color Utilities'],
-  ['framer-motion', 'Motion'],
   ['shiki', 'Shiki'],
   ['pagefind', 'Pagefind'],
   ['zod', 'Zod'],

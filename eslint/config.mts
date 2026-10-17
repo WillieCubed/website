@@ -170,10 +170,9 @@ const eslintConfig: Linter.Config[] = [
   },
   {
     // An anchor written by hand skips SiteLink just as a next/link import
-    // does. Parked pages are not routed, so they are
-    // left for their rebuild.
+    // does.
     files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}'],
-    ignores: ['components/link/**', 'app/_(pages)/**'],
+    ignores: ['components/link/**'],
     rules: {
       'site/no-raw-internal-anchor': 'error',
     },

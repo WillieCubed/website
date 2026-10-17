@@ -150,12 +150,9 @@ Feeds, IndieWeb, and protocol routes:
   `/llms.txt`, and the MCP server at `/api/mcp`. See
   [docs/reference/publishing/protocols.md](docs/reference/publishing/protocols.md).
 
-Retired page sources remain under `app/_(pages)` and do not create public
-routes. About and Research also have unapproved replacements in
-`app/_proposals`; they remain private pending Willie's content and publication
-approval. See the
-[profile proposals reference](docs/reference/content/public-profile.md) for that
-review boundary.
+About and Research are not built; the
+[profile pages reference](docs/reference/content/public-profile.md) records what
+they need before publication.
 
 ## Deployment
 

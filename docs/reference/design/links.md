@@ -73,8 +73,7 @@ template literals beginning with that expression. These checks identify likely
 in-site destinations without treating every similarly spelled host as this
 site.
 
-Both rules apply to `app/` and `components/` outside `components/link/`. The
-raw-anchor rule also skips `app/_(pages)`, whose parked pages are not routed.
+Both rules apply to `app/` and `components/` outside `components/link/`.
 Links elsewhere still follow this document's rule; those locations are outside
 the lint check's scope.
 

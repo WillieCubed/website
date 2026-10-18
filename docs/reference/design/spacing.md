@@ -43,6 +43,8 @@ The permitted cases are:
 - The playlist ending's 20px icon centers beside its 24px first text line.
 - Temperature unit glyphs use small optical separations from the numeral.
 - The brand guide deliberately crowds a logo to illustrate incorrect usage.
+- The colophon specimen uses optical insets to balance its rotated organic
+  silhouette around upright letterforms; they define artwork, not layout gaps.
 
 These adjustments do not justify off-grid spacing between ordinary blocks,
 menu items, controls, or labels. Font sizes, line heights, borders, corner

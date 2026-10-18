@@ -6,6 +6,23 @@ export function createBuildRecord(
   fallbackRevision: string | null,
   now: Date
 ): SiteBuildRecord {
+  const revision = sourceRevision(env, fallbackRevision);
+  const development = env.NODE_ENV === 'development';
+  const builtAt = development ? null : env.SITE_BUILT_AT || now.toISOString();
+  if (builtAt && !Number.isFinite(Date.parse(builtAt)))
+    throw new Error('Invalid site build time.');
+  return {
+    revision,
+    builtAt,
+    ...buildLocation(env),
+    development,
+  };
+}
+
+function sourceRevision(
+  env: Record<string, string | undefined>,
+  fallbackRevision: string | null
+): string | null {
   const revision =
     env.NEXT_PUBLIC_SITE_REVISION ||
     env.WORKERS_CI_COMMIT_SHA ||
@@ -13,10 +30,12 @@ export function createBuildRecord(
     fallbackRevision;
   if (revision && !/^[a-f0-9]{40,64}$/i.test(revision))
     throw new Error('Invalid site revision.');
-  const development = env.NODE_ENV === 'development';
-  const builtAt = development ? null : env.SITE_BUILT_AT || now.toISOString();
-  if (builtAt && !Number.isFinite(Date.parse(builtAt)))
-    throw new Error('Invalid site build time.');
+  return revision?.toLowerCase() ?? null;
+}
+
+function buildLocation(
+  env: Record<string, string | undefined>
+): Pick<SiteBuildRecord, 'buildUrl' | 'provider'> {
   let buildUrl: string | null = null;
   let provider: SiteBuildRecord['provider'] = null;
   if (env.WORKERS_CI === '1' && env.WORKERS_CI_BUILD_UUID) {
@@ -43,11 +62,5 @@ export function createBuildRecord(
     buildUrl = `https://github.com/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`;
     provider = 'github';
   }
-  return {
-    revision: revision?.toLowerCase() ?? null,
-    builtAt,
-    buildUrl,
-    provider,
-    development,
-  };
+  return { buildUrl, provider };
 }

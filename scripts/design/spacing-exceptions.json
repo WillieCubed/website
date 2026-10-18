@@ -61,5 +61,12 @@
     "property": "--control-group-gap",
     "value": "2px",
     "reason": "Material 3 Expressive connected button groups use a 2px internal gap; each control retains its accessible target."
+  },
+  {
+    "file": "app/colophon/colophon.css",
+    "selector": ".colophon-illustration::before",
+    "property": "inset",
+    "value": "10px 4px 18px",
+    "reason": "Balances the rotated organic specimen silhouette around its upright letterforms; these insets define the artwork rather than spacing between content blocks."
   }
 ]

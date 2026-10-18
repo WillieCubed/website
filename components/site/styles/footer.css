@@ -277,12 +277,11 @@ body:has(header[data-column='reading'])
   }
 }
 @container footer-utilities (max-width: 288px) {
-  .site-footer__utilities .microstatus-place > svg,
-  .site-footer__utilities .microstatus .weather-picture {
+  .site-footer__utilities .microstatus-place > svg {
     display: none;
   }
 }
-@container footer-utilities (max-width: 184px) {
+@container footer-utilities (max-width: 256px) {
   .site-footer__utilities
     .microstatus:has(.microstatus-weather)
     .microstatus-place {

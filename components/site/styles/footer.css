@@ -267,63 +267,48 @@ body:has(header[data-column='reading'])
   flex-shrink: 0;
 }
 
-/* Weather yields before city text when full touch targets consume the row. */
-@container footer-utilities (max-width: 200px) {
-  .site-footer__utilities .microstatus-weather,
+/* Optional metadata yields inside the row; temperature and Feeds stay visible. */
+.site-footer__utilities .microstatus {
+  min-inline-size: 44px;
+}
+@container footer-utilities (max-width: 320px) {
   .site-footer__utilities .microstatus-clock {
     display: none;
   }
 }
-/* Very narrow columns and the homepage's complete profile list need two
-   deliberate rows. Keep their visual order identical to keyboard order. */
-@container footer (max-width: 560px) {
-  .site-footer[data-dock] .site-footer__row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(var(--control-target-small), auto) var(
-        --control-target-small
-      );
-  }
-  .site-footer[data-dock] .site-footer__profiles {
-    flex-wrap: wrap;
-    width: calc(4 * var(--control-target-small) + var(--footer-content-pad));
-    max-width: 100%;
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .site-footer[data-dock] .site-footer__utilities {
-    width: 100%;
-    margin-inline-start: 0;
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .site-footer[data-dock] .site-footer__utilities > .microstatus {
-    margin-inline-start: var(--footer-content-pad);
-  }
-  .site-footer[data-dock] .site-footer__utilities > .feeds-button {
-    margin-inline-start: auto;
+@container footer-utilities (max-width: 240px) {
+  .site-footer__utilities .microstatus-place > svg,
+  .site-footer__utilities .microstatus .weather-picture {
+    display: none;
   }
 }
-@container footer (max-width: 340px) {
-  .site-footer__row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: repeat(2, var(--control-target-small));
+@container footer-utilities (max-width: 160px) {
+  .site-footer__utilities
+    .microstatus:has(.microstatus-weather)
+    .microstatus-place {
+    display: none;
   }
+}
+/* Compact link targets preserve the single contact/status/Feeds row. */
+@container footer (max-width: 560px) {
   .site-footer__profiles {
-    grid-column: 1;
-    grid-row: 1;
+    --footer-link-width: 44px;
+    --footer-link-inset: calc((var(--footer-link-width) - 16px) / 2);
+  }
+  .site-footer__row,
+  .site-footer__utilities {
+    gap: var(--spacing-xs);
+  }
+}
+/* At legacy narrow widths, minimum hit areas can use the panel gutter.
+   Preserve their sizes instead of allowing utilities to overlap contacts. */
+@container footer (max-width: 272px) {
+  .site-footer__row,
+  .site-footer__utilities {
+    gap: 0;
   }
   .site-footer__utilities {
-    width: 100%;
-    margin-inline-start: 0;
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .site-footer__utilities > .microstatus {
-    margin-inline-start: var(--footer-content-pad);
-  }
-  .site-footer__utilities > .feeds-button {
-    margin-inline-start: auto;
+    flex-shrink: 0;
+    min-inline-size: calc(44px + var(--control-target-small));
   }
 }

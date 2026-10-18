@@ -1,5 +1,22 @@
 import { type Page, expect, test } from '@playwright/test';
 
+const footerStatusFixture = {
+  location: {
+    city: 'Las Vegas',
+    region: 'Nevada',
+    country: 'United States',
+    timezone: 'America/Los_Angeles',
+    updatedAt: null,
+  },
+  weather: {
+    temperature: 72,
+    unit: 'F',
+    code: 0,
+    isDay: true,
+    observedAt: new Date().toISOString(),
+  },
+};
+
 type TargetBounds = Pick<
   DOMRect,
   'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'
@@ -83,7 +100,7 @@ async function expectFooterTouchTargets(
         return [
           {
             label: link.getAttribute('aria-label') ?? link.textContent,
-            minimum: link.classList.contains('site-webring__link') ? 44 : 48,
+            minimum: link.classList.contains('feeds-button') ? 48 : 44,
             bounds: r.toJSON(),
             edgeHits: [
               [r.left + 2, r.top + r.height / 2],
@@ -320,57 +337,129 @@ test('the restored ring group contains full touch targets at every width', async
   }
 });
 
-test('footer contacts retain full touch targets without overflow', async ({
-  page,
-}, testInfo) => {
-  await page.goto('/writings');
-  await expect(page.locator('.microstatus')).toBeVisible();
-  await page.evaluate(() => document.fonts.ready);
-  await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
-  for (const width of [318, 320, 360, 390, 480, 600, 840, 1000, 1440]) {
-    await page.setViewportSize({ width, height: 1000 });
-    await page.locator('.site-webrings').scrollIntoViewIfNeeded();
-    const geometry = await page.evaluate(() => {
-      const box = (selector: string) =>
-        document.querySelector(selector)!.getBoundingClientRect().toJSON();
-      return {
-        contacts: box('.site-footer__profiles'),
-        utilities: box('.site-footer__utilities'),
-        status: box('.site-footer__utilities .microstatus'),
-        row: box('.site-footer__row'),
-        links: [...document.querySelectorAll('.site-footer__profiles a')]
-          .filter((element) => element.getBoundingClientRect().width > 0)
-          .map((element) => element.getBoundingClientRect().toJSON()),
-        overflow:
-          document.documentElement.scrollWidth >
-          document.documentElement.clientWidth,
-      };
-    });
-    expect(geometry.overflow, `${width}px footer overflow`).toBe(false);
-    expect(
-      geometry.utilities.width,
-      `${width}px utilities retain their column`
-    ).toBeGreaterThan(48);
-    expect(
-      geometry.status.width,
-      `${width}px status stays readable`
-    ).toBeGreaterThanOrEqual(48);
-    for (const link of geometry.links) {
-      expect(link.width).toBeGreaterThanOrEqual(48);
-      expect(link.height).toBeGreaterThanOrEqual(48);
-    }
-    if (width === 390 || width === 480 || width >= 840) {
+for (const route of ['/', '/writings']) {
+  test(`footer contacts and weather stay on one row: ${route}`, async ({
+    page,
+  }, testInfo) => {
+    await page.route('**/api/status', (request) =>
+      request.fulfill({ json: footerStatusFixture })
+    );
+    await page.goto(route);
+    if (route === '/')
+      await expect(page.locator('.site-footer')).toHaveAttribute(
+        'data-dock',
+        ''
+      );
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    );
+    await expect(page.locator('.microstatus')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
+    for (const width of [
+      300, 316, 318, 320, 360, 390, 480, 599, 600, 840, 1000, 1200, 1440, 1920,
+    ]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.locator('.site-webrings').scrollIntoViewIfNeeded();
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            window.scrollTo(0, document.documentElement.scrollHeight);
+            const footer = document.querySelector<HTMLElement>('.site-footer')!;
+            return (
+              !footer.hasAttribute('data-dock') ||
+              Number(footer.style.getPropertyValue('--p')) === 1
+            );
+          })
+        )
+        .toBe(true);
+      await expect(
+        page.locator('.site-footer .microstatus-weather .temperature')
+      ).toContainText('72');
+      await expect(
+        page.locator('.site-footer .microstatus-weather')
+      ).toBeVisible();
+      const geometry = await page.evaluate(() => {
+        const box = (selector: string) =>
+          document.querySelector(selector)!.getBoundingClientRect().toJSON();
+        return {
+          contacts: box('.site-footer__profiles'),
+          utilities: box('.site-footer__utilities'),
+          status: box('.site-footer__utilities .microstatus'),
+          row: box('.site-footer__row'),
+          feeds: box('.site-footer__utilities .feeds-button'),
+          weather: box('.site-footer .microstatus-weather'),
+          links: [...document.querySelectorAll('.site-footer__profiles a')]
+            .filter((element) => element.getBoundingClientRect().width > 0)
+            .map((element) => element.getBoundingClientRect().toJSON()),
+          overflow:
+            document.documentElement.scrollWidth >
+            document.documentElement.clientWidth,
+        };
+      });
+      expect(geometry.overflow, `${width}px footer overflow`).toBe(false);
+      expect(
+        geometry.utilities.width,
+        `${width}px utilities retain their column`
+      ).toBeGreaterThan(48);
+      expect(
+        geometry.status.width,
+        `${width}px status stays readable`
+      ).toBeGreaterThanOrEqual(44);
+      for (const link of geometry.links) {
+        expect(link.width).toBeGreaterThanOrEqual(44);
+        expect(link.height).toBeGreaterThanOrEqual(48);
+      }
       expect(
         geometry.contacts.top,
         `${width}px uses available row space`
       ).toBeCloseTo(geometry.utilities.top, 0);
-      expect(geometry.contacts.right).toBeLessThan(geometry.utilities.left);
+      expect(geometry.contacts.right).toBeLessThanOrEqual(
+        geometry.utilities.left
+      );
+      expect(
+        geometry.status.left,
+        `${width}px status does not cover a contact`
+      ).toBeGreaterThanOrEqual(geometry.links.at(-1)!.right);
+      expect(
+        geometry.status.right,
+        `${width}px status does not cover Feeds`
+      ).toBeLessThanOrEqual(geometry.feeds.left);
+      expect(
+        geometry.feeds.top,
+        `${width}px Feeds shares the contact row`
+      ).toBeCloseTo(geometry.contacts.top, 0);
+      expect(geometry.row.height, `${width}px row never stacks`).toBe(48);
+      expect(
+        geometry.weather.width,
+        `${width}px temperature remains readable`
+      ).toBeGreaterThan(20);
+      await page.waitForTimeout(500);
+      await page.screenshot({
+        path: testInfo.outputPath(`footer-fit-${width}.png`),
+      });
     }
+    await page.route('**/api/status', (request) =>
+      request.fulfill({ json: { ...footerStatusFixture, weather: null } })
+    );
+    await page.setViewportSize({ width: 318, height: 1000 });
+    await page.locator('.site-webrings').scrollIntoViewIfNeeded();
+    await page.evaluate(() =>
+      document.dispatchEvent(new Event('visibilitychange'))
+    );
+    await expect(page.locator('.site-footer .microstatus-weather')).toHaveCount(
+      0
+    );
+    await expect(page.locator('.site-footer .microstatus-place')).toBeVisible();
+    await expect(
+      page.locator('.site-footer .microstatus')
+    ).toHaveAccessibleName(/Las Vegas/);
+    await page.waitForTimeout(500);
     await page.screenshot({
-      path: testInfo.outputPath(`footer-fit-${width}.png`),
+      path: testInfo.outputPath('footer-no-weather-318.png'),
     });
-  }
-});
+  });
+}
 
 test('a touch tap follows a ring link immediately', async ({ browser }) => {
   const context = await browser.newContext({

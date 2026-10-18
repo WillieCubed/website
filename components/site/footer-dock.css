@@ -678,15 +678,6 @@
   }
 }
 
-/* The inset consumes space inside the contact group. Tighten the utility
-   gaps before truncating the city; weather yields on the smallest screens. */
-
-@container footer (max-width: 320px) {
-  .site-footer .microstatus-weather {
-    display: none;
-  }
-}
-
 .site-footer[data-flow] .site-footer__row {
   translate: none;
 }

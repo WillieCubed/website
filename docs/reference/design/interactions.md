@@ -37,15 +37,19 @@ commit action, quiet treatment for cancel, refresh, formatting and secondary
 navigation. Equal previous/next actions receive equal treatment. A navigation
 link must not look persistently selected simply because it opens a directory.
 
-Footer contacts and Feeds retain at least 48px by 48px native hit targets.
-Webrings use 44px by 44px native targets with 32px visible surfaces, an
-outlined group, and tonal directory links. This web-specific sizing choice
-meets [WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)
+Footer contacts, status, and Feeds stay on one row at every width, including
+the homepage dock. Contact links use at least 44px-wide by 48px-tall native
+targets in compact footer columns and 48px-square minima when space permits.
+Feeds retains a 48px-square target. Temperature remains visible whenever
+weather is available; optional city, location artwork, and clock text yield
+inside the same row. With no weather, retain the city/status fallback.
+
+Webrings use 44px-square native targets with 32px visible surfaces, an
+outlined group, and tonal directory links. Compact footer link sizing meets
+[WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)
 while remaining below [Material's recommended 48dp target](https://support.google.com/accessibility/android/answer/7101858?hl=en).
-Keep targets separate and their full padding clickable; do not narrow or
-overlap them to force a row to fit. The label can move above the controls; on the
-narrowest phones, status metadata receives its own line. Weather yields
-before city text when the contact row has limited room.
+Keep targets separate and their full padding clickable. The webring label
+can move above its controls; the contact/status/Feeds row must not stack.
 
 Playlist navigation uses small connected surfaces; Create a series and New writing are prominent
 labelled creation actions. Existing selected states, featured project links

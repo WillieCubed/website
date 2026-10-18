@@ -239,7 +239,8 @@ test('footer status adapts without overlapping compact targets even with a long 
         .map((part) => part.getBoundingClientRect())
         .filter((part) => part.width > 0);
       return parts.every(
-        (part) => part.left >= target.left && part.right <= target.right
+        (part) =>
+          part.left - target.left >= 12 && target.right - part.right >= 12
       );
     });
     expect(containment, `${width}px status content fits its container`).toBe(

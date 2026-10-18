@@ -61,10 +61,10 @@ function compareSpecificity(
   left: MediaPreference,
   right: MediaPreference
 ): number {
-  return (
-    left.mediaSpecificity - right.mediaSpecificity ||
-    left.parameterCount - right.parameterCount
-  );
+  const bySpecificity = left.mediaSpecificity - right.mediaSpecificity;
+  return bySpecificity !== 0
+    ? bySpecificity
+    : left.parameterCount - right.parameterCount;
 }
 
 function preferenceFor(accept: string, subtype: TextSubtype): MediaPreference {

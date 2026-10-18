@@ -379,6 +379,11 @@ for (const route of ['/', '/writings']) {
       await expect(
         page.locator('.site-footer .microstatus-weather')
       ).toBeVisible();
+      if (width >= 320) {
+        await expect(
+          page.locator('.site-footer .weather-picture--compact')
+        ).toBeVisible();
+      }
       const geometry = await page.evaluate(() => {
         const box = (selector: string) =>
           document.querySelector(selector)!.getBoundingClientRect().toJSON();

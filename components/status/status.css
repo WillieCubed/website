@@ -502,9 +502,6 @@
   .site-footer .microstatus {
     gap: 4px;
   }
-  .microstatus .weather-picture {
-    display: none;
-  }
 }
 
 @container footer-utilities (max-width: 288px) {
@@ -515,8 +512,15 @@
 }
 
 /* Keep the full Fahrenheit reading in the link name at legacy phone widths. */
-@container footer-utilities (max-width: 120px) {
+@container footer-utilities (max-width: 144px) {
   .site-footer .microstatus .unit {
+    display: none;
+  }
+}
+
+/* Legacy narrow columns retain the reading before decorative artwork. */
+@container footer-utilities (max-width: 128px) {
+  .site-footer .microstatus .weather-picture {
     display: none;
   }
 }

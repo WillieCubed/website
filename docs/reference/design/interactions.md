@@ -45,6 +45,11 @@ Temperature remains visible when weather is available; optional city,
 location artwork, and clock text yield inside the same row. With no weather,
 retain the city/status fallback.
 
+The status link groups location, time, and weather in one quiet tonal
+container. Its internal padding adapts before metadata wraps. Feeds uses a
+circular shape when icon-only and a capsule when labelled, with the shared
+pressed shape and focus treatment.
+
 Webrings use 44px-square native targets with 32px visible surfaces, an
 outlined group, and tonal directory links. Compact footer link sizing meets
 [WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)

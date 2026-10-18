@@ -32,16 +32,41 @@
   display: flex;
   flex-wrap: nowrap;
   justify-self: end;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   min-height: 48px;
+  padding-inline: var(--spacing-md);
+  background: var(--color-surface-container-highest);
   color: var(--color-muted);
   font: 400 14px/1.5 var(--font-sans);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-2xl);
   white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--control-effects-duration) var(--control-effects-ease),
+    color var(--control-effects-duration) var(--control-effects-ease);
 }
 .site-footer .microstatus:hover {
   color: var(--color-ink);
+  background: color-mix(
+    in srgb,
+    var(--color-ink) 8%,
+    var(--color-surface-container-highest)
+  );
+}
+.site-footer .microstatus:is(:focus-visible, :active) {
+  color: var(--color-ink);
+  background: color-mix(
+    in srgb,
+    var(--color-ink) 10%,
+    var(--color-surface-container-highest)
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-footer .microstatus {
+    transition: none;
+  }
 }
 .microstatus:focus-visible {
   outline: var(--control-focus-width) solid var(--color-accent);
@@ -341,27 +366,11 @@
   );
 }
 
-.site-footer .microstatus {
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  cursor: pointer;
-  transition: color 180ms ease;
-}
-.site-footer .microstatus:is(:hover, :focus-visible) {
-  color: var(--color-ink);
-}
 .site-footer .microstatus .status-city {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
   text-underline-offset: 3px;
 }
-@media (prefers-reduced-motion: reduce) {
-  .site-footer .microstatus {
-    transition: none;
-  }
-}
-
 .microstatus {
   min-width: 0;
   max-width: 100%;
@@ -491,11 +500,17 @@
 
 @container footer (max-width: 400px) {
   .site-footer .microstatus {
-    padding-inline: 0;
     gap: 4px;
   }
   .microstatus .weather-picture {
     display: none;
+  }
+}
+
+@container footer-utilities (max-width: 240px) {
+  .site-footer .microstatus {
+    padding-inline: var(--spacing-xs);
+    gap: var(--spacing-xs);
   }
 }
 

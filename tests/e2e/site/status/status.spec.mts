@@ -88,7 +88,11 @@ test('a delayed status refresh preserves the content on a narrow screen', async 
 
   await expect
     .poll(() =>
-      page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth
+      )
     )
     .toBe(true);
   await reading.hover();
@@ -215,7 +219,10 @@ test('footer status adapts without overlapping compact targets even with a long 
               .map((e) => e.getBoundingClientRect().right)
           );
           return (
-            (profiles.bottom <= status.y || lastContact <= status.x) &&
+            Math.abs(
+              profiles.y + profiles.height / 2 - status.y - status.height / 2
+            ) < 1 &&
+            lastContact <= status.x &&
             Math.abs(
               status.y + status.height / 2 - feeds.y - feeds.height / 2
             ) < 1 &&
@@ -225,8 +232,6 @@ test('footer status adapts without overlapping compact targets even with a long 
         })
       )
       .toBe(true);
-    // The compact location icon follows the footer's available content
-    // width, which varies with classic versus overlay scrollbar gutters.
     const footerWidth = await page
       .locator('.site-footer__inner')
       .evaluate((e) => {
@@ -237,27 +242,31 @@ test('footer status adapts without overlapping compact targets even with a long 
           parseFloat(style.paddingRight)
         );
       });
-    if (footerWidth <= 280) {
-      await expect(status.locator('.microstatus-place > svg')).toBeHidden();
-    } else {
+    const utilitiesWidth = (await page
+      .locator('.site-footer__utilities')
+      .boundingBox())!.width;
+    await expect(status.locator('.temperature')).toBeVisible();
+    if (utilitiesWidth > 240) {
       await expect(status.locator('.microstatus-place > svg')).toBeVisible();
+    } else {
+      await expect(status.locator('.microstatus-place > svg')).toBeHidden();
     }
-    if (width > 390) {
+    if (footerWidth > 400 && utilitiesWidth > 240) {
       await expect(status.locator('.weather-picture')).toBeVisible();
       const weatherGap = await status
         .locator('.microstatus-weather')
         .evaluate((group) => {
           const icon = group.querySelector('svg')!.getBoundingClientRect();
-          const temperature = group
-            .querySelector('.temperature')!
-            .getBoundingClientRect();
-          return temperature.left - icon.right;
+          return (
+            group.querySelector('.temperature')!.getBoundingClientRect().left -
+            icon.right
+          );
         });
       expect(weatherGap).toBeGreaterThanOrEqual(4);
     } else {
       await expect(status.locator('.weather-picture')).toBeHidden();
     }
-    if (width >= 840) {
+    if (footerWidth > 700 && utilitiesWidth > 320) {
       await expect(status.locator('.microstatus-clock')).toBeVisible();
     } else {
       await expect(status.locator('.microstatus-clock')).toBeHidden();
@@ -268,7 +277,7 @@ test('footer status adapts without overlapping compact targets even with a long 
   }
 });
 
-test('the footer preserves a normal city name across compact breakpoints', async ({
+test('the footer keeps weather readable and city text fitted across breakpoints', async ({
   page,
 }) => {
   await page.route('**/api/status', (route) =>
@@ -303,6 +312,7 @@ test('the footer preserves a normal city name across compact breakpoints', async
     await page.evaluate(() =>
       window.scrollTo(0, document.documentElement.scrollHeight)
     );
+    await expect(page.locator('.microstatus .temperature')).toBeVisible();
     await expect
       .poll(
         () =>

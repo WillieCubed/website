@@ -32,7 +32,7 @@ html[data-music-motion] {
 }
 .music {
   --music-page-width: 1600px;
-  --music-page-gutter: clamp(20px, 3vw, 48px);
+  --music-page-gutter: calc(clamp(20px, 3vw, 48px) - var(--spacing-xs));
   --music-gallery-title-leading: 23px;
   --music-gallery-caption-padding: 12px;
   padding-bottom: 56px;

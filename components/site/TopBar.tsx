@@ -27,9 +27,9 @@ const SITE_DESTINATIONS: BreadcrumbMenuItem[] = [
  */
 export const COLUMN = {
   reading: 'max-w-breakpoint-md px-lg desktop:px-0',
-  content: 'max-w-[840px] px-5',
-  media: 'max-w-[840px] px-5',
-  wide: 'max-w-[1200px] px-5',
+  content: 'max-w-[840px] px-lg',
+  media: 'max-w-[840px] px-lg',
+  wide: 'max-w-[1200px] px-lg',
 } as const satisfies Record<PageColumn, string>;
 
 export type Column = keyof typeof COLUMN;

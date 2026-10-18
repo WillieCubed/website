@@ -4,7 +4,7 @@
   --control-fill: var(--color-card);
   --control-ink: var(--color-ink);
   --control-border: 1px solid var(--color-line);
-  --control-rest-radius: 20px;
+  --control-rest-radius: calc(var(--control-target) / 2);
   gap: 8px;
   padding: 8px var(--spacing-control-inline);
   font: 500 14px/20px var(--font-sans);

@@ -389,6 +389,16 @@ for (const route of ['/', '/writings']) {
           row: box('.site-footer__row'),
           feeds: box('.site-footer__utilities .feeds-button'),
           weather: box('.site-footer .microstatus-weather'),
+          statusFill: getComputedStyle(
+            document.querySelector('.site-footer .microstatus')!
+          ).backgroundColor,
+          footerFill: getComputedStyle(document.querySelector('.site-footer')!)
+            .backgroundColor,
+          statusParts: [
+            ...document.querySelectorAll('.site-footer .microstatus > span'),
+          ]
+            .filter((element) => element.getBoundingClientRect().width > 0)
+            .map((element) => element.getBoundingClientRect().toJSON()),
           links: [...document.querySelectorAll('.site-footer__profiles a')]
             .filter((element) => element.getBoundingClientRect().width > 0)
             .map((element) => element.getBoundingClientRect().toJSON()),
@@ -398,6 +408,14 @@ for (const route of ['/', '/writings']) {
         };
       });
       expect(geometry.overflow, `${width}px footer overflow`).toBe(false);
+      expect(geometry.statusFill, `${width}px status has a surface`).not.toBe(
+        'rgba(0, 0, 0, 0)'
+      );
+      expect(geometry.statusFill).not.toBe(geometry.footerFill);
+      for (const part of geometry.statusParts) {
+        expect(part.left).toBeGreaterThanOrEqual(geometry.status.left);
+        expect(part.right).toBeLessThanOrEqual(geometry.status.right);
+      }
       expect(
         geometry.utilities.width,
         `${width}px utilities retain their column`

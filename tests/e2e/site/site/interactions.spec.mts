@@ -44,6 +44,7 @@ for (const layout of layouts) {
       ['/brand', '.brand-more-formats', '8px'],
       ['/status', 'button.weather-reading', '8px'],
       ['/writings', '.site-breadcrumb-menu-trigger', '8px'],
+      ['/writings', '.feeds-button', '8px'],
     ]) {
       await page.goto(route);
       const target = page.locator(selector).first();
@@ -59,6 +60,11 @@ for (const layout of layouts) {
       const restingRadius = await target.evaluate(
         (el) => getComputedStyle(el).borderRadius
       );
+      if (selector === '.feeds-button') {
+        expect(restingRadius).toBe('24px');
+        expect(initial.height).toBe(48);
+        if (layout.width < 600) expect(initial.width).toBe(48);
+      }
       await page.mouse.move(
         initial.x + initial.width / 2,
         initial.y + initial.height / 2

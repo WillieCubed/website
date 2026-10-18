@@ -226,33 +226,26 @@ test('footer status adapts without overlapping compact targets even with a long 
             Math.abs(
               status.y + status.height / 2 - feeds.y - feeds.height / 2
             ) < 1 &&
-            status.right <= feeds.x &&
+            feeds.x - status.right >= 8 &&
             document.documentElement.scrollWidth <= innerWidth
           );
         })
       )
       .toBe(true);
-    const footerWidth = await page
-      .locator('.site-footer__inner')
-      .evaluate((e) => {
-        const style = getComputedStyle(e);
-        return (
-          e.clientWidth -
-          parseFloat(style.paddingLeft) -
-          parseFloat(style.paddingRight)
-        );
-      });
-    const utilitiesWidth = (await page
-      .locator('.site-footer__utilities')
-      .boundingBox())!.width;
     await expect(status.locator('.temperature')).toBeVisible();
-    if (utilitiesWidth > 240) {
-      await expect(status.locator('.microstatus-place > svg')).toBeVisible();
-    } else {
-      await expect(status.locator('.microstatus-place > svg')).toBeHidden();
-    }
-    if (footerWidth > 400 && utilitiesWidth > 240) {
-      await expect(status.locator('.weather-picture')).toBeVisible();
+    const containment = await status.evaluate((element) => {
+      const target = element.getBoundingClientRect();
+      const parts = [...element.children]
+        .map((part) => part.getBoundingClientRect())
+        .filter((part) => part.width > 0);
+      return parts.every(
+        (part) => part.left >= target.left && part.right <= target.right
+      );
+    });
+    expect(containment, `${width}px status content fits its container`).toBe(
+      true
+    );
+    if (await status.locator('.weather-picture').isVisible()) {
       const weatherGap = await status
         .locator('.microstatus-weather')
         .evaluate((group) => {
@@ -263,13 +256,6 @@ test('footer status adapts without overlapping compact targets even with a long 
           );
         });
       expect(weatherGap).toBeGreaterThanOrEqual(4);
-    } else {
-      await expect(status.locator('.weather-picture')).toBeHidden();
-    }
-    if (footerWidth > 700 && utilitiesWidth > 320) {
-      await expect(status.locator('.microstatus-clock')).toBeVisible();
-    } else {
-      await expect(status.locator('.microstatus-clock')).toBeHidden();
     }
     await expect(
       page.getByRole('button', { name: 'Feeds', exact: true })

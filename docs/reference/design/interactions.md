@@ -46,7 +46,7 @@ location artwork, and clock text yield inside the same row. With no weather,
 retain the city/status fallback.
 
 The status link groups location, time, and weather in one quiet tonal
-container. Its internal padding adapts before metadata wraps. Feeds uses a
+capsule. Its internal padding adapts before metadata wraps. Feeds uses a
 circular shape when icon-only and a capsule when labelled, with the shared
 pressed shape and focus treatment.
 

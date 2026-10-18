@@ -40,7 +40,7 @@
   background: var(--color-surface-container-highest);
   color: var(--color-muted);
   font: 400 14px/1.5 var(--font-sans);
-  border-radius: var(--radius-2xl);
+  border-radius: calc(var(--control-target-small) / 2);
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -507,7 +507,7 @@
   }
 }
 
-@container footer-utilities (max-width: 240px) {
+@container footer-utilities (max-width: 288px) {
   .site-footer .microstatus {
     padding-inline: var(--spacing-xs);
     gap: var(--spacing-xs);

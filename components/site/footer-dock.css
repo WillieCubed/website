@@ -368,12 +368,12 @@
 /* The upper surface and footer share a bounded frame. Their visible
    outer edges include the same opening inset; text keeps its own gutter. */
 :root {
-  --frame-gutter: 32px;
+  --frame-gutter: calc(var(--spacing-2xl) - var(--spacing-xs));
   --surface-frame-max: calc(var(--shell-max) + 2 * var(--frame-gutter));
 }
 @media (min-width: 840px) {
   :root {
-    --frame-gutter: 40px;
+    --frame-gutter: calc(var(--spacing-section-roomy) - var(--spacing-xs));
   }
 }
 :root[data-footer-dock] body > .grow {
@@ -587,7 +587,7 @@
 /* Full targets need the frame width on the narrowest phone columns. */
 @media (max-width: 359px) {
   .site-footer {
-    --footer-text-edge: var(--spacing-xl);
+    --footer-text-edge: calc(var(--spacing-xl) - var(--spacing-xs));
   }
   .site-webrings {
     width: calc(100% + 2 * var(--footer-panel-edge));

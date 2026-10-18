@@ -304,7 +304,6 @@ body:has(header[data-column='reading'])
 @container footer (max-width: 272px) {
   .site-footer__row {
     gap: 0;
-    margin-inline-start: calc(-1 * var(--spacing-xs));
   }
   .site-footer__utilities {
     flex-shrink: 0;

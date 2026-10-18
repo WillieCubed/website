@@ -426,7 +426,7 @@ h4 {
    the footer's collapsed row is drawn from them. */
 :root {
   --shell-max: 1480px;
-  --shell-gutter: 20px;
+  --shell-gutter: var(--spacing-lg);
   --rail-w: 400px;
   --rail-gap: clamp(32px, 4vw, 64px);
   --footer-row-h: 48px;

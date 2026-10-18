@@ -392,6 +392,9 @@ for (const route of ['/', '/writings']) {
           statusFill: getComputedStyle(
             document.querySelector('.site-footer .microstatus')!
           ).backgroundColor,
+          statusRadius: getComputedStyle(
+            document.querySelector('.site-footer .microstatus')!
+          ).borderRadius,
           footerFill: getComputedStyle(document.querySelector('.site-footer')!)
             .backgroundColor,
           statusParts: [
@@ -412,6 +415,7 @@ for (const route of ['/', '/writings']) {
         'rgba(0, 0, 0, 0)'
       );
       expect(geometry.statusFill).not.toBe(geometry.footerFill);
+      expect(geometry.statusRadius).toBe('24px');
       for (const part of geometry.statusParts) {
         expect(part.left).toBeGreaterThanOrEqual(geometry.status.left);
         expect(part.right).toBeLessThanOrEqual(geometry.status.right);

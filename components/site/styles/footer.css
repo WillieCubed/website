@@ -276,7 +276,7 @@ body:has(header[data-column='reading'])
     display: none;
   }
 }
-@container footer-utilities (max-width: 240px) {
+@container footer-utilities (max-width: 288px) {
   .site-footer__utilities .microstatus-place > svg,
   .site-footer__utilities .microstatus .weather-picture {
     display: none;

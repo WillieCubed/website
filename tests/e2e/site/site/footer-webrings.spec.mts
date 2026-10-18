@@ -422,9 +422,9 @@ for (const route of ['/', '/writings']) {
         `${width}px status does not cover a contact`
       ).toBeGreaterThanOrEqual(geometry.links.at(-1)!.right);
       expect(
-        geometry.status.right,
-        `${width}px status does not cover Feeds`
-      ).toBeLessThanOrEqual(geometry.feeds.left);
+        geometry.feeds.left - geometry.status.right,
+        `${width}px status keeps an 8px gap before Feeds`
+      ).toBeGreaterThanOrEqual(8);
       expect(
         geometry.feeds.top,
         `${width}px Feeds shares the contact row`

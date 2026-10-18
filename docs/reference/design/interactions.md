@@ -40,9 +40,10 @@ link must not look persistently selected simply because it opens a directory.
 Footer contacts, status, and Feeds stay on one row at every width, including
 the homepage dock. Contact links use at least 44px-wide by 48px-tall native
 targets in compact footer columns and 48px-square minima when space permits.
-Feeds retains a 48px-square target. Temperature remains visible whenever
-weather is available; optional city, location artwork, and clock text yield
-inside the same row. With no weather, retain the city/status fallback.
+Feeds retains a 48px-square target and at least an 8px gap from status.
+Temperature remains visible when weather is available; optional city,
+location artwork, and clock text yield inside the same row. With no weather,
+retain the city/status fallback.
 
 Webrings use 44px-square native targets with 32px visible surfaces, an
 outlined group, and tonal directory links. Compact footer link sizing meets

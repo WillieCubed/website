@@ -295,20 +295,21 @@ body:has(header[data-column='reading'])
     --footer-link-width: 44px;
     --footer-link-inset: calc((var(--footer-link-width) - 16px) / 2);
   }
-  .site-footer__row,
-  .site-footer__utilities {
+  .site-footer__row {
     gap: var(--spacing-xs);
   }
 }
 /* At legacy narrow widths, minimum hit areas can use the panel gutter.
    Preserve their sizes instead of allowing utilities to overlap contacts. */
 @container footer (max-width: 272px) {
-  .site-footer__row,
-  .site-footer__utilities {
+  .site-footer__row {
     gap: 0;
+    margin-inline-start: calc(-1 * var(--spacing-xs));
   }
   .site-footer__utilities {
     flex-shrink: 0;
-    min-inline-size: calc(44px + var(--control-target-small));
+    min-inline-size: calc(
+      44px + var(--spacing-sm) + var(--control-target-small)
+    );
   }
 }

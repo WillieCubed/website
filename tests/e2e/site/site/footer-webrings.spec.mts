@@ -389,6 +389,15 @@ for (const route of ['/', '/writings']) {
           row: box('.site-footer__row'),
           feeds: box('.site-footer__utilities .feeds-button'),
           weather: box('.site-footer .microstatus-weather'),
+          temperatureFits: (() => {
+            const temperature = document.querySelector<HTMLElement>(
+              '.site-footer .temperature'
+            )!;
+            return (
+              temperature.scrollWidth <= temperature.clientWidth &&
+              getComputedStyle(temperature).fontSize === '14px'
+            );
+          })(),
           statusFill: getComputedStyle(
             document.querySelector('.site-footer .microstatus')!
           ).backgroundColor,
@@ -417,8 +426,8 @@ for (const route of ['/', '/writings']) {
       expect(geometry.statusFill).not.toBe(geometry.footerFill);
       expect(geometry.statusRadius).toBe('24px');
       for (const part of geometry.statusParts) {
-        expect(part.left).toBeGreaterThanOrEqual(geometry.status.left);
-        expect(part.right).toBeLessThanOrEqual(geometry.status.right);
+        expect(part.left - geometry.status.left).toBeGreaterThanOrEqual(12);
+        expect(geometry.status.right - part.right).toBeGreaterThanOrEqual(12);
       }
       expect(
         geometry.utilities.width,
@@ -455,7 +464,11 @@ for (const route of ['/', '/writings']) {
       expect(
         geometry.weather.width,
         `${width}px temperature remains readable`
-      ).toBeGreaterThan(20);
+      ).toBeGreaterThan(0);
+      expect(
+        geometry.temperatureFits,
+        `${width}px temperature is full size and unclipped`
+      ).toBe(true);
       await page.waitForTimeout(500);
       await page.screenshot({
         path: testInfo.outputPath(`footer-fit-${width}.png`),
@@ -476,6 +489,35 @@ for (const route of ['/', '/writings']) {
     await expect(
       page.locator('.site-footer .microstatus')
     ).toHaveAccessibleName(/Las Vegas/);
+    const fallbackGeometry = () =>
+      page.evaluate(() => {
+        window.scrollTo(0, document.documentElement.scrollHeight);
+        const status = document
+          .querySelector('.site-footer .microstatus')!
+          .getBoundingClientRect();
+        const feeds = document
+          .querySelector('.site-footer .feeds-button')!
+          .getBoundingClientRect();
+        const contacts = [
+          ...document.querySelectorAll('.site-footer__profiles a'),
+        ]
+          .map((element) => element.getBoundingClientRect())
+          .filter((rect) => rect.width > 0);
+        return {
+          status: status.toJSON(),
+          feeds: feeds.toJSON(),
+          lastContact: Math.max(...contacts.map((rect) => rect.right)),
+        };
+      });
+    await expect
+      .poll(async () => {
+        const fallback = await fallbackGeometry();
+        return (
+          fallback.status.left >= fallback.lastContact &&
+          fallback.feeds.left - fallback.status.right >= 8
+        );
+      })
+      .toBe(true);
     await page.waitForTimeout(500);
     await page.screenshot({
       path: testInfo.outputPath('footer-no-weather-318.png'),
@@ -552,6 +594,19 @@ for (const width of [390, 1440]) {
     await expect(page.locator('.site-webrings')).toHaveCSS(
       'outline-style',
       'solid'
+    );
+    const frame = page.locator('.site-webrings');
+    expect(
+      await frame.evaluate((element) => getComputedStyle(element).outlineColor)
+    ).toBe(
+      await frame.evaluate((element) => {
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--color-outline)';
+        element.append(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+      })
     );
     await expect(surface).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await page.screenshot({ path: testInfo.outputPath('rest-webrings.png') });

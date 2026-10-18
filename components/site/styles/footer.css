@@ -282,7 +282,7 @@ body:has(header[data-column='reading'])
     display: none;
   }
 }
-@container footer-utilities (max-width: 160px) {
+@container footer-utilities (max-width: 184px) {
   .site-footer__utilities
     .microstatus:has(.microstatus-weather)
     .microstatus-place {
@@ -301,14 +301,17 @@ body:has(header[data-column='reading'])
 }
 /* At legacy narrow widths, minimum hit areas can use the panel gutter.
    Preserve their sizes instead of allowing utilities to overlap contacts. */
-@container footer (max-width: 272px) {
+@container footer (max-width: 288px) {
   .site-footer__row {
     gap: 0;
   }
-  .site-footer__utilities {
-    flex-shrink: 0;
-    min-inline-size: calc(
-      44px + var(--spacing-sm) + var(--control-target-small)
+  .site-footer .site-footer__profiles,
+  .site-footer[data-dock] .site-footer__row .site-footer__profiles {
+    margin-inline-start: calc(
+      -1 * (var(--footer-panel-edge) + var(--footer-content-pad))
     );
+  }
+  .site-footer__utilities {
+    margin-inline-end: calc(-1 * var(--footer-panel-edge));
   }
 }

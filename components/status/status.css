@@ -36,8 +36,8 @@
   align-items: center;
   gap: 12px;
   min-height: 48px;
-  padding-inline: var(--spacing-md);
-  background: var(--color-surface-container-highest);
+  padding-inline: var(--spacing-lg);
+  background: var(--color-surface-container);
   color: var(--color-muted);
   font: 400 14px/1.5 var(--font-sans);
   border-radius: calc(var(--control-target-small) / 2);
@@ -52,7 +52,7 @@
   background: color-mix(
     in srgb,
     var(--color-ink) 8%,
-    var(--color-surface-container-highest)
+    var(--color-surface-container)
   );
 }
 .site-footer .microstatus:is(:focus-visible, :active) {
@@ -60,7 +60,7 @@
   background: color-mix(
     in srgb,
     var(--color-ink) 10%,
-    var(--color-surface-container-highest)
+    var(--color-surface-container)
   );
 }
 @media (prefers-reduced-motion: reduce) {
@@ -509,8 +509,15 @@
 
 @container footer-utilities (max-width: 288px) {
   .site-footer .microstatus {
-    padding-inline: var(--spacing-xs);
+    padding-inline: var(--spacing-md);
     gap: var(--spacing-xs);
+  }
+}
+
+/* Keep the full Fahrenheit reading in the link name at legacy phone widths. */
+@container footer-utilities (max-width: 120px) {
+  .site-footer .microstatus .unit {
+    display: none;
   }
 }
 

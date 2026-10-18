@@ -46,7 +46,10 @@ location artwork, and clock text yield inside the same row. With no weather,
 retain the city/status fallback.
 
 The status link groups location, time, and weather in one quiet tonal
-capsule. Its internal padding adapts before metadata wraps. Feeds uses a
+capsule using the surface-container role. Keep at least 12px of horizontal
+padding (16px when roomy); optional metadata yields before padding does.
+At legacy narrow widths, omit the visible Fahrenheit suffix while retaining
+the degree symbol and the full accessible reading. Feeds uses a
 circular shape when icon-only and a capsule when labelled, with the shared
 pressed shape and focus treatment.
 

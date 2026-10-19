@@ -230,6 +230,15 @@ function eggs(): Command[] {
     ...extra,
   });
   return [
+    egg(
+      'rickroll',
+      ['Never gonna give you up', 'rick', 'rickroll'],
+      undefined,
+      {
+        href: 'https://rick.willie.page/',
+        opens: 'tab',
+      }
+    ),
     egg('brew', ['brew', 'coffee', 'teapot'], brewCoffee),
     egg('tea', ['tea'], brewTea),
     egg('whoami', ['whoami'], whoami),

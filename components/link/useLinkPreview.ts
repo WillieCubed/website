@@ -4,6 +4,7 @@ import {
   type CSSProperties,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -50,7 +51,7 @@ export function useLinkPreview(href: string) {
   // not open the card.
   const intent = useRef(0);
   const [card, setCard] = useState<EntityCard | null>(null);
-  const [style, setStyle] = useState<CSSProperties>({});
+  const [style, setStyle] = useState<CSSProperties>({ left: 0, top: 0 });
   const [open, setOpen] = useState(false);
 
   const clearTimers = () => {
@@ -62,13 +63,20 @@ export function useLinkPreview(href: string) {
 
   const place = useCallback(() => {
     const anchor = anchorRef.current;
-    if (!anchor) return;
+    const popover = popoverRef.current;
+    const title = popover?.querySelector('.link-preview__title');
+    if (!anchor || !popover || !title) return;
     const rect = anchor.getBoundingClientRect();
+    const cardRect = popover.getBoundingClientRect();
+    const textInset = title.getBoundingClientRect().left - cardRect.left;
+    // Fixed top-layer coordinates can start inside a reserved scrollbar gutter.
+    const origin = cardRect.left - parseFloat(getComputedStyle(popover).left);
     const width = Math.min(CARD_WIDTH, window.innerWidth - 32);
-    const left = Math.min(
-      Math.max(16, rect.left),
-      window.innerWidth - width - 16
-    );
+    const left =
+      Math.min(
+        Math.max(16, rect.left - textInset),
+        window.innerWidth - width - 16
+      ) - origin;
     const below = rect.bottom + 8;
     const fitsBelow = below + 220 <= window.innerHeight;
     setStyle(
@@ -85,9 +93,8 @@ export function useLinkPreview(href: string) {
     const found = registry.get(entityKey(href));
     if (!found) return;
     setCard(found);
-    place();
     setOpen(true);
-  }, [href, place]);
+  }, [href]);
 
   const hide = useCallback(() => {
     intent.current += 1;
@@ -95,16 +102,19 @@ export function useLinkPreview(href: string) {
     setOpen(false);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const popover = popoverRef.current;
     if (!popover || typeof popover.showPopover !== 'function') return;
     try {
-      if (open && !popover.matches(':popover-open')) popover.showPopover();
+      if (open) {
+        if (!popover.matches(':popover-open')) popover.showPopover();
+        place();
+      }
       if (!open && popover.matches(':popover-open')) popover.hidePopover();
     } catch {
       // The element may already be in the requested state.
     }
-  }, [open, card]);
+  }, [open, card, place]);
 
   useEffect(() => {
     if (!open) return;

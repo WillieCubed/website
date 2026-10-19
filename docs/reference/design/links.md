@@ -222,8 +222,12 @@ a stale card. Touch never opens the card: a tap follows the destination rather
 than spending the visitor's first action on a preview.
 
 The card uses a `popover` element in the top layer, avoiding clipping by a
-parent's overflow. Its motion is opacity plus a six-pixel rise; reduced motion
-retains only the opacity change.
+parent's overflow. The title and description align with the triggering link’s
+left edge, accounting for the card’s internal padding and any reserved scrollbar
+gutter. When that alignment would put the card outside the viewport, its surface
+stays within 16px gutters instead. Placement is measured before painting. Its
+motion is opacity plus a six-pixel rise; reduced motion retains only the opacity
+change.
 
 ### The card repeats information, so it is hidden from assistive technology
 

@@ -160,3 +160,19 @@ test('excerptParts keeps escaped markup in content as text', () => {
     { text: 'use <b> here', mark: false },
   ]);
 });
+
+test('rickroll aliases find a hidden external egg with the song title', () => {
+  for (const query of [
+    'rick',
+    'rickroll',
+    'Never gonna give you up',
+    ' RICKROLL ',
+  ]) {
+    const command = findEgg(commands, query);
+    assert.equal(command?.title, 'Never gonna give you up');
+    assert.equal(command?.href, 'https://rick.willie.page/');
+    assert.equal(command?.opens, 'tab');
+    assert.equal(command?.egg, true);
+    assert.ok(!matchCommands(commands, '').includes(command!));
+  }
+});

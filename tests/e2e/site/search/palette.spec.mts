@@ -240,3 +240,35 @@ test('the open palette passes axe', async ({ page }) => {
   );
   expect(summary).toEqual([]);
 });
+
+test('rick and rickroll open the hidden Rick counter in a new tab', async ({
+  page,
+  context,
+}) => {
+  await context.route('https://rick.willie.page/**', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<title>Rick counter</title>',
+    })
+  );
+  await page.goto('/writings');
+  for (const [query, width] of [
+    ['rick', 390],
+    ['rickroll', 1280],
+  ] as const) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(combobox(page)).toBeFocused();
+    await combobox(page).fill(query);
+    await settled(page);
+    await page.screenshot({
+      path: test.info().outputPath(`rickroll-${width}.png`),
+    });
+    const opened = context.waitForEvent('page');
+    await page.keyboard.press('Enter');
+    const counter = await opened;
+    await expect(counter).toHaveURL('https://rick.willie.page/');
+    await expect(palette(page)).not.toBeVisible();
+    await counter.close();
+  }
+});

@@ -151,9 +151,8 @@ export default function SiteFooter() {
             </nav>
           </div>
         </div>
-        {/* Contacts lead in both visual and tab order. Narrow columns hide
-            profile labels and place status/feeds below the profiles, keeping
-            every target usable. On home this row grows into the footer. */}
+        {/* This is always one row. Profiles scroll when space is tight;
+            city and Feeds retain their width. Never stack these groups. */}
         <div className="site-footer__row">
           <ul className="site-footer__profiles" data-footer-contact>
             {ELSEWHERE.map((place) => (

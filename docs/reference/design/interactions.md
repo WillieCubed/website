@@ -37,13 +37,24 @@ commit action, quiet treatment for cancel, refresh, formatting and secondary
 navigation. Equal previous/next actions receive equal treatment. A navigation
 link must not look persistently selected simply because it opens a directory.
 
-Footer contacts, status, and Feeds stay on one row at every width, including
-the homepage dock. Contact links use at least 44px-wide by 48px-tall native
-targets in compact footer columns and 48px-square minima when space permits.
+Footer contacts, status, and Feeds must stay on one row under all conditions,
+including the homepage dock, enlarged text, missing weather, and long city names.
+Never wrap or stack the groups or their text. Contact links use at least
+44px-square native targets in compact footer columns and 48px-square minima when space permits.
 Feeds retains a 48px-square target and at least an 8px gap from status.
-Temperature remains visible when weather is available; optional city,
-location artwork, and clock text yield inside the same row. With no weather,
-retain the city/status fallback.
+City and temperature retain their full content width and horizontal padding;
+location artwork and clock text yield first. The profile strip scrolls
+horizontally when necessary, keeping every link reachable by touch and keyboard.
+At extreme widths or text sizes, the row itself can scroll horizontally;
+it must never create a second line. Focus indicators stay inside scrolling
+boundaries. With no weather, retain the city/status fallback.
+
+`tests/e2e/site/site/footer-row-contract.spec.mts` enforces the rule in the CI
+browser suite with retries disabled. It checks computed no-wrap rules, actual
+group and target alignment, row height, and unbroken city text across viewport
+and content stress cases. A deliberately broken layout must fail the guard.
+Do not relax these assertions to accommodate a wrapping design.
+Run it directly with `pnpm test:footer-row` after a production build.
 
 The status link groups location, time, and weather in one quiet tonal
 capsule using the surface-container role. Keep at least 12px of horizontal

@@ -16,6 +16,19 @@ import {
 import { startFooterDock } from './footer-dock-controller';
 import './footer-dock.css';
 
+function revealProfile(event: React.FocusEvent<HTMLElement>) {
+  const link = event.target.closest<HTMLElement>('.site-footer__profiles a');
+  if (!link) return;
+  const strip = link.closest<HTMLElement>('.site-footer__profiles')!;
+  const target = link.getBoundingClientRect();
+  const viewport = strip.getBoundingClientRect();
+  if (target.left < viewport.left) {
+    strip.scrollLeft += target.left - viewport.left;
+  } else if (target.right > viewport.right) {
+    strip.scrollLeft += target.right - viewport.right;
+  }
+}
+
 /**
  * The footer element itself. On most pages it is a plain block. On the
  * homepage, which enables the dock controller, it is the rail's contact
@@ -51,7 +64,12 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
   }, [docked]);
 
   return (
-    <footer ref={ref} className="site-footer" data-column={column ?? undefined}>
+    <footer
+      ref={ref}
+      className="site-footer"
+      data-column={column ?? undefined}
+      onFocusCapture={revealProfile}
+    >
       {children}
     </footer>
   );

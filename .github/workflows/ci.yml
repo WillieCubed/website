@@ -48,7 +48,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      - name: Browser tests and strict single-row footer contract
+        run: pnpm test:e2e
 
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() && hashFiles('playwright-report/**') != '' }}

@@ -52,19 +52,19 @@ const FOOTER_PAGES = [
 const ELSEWHERE: {
   label: string;
   href: string;
-  icon: IconName | 'spotify';
+  icon: IconName;
 }[] = [
   {
     label: 'Email',
     href: `mailto:${site.author.email}?subject=Hello%20Willie!`,
     icon: 'mail',
   },
-  {
-    label: 'Spotify',
-    href: spotifyProfileUrl,
-    icon: 'spotify',
-  },
 ];
+
+// Keep Instagram beside Email even when compact footers hide secondary links.
+const FOOTER_PROFILES = [...site.social].sort(
+  (a, b) => Number(b.label === 'Instagram') - Number(a.label === 'Instagram')
+);
 
 interface SocialIconProps {
   label: string;
@@ -113,7 +113,7 @@ async function Tagline() {
 }
 
 /** How many profiles the collapsed row keeps beside the email link. */
-const KEPT = 2;
+const KEPT = 3;
 
 const LINK =
   'inline-flex items-center gap-2 py-1 text-label-large text-ink transition-colors hover:text-accent';
@@ -158,16 +158,12 @@ export default function SiteFooter() {
             {ELSEWHERE.map((place) => (
               <li key={place.href}>
                 <SiteLink href={place.href} className={LINK}>
-                  {place.icon === 'spotify' ? (
-                    <SpotifyIcon className="size-4" />
-                  ) : (
-                    <Icon name={place.icon} size={16} />
-                  )}
+                  <Icon name={place.icon} size={16} />
                   <span className="site-footer__label">{place.label}</span>
                 </SiteLink>
               </li>
             ))}
-            {site.social.map((profile, index) => (
+            {FOOTER_PROFILES.map((profile, index) => (
               // The row is the homepage's footer while it is collapsed, and
               // only so much of it fits the rail's column: the ones past the
               // first few wait until the footer opens.
@@ -181,6 +177,12 @@ export default function SiteFooter() {
                 </a>
               </li>
             ))}
+            <li data-extra="">
+              <SiteLink href={spotifyProfileUrl} className={LINK}>
+                <SpotifyIcon className="size-4" />
+                <span className="site-footer__label">Spotify</span>
+              </SiteLink>
+            </li>
           </ul>
           <div className="site-footer__utilities">
             <Suspense fallback={null}>

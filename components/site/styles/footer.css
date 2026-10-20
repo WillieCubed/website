@@ -304,17 +304,22 @@ body:has(header[data-column='reading'])
     gap: var(--spacing-xs);
   }
 }
-/* At legacy narrow widths, minimum hit areas can use the panel gutter.
-   Preserve their sizes instead of allowing utilities to overlap contacts. */
-@container footer (max-width: 288px) {
+/* Give status its own line before padding would squeeze the city name. */
+@container footer (max-width: 400px) {
   .site-footer__row {
-    gap: 0;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
   }
-  .site-footer .site-footer__profiles,
-  .site-footer[data-dock] .site-footer__row .site-footer__profiles {
-    margin-inline-start: calc(
-      -1 * (var(--footer-panel-edge) + var(--footer-content-pad))
-    );
+  .site-footer__utilities {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+    justify-content: space-between;
+  }
+  .site-footer .microstatus .status-city {
+    max-inline-size: none;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
   .site-footer__utilities {
     margin-inline-end: calc(-1 * var(--footer-panel-edge));

@@ -2,6 +2,7 @@
 
 Commit scopes and conventions are documented in [docs/reference/operations/commits.md](docs/reference/operations/commits.md). Scopes name changelog domains, not route types or file categories. Follow the domain across public UI, admin UI, APIs, and storage; add a missing domain to the declared list. Pick the most specific scope that matches; `site` is only for shared chrome that no other scope covers, never a catch-all.
 Design decisions are governed by [docs/concepts/design/design-principles.md](docs/concepts/design/design-principles.md). Before committing changes to pages, content, styles, or interactions, review its seven-principle checklist on the affected experience.
+The footer's profile/status/Feeds row must never wrap or stack, at any width or text size. Preserve this invariant and its rendered geometry tests in `tests/e2e/site/site/footer-row-contract.spec.mts`; never change the tests to permit a second row. See `docs/reference/design/interactions.md` for horizontal overflow behavior.
 Every visual iteration includes uncropped full-viewport screenshots at desktop and mobile sizes. Full-page captures supplement these screenshots; cropped components do not replace them.
 Every in-site link uses `SiteLink`; the rule and the hover card are documented in [docs/reference/design/links.md](docs/reference/design/links.md).
 Page titles and social previews follow [docs/reference/design/metadata.md](docs/reference/design/metadata.md).

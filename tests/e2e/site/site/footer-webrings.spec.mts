@@ -93,26 +93,25 @@ async function expectFooterTouchTargets(
     .locator(
       '.site-footer__row a, .site-footer__row .feeds-button, .site-webring__link'
     )
-    .evaluateAll((links) =>
-      links.flatMap((link) => {
-        const r = link.getBoundingClientRect();
-        if (r.width === 0) return [];
-        return [
-          {
-            label: link.getAttribute('aria-label') ?? link.textContent,
-            minimum: link.classList.contains('feeds-button') ? 48 : 44,
-            bounds: r.toJSON(),
-            edgeHits: [
-              [r.left + 2, r.top + r.height / 2],
-              [r.right - 2, r.top + r.height / 2],
-              [r.left + r.width / 2, r.top + 2],
-              [r.left + r.width / 2, r.bottom - 2],
-            ].map(([x, y]) => link.contains(document.elementFromPoint(x, y))),
-          },
-        ];
-      })
-    );
-  for (const target of targets) {
+    .all();
+  for (const link of targets) {
+    const initial = await link.boundingBox();
+    if (!initial || initial.width === 0) continue;
+    await link.scrollIntoViewIfNeeded();
+    const target = await link.evaluate((link) => {
+      const r = link.getBoundingClientRect();
+      return {
+        label: link.getAttribute('aria-label') ?? link.textContent,
+        minimum: link.classList.contains('feeds-button') ? 48 : 44,
+        bounds: r.toJSON(),
+        edgeHits: [
+          [r.left + 2, r.top + r.height / 2],
+          [r.right - 2, r.top + r.height / 2],
+          [r.left + r.width / 2, r.top + 2],
+          [r.left + r.width / 2, r.bottom - 2],
+        ].map(([x, y]) => link.contains(document.elementFromPoint(x, y))),
+      };
+    });
     const message = `${width}px ${target.label}`;
     expect(target.bounds.width, message).toBeGreaterThanOrEqual(target.minimum);
     expect(target.bounds.height, message).toBeGreaterThanOrEqual(
@@ -487,21 +486,14 @@ for (const route of ['/', '/writings']) {
         expect(link.width).toBeGreaterThanOrEqual(44);
         expect(link.height).toBeGreaterThanOrEqual(44);
       }
-      if (width <= 390) {
-        expect(geometry.utilities.top).toBeGreaterThanOrEqual(
-          geometry.contacts.bottom + 8
-        );
-        expect(geometry.row.height).toBe(104);
-      } else {
-        expect(geometry.contacts.top).toBeCloseTo(geometry.utilities.top, 0);
-        expect(geometry.contacts.right).toBeLessThanOrEqual(
-          geometry.utilities.left
-        );
-        expect(geometry.status.left).toBeGreaterThanOrEqual(
-          geometry.links.at(-1)!.right
-        );
-        expect(geometry.row.height).toBe(48);
-      }
+      expect(geometry.contacts.top).toBeCloseTo(geometry.utilities.top, 0);
+      expect(geometry.contacts.right).toBeLessThanOrEqual(
+        geometry.utilities.left
+      );
+      expect(geometry.status.left).toBeGreaterThanOrEqual(
+        geometry.contacts.right
+      );
+      expect(geometry.row.height, `${width}px row must never stack`).toBe(48);
       expect(
         geometry.feeds.left - geometry.status.right,
         `${width}px status keeps an 8px gap before Feeds`

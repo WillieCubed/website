@@ -151,6 +151,9 @@
   ) {
   --shown: clamp(0, (var(--p) - var(--from)) / (var(--to) - var(--from)), 1);
   opacity: var(--shown);
+}
+.site-footer[data-dock]
+  :is(.site-footer__pages, .site-footer__brand > :not(.site-footer__lockup)) {
   translate: 0 calc((1 - var(--shown)) * 10px);
 }
 
@@ -437,7 +440,7 @@
   padding-inline-start: var(--footer-content-pad);
 }
 .site-footer__profiles {
-  padding-inline-start: var(--footer-content-pad);
+  padding-inline-start: var(--footer-profile-pad, var(--footer-content-pad));
 }
 .site-footer[data-dock] .site-footer__lockup {
   left: var(--footer-text-edge);
@@ -682,7 +685,7 @@
   translate: none;
 }
 
-/* Labels yield before entire groups wrap. Invisible target padding hangs
+/* Labels yield before the profile strip needs horizontal scrolling. Target padding hangs
    outside the text line; the collapsed dock retains its original cube seat. */
 @container footer (max-width: 1120px) {
   .site-footer__label {
@@ -694,11 +697,17 @@
     white-space: nowrap;
   }
   .site-footer__profiles {
-    margin-inline-start: calc(-1 * var(--footer-link-inset));
+    --footer-profile-pad: max(
+      0px,
+      calc(var(--footer-content-pad) - var(--footer-link-inset))
+    );
   }
   .site-footer[data-dock] .site-footer__profiles {
     --profile-icons: 1;
-    margin-inline-start: calc(-1 * var(--footer-link-inset) * var(--dock));
+    --footer-profile-pad: max(
+      0px,
+      calc(var(--footer-content-pad) - var(--footer-link-inset) * var(--dock))
+    );
   }
 }
 /* Icon-only targets already provide separation. Visible labels need a gap

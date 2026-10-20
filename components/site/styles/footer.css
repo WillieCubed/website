@@ -79,18 +79,39 @@
   justify-content: space-between;
   gap: var(--spacing-sm);
   flex-wrap: nowrap;
+  min-inline-size: 0;
+  overflow: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  white-space: nowrap;
 }
 .site-footer__profiles {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
   gap: 0;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   list-style: none;
   margin: 0;
   padding: 0;
   min-width: 0;
   min-height: var(--control-target-small);
+  min-inline-size: calc(
+    var(--footer-link-width) +
+      var(--footer-profile-pad, var(--footer-content-pad))
+  );
+  overflow: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+.site-footer__profiles li {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+/* Focus stays visible inside either horizontal scrolling boundary. */
+.site-footer__row :is(a, button):focus-visible {
+  outline-offset: calc(-1 * var(--control-focus-width));
 }
 /* The footer carries the column its page's top bar registered. The :has() rules are only the first paint's
    fallback, before any script has run: the document then holds one page,
@@ -249,14 +270,15 @@ body:has(header[data-column='reading'])
   min-height: var(--footer-link-width);
   min-width: var(--footer-link-width);
   justify-content: center;
+  scroll-margin-inline: var(--spacing-sm);
 }
 
-/* Status can shorten inside the remaining width; the feed action stays usable. */
+/* Status and Feeds retain their content width; profiles yield horizontal space. */
 .site-footer__utilities {
   display: flex;
-  flex: 1 1 0;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
   min-width: 0;
-  container: footer-utilities / inline-size;
   align-items: center;
   justify-content: flex-end;
   gap: var(--spacing-sm);
@@ -270,58 +292,33 @@ body:has(header[data-column='reading'])
   flex-shrink: 0;
 }
 
-/* Optional metadata yields inside the row; temperature and Feeds stay visible. */
 .site-footer__utilities .microstatus {
   min-inline-size: 44px;
+  flex-shrink: 0;
 }
-@container footer-utilities (max-width: 320px) {
+.site-footer .microstatus .status-city {
+  max-inline-size: none;
+  overflow: visible;
+  white-space: nowrap;
+}
+@container footer (max-width: 1000px) {
   .site-footer__utilities .microstatus-clock {
     display: none;
   }
 }
-@container footer-utilities (max-width: 288px) {
-  .site-footer__utilities .microstatus-place > svg {
-    display: none;
-  }
-}
-@container footer-utilities (max-width: 160px) {
-  .site-footer__utilities .microstatus:has(.microstatus-weather) {
-    flex-shrink: 0;
-  }
-  .site-footer__utilities
-    .microstatus:has(.microstatus-weather)
-    .microstatus-place {
+@container footer (max-width: 700px) {
+  .site-footer__utilities .microstatus-place > svg,
+  .site-footer__utilities .microstatus .weather-picture {
     display: none;
   }
 }
 /* Compact link targets preserve the single contact/status/Feeds row. */
 @container footer (max-width: 560px) {
-  .site-footer__profiles {
+  .site-footer__row {
     --footer-link-width: 44px;
     --footer-link-inset: calc((var(--footer-link-width) - 16px) / 2);
   }
   .site-footer__row {
     gap: var(--spacing-xs);
-  }
-}
-/* Give status its own line before padding would squeeze the city name. */
-@container footer (max-width: 400px) {
-  .site-footer__row {
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
-  }
-  .site-footer__utilities {
-    flex-basis: 100%;
-    margin-inline-start: 0;
-    justify-content: space-between;
-  }
-  .site-footer .microstatus .status-city {
-    max-inline-size: none;
-    overflow: visible;
-    overflow-wrap: anywhere;
-    white-space: normal;
-  }
-  .site-footer__utilities {
-    margin-inline-end: calc(-1 * var(--footer-panel-edge));
   }
 }

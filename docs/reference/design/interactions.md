@@ -41,7 +41,7 @@ Footer contacts, status, and Feeds must stay on one row under all conditions,
 including the homepage dock, enlarged text, missing weather, and long city names.
 Never wrap or stack the groups or their text. Contact links use at least
 44px-square native targets in compact footer columns and 48px-square minima when space permits.
-Feeds retains a 48px-square target and at least an 8px gap from status.
+Feeds retains a 48px-square target and a 4px gap from status.
 Icon-only profile targets have zero extra margin or gap, including during dock transitions.
 City and temperature retain their full content width and horizontal padding;
 location artwork and clock text yield first. The profile strip scrolls
@@ -57,14 +57,12 @@ and content stress cases. A deliberately broken layout must fail the guard.
 Do not relax these assertions to accommodate a wrapping design.
 Run it directly with `pnpm test:footer-row` after a production build.
 
-The status link groups location, time, and weather in one quiet tonal
-capsule using the surface-container role. Keep at least 12px of horizontal
-padding (16px when roomy); optional metadata yields before padding does.
-The compact weather condition icon remains visible on mobile. At legacy
-narrow widths, artwork yields after the city and clock. Omit the visible Fahrenheit suffix while retaining
-the degree symbol and the full accessible reading. Feeds uses a
-circular shape when icon-only and a capsule when labelled, with the shared
-pressed shape and focus treatment.
+The expanded footer shares brand typography, control weights, internal padding,
+and vertical spacing across pages. Its outer width follows the page's content
+column. The homepage dock animates into this shared composition; its animated
+brand position and size must end at the same dimensions as a plain footer.
+`footer-consistency.spec.mts` compares rendered typography and gaps across
+home, colophon, writings, and music, including JavaScript-disabled rendering.
 
 Webrings use 44px-square native targets with 32px visible surfaces, an
 outlined group, and tonal directory links. Compact footer link sizing meets

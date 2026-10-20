@@ -21,8 +21,7 @@
      the scroll at every width, even where the row is already in its open
      look (a phone), because the cube still starts there. */
   --seat: clamp(0, var(--p) / 0.5, 1);
-  /* The open lockup is a size up from other pages' footers. */
-  --lockup-h: 64px;
+  --lockup-h: var(--footer-lockup-height);
   /* How far the row's surface has grown out of nothing; only a phone
      starts from nothing (see the compact block). */
   --appear: 1;
@@ -33,7 +32,7 @@
   /* How far the collapsed row's surface reaches past the row. */
   --pill-x: var(--spacing-lg);
   --pill-y: var(--footer-pill-y);
-  --pad-top: 48px;
+  --pad-top: var(--footer-top-pad);
   /* The page's side gutter: .home's, or the margin beside the centred
      shell. Percentages resolve against the footer. */
   --gutter: max(var(--shell-gutter), (100% - var(--shell-max)) / 2);
@@ -114,10 +113,7 @@
   height: var(--lockup-h);
   margin: 0;
   gap: var(--spacing-brand-lockup);
-  font-size: calc(20px + 28px * var(--p));
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: calc(20px + (var(--footer-brand-size) - 20px) * var(--p));
 }
 /* The name arrives letter by letter as the headline's name leaves, so the wipe other pages use is off. Its
    opacity follows the wave while the highlight ranges paint. */
@@ -206,7 +202,6 @@
   gap: calc(8px * var(--dock));
   /* One weight throughout: interpolating it re-shapes the text and the
      links drift sideways as the footer opens. */
-  font-weight: 500;
   color: color-mix(
     in srgb,
     var(--color-ink) calc(var(--dock) * 100%),
@@ -226,24 +221,6 @@
   scale: calc(0.6 + 0.4 * var(--icon-shown));
 }
 
-@media (min-width: 840px) {
-  /* The footer keeps the page's columns: the lockup and tagline under
-     the rail, the pages beside them, centred on the lockup's line. */
-  .site-footer[data-dock] .site-footer__top {
-    grid-template-columns: var(--rail-w) minmax(0, 1fr);
-    column-gap: var(--rail-gap);
-  }
-  .site-footer[data-dock] .site-footer__pages {
-    align-self: start;
-    display: flex;
-    align-items: center;
-    min-height: var(--lockup-h);
-  }
-  .site-footer[data-dock] .site-footer__pages ul {
-    flex: 1;
-  }
-}
-
 /* On a phone the row is not pinned while scrolling. As the page ends it
    grows out of nothing, already in the footer's look, and opens to the
    footer's own height. Stretched to fill the screen, a phone's footer is
@@ -253,28 +230,12 @@
     --dock: 1;
     --appear: clamp(0, var(--p) / 0.08, 1);
     --pill-r: var(--shell-gutter);
-    --lockup-h: 48px;
   }
   /* The lockup rises through the stacked pages and the tagline, so they
      wait for it to pass. */
   .site-footer[data-dock] .site-footer__pages,
   .site-footer[data-dock] .site-footer__brand > :not(.site-footer__lockup) {
     --from: 0.9;
-  }
-  /* A phone column is too narrow for the full-size lockup. */
-  .site-footer[data-dock] .site-footer__lockup {
-    font-size: calc(20px + 10px * var(--p));
-  }
-}
-
-@media (max-width: 599px) {
-  .site-footer[data-dock] .site-footer__pages ul {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .site-footer[data-dock] .site-footer__pages a {
-    font-size: var(--text-title-large);
-    line-height: 28px;
   }
 }
 
@@ -385,6 +346,13 @@
   margin-inline: auto;
 }
 .site-footer {
+  --footer-brand-size: var(--text-display-small);
+  --footer-top-pad: clamp(24px, 3vw, 32px);
+  /* The cube's 1.3em height, its padding, and its two 1px control borders. */
+  --footer-lockup-height: max(
+    var(--control-target-small),
+    calc(1.3 * var(--footer-brand-size) + 2 * var(--spacing-sm) + 2px)
+  );
   --footer-gutter: var(--frame-gutter);
   --footer-panel-edge: 16px;
   --footer-text-edge: var(--footer-gutter);
@@ -417,7 +385,7 @@
   grid-template-rows: repeat(4, auto);
   row-gap: 0;
   column-gap: var(--spacing-xl);
-  padding-top: clamp(24px, 3vw, 32px);
+  padding-top: var(--footer-top-pad);
   padding-inline: var(--footer-panel-edge);
   padding-bottom: var(--footer-inset);
 }
@@ -464,15 +432,10 @@
     display: none;
   }
 }
-.site-footer[data-dock] {
-  --lockup-h: 52px;
-  --pad-top: clamp(24px, 3vw, 32px);
-}
-.site-footer[data-dock] .site-footer__lockup {
-  font-size: calc(20px + (36px - 20px) * var(--p));
-}
-.site-footer:not([data-dock]) .site-footer__lockup {
-  font-size: var(--text-display-small);
+.site-footer .site-footer__lockup {
+  height: var(--footer-lockup-height);
+  margin: 0;
+  font-size: var(--footer-brand-size);
   line-height: 1;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -517,14 +480,8 @@
   .site-footer__row {
     margin-block-start: var(--footer-space);
   }
-  .site-footer[data-dock] {
-    --lockup-h: 48px;
-  }
-  .site-footer[data-dock] .site-footer__lockup {
-    font-size: calc(20px + (clamp(22px, 6.7vw, 30px) - 20px) * var(--p));
-  }
-  .site-footer:not([data-dock]) .site-footer__lockup {
-    font-size: clamp(22px, 6.7vw, 30px);
+  .site-footer {
+    --footer-brand-size: clamp(22px, 6.7vw, 30px);
   }
   .site-footer .site-footer__pages {
     padding-inline: var(--footer-content-pad);
@@ -702,6 +659,7 @@
     white-space: nowrap;
   }
   .site-footer__profiles {
+    column-gap: 0;
     --footer-profile-pad: max(
       0px,
       calc(var(--footer-content-pad) - var(--footer-link-inset))
@@ -710,6 +668,7 @@
   .site-footer[data-dock] .site-footer__profiles {
     --profile-icons: 1;
     --profile-gap: 0px;
+    column-gap: 0;
     --footer-profile-pad: max(
       0px,
       calc(var(--footer-content-pad) - var(--footer-link-inset) * var(--dock))
@@ -719,6 +678,9 @@
 /* Icon-only targets already provide separation. Visible labels need a gap
    between destinations as the homepage dock opens. */
 @container footer (width > 1120px) {
+  .site-footer:not([data-dock]) .site-footer__profiles {
+    column-gap: var(--spacing-md);
+  }
   .site-footer[data-dock] .site-footer__profiles {
     --profile-gap: calc(
       20px * (1 - var(--dock)) + var(--spacing-md) * var(--dock)

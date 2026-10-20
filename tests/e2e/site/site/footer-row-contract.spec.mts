@@ -148,7 +148,7 @@ test.describe('footer one-row invariant', () => {
       await page.goto('/colophon');
       await page.keyboard.press('Tab');
       await page.getByRole('link', { name: 'Email', exact: true }).focus();
-      for (const name of ['Email', 'Spotify', 'LinkedIn', 'GitHub']) {
+      for (const name of ['Email', 'Instagram', 'LinkedIn', 'GitHub']) {
         const link = page
           .locator('.site-footer__profiles')
           .getByRole('link', { name, exact: true });

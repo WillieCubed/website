@@ -281,7 +281,7 @@ body:has(header[data-column='reading'])
   min-width: 0;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
   margin-inline-start: auto;
 }
 .site-footer__utilities .microstatus,

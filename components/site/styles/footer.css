@@ -82,6 +82,7 @@
 }
 .site-footer__profiles {
   display: flex;
+  align-items: center;
   flex-wrap: nowrap;
   gap: 0;
   flex: 0 0 auto;
@@ -89,6 +90,7 @@
   margin: 0;
   padding: 0;
   min-width: 0;
+  min-height: var(--control-target-small);
 }
 /* The footer carries the column its page's top bar registered. The :has() rules are only the first paint's
    fallback, before any script has run: the document then holds one page,
@@ -244,7 +246,7 @@ body:has(header[data-column='reading'])
 
 .site-footer__profiles a {
   border-radius: 999px;
-  min-height: 48px;
+  min-height: var(--footer-link-width);
   min-width: var(--footer-link-width);
   justify-content: center;
 }
@@ -282,7 +284,10 @@ body:has(header[data-column='reading'])
     display: none;
   }
 }
-@container footer-utilities (max-width: 256px) {
+@container footer-utilities (max-width: 160px) {
+  .site-footer__utilities .microstatus:has(.microstatus-weather) {
+    flex-shrink: 0;
+  }
   .site-footer__utilities
     .microstatus:has(.microstatus-weather)
     .microstatus-place {

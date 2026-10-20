@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-for (const width of [390, 1440]) {
+for (const width of [320, 390, 1440]) {
   test(`link focus follows inline and footer target shapes at ${width}px`, async ({
     page,
   }, testInfo) => {
@@ -47,6 +47,37 @@ for (const width of [390, 1440]) {
           'inert'
         );
       }
+      const profiles = await footer
+        .locator('.site-footer__profiles a')
+        .evaluateAll((links) =>
+          links.map((link) => {
+            const { width, height } = link.getBoundingClientRect();
+            return { width, height };
+          })
+        );
+      for (const profile of profiles) {
+        expect
+          .soft(profile.height, `${route} profile target`)
+          .toBeLessThanOrEqual(profile.width + 0.5);
+      }
+      const statusInset = await footer
+        .locator('.microstatus')
+        .evaluate((el) => {
+          const bounds = el.getBoundingClientRect();
+          const content = [...el.children]
+            .map((child) => child.getBoundingClientRect())
+            .filter((rect) => rect.width > 0);
+          return {
+            start: Math.min(...content.map((rect) => rect.left)) - bounds.left,
+            end: bounds.right - Math.max(...content.map((rect) => rect.right)),
+          };
+        });
+      expect
+        .soft(statusInset.start, `${route} status start inset`)
+        .toBeGreaterThanOrEqual(8);
+      expect
+        .soft(statusInset.end, `${route} status end inset`)
+        .toBeGreaterThanOrEqual(8);
       for (const [name, target] of [
         ['email', footer.getByRole('link', { name: 'Email', exact: true })],
         ['status', footer.locator('.microstatus')],
@@ -70,15 +101,16 @@ for (const width of [390, 1440]) {
           focus.height / 2
         );
         expect(await target.boundingBox()).toEqual(before);
-        if (route === '/colophon') {
+        {
+          const prefix = route === '/' ? 'home' : 'colophon';
           await page.screenshot({
-            path: testInfo.outputPath(`footer-${name}.png`),
+            path: testInfo.outputPath(`${prefix}-footer-${name}.png`),
           });
           const row = (await footer
             .locator('.site-footer__row')
             .boundingBox())!;
           await page.screenshot({
-            path: testInfo.outputPath(`footer-${name}-detail.png`),
+            path: testInfo.outputPath(`${prefix}-footer-${name}-detail.png`),
             clip: {
               x: row.x - 8,
               y: row.y - 8,

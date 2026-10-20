@@ -53,12 +53,6 @@
 .site-footer__tagline-link:focus-visible {
   text-decoration-color: currentColor;
 }
-/* The homepage dock uses flex for the old single list. Keep both groups
-   aligned at their first link when the dock opens. */
-.site-footer[data-dock] .site-footer__top .site-footer__pages {
-  display: grid;
-  align-items: start;
-}
 @media (min-width: 840px) {
   /* Proportional columns: an auto right column would take the whole
      row's width and squeeze the tagline into four lines. */
@@ -266,6 +260,7 @@ body:has(header[data-column='reading'])
 }
 
 .site-footer__profiles a {
+  font-weight: 500;
   border-radius: 999px;
   min-height: var(--footer-link-width);
   min-width: var(--footer-link-width);

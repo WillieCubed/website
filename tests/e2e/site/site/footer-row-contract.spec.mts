@@ -99,10 +99,20 @@ test.describe('footer one-row invariant', () => {
           await page.evaluate(() =>
             window.scrollTo(0, document.documentElement.scrollHeight)
           );
-          await expectSingleFooterRow(
-            page,
-            `${route} ${city} enlarged ${width}px`
-          );
+          // Container queries settle during rendering after a viewport change.
+          // Inspect both initial rendered frames with the unchanged strict guard.
+          for (const frame of [1, 2]) {
+            await page.evaluate(
+              () =>
+                new Promise<void>((resolve) =>
+                  requestAnimationFrame(() => resolve())
+                )
+            );
+            await expectSingleFooterRow(
+              page,
+              `${route} ${city} enlarged ${width}px frame ${frame}`
+            );
+          }
         }
       }
       await page

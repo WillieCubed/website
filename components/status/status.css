@@ -367,7 +367,7 @@
 }
 
 .site-footer .microstatus {
-  padding: 0 var(--spacing-sm);
+  padding: 0 var(--spacing-lg);
   border-radius: 999px;
   background: transparent;
   cursor: pointer;
@@ -532,6 +532,12 @@
 @container footer-utilities (max-width: 128px) {
   .site-footer .microstatus .weather-picture {
     display: none;
+  }
+}
+
+@container footer (max-width: 320px) {
+  .site-footer .microstatus {
+    padding-inline: var(--spacing-sm);
   }
 }
 

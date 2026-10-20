@@ -337,8 +337,49 @@ test('the restored ring group contains full touch targets at every width', async
   }
 });
 
+for (const width of [320, 390]) {
+  test(`mobile status preserves a longer city name at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.route('**/api/status', (request) =>
+      request.fulfill({
+        json: {
+          ...footerStatusFixture,
+          location: {
+            ...footerStatusFixture.location,
+            city: 'San Luis Obispo',
+          },
+        },
+      })
+    );
+    for (const route of ['/', '/colophon']) {
+      await page.goto(route);
+      await page.evaluate(() =>
+        window.scrollTo(0, document.documentElement.scrollHeight)
+      );
+      const city = page.locator('.microstatus .status-city');
+      await expect(city).toHaveText('San Luis Obispo');
+      await expect(city).toBeVisible();
+      const bounds = await city.evaluate((el) => {
+        const text = el.getBoundingClientRect();
+        const status = el.closest('.microstatus')!.getBoundingClientRect();
+        return {
+          fits: el.scrollWidth <= el.clientWidth,
+          inset: Math.min(text.left - status.left, status.right - text.right),
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+      expect(bounds.fits).toBe(true);
+      expect(bounds.inset).toBeGreaterThanOrEqual(16);
+      expect(bounds.overflow).toBe(false);
+    }
+  });
+}
+
 for (const route of ['/', '/writings']) {
-  test(`footer contacts and weather stay on one row: ${route}`, async ({
+  test(`footer contacts and status fit without clipping the city: ${route}`, async ({
     page,
   }, testInfo) => {
     await page.route('**/api/status', (request) =>
@@ -446,17 +487,21 @@ for (const route of ['/', '/writings']) {
         expect(link.width).toBeGreaterThanOrEqual(44);
         expect(link.height).toBeGreaterThanOrEqual(44);
       }
-      expect(
-        geometry.contacts.top,
-        `${width}px uses available row space`
-      ).toBeCloseTo(geometry.utilities.top, 0);
-      expect(geometry.contacts.right).toBeLessThanOrEqual(
-        geometry.utilities.left
-      );
-      expect(
-        geometry.status.left,
-        `${width}px status does not cover a contact`
-      ).toBeGreaterThanOrEqual(geometry.links.at(-1)!.right);
+      if (width <= 390) {
+        expect(geometry.utilities.top).toBeGreaterThanOrEqual(
+          geometry.contacts.bottom + 8
+        );
+        expect(geometry.row.height).toBe(104);
+      } else {
+        expect(geometry.contacts.top).toBeCloseTo(geometry.utilities.top, 0);
+        expect(geometry.contacts.right).toBeLessThanOrEqual(
+          geometry.utilities.left
+        );
+        expect(geometry.status.left).toBeGreaterThanOrEqual(
+          geometry.links.at(-1)!.right
+        );
+        expect(geometry.row.height).toBe(48);
+      }
       expect(
         geometry.feeds.left - geometry.status.right,
         `${width}px status keeps an 8px gap before Feeds`
@@ -464,8 +509,14 @@ for (const route of ['/', '/writings']) {
       expect(
         geometry.feeds.top,
         `${width}px Feeds shares the contact row`
-      ).toBeCloseTo(geometry.contacts.top, 0);
-      expect(geometry.row.height, `${width}px row never stacks`).toBe(48);
+      ).toBeCloseTo(geometry.utilities.top, 0);
+      if (width <= 480) {
+        const city = page.locator('.microstatus .status-city');
+        await expect(city).toBeVisible();
+        expect(
+          await city.evaluate((el) => el.scrollWidth <= el.clientWidth)
+        ).toBe(true);
+      }
       expect(
         geometry.weather.width,
         `${width}px temperature remains readable`

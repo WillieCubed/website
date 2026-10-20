@@ -535,12 +535,6 @@
   }
 }
 
-@container footer (max-width: 320px) {
-  .site-footer .microstatus {
-    padding-inline: var(--spacing-sm);
-  }
-}
-
 .status-expanded .zone > .site-control__surface {
   padding-inline: var(--spacing-sm);
 }

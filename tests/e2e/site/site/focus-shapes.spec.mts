@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test';
 
 for (const width of [320, 390, 1440]) {
-  const minimumInset = width < 360 ? 8 : 16;
   test(`link focus follows inline and footer target shapes at ${width}px`, async ({
     page,
   }, testInfo) => {
@@ -61,6 +60,11 @@ for (const width of [320, 390, 1440]) {
           .soft(profile.height, `${route} profile target`)
           .toBeLessThanOrEqual(profile.width + 0.5);
       }
+      const city = footer.locator('.microstatus .status-city');
+      await expect(city).toBeVisible();
+      expect(
+        await city.evaluate((el) => el.scrollWidth <= el.clientWidth)
+      ).toBe(true);
       const statusInset = await footer
         .locator('.microstatus')
         .evaluate((el) => {
@@ -75,10 +79,10 @@ for (const width of [320, 390, 1440]) {
         });
       expect
         .soft(statusInset.start, `${route} status start inset`)
-        .toBeGreaterThanOrEqual(minimumInset);
+        .toBeGreaterThanOrEqual(16);
       expect
         .soft(statusInset.end, `${route} status end inset`)
-        .toBeGreaterThanOrEqual(minimumInset);
+        .toBeGreaterThanOrEqual(16);
       for (const [name, target] of [
         ['email', footer.getByRole('link', { name: 'Email', exact: true })],
         ['status', footer.locator('.microstatus')],

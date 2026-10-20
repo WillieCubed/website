@@ -15,7 +15,7 @@ test.describe('footer one-row invariant', () => {
     test(`never wraps at any supported width: ${mode}`, async ({
       browser,
       baseURL,
-    }) => {
+    }, testInfo) => {
       const context = await browser.newContext({
         baseURL,
         javaScriptEnabled: mode !== 'no-javascript',
@@ -60,6 +60,14 @@ test.describe('footer one-row invariant', () => {
             window.scrollTo(0, document.documentElement.scrollHeight)
           );
           await expectSingleFooterRow(page, `${mode} ${route} ${width}px`);
+        }
+        if (route === '/' && mode === 'light') {
+          await page.setViewportSize({ width: 840, height: 1000 });
+          await page.evaluate(() => window.scrollTo(0, 0));
+          await expect(page.locator('.site-footer')).toHaveCSS('--p', '0.0000');
+          await page.screenshot({
+            path: testInfo.outputPath('collapsed-icon-row-840.png'),
+          });
         }
       }
       await context.close();

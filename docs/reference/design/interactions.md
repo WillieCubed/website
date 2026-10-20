@@ -42,6 +42,7 @@ including the homepage dock, enlarged text, missing weather, and long city names
 Never wrap or stack the groups or their text. Contact links use at least
 44px-square native targets in compact footer columns and 48px-square minima when space permits.
 Feeds retains a 48px-square target and at least an 8px gap from status.
+Icon-only profile targets have zero extra margin or gap, including during dock transitions.
 City and temperature retain their full content width and horizontal padding;
 location artwork and clock text yield first. The profile strip scrolls
 horizontally when necessary, keeping every link reachable by touch and keyboard.

@@ -704,6 +704,7 @@
   }
   .site-footer[data-dock] .site-footer__profiles {
     --profile-icons: 1;
+    --profile-gap: 0px;
     --footer-profile-pad: max(
       0px,
       calc(var(--footer-content-pad) - var(--footer-link-inset) * var(--dock))

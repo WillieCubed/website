@@ -8,6 +8,12 @@ export async function expectSingleFooterRow(page: Page, label: string) {
       rect: child.getBoundingClientRect().toJSON(),
       wrap: getComputedStyle(child).flexWrap,
     }));
+    const profiles = row.querySelector('.site-footer__profiles')!;
+    const label = profiles.querySelector('.site-footer__label')!;
+    const iconOnly = getComputedStyle(label).position === 'absolute';
+    const iconGap = iconOnly
+      ? parseFloat(getComputedStyle(profiles).columnGap)
+      : 0;
     const targets = [...row.querySelectorAll('a, button')]
       .map((target) => ({
         rect: target.getBoundingClientRect(),
@@ -44,6 +50,7 @@ export async function expectSingleFooterRow(page: Page, label: string) {
     return {
       wrap: getComputedStyle(row).flexWrap,
       groups,
+      iconGap,
       height: box.height,
       targetCenters: targets.map(({ rect }) => rect.y + rect.height / 2),
       targets: targets.map(({ rect, label, translate }) => ({
@@ -60,6 +67,10 @@ export async function expectSingleFooterRow(page: Page, label: string) {
     };
   });
   expect(layout.wrap, `${label}: row must never wrap`).toBe('nowrap');
+  expect(
+    layout.iconGap,
+    `${label}: icon-only profile targets have zero gap`
+  ).toBe(0);
   for (const group of layout.groups) {
     expect(group.wrap, `${label}: group must never wrap`).toBe('nowrap');
   }

@@ -243,6 +243,7 @@ body:has(header[data-column='reading'])
 }
 
 .site-footer__profiles a {
+  border-radius: 999px;
   min-height: 48px;
   min-width: var(--footer-link-width);
   justify-content: center;

@@ -366,6 +366,16 @@
   );
 }
 
+.site-footer .microstatus {
+  padding: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+.site-footer .microstatus:is(:hover, :focus-visible) {
+  color: var(--color-ink);
+}
 .site-footer .microstatus .status-city {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);

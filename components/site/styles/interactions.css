@@ -45,6 +45,9 @@
   }
 }
 @layer base {
+  :where(a) {
+    border-radius: var(--radius-sm);
+  }
   :where(a, button, summary):focus-visible {
     outline: var(--control-focus-width) solid var(--color-primary);
     outline-offset: var(--control-focus-offset);

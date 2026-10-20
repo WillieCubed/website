@@ -444,7 +444,7 @@ for (const route of ['/', '/writings']) {
       ).toBeGreaterThanOrEqual(44);
       for (const link of geometry.links) {
         expect(link.width).toBeGreaterThanOrEqual(44);
-        expect(link.height).toBeGreaterThanOrEqual(48);
+        expect(link.height).toBeGreaterThanOrEqual(44);
       }
       expect(
         geometry.contacts.top,

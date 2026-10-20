@@ -496,8 +496,8 @@ for (const route of ['/', '/writings']) {
       expect(geometry.row.height, `${width}px row must never stack`).toBe(48);
       expect(
         geometry.feeds.left - geometry.status.right,
-        `${width}px status keeps an 8px gap before Feeds`
-      ).toBeGreaterThanOrEqual(8);
+        `${width}px status keeps the requested 4px gap before Feeds`
+      ).toBeCloseTo(4, 0);
       expect(
         geometry.feeds.top,
         `${width}px Feeds shares the contact row`

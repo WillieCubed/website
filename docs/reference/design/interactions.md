@@ -73,7 +73,9 @@ surface. The sheet and tray remain opaque throughout.
 
 Only the homepage starts with a compact contact dock. Other footers retain normal
 document flow. The contact/status/Feeds row has 40px of space above it, with the
-webrings retaining their separate compact gap. Reduced motion keeps a static
+webrings retaining their separate compact gap. Profile artwork uses 24px SVG
+boxes without scale transforms; their larger touch targets and icon-only zero-gap
+layout remain unchanged. Reduced motion keeps a static
 rounded ending. Short pages and footers taller than the viewport retain natural
 layout, and all content and links work without JavaScript.
 

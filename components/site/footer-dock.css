@@ -211,9 +211,8 @@
 .site-footer[data-dock] .site-footer__profiles a > svg {
   --icon-shown: var(--profile-icons, var(--dock));
   flex-shrink: 0;
-  width: calc(16px * var(--icon-shown));
+  width: calc(var(--footer-profile-icon-size) * var(--icon-shown));
   opacity: var(--icon-shown);
-  scale: calc(0.6 + 0.4 * var(--icon-shown));
 }
 
 /* On a phone the row is not pinned while scrolling. As the page ends it
@@ -382,7 +381,10 @@
   --footer-tail-gap: var(--spacing-inline);
   --footer-row-gap: var(--spacing-section-roomy);
   --footer-link-width: var(--control-target-small);
-  --footer-link-inset: calc((var(--footer-link-width) - 16px) / 2);
+  --footer-profile-icon-size: 24px;
+  --footer-link-inset: calc(
+    (var(--footer-link-width) - var(--footer-profile-icon-size)) / 2
+  );
 }
 .site-footer__inner {
   min-height: 0;

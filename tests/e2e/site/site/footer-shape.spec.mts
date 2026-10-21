@@ -19,7 +19,7 @@ async function showProgress(page: Page, p: number) {
     .toBeCloseTo(p, 2);
 }
 
-for (const width of [390, 1440]) {
+for (const width of [390, 1440, 1920, 2560]) {
   test(`footer changes shape with opaque surfaces at ${width}px`, async ({
     page,
   }, info) => {
@@ -28,6 +28,7 @@ for (const width of [390, 1440]) {
     await page.goto('/');
     await expect(page.locator('.site-footer')).toHaveAttribute('data-dock', '');
     await page.evaluate(() => document.fonts.ready);
+    await page.screenshot({ path: info.outputPath(`resting-${width}.png`) });
     await showProgress(page, 1);
     const opaque = await page
       .locator('.site-footer')
@@ -47,6 +48,41 @@ for (const width of [390, 1440]) {
         opacity: getComputedStyle(el).opacity,
       }));
       expect(shape.opacity).toBe('1');
+      if (p === 0) {
+        const ground = await page
+          .locator('body > .grow')
+          .evaluate((el) => getComputedStyle(el).backgroundColor);
+        await expect(
+          page.locator('html'),
+          'reserved scrollbar gutters match the resting surface'
+        ).toHaveCSS('background-color', ground);
+        const layout = await page.evaluate(() => ({
+          viewport: document.body.getBoundingClientRect().width,
+          content: document
+            .querySelector('.home .shell')!
+            .getBoundingClientRect().width,
+          cap: parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              '--shell-max'
+            )
+          ),
+        }));
+        expect(
+          shape.width,
+          'the resting surface fills the viewport'
+        ).toBeCloseTo(layout.viewport, 1);
+        expect(
+          layout.content,
+          'content retains its width cap'
+        ).toBeLessThanOrEqual(layout.cap);
+      }
+      if (p === 1) {
+        const row = await page.locator('.site-footer__row').boundingBox();
+        expect(
+          shape.width,
+          'the expanded surface meets the footer frame'
+        ).toBeCloseTo(row!.width, 0);
+      }
       if (p > 0 && p <= 0.4) {
         expect(shape.width).toBeLessThan(previousWidth);
         expect(shape.clip).not.toBe(previousClip);

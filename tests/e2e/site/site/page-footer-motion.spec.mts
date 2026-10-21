@@ -24,7 +24,7 @@ async function scrollToFooter(page: Page, remaining = 0) {
     .toBeLessThan(0.01);
 }
 
-for (const width of [390, 1440]) {
+for (const width of [390, 1440, 1920]) {
   test(`page sheet animates consistently across routes at ${width}px`, async ({
     page,
   }, testInfo) => {

@@ -1,5 +1,9 @@
 /* One content frame aligns the header, primary content, and footer.
    The lifted surface has a separate viewport inset. */
+body > .grow {
+  /* The footer follows the primary viewport instead of taking a share of it. */
+  min-block-size: 100svh;
+}
 :root {
   --page-width-reading: 768px;
   --page-width-content: 840px;

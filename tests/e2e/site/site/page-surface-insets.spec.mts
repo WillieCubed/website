@@ -1,6 +1,41 @@
 import { expect, test } from '@playwright/test';
 
 for (const width of [390, 1920]) {
+  test(`empty pages keep a full-height primary surface before the footer at ${width}px`, async ({
+    page,
+  }) => {
+    const height = width < 840 ? 844 : 1152;
+    await page.setViewportSize({ width, height });
+    for (const route of ['/writings', '/initiatives']) {
+      await page.goto(route);
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-footer-motion',
+        ''
+      );
+      const layout = await page.evaluate(() => ({
+        surfaceHeight: document
+          .querySelector('body > .grow')!
+          .getBoundingClientRect().height,
+        footerTop: document
+          .querySelector('.site-footer')!
+          .getBoundingClientRect().top,
+        scroll: scrollY,
+      }));
+      expect(
+        layout.surfaceHeight,
+        `${route}: the footer cannot consume the primary viewport`
+      ).toBeGreaterThanOrEqual(height);
+      expect(
+        layout.footerTop,
+        `${route}: the footer begins below the primary viewport`
+      ).toBeGreaterThanOrEqual(height);
+      expect(layout.scroll).toBe(0);
+      await expect(page.locator('html')).toHaveCSS('scroll-snap-type', 'none');
+    }
+  });
+}
+
+for (const width of [390, 1920]) {
   test(`surface insets stay independent of page length and content width at ${width}px`, async ({
     page,
   }, info) => {
@@ -159,8 +194,9 @@ test('short-page reflow settles without creating a width oscillation or snapping
       samples.every((s) => s.scroll === 0),
       `${height}px: no native snap on load`
     ).toBe(true);
-    expect(samples.at(-1)!.width).toBeLessThan(
-      await page.evaluate(() => document.body.getBoundingClientRect().width)
+    expect(samples.at(-1)!.width).toBeCloseTo(
+      await page.evaluate(() => document.body.getBoundingClientRect().width),
+      0
     );
   }
 });

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { scrollToExpandedFooter } from './page-surface-geometry.mts';
+
 const appearances = ['light', 'dark'] as const;
 const motions = ['no-preference', 'reduce'] as const;
 const layouts = appearances.flatMap((colorScheme) =>
@@ -48,11 +50,20 @@ for (const layout of layouts) {
     ]) {
       await page.goto(route);
       await page.evaluate(() => document.fonts.ready);
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-footer-motion',
+        ''
+      );
       const target = page.locator(selector).first();
       await target.scrollIntoViewIfNeeded();
       await page.keyboard.press('Tab');
       await target.focus();
       await expect(target).toHaveCSS('outline-width', '3px');
+      if (selector === '.feeds-button') {
+        // Focus can bring a below-the-fold footer into its sheet state.
+        // Measure press stability only after that scroll-driven reflow ends.
+        await scrollToExpandedFooter(page);
+      }
       const initial = (await target.boundingBox())!;
       expect(initial.width).toBeGreaterThanOrEqual(48);
       expect(initial.height).toBeGreaterThanOrEqual(

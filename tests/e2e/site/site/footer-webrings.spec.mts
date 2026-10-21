@@ -1,6 +1,9 @@
 import { type Page, expect, test } from '@playwright/test';
 
-import { pageSurfaceGeometry } from './page-surface-geometry.mts';
+import {
+  pageSurfaceGeometry,
+  scrollToExpandedFooter,
+} from './page-surface-geometry.mts';
 
 const footerStatusFixture = {
   location: {
@@ -19,10 +22,113 @@ const footerStatusFixture = {
   },
 };
 
+for (const width of [320, 390]) {
+  test(`compact footer keeps complete priority profiles and inset labels at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.route('**/api/status', (request) =>
+      request.fulfill({ json: footerStatusFixture })
+    );
+    await page.goto('/writings');
+    await expect(page.locator('.microstatus .status-city')).toHaveText(
+      'Las Vegas'
+    );
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-footer-motion',
+      ''
+    );
+    await scrollToExpandedFooter(page);
+    await expect(page.locator('.microstatus')).toHaveCSS(
+      'padding-left',
+      '12px'
+    );
+    await expect(page.locator('.microstatus')).toHaveCSS(
+      'padding-right',
+      '12px'
+    );
+    const inset = await page.locator('.site-webrings').evaluate((el) => {
+      const group = el.getBoundingClientRect();
+      const label = el
+        .querySelector('.site-webrings__label')!
+        .getBoundingClientRect();
+      return label.left - group.left;
+    });
+    expect(
+      inset,
+      'the label has the same compact inset as the group padding'
+    ).toBe(8);
+    const count = width === 320 ? 2 : 3;
+    const profiles = page.locator('.site-footer__profiles');
+    const strip = (await profiles.boundingBox())!;
+    for (const link of (await profiles.locator('a').all()).slice(0, count)) {
+      const target = (await link.boundingBox())!;
+      expect(
+        target.x,
+        'priority target starts inside the strip'
+      ).toBeGreaterThanOrEqual(strip.x);
+      expect(
+        target.x + target.width,
+        'priority target is completely visible'
+      ).toBeLessThanOrEqual(strip.x + strip.width);
+    }
+  });
+}
+
 type TargetBounds = Pick<
   DOMRect,
   'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'
 >;
+
+for (const width of [320, 390]) {
+  test(`overlay-scrollbar phones show complete profile artwork at ${width}px`, async ({
+    browser,
+    baseURL,
+  }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    const page = await context.newPage();
+    try {
+      await page.route('**/api/status', (request) =>
+        request.fulfill({ json: footerStatusFixture })
+      );
+      await page.goto('/writings');
+      await expect(page.locator('.microstatus .temperature')).toContainText(
+        '72'
+      );
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-footer-motion',
+        ''
+      );
+      await scrollToExpandedFooter(page);
+      const strip = page.locator('.site-footer__profiles');
+      const bounds = (await strip.boundingBox())!;
+      expect(bounds.width).toBe((width === 320 ? 2 : 3) * 44);
+      let visibleIcons = 0;
+      for (const icon of await strip.locator('svg').all()) {
+        const artwork = await icon.boundingBox();
+        if (!artwork) continue;
+        if (
+          artwork.x < bounds.x + bounds.width &&
+          artwork.x + artwork.width > bounds.x
+        ) {
+          visibleIcons++;
+          expect(artwork.x).toBeGreaterThanOrEqual(bounds.x);
+          expect(artwork.x + artwork.width).toBeLessThanOrEqual(
+            bounds.x + bounds.width
+          );
+        }
+      }
+      expect(visibleIcons).toBe(width === 320 ? 2 : 3);
+    } finally {
+      await context.close();
+    }
+  });
+}
 
 function expectUsableTargets(targets: TargetBounds[], panel: TargetBounds) {
   for (const [index, target] of targets.entries()) {
@@ -57,8 +163,13 @@ function expectMobileRingLayout(bounds: MobileRingLayout, width: number) {
   expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
   expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
   if (width >= 360) {
-    expect(bounds.rings.left).toBeCloseTo(bounds.row.left, 0);
-    expect(bounds.rings.width).toBeCloseTo(bounds.row.width, 0);
+    const targetOverhang = bounds.rings.left - bounds.row.left;
+    expect(targetOverhang).toBeGreaterThanOrEqual(0);
+    expect(targetOverhang).toBeLessThanOrEqual(12);
+    expect(bounds.row.right - bounds.rings.right).toBeCloseTo(
+      targetOverhang,
+      0
+    );
   } else {
     expect(bounds.rings.left).toBeGreaterThanOrEqual(bounds.footer.left);
     expect(bounds.rings.right).toBeLessThanOrEqual(bounds.footer.right);
@@ -72,7 +183,7 @@ function expectMobileRingLayout(bounds: MobileRingLayout, width: number) {
   } else {
     expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
   }
-  expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
+  expect(bounds.label.left - bounds.rings.left).toBe(8);
   expectUsableTargets(bounds.targets, bounds.panel);
   expect(bounds.panel.left).toBeGreaterThanOrEqual(bounds.footer.left + 6);
   expect(bounds.panel.right).toBeLessThanOrEqual(bounds.footer.right - 6);
@@ -366,7 +477,7 @@ for (const width of [320, 390]) {
         };
       });
       expect(bounds.fits).toBe(true);
-      expect(bounds.inset).toBeGreaterThanOrEqual(16);
+      expect(bounds.inset).toBeGreaterThanOrEqual(12);
       expect(bounds.overflow).toBe(false);
     }
   });
@@ -619,9 +730,14 @@ for (const width of [390, 1440]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
     await page.goto('/writings');
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-footer-motion',
+      ''
+    );
+    await page.evaluate(() => document.fonts.ready);
     await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
     const link = page.locator('.site-webring__mark').first();
-    await link.scrollIntoViewIfNeeded();
+    await scrollToExpandedFooter(page);
     const surface = link.locator('.site-control__surface');
     await expect(surface).toHaveCount(1);
     const box = (await link.boundingBox())!;
@@ -656,11 +772,20 @@ for (const width of [390, 1440]) {
     await page.keyboard.press('Tab');
     await link.focus();
     await expect(link).toHaveCSS('outline-width', '3px');
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // Keyboard focus may scroll a full-height page; press must preserve the target
+    // at its focused position, independently of that native viewport movement.
+    await scrollToExpandedFooter(page);
+    const focusedBox = (await link.boundingBox())!;
+    expect(focusedBox.width).toBe(box.width);
+    expect(focusedBox.height).toBe(box.height);
+    await page.mouse.move(
+      focusedBox.x + focusedBox.width / 2,
+      focusedBox.y + focusedBox.height / 2
+    );
     await page.mouse.down();
     try {
       await expect(surface).toHaveCSS('border-radius', '8px');
-      expect(await link.boundingBox()).toEqual(box);
+      expect(await link.boundingBox()).toEqual(focusedBox);
       await page.screenshot({
         path: testInfo.outputPath('compact-webrings.png'),
       });

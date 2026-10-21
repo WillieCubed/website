@@ -183,14 +183,27 @@ test('sheet state follows client navigation between home and content pages', asy
   await expect(page.locator('html')).not.toHaveAttribute('data-footer-static');
 });
 
-test('a short page keeps its initial content and footer available', async ({
+test('a short page keeps its primary viewport and a reachable footer', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1600 });
   await page.goto('/search');
   await expect(page.locator('html')).toHaveAttribute('data-footer-motion', '');
   await expect(page.locator('body > .grow')).toHaveCSS('scale', 'none');
-  await expect(page.locator('html')).toHaveAttribute('data-footer-static', '');
+  await expect(page.locator('html')).not.toHaveAttribute('data-footer-static');
+  await expect(page.locator('html')).toHaveCSS('scroll-snap-type', 'none');
+  expect(
+    await page
+      .locator('body > .grow')
+      .evaluate((el) => el.getBoundingClientRect().height)
+  ).toBeGreaterThanOrEqual(1600);
+  expect(
+    await page
+      .locator('.site-footer')
+      .evaluate((el) => el.getBoundingClientRect().top)
+  ).toBeGreaterThanOrEqual(1600);
+  await page.locator('.site-footer__pages').scrollIntoViewIfNeeded();
+  await expect(page.locator('.site-footer__pages')).toBeVisible();
   await expect(page.locator('.site-footer__pages')).not.toHaveAttribute(
     'inert'
   );

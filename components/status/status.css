@@ -498,6 +498,7 @@
 @container footer (max-width: 400px) {
   .site-footer .microstatus {
     gap: 4px;
+    padding-inline: var(--spacing-md);
   }
 }
 

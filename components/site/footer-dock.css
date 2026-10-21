@@ -433,6 +433,21 @@
     display: none;
   }
 }
+/* Let the touch padding hang into the existing gutter, keeping the artwork
+   on the text edge without squeezing the city or reducing target sizes. */
+@container footer (max-width: 400px) {
+  .site-footer__row {
+    margin-inline: calc(-1 * var(--footer-link-inset));
+  }
+  .site-footer__profiles {
+    max-inline-size: calc(3 * var(--footer-link-width));
+  }
+}
+@container footer (max-width: 300px) {
+  .site-footer__profiles {
+    max-inline-size: calc(2 * var(--footer-link-width));
+  }
+}
 .site-footer .site-footer__lockup {
   height: var(--footer-lockup-height);
   margin: 0;
@@ -533,7 +548,7 @@
     align-items: center;
     gap: var(--spacing-xs) 0;
     width: 100%;
-    padding-inline: var(--footer-content-pad) var(--spacing-md);
+    padding-inline: var(--spacing-sm);
   }
   .site-webrings__label {
     flex-shrink: 0;
@@ -555,11 +570,11 @@
   .site-webrings {
     width: calc(100% + 2 * var(--footer-panel-edge));
     margin-inline: calc(-1 * var(--footer-panel-edge));
-    padding-inline: var(--spacing-xs);
+    padding-inline: var(--spacing-sm);
   }
   .site-webrings__label {
     padding: 0;
-    margin-inline-start: calc(var(--footer-text-edge) - var(--spacing-xs));
+    margin-inline-start: 0;
   }
   .site-webrings__controls {
     margin-inline: auto;

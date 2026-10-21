@@ -1,4 +1,27 @@
-import type { Page } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
+
+/** Narrowing can reflow the footer, so settle at its resulting document end. */
+export async function scrollToExpandedFooter(page: Page) {
+  await expect(page.locator('html')).toHaveAttribute('data-footer-motion', '');
+  await page.evaluate(() => document.fonts.ready);
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        window.scrollTo(0, document.documentElement.scrollHeight);
+        await new Promise(requestAnimationFrame);
+        await new Promise(requestAnimationFrame);
+        return (
+          getComputedStyle(document.querySelector('.site-footer')!)
+            .getPropertyValue('--p')
+            .trim() === '1.0000' &&
+          Math.abs(
+            document.documentElement.scrollHeight - innerHeight - scrollY
+          ) < 1
+        );
+      })
+    )
+    .toBe(true);
+}
 
 /** Reads the painted surface, including clipping, without assuming its layout box shrinks. */
 export async function pageSurfaceGeometry(page: Page) {

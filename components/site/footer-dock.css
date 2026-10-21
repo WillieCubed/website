@@ -245,6 +245,7 @@
    but never ahead of how far the page has scrolled), and --page-w (the page's
    width, as a plain number) on the root. */
 :root[data-footer-motion] {
+  background: var(--color-tray);
   --sheet: clamp(0, var(--sheet-p, 0) / 0.4, 1);
   --sheet-trim: 0px;
   --sheet-side: 0px;
@@ -253,6 +254,10 @@
   --sheet-r: 28px;
   /* The collapsed row's surface reaches this far past the row (--pill-y). */
   --footer-pill-y: var(--spacing-sm);
+}
+/* Reserved scrollbar gutters blend into the full-width resting surface. */
+:root[data-footer-motion]:not([data-footer-sheet]) {
+  background: var(--color-ground);
 }
 :root[data-footer-motion] body {
   /* Opaque surfaces make the moving edges carry the transition. */
@@ -276,7 +281,17 @@
 :root[data-footer-sheet] body > .grow {
   scale: var(
     --sheet-scale,
-    calc(1 - 2 * var(--sheet-gap) * var(--sheet) / var(--page-w))
+    calc(
+      1 - var(--sheet) *
+        (
+          1 -
+            (
+              min(calc(var(--page-w) * 1px), var(--surface-frame-max)) - 2 *
+                var(--sheet-gap) * 1px
+            ) /
+            (var(--page-w) * 1px)
+        )
+    )
   );
   clip-path: inset(
     0 var(--sheet-side) var(--sheet-trim) round 0 0
@@ -293,14 +308,18 @@
 :root[data-footer-static] {
   --sheet: 1;
   --sheet-scale: none;
-  --sheet-side: calc(var(--sheet-gap) * 1px);
+  --sheet-side: calc(
+    max(0px, (100% - var(--surface-frame-max)) / 2) + var(--sheet-gap) * 1px
+  );
   --sheet-trim: 0px;
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-footer-sheet] {
     --sheet: 1;
     --sheet-scale: none;
-    --sheet-side: calc(var(--sheet-gap) * 1px);
+    --sheet-side: calc(
+      max(0px, (100% - var(--surface-frame-max)) / 2) + var(--sheet-gap) * 1px
+    );
     --sheet-trim: 0px;
   }
 }
@@ -343,8 +362,8 @@
 }
 
 /* Footer composition and compact webring navigation. */
-/* The upper surface and footer share a bounded frame. Their visible
-   outer edges include the same opening inset; text keeps its own gutter. */
+/* The page surface starts at viewport width and draws into the footer's
+   bounded frame during the opening. Content keeps its own width and gutter. */
 :root {
   --frame-gutter: calc(var(--spacing-2xl) - var(--spacing-xs));
   --surface-frame-max: calc(var(--shell-max) + 2 * var(--frame-gutter));
@@ -356,7 +375,6 @@
 }
 :root[data-footer-motion] body > .grow {
   width: 100%;
-  max-width: var(--surface-frame-max);
   margin-inline: auto;
 }
 .site-footer {

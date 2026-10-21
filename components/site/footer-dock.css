@@ -244,10 +244,8 @@
   background: var(--color-tray);
   --sheet: clamp(0, var(--sheet-p, 0) / 0.4, 1);
   --sheet-trim: 0px;
-  --sheet-side: calc(
-    var(--sheet) *
-      max(calc(var(--sheet-gap) * 1px), (100% - var(--sheet-frame-w, 100%)) / 2)
-  );
+  /* Surface geometry belongs to the viewport; content frames keep their own caps. */
+  --sheet-side: calc(var(--sheet) * var(--sheet-gap) * 1px);
   /* The gap between the sheet and each side of the window, in pixels. */
   --sheet-gap: 16;
   --sheet-r: 28px;
@@ -292,8 +290,6 @@
 :root[data-footer-static] {
   --sheet: 1;
   --sheet-trim: 0px;
-  /* A short page must not create its own scroll range by narrowing. */
-  --sheet-side: 0px;
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-footer-sheet] {
@@ -724,9 +720,9 @@
   block-size: 0;
 }
 @media (prefers-reduced-motion: no-preference) {
-  :root[data-footer-motion][data-footer-sheet]:not([data-footer-static]):not(
-      :has(.site-footer[data-flow])
-    ) {
+  :root[data-footer-motion][data-footer-sheet][data-footer-scrolled]:not(
+      [data-footer-static]
+    ):not(:has(.site-footer[data-flow])) {
     scroll-snap-type: y proximity;
   }
   .site-footer__snap-end {

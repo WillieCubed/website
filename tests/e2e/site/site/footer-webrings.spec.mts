@@ -257,8 +257,8 @@ test('the restored ring group contains full touch targets at every width', async
     318, 320, 390, 599, 600, 839, 840, 1199, 1200, 1920, 2560,
   ]) {
     await page.setViewportSize({ width, height: 900 });
-    // A resize can wrap the contact row and increase the document height on
-    // the dock's measurement frame. Follow the current end until it settles.
+    // Reflow can increase the document height on the measurement frame.
+    // Follow the current end until it settles; the contact row never wraps.
     await expect
       .poll(
         () =>
@@ -278,10 +278,7 @@ test('the restored ring group contains full touch targets at every width', async
       .poll(async () => {
         const surface = await pageSurfaceGeometry(page);
         const inset = width < 840 ? 8 : 16;
-        return Math.abs(
-          surface.width -
-            Math.min(surface.viewportWidth - inset * 2, surface.frameWidth)
-        );
+        return Math.abs(surface.width - (surface.viewportWidth - inset * 2));
       })
       .toBeLessThan(0.5);
     const bounds = await page.evaluate(() => {

@@ -73,17 +73,18 @@ home, colophon, writings, and music, including JavaScript-disabled rendering.
 
 Every page uses the same scroll-driven transition into its footer. The surface
 starts at viewport width, then narrows and rounds its lower corners while the
-contents reflow naturally without scaling. Its minimum inset is 8px per side on phones
-and 16px on desktop. On wider windows it fits the page's content frame, using the
-same width as the corresponding footer. The sheet changes its actual layout
+contents reflow naturally without scaling. Its expanded inset is 8px per side on phones
+and 16px on desktop, independently of the page's content width or length.
+Short pages whose footer is already visible use the same inset. Header, main,
+and footer content retain their shared width cap inside these viewport surfaces. The sheet changes its actual layout
 width, moving and reflowing its contents without scaling text or tiles; clipping
-only rounds and trims the lower edge. Scrolling back up restores the full-width
+only rounds and trims the lower edge. Scrolling back above the footer restores the full-width
 surface. The sheet and tray remain opaque throughout.
 
 `styles/frames.css` defines the shared page widths and gutters. The header,
-primary content (`site-frame`), footer, and sheet all use the active page's frame.
+primary content (`site-frame`), and footer all use the active page's frame.
 The existing top-bar registration supplies that frame across client navigation;
-CSS supplies the first paint and no-JavaScript fallback. The homepage retains
+CSS supplies the first paint and no-JavaScript fallback. The surface inset does not depend on these caps. The homepage retains
 its wider work layout, content pages use 840px, reading pages use 768px, and
 wide pages use 1200px.
 
@@ -96,10 +97,12 @@ layout remain unchanged. Reduced motion keeps a static
 rounded ending. Short pages and footers taller than the viewport retain natural
 layout, and all content and links work without JavaScript.
 
-After scrolling brings the footer into view, native CSS `y proximity` snapping
+After visitor scrolling brings the footer into view, native CSS `y proximity` snapping
 can settle the document at its end. The browser controls its distance and timing;
 the single endpoint does not force a stop or intercept scrolling. It is outside
-the sticky homepage footer, hidden from assistive technology, and disabled for
+the sticky homepage footer, hidden from assistive technology, and enabled only
+following a wheel, touch-scroll, or scrolling-key gesture that moves the viewport.
+Reloads and restored history positions do not activate snapping on their own. It is disabled for
 reduced motion, short static pages, and footers taller than the viewport.
 
 The controller resets when the page's column or dock mode changes and remeasures

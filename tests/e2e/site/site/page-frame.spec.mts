@@ -28,6 +28,9 @@ for (const width of [390, 1440, 1920]) {
         ''
       );
       const initial = await contentEdges(main);
+      const initiallyLifted = await page
+        .locator('html')
+        .evaluate((el) => el.hasAttribute('data-footer-sheet'));
       const before = await contentEdges(brand);
       expect(
         Math.abs(initial.left - before.left),
@@ -81,7 +84,7 @@ for (const width of [390, 1440, 1920]) {
       ).toBeLessThan(1);
       expect(end.left).toBeGreaterThanOrEqual(sheet!.x);
       expect(end.right).toBeLessThanOrEqual(sheet!.x + sheet!.width);
-      if (width === 390 && !stationary) {
+      if (width === 390 && !initiallyLifted) {
         expect(
           end.left,
           `${route}: content moves with the sheet`

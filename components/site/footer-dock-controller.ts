@@ -132,13 +132,9 @@ function paintDock(
   footer.toggleAttribute('data-flow', flow);
   footer.style.setProperty('--p', p.toFixed(4));
   root.style.setProperty('--footer-p', p.toFixed(4));
-  // Reveal the surface only once scrolling begins.
-  const sheet = flow
-    ? 0
-    : Math.min(
-        p,
-        window.scrollY / Math.max(1, Math.min(footerHeight, scrollRange))
-      );
+  // A footer already visible on a short page has already reached the sheet.
+  // Using its visibility avoids changing geometry rules when reflow adds scroll.
+  const sheet = flow ? 0 : p;
   root.style.setProperty('--sheet-p', sheet.toFixed(4));
   const stationary = scrollRange <= 1 && p > 0;
   root.toggleAttribute('data-footer-static', stationary);
@@ -178,17 +174,19 @@ function resetDock(elements: DockElements) {
   root.style.removeProperty('--sheet-p');
   root.removeAttribute('data-footer-sheet');
   root.removeAttribute('data-footer-static');
+  root.removeAttribute('data-footer-scrolled');
   delete root.dataset.footerDock;
   delete root.dataset.footerMotion;
 }
 
 interface DockEvents {
-  schedule: () => void;
+  onScroll: () => void;
   remeasure: () => void;
   keepOpen: () => void;
   onFocusOut: () => void;
   onKey: (event: KeyboardEvent) => void;
   release: () => void;
+  onScrollIntent: () => void;
 }
 
 /** Registers and removes the entire dock's observers as one lifetime. */
@@ -198,30 +196,40 @@ function observeDock(
   reduce: MediaQueryList,
   events: DockEvents
 ) {
-  const { schedule, remeasure, keepOpen, onFocusOut, onKey, release } = events;
+  const {
+    onScroll,
+    remeasure,
+    keepOpen,
+    onFocusOut,
+    onKey,
+    release,
+    onScrollIntent,
+  } = events;
   const resize = new ResizeObserver(remeasure);
   resize.observe(document.body);
-  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', remeasure);
   compact.addEventListener('change', remeasure);
   reduce.addEventListener('change', remeasure);
   footer.addEventListener('focusin', keepOpen);
   footer.addEventListener('focusout', onFocusOut);
   document.addEventListener('keydown', onKey);
-  window.addEventListener('wheel', release, { passive: true });
+  window.addEventListener('wheel', onScrollIntent, { passive: true });
   window.addEventListener('touchstart', release, { passive: true });
+  window.addEventListener('touchmove', onScrollIntent, { passive: true });
   window.addEventListener('pointerdown', release, { passive: true });
   return () => {
     resize.disconnect();
-    window.removeEventListener('scroll', schedule);
+    window.removeEventListener('scroll', onScroll);
     window.removeEventListener('resize', remeasure);
     compact.removeEventListener('change', remeasure);
     reduce.removeEventListener('change', remeasure);
     footer.removeEventListener('focusin', keepOpen);
     footer.removeEventListener('focusout', onFocusOut);
     document.removeEventListener('keydown', onKey);
-    window.removeEventListener('wheel', release);
+    window.removeEventListener('wheel', onScrollIntent);
     window.removeEventListener('touchstart', release);
+    window.removeEventListener('touchmove', onScrollIntent);
     window.removeEventListener('pointerdown', release);
   };
 }
@@ -236,6 +244,8 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
   let p = 0;
   let keyboardDockOpen = false;
   let keyboardFocus = false;
+  let scrollIntent = false;
+  let visitorScrolled = false;
   let revealFocusAfterLayout = false;
   let frame = 0;
   const update = () => {
@@ -248,6 +258,11 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
       progress.flow,
       progress.footerHeight,
       progress.scrollRange
+    );
+    // Restored positions are geometry, not permission to snap on page load.
+    elements.root.toggleAttribute(
+      'data-footer-scrolled',
+      visitorScrolled && window.scrollY > 0
     );
     dock?.paint(p, compact.matches, progress.footerHeight);
     if (revealFocusAfterLayout) {
@@ -262,6 +277,10 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
   };
   const schedule = () => {
     if (frame === 0) frame = requestAnimationFrame(update);
+  };
+  const onScroll = () => {
+    if (scrollIntent) visitorScrolled = true;
+    schedule();
   };
   const remeasure = () => {
     geometry.measure();
@@ -283,7 +302,30 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
     revealFocusAfterLayout = false;
     schedule();
   };
+  const onScrollIntent = () => {
+    scrollIntent = true;
+    release();
+  };
   const onKey = (event: KeyboardEvent) => {
+    const editing =
+      event.target instanceof Element &&
+      event.target.closest(
+        'input, textarea, select, [contenteditable], button, summary'
+      ) !== null;
+    if (
+      !event.defaultPrevented &&
+      !editing &&
+      [
+        'ArrowDown',
+        'ArrowUp',
+        'PageDown',
+        'PageUp',
+        'Home',
+        'End',
+        ' ',
+      ].includes(event.key)
+    )
+      onScrollIntent();
     if (event.key === 'Tab' && footer.contains(document.activeElement))
       keepOpen();
   };
@@ -293,12 +335,13 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
     });
   elements.root.dataset.footerMotion = '';
   const unobserve = observeDock(footer, compact, reduce, {
-    schedule,
+    onScroll,
     remeasure,
     keepOpen,
     release,
     onKey,
     onFocusOut,
+    onScrollIntent,
   });
   geometry.measure();
   update();

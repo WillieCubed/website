@@ -65,9 +65,10 @@ brand position and size must end at the same dimensions as a plain footer.
 home, colophon, writings, and music, including JavaScript-disabled rendering.
 
 Every page uses the same scroll-driven transition into its footer: the content
-surface fills the viewport before the footer arrives, then draws inward to the
-footer's bounded frame and rounds its lower corners. Scrolling back up restores
-the full-width surface. Content retains its own width cap throughout. The sheet and tray stay
+surface fills the viewport before the footer arrives, then opens a fixed inset
+of 16px per side on desktop and 10px on phones and rounds its lower corners.
+The inset stays independent of the content width cap, so wide windows keep the
+same gentle motion. Scrolling back up restores the full-width surface. The sheet and tray stay
 opaque: changing the inset, clipping, and corner radius carries the transition.
 `footer-shape.spec.mts` checks this at intermediate scroll positions. Only the
 homepage starts with a compact contact dock. Other pages keep their footer in normal document

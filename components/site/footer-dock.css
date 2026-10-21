@@ -281,17 +281,7 @@
 :root[data-footer-sheet] body > .grow {
   scale: var(
     --sheet-scale,
-    calc(
-      1 - var(--sheet) *
-        (
-          1 -
-            (
-              min(calc(var(--page-w) * 1px), var(--surface-frame-max)) - 2 *
-                var(--sheet-gap) * 1px
-            ) /
-            (var(--page-w) * 1px)
-        )
-    )
+    calc(1 - 2 * var(--sheet-gap) * var(--sheet) / var(--page-w))
   );
   clip-path: inset(
     0 var(--sheet-side) var(--sheet-trim) round 0 0
@@ -308,24 +298,20 @@
 :root[data-footer-static] {
   --sheet: 1;
   --sheet-scale: none;
-  --sheet-side: calc(
-    max(0px, (100% - var(--surface-frame-max)) / 2) + var(--sheet-gap) * 1px
-  );
+  --sheet-side: calc(var(--sheet-gap) * 1px);
   --sheet-trim: 0px;
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-footer-sheet] {
     --sheet: 1;
     --sheet-scale: none;
-    --sheet-side: calc(
-      max(0px, (100% - var(--surface-frame-max)) / 2) + var(--sheet-gap) * 1px
-    );
+    --sheet-side: calc(var(--sheet-gap) * 1px);
     --sheet-trim: 0px;
   }
 }
 @media (max-width: 839px) {
   :root[data-footer-motion] {
-    --sheet-gap: 12;
+    --sheet-gap: 10;
     --sheet-r: 24px;
   }
 }
@@ -362,8 +348,8 @@
 }
 
 /* Footer composition and compact webring navigation. */
-/* The page surface starts at viewport width and draws into the footer's
-   bounded frame during the opening. Content keeps its own width and gutter. */
+/* The page opens a small inset from the viewport, independently of the
+   footer's content width. Content keeps its own width cap and gutter. */
 :root {
   --frame-gutter: calc(var(--spacing-2xl) - var(--spacing-xs));
   --surface-frame-max: calc(var(--shell-max) + 2 * var(--frame-gutter));

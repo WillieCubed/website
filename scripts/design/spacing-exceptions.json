@@ -1,6 +1,13 @@
 [
   {
     "file": "components/site/footer-dock.css",
+    "selector": ":root[data-footer-motion]",
+    "property": "--sheet-gap",
+    "value": "10",
+    "reason": "The mobile sheet opens by 10px per edge as animation travel, rather than spacing between content blocks. This preserves the original small edge reveal without appreciably shrinking the page."
+  },
+  {
+    "file": "components/site/footer-dock.css",
     "selector": ".site-footer",
     "property": "--footer-lockup-height",
     "value": "max(\n    var(--control-target-small),\n    calc(1.3 * var(--footer-brand-size) + 2 * var(--spacing-sm) + 2px)\n  )",

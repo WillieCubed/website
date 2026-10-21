@@ -101,6 +101,12 @@ test('navigation to another page with the same content column resets scroll inte
   page,
 }) => {
   await page.setViewportSize({ width: 1920, height: 1000 });
+  // Exercise the hydrated client navigation path, rather than an early native load.
+  const mediaPrefetch = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === '/media' &&
+      response.request().headers()['next-router-prefetch'] === '1'
+  );
   await page.goto('/colophon');
   await expect(page.locator('html')).toHaveAttribute('data-footer-motion', '');
   await page.keyboard.press('End');
@@ -108,11 +114,20 @@ test('navigation to another page with the same content column resets scroll inte
     'scroll-snap-type',
     /^y(?: proximity)?$/
   );
-  await page
+  const media = page
     .locator('.site-footer__pages')
-    .getByRole('link', { name: 'Media', exact: true })
-    .click();
+    .getByRole('link', { name: 'Media', exact: true });
+  await media.hover();
+  await mediaPrefetch;
+  await page.evaluate(() => {
+    document.documentElement.dataset.snapTestDocument = 'original';
+  });
+  await media.click();
   await expect(page).toHaveURL('/media');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-snap-test-document',
+    'original'
+  );
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() =>
     window.scrollTo(0, document.documentElement.scrollHeight - innerHeight - 80)

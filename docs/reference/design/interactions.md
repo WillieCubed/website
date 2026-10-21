@@ -30,6 +30,10 @@ remains clickable. Raw action links can use the same surface and
 `data-control-size`. Unsized controls retain their existing 48px treatment;
 do not resize every control merely because a shared default changed.
 
+Breadcrumb menu triggers use the same separate surface with equal padding on
+all four sides: 8px normally and 4px on phones at or below 360px. Their full
+48px touch targets remain clickable around the shorter visible surface.
+
 These sizes follow the [button](https://m3.material.io/components/buttons/specs)
 and [icon-button](https://m3.material.io/components/icon-buttons/specs) scales.
 Choose visual emphasis independently: primary fill for the current forward or

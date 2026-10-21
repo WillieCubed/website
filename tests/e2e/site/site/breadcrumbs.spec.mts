@@ -25,7 +25,7 @@ for (const width of [320, 390, 1440]) {
       )!;
       const slash = element.querySelector('.site-breadcrumbs__crumb > span')!;
       const brandLabel = element.querySelector(
-        '.site-breadcrumbs__crumb button span'
+        '.site-breadcrumbs__crumb .site-breadcrumb-menu__label'
       )!;
       const siteRect = siteLabel.getBoundingClientRect();
       const slashRect = slash.getBoundingClientRect();
@@ -72,7 +72,7 @@ for (const width of [320, 390, 1440]) {
       const trigger = document.querySelector<HTMLButtonElement>(
         '.site-breadcrumbs__crumb .site-breadcrumb-menu-trigger'
       )!;
-      const label = trigger.querySelector('span')!;
+      const label = trigger.querySelector('.site-breadcrumb-menu__label')!;
       const firstLink = menu.querySelector<HTMLElement>(
         '.site-breadcrumb-menu__link'
       )!;
@@ -399,3 +399,53 @@ test('a deep trail paints folded before the bar measures itself', async ({
   ).toBeHidden();
   await context.close();
 });
+
+for (const width of [320, 390, 1440]) {
+  test(`breadcrumb state surface has equal padding at ${width}px`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/status');
+    const trigger = page.getByRole('button', {
+      name: 'Open menu for Status',
+      exact: true,
+    });
+    await trigger.click();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(trigger.locator('.site-breadcrumb-menu__icon')).toHaveCSS(
+      'transform',
+      'matrix(-1, 0, 0, -1, 0, 0)'
+    );
+    const geometry = await trigger.evaluate((button) => {
+      const surface = button.querySelector('.site-control__surface')!;
+      const label = button.querySelector('.site-breadcrumb-menu__label')!;
+      const icon = button.querySelector('.site-breadcrumb-menu__icon')!;
+      const target = button.getBoundingClientRect();
+      const box = surface.getBoundingClientRect();
+      const text = label.getBoundingClientRect();
+      const arrow = icon.getBoundingClientRect();
+      return {
+        left: text.left - box.left,
+        right: box.right - arrow.right,
+        top: text.top - box.top,
+        bottom: box.bottom - text.bottom,
+        targetWidth: target.width,
+        targetHeight: target.height,
+        surfaceHeight: box.height,
+      };
+    });
+    const padding = width <= 360 ? 4 : 8;
+    for (const side of ['left', 'right', 'top', 'bottom'] as const)
+      expect(geometry[side]).toBeCloseTo(padding, 1);
+    expect(geometry.targetWidth).toBeGreaterThanOrEqual(48);
+    expect(geometry.targetHeight).toBeGreaterThanOrEqual(48);
+    expect(geometry.surfaceHeight).toBeLessThan(geometry.targetHeight);
+    await page.screenshot({
+      path: info.outputPath(`status-breadcrumb-${width}.png`),
+    });
+    // The transparent area above the visual surface is still a hit target.
+    const target = (await trigger.boundingBox())!;
+    await page.mouse.click(target.x + target.width / 2, target.y + 1);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+}

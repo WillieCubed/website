@@ -77,11 +77,14 @@ for (const width of [390, 1440, 1920, 2560]) {
         ).toBeLessThanOrEqual(layout.cap);
       }
       if (p === 1) {
-        const row = await page.locator('.site-footer__row').boundingBox();
+        const viewport = await page.evaluate(
+          () => document.body.getBoundingClientRect().width
+        );
+        const inset = width < 840 ? 10 : 16;
         expect(
           shape.width,
-          'the expanded surface meets the footer frame'
-        ).toBeCloseTo(row!.width, 0);
+          'production motion opens only a fixed edge inset'
+        ).toBeCloseTo(viewport - inset * 2, 1);
       }
       if (p > 0 && p <= 0.4) {
         expect(shape.width).toBeLessThan(previousWidth);

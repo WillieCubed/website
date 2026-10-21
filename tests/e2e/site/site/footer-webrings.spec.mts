@@ -279,12 +279,11 @@ test('the restored ring group contains full touch targets at every width', async
           const surface = document
             .querySelector('body > .grow')!
             .getBoundingClientRect();
-          const row = document
-            .querySelector('.site-footer__row')!
-            .getBoundingClientRect();
+          const viewport = document.body.getBoundingClientRect();
+          const inset = innerWidth < 840 ? 10 : 16;
           return Math.max(
-            Math.abs(surface.left - row.left),
-            Math.abs(surface.right - row.right)
+            Math.abs(surface.left - viewport.left - inset),
+            Math.abs(viewport.right - surface.right - inset)
           );
         })
       )
@@ -295,6 +294,7 @@ test('the restored ring group contains full touch targets at every width', async
       return {
         footer: box('.site-footer'),
         page: box('body > .grow'),
+        viewport: box('body'),
         name: box('.site-footer__lockup'),
         pages: box('.site-footer__pages'),
         firstPage: box('.site-footer__pages a'),
@@ -314,8 +314,9 @@ test('the restored ring group contains full touch targets at every width', async
     });
     expect(bounds.overflow, `${width}px overflow`).toBe(false);
     expect(bounds.name.bottom).toBeLessThan(bounds.pages.top);
-    expect(bounds.page.left).toBeCloseTo(bounds.row.left, 0);
-    expect(bounds.page.right).toBeCloseTo(bounds.row.right, 0);
+    const inset = width < 840 ? 10 : 16;
+    expect(bounds.page.left).toBeCloseTo(bounds.viewport.left + inset, 0);
+    expect(bounds.page.right).toBeCloseTo(bounds.viewport.right - inset, 0);
     expect(bounds.ringsLast).toBe(true);
     if (width < 600) expectMobileRingLayout(bounds, width);
     if (width >= 840) {

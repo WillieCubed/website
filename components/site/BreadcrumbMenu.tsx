@@ -61,14 +61,14 @@ export default function BreadcrumbMenu({
       current={href === pathname}
       placement="breadcrumb"
       trigger={
-        <>
+        <span className="site-control__surface">
           <span className="site-breadcrumb-menu__label">{label}</span>
           {showArrow && (
             <span className="site-breadcrumb-menu__icon" aria-hidden="true">
               <Icon name="chevron-down" size={12} />
             </span>
           )}
-        </>
+        </span>
       }
       triggerClassName="site-breadcrumb site-breadcrumb-menu-trigger site-control"
       panelClassName="site-breadcrumb-menu"

@@ -136,9 +136,14 @@ header[data-folded]:not([data-folded='0']) .site-breadcrumbs__crumb--collapsed {
   --control-ink: var(--color-ink);
   --control-rest-radius: 8px;
   gap: var(--spacing-inline);
-  padding: 4px 8px;
   font: inherit;
   line-height: inherit;
+}
+.site-breadcrumb-menu-trigger > .site-control__surface {
+  flex-shrink: 1;
+  min-width: 0;
+  padding: var(--spacing-inline);
+  border: 0;
 }
 .site-breadcrumb-menu-trigger[aria-expanded='true'] {
   --control-fill: color-mix(in srgb, var(--color-ink) 10%, transparent);
@@ -223,9 +228,11 @@ header[data-column] .site-breadcrumb:not(.site-control) {
   .site-breadcrumbs__crumb {
     gap: var(--spacing-related);
   }
-  header[data-column] .site-breadcrumb:not(.site-control),
-  .site-breadcrumb-menu-trigger {
+  header[data-column] .site-breadcrumb:not(.site-control) {
     padding-inline: 4px;
+  }
+  .site-breadcrumb-menu-trigger > .site-control__surface {
+    padding: var(--spacing-related);
   }
 }
 /* A compact trail draws its crumbs closer, which saves 10px a crumb before

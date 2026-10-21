@@ -64,7 +64,12 @@ function dockGeometry({
               scrollHeight,
               footerHeight,
             });
-      return { flow, p, footerHeight };
+      return {
+        flow,
+        p,
+        footerHeight,
+        scrollRange: Math.max(0, scrollHeight - window.innerHeight),
+      };
     },
   };
 }
@@ -114,11 +119,26 @@ function dockNames({ footer, headline }: DockElements, reduce: MediaQueryList) {
   };
 }
 
+/** Only the homepage folds its contact row into the expanding footer. */
+function dockPresentation(elements: DockElements, reduce: MediaQueryList) {
+  elements.footer.dataset.dock = '';
+  elements.root.dataset.footerDock = '';
+  const names = dockNames(elements, reduce);
+  return {
+    paint(p: number, compact: boolean, height: number) {
+      setFocusAvailability(elements, p, compact);
+      names.set(p, compact, height);
+    },
+    destroy: () => names.destroy(),
+  };
+}
+
 function paintDock(
   { footer, root }: DockElements,
   p: number,
   flow: boolean,
-  footerHeight: number
+  footerHeight: number,
+  scrollRange: number
 ) {
   footer.toggleAttribute('data-flow', flow);
   footer.style.setProperty('--p', p.toFixed(4));
@@ -126,9 +146,14 @@ function paintDock(
   // Scaling creates a containing block for fixed elements: only scale a sheet.
   const sheet = flow
     ? 0
-    : Math.min(p, window.scrollY / Math.max(footerHeight, 1));
+    : Math.min(
+        p,
+        window.scrollY / Math.max(1, Math.min(footerHeight, scrollRange))
+      );
   root.style.setProperty('--sheet-p', sheet.toFixed(4));
-  root.toggleAttribute('data-footer-sheet', sheet > 0);
+  const stationary = scrollRange <= 1 && p > 0;
+  root.toggleAttribute('data-footer-static', stationary);
+  root.toggleAttribute('data-footer-sheet', sheet > 0 || stationary);
 }
 
 function resetDock(elements: DockElements) {
@@ -166,7 +191,9 @@ function resetDock(elements: DockElements) {
   root.style.removeProperty('--footer-p');
   root.style.removeProperty('--sheet-p');
   root.removeAttribute('data-footer-sheet');
+  root.removeAttribute('data-footer-static');
   delete root.dataset.footerDock;
+  delete root.dataset.footerMotion;
 }
 
 interface DockEvents {
@@ -214,13 +241,12 @@ function observeDock(
 }
 
 /** One animation lifetime owns progress, keyboard pinning and frame scheduling. */
-export function startFooterDock(footer: HTMLElement) {
-  footer.dataset.dock = '';
+export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
   const elements = dockElements(footer);
   const compact = window.matchMedia('(max-width: 839px)');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   const geometry = dockGeometry(elements);
-  const names = dockNames(elements, reduce);
+  const dock = dockContacts ? dockPresentation(elements, reduce) : null;
   let p = 0;
   let keyboardDockOpen = false;
   let frame = 0;
@@ -228,9 +254,14 @@ export function startFooterDock(footer: HTMLElement) {
     frame = 0;
     const progress = geometry.progress(keyboardDockOpen);
     p = progress.p;
-    setFocusAvailability(elements, p, compact.matches);
-    paintDock(elements, p, progress.flow, progress.footerHeight);
-    names.set(p, compact.matches, progress.footerHeight);
+    paintDock(
+      elements,
+      p,
+      progress.flow,
+      progress.footerHeight,
+      progress.scrollRange
+    );
+    dock?.paint(p, compact.matches, progress.footerHeight);
   };
   const schedule = () => {
     if (frame === 0) frame = requestAnimationFrame(update);
@@ -240,7 +271,7 @@ export function startFooterDock(footer: HTMLElement) {
     schedule();
   };
   const keepOpen = () => {
-    if (p > 0.5) {
+    if (dock && p > 0.5) {
       keyboardDockOpen = true;
       schedule();
     }
@@ -257,7 +288,7 @@ export function startFooterDock(footer: HTMLElement) {
     queueMicrotask(() => {
       if (!footer.contains(document.activeElement)) release();
     });
-  elements.root.dataset.footerDock = '';
+  elements.root.dataset.footerMotion = '';
   const unobserve = observeDock(footer, compact, reduce, {
     schedule,
     remeasure,
@@ -271,7 +302,7 @@ export function startFooterDock(footer: HTMLElement) {
   return () => {
     cancelAnimationFrame(frame);
     unobserve();
-    names.destroy();
+    dock?.destroy();
     resetDock(elements);
   };
 }

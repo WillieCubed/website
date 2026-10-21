@@ -6,9 +6,9 @@
 
    The dock controller marks the footer with data-dock and writes one number, --p: 0
    while the page above fills the window, 1 once the footer's own height has
-   scrolled in. Everything below is a function of --p. Without scripting, or
-   anywhere else on the site, none of it applies and the footer is the plain
-   block it has always been. */
+   scrolled in. Dock rules apply only on the homepage; the page-sheet
+   transition below is shared across routes. Without scripting, the footer
+   remains in normal document flow. */
 .site-footer[data-dock] {
   --p: 0;
   /* Each part of the opening takes its own stretch of --p. The sides open
@@ -249,8 +249,10 @@
    FooterFrame writes --footer-p (the footer's --p), --sheet-p (the same,
    but never ahead of how far the page has scrolled), and --page-w (the page's
    width, as a plain number) on the root. */
-:root[data-footer-dock] {
+:root[data-footer-motion] {
   --sheet: clamp(0, var(--sheet-p, 0) / 0.4, 1);
+  --sheet-trim: 0px;
+  --sheet-side: 0px;
   /* The ground behind the sheet turns at the rate the footer's own surface
      comes in (--surface), so the footer's edges, while it is still
      narrower than the window, vanish into it instead of showing as a
@@ -262,14 +264,14 @@
   /* The collapsed row's surface reaches this far past the row (--pill-y). */
   --footer-pill-y: var(--spacing-sm);
 }
-:root[data-footer-dock] body {
+:root[data-footer-motion] body {
   background: color-mix(
     in srgb,
     var(--color-tray) calc(var(--behind) * 100%),
     var(--color-ground)
   );
 }
-:root[data-footer-dock] body > .grow {
+:root[data-footer-motion] body > .grow {
   background: var(--color-ground);
   transform-origin: 50% 100%;
 }
@@ -278,20 +280,45 @@
    lower edge is trimmed to the top of the opening and rounded, and the two
    meet on one line instead of the footer covering the sheet's corners.
    What is trimmed is the space at the end of the page, under the row. */
-:root[data-footer-sheet] body > .grow {
-  scale: calc(1 - 2 * var(--sheet-gap) * var(--sheet) / var(--page-w));
-  clip-path: inset(
-    0 0
-      calc(
-        (var(--footer-inset) + var(--footer-contact-h) + var(--footer-pill-y)) *
-          (1 - var(--footer-p))
-      )
-      0 round 0 0 calc(var(--sheet-r) * var(--sheet))
-      calc(var(--sheet-r) * var(--sheet))
+:root[data-footer-dock] {
+  --sheet-trim: calc(
+    (var(--footer-inset) + var(--footer-contact-h) + var(--footer-pill-y)) *
+      (1 - var(--footer-p))
   );
 }
+:root[data-footer-sheet] body > .grow {
+  scale: var(
+    --sheet-scale,
+    calc(1 - 2 * var(--sheet-gap) * var(--sheet) / var(--page-w))
+  );
+  clip-path: inset(
+    0 var(--sheet-side) var(--sheet-trim) round 0 0
+      calc(var(--sheet-r) * var(--sheet)) calc(var(--sheet-r) * var(--sheet))
+  );
+}
+:root[data-footer-motion] .site-footer {
+  margin-top: 0;
+}
+/* Keep the existing content-to-footer breathing room inside the page sheet. */
+:root[data-footer-motion]:not([data-footer-dock]) body > .grow {
+  padding-bottom: var(--spacing-section-roomy);
+}
+:root[data-footer-static] {
+  --sheet: 1;
+  --sheet-scale: none;
+  --sheet-side: calc(var(--sheet-gap) * 1px);
+  --sheet-trim: 0px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-footer-sheet] {
+    --sheet: 1;
+    --sheet-scale: none;
+    --sheet-side: calc(var(--sheet-gap) * 1px);
+    --sheet-trim: 0px;
+  }
+}
 @media (max-width: 839px) {
-  :root[data-footer-dock] {
+  :root[data-footer-motion] {
     --sheet-gap: 12;
     --sheet-r: 24px;
   }
@@ -340,7 +367,7 @@
     --frame-gutter: calc(var(--spacing-section-roomy) - var(--spacing-xs));
   }
 }
-:root[data-footer-dock] body > .grow {
+:root[data-footer-motion] body > .grow {
   width: 100%;
   max-width: var(--surface-frame-max);
   margin-inline: auto;

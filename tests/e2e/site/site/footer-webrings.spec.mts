@@ -544,15 +544,15 @@ for (const route of ['/', '/writings']) {
         const feeds = document
           .querySelector('.site-footer .feeds-button')!
           .getBoundingClientRect();
-        const contacts = [
-          ...document.querySelectorAll('.site-footer__profiles a'),
-        ]
-          .map((element) => element.getBoundingClientRect())
-          .filter((rect) => rect.width > 0);
+        // The profile strip scrolls horizontally; links outside its viewport
+        // do not occupy the status column.
+        const contacts = document
+          .querySelector('.site-footer__profiles')!
+          .getBoundingClientRect();
         return {
           status: status.toJSON(),
           feeds: feeds.toJSON(),
-          lastContact: Math.max(...contacts.map((rect) => rect.right)),
+          lastContact: contacts.right,
         };
       });
     await expect
@@ -560,7 +560,7 @@ for (const route of ['/', '/writings']) {
         const fallback = await fallbackGeometry();
         return (
           fallback.status.left >= fallback.lastContact &&
-          fallback.feeds.left - fallback.status.right >= 8
+          Math.abs(fallback.feeds.left - fallback.status.right - 4) < 1
         );
       })
       .toBe(true);

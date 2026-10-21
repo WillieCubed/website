@@ -23,10 +23,40 @@ function dockElements(footer: HTMLElement) {
 }
 type DockElements = ReturnType<typeof dockElements>;
 
+/** Measure the resting width in one layout turn, without shortening the viewport's scroll range. */
+function restingSurfaceHeight(surface: HTMLElement | null, root: HTMLElement) {
+  if (!surface) return 0;
+  if (
+    surface.getBoundingClientRect().width ===
+    surface.parentElement?.getBoundingClientRect().width
+  )
+    return surface.offsetHeight;
+  const side = surface.style.getPropertyValue('--sheet-side');
+  const minimum = root.style.getPropertyValue('min-block-size');
+  // The wider document can be shorter. Hold its scroll extent until the real
+  // width is restored so a visitor at the bottom is not clamped upward.
+  root.style.setProperty('min-block-size', `${root.scrollHeight}px`);
+  surface.style.setProperty('--sheet-side', '0px');
+  const height = surface.offsetHeight;
+  if (side) surface.style.setProperty('--sheet-side', side);
+  else surface.style.removeProperty('--sheet-side');
+  if (minimum) root.style.setProperty('min-block-size', minimum);
+  else root.style.removeProperty('min-block-size');
+  return height;
+}
+
 /** Measurements change on layout, while progress changes on every scroll frame. */
-function dockGeometry({ footer, root, rings, row, contact }: DockElements) {
+function dockGeometry({
+  footer,
+  root,
+  surface,
+  rings,
+  row,
+  contact,
+}: DockElements) {
   let footerHeight = 0;
   let scrollHeight = 0;
+  let surfaceGrowth = 0;
   return {
     measure() {
       root.style.setProperty('--footer-row-h', `${row?.offsetHeight ?? 48}px`);
@@ -38,6 +68,8 @@ function dockGeometry({ footer, root, rings, row, contact }: DockElements) {
         '--footer-webrings-h',
         `${rings?.offsetHeight ?? 0}px`
       );
+      const currentHeight = surface?.offsetHeight ?? 0;
+      surfaceGrowth = currentHeight - restingSurfaceHeight(surface, root);
       footerHeight = footer.offsetHeight;
       scrollHeight = root.scrollHeight;
     },
@@ -57,6 +89,17 @@ function dockGeometry({ footer, root, rings, row, contact }: DockElements) {
         flow,
         p,
         footerHeight,
+        // Narrowing a long page can add more height than the footer itself.
+        // Its own reflow must not reverse the sheet and start a resize loop.
+        // Footer visibility still follows its actual position for focus/docking.
+        sheet: flow
+          ? 0
+          : footerProgress({
+              scrollY: window.scrollY,
+              viewportHeight: window.innerHeight,
+              scrollHeight: scrollHeight - surfaceGrowth,
+              footerHeight,
+            }),
         scrollRange: Math.max(0, scrollHeight - window.innerHeight),
       };
     },
@@ -125,16 +168,13 @@ function dockPresentation(elements: DockElements, reduce: MediaQueryList) {
 function paintDock(
   { footer, root }: DockElements,
   p: number,
+  sheet: number,
   flow: boolean,
-  footerHeight: number,
   scrollRange: number
 ) {
   footer.toggleAttribute('data-flow', flow);
   footer.style.setProperty('--p', p.toFixed(4));
   root.style.setProperty('--footer-p', p.toFixed(4));
-  // A footer already visible on a short page has already reached the sheet.
-  // Using its visibility avoids changing geometry rules when reflow adds scroll.
-  const sheet = flow ? 0 : p;
   root.style.setProperty('--sheet-p', sheet.toFixed(4));
   const stationary = scrollRange <= 1 && p > 0;
   root.toggleAttribute('data-footer-static', stationary);
@@ -252,13 +292,7 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
     frame = 0;
     const progress = geometry.progress(keyboardDockOpen);
     p = progress.p;
-    paintDock(
-      elements,
-      p,
-      progress.flow,
-      progress.footerHeight,
-      progress.scrollRange
-    );
+    paintDock(elements, p, progress.sheet, progress.flow, progress.scrollRange);
     // Restored positions are geometry, not permission to snap on page load.
     elements.root.toggleAttribute(
       'data-footer-scrolled',

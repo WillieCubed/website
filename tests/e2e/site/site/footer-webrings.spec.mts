@@ -86,6 +86,30 @@ for (const width of [320, 390]) {
   });
 }
 
+test('compact priority targets remain whole with fallback text metrics', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.route('**/api/status', (request) =>
+    request.fulfill({ json: footerStatusFixture })
+  );
+  await page.goto('/writings');
+  await expect(page.locator('.microstatus .temperature')).toContainText('72');
+  await page.addStyleTag({
+    content:
+      '.site-footer .microstatus { font-family: Arial, sans-serif !important; }',
+  });
+  await scrollToExpandedFooter(page);
+  const strip = (await page.locator('.site-footer__profiles').boundingBox())!;
+  const priority = await page
+    .locator('.site-footer__profiles a')
+    .nth(1)
+    .boundingBox();
+  expect(priority!.x + priority!.width).toBeLessThanOrEqual(
+    strip.x + strip.width
+  );
+});
+
 type TargetBounds = Pick<
   DOMRect,
   'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'

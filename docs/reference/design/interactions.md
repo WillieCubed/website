@@ -81,7 +81,11 @@ Short pages use the same inset when scrolled to the footer. Header, main,
 and footer content retain their shared width cap inside these viewport surfaces. The sheet changes its actual layout
 width, moving and reflowing its contents without scaling text or tiles; clipping
 only rounds and trims the lower edge. Scrolling back above the footer restores the full-width
-surface. The sheet and tray remain opaque throughout.
+surface. The sheet and tray remain opaque throughout. Sheet progress excludes height
+added by the narrowing itself, so a long document cannot alternate between wide
+and narrow layouts at one scroll position. Actual footer visibility still governs
+docking and keyboard availability. Resting-width measurements preserve the scroll
+extent until the real width is restored, keeping the viewport in place.
 
 `styles/frames.css` defines the shared page widths and gutters. The header,
 primary content (`site-frame`), and footer all use the active page's frame.

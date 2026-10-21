@@ -444,6 +444,9 @@
   }
 }
 @container footer (max-width: 300px) {
+  .site-footer__row {
+    gap: 0;
+  }
   .site-footer__profiles {
     max-inline-size: calc(2 * var(--footer-link-width));
   }

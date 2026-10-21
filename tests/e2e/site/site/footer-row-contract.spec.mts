@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
 import { expectSingleFooterRow } from './footer-row-contract.mts';
 
@@ -7,6 +7,13 @@ const widths = [
   449, 480, 559, 560, 561, 599, 600, 639, 640, 700, 768, 839, 840, 1000, 1120,
   1121, 1200, 1440, 1920,
 ];
+
+async function renderViewport(page: Page, width: number, scripts: boolean) {
+  await page.setViewportSize({ width, height: 1000 });
+  // With scripts disabled, screenshot capture flushes the browser's
+  // container-query rendering; scheduled JavaScript callbacks cannot run.
+  if (!scripts) await page.screenshot();
+}
 
 test.describe('footer one-row invariant', () => {
   test.describe.configure({ retries: 0, timeout: 120_000 });
@@ -27,7 +34,7 @@ test.describe('footer one-row invariant', () => {
         await page.goto(route);
         await page.evaluate(() => document.fonts.ready);
         for (const width of widths) {
-          await page.setViewportSize({ width, height: 1000 });
+          await renderViewport(page, width, mode !== 'no-javascript');
           if (route === '/') {
             for (const progress of [0, 0.5]) {
               await page.evaluate(

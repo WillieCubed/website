@@ -13,7 +13,7 @@ import {
   subscribeFooterDocked,
 } from '@/lib/site/footer/docked';
 
-import { startFooterDock } from './footer-dock-controller';
+import { startFooterMotion } from './footer-dock-controller';
 import './footer-dock.css';
 
 function revealProfile(event: React.FocusEvent<HTMLElement>) {
@@ -30,8 +30,8 @@ function revealProfile(event: React.FocusEvent<HTMLElement>) {
 }
 
 /**
- * The footer element itself. On most pages it is a plain block. On the
- * homepage, which enables the dock controller, it is the rail's contact
+ * Every page lifts into the shared sheet as its footer arrives. On the
+ * homepage the footer also starts as the rail's contact
  * row until the page ends and then opens into the full footer: this marks
  * it for the stylesheet to draw and writes how far open it is as --p,
  * which the stylesheet derives everything else from. It also runs the
@@ -56,12 +56,13 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
 
   useEffect(() => {
     const footer = ref.current;
-    if (!docked || !footer) return;
+    if (!footer) return;
     // Keep the server layout when the visitor has reached its footer.
     // Normal visits still get the complete scroll-driven dock.
-    if (footer.getBoundingClientRect().top < window.innerHeight) return;
-    return startFooterDock(footer);
-  }, [docked]);
+    const dockContacts =
+      docked && footer.getBoundingClientRect().top >= window.innerHeight;
+    return startFooterMotion(footer, dockContacts);
+  }, [docked, column]);
 
   return (
     <footer

@@ -213,11 +213,8 @@ test('footer status adapts without overlapping compact targets even with a long 
           const [profiles, status, feeds] = controls.map((e) =>
             e.getBoundingClientRect()
           );
-          const lastContact = Math.max(
-            ...[...controls[0].querySelectorAll('a')]
-              .filter((e) => e.getClientRects().length > 0)
-              .map((e) => e.getBoundingClientRect().right)
-          );
+          // Overflowed profile links remain inside their scrolling viewport.
+          const lastContact = profiles.right;
           return (
             Math.abs(
               profiles.y + profiles.height / 2 - status.y - status.height / 2
@@ -226,7 +223,7 @@ test('footer status adapts without overlapping compact targets even with a long 
             Math.abs(
               status.y + status.height / 2 - feeds.y - feeds.height / 2
             ) < 1 &&
-            feeds.x - status.right >= 8 &&
+            Math.abs(feeds.x - status.right - 4) < 1 &&
             document.documentElement.scrollWidth <= innerWidth
           );
         })

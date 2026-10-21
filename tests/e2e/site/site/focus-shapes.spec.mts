@@ -47,6 +47,22 @@ for (const width of [320, 390, 1440]) {
           'inert'
         );
       }
+      // Width changes can reflow the sheet after native scrollIntoView.
+      // Settle at the current document end before measuring focus stability.
+      await expect
+        .poll(async () => {
+          await page.evaluate(async () => {
+            window.scrollTo(0, document.documentElement.scrollHeight);
+            await new Promise(requestAnimationFrame);
+            await new Promise(requestAnimationFrame);
+          });
+          return page.evaluate(() =>
+            Math.round(
+              document.documentElement.scrollHeight - innerHeight - scrollY
+            )
+          );
+        })
+        .toBe(0);
       const profiles = await footer
         .locator('.site-footer__profiles a')
         .evaluateAll((links) =>

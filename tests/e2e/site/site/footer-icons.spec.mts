@@ -28,13 +28,18 @@ for (const width of [390, 576, 1440]) {
               await new Promise(requestAnimationFrame);
               await new Promise(requestAnimationFrame);
             });
-            return page.evaluate(() =>
-              Math.round(
+            return page.evaluate(() => ({
+              remaining: Math.round(
                 document.documentElement.scrollHeight - innerHeight - scrollY
-              )
-            );
+              ),
+              // Reflow can extend the document after the first bottom frame.
+              expanded:
+                !document.querySelector('.site-footer[data-dock]') ||
+                getComputedStyle(document.querySelector('.site-footer__pages')!)
+                  .opacity === '1',
+            }));
           })
-          .toBe(0);
+          .toEqual({ remaining: 0, expanded: true });
         if (route === '/') {
           await expect(page.locator('.site-footer')).toHaveCSS('--p', '1.0000');
           await expect(page.locator('.site-footer__wordmark')).toHaveCSS(

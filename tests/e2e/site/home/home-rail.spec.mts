@@ -98,7 +98,9 @@ test('profile targets stay unclipped while the footer opens and resizes', async 
     for (const progress of [0.1, 0.35, 0.7, 1]) {
       await expect
         .poll(() =>
-          page.evaluate((p) => {
+          page.evaluate(async (p) => {
+            // Sample the layout animation independently of native snap.
+            document.documentElement.style.scrollSnapType = 'none';
             const footer = document.querySelector<HTMLElement>('.site-footer')!;
             window.scrollTo(
               0,
@@ -106,6 +108,8 @@ test('profile targets stay unclipped while the footer opens and resizes', async 
                 innerHeight -
                 footer.offsetHeight * (1 - p)
             );
+            await new Promise(requestAnimationFrame);
+            await new Promise(requestAnimationFrame);
             return Number(footer.style.getPropertyValue('--p'));
           }, progress)
         )
@@ -114,6 +118,12 @@ test('profile targets stay unclipped while the footer opens and resizes', async 
         .locator('.site-footer__profiles li:not([data-extra]) a')
         .last();
       const hits = await target.evaluate((link) => {
+        // Compact profiles have an intentional horizontal scrolling viewport.
+        const strip = link.closest('.site-footer__profiles')!;
+        const bounds = link.getBoundingClientRect();
+        const viewport = strip.getBoundingClientRect();
+        if (bounds.right > viewport.right)
+          strip.scrollLeft += bounds.right - viewport.right;
         const rect = link.getBoundingClientRect();
         return [rect.top + 2, rect.bottom - 2].map((y) =>
           link.contains(

@@ -51,7 +51,8 @@ Feeds retains a 48px-square target and a 4px gap from status.
 Icon-only profile targets have zero extra margin or gap, including during dock transitions.
 City and temperature retain their full content width and horizontal padding;
 location artwork and clock text yield first. The profile strip scrolls
-horizontally when necessary, keeping every link reachable by touch and keyboard.
+horizontally when necessary, keeping every displayed link reachable by touch and keyboard.
+Compact footers prioritize Email, Instagram, LinkedIn, and GitHub; secondary profiles appear at wider widths.
 At extreme widths or text sizes, the row itself can scroll horizontally;
 it must never create a second line. Focus indicators stay inside scrolling
 boundaries. With no weather, retain the city/status fallback.

@@ -1,5 +1,7 @@
 import { type Page, expect, test } from '@playwright/test';
 
+import { pageSurfaceGeometry } from './page-surface-geometry.mts';
+
 const footerStatusFixture = {
   location: {
     city: 'Las Vegas',
@@ -271,22 +273,16 @@ test('the restored ring group contains full touch targets at every width', async
         { message: `${width}px footer opens after resizing` }
       )
       .toBe(1);
-    // Resizing updates the sheet's measured width on the next frame. Wait
-    // for the visible edges, rather than a progress value already at 1.
+    // The surface fits its frame without scaling its contents.
     await expect
-      .poll(() =>
-        page.evaluate(() => {
-          const surface = document
-            .querySelector('body > .grow')!
-            .getBoundingClientRect();
-          const viewport = document.body.getBoundingClientRect();
-          const inset = innerWidth < 840 ? 10 : 16;
-          return Math.max(
-            Math.abs(surface.left - viewport.left - inset),
-            Math.abs(viewport.right - surface.right - inset)
-          );
-        })
-      )
+      .poll(async () => {
+        const surface = await pageSurfaceGeometry(page);
+        const inset = width < 840 ? 8 : 16;
+        return Math.abs(
+          surface.width -
+            Math.min(surface.viewportWidth - inset * 2, surface.frameWidth)
+        );
+      })
       .toBeLessThan(0.5);
     const bounds = await page.evaluate(() => {
       const box = (selector: string) =>
@@ -314,9 +310,10 @@ test('the restored ring group contains full touch targets at every width', async
     });
     expect(bounds.overflow, `${width}px overflow`).toBe(false);
     expect(bounds.name.bottom).toBeLessThan(bounds.pages.top);
-    const inset = width < 840 ? 10 : 16;
-    expect(bounds.page.left).toBeCloseTo(bounds.viewport.left + inset, 0);
-    expect(bounds.page.right).toBeCloseTo(bounds.viewport.right - inset, 0);
+    const painted = await pageSurfaceGeometry(page);
+    const inset = (painted.viewportWidth - painted.width) / 2;
+    expect(painted.left).toBeCloseTo(bounds.viewport.left + inset, 0);
+    expect(painted.right).toBeCloseTo(bounds.viewport.right - inset, 0);
     expect(bounds.ringsLast).toBe(true);
     if (width < 600) expectMobileRingLayout(bounds, width);
     if (width >= 840) {

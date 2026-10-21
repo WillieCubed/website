@@ -64,21 +64,30 @@ brand position and size must end at the same dimensions as a plain footer.
 `footer-consistency.spec.mts` compares rendered typography and gaps across
 home, colophon, writings, and music, including JavaScript-disabled rendering.
 
-Every page uses the same scroll-driven transition into its footer: the content
-surface fills the viewport before the footer arrives, then opens a fixed inset
-of 16px per side on desktop and 10px on phones and rounds its lower corners.
-The inset stays independent of the content width cap, so wide windows keep the
-same gentle motion. Scrolling back up restores the full-width surface. The sheet and tray stay
-opaque: changing the inset, clipping, and corner radius carries the transition.
-`footer-shape.spec.mts` checks this at intermediate scroll positions. Only the
-homepage starts with a compact contact dock. Other pages keep their footer in normal document
-flow, with the existing content-to-footer space inside the rounded surface.
-Reduced motion keeps a static rounded ending without scaling. Short pages
-and footers taller than the viewport retain their natural layout, and all
-content and footer links work without JavaScript. The motion controller resets
-when the page's column or dock mode changes and remeasures content during
-client navigation. `page-footer-motion.spec.mts` checks intermediate and expanded
-states, reverse scrolling, client navigation, and those fallbacks.
+Every page uses the same scroll-driven transition into its footer. The surface
+starts at viewport width, then clips inward and rounds its lower corners without
+scaling text or reflowing content. Its minimum inset is 8px per side on phones
+and 16px on desktop. On wider windows it fits the page's content frame, using the
+same width as the corresponding footer. Scrolling back up restores the full-width
+surface. The sheet and tray remain opaque throughout.
+
+Only the homepage starts with a compact contact dock. Other footers retain normal
+document flow. The contact/status/Feeds row has 40px of space above it, with the
+webrings retaining their separate compact gap. Reduced motion keeps a static
+rounded ending. Short pages and footers taller than the viewport retain natural
+layout, and all content and links work without JavaScript.
+
+After scrolling brings the footer into view, native CSS `y proximity` snapping
+can settle the document at its end. The browser controls its distance and timing;
+the single endpoint does not force a stop or intercept scrolling. It is outside
+the sticky homepage footer, hidden from assistive technology, and disabled for
+reduced motion, short static pages, and footers taller than the viewport.
+
+The controller resets when the page's column or dock mode changes and remeasures
+content during client navigation. `footer-shape.spec.mts` checks painted surface
+edges and unchanged content scale; `page-footer-motion.spec.mts` checks intermediate
+states, reverse scrolling, navigation, and fallbacks. `footer-snap.spec.mts` uses
+wheel input to check settling, scrolling away again, and no movement on page load.
 
 Webrings use 44px-square native targets with 32px visible surfaces, an
 outlined group, and tonal directory links. Compact footer link sizing meets

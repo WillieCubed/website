@@ -1,7 +1,11 @@
 import { type Page, expect, test } from '@playwright/test';
 
+import { pageSurfaceGeometry } from './page-surface-geometry.mts';
+
 async function showProgress(page: Page, p: number) {
+  // Inspect exact animation positions separately from the native snap behavior.
   await page.evaluate((p) => {
+    document.documentElement.style.scrollSnapType = 'none';
     const footer = document.querySelector<HTMLElement>('.site-footer')!;
     window.scrollTo(
       0,
@@ -42,11 +46,8 @@ for (const width of [390, 1440, 1920, 2560]) {
         opaque
       );
       await expect(page.locator('body')).toHaveCSS('background-color', opaque);
-      const shape = await page.locator('body > .grow').evaluate((el) => ({
-        width: el.getBoundingClientRect().width,
-        clip: getComputedStyle(el).clipPath,
-        opacity: getComputedStyle(el).opacity,
-      }));
+      const shape = await pageSurfaceGeometry(page);
+      expect(shape.scale, 'content keeps its visual size').toBe('none');
       expect(shape.opacity).toBe('1');
       if (p === 0) {
         const ground = await page
@@ -77,14 +78,15 @@ for (const width of [390, 1440, 1920, 2560]) {
         ).toBeLessThanOrEqual(layout.cap);
       }
       if (p === 1) {
-        const viewport = await page.evaluate(
-          () => document.body.getBoundingClientRect().width
+        const inset = width < 840 ? 8 : 16;
+        const expected = Math.min(
+          shape.viewportWidth - inset * 2,
+          shape.frameWidth
         );
-        const inset = width < 840 ? 10 : 16;
         expect(
           shape.width,
-          'production motion opens only a fixed edge inset'
-        ).toBeCloseTo(viewport - inset * 2, 1);
+          'only the surface fits around the capped content'
+        ).toBeCloseTo(expected, 1);
       }
       if (p > 0 && p <= 0.4) {
         expect(shape.width).toBeLessThan(previousWidth);

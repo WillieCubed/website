@@ -66,8 +66,10 @@ home, colophon, writings, and music, including JavaScript-disabled rendering.
 
 Every page uses the same scroll-driven transition into its footer: the content
 surface draws inward and rounds its lower corners as the footer arrives, then
-returns to its normal shape when scrolling back up. Only the homepage starts
-with a compact contact dock. Other pages keep their footer in normal document
+returns to its normal shape when scrolling back up. The sheet and tray stay
+opaque: changing the inset, clipping, and corner radius carries the transition.
+`footer-shape.spec.mts` checks this at intermediate scroll positions. Only the
+homepage starts with a compact contact dock. Other pages keep their footer in normal document
 flow, with the existing content-to-footer space inside the rounded surface.
 Reduced motion keeps a static rounded ending without scaling. Short pages
 and footers taller than the viewport retain their natural layout, and all

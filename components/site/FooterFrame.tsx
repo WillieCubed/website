@@ -65,13 +65,16 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
   }, [docked, column]);
 
   return (
-    <footer
-      ref={ref}
-      className="site-footer"
-      data-column={column ?? undefined}
-      onFocusCapture={revealProfile}
-    >
-      {children}
-    </footer>
+    <>
+      <footer
+        ref={ref}
+        className="site-footer"
+        data-column={column ?? undefined}
+        onFocusCapture={revealProfile}
+      >
+        {children}
+      </footer>
+      <span className="site-footer__snap-end" aria-hidden="true" />
+    </>
   );
 }

@@ -7,6 +7,7 @@ function dockElements(footer: HTMLElement) {
     footer,
     root: document.documentElement,
     surface: document.querySelector<HTMLElement>('body > .grow'),
+    frame: footer.querySelector<HTMLElement>('.site-footer__inner'),
     contact: footer.querySelector<HTMLElement>('[data-footer-contact]'),
     row: footer.querySelector<HTMLElement>('.site-footer__row'),
     pages: footer.querySelector<HTMLElement>('.site-footer__pages'),
@@ -26,7 +27,7 @@ type DockElements = ReturnType<typeof dockElements>;
 function dockGeometry({
   footer,
   root,
-  surface,
+  frame,
   rings,
   row,
   contact,
@@ -36,10 +37,9 @@ function dockGeometry({
   return {
     measure() {
       root.style.setProperty(
-        '--page-w',
-        String(document.body.getBoundingClientRect().width)
+        '--sheet-frame-w',
+        `${frame?.offsetWidth ?? root.clientWidth}px`
       );
-      surface?.style.setProperty('--page-w', String(surface.offsetWidth));
       root.style.setProperty('--footer-row-h', `${row?.offsetHeight ?? 48}px`);
       root.style.setProperty(
         '--footer-contact-h',
@@ -143,7 +143,7 @@ function paintDock(
   footer.toggleAttribute('data-flow', flow);
   footer.style.setProperty('--p', p.toFixed(4));
   root.style.setProperty('--footer-p', p.toFixed(4));
-  // Scaling creates a containing block for fixed elements: only scale a sheet.
+  // Reveal the surface only once scrolling begins.
   const sheet = flow
     ? 0
     : Math.min(
@@ -160,7 +160,6 @@ function resetDock(elements: DockElements) {
   const {
     footer,
     root,
-    surface,
     pages,
     rings,
     mark,
@@ -184,8 +183,7 @@ function resetDock(elements: DockElements) {
   footer.removeAttribute('style');
   delete footer.dataset.dock;
   delete footer.dataset.flow;
-  surface?.style.removeProperty('--page-w');
-  root.style.removeProperty('--page-w');
+  root.style.removeProperty('--sheet-frame-w');
   root.style.removeProperty('--footer-row-h');
   root.style.removeProperty('--footer-contact-h');
   root.style.removeProperty('--footer-p');

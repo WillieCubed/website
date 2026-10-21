@@ -1,11 +1,15 @@
 import { type Page, expect, test } from '@playwright/test';
 
+import { pageSurfaceGeometry } from './page-surface-geometry.mts';
+
 const routes = ['/', '/colophon', '/writings', '/music'];
 
 async function scrollToFooter(page: Page, remaining = 0) {
   await expect
     .poll(async () => {
       const expected = await page.evaluate((fraction) => {
+        // Exact geometry samples are independent of the native proximity snap.
+        document.documentElement.style.scrollSnapType = 'none';
         const footer = document.querySelector('.site-footer')!;
         const height = footer.getBoundingClientRect().height;
         const end = Math.max(
@@ -30,7 +34,6 @@ for (const width of [390, 1440, 1920]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: width < 840 ? 844 : 1000 });
     await page.emulateMedia({ reducedMotion: 'no-preference' });
-    let expanded: unknown;
     for (const route of routes) {
       await page.goto(route);
       await expect(page.locator('html')).toHaveAttribute(
@@ -67,28 +70,19 @@ for (const width of [390, 1440, 1920]) {
         'data-footer-sheet',
         ''
       );
-      const partial = await surface.evaluate((el) =>
-        Number(getComputedStyle(el).scale)
-      );
-      expect(partial).toBeLessThan(1);
+      const partial = await pageSurfaceGeometry(page);
+      expect(partial.scale).toBe('none');
+      expect(partial.width).toBeLessThan(partial.layoutWidth);
       await scrollToFooter(page);
-      const endpoint = await surface.evaluate((el) => {
-        const s = getComputedStyle(el);
-        const r = el.getBoundingClientRect();
-        return {
-          scale: s.scale,
-          clip: s.clipPath,
-          left: Math.round(r.left * 10) / 10,
-          right: Math.round(r.right * 10) / 10,
-        };
-      });
-      expect(Number(endpoint.scale)).toBeLessThan(partial);
+      const endpoint = await pageSurfaceGeometry(page);
+      expect(endpoint.scale).toBe('none');
+      expect(endpoint.width).toBeLessThan(partial.width);
       expect(endpoint.clip).not.toBe('none');
-      if (route === '/') expanded = endpoint;
-      else
-        expect(endpoint, `${route} shares the homepage sheet endpoint`).toEqual(
-          expanded
-        );
+      const inset = width < 840 ? 8 : 16;
+      expect(endpoint.width).toBeCloseTo(
+        Math.min(endpoint.viewportWidth - inset * 2, endpoint.frameWidth),
+        0
+      );
       // The homepage's letter springs finish after the sheet reaches its edge.
       await expect
         .poll(() =>

@@ -237,18 +237,18 @@
 /* ---------- The page above becomes a sheet ----------
    As the footer opens, the page above it draws in from the sides of the
    window and rounds its lower corners, so it reads as one surface lifting
-   off the footer rather than a page with a strip under it. It is scaled
-   rather than narrowed, so nothing in it reflows while the visitor scrolls;
-   the scale is anchored at its lower edge, which stays level with the top
-   of the opening. The footer's tray stays opaque behind the page.
-   FooterFrame writes --footer-p (the footer's --p), --sheet-p (the same,
-   but never ahead of how far the page has scrolled), and --page-w (the page's
-   width, as a plain number) on the root. */
+   off the footer rather than a page with a strip under it. Clipping draws
+   the surface around its contents without scaling text or reflowing tiles.
+   The footer's tray stays opaque behind the page. The controller writes
+   footer and sheet progress and the current content frame's width. */
 :root[data-footer-motion] {
   background: var(--color-tray);
   --sheet: clamp(0, var(--sheet-p, 0) / 0.4, 1);
   --sheet-trim: 0px;
-  --sheet-side: 0px;
+  --sheet-side: calc(
+    var(--sheet) *
+      max(calc(var(--sheet-gap) * 1px), (100% - var(--sheet-frame-w, 100%)) / 2)
+  );
   /* The gap between the sheet and each side of the window, in pixels. */
   --sheet-gap: 16;
   --sheet-r: 28px;
@@ -265,7 +265,6 @@
 }
 :root[data-footer-motion] body > .grow {
   background: var(--color-ground);
-  transform-origin: 50% 100%;
 }
 /* The footer's opening starts a row's height above the page's end until it
    is fully open (see the clip above), so the sheet ends there too: its
@@ -279,10 +278,6 @@
   );
 }
 :root[data-footer-sheet] body > .grow {
-  scale: var(
-    --sheet-scale,
-    calc(1 - 2 * var(--sheet-gap) * var(--sheet) / var(--page-w))
-  );
   clip-path: inset(
     0 var(--sheet-side) var(--sheet-trim) round 0 0
       calc(var(--sheet-r) * var(--sheet)) calc(var(--sheet-r) * var(--sheet))
@@ -297,21 +292,17 @@
 }
 :root[data-footer-static] {
   --sheet: 1;
-  --sheet-scale: none;
-  --sheet-side: calc(var(--sheet-gap) * 1px);
   --sheet-trim: 0px;
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-footer-sheet] {
     --sheet: 1;
-    --sheet-scale: none;
-    --sheet-side: calc(var(--sheet-gap) * 1px);
     --sheet-trim: 0px;
   }
 }
 @media (max-width: 839px) {
   :root[data-footer-motion] {
-    --sheet-gap: 10;
+    --sheet-gap: 8;
     --sheet-r: 24px;
   }
 }
@@ -389,6 +380,7 @@
 .site-footer {
   --footer-space: var(--spacing-section);
   --footer-tail-gap: var(--spacing-inline);
+  --footer-row-gap: var(--spacing-section-roomy);
   --footer-link-width: var(--control-target-small);
   --footer-link-inset: calc((var(--footer-link-width) - 16px) / 2);
 }
@@ -443,7 +435,7 @@
     var(--footer-webrings-h, 48px) + var(--footer-tail-gap)
   );
   grid-area: contacts;
-  margin-block-start: var(--footer-tail-gap);
+  margin-block-start: var(--footer-row-gap);
 }
 @container footer (max-width: 560px) {
   .site-footer:not([data-dock]) .site-footer__profiles li[data-extra] {
@@ -494,9 +486,6 @@
     grid-template-areas: 'brand' 'pages' 'contacts' 'webrings';
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: repeat(4, auto);
-  }
-  .site-footer__row {
-    margin-block-start: var(--footer-space);
   }
   .site-footer {
     --footer-brand-size: clamp(22px, 6.7vw, 30px);
@@ -728,5 +717,24 @@
 @container footer (min-width: 720px) {
   .site-footer .site-footer__pages ul {
     column-count: 3;
+  }
+}
+
+/* A flow-positioned endpoint lets the browser settle at the document end,
+   independently of the homepage footer's sticky presentation. */
+.site-footer__snap-end {
+  display: block;
+  flex: none;
+  block-size: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-footer-motion][data-footer-sheet]:not([data-footer-static]):not(
+      :has(.site-footer[data-flow])
+    ) {
+    scroll-snap-type: y proximity;
+  }
+  .site-footer__snap-end {
+    scroll-snap-align: end;
+    scroll-snap-stop: normal;
   }
 }

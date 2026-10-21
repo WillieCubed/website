@@ -8,7 +8,7 @@ export default function InstagramIcon({ className }: InstagramIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
-      viewBox="0 0 24 24"
+      viewBox="0.4533 0.2755 22.8267 22.8267"
       fill="none"
       aria-hidden="true"
       className={className}

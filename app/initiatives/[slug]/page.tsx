@@ -147,7 +147,7 @@ export default async function InitiativePage(
         )}
       />
       <TopBar crumbs={crumbs} column="content" />
-      <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
+      <main id="main" className="site-frame site-frame--wide pb-20">
         <InitiativeHeading initiative={initiative} />
 
         <div className="mx-auto mt-8 max-w-[840px]">

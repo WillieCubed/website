@@ -50,7 +50,7 @@ export default async function NotFound() {
       <TopBar column="content" prefetchHome={false} />
       <main
         id="main"
-        className="mx-auto flex max-w-[840px] flex-col gap-7 px-5 pb-8 pt-10"
+        className="mx-auto flex site-frame site-frame--content flex-col gap-7 pb-8 pt-10"
       >
         <h1 className="text-display-small">No page lives at this address.</h1>
         <RequestLog paths={paths} />

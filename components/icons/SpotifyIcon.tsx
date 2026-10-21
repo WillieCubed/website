@@ -8,7 +8,7 @@ export default function SpotifyIcon({ className }: SpotifyIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
-      viewBox="0 0 236.05 225.25"
+      viewBox="-13.26 -18.66 262.58 262.58"
       fill="currentColor"
       aria-hidden="true"
       className={className}

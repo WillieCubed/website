@@ -1,5 +1,5 @@
 import DockFooter from '@/components/site/DockFooter';
-import TopBar from '@/components/site/TopBar';
+import TopBar, { COLUMN } from '@/components/site/TopBar';
 import LiveStatus from '@/components/status/LiveStatus';
 
 import { pageMetadata } from '@/lib/seo/metadata';
@@ -18,7 +18,7 @@ export default function StatusPage() {
         column="content"
         crumbs={[{ label: 'Status', href: '/status' }]}
       />
-      <main id="main" className="status-expanded">
+      <main id="main" className={`status-expanded ${COLUMN.content}`}>
         <LiveStatus expanded />
       </main>
     </div>

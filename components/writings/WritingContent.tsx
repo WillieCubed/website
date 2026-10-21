@@ -281,12 +281,12 @@ export default async function WritingContent({
     <>
       {/* Mobile TOC */}
       {showToc && (
-        <div className="mx-auto max-w-breakpoint-md px-lg pb-6 desktop:hidden">
+        <div className="site-frame site-frame--reading pb-6 desktop:hidden">
           <TableOfContents headings={headings} />
         </div>
       )}
 
-      <div className="mx-auto max-w-breakpoint-md px-lg desktop:px-0">
+      <div className="site-frame site-frame--reading">
         {/* h-entry: e-content */}
         <div className="e-content">
           <WritingBody

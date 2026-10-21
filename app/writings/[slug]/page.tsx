@@ -184,7 +184,7 @@ export default async function WritingDetailPage(props: WritingDetailPageProps) {
             seriesData={seriesData}
           />
 
-          <section className="mx-auto max-w-breakpoint-md px-lg pb-lg desktop:px-0">
+          <section className="site-frame site-frame--reading pb-lg">
             <PostInteractions
               blueskyReplyUrl={atmosphere.replyUrl}
               webmentions={responses}

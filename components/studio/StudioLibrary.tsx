@@ -64,7 +64,7 @@ export default function StudioLibrary() {
       />
       <main
         id="main"
-        className="writing-studio mx-auto max-w-[840px] px-5 pb-8"
+        className="writing-studio mx-auto site-frame site-frame--content pb-8"
       >
         <section className="mt-6">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4">

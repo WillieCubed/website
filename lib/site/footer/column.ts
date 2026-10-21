@@ -24,6 +24,8 @@ let heard = false;
 const listeners = new Set<() => void>();
 
 function emit(): void {
+  if (typeof document !== 'undefined')
+    document.documentElement.dataset.pageColumn = bars.at(-1)?.column ?? 'home';
   for (const listener of listeners) listener();
 }
 

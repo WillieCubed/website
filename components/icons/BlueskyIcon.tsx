@@ -8,7 +8,7 @@ export default function BlueskyIcon({ className }: BlueskyIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
-      viewBox="0 0 600 530"
+      viewBox="-48.004 -83.007 696.004 696.004"
       fill="none"
       aria-hidden="true"
       className={className}

@@ -1,0 +1,43 @@
+/* One page frame sets the header, primary content, footer, and lifted sheet. */
+:root {
+  --page-width-reading: 768px;
+  --page-width-content: 840px;
+  --page-width-wide: 1200px;
+  --page-frame-max: var(--page-width-wide);
+  --page-frame-gutter: var(--spacing-lg);
+  --sheet-frame-w: var(--page-frame-max);
+}
+:root[data-page-column='home'],
+:root:not([data-page-column]):has(.home) {
+  --page-frame-max: calc(var(--shell-max) + 2 * var(--shell-gutter));
+}
+:root[data-page-column='reading'],
+:root:not([data-page-column]):has(header[data-column='reading']),
+.site-frame--reading {
+  --page-frame-max: var(--page-width-reading);
+}
+:root[data-page-column='content'],
+:root[data-page-column='media'],
+:root:not([data-page-column]):has(header[data-column='content']),
+:root:not([data-page-column]):has(header[data-column='media']),
+.site-frame--content,
+.site-frame--media {
+  --page-frame-max: var(--page-width-content);
+}
+.site-frame--wide {
+  --page-frame-max: var(--page-width-wide);
+}
+.site-frame {
+  --page-frame-gutter: var(--spacing-lg);
+  width: 100%;
+  max-width: var(--page-frame-max);
+  margin-inline: auto;
+  padding-inline: var(--page-frame-gutter);
+}
+@media (min-width: 1200px) {
+  :root[data-page-column='reading'],
+  :root:not([data-page-column]):has(header[data-column='reading']),
+  .site-frame--reading {
+    --page-frame-gutter: 0px;
+  }
+}

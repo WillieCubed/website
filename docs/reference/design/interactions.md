@@ -33,6 +33,8 @@ do not resize every control merely because a shared default changed.
 Breadcrumb menu triggers use the same separate surface with equal padding on
 all four sides: 8px normally and 4px on phones at or below 360px. Their full
 48px touch targets remain clickable around the shorter visible surface.
+The home-name link uses the same shared hover, pressed, focus, and reduced-motion
+states, with its original compact horizontal footprint and 48px target height.
 
 These sizes follow the [button](https://m3.material.io/components/buttons/specs)
 and [icon-button](https://m3.material.io/components/icon-buttons/specs) scales.
@@ -69,16 +71,26 @@ brand position and size must end at the same dimensions as a plain footer.
 home, colophon, writings, and music, including JavaScript-disabled rendering.
 
 Every page uses the same scroll-driven transition into its footer. The surface
-starts at viewport width, then clips inward and rounds its lower corners without
-scaling text or reflowing content. Its minimum inset is 8px per side on phones
+starts at viewport width, then narrows and rounds its lower corners while the
+contents reflow naturally without scaling. Its minimum inset is 8px per side on phones
 and 16px on desktop. On wider windows it fits the page's content frame, using the
-same width as the corresponding footer. Scrolling back up restores the full-width
+same width as the corresponding footer. The sheet changes its actual layout
+width, moving and reflowing its contents without scaling text or tiles; clipping
+only rounds and trims the lower edge. Scrolling back up restores the full-width
 surface. The sheet and tray remain opaque throughout.
 
-Only the homepage starts with a compact contact dock. Other footers retain normal
-document flow. The contact/status/Feeds row has 40px of space above it, with the
-webrings retaining their separate compact gap. Profile artwork uses 24px SVG
-boxes without scale transforms; their larger touch targets and icon-only zero-gap
+`styles/frames.css` defines the shared page widths and gutters. The header,
+primary content (`site-frame`), footer, and sheet all use the active page's frame.
+The existing top-bar registration supplies that frame across client navigation;
+CSS supplies the first paint and no-JavaScript fallback. The homepage retains
+its wider work layout, content pages use 840px, reading pages use 768px, and
+wide pages use 1200px.
+
+The homepage and Status page request the compact contact dock. Other footers
+retain normal document flow. The contact/status/Feeds row has 40px of space above it, with the
+webrings retaining their separate compact gap. Profile artwork is centered with
+its longer dimension at 20px inside 24px SVG boxes, using viewBox padding rather
+than CSS scale transforms; their larger touch targets and icon-only zero-gap
 layout remain unchanged. Reduced motion keeps a static
 rounded ending. Short pages and footers taller than the viewport retain natural
 layout, and all content and links work without JavaScript.

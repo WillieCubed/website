@@ -47,10 +47,12 @@ export default function BreadcrumbMenu({
         prefetch={prefetchHome ? undefined : false}
         rel="author"
         aria-current={href === pathname ? 'page' : undefined}
-        className="site-breadcrumb-name font-semibold text-ink"
+        className="site-breadcrumb site-breadcrumb-name site-control font-semibold text-ink"
       >
-        <Mark className="site-breadcrumb-name__mark" />
-        <span className="site-breadcrumb-name__label">{label}</span>
+        <span className="site-control__surface">
+          <Mark className="site-breadcrumb-name__mark" />
+          <span className="site-breadcrumb-name__label">{label}</span>
+        </span>
       </SiteLink>
     );
   }

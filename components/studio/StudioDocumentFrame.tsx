@@ -27,7 +27,7 @@ export default function StudioDocumentFrame({
       />
       <main id="main" className="studio-editor writing-image-page">
         <StudioInspectorHost>
-          <div className="studio-reading-column mx-auto max-w-breakpoint-md px-lg desktop:px-0">
+          <div className="studio-reading-column site-frame site-frame--reading">
             {children}
           </div>
         </StudioInspectorHost>

@@ -6,6 +6,18 @@ export async function pageSurfaceGeometry(page: Page) {
     const viewport = document.body.getBoundingClientRect();
     const bounds = surface.getBoundingClientRect();
     const style = getComputedStyle(surface);
+    function usesLayoutEdges(clipPath: string) {
+      const insets = clipPath
+        .match(/^inset\((.*?)(?: round |\))/)?.[1]
+        .trim()
+        .split(/\s+/);
+      const rightInset = insets?.[1] ?? insets?.[0];
+      const leftInset = insets?.[3] ?? rightInset;
+      return (
+        clipPath === 'none' || (rightInset === '0px' && leftInset === '0px')
+      );
+    }
+    const layoutEdges = usesLayoutEdges(style.clipPath);
     const y = Math.max(1, Math.min(64, bounds.bottom / 2));
     const inside = (x: number) =>
       document.elementFromPoint(x, y)?.closest('body > .grow') === surface;
@@ -18,9 +30,10 @@ export async function pageSurfaceGeometry(page: Page) {
     }
     // Hit testing rounds to device pixels and the far gutter is browser UI.
     // The surface's clipping is symmetric, so measure its left edge and mirror it.
-    const start =
-      style.clipPath === 'none' ? bounds.left : Math.round(right - 0.5);
-    const end = viewport.right - (start - viewport.left);
+    const start = layoutEdges ? bounds.left : Math.round(right - 0.5);
+    const end = layoutEdges
+      ? bounds.right
+      : viewport.right - (start - viewport.left);
     return {
       left: start,
       right: end,

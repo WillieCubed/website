@@ -108,6 +108,15 @@ edges and unchanged content scale; `page-footer-motion.spec.mts` checks intermed
 states, reverse scrolling, navigation, and fallbacks. `footer-snap.spec.mts` uses
 wheel input to check settling, scrolling away again, and no movement on page load.
 
+The status link groups location, time, and weather in one quiet tonal
+capsule using the surface-container role. Keep at least 12px of horizontal
+padding (16px when roomy); optional metadata yields before padding does.
+The compact weather condition icon remains visible on mobile. At legacy
+narrow widths, artwork yields after the clock; the city stays readable. Omit the visible Fahrenheit suffix while retaining
+the degree symbol and the full accessible reading. Feeds uses a
+circular shape when icon-only and a capsule when labelled, with the shared
+pressed shape and focus treatment.
+
 Webrings use 44px-square native targets with 32px visible surfaces, an
 outlined group, and tonal directory links. Compact footer link sizing meets
 [WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)

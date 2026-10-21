@@ -365,16 +365,6 @@
   );
 }
 
-.site-footer .microstatus {
-  padding: 0 var(--spacing-lg);
-  border-radius: 999px;
-  background: var(--color-surface-container);
-  cursor: pointer;
-  transition: color 180ms ease;
-}
-.site-footer .microstatus:is(:hover, :focus-visible) {
-  color: var(--color-ink);
-}
 .site-footer .microstatus .status-city {
   text-decoration: none;
 }
@@ -511,22 +501,21 @@
   }
 }
 
-@container footer-utilities (max-width: 288px) {
+@container footer (max-width: 700px) {
   .site-footer .microstatus {
-    padding-inline: var(--spacing-md);
     gap: var(--spacing-xs);
   }
 }
 
 /* Keep the full Fahrenheit reading in the link name at legacy phone widths. */
-@container footer-utilities (max-width: 144px) {
+@container footer (max-width: 280px) {
   .site-footer .microstatus .unit {
     display: none;
   }
 }
 
-/* Legacy narrow columns retain the reading before decorative artwork. */
-@container footer-utilities (max-width: 128px) {
+/* Legacy narrow columns retain the city and reading before artwork. */
+@container footer (max-width: 240px) {
   .site-footer .microstatus .weather-picture {
     display: none;
   }

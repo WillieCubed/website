@@ -103,6 +103,9 @@ Reduced motion keeps a static
 rounded ending. Short pages and footers taller than the viewport retain natural
 layout, and all content and links work without JavaScript.
 
+The footer cube's drawing aligns with the text edge. Its native touch padding
+hangs outside that line; alignment must not be measured from the button border.
+
 After visitor scrolling brings the footer into view, native CSS `y proximity` snapping
 can settle the document at its end. The browser controls its distance and timing;
 the single endpoint does not force a stop or intercept scrolling. It is outside
@@ -133,6 +136,9 @@ while remaining below [Material's recommended 48dp target](https://support.googl
 Keep targets separate and their full padding clickable. The webring label
 can move above its controls and keeps an 8px inset from the group's border on
 phones; the contact/status/Feeds row must not stack.
+The outlined webring group follows the navigation's content edge on phones.
+When both ring triplets cannot fit, the triplets wrap within that frame while
+keeping their 44px targets; the group does not break out toward the viewport edge.
 
 Playlist navigation uses small connected surfaces; Create a series and New writing are prominent
 labelled creation actions. Existing selected states, featured project links

@@ -141,9 +141,20 @@ body:has(header[data-column='reading'])
 .site-footer__mark-button {
   --control-ink: var(--color-ink);
   --control-rest-radius: 12px;
+  --footer-mark-width: calc(1.3em * var(--mark-aspect));
+  --footer-mark-target: max(
+    var(--control-target),
+    calc(var(--footer-mark-width) + 2 * var(--spacing-sm))
+  );
+  border: 0;
   flex: 0 0 auto;
-  margin: 0;
-  padding: 8px;
+  inline-size: var(--footer-mark-target);
+  /* Align the drawing; its native touch padding hangs outside the text line. */
+  margin-block: 0;
+  margin-inline: calc(
+    (var(--footer-mark-width) - var(--footer-mark-target)) / 2
+  );
+  padding: var(--spacing-sm);
   font: inherit;
   line-height: inherit;
 }

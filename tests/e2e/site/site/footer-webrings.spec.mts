@@ -58,6 +58,17 @@ for (const width of [320, 390]) {
       inset,
       'the label has the same compact inset as the group padding'
     ).toBe(8);
+    const frameEdges = await page.evaluate(() => ({
+      group: document.querySelector('.site-webrings')!.getBoundingClientRect()
+        .left,
+      navigation: document
+        .querySelector('.site-footer__pages a')!
+        .getBoundingClientRect().left,
+    }));
+    expect(
+      frameEdges.group,
+      'webring frame uses the navigation edge'
+    ).toBeCloseTo(frameEdges.navigation, 0);
     const count = width === 320 ? 2 : 3;
     const profiles = page.locator('.site-footer__profiles');
     const strip = (await profiles.boundingBox())!;
@@ -162,6 +173,7 @@ type MobileRingLayout = Record<
 function expectMobileRingLayout(bounds: MobileRingLayout, width: number) {
   expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
   expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
+  expect(bounds.rings.left).toBeCloseTo(bounds.firstPage.left, 0);
   if (width >= 360) {
     const targetOverhang = bounds.rings.left - bounds.row.left;
     expect(targetOverhang).toBeGreaterThanOrEqual(0);
@@ -346,11 +358,15 @@ test('a keyboard tooltip stays with its link when the page scrolls', async ({
   // Focus scrolling its link into view must not dismiss the tooltip.
   await page.evaluate(() => window.scrollBy(0, -40));
   await expect(tooltip).toBeVisible();
-  const [tip, target] = await Promise.all([
-    tooltip.boundingBox(),
-    link.boundingBox(),
-  ]);
-  expect(Math.abs(tip!.y + tip!.height + 8 - target!.y)).toBeLessThan(2);
+  await expect
+    .poll(async () => {
+      const [tip, target] = await Promise.all([
+        tooltip.boundingBox(),
+        link.boundingBox(),
+      ]);
+      return Math.abs(tip!.y + tip!.height + 8 - target!.y);
+    })
+    .toBeLessThan(2);
 });
 
 test('the restored ring group contains full touch targets at every width', async ({
@@ -437,7 +453,7 @@ test('the restored ring group contains full touch targets at every width', async
         new Set(bounds.targets.slice(i, i + 3).map((target) => target.top)).size
       ).toBe(1);
     }
-    if (width < 600)
+    if (width >= 360 && width < 600)
       expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
   }
 });

@@ -11,7 +11,7 @@ async function contentEdges(frame: Locator) {
   });
 }
 
-for (const width of [390, 1440, 1920]) {
+for (const width of [320, 390, 1440, 1920]) {
   test(`header, page, and footer share a responsive frame at ${width}px`, async ({
     page,
   }, info) => {
@@ -74,6 +74,16 @@ for (const width of [390, 1440, 1920]) {
       if (!stationary) expect(sheet!.x).toBeGreaterThan(0);
       const end = await contentEdges(main);
       const footer = await contentEdges(brand);
+      const cube = (await page.locator('.site-footer__mark').boundingBox())!;
+      const cubeTarget = (await page
+        .locator('.site-footer__mark-button')
+        .boundingBox())!;
+      expect(
+        Math.abs(cube.x - footer.left),
+        `${route}: drawn cube follows the content edge`
+      ).toBeLessThan(1);
+      expect(cubeTarget.width).toBeGreaterThanOrEqual(48);
+      expect(cubeTarget.height).toBeGreaterThanOrEqual(48);
       expect(
         Math.abs(end.left - footer.left),
         `${route}: expanded left edge`

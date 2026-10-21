@@ -144,7 +144,7 @@ async function ReadingArticle({
             seriesData={seriesData}
             canonicalUrl={absoluteUrl(`/writings/${entry.slug}`)}
           />
-          <div className="mx-auto max-w-breakpoint-md px-lg pb-lg desktop:px-0">
+          <div className="site-frame site-frame--reading pb-lg">
             <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-label-large text-muted">
               {entry.status && <span>{entry.status}</span>}
               <Edit entry={entry} />

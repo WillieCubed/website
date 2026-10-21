@@ -102,12 +102,11 @@
 }
 .status-expanded {
   width: 100%;
-  max-width: 840px;
   margin: 0 auto;
   flex: 1;
   display: grid;
   grid-template-rows: minmax(0, 9fr) auto minmax(0, 11fr);
-  padding: 24px 20px;
+  padding-block: 24px;
 }
 .status-composition {
   grid-row: 2;

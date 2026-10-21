@@ -24,22 +24,11 @@ function dockElements(footer: HTMLElement) {
 type DockElements = ReturnType<typeof dockElements>;
 
 /** Measurements change on layout, while progress changes on every scroll frame. */
-function dockGeometry({
-  footer,
-  root,
-  frame,
-  rings,
-  row,
-  contact,
-}: DockElements) {
+function dockGeometry({ footer, root, rings, row, contact }: DockElements) {
   let footerHeight = 0;
   let scrollHeight = 0;
   return {
     measure() {
-      root.style.setProperty(
-        '--sheet-frame-w',
-        `${frame?.offsetWidth ?? root.clientWidth}px`
-      );
       root.style.setProperty('--footer-row-h', `${row?.offsetHeight ?? 48}px`);
       root.style.setProperty(
         '--footer-contact-h',
@@ -183,7 +172,6 @@ function resetDock(elements: DockElements) {
   footer.removeAttribute('style');
   delete footer.dataset.dock;
   delete footer.dataset.flow;
-  root.style.removeProperty('--sheet-frame-w');
   root.style.removeProperty('--footer-row-h');
   root.style.removeProperty('--footer-contact-h');
   root.style.removeProperty('--footer-p');
@@ -247,6 +235,8 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
   const dock = dockContacts ? dockPresentation(elements, reduce) : null;
   let p = 0;
   let keyboardDockOpen = false;
+  let keyboardFocus = false;
+  let revealFocusAfterLayout = false;
   let frame = 0;
   const update = () => {
     frame = 0;
@@ -260,15 +250,28 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
       progress.scrollRange
     );
     dock?.paint(p, compact.matches, progress.footerHeight);
+    if (revealFocusAfterLayout) {
+      revealFocusAfterLayout = false;
+      const focused = footer.querySelector<HTMLElement>(':focus-visible');
+      if (focused) {
+        const bounds = focused.getBoundingClientRect();
+        if (bounds.top < 0 || bounds.bottom > window.innerHeight)
+          focused.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+    }
   };
   const schedule = () => {
     if (frame === 0) frame = requestAnimationFrame(update);
   };
   const remeasure = () => {
     geometry.measure();
+    revealFocusAfterLayout = keyboardFocus;
     schedule();
   };
   const keepOpen = () => {
+    keyboardFocus = footer.querySelector(':focus-visible') !== null;
+    revealFocusAfterLayout = keyboardFocus;
+    schedule();
     if (dock && p > 0.5) {
       keyboardDockOpen = true;
       schedule();
@@ -276,6 +279,8 @@ export function startFooterMotion(footer: HTMLElement, dockContacts: boolean) {
   };
   const release = () => {
     keyboardDockOpen = false;
+    keyboardFocus = false;
+    revealFocusAfterLayout = false;
     schedule();
   };
   const onKey = (event: KeyboardEvent) => {

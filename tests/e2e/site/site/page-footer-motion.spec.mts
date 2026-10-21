@@ -72,7 +72,8 @@ for (const width of [390, 1440, 1920]) {
       );
       const partial = await pageSurfaceGeometry(page);
       expect(partial.scale).toBe('none');
-      expect(partial.width).toBeLessThan(partial.layoutWidth);
+      expect(partial.width).toBeCloseTo(partial.layoutWidth, 1);
+      expect(partial.layoutWidth).toBeLessThan(partial.viewportWidth);
       await scrollToFooter(page);
       const endpoint = await pageSurfaceGeometry(page);
       expect(endpoint.scale).toBe('none');

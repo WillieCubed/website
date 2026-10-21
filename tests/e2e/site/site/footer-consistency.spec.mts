@@ -119,8 +119,9 @@ for (const width of [320, 390, 840, 1440]) {
           .locator('.site-footer__label')
           .first()
           .evaluate((el) => getComputedStyle(el).position === 'absolute');
-        await expect(profiles).toHaveCSS(
-          'column-gap',
+        await expect(profiles).toHaveCSS('column-gap', '0px');
+        await expect(profiles.locator('.site-footer__label').first()).toHaveCSS(
+          'margin-inline-end',
           iconOnly ? '0px' : '12px'
         );
         if (route === '/') reference = metrics;

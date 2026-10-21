@@ -47,6 +47,7 @@ for (const layout of layouts) {
       ['/writings', '.feeds-button', '8px'],
     ]) {
       await page.goto(route);
+      await page.evaluate(() => document.fonts.ready);
       const target = page.locator(selector).first();
       await target.scrollIntoViewIfNeeded();
       await page.keyboard.press('Tab');

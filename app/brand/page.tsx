@@ -63,7 +63,7 @@ export default function BrandPage() {
       </div>
       <main
         id="main"
-        className="brand-page mx-auto max-w-[1200px] px-5 pb-20"
+        className="brand-page site-frame site-frame--wide pb-20"
         style={PREVIEW_SURFACES}
       >
         <BrandIntro />

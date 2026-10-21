@@ -169,7 +169,7 @@
    room for its icon as the icon comes in. While collapsed the row is words
    alone, with no gaps held for what is not there yet. */
 .site-footer[data-dock] .site-footer__profiles {
-  --profile-gap: calc(20px * (1 - var(--dock)));
+  --profile-gap: 0px;
   align-items: center;
   column-gap: var(--profile-gap);
 }
@@ -181,7 +181,7 @@
   flex-shrink: 0;
   width: calc(20px * 1.3 * var(--mark-aspect) * (1 - var(--seat)));
   height: calc(20px * 1.3);
-  margin-right: calc(-1 * var(--profile-gap) * var(--seat));
+  margin-right: calc(20px * (1 - var(--seat)));
 }
 
 /* Only so much of the row fits the rail's column, so the profiles past
@@ -236,10 +236,10 @@
 /* ---------- The page above becomes a sheet ----------
    As the footer opens, the page above it draws in from the sides of the
    window and rounds its lower corners, so it reads as one surface lifting
-   off the footer rather than a page with a strip under it. Clipping draws
-   the surface around its contents without scaling text or reflowing tiles.
-   The footer's tray stays opaque behind the page. The controller writes
-   footer and sheet progress and the current content frame's width. */
+   off the footer rather than a page with a strip under it. Its actual width
+   changes so the contents move and reflow within it without scaling. The
+   footer uses the same responsive frame and stays opaque behind the page.
+   The controller writes footer and sheet progress. */
 :root[data-footer-motion] {
   background: var(--color-tray);
   --sheet: clamp(0, var(--sheet-p, 0) / 0.4, 1);
@@ -278,8 +278,8 @@
 }
 :root[data-footer-sheet] body > .grow {
   clip-path: inset(
-    0 var(--sheet-side) var(--sheet-trim) round 0 0
-      calc(var(--sheet-r) * var(--sheet)) calc(var(--sheet-r) * var(--sheet))
+    0 0 var(--sheet-trim) round 0 0 calc(var(--sheet-r) * var(--sheet))
+      calc(var(--sheet-r) * var(--sheet))
   );
 }
 :root[data-footer-motion] .site-footer {
@@ -292,6 +292,8 @@
 :root[data-footer-static] {
   --sheet: 1;
   --sheet-trim: 0px;
+  /* A short page must not create its own scroll range by narrowing. */
+  --sheet-side: 0px;
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-footer-sheet] {
@@ -338,19 +340,13 @@
 }
 
 /* Footer composition and compact webring navigation. */
-/* The page opens a small inset from the viewport, independently of the
-   footer's content width. Content keeps its own width cap and gutter. */
+/* The sheet and footer inherit the active page's shared width and gutter. */
 :root {
-  --frame-gutter: calc(var(--spacing-2xl) - var(--spacing-xs));
-  --surface-frame-max: calc(var(--shell-max) + 2 * var(--frame-gutter));
-}
-@media (min-width: 840px) {
-  :root {
-    --frame-gutter: calc(var(--spacing-section-roomy) - var(--spacing-xs));
-  }
+  --frame-gutter: var(--page-frame-gutter);
+  --surface-frame-max: var(--page-frame-max);
 }
 :root[data-footer-motion] body > .grow {
-  width: 100%;
+  width: calc(100% - 2 * var(--sheet-side));
   margin-inline: auto;
 }
 .site-footer {
@@ -362,17 +358,12 @@
     calc(1.3 * var(--footer-brand-size) + 2 * var(--spacing-sm) + 2px)
   );
   --footer-gutter: var(--frame-gutter);
-  --footer-panel-edge: 16px;
+  --footer-panel-edge: var(--page-frame-gutter);
   --footer-text-edge: var(--footer-gutter);
   --footer-content-pad: calc(
     var(--footer-text-edge) - var(--footer-panel-edge)
   );
   --shell-gutter: var(--footer-gutter);
-}
-@media (max-width: 839px) {
-  .site-footer {
-    --footer-panel-edge: var(--spacing-md);
-  }
 }
 /* Content sets the footer height. Responsive spacing gives the closing
    panel room without reserving a fixed fraction of the viewport. */
@@ -387,6 +378,8 @@
   );
 }
 .site-footer__inner {
+  width: calc(100% - 2 * var(--sheet-side, 0px));
+  max-width: var(--page-frame-max);
   min-height: 0;
   grid-template-areas:
     'brand'
@@ -666,6 +659,7 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+    margin-inline-end: 0;
   }
   .site-footer__profiles {
     column-gap: 0;
@@ -684,14 +678,14 @@
     );
   }
 }
-/* Icon-only targets already provide separation. Visible labels need a gap
-   between destinations as the homepage dock opens. */
+/* Put labelled spacing on the label itself, so hiding it also removes the
+   space in the same layout pass as the shared frame changes width. */
 @container footer (width > 1120px) {
-  .site-footer:not([data-dock]) .site-footer__profiles {
-    column-gap: var(--spacing-md);
+  .site-footer__label {
+    margin-inline-end: var(--spacing-md);
   }
-  .site-footer[data-dock] .site-footer__profiles {
-    --profile-gap: calc(
+  .site-footer[data-dock] .site-footer__label {
+    margin-inline-end: calc(
       20px * (1 - var(--dock)) + var(--spacing-md) * var(--dock)
     );
   }

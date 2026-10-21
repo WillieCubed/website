@@ -163,7 +163,7 @@ export default async function PartPage(
     <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
       <JsonLd data={partGraph} />
       <TopBar crumbs={crumbs} />
-      <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20">
+      <main id="main" className="site-frame site-frame--wide pb-20">
         {isPrivatePreview() && (initiative.draft || part.draft) && (
           <p className="mb-4 text-label-medium text-muted">Draft</p>
         )}

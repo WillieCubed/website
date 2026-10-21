@@ -9,7 +9,7 @@
 .site-footer__inner {
   container-name: footer;
   container-type: inline-size;
-  max-width: 1200px;
+  max-width: var(--page-frame-max);
   margin: 0 auto;
   padding: 48px 20px;
   display: grid;
@@ -107,39 +107,6 @@
 .site-footer__row :is(a, button):focus-visible {
   outline-offset: calc(-1 * var(--control-focus-width));
 }
-/* The footer carries the column its page's top bar registered. The :has() rules are only the first paint's
-   fallback, before any script has run: the document then holds one page,
-   so the top bar in it is the one on screen. After a client-side
-   navigation it may not be, so once the footer has a column of its own the
-   markup is never consulted again. */
-.site-footer[data-column='content'] .site-footer__inner,
-body:has(header[data-column='content'])
-  .site-footer:not([data-column])
-  .site-footer__inner {
-  max-width: 840px;
-}
-.site-footer[data-column='media'] .site-footer__inner,
-body:has(header[data-column='media'])
-  .site-footer:not([data-column])
-  .site-footer__inner {
-  max-width: 896px;
-  padding-inline: 44px;
-}
-@media (min-width: 600px) {
-  .site-footer[data-column='media'] .site-footer__inner,
-  body:has(header[data-column='media'])
-    .site-footer:not([data-column])
-    .site-footer__inner {
-    padding-inline: 72px;
-  }
-}
-.site-footer[data-column='reading'] .site-footer__inner,
-body:has(header[data-column='reading'])
-  .site-footer:not([data-column])
-  .site-footer__inner {
-  max-width: 640px;
-  padding-inline: var(--spacing-lg);
-}
 .site-footer[data-column='reading'] .site-footer__top,
 body:has(header[data-column='reading'])
   .site-footer:not([data-column])
@@ -151,14 +118,6 @@ body:has(header[data-column='reading'])
   .site-footer:not([data-column])
   .site-footer__pages {
   justify-content: start;
-}
-@media (min-width: 1200px) {
-  .site-footer[data-column='reading'] .site-footer__inner,
-  body:has(header[data-column='reading'])
-    .site-footer:not([data-column])
-    .site-footer__inner {
-    padding-inline: 0;
-  }
 }
 
 /* The name appears once on screen. The footer carries the brand lockup:

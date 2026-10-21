@@ -73,15 +73,15 @@ interface SocialIconProps {
 function SocialIcon({ label }: SocialIconProps) {
   switch (label) {
     case 'Bluesky':
-      return <BlueskyIcon className="size-4" />;
+      return <BlueskyIcon className="size-6" />;
     case 'Threads':
-      return <ThreadsIcon className="size-4" />;
+      return <ThreadsIcon className="size-6" />;
     case 'Instagram':
-      return <InstagramIcon className="size-4" />;
+      return <InstagramIcon className="size-6" />;
     case 'LinkedIn':
-      return <LinkedinIcon className="size-4" />;
+      return <LinkedinIcon className="size-6" />;
     case 'GitHub':
-      return <Icon name="github" size={16} />;
+      return <Icon name="github" size={24} viewBox="-1.8 -2.0863 27.6 27.6" />;
     default:
       return null;
   }
@@ -158,7 +158,11 @@ export default function SiteFooter() {
             {ELSEWHERE.map((place) => (
               <li key={place.href}>
                 <SiteLink href={place.href} className={LINK}>
-                  <Icon name={place.icon} size={16} />
+                  <Icon
+                    name={place.icon}
+                    size={24}
+                    viewBox="-1.2 -1.2 26.4 26.4"
+                  />
                   <span className="site-footer__label">{place.label}</span>
                 </SiteLink>
               </li>
@@ -179,7 +183,7 @@ export default function SiteFooter() {
             ))}
             <li data-extra="">
               <SiteLink href={spotifyProfileUrl} className={LINK}>
-                <SpotifyIcon className="size-4" />
+                <SpotifyIcon className="size-6" />
                 <span className="site-footer__label">Spotify</span>
               </SiteLink>
             </li>

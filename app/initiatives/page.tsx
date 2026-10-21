@@ -61,7 +61,7 @@ export default async function InitiativesPage() {
           },
         ]}
       />
-      <main id="main" className="h-feed mx-auto max-w-[1200px] px-5 pb-20">
+      <main id="main" className="h-feed site-frame site-frame--wide pb-20">
         {/* h-feed: u-url so parsers know which page this feed is, and
             p-author so they know whose it is */}
         <a href={absoluteUrl('/initiatives')} className="u-url hidden" />

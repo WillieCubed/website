@@ -16,6 +16,7 @@ import { themeTransitionScript } from '@/lib/theme/transition';
 
 import { monoFont, sansFont } from '../components/site/fonts';
 import '../components/site/glass.css';
+import '../components/site/styles/frames.css';
 import './globals.css';
 
 /** Google shows the favicon in results only when it is a multiple of 48px. */

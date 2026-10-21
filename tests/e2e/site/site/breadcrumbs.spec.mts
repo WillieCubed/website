@@ -449,3 +449,89 @@ for (const width of [320, 390, 1440]) {
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 }
+
+for (const width of [390, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`breadcrumb links and menus share states at ${width}px in ${colorScheme}`, async ({
+      page,
+    }, info) => {
+      await page.setViewportSize({ width, height: 844 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.goto('/status');
+      const home = page
+        .getByRole('navigation', { name: 'Breadcrumb' })
+        .getByRole('link', { name: 'Willie Chalmers III' });
+      const menu = page.getByRole('button', {
+        name: 'Open menu for Status',
+        exact: true,
+      });
+      await expect(home).toHaveAttribute('href', '/');
+      const fills: string[][] = [];
+      for (const control of [home, menu]) {
+        await expect(control).toHaveClass(/site-control/);
+        const surface = control.locator(':scope > .site-control__surface');
+        await expect(surface).toBeVisible();
+        const box = (await control.boundingBox())!;
+        expect(box.height).toBeGreaterThanOrEqual(48);
+        const colors: string[] = [];
+        await control.hover();
+        colors.push(
+          await surface.evaluate(
+            (node) => getComputedStyle(node).backgroundColor
+          )
+        );
+        expect(colors[0]).not.toBe('rgba(0, 0, 0, 0)');
+        await page.mouse.down();
+        try {
+          colors.push(
+            await surface.evaluate(
+              (node) => getComputedStyle(node).backgroundColor
+            )
+          );
+          expect(colors[1]).not.toBe(colors[0]);
+          await expect(control).toHaveCSS('border-radius', '8px');
+        } finally {
+          await page.mouse.move(0, 0);
+          await page.mouse.up();
+        }
+        await page.keyboard.press('Tab');
+        await control.focus();
+        await expect(control).toBeFocused();
+        await expect(control).toHaveCSS('outline-width', '3px');
+        const ring = await control.evaluate((node) => {
+          const box = node.getBoundingClientRect();
+          const nav = node.closest('nav')!;
+          const rail = nav.getBoundingClientRect();
+          const clipped = getComputedStyle(nav).overflowX === 'clip';
+          const style = getComputedStyle(node);
+          const outset = Math.max(
+            0,
+            parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset)
+          );
+          return {
+            left: box.left - outset,
+            right: box.right + outset,
+            railLeft: clipped ? rail.left : 0,
+            railRight: clipped ? rail.right : innerWidth,
+          };
+        });
+        expect(ring.left).toBeGreaterThanOrEqual(ring.railLeft);
+        expect(ring.right).toBeLessThanOrEqual(ring.railRight);
+        colors.push(
+          await surface.evaluate(
+            (node) => getComputedStyle(node).backgroundColor
+          )
+        );
+        expect(colors[2]).toBe(colors[1]);
+        expect(await control.boundingBox()).toEqual(box);
+        fills.push(colors);
+        await page.screenshot({
+          path: info.outputPath(
+            `breadcrumb-${control === home ? 'home' : 'menu'}-${width}-${colorScheme}.png`
+          ),
+        });
+      }
+      expect(fills[0]).toEqual(fills[1]);
+    });
+  }
+}

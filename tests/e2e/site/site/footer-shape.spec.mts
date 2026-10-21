@@ -4,22 +4,24 @@ import { pageSurfaceGeometry } from './page-surface-geometry.mts';
 
 async function showProgress(page: Page, p: number) {
   // Inspect exact animation positions separately from the native snap behavior.
-  await page.evaluate((p) => {
-    document.documentElement.style.scrollSnapType = 'none';
-    const footer = document.querySelector<HTMLElement>('.site-footer')!;
-    window.scrollTo(
-      0,
-      document.documentElement.scrollHeight -
-        innerHeight -
-        footer.offsetHeight * (1 - p)
-    );
-  }, p);
   await expect
-    .poll(() =>
-      page
+    .poll(async () => {
+      // Reflow changes the scroll range, so keep the requested sample tied
+      // to the current document instead of an obsolete pixel offset.
+      await page.evaluate((p) => {
+        document.documentElement.style.scrollSnapType = 'none';
+        const footer = document.querySelector<HTMLElement>('.site-footer')!;
+        window.scrollTo(
+          0,
+          document.documentElement.scrollHeight -
+            innerHeight -
+            footer.offsetHeight * (1 - p)
+        );
+      }, p);
+      return page
         .locator('.site-footer')
-        .evaluate((el) => parseFloat(el.style.getPropertyValue('--p')))
-    )
+        .evaluate((el) => parseFloat(el.style.getPropertyValue('--p')));
+    })
     .toBeCloseTo(p, 2);
 }
 
@@ -49,6 +51,7 @@ for (const width of [390, 1440, 1920, 2560]) {
       const shape = await pageSurfaceGeometry(page);
       expect(shape.scale, 'content keeps its visual size').toBe('none');
       expect(shape.opacity).toBe('1');
+      expect(shape.width).toBeCloseTo(shape.layoutWidth, 1);
       if (p === 0) {
         const ground = await page
           .locator('body > .grow')
@@ -85,7 +88,7 @@ for (const width of [390, 1440, 1920, 2560]) {
         );
         expect(
           shape.width,
-          'only the surface fits around the capped content'
+          'the layout fits the shared content frame'
         ).toBeCloseTo(expected, 1);
       }
       if (p > 0 && p <= 0.4) {

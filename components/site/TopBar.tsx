@@ -26,10 +26,10 @@ const SITE_DESTINATIONS: BreadcrumbMenuItem[] = [
  * a wider gutter.
  */
 export const COLUMN = {
-  reading: 'max-w-breakpoint-md px-lg desktop:px-0',
-  content: 'max-w-[840px] px-lg',
-  media: 'max-w-[840px] px-lg',
-  wide: 'max-w-[1200px] px-lg',
+  reading: 'site-frame site-frame--reading',
+  content: 'site-frame site-frame--content',
+  media: 'site-frame site-frame--media',
+  wide: 'site-frame site-frame--wide',
 } as const satisfies Record<PageColumn, string>;
 
 export type Column = keyof typeof COLUMN;

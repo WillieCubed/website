@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import Icon from '@/components/icons/Icon';
+import MaterialSymbol from '@/components/icons/MaterialSymbol';
 
 import { absoluteUrl } from '@/lib/site/urls';
 
@@ -67,7 +68,7 @@ export default function FeedsButton({ base = '' }: FeedsButtonProps) {
         aria-expanded={open}
         aria-controls={id}
       >
-        <Icon name="rss" size={16} />
+        <MaterialSymbol name="rss_feed" />
         <span className="feeds-button__label">Feeds</span>
       </button>
       <div

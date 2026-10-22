@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 for (const width of [320, 390, 1440]) {
+  const minimumStatusInset = width <= 390 ? 12 : 16;
   test(`link focus follows inline and footer target shapes at ${width}px`, async ({
     page,
   }, testInfo) => {
@@ -95,10 +96,10 @@ for (const width of [320, 390, 1440]) {
         });
       expect
         .soft(statusInset.start, `${route} status start inset`)
-        .toBeGreaterThanOrEqual(16);
+        .toBeGreaterThanOrEqual(minimumStatusInset);
       expect
         .soft(statusInset.end, `${route} status end inset`)
-        .toBeGreaterThanOrEqual(16);
+        .toBeGreaterThanOrEqual(minimumStatusInset);
       for (const [name, target] of [
         ['email', footer.getByRole('link', { name: 'Email', exact: true })],
         ['status', footer.locator('.microstatus')],

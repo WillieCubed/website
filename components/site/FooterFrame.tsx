@@ -5,6 +5,8 @@ import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import {
   getPageColumn,
   getPageColumnOnServer,
+  getTopBar,
+  getTopBarOnServer,
   subscribeTopBar,
 } from '@/lib/site/footer/column';
 import {
@@ -54,6 +56,12 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     getPageColumnOnServer
   );
 
+  const header = useSyncExternalStore(
+    subscribeTopBar,
+    getTopBar,
+    getTopBarOnServer
+  );
+
   useEffect(() => {
     const footer = ref.current;
     if (!footer) return;
@@ -61,8 +69,10 @@ export default function FooterFrame({ children }: React.PropsWithChildren) {
     // Normal visits still get the complete scroll-driven dock.
     const dockContacts =
       docked && footer.getBoundingClientRect().top >= window.innerHeight;
+    // A new active page starts a fresh scroll-intent lifetime even when its
+    // content column has the same width as the page it replaced.
     return startFooterMotion(footer, dockContacts);
-  }, [docked, column]);
+  }, [docked, column, header]);
 
   return (
     <>

@@ -62,9 +62,13 @@ for (const width of [390, 1440, 1920]) {
         });
         continue;
       }
-      await expect(page.locator('html')).not.toHaveAttribute(
-        'data-footer-sheet'
+      const initiallyInView = await footer.evaluate(
+        (el) => el.getBoundingClientRect().top < innerHeight
       );
+      if (!initiallyInView)
+        await expect(page.locator('html')).not.toHaveAttribute(
+          'data-footer-sheet'
+        );
       await scrollToFooter(page, 0.8);
       await expect(page.locator('html')).toHaveAttribute(
         'data-footer-sheet',
@@ -77,13 +81,10 @@ for (const width of [390, 1440, 1920]) {
       await scrollToFooter(page);
       const endpoint = await pageSurfaceGeometry(page);
       expect(endpoint.scale).toBe('none');
-      expect(endpoint.width).toBeLessThan(partial.width);
+      expect(endpoint.width).toBeLessThanOrEqual(partial.width);
       expect(endpoint.clip).not.toBe('none');
       const inset = width < 840 ? 8 : 16;
-      expect(endpoint.width).toBeCloseTo(
-        Math.min(endpoint.viewportWidth - inset * 2, endpoint.frameWidth),
-        0
-      );
+      expect(endpoint.width).toBeCloseTo(endpoint.viewportWidth - inset * 2, 0);
       // The homepage's letter springs finish after the sheet reaches its edge.
       await expect
         .poll(() =>
@@ -103,9 +104,10 @@ for (const width of [390, 1440, 1920]) {
         animations: 'disabled',
       });
       await page.evaluate(() => window.scrollTo(0, 0));
-      await expect(page.locator('html')).not.toHaveAttribute(
-        'data-footer-sheet'
-      );
+      if (!initiallyInView)
+        await expect(page.locator('html')).not.toHaveAttribute(
+          'data-footer-sheet'
+        );
       await expect(surface).toHaveCSS('scale', 'none');
     }
   });
@@ -156,16 +158,13 @@ test('sheet state follows client navigation between home and content pages', asy
     .getByRole('link', { name: 'Writings', exact: true })
     .click();
   await expect(page).toHaveURL(/\/writings$/);
-  const canScroll = await page.evaluate(
-    () => document.documentElement.scrollHeight > innerHeight + 1
-  );
-  if (canScroll)
-    await expect(page.locator('html')).not.toHaveAttribute('data-footer-sheet');
+  const footerVisible = await page
+    .locator('.site-footer')
+    .evaluate((el) => el.getBoundingClientRect().top < innerHeight);
+  if (footerVisible)
+    await expect(page.locator('html')).toHaveAttribute('data-footer-sheet', '');
   else
-    await expect(page.locator('html')).toHaveAttribute(
-      'data-footer-static',
-      ''
-    );
+    await expect(page.locator('html')).not.toHaveAttribute('data-footer-sheet');
   await scrollToFooter(page);
   await expect(page.locator('html')).toHaveAttribute('data-footer-sheet', '');
   await page
@@ -184,14 +183,27 @@ test('sheet state follows client navigation between home and content pages', asy
   await expect(page.locator('html')).not.toHaveAttribute('data-footer-static');
 });
 
-test('a short page keeps its initial content and footer available', async ({
+test('a short page keeps its primary viewport and a reachable footer', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1600 });
   await page.goto('/search');
   await expect(page.locator('html')).toHaveAttribute('data-footer-motion', '');
   await expect(page.locator('body > .grow')).toHaveCSS('scale', 'none');
-  await expect(page.locator('html')).toHaveAttribute('data-footer-static', '');
+  await expect(page.locator('html')).not.toHaveAttribute('data-footer-static');
+  await expect(page.locator('html')).toHaveCSS('scroll-snap-type', 'none');
+  expect(
+    await page
+      .locator('body > .grow')
+      .evaluate((el) => el.getBoundingClientRect().height)
+  ).toBeGreaterThanOrEqual(1600);
+  expect(
+    await page
+      .locator('.site-footer')
+      .evaluate((el) => el.getBoundingClientRect().top)
+  ).toBeGreaterThanOrEqual(1600);
+  await page.locator('.site-footer__pages').scrollIntoViewIfNeeded();
+  await expect(page.locator('.site-footer__pages')).toBeVisible();
   await expect(page.locator('.site-footer__pages')).not.toHaveAttribute(
     'inert'
   );

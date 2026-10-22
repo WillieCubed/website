@@ -3,6 +3,12 @@ import { type Page, expect, test } from '@playwright/test';
 import { pageSurfaceGeometry } from './page-surface-geometry.mts';
 
 async function showProgress(page: Page, p: number) {
+  // Resting means actual page top, rather than a nearly-zero progress sample.
+  if (p === 0) {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(page.locator('html')).not.toHaveAttribute('data-footer-sheet');
+    return;
+  }
   // Inspect exact animation positions separately from the native snap behavior.
   await expect
     .poll(async () => {
@@ -82,14 +88,11 @@ for (const width of [390, 1440, 1920, 2560]) {
       }
       if (p === 1) {
         const inset = width < 840 ? 8 : 16;
-        const expected = Math.min(
-          shape.viewportWidth - inset * 2,
-          shape.frameWidth
+        const expected = shape.viewportWidth - inset * 2;
+        expect(shape.width, 'the surface keeps its viewport inset').toBeCloseTo(
+          expected,
+          1
         );
-        expect(
-          shape.width,
-          'the layout fits the shared content frame'
-        ).toBeCloseTo(expected, 1);
       }
       if (p > 0 && p <= 0.4) {
         expect(shape.width).toBeLessThan(previousWidth);

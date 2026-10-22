@@ -1,5 +1,7 @@
 import { type Locator, expect, test } from '@playwright/test';
 
+import { scrollToExpandedFooter } from './page-surface-geometry.mts';
+
 async function contentEdges(frame: Locator) {
   return frame.evaluate((element) => {
     const box = element.getBoundingClientRect();
@@ -11,7 +13,7 @@ async function contentEdges(frame: Locator) {
   });
 }
 
-for (const width of [390, 1440, 1920]) {
+for (const width of [320, 390, 1440, 1920]) {
   test(`header, page, and footer share a responsive frame at ${width}px`, async ({
     page,
   }, info) => {
@@ -28,6 +30,9 @@ for (const width of [390, 1440, 1920]) {
         ''
       );
       const initial = await contentEdges(main);
+      const initiallyLifted = await page
+        .locator('html')
+        .evaluate((el) => el.hasAttribute('data-footer-sheet'));
       const before = await contentEdges(brand);
       expect(
         Math.abs(initial.left - before.left),
@@ -71,6 +76,16 @@ for (const width of [390, 1440, 1920]) {
       if (!stationary) expect(sheet!.x).toBeGreaterThan(0);
       const end = await contentEdges(main);
       const footer = await contentEdges(brand);
+      const cube = (await page.locator('.site-footer__mark').boundingBox())!;
+      const cubeTarget = (await page
+        .locator('.site-footer__mark-button')
+        .boundingBox())!;
+      expect(
+        Math.abs(cube.x - footer.left),
+        `${route}: drawn cube follows the content edge`
+      ).toBeLessThan(1);
+      expect(cubeTarget.width).toBeGreaterThanOrEqual(48);
+      expect(cubeTarget.height).toBeGreaterThanOrEqual(48);
       expect(
         Math.abs(end.left - footer.left),
         `${route}: expanded left edge`
@@ -81,7 +96,7 @@ for (const width of [390, 1440, 1920]) {
       ).toBeLessThan(1);
       expect(end.left).toBeGreaterThanOrEqual(sheet!.x);
       expect(end.right).toBeLessThanOrEqual(sheet!.x + sheet!.width);
-      if (width === 390 && !stationary) {
+      if (width === 390 && !initiallyLifted) {
         expect(
           end.left,
           `${route}: content moves with the sheet`
@@ -101,6 +116,79 @@ for (const width of [390, 1440, 1920]) {
     }
   });
 }
+
+test('surface narrowing stays settled when a long page reflows', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/writings');
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator('html')).toHaveAttribute('data-footer-motion', '');
+  // Model a long document gaining height as its actual content width narrows.
+  // A fixed scroll position must not alternate between wide and narrow layouts.
+  await page.addStyleTag({
+    content: `
+    body > .grow { container-type: inline-size; }
+    .surface-reflow-probe { height: calc((100vw - 100cqw) * 50); }
+  `,
+  });
+  await page.locator('body > .grow').evaluate((surface) => {
+    const probe = document.createElement('div');
+    probe.className = 'surface-reflow-probe';
+    surface.append(probe);
+  });
+  await page.evaluate(() =>
+    window.scrollTo(0, document.documentElement.scrollHeight)
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator('body > .grow')
+        .evaluate((surface) => surface.getBoundingClientRect().left)
+    )
+    .toBe(8);
+  const samples = await page.evaluate(async () => {
+    const widths = [];
+    for (let i = 0; i < 30; i++) {
+      await new Promise(requestAnimationFrame);
+      widths.push(
+        document.querySelector('body > .grow')!.getBoundingClientRect().left
+      );
+    }
+    return widths;
+  });
+  expect(
+    samples.every((left) => left === 8),
+    'sheet must not undo its own reflow'
+  ).toBe(true);
+});
+
+test('resting-width measurement preserves the viewport at the end of a long page', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/brand');
+  await scrollToExpandedFooter(page);
+  const before = await page.evaluate(() => scrollY);
+  await page.locator('body > .grow').evaluate((surface) => {
+    const addition = document.createElement('div');
+    addition.style.height = '1px';
+    surface.append(addition);
+  });
+  const positions = await page.evaluate(async () => {
+    const positions = [];
+    for (let i = 0; i < 30; i++) {
+      await new Promise(requestAnimationFrame);
+      positions.push(scrollY);
+    }
+    return positions;
+  });
+  for (const y of positions)
+    expect(Math.abs(y - before)).toBeLessThanOrEqual(1);
+  await scrollToExpandedFooter(page);
+  const end = await page.locator('.site-footer').boundingBox();
+  expect(end!.y + end!.height).toBeLessThanOrEqual(845);
+});
 
 for (const width of [390, 1440]) {
   test(`shared page frame aligns without JavaScript at ${width}px`, async ({

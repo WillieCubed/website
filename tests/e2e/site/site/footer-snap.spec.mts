@@ -76,3 +76,61 @@ test('a partially visible footer does not pull a short page down on load', async
   await expect(page.locator('html')).toHaveCSS('scroll-snap-type', 'none');
   expect(await page.evaluate(() => scrollY)).toBe(0);
 });
+
+test('restoring a position near the footer does not enable snap before visitor scrolling', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/colophon');
+  await expect(page.locator('html')).toHaveAttribute('data-footer-motion', '');
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() =>
+    window.scrollTo(0, document.documentElement.scrollHeight - innerHeight - 80)
+  );
+  await expect(page.locator('html')).toHaveCSS('scroll-snap-type', 'none');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-footer-motion', '');
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator('html')).toHaveCSS('scroll-snap-type', 'none');
+  await page.keyboard.press('End');
+  await expect(page.locator('html')).toHaveCSS('scroll-snap-type', 'y');
+});
+
+test('navigation to another page with the same content column resets scroll intent', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1000 });
+  // Exercise the hydrated client navigation path, rather than an early native load.
+  const mediaPrefetch = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === '/media' &&
+      response.request().headers()['next-router-prefetch'] === '1'
+  );
+  await page.goto('/colophon');
+  await expect(page.locator('html')).toHaveAttribute('data-footer-motion', '');
+  await page.keyboard.press('End');
+  await expect(page.locator('html')).toHaveCSS(
+    'scroll-snap-type',
+    /^y(?: proximity)?$/
+  );
+  const media = page
+    .locator('.site-footer__pages')
+    .getByRole('link', { name: 'Media', exact: true });
+  await media.hover();
+  await mediaPrefetch;
+  await page.evaluate(() => {
+    document.documentElement.dataset.snapTestDocument = 'original';
+  });
+  await media.click();
+  await expect(page).toHaveURL('/media');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-snap-test-document',
+    'original'
+  );
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() =>
+    window.scrollTo(0, document.documentElement.scrollHeight - innerHeight - 80)
+  );
+  await expect(page.locator('html')).toHaveCSS('scroll-snap-type', 'none');
+});

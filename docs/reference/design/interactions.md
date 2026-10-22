@@ -73,17 +73,24 @@ home, colophon, writings, and music, including JavaScript-disabled rendering.
 
 Every page uses the same scroll-driven transition into its footer. The surface
 starts at viewport width, then narrows and rounds its lower corners while the
-contents reflow naturally without scaling. Its minimum inset is 8px per side on phones
-and 16px on desktop. On wider windows it fits the page's content frame, using the
-same width as the corresponding footer. The sheet changes its actual layout
+contents reflow naturally without scaling. Its expanded inset is 8px per side on phones
+and 16px on desktop, independently of the page's content width or length.
+The primary surface has a minimum height of one small viewport, including empty
+collections, so the footer begins below it instead of consuming its first screen.
+Short pages use the same inset when scrolled to the footer. Header, main,
+and footer content retain their shared width cap inside these viewport surfaces. The sheet changes its actual layout
 width, moving and reflowing its contents without scaling text or tiles; clipping
-only rounds and trims the lower edge. Scrolling back up restores the full-width
-surface. The sheet and tray remain opaque throughout.
+only rounds and trims the lower edge. Scrolling back above the footer restores the full-width
+surface. The sheet and tray remain opaque throughout. Sheet progress excludes height
+added by the narrowing itself, so a long document cannot alternate between wide
+and narrow layouts at one scroll position. Actual footer visibility still governs
+docking and keyboard availability. Resting-width measurements preserve the scroll
+extent until the real width is restored, keeping the viewport in place.
 
 `styles/frames.css` defines the shared page widths and gutters. The header,
-primary content (`site-frame`), footer, and sheet all use the active page's frame.
+primary content (`site-frame`), and footer all use the active page's frame.
 The existing top-bar registration supplies that frame across client navigation;
-CSS supplies the first paint and no-JavaScript fallback. The homepage retains
+CSS supplies the first paint and no-JavaScript fallback. The surface inset does not depend on these caps. The homepage retains
 its wider work layout, content pages use 840px, reading pages use 768px, and
 wide pages use 1200px.
 
@@ -92,17 +99,36 @@ retain normal document flow. The contact/status/Feeds row has 40px of space abov
 webrings retaining their separate compact gap. Profile artwork is centered with
 its longer dimension at 20px inside 24px SVG boxes, using viewBox padding rather
 than CSS scale transforms; their larger touch targets and icon-only zero-gap
-layout remain unchanged. Reduced motion keeps a static
+layout remain unchanged. On narrow phones, touch padding can hang into the
+existing side gutter. Keep the priority targets complete: two at 320px and three
+at 390px for the default city; remaining profiles scroll horizontally. This uses
+existing room without adding mobile padding or reducing the 44px targets.
+The mobile webring label aligns with the navigation text above and sits on the
+same line as all six controls. The two three-link groups keep a fixed 4px gap
+rather than spreading to fill available width. Below 600px, the complete strip
+scrolls horizontally when necessary: the label and controls never wrap, and all
+six targets retain their 44px width and height. Keyboard focus scrolls each
+target fully into view. Desktop retains its label above two stacked triplets.
+Arrows, the compass, and Feeds use native 20px Material Symbols Rounded glyphs at
+weight 400 and grade 0; brand marks retain their original artwork. The frame
+retains its 8px padding; alignment is measured from the visible label, not its
+outline or the larger native targets.
+Reduced motion keeps a static
 rounded ending. Short pages and footers taller than the viewport retain natural
 layout, and all content and links work without JavaScript.
 
-After scrolling brings the footer into view, native CSS `y proximity` snapping
+The footer cube's drawing aligns with the text edge. Its native touch padding
+hangs outside that line; alignment must not be measured from the button border.
+
+After visitor scrolling brings the footer into view, native CSS `y proximity` snapping
 can settle the document at its end. The browser controls its distance and timing;
 the single endpoint does not force a stop or intercept scrolling. It is outside
-the sticky homepage footer, hidden from assistive technology, and disabled for
+the sticky homepage footer, hidden from assistive technology, and enabled only
+following a wheel, touch-scroll, or scrolling-key gesture that moves the viewport.
+Reloads and restored history positions do not activate snapping on their own. It is disabled for
 reduced motion, short static pages, and footers taller than the viewport.
 
-The controller resets when the page's column or dock mode changes and remeasures
+The controller resets when the active page header, column, or dock mode changes and remeasures
 content during client navigation. `footer-shape.spec.mts` checks painted surface
 edges and unchanged content scale; `page-footer-motion.spec.mts` checks intermediate
 states, reverse scrolling, navigation, and fallbacks. `footer-snap.spec.mts` uses
@@ -110,7 +136,7 @@ wheel input to check settling, scrolling away again, and no movement on page loa
 
 The status link groups location, time, and weather in one quiet tonal
 capsule using the surface-container role. Keep at least 12px of horizontal
-padding (16px when roomy); optional metadata yields before padding does.
+padding (12px in compact footers, 16px when roomy); optional metadata yields before padding does.
 The compact weather condition icon remains visible on mobile. At legacy
 narrow widths, artwork yields after the clock; the city stays readable. Omit the visible Fahrenheit suffix while retaining
 the degree symbol and the full accessible reading. Feeds uses a
@@ -122,7 +148,11 @@ outlined group, and tonal directory links. Compact footer link sizing meets
 [WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)
 while remaining below [Material's recommended 48dp target](https://support.google.com/accessibility/android/answer/7101858?hl=en).
 Keep targets separate and their full padding clickable. The webring label
-can move above its controls; the contact/status/Feeds row must not stack.
+can move above its controls and keeps an 8px inset from the group's border on
+phones; the contact/status/Feeds row must not stack.
+The outlined webring group follows the navigation's content edge on phones.
+When both ring triplets cannot fit, the triplets wrap within that frame while
+keeping their 44px targets; the group does not break out toward the viewport edge.
 
 Playlist navigation uses small connected surfaces; Create a series and New writing are prominent
 labelled creation actions. Existing selected states, featured project links

@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef } from 'react';
 
-import Icon from '@/components/icons/Icon';
+import MaterialSymbol from '@/components/icons/MaterialSymbol';
 import UtdIcon from '@/components/icons/UtdIcon';
 import SiteLink from '@/components/link/SiteLink';
 
@@ -91,6 +91,9 @@ export default function Webrings() {
       };
       const focus = () => {
         if (!link.matches(':focus-visible') || suppressFocus) return;
+        // Native focus can leave part of a target outside a narrow scrollport.
+        if (container.scrollWidth > container.clientWidth)
+          link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         focused = link;
         dismissed = null;
         show(link);
@@ -172,7 +175,7 @@ function WebringLinks() {
         data-webring-label={`Previous ${ring.neighbor} site`}
       >
         <span className="site-control__surface">
-          <Icon name="arrow-left" size={18} />
+          <MaterialSymbol name="arrow_back" />
         </span>
       </SiteLink>
       <SiteLink
@@ -184,7 +187,7 @@ function WebringLinks() {
         data-webring-label={ring.name}
       >
         <span className="site-control__surface">
-          {index === 0 ? <Icon name="compass" size={18} /> : <UtdIcon />}
+          {index === 0 ? <MaterialSymbol name="explore" /> : <UtdIcon />}
         </span>
       </SiteLink>
       <SiteLink
@@ -196,7 +199,7 @@ function WebringLinks() {
         data-webring-label={`Next ${ring.neighbor} site`}
       >
         <span className="site-control__surface">
-          <Icon name="arrow-right" size={18} />
+          <MaterialSymbol name="arrow_forward" />
         </span>
       </SiteLink>
     </nav>

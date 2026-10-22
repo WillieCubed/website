@@ -244,10 +244,8 @@
   background: var(--color-tray);
   --sheet: clamp(0, var(--sheet-p, 0) / 0.4, 1);
   --sheet-trim: 0px;
-  --sheet-side: calc(
-    var(--sheet) *
-      max(calc(var(--sheet-gap) * 1px), (100% - var(--sheet-frame-w, 100%)) / 2)
-  );
+  /* Surface geometry belongs to the viewport; content frames keep their own caps. */
+  --sheet-side: calc(var(--sheet) * var(--sheet-gap) * 1px);
   /* The gap between the sheet and each side of the window, in pixels. */
   --sheet-gap: 16;
   --sheet-r: 28px;
@@ -292,8 +290,6 @@
 :root[data-footer-static] {
   --sheet: 1;
   --sheet-trim: 0px;
-  /* A short page must not create its own scroll range by narrowing. */
-  --sheet-side: 0px;
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-footer-sheet] {
@@ -352,10 +348,10 @@
 .site-footer {
   --footer-brand-size: var(--text-display-small);
   --footer-top-pad: clamp(24px, 3vw, 32px);
-  /* The cube's 1.3em height, its padding, and its two 1px control borders. */
+  /* The cube's 1.3em height and its native touch padding. */
   --footer-lockup-height: max(
     var(--control-target-small),
-    calc(1.3 * var(--footer-brand-size) + 2 * var(--spacing-sm) + 2px)
+    calc(1.3 * var(--footer-brand-size) + 2 * var(--spacing-sm))
   );
   --footer-gutter: var(--frame-gutter);
   --footer-panel-edge: var(--page-frame-gutter);
@@ -373,6 +369,7 @@
   --footer-row-gap: var(--spacing-section-roomy);
   --footer-link-width: var(--control-target-small);
   --footer-profile-icon-size: 24px;
+  --footer-profile-artwork-size: 20px;
   --footer-link-inset: calc(
     (var(--footer-link-width) - var(--footer-profile-icon-size)) / 2
   );
@@ -435,6 +432,24 @@
 @container footer (max-width: 560px) {
   .site-footer:not([data-dock]) .site-footer__profiles li[data-extra] {
     display: none;
+  }
+}
+/* Let the touch padding hang into the existing gutter, keeping the artwork
+   on the text edge without squeezing the city or reducing target sizes. */
+@container footer (max-width: 400px) {
+  .site-footer__row {
+    margin-inline: calc(-1 * var(--footer-link-inset));
+  }
+  .site-footer__profiles {
+    max-inline-size: calc(3 * var(--footer-link-width));
+  }
+}
+@container footer (max-width: 300px) {
+  .site-footer__row {
+    gap: 0;
+  }
+  .site-footer__profiles {
+    max-inline-size: calc(2 * var(--footer-link-width));
   }
 }
 .site-footer .site-footer__lockup {
@@ -506,6 +521,7 @@
 }
 /* Restore the original outlined group, with shared Expressive controls. */
 .site-webrings {
+  --ring-target: 44px;
   grid-area: webrings;
   align-self: start;
   display: grid;
@@ -532,46 +548,49 @@
 }
 @media (max-width: 599px) {
   .site-webrings {
+    --ring-contact-overhang: 0px;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
-    gap: var(--spacing-xs) 0;
-    width: 100%;
-    padding-inline: var(--footer-content-pad) var(--spacing-md);
+    gap: var(--spacing-xs);
+    min-inline-size: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    width: calc(
+      100% - 2 * var(--footer-content-pad) + var(--spacing-sm) +
+        var(--ring-contact-overhang)
+    );
+    margin-inline-start: calc(var(--footer-content-pad) - var(--spacing-sm));
+    margin-inline-end: calc(
+      var(--footer-content-pad) - var(--ring-contact-overhang)
+    );
   }
   .site-webrings__label {
-    flex-shrink: 0;
+    flex: 0 0 auto;
     padding: 0;
+    white-space: nowrap;
   }
+  /* Label and six native targets form one line. At narrow widths the whole
+     strip scrolls; neither the label nor either triplet starts another row. */
   .site-webrings__controls {
     flex: 0 0 auto;
-    margin-inline-start: auto;
+    inline-size: max-content;
     display: flex;
     flex-wrap: nowrap;
     gap: var(--spacing-xs);
   }
-}
-/* Full targets need the frame width on the narrowest phone columns. */
-@media (max-width: 359px) {
-  .site-footer {
-    --footer-text-edge: calc(var(--spacing-xl) - var(--spacing-xs));
+  .site-footer .site-webrings .site-webring__link:focus-visible {
+    outline-offset: calc(-1 * var(--control-focus-width));
   }
+}
+@container footer (max-width: 400px) {
   .site-webrings {
-    width: calc(100% + 2 * var(--footer-panel-edge));
-    margin-inline: calc(-1 * var(--footer-panel-edge));
-    padding-inline: var(--spacing-xs);
-  }
-  .site-webrings__label {
-    padding: 0;
-    margin-inline-start: calc(var(--footer-text-edge) - var(--spacing-xs));
-  }
-  .site-webrings__controls {
-    margin-inline: auto;
-    gap: 0;
+    --ring-contact-overhang: var(--footer-link-inset);
   }
 }
+
 .site-webring {
-  --ring-target: 44px;
   display: grid;
   grid-template-columns: repeat(3, var(--ring-target));
   align-content: center;
@@ -615,8 +634,8 @@
   --control-ink: var(--color-on-secondary-container);
 }
 .site-webring__link svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 .site-webring__mark svg[viewBox='0 0 640 480'] {
   width: 24px;
@@ -724,9 +743,9 @@
   block-size: 0;
 }
 @media (prefers-reduced-motion: no-preference) {
-  :root[data-footer-motion][data-footer-sheet]:not([data-footer-static]):not(
-      :has(.site-footer[data-flow])
-    ) {
+  :root[data-footer-motion][data-footer-sheet][data-footer-scrolled]:not(
+      [data-footer-static]
+    ):not(:has(.site-footer[data-flow])) {
     scroll-snap-type: y proximity;
   }
   .site-footer__snap-end {

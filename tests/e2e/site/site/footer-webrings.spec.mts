@@ -1,6 +1,9 @@
 import { type Page, expect, test } from '@playwright/test';
 
-import { pageSurfaceGeometry } from './page-surface-geometry.mts';
+import {
+  pageSurfaceGeometry,
+  scrollToExpandedFooter,
+} from './page-surface-geometry.mts';
 
 const footerStatusFixture = {
   location: {
@@ -19,10 +22,239 @@ const footerStatusFixture = {
   },
 };
 
+async function expectCompactRingRow(page: Page) {
+  await page.locator('.site-webrings').evaluate((el) => {
+    el.scrollLeft = 0;
+  });
+  const geometry = await page.evaluate(() => {
+    const rect = (selector: string) =>
+      document.querySelector(selector)!.getBoundingClientRect().toJSON();
+    return {
+      group: rect('.site-webrings'),
+      label: rect('.site-webrings__label'),
+      navigation: rect('.site-footer__pages a'),
+      footer: rect('.site-footer'),
+      controls: rect('.site-webrings__controls'),
+      scroll: {
+        width: document.querySelector('.site-webrings')!.scrollWidth,
+        client: document.querySelector('.site-webrings')!.clientWidth,
+      },
+      rings: [...document.querySelectorAll('.site-webring')].map((node) =>
+        node.getBoundingClientRect().toJSON()
+      ),
+      feeds: rect('.feeds-button'),
+      targets: [...document.querySelectorAll('.site-webring__link')].map(
+        (node) => node.getBoundingClientRect().toJSON()
+      ),
+    };
+  });
+  expect(
+    geometry.label.left,
+    'webring label follows the text above'
+  ).toBeCloseTo(geometry.navigation.left, 0);
+  expect(
+    (geometry.label.top + geometry.label.bottom) / 2,
+    'the Webrings label shares the controls row on mobile'
+  ).toBeCloseTo((geometry.targets[0].top + geometry.targets[0].bottom) / 2, 0);
+  expect(
+    geometry.rings[1].left - geometry.rings[0].right,
+    'webring groups stay together instead of stretching across spare width'
+  ).toBe(4);
+  expect(
+    geometry.group.right,
+    'webring frame follows the Feeds visual edge'
+  ).toBeCloseTo(geometry.feeds.right, 0);
+  expect(
+    new Set(geometry.targets.map((target) => target.top)).size,
+    'all six webring controls share one row'
+  ).toBe(1);
+  for (const target of geometry.targets) {
+    expect(target.width).toBe(44);
+    expect(target.height).toBe(44);
+    expect(target.left).toBeGreaterThanOrEqual(geometry.controls.left);
+    expect(target.right).toBeLessThanOrEqual(geometry.controls.right);
+  }
+  expect(geometry.group.left).toBeGreaterThanOrEqual(geometry.footer.left);
+  expect(geometry.group.right).toBeLessThanOrEqual(geometry.footer.right);
+  if (geometry.controls.right > geometry.group.right) {
+    expect(geometry.scroll.width).toBeGreaterThan(geometry.scroll.client);
+    await expect(page.locator('.site-webrings')).toHaveCSS(
+      'overflow-x',
+      'auto'
+    );
+  }
+  await expect(page.locator('.site-webrings')).toHaveCSS('padding', '8px');
+  // System glyphs use a single native optical size; target size stays separate.
+  for (const icon of await page
+    .locator(
+      '.site-webring__direction svg, .site-webring:first-child .site-webring__mark svg, .feeds-button > svg'
+    )
+    .all()) {
+    await expect(icon).toHaveCSS('width', '20px');
+    await expect(icon).toHaveCSS('height', '20px');
+    await expect(icon).toHaveCSS('stroke', 'none');
+  }
+}
+
+for (const width of [320, 390]) {
+  test(`compact footer keeps complete priority profiles and inset labels at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.route('**/api/status', (request) =>
+      request.fulfill({ json: footerStatusFixture })
+    );
+    await page.goto('/writings');
+    await expect(page.locator('.microstatus .status-city')).toHaveText(
+      'Las Vegas'
+    );
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-footer-motion',
+      ''
+    );
+    await scrollToExpandedFooter(page);
+    await expect(page.locator('.microstatus')).toHaveCSS(
+      'padding-left',
+      '12px'
+    );
+    await expect(page.locator('.microstatus')).toHaveCSS(
+      'padding-right',
+      '12px'
+    );
+    const inset = await page.locator('.site-webrings').evaluate((el) => {
+      const group = el.getBoundingClientRect();
+      const label = el
+        .querySelector('.site-webrings__label')!
+        .getBoundingClientRect();
+      return label.left - group.left;
+    });
+    expect(
+      inset,
+      'the label has the same compact inset as the group padding'
+    ).toBe(8);
+    const frameEdges = await page.evaluate(() => ({
+      label: document
+        .querySelector('.site-webrings__label')!
+        .getBoundingClientRect().left,
+      navigation: document
+        .querySelector('.site-footer__pages a')!
+        .getBoundingClientRect().left,
+    }));
+    expect(
+      frameEdges.label,
+      'webring label uses the navigation edge'
+    ).toBeCloseTo(frameEdges.navigation, 0);
+    await expectCompactRingRow(page);
+    const count = width === 320 ? 2 : 3;
+    const profiles = page.locator('.site-footer__profiles');
+    const strip = (await profiles.boundingBox())!;
+    for (const link of (await profiles.locator('a').all()).slice(0, count)) {
+      const target = (await link.boundingBox())!;
+      expect(
+        target.x,
+        'priority target starts inside the strip'
+      ).toBeGreaterThanOrEqual(strip.x);
+      expect(
+        target.x + target.width,
+        'priority target is completely visible'
+      ).toBeLessThanOrEqual(strip.x + strip.width);
+    }
+  });
+}
+
+test('compact priority targets remain whole with fallback text metrics', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.route('**/api/status', (request) =>
+    request.fulfill({ json: footerStatusFixture })
+  );
+  await page.goto('/writings');
+  await expect(page.locator('.microstatus .temperature')).toContainText('72');
+  await page.addStyleTag({
+    content:
+      '.site-footer .microstatus { font-family: Arial, sans-serif !important; }',
+  });
+  await scrollToExpandedFooter(page);
+  const strip = (await page.locator('.site-footer__profiles').boundingBox())!;
+  const priority = await page
+    .locator('.site-footer__profiles a')
+    .nth(1)
+    .boundingBox();
+  expect(priority!.x + priority!.width).toBeLessThanOrEqual(
+    strip.x + strip.width
+  );
+});
+
+for (const width of [480, 599]) {
+  test(`webring artwork follows the shared gutter at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.route('**/api/status', (request) =>
+      request.fulfill({ json: footerStatusFixture })
+    );
+    await page.goto('/writings');
+    await scrollToExpandedFooter(page);
+    await expectCompactRingRow(page);
+  });
+}
+
 type TargetBounds = Pick<
   DOMRect,
   'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'
 >;
+
+for (const width of [320, 390]) {
+  test(`overlay-scrollbar phones show complete profile artwork at ${width}px`, async ({
+    browser,
+    baseURL,
+  }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    const page = await context.newPage();
+    try {
+      await page.route('**/api/status', (request) =>
+        request.fulfill({ json: footerStatusFixture })
+      );
+      await page.goto('/writings');
+      await expect(page.locator('.microstatus .temperature')).toContainText(
+        '72'
+      );
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-footer-motion',
+        ''
+      );
+      await scrollToExpandedFooter(page);
+      const strip = page.locator('.site-footer__profiles');
+      const bounds = (await strip.boundingBox())!;
+      expect(bounds.width).toBe((width === 320 ? 2 : 3) * 44);
+      await expectCompactRingRow(page);
+      let visibleIcons = 0;
+      for (const icon of await strip.locator('svg').all()) {
+        const artwork = await icon.boundingBox();
+        if (!artwork) continue;
+        if (
+          artwork.x < bounds.x + bounds.width &&
+          artwork.x + artwork.width > bounds.x
+        ) {
+          visibleIcons++;
+          expect(artwork.x).toBeGreaterThanOrEqual(bounds.x);
+          expect(artwork.x + artwork.width).toBeLessThanOrEqual(
+            bounds.x + bounds.width
+          );
+        }
+      }
+      expect(visibleIcons).toBe(width === 320 ? 2 : 3);
+    } finally {
+      await context.close();
+    }
+  });
+}
 
 function expectUsableTargets(targets: TargetBounds[], panel: TargetBounds) {
   for (const [index, target] of targets.entries()) {
@@ -53,29 +285,24 @@ type MobileRingLayout = Record<
   TargetBounds
 > & { targets: TargetBounds[] };
 
-function expectMobileRingLayout(bounds: MobileRingLayout, width: number) {
+function expectMobileRingLayout(bounds: MobileRingLayout) {
   expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
   expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
-  if (width >= 360) {
-    expect(bounds.rings.left).toBeCloseTo(bounds.row.left, 0);
-    expect(bounds.rings.width).toBeCloseTo(bounds.row.width, 0);
-  } else {
-    expect(bounds.rings.left).toBeGreaterThanOrEqual(bounds.footer.left);
-    expect(bounds.rings.right).toBeLessThanOrEqual(bounds.footer.right);
-  }
-  const sharedRow = bounds.label.bottom > bounds.panel.top;
-  if (sharedRow) {
-    expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
-    expect(bounds.firstArrow.left - bounds.label.right).toBeGreaterThanOrEqual(
-      6
-    );
-  } else {
-    expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
-  }
   expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
+  expect(bounds.rings.left).toBeGreaterThanOrEqual(bounds.footer.left);
+  expect(bounds.rings.right).toBeLessThanOrEqual(bounds.footer.right);
+  expect(
+    bounds.rings.right,
+    'webring frame follows the utility edge'
+  ).toBeCloseTo(bounds.row.right, 0);
+  expect((bounds.label.top + bounds.label.bottom) / 2).toBeCloseTo(
+    (bounds.panel.top + bounds.panel.bottom) / 2,
+    0
+  );
+  expect(bounds.label.left - bounds.rings.left).toBe(8);
   expectUsableTargets(bounds.targets, bounds.panel);
   expect(bounds.panel.left).toBeGreaterThanOrEqual(bounds.footer.left + 6);
-  expect(bounds.panel.right).toBeLessThanOrEqual(bounds.footer.right - 6);
+
   expect(bounds.panel.top).toBeGreaterThan(bounds.pages.bottom);
 }
 
@@ -235,11 +462,15 @@ test('a keyboard tooltip stays with its link when the page scrolls', async ({
   // Focus scrolling its link into view must not dismiss the tooltip.
   await page.evaluate(() => window.scrollBy(0, -40));
   await expect(tooltip).toBeVisible();
-  const [tip, target] = await Promise.all([
-    tooltip.boundingBox(),
-    link.boundingBox(),
-  ]);
-  expect(Math.abs(tip!.y + tip!.height + 8 - target!.y)).toBeLessThan(2);
+  await expect
+    .poll(async () => {
+      const [tip, target] = await Promise.all([
+        tooltip.boundingBox(),
+        link.boundingBox(),
+      ]);
+      return Math.abs(tip!.y + tip!.height + 8 - target!.y);
+    })
+    .toBeLessThan(2);
 });
 
 test('the restored ring group contains full touch targets at every width', async ({
@@ -257,13 +488,14 @@ test('the restored ring group contains full touch targets at every width', async
     318, 320, 390, 599, 600, 839, 840, 1199, 1200, 1920, 2560,
   ]) {
     await page.setViewportSize({ width, height: 900 });
-    // A resize can wrap the contact row and increase the document height on
-    // the dock's measurement frame. Follow the current end until it settles.
+    // Reflow can increase the document height on the measurement frame.
+    // Follow the current end until it settles; the contact row never wraps.
     await expect
       .poll(
         () =>
           page.evaluate(() => {
             window.scrollTo(0, document.documentElement.scrollHeight);
+            document.querySelector('.site-webrings')!.scrollLeft = 0;
             return Number(
               document
                 .querySelector<HTMLElement>('.site-footer')!
@@ -278,10 +510,7 @@ test('the restored ring group contains full touch targets at every width', async
       .poll(async () => {
         const surface = await pageSurfaceGeometry(page);
         const inset = width < 840 ? 8 : 16;
-        return Math.abs(
-          surface.width -
-            Math.min(surface.viewportWidth - inset * 2, surface.frameWidth)
-        );
+        return Math.abs(surface.width - (surface.viewportWidth - inset * 2));
       })
       .toBeLessThan(0.5);
     const bounds = await page.evaluate(() => {
@@ -315,7 +544,7 @@ test('the restored ring group contains full touch targets at every width', async
     expect(painted.left).toBeCloseTo(bounds.viewport.left + inset, 0);
     expect(painted.right).toBeCloseTo(bounds.viewport.right - inset, 0);
     expect(bounds.ringsLast).toBe(true);
-    if (width < 600) expectMobileRingLayout(bounds, width);
+    if (width < 600) expectMobileRingLayout(bounds);
     if (width >= 840) {
       expect(bounds.rings.left).toBeGreaterThan(bounds.pages.right);
       expect(bounds.rings.top).toBeLessThan(bounds.pages.bottom);
@@ -329,8 +558,12 @@ test('the restored ring group contains full touch targets at every width', async
         new Set(bounds.targets.slice(i, i + 3).map((target) => target.top)).size
       ).toBe(1);
     }
-    if (width < 600)
+    if (width < 600) {
       expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
+    } else {
+      expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(2);
+      expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
+    }
   }
 });
 
@@ -369,7 +602,7 @@ for (const width of [320, 390]) {
         };
       });
       expect(bounds.fits).toBe(true);
-      expect(bounds.inset).toBeGreaterThanOrEqual(16);
+      expect(bounds.inset).toBeGreaterThanOrEqual(12);
       expect(bounds.overflow).toBe(false);
     }
   });
@@ -607,11 +840,16 @@ test('both rings remain usable without JavaScript', async ({
   const page = await context.newPage();
   for (const path of ['/', '/writings']) {
     await page.goto(path);
-    const links = page
-      .getByRole('region', { name: 'Webrings', exact: true })
-      .getByRole('link');
-    await expect(links).toHaveCount(6);
-    for (const link of await links.all()) await expect(link).toBeVisible();
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.screenshot();
+      await expectCompactRingRow(page);
+      const links = page
+        .getByRole('region', { name: 'Webrings', exact: true })
+        .getByRole('link');
+      await expect(links).toHaveCount(6);
+      for (const link of await links.all()) await expect(link).toBeVisible();
+    }
   }
   await context.close();
 });
@@ -622,9 +860,14 @@ for (const width of [390, 1440]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
     await page.goto('/writings');
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-footer-motion',
+      ''
+    );
+    await page.evaluate(() => document.fonts.ready);
     await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
     const link = page.locator('.site-webring__mark').first();
-    await link.scrollIntoViewIfNeeded();
+    await scrollToExpandedFooter(page);
     const surface = link.locator('.site-control__surface');
     await expect(surface).toHaveCount(1);
     const box = (await link.boundingBox())!;
@@ -659,11 +902,20 @@ for (const width of [390, 1440]) {
     await page.keyboard.press('Tab');
     await link.focus();
     await expect(link).toHaveCSS('outline-width', '3px');
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // Keyboard focus may scroll a full-height page; press must preserve the target
+    // at its focused position, independently of that native viewport movement.
+    await scrollToExpandedFooter(page);
+    const focusedBox = (await link.boundingBox())!;
+    expect(focusedBox.width).toBe(box.width);
+    expect(focusedBox.height).toBe(box.height);
+    await page.mouse.move(
+      focusedBox.x + focusedBox.width / 2,
+      focusedBox.y + focusedBox.height / 2
+    );
     await page.mouse.down();
     try {
       await expect(surface).toHaveCSS('border-radius', '8px');
-      expect(await link.boundingBox()).toEqual(box);
+      expect(await link.boundingBox()).toEqual(focusedBox);
       await page.screenshot({
         path: testInfo.outputPath('compact-webrings.png'),
       });
@@ -751,5 +1003,42 @@ test('labelled homepage contacts stay visually separate', async ({
     await page.screenshot({
       path: testInfo.outputPath(`labelled-contacts-${width}.png`),
     });
+  }
+});
+
+test('320px mobile inline webrings scroll every full-size target into keyboard view', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/writings');
+  await scrollToExpandedFooter(page);
+  await expectCompactRingRow(page);
+  const links = page.locator('.site-webring__link');
+  await links.first().focus();
+  for (let index = 0; index < 6; index++) {
+    if (index > 0) await page.keyboard.press('Tab');
+    await expect(links.nth(index)).toBeFocused();
+    const geometry = await links.nth(index).evaluate((link) => {
+      const target = link.getBoundingClientRect();
+      const strip = link.closest('.site-webrings')!.getBoundingClientRect();
+      const style = getComputedStyle(link);
+      return {
+        focusOutset: Math.max(
+          0,
+          parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth)
+        ),
+        width: target.width,
+        height: target.height,
+        left: target.left,
+        right: target.right,
+        stripLeft: strip.left,
+        stripRight: strip.right,
+      };
+    });
+    expect(geometry.width).toBe(44);
+    expect(geometry.height).toBe(44);
+    expect(geometry.focusOutset).toBe(0);
+    expect(geometry.left).toBeGreaterThanOrEqual(geometry.stripLeft);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.stripRight);
   }
 });

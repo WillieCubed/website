@@ -522,7 +522,7 @@
 /* Restore the original outlined group, with shared Expressive controls. */
 .site-webrings {
   --ring-target: 44px;
-  /* The stroked path spans 16/24 of the unchanged 18px canvas: 12px of ink. */
+  /* The native 20px back arrow has approximately 12px of drawn width. */
   --ring-direction-ink-size: 12px;
   grid-area: webrings;
   align-self: start;
@@ -577,7 +577,7 @@
     padding: 0;
   }
   /* Align drawn artwork, letting native touch padding occupy the existing gutter.
-     The two three-link groups share spare space; their own targets stay adjacent. */
+     Each three-link group stays compact as the available width grows. */
   .site-webrings__controls {
     inline-size: calc(100% + var(--ring-start-outset) + var(--ring-end-outset));
     max-inline-size: none;
@@ -586,8 +586,8 @@
     margin-inline-end: calc(-1 * var(--ring-end-outset));
     display: flex;
     flex-wrap: nowrap;
-    justify-content: space-between;
-    gap: 0;
+    justify-content: flex-start;
+    gap: var(--spacing-xs);
   }
 }
 @container footer (max-width: 400px) {
@@ -640,8 +640,8 @@
   --control-ink: var(--color-on-secondary-container);
 }
 .site-webring__link svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 .site-webring__mark svg[viewBox='0 0 640 480'] {
   width: 24px;

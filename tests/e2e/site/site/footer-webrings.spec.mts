@@ -56,10 +56,9 @@ async function expectCompactRingRow(page: Page) {
       firstArrow: artwork(
         '.site-webring:first-child .site-webring__direction:first-child svg'
       ),
-      lastArrow: artwork(
-        '.site-webring:last-child .site-webring__direction:last-child svg'
+      rings: [...document.querySelectorAll('.site-webring')].map((node) =>
+        node.getBoundingClientRect().toJSON()
       ),
-      feedsArtwork: artwork('.feeds-button > svg'),
       feeds: rect('.feeds-button'),
       targets: [...document.querySelectorAll('.site-webring__link')].map(
         (node) => node.getBoundingClientRect().toJSON()
@@ -75,9 +74,9 @@ async function expectCompactRingRow(page: Page) {
     'drawn arrow follows the profile artwork'
   ).toBeCloseTo(geometry.firstProfile.left, 0);
   expect(
-    geometry.lastArrow.right,
-    'drawn arrow follows the Feeds artwork'
-  ).toBeCloseTo(geometry.feedsArtwork.right, 0);
+    geometry.rings[1].left - geometry.rings[0].right,
+    'webring groups stay together instead of stretching across spare width'
+  ).toBe(4);
   expect(
     geometry.group.right,
     'webring frame follows the Feeds visual edge'
@@ -93,6 +92,16 @@ async function expectCompactRingRow(page: Page) {
     expect(target.right).toBeLessThanOrEqual(geometry.footer.right);
   }
   await expect(page.locator('.site-webrings')).toHaveCSS('padding', '8px');
+  // System glyphs use a single native optical size; target size stays separate.
+  for (const icon of await page
+    .locator(
+      '.site-webring__direction svg, .site-webring:first-child .site-webring__mark svg, .feeds-button > svg'
+    )
+    .all()) {
+    await expect(icon).toHaveCSS('width', '20px');
+    await expect(icon).toHaveCSS('height', '20px');
+    await expect(icon).toHaveCSS('stroke', 'none');
+  }
 }
 
 for (const width of [320, 390]) {

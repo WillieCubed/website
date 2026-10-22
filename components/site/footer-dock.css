@@ -569,14 +569,34 @@
     gap: var(--spacing-xs);
   }
 }
-/* Narrow phones keep the same content edge and full native targets. */
+/* The left edge follows text; the right edge follows the filled Feeds control.
+   Both use the contact row's existing touch overhang, without extra padding. */
+@container footer (max-width: 400px) {
+  .site-webrings {
+    width: calc(
+      100% - 2 * var(--footer-content-pad) + var(--footer-link-inset)
+    );
+    margin-inline-end: calc(
+      var(--footer-content-pad) - var(--footer-link-inset)
+    );
+  }
+}
+/* The label gets its own line; all six native targets retain one shared row. */
 @media (max-width: 359px) {
+  .site-webrings {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
   .site-webrings__label {
     padding: 0;
     margin-inline-start: 0;
   }
   .site-webrings__controls {
-    margin-inline: auto;
+    inline-size: max-content;
+    max-inline-size: none;
+    justify-self: center;
+    flex-wrap: nowrap;
+    margin-inline: 0;
     gap: 0;
   }
 }

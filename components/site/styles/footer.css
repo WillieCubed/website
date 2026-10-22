@@ -284,7 +284,8 @@ body:has(header[data-column='reading'])
 }
 /* Compact link targets preserve the single contact/status/Feeds row. */
 @container footer (max-width: 560px) {
-  .site-footer__row {
+  .site-footer__row,
+  .site-webrings {
     --footer-link-width: 44px;
     --footer-link-inset: calc(
       (var(--footer-link-width) - var(--footer-profile-icon-size)) / 2

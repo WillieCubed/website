@@ -103,6 +103,10 @@ layout remain unchanged. On narrow phones, touch padding can hang into the
 existing side gutter. Keep the priority targets complete: two at 320px and three
 at 390px for the default city; remaining profiles scroll horizontally. This uses
 existing room without adding mobile padding or reducing the 44px targets.
+The mobile webring frame follows the navigation text on the left and the filled
+Feeds control on the right. All six 44px webring targets share one row at 320px,
+with the label above them and the existing 8px visual inset unchanged. Native
+touch padding can use that inset without increasing the visual container's padding.
 Reduced motion keeps a static
 rounded ending. Short pages and footers taller than the viewport retain natural
 layout, and all content and links work without JavaScript.

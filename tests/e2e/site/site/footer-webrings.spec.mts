@@ -22,6 +22,40 @@ const footerStatusFixture = {
   },
 };
 
+async function expectCompactRingRow(page: Page) {
+  const geometry = await page.evaluate(() => {
+    const rect = (selector: string) =>
+      document.querySelector(selector)!.getBoundingClientRect().toJSON();
+    return {
+      group: rect('.site-webrings'),
+      navigation: rect('.site-footer__pages a'),
+      feeds: rect('.feeds-button'),
+      targets: [...document.querySelectorAll('.site-webring__link')].map(
+        (node) => node.getBoundingClientRect().toJSON()
+      ),
+    };
+  });
+  expect(
+    geometry.group.left,
+    'webring frame follows the content line'
+  ).toBeCloseTo(geometry.navigation.left, 0);
+  expect(
+    geometry.group.right,
+    'webring frame follows the Feeds visual edge'
+  ).toBeCloseTo(geometry.feeds.right, 0);
+  expect(
+    new Set(geometry.targets.map((target) => target.top)).size,
+    'all six webring controls share one row'
+  ).toBe(1);
+  for (const target of geometry.targets) {
+    expect(target.width).toBe(44);
+    expect(target.height).toBe(44);
+    expect(target.left).toBeGreaterThanOrEqual(geometry.group.left);
+    expect(target.right).toBeLessThanOrEqual(geometry.group.right);
+  }
+  await expect(page.locator('.site-webrings')).toHaveCSS('padding', '8px');
+}
+
 for (const width of [320, 390]) {
   test(`compact footer keeps complete priority profiles and inset labels at ${width}px`, async ({
     page,
@@ -69,6 +103,7 @@ for (const width of [320, 390]) {
       frameEdges.group,
       'webring frame uses the navigation edge'
     ).toBeCloseTo(frameEdges.navigation, 0);
+    await expectCompactRingRow(page);
     const count = width === 320 ? 2 : 3;
     const profiles = page.locator('.site-footer__profiles');
     const strip = (await profiles.boundingBox())!;
@@ -143,6 +178,7 @@ for (const width of [320, 390]) {
       const strip = page.locator('.site-footer__profiles');
       const bounds = (await strip.boundingBox())!;
       expect(bounds.width).toBe((width === 320 ? 2 : 3) * 44);
+      await expectCompactRingRow(page);
       let visibleIcons = 0;
       for (const icon of await strip.locator('svg').all()) {
         const artwork = await icon.boundingBox();
@@ -202,14 +238,14 @@ function expectMobileRingLayout(bounds: MobileRingLayout, width: number) {
     const targetOverhang = bounds.rings.left - bounds.row.left;
     expect(targetOverhang).toBeGreaterThanOrEqual(0);
     expect(targetOverhang).toBeLessThanOrEqual(12);
-    expect(bounds.row.right - bounds.rings.right).toBeCloseTo(
-      targetOverhang,
-      0
-    );
   } else {
     expect(bounds.rings.left).toBeGreaterThanOrEqual(bounds.footer.left);
     expect(bounds.rings.right).toBeLessThanOrEqual(bounds.footer.right);
   }
+  expect(
+    bounds.rings.right,
+    'webring frame follows the utility edge'
+  ).toBeCloseTo(bounds.row.right, 0);
   const sharedRow = bounds.label.bottom > bounds.panel.top;
   if (sharedRow) {
     expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
@@ -477,7 +513,7 @@ test('the restored ring group contains full touch targets at every width', async
         new Set(bounds.targets.slice(i, i + 3).map((target) => target.top)).size
       ).toBe(1);
     }
-    if (width >= 360 && width < 600)
+    if (width < 600)
       expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
   }
 });

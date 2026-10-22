@@ -369,6 +369,7 @@
   --footer-row-gap: var(--spacing-section-roomy);
   --footer-link-width: var(--control-target-small);
   --footer-profile-icon-size: 24px;
+  --footer-profile-artwork-size: 20px;
   --footer-link-inset: calc(
     (var(--footer-link-width) - var(--footer-profile-icon-size)) / 2
   );
@@ -520,6 +521,9 @@
 }
 /* Restore the original outlined group, with shared Expressive controls. */
 .site-webrings {
+  --ring-target: 44px;
+  /* The stroked path spans 16/24 of the unchanged 18px canvas: 12px of ink. */
+  --ring-direction-ink-size: 12px;
   grid-area: webrings;
   align-self: start;
   display: grid;
@@ -546,62 +550,53 @@
 }
 @media (max-width: 599px) {
   .site-webrings {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--spacing-xs) 0;
-    width: calc(100% - 2 * var(--footer-content-pad));
-    margin-inline: var(--footer-content-pad);
-    padding-inline: var(--spacing-sm);
-  }
-  .site-webrings__label {
-    flex-shrink: 0;
-    padding: 0;
-  }
-  .site-webrings__controls {
-    flex: 0 1 auto;
-    min-inline-size: 0;
-    max-inline-size: 100%;
-    margin-inline-start: auto;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--spacing-xs);
-  }
-}
-/* The left edge follows text; the right edge follows the filled Feeds control.
-   Both use the contact row's existing touch overhang, without extra padding. */
-@container footer (max-width: 400px) {
-  .site-webrings {
-    width: calc(
-      100% - 2 * var(--footer-content-pad) + var(--footer-link-inset)
+    --ring-contact-overhang: 0px;
+    --ring-start-outset: calc(
+      (
+          var(--ring-target) - var(--ring-direction-ink-size) -
+            var(--footer-link-width) + var(--footer-profile-artwork-size)
+        ) /
+        2 + var(--ring-contact-overhang)
     );
-    margin-inline-end: calc(
-      var(--footer-content-pad) - var(--footer-link-inset)
+    --ring-end-outset: calc(
+      var(--spacing-sm) - (var(--control-target-small) - var(--ring-target)) / 2
     );
-  }
-}
-/* The label gets its own line; all six native targets retain one shared row. */
-@media (max-width: 359px) {
-  .site-webrings {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--spacing-xs);
+    width: calc(
+      100% - 2 * var(--footer-content-pad) + var(--spacing-sm) +
+        var(--ring-contact-overhang)
+    );
+    margin-inline-start: calc(var(--footer-content-pad) - var(--spacing-sm));
+    margin-inline-end: calc(
+      var(--footer-content-pad) - var(--ring-contact-overhang)
+    );
   }
   .site-webrings__label {
     padding: 0;
-    margin-inline-start: 0;
   }
+  /* Align drawn artwork, letting native touch padding occupy the existing gutter.
+     The two three-link groups share spare space; their own targets stay adjacent. */
   .site-webrings__controls {
-    inline-size: max-content;
+    inline-size: calc(100% + var(--ring-start-outset) + var(--ring-end-outset));
     max-inline-size: none;
-    justify-self: center;
+    min-inline-size: 0;
+    margin-inline-start: calc(-1 * var(--ring-start-outset));
+    margin-inline-end: calc(-1 * var(--ring-end-outset));
+    display: flex;
     flex-wrap: nowrap;
-    margin-inline: 0;
+    justify-content: space-between;
     gap: 0;
   }
 }
+@container footer (max-width: 400px) {
+  .site-webrings {
+    --ring-contact-overhang: var(--footer-link-inset);
+  }
+}
+
 .site-webring {
-  --ring-target: 44px;
   display: grid;
   grid-template-columns: repeat(3, var(--ring-target));
   align-content: center;

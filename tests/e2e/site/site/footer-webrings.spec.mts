@@ -26,9 +26,40 @@ async function expectCompactRingRow(page: Page) {
   const geometry = await page.evaluate(() => {
     const rect = (selector: string) =>
       document.querySelector(selector)!.getBoundingClientRect().toJSON();
+    const artwork = (selector: string) => {
+      const svg = document.querySelector<SVGSVGElement>(selector)!;
+      const points = [...svg.querySelectorAll('path')].flatMap((path) => {
+        const bounds = path.getBBox();
+        const matrix = path.getScreenCTM()!;
+        const style = getComputedStyle(path);
+        const stroke =
+          style.stroke === 'none' ? 0 : parseFloat(style.strokeWidth) / 2;
+        return [
+          new DOMPoint(bounds.x - stroke, bounds.y - stroke),
+          new DOMPoint(
+            bounds.x + bounds.width + stroke,
+            bounds.y + bounds.height + stroke
+          ),
+        ].map((point) => point.matrixTransform(matrix));
+      });
+      return {
+        left: Math.min(...points.map((point) => point.x)),
+        right: Math.max(...points.map((point) => point.x)),
+      };
+    };
     return {
       group: rect('.site-webrings'),
+      label: rect('.site-webrings__label'),
       navigation: rect('.site-footer__pages a'),
+      footer: rect('.site-footer'),
+      firstProfile: artwork('.site-footer__profiles a > svg'),
+      firstArrow: artwork(
+        '.site-webring:first-child .site-webring__direction:first-child svg'
+      ),
+      lastArrow: artwork(
+        '.site-webring:last-child .site-webring__direction:last-child svg'
+      ),
+      feedsArtwork: artwork('.feeds-button > svg'),
       feeds: rect('.feeds-button'),
       targets: [...document.querySelectorAll('.site-webring__link')].map(
         (node) => node.getBoundingClientRect().toJSON()
@@ -36,9 +67,17 @@ async function expectCompactRingRow(page: Page) {
     };
   });
   expect(
-    geometry.group.left,
-    'webring frame follows the content line'
+    geometry.label.left,
+    'webring label follows the text above'
   ).toBeCloseTo(geometry.navigation.left, 0);
+  expect(
+    geometry.firstArrow.left,
+    'drawn arrow follows the profile artwork'
+  ).toBeCloseTo(geometry.firstProfile.left, 0);
+  expect(
+    geometry.lastArrow.right,
+    'drawn arrow follows the Feeds artwork'
+  ).toBeCloseTo(geometry.feedsArtwork.right, 0);
   expect(
     geometry.group.right,
     'webring frame follows the Feeds visual edge'
@@ -50,8 +89,8 @@ async function expectCompactRingRow(page: Page) {
   for (const target of geometry.targets) {
     expect(target.width).toBe(44);
     expect(target.height).toBe(44);
-    expect(target.left).toBeGreaterThanOrEqual(geometry.group.left);
-    expect(target.right).toBeLessThanOrEqual(geometry.group.right);
+    expect(target.left).toBeGreaterThanOrEqual(geometry.footer.left);
+    expect(target.right).toBeLessThanOrEqual(geometry.footer.right);
   }
   await expect(page.locator('.site-webrings')).toHaveCSS('padding', '8px');
 }
@@ -93,15 +132,16 @@ for (const width of [320, 390]) {
       'the label has the same compact inset as the group padding'
     ).toBe(8);
     const frameEdges = await page.evaluate(() => ({
-      group: document.querySelector('.site-webrings')!.getBoundingClientRect()
-        .left,
+      label: document
+        .querySelector('.site-webrings__label')!
+        .getBoundingClientRect().left,
       navigation: document
         .querySelector('.site-footer__pages a')!
         .getBoundingClientRect().left,
     }));
     expect(
-      frameEdges.group,
-      'webring frame uses the navigation edge'
+      frameEdges.label,
+      'webring label uses the navigation edge'
     ).toBeCloseTo(frameEdges.navigation, 0);
     await expectCompactRingRow(page);
     const count = width === 320 ? 2 : 3;
@@ -144,6 +184,20 @@ test('compact priority targets remain whole with fallback text metrics', async (
     strip.x + strip.width
   );
 });
+
+for (const width of [480, 599]) {
+  test(`webring artwork follows the shared gutter at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.route('**/api/status', (request) =>
+      request.fulfill({ json: footerStatusFixture })
+    );
+    await page.goto('/writings');
+    await scrollToExpandedFooter(page);
+    await expectCompactRingRow(page);
+  });
+}
 
 type TargetBounds = Pick<
   DOMRect,
@@ -230,31 +284,17 @@ type MobileRingLayout = Record<
   TargetBounds
 > & { targets: TargetBounds[] };
 
-function expectMobileRingLayout(bounds: MobileRingLayout, width: number) {
+function expectMobileRingLayout(bounds: MobileRingLayout) {
   expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
   expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
-  expect(bounds.rings.left).toBeCloseTo(bounds.firstPage.left, 0);
-  if (width >= 360) {
-    const targetOverhang = bounds.rings.left - bounds.row.left;
-    expect(targetOverhang).toBeGreaterThanOrEqual(0);
-    expect(targetOverhang).toBeLessThanOrEqual(12);
-  } else {
-    expect(bounds.rings.left).toBeGreaterThanOrEqual(bounds.footer.left);
-    expect(bounds.rings.right).toBeLessThanOrEqual(bounds.footer.right);
-  }
+  expect(bounds.label.left).toBeCloseTo(bounds.firstPage.left, 0);
+  expect(bounds.rings.left).toBeGreaterThanOrEqual(bounds.footer.left);
+  expect(bounds.rings.right).toBeLessThanOrEqual(bounds.footer.right);
   expect(
     bounds.rings.right,
     'webring frame follows the utility edge'
   ).toBeCloseTo(bounds.row.right, 0);
-  const sharedRow = bounds.label.bottom > bounds.panel.top;
-  if (sharedRow) {
-    expect(bounds.label.right).toBeLessThanOrEqual(bounds.panel.left);
-    expect(bounds.firstArrow.left - bounds.label.right).toBeGreaterThanOrEqual(
-      6
-    );
-  } else {
-    expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
-  }
+  expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
   expect(bounds.label.left - bounds.rings.left).toBe(8);
   expectUsableTargets(bounds.targets, bounds.panel);
   expect(bounds.panel.left).toBeGreaterThanOrEqual(bounds.footer.left + 6);
@@ -499,7 +539,7 @@ test('the restored ring group contains full touch targets at every width', async
     expect(painted.left).toBeCloseTo(bounds.viewport.left + inset, 0);
     expect(painted.right).toBeCloseTo(bounds.viewport.right - inset, 0);
     expect(bounds.ringsLast).toBe(true);
-    if (width < 600) expectMobileRingLayout(bounds, width);
+    if (width < 600) expectMobileRingLayout(bounds);
     if (width >= 840) {
       expect(bounds.rings.left).toBeGreaterThan(bounds.pages.right);
       expect(bounds.rings.top).toBeLessThan(bounds.pages.bottom);

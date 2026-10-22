@@ -522,8 +522,6 @@
 /* Restore the original outlined group, with shared Expressive controls. */
 .site-webrings {
   --ring-target: 44px;
-  /* The native 20px back arrow has approximately 12px of drawn width. */
-  --ring-direction-ink-size: 12px;
   grid-area: webrings;
   align-self: start;
   display: grid;
@@ -551,19 +549,14 @@
 @media (max-width: 599px) {
   .site-webrings {
     --ring-contact-overhang: 0px;
-    --ring-start-outset: calc(
-      (
-          var(--ring-target) - var(--ring-direction-ink-size) -
-            var(--footer-link-width) + var(--footer-profile-artwork-size)
-        ) /
-        2 + var(--ring-contact-overhang)
-    );
-    --ring-end-outset: calc(
-      var(--spacing-sm) - (var(--control-target-small) - var(--ring-target)) / 2
-    );
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--spacing-xs);
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--spacing-xs);
+    min-inline-size: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
     width: calc(
       100% - 2 * var(--footer-content-pad) + var(--spacing-sm) +
         var(--ring-contact-overhang)
@@ -574,20 +567,21 @@
     );
   }
   .site-webrings__label {
+    flex: 0 0 auto;
     padding: 0;
+    white-space: nowrap;
   }
-  /* Align drawn artwork, letting native touch padding occupy the existing gutter.
-     Each three-link group stays compact as the available width grows. */
+  /* Label and six native targets form one line. At narrow widths the whole
+     strip scrolls; neither the label nor either triplet starts another row. */
   .site-webrings__controls {
-    inline-size: calc(100% + var(--ring-start-outset) + var(--ring-end-outset));
-    max-inline-size: none;
-    min-inline-size: 0;
-    margin-inline-start: calc(-1 * var(--ring-start-outset));
-    margin-inline-end: calc(-1 * var(--ring-end-outset));
+    flex: 0 0 auto;
+    inline-size: max-content;
     display: flex;
     flex-wrap: nowrap;
-    justify-content: flex-start;
     gap: var(--spacing-xs);
+  }
+  .site-footer .site-webrings .site-webring__link:focus-visible {
+    outline-offset: calc(-1 * var(--control-focus-width));
   }
 }
 @container footer (max-width: 400px) {

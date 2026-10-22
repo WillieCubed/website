@@ -23,39 +23,22 @@ const footerStatusFixture = {
 };
 
 async function expectCompactRingRow(page: Page) {
+  await page.locator('.site-webrings').evaluate((el) => {
+    el.scrollLeft = 0;
+  });
   const geometry = await page.evaluate(() => {
     const rect = (selector: string) =>
       document.querySelector(selector)!.getBoundingClientRect().toJSON();
-    const artwork = (selector: string) => {
-      const svg = document.querySelector<SVGSVGElement>(selector)!;
-      const points = [...svg.querySelectorAll('path')].flatMap((path) => {
-        const bounds = path.getBBox();
-        const matrix = path.getScreenCTM()!;
-        const style = getComputedStyle(path);
-        const stroke =
-          style.stroke === 'none' ? 0 : parseFloat(style.strokeWidth) / 2;
-        return [
-          new DOMPoint(bounds.x - stroke, bounds.y - stroke),
-          new DOMPoint(
-            bounds.x + bounds.width + stroke,
-            bounds.y + bounds.height + stroke
-          ),
-        ].map((point) => point.matrixTransform(matrix));
-      });
-      return {
-        left: Math.min(...points.map((point) => point.x)),
-        right: Math.max(...points.map((point) => point.x)),
-      };
-    };
     return {
       group: rect('.site-webrings'),
       label: rect('.site-webrings__label'),
       navigation: rect('.site-footer__pages a'),
       footer: rect('.site-footer'),
-      firstProfile: artwork('.site-footer__profiles a > svg'),
-      firstArrow: artwork(
-        '.site-webring:first-child .site-webring__direction:first-child svg'
-      ),
+      controls: rect('.site-webrings__controls'),
+      scroll: {
+        width: document.querySelector('.site-webrings')!.scrollWidth,
+        client: document.querySelector('.site-webrings')!.clientWidth,
+      },
       rings: [...document.querySelectorAll('.site-webring')].map((node) =>
         node.getBoundingClientRect().toJSON()
       ),
@@ -70,9 +53,9 @@ async function expectCompactRingRow(page: Page) {
     'webring label follows the text above'
   ).toBeCloseTo(geometry.navigation.left, 0);
   expect(
-    geometry.firstArrow.left,
-    'drawn arrow follows the profile artwork'
-  ).toBeCloseTo(geometry.firstProfile.left, 0);
+    (geometry.label.top + geometry.label.bottom) / 2,
+    'the Webrings label shares the controls row on mobile'
+  ).toBeCloseTo((geometry.targets[0].top + geometry.targets[0].bottom) / 2, 0);
   expect(
     geometry.rings[1].left - geometry.rings[0].right,
     'webring groups stay together instead of stretching across spare width'
@@ -88,8 +71,17 @@ async function expectCompactRingRow(page: Page) {
   for (const target of geometry.targets) {
     expect(target.width).toBe(44);
     expect(target.height).toBe(44);
-    expect(target.left).toBeGreaterThanOrEqual(geometry.footer.left);
-    expect(target.right).toBeLessThanOrEqual(geometry.footer.right);
+    expect(target.left).toBeGreaterThanOrEqual(geometry.controls.left);
+    expect(target.right).toBeLessThanOrEqual(geometry.controls.right);
+  }
+  expect(geometry.group.left).toBeGreaterThanOrEqual(geometry.footer.left);
+  expect(geometry.group.right).toBeLessThanOrEqual(geometry.footer.right);
+  if (geometry.controls.right > geometry.group.right) {
+    expect(geometry.scroll.width).toBeGreaterThan(geometry.scroll.client);
+    await expect(page.locator('.site-webrings')).toHaveCSS(
+      'overflow-x',
+      'auto'
+    );
   }
   await expect(page.locator('.site-webrings')).toHaveCSS('padding', '8px');
   // System glyphs use a single native optical size; target size stays separate.
@@ -303,11 +295,14 @@ function expectMobileRingLayout(bounds: MobileRingLayout) {
     bounds.rings.right,
     'webring frame follows the utility edge'
   ).toBeCloseTo(bounds.row.right, 0);
-  expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
+  expect((bounds.label.top + bounds.label.bottom) / 2).toBeCloseTo(
+    (bounds.panel.top + bounds.panel.bottom) / 2,
+    0
+  );
   expect(bounds.label.left - bounds.rings.left).toBe(8);
   expectUsableTargets(bounds.targets, bounds.panel);
   expect(bounds.panel.left).toBeGreaterThanOrEqual(bounds.footer.left + 6);
-  expect(bounds.panel.right).toBeLessThanOrEqual(bounds.footer.right - 6);
+
   expect(bounds.panel.top).toBeGreaterThan(bounds.pages.bottom);
 }
 
@@ -500,6 +495,7 @@ test('the restored ring group contains full touch targets at every width', async
         () =>
           page.evaluate(() => {
             window.scrollTo(0, document.documentElement.scrollHeight);
+            document.querySelector('.site-webrings')!.scrollLeft = 0;
             return Number(
               document
                 .querySelector<HTMLElement>('.site-footer')!
@@ -562,8 +558,12 @@ test('the restored ring group contains full touch targets at every width', async
         new Set(bounds.targets.slice(i, i + 3).map((target) => target.top)).size
       ).toBe(1);
     }
-    if (width < 600)
+    if (width < 600) {
       expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
+    } else {
+      expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(2);
+      expect(bounds.label.bottom).toBeLessThanOrEqual(bounds.panel.top);
+    }
   }
 });
 
@@ -840,11 +840,16 @@ test('both rings remain usable without JavaScript', async ({
   const page = await context.newPage();
   for (const path of ['/', '/writings']) {
     await page.goto(path);
-    const links = page
-      .getByRole('region', { name: 'Webrings', exact: true })
-      .getByRole('link');
-    await expect(links).toHaveCount(6);
-    for (const link of await links.all()) await expect(link).toBeVisible();
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.screenshot();
+      await expectCompactRingRow(page);
+      const links = page
+        .getByRole('region', { name: 'Webrings', exact: true })
+        .getByRole('link');
+      await expect(links).toHaveCount(6);
+      for (const link of await links.all()) await expect(link).toBeVisible();
+    }
   }
   await context.close();
 });
@@ -998,5 +1003,42 @@ test('labelled homepage contacts stay visually separate', async ({
     await page.screenshot({
       path: testInfo.outputPath(`labelled-contacts-${width}.png`),
     });
+  }
+});
+
+test('320px mobile inline webrings scroll every full-size target into keyboard view', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/writings');
+  await scrollToExpandedFooter(page);
+  await expectCompactRingRow(page);
+  const links = page.locator('.site-webring__link');
+  await links.first().focus();
+  for (let index = 0; index < 6; index++) {
+    if (index > 0) await page.keyboard.press('Tab');
+    await expect(links.nth(index)).toBeFocused();
+    const geometry = await links.nth(index).evaluate((link) => {
+      const target = link.getBoundingClientRect();
+      const strip = link.closest('.site-webrings')!.getBoundingClientRect();
+      const style = getComputedStyle(link);
+      return {
+        focusOutset: Math.max(
+          0,
+          parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth)
+        ),
+        width: target.width,
+        height: target.height,
+        left: target.left,
+        right: target.right,
+        stripLeft: strip.left,
+        stripRight: strip.right,
+      };
+    });
+    expect(geometry.width).toBe(44);
+    expect(geometry.height).toBe(44);
+    expect(geometry.focusOutset).toBe(0);
+    expect(geometry.left).toBeGreaterThanOrEqual(geometry.stripLeft);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.stripRight);
   }
 });

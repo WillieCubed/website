@@ -91,6 +91,9 @@ export default function Webrings() {
       };
       const focus = () => {
         if (!link.matches(':focus-visible') || suppressFocus) return;
+        // Native focus can leave part of a target outside a narrow scrollport.
+        if (container.scrollWidth > container.clientWidth)
+          link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         focused = link;
         dismissed = null;
         show(link);

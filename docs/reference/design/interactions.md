@@ -103,15 +103,16 @@ layout remain unchanged. On narrow phones, touch padding can hang into the
 existing side gutter. Keep the priority targets complete: two at 320px and three
 at 390px for the default city; remaining profiles scroll horizontally. This uses
 existing room without adding mobile padding or reducing the 44px targets.
-The mobile webring label aligns with the navigation text above. The first arrow's
-drawn edge aligns with the profile artwork. The two three-link groups keep a
-fixed 4px gap rather than spreading to fill available width. Arrows, the compass,
-and Feeds use native 20px Material Symbols Rounded glyphs at weight 400 and grade
-0; brand marks retain their original artwork. All six 44px targets share one row
-at 320px and 390px; the label
-sits above them. Touch padding can extend beyond the visual frame into the existing
-gutter. The frame retains its 8px padding; alignment is measured from the visible
-contents, not its outline or the larger native targets.
+The mobile webring label aligns with the navigation text above and sits on the
+same line as all six controls. The two three-link groups keep a fixed 4px gap
+rather than spreading to fill available width. Below 600px, the complete strip
+scrolls horizontally when necessary: the label and controls never wrap, and all
+six targets retain their 44px width and height. Keyboard focus scrolls each
+target fully into view. Desktop retains its label above two stacked triplets.
+Arrows, the compass, and Feeds use native 20px Material Symbols Rounded glyphs at
+weight 400 and grade 0; brand marks retain their original artwork. The frame
+retains its 8px padding; alignment is measured from the visible label, not its
+outline or the larger native targets.
 Reduced motion keeps a static
 rounded ending. Short pages and footers taller than the viewport retain natural
 layout, and all content and links work without JavaScript.

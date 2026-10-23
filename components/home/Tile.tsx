@@ -12,6 +12,7 @@ import {
   brandStyle,
   prefersReducedMotion,
   useHome,
+  useHomeActions,
   usePreviewHandlers,
 } from './HomeContext';
 
@@ -39,7 +40,8 @@ export function Tile({
   size,
   children,
 }: TileProps) {
-  const { matches, openDetail, brands } = useHome();
+  const { matches } = useHome();
+  const { openDetail, brands } = useHomeActions();
   const handlers = usePreviewHandlers({ id });
   const ref = useRef<HTMLElement>(null);
   const [hover, setHover] = useState(false);

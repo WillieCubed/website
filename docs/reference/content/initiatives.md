@@ -33,9 +33,13 @@ The loader is `lib/initiatives/index.ts`. It validates frontmatter with the zod
 schemas in `lib/initiatives/schema.ts`, resolves each status from its dates when
 the author leaves `status` out, and exposes `getInitiatives`, `getInitiative`,
 `getPart`, `getFeaturedInitiatives`, and `currentPart`. The loaders resolve
-statuses against the clock when reading the records. They no longer declare an
-hourly Next.js `use cache` policy; inspect the consuming route's caching when
-diagnosing a stale rendered status.
+statuses against the clock when reading the records. React `cache` shares an
+initiative list within one server render; it does not retain a mutable snapshot
+between requests. Inspect the consuming route's caching when diagnosing a stale
+rendered status. The homepage loads one visible initiative snapshot and derives
+both featured tiles and compact playbills from it. The pure `featuredInitiatives`
+and `featuredTiles` helpers leave that snapshot unchanged. Tile parent names come
+from the same snapshot.
 
 ## Initiative frontmatter
 

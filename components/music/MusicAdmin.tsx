@@ -9,6 +9,7 @@ import type {
   MusicPublication,
 } from '@/lib/music/types';
 
+import MusicAdminExperience from './MusicAdminExperience';
 import {
   MusicLibraryNotices,
   MusicOperationErrors,
@@ -16,7 +17,6 @@ import {
   MusicRecoveryNotice,
   MusicSaveNotice,
 } from './MusicAdminNotices';
-import MusicExperience from './MusicExperience';
 import MusicRevisionHistory from './MusicRevisionHistory';
 import { adminCollectionView } from './music-admin-collection';
 import { canPublishMusic } from './music-draft-guards';
@@ -147,9 +147,8 @@ export default function MusicAdmin() {
           onDismiss={publication.dismissNotice}
         />
       </div>
-      <MusicExperience
+      <MusicAdminExperience
         key={collection.generation}
-        mode="admin"
         playlists={playlists}
         initialCatalog={initialCatalog}
         loading={loading}

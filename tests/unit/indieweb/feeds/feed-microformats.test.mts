@@ -5,7 +5,7 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import { HomeContext } from '@/components/home/HomeContext';
+import { HomeActionsContext } from '@/components/home/HomeContext';
 import FeedAuthor from '@/components/indieweb/FeedAuthor';
 
 import { products } from '@/lib/home/ventures';
@@ -63,15 +63,12 @@ test('product cards carry no class a parser reads as a property', () => {
       'div',
       { className: 'h-card' },
       createElement(
-        HomeContext.Provider,
+        HomeActionsContext.Provider,
         {
           value: {
-            preview: null,
             setPreview: () => {},
             clearPreview: () => {},
             clearPreviewNow: () => {},
-            matches: () => false,
-            lit: [],
             openDetail: () => {},
             brands: {},
           },

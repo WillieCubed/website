@@ -23,7 +23,8 @@ let registryPromise: Promise<Map<string, EntityCard>> | null = null;
 
 function loadRegistry(): Promise<Map<string, EntityCard>> {
   if (!registryPromise) {
-    registryPromise = fetchWithDeadline('/entities.json')
+    // Separate prepared palettes from older CDN entries that only carried seeds.
+    registryPromise = fetchWithDeadline('/entities.json?v=2')
       .then((response) => {
         // A failed response goes through the catch below like a network
         // error, so one bad deploy or cold start does not leave the whole

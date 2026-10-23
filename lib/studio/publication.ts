@@ -1,139 +1,27 @@
 import { createHash } from 'node:crypto';
 
-import { promoteAssets } from './assets';
-import { type CatalogProperty, catalogEntry } from './catalog';
-import { compileSandbox } from './components';
-import { required } from './config';
-import { exportMdx, validatePublication } from './document';
-import { StudioError } from './errors';
 import {
   findOrOpenPullRequest,
   github,
   githubOptional,
   rebaseMergePullRequest,
-} from './github';
-import { effectivePortable } from './portable';
+} from '../github/client';
+import type { GitHubObject, GitHubTreeEntry } from '../github/types';
+import { promoteAssets } from './assets';
+import { required } from './config';
+import { exportMdx, validatePublication } from './document';
+import { StudioError } from './errors';
+import { publicationArtifacts } from './publication-artifacts';
 import { getStudioPool, getStudioStore } from './store';
-import type {
-  ComponentProposal,
-  Draft,
-  DraftContent,
-  EditorNode,
-  Publication,
-  Revision,
-} from './types';
+import type { Draft, Publication, Revision } from './types';
 
-interface PublicationArtifactFile {
-  path: string;
-  content: string;
-}
-interface PublicationArtifacts {
-  body: DraftContent;
-  files: PublicationArtifactFile[];
-}
-interface GitObject {
-  sha: string;
-}
-interface GitTreeEntry extends GitObject {
-  path: string;
-}
+export { preparePublicationPreview } from './publication-artifacts';
 
 const messageFor = (id: string) =>
   `feat(writings): publish studio revision ${id}`;
-interface PublicationArtifactOptions {
-  compileBundles?: boolean;
-}
-
-async function artifacts(
-  body: DraftContent,
-  { compileBundles = true }: PublicationArtifactOptions = {}
-): Promise<PublicationArtifacts> {
-  const copy = structuredClone(body),
-    files: PublicationArtifactFile[] = [],
-    store = getStudioStore();
-  async function resolveBlock(node: EditorNode): Promise<void> {
-    if (node.type !== 'catalogBlock') return;
-    const attrs = node.attrs ?? {},
-      id = String(attrs.id ?? '');
-    const proposal = /^[a-f0-9-]{36}$/i.test(id)
-      ? await store.proposal(id)
-      : null;
-    if (!proposal && !catalogEntry(id, String(attrs.version)))
-      throw new StudioError(422, 'Unknown or unapproved catalog block.');
-    if (proposal) await resolveGenerated(node, attrs, proposal);
-  }
-  async function resolveGenerated(
-    node: EditorNode,
-    attrs: Record<string, unknown>,
-    proposal: ComponentProposal
-  ): Promise<void> {
-    if (
-      proposal.status !== 'approved' ||
-      proposal.version !== String(attrs.version)
-    )
-      throw new StudioError(
-        422,
-        'Generated block must use an explicitly approved version.'
-      );
-    const props = approvedProperties(attrs, proposal);
-    const hash = createHash('sha256')
-      .update(JSON.stringify(props))
-      .digest('hex')
-      .slice(0, 20);
-    const src = `/generated-blocks/${proposal.id}/${proposal.version}-${hash}.html`;
-    if (/\/api\/studio\/assets\//.test(proposal.source))
-      throw new StudioError(
-        422,
-        'Generated components must receive media through their properties.'
-      );
-    if (compileBundles)
-      files.push({
-        path: `public${src}`,
-        content: await compileSandbox(proposal, props),
-      });
-    node.attrs = {
-      ...attrs,
-      src,
-      portable: effectivePortable(attrs, proposal.portableText),
-    };
-  }
-  async function walk(node: EditorNode): Promise<void> {
-    await resolveBlock(node);
-    await Promise.all((node.content ?? []).map(walk));
-  }
-  await walk(copy.document);
-  return {
-    body: copy,
-    files: [...new Map(files.map((file) => [file.path, file])).values()],
-  };
-}
-function approvedProperties(
-  attrs: Record<string, unknown>,
-  proposal: ComponentProposal
-): Record<string, unknown> {
-  const props = (attrs.props ?? proposal.example) as Record<string, unknown>;
-  if (props == null || typeof props !== 'object' || Array.isArray(props))
-    throw new StudioError(422, 'Component properties must be an object.');
-  for (const [name, definition] of Object.entries(proposal.properties)) {
-    const property = definition as CatalogProperty;
-    if (
-      (property.required || props[name] !== undefined) &&
-      typeof props[name] !== property.type
-    )
-      throw new StudioError(422, `Component property ${name} is invalid.`);
-  }
-
-  return props;
-}
-export async function preparePublicationPreview(
-  body: DraftContent
-): Promise<DraftContent> {
-  return (await artifacts(body, { compileBundles: false })).body;
-}
-
 // Publication metadata lives in the durable JSON body; the store's status updater
 // deliberately only permits its public status/commit/error fields.
-async function remember(id: string, patch: Partial<Publication>) {
+async function persistProposal(id: string, patch: Partial<Publication>) {
   await getStudioPool().query(
     'UPDATE studio_publications SET body=body || $2::jsonb WHERE id=$1',
     [id, JSON.stringify(patch)]
@@ -145,7 +33,7 @@ async function sourceBlob(
 ): Promise<string | null> {
   const object = await github(`git/commits/${commit}`);
   const tree = await github(
-    `git/trees/${(object.tree as GitObject).sha}?recursive=1`
+    `git/trees/${(object.tree as GitHubObject).sha}?recursive=1`
   );
   if (tree.truncated)
     throw new StudioError(
@@ -153,8 +41,8 @@ async function sourceBlob(
       'Repository tree is too large to validate safely.'
     );
   return (
-    (tree.tree as GitTreeEntry[]).find((entry) => entry.path === path)?.sha ??
-    null
+    (tree.tree as GitHubTreeEntry[]).find((entry) => entry.path === path)
+      ?.sha ?? null
   );
 }
 
@@ -192,12 +80,12 @@ async function completeRebase(
       committer: identity,
     });
     pending.after = String(commit.sha);
-    await remember(publication.id, { rebaseInput: pending });
+    await persistProposal(publication.id, { rebaseInput: pending });
   }
   const current = await github(
     `git/ref/heads/${encodeURIComponent(privateBranch)}`
   );
-  const currentSha = (current.object as GitObject).sha;
+  const currentSha = (current.object as GitHubObject).sha;
   if (currentSha !== pending.after) {
     if (currentSha !== pending.before)
       throw new StudioError(
@@ -215,13 +103,13 @@ async function completeRebase(
     const updated = await github(
       `git/ref/heads/${encodeURIComponent(privateBranch)}`
     );
-    if ((updated.object as GitObject).sha !== pending.after)
+    if ((updated.object as GitHubObject).sha !== pending.after)
       throw new StudioError(
         409,
         'The publication branch could not be rebased. Review the pull request and retry.'
       );
   }
-  await remember(publication.id, {
+  await persistProposal(publication.id, {
     proposalCommit: pending.after,
     proposalInput: { tree: pending.tree, parent: pending.parent },
     rebaseInput: null,
@@ -243,14 +131,14 @@ async function rebaseArtifacts(
     );
   const baseCommit = await github(`git/commits/${base}`);
   const currentTree = await github(
-    `git/trees/${(baseCommit.tree as GitObject).sha}?recursive=1`
+    `git/trees/${(baseCommit.tree as GitHubObject).sha}?recursive=1`
   );
   if (currentTree.truncated)
     throw new StudioError(
       502,
       'Repository tree is too large to validate safely.'
     );
-  const currentEntries = currentTree.tree as GitTreeEntry[];
+  const currentEntries = currentTree.tree as GitHubTreeEntry[];
   for (const entry of publication.artifactManifest) {
     const actual =
       currentEntries.find((file) => file.path === entry.path)?.sha ?? null;
@@ -261,7 +149,7 @@ async function rebaseArtifacts(
       );
   }
   const tree = await github('git/trees', 'POST', {
-    base_tree: (baseCommit.tree as GitObject).sha,
+    base_tree: (baseCommit.tree as GitHubObject).sha,
     tree: publication.artifactManifest.map(({ path, sha }) => ({
       path,
       sha,
@@ -269,7 +157,7 @@ async function rebaseArtifacts(
       type: 'blob',
     })),
   });
-  await remember(publication.id, {
+  await persistProposal(publication.id, {
     rebaseInput: {
       before: publication.proposalCommit!,
       tree: String(tree.sha),
@@ -317,7 +205,7 @@ async function publicationPullRequest(
       base: branch,
       body: await proposalBody(publication),
     });
-    await remember(publication.id, {
+    await persistProposal(publication.id, {
       pullRequestNumber: Number(pr.number),
       pullRequestUrl: String(pr.html_url),
     });
@@ -331,9 +219,8 @@ async function reconcilePullRequest(
   publication: Publication,
   branch: string
 ): Promise<void> {
-  const store = getStudioStore();
   const pr = await publicationPullRequest(publication, branch);
-  if ((pr.head as GitObject).sha !== publication.proposalCommit)
+  if ((pr.head as GitHubObject).sha !== publication.proposalCommit)
     throw new StudioError(
       409,
       'The publication proposal changed. Review it before retrying.'
@@ -344,11 +231,7 @@ async function reconcilePullRequest(
         502,
         'GitHub has not reported the merged publication commit.'
       );
-    await store.updatePublication(publication.id, {
-      status: 'deploying',
-      commit: String(pr.merge_commit_sha),
-      error: null,
-    });
+    await markPublicationDeploying(publication.id, String(pr.merge_commit_sha));
     return;
   }
   if (pr.state !== 'open')
@@ -365,7 +248,7 @@ async function reconcilePullRequest(
   if (
     pr.mergeable !== true ||
     pr.mergeable_state !== 'clean' ||
-    (pr.base as GitObject).sha !== base.sha
+    (pr.base as GitHubObject).sha !== base.sha
   )
     return;
   if (!(await publicationBaseUnchanged(publication, branch, base.sha))) return;
@@ -386,7 +269,7 @@ async function reconcilePublicationBase(
   branch: string
 ): Promise<PublicationBase> {
   const current = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  const base = (current.object as GitObject).sha;
+  const base = (current.object as GitHubObject).sha;
   if (
     (await sourceBlob(base, publication.sourcePath!)) !==
     publication.sourceFileSha
@@ -412,7 +295,7 @@ async function publicationBaseUnchanged(
   // if source changed while checks were being inspected. GitHub's protected
   // merge remains the atomic authority for required up-to-date checks/reviews.
   const latest = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  const latestBase = (latest.object as GitObject).sha;
+  const latestBase = (latest.object as GitHubObject).sha;
   if (latestBase !== base) {
     if (
       (await sourceBlob(latestBase, publication.sourcePath!)) !==
@@ -434,12 +317,7 @@ async function mergePublication(
     Number(pr.number),
     publication.proposalCommit!
   );
-  if (commit)
-    await getStudioStore().updatePublication(publication.id, {
-      status: 'deploying',
-      commit,
-      error: null,
-    });
+  if (commit) await markPublicationDeploying(publication.id, commit);
 }
 
 export async function publishRevision(
@@ -512,7 +390,10 @@ async function preparePublicationProposal(
   const branch = required('STUDIO_GITHUB_BRANCH');
   const publicationBranch = `codex/studio-publish-${publication.id}`;
   const path = `content/writings/${draft.slug}.mdx`;
-  await remember(publication.id, { publicationBranch, sourcePath: path });
+  await persistProposal(publication.id, {
+    publicationBranch,
+    sourcePath: path,
+  });
   publication = (await store.getPublication(publication.id))!;
   if (publication.rebaseInput) {
     await completeRebase(publication, branch);
@@ -522,7 +403,7 @@ async function preparePublicationProposal(
     `git/ref/heads/${encodeURIComponent(publicationBranch)}`
   );
   if (proposalRef) {
-    const sha = (proposalRef.object as GitObject).sha;
+    const sha = (proposalRef.object as GitHubObject).sha;
     const proposal = await github(`git/commits/${sha}`);
     if (
       proposal.message !== messageFor(publication.id) ||
@@ -532,7 +413,7 @@ async function preparePublicationProposal(
         409,
         'The publication branch changed. Review it before retrying.'
       );
-    await remember(publication.id, { proposalCommit: sha });
+    await persistProposal(publication.id, { proposalCommit: sha });
   } else {
     // GitHub can delete the private head branch after a successful merge.
     // Reconcile the durable PR before considering a new proposal.
@@ -555,7 +436,9 @@ async function preparePublicationProposal(
         author: identity,
         committer: identity,
       });
-      await remember(publication.id, { proposalCommit: String(commit.sha) });
+      await persistProposal(publication.id, {
+        proposalCommit: String(commit.sha),
+      });
       publication = (await store.getPublication(publication.id))!;
     }
     await github('git/refs', 'POST', {
@@ -575,33 +458,35 @@ async function createPublicationTree(
 ): Promise<void> {
   const revisionId = revision.id;
   const ref = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
-  const base = (ref.object as GitObject).sha;
+  const base = (ref.object as GitHubObject).sha;
   const existing = await sourceBlob(base, path);
   await validateSourceHistory(draft.id, revision, existing, base);
-  const resolved = await artifacts(revision.body, { compileBundles: false });
+  const resolved = await publicationArtifacts(revision.body, {
+    compileBundles: false,
+  });
   const initialIssues = (await validatePublication(resolved.body)).filter(
     (issue) => issue !== 'Private assets must be promoted before publication.'
   );
   if (initialIssues.length > 0)
     throw new StudioError(422, initialIssues.join(' '));
   const promoted = await promoteAssets(resolved.body, publication.id);
-  const final = await artifacts(promoted);
+  const final = await publicationArtifacts(promoted);
   const issues = await validatePublication(final.body);
   if (issues.length > 0) throw new StudioError(422, issues.join(' '));
   const source = exportMdx(final.body, draft.slug, revisionId);
   const files = [...final.files, { path, content: source }];
   const baseCommit = await github(`git/commits/${base}`);
   const baseTree = await github(
-    `git/trees/${(baseCommit.tree as GitObject).sha}?recursive=1`
+    `git/trees/${(baseCommit.tree as GitHubObject).sha}?recursive=1`
   );
   if (baseTree.truncated)
     throw new StudioError(
       502,
       'Repository tree is too large to validate safely.'
     );
-  const baseEntries = baseTree.tree as GitTreeEntry[];
+  const baseEntries = baseTree.tree as GitHubTreeEntry[];
   const tree = await github('git/trees', 'POST', {
-    base_tree: (baseCommit.tree as GitObject).sha,
+    base_tree: (baseCommit.tree as GitHubObject).sha,
     tree: files.map((file) => ({
       ...file,
       mode: '100644',
@@ -612,7 +497,7 @@ async function createPublicationTree(
     .update(`blob ${Buffer.byteLength(source)}\0`)
     .update(source)
     .digest('hex');
-  await remember(publication.id, {
+  await persistProposal(publication.id, {
     proposalInput: { tree: String(tree.sha), parent: base },
     artifactManifest: files.map((file) => ({
       path: file.path,
@@ -716,4 +601,15 @@ async function deployedPublicationMatches(
     result.sourceSha === publication.publishedFileSha &&
     commitMatches
   );
+}
+
+async function markPublicationDeploying(
+  id: string,
+  commit: string
+): Promise<void> {
+  await getStudioStore().updatePublication(id, {
+    status: 'deploying',
+    commit,
+    error: null,
+  });
 }

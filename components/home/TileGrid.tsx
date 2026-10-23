@@ -3,6 +3,7 @@ import type {
   TileEntry,
   Venture,
 } from '@/lib/home/ventures';
+import { localImageSources } from '@/lib/media/responsive';
 
 import { Constellation } from './Constellation';
 import { CountdownDays } from './Countdown';
@@ -54,6 +55,12 @@ function VentureBody({ venture, loading }: VentureBodyProps) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={body.src}
+            {...localImageSources(
+              body.src,
+              body.width,
+              body.height,
+              '(max-width: 599px) 90vw, (max-width: 839px) 45vw, 40vw'
+            )}
             width={body.width}
             height={body.height}
             alt={body.alt}

@@ -1,4 +1,4 @@
-import { StudioError } from '../../studio/errors';
+import { HttpError } from '../../http/errors';
 import { musicStore } from '../store';
 import { SpotifyError, spotifyRetryAfter } from './client';
 import { sealMusic, spotifyClientId, unsealMusic } from './credentials';
@@ -30,7 +30,7 @@ export async function exchangeToken(
 async function tokenExchangeError(response: Response): Promise<never> {
   const error = await response.json().catch(() => ({}));
   if (error.error === 'invalid_grant')
-    throw new StudioError(401, 'Reconnect Spotify to continue.');
+    throw new HttpError(401, 'Reconnect Spotify to continue.');
   throw new SpotifyError(
     response.status,
     response.status === 429
@@ -51,7 +51,7 @@ function readGrant(
     !(result.refresh_token ?? old?.refreshToken) ||
     !Number.isFinite(result.expires_in)
   )
-    throw new StudioError(502, 'Spotify returned an incomplete authorization.');
+    throw new HttpError(502, 'Spotify returned an incomplete authorization.');
   return {
     accessToken: result.access_token,
     refreshToken: result.refresh_token ?? old!.refreshToken,
@@ -72,7 +72,7 @@ export async function accessToken(): Promise<{
       )
     ).rows[0];
     if (row == null || row.reconnect)
-      throw new StudioError(401, 'Connect Spotify to import your playlists.');
+      throw new HttpError(401, 'Connect Spotify to import your playlists.');
     let grant = unsealMusic<SpotifyGrant>(row.encrypted_grant);
     if (grant.expiresAt < Date.now() + 60000) {
       try {
@@ -81,7 +81,7 @@ export async function accessToken(): Promise<{
           grant
         );
       } catch (error) {
-        if (error instanceof StudioError && error.status === 401) {
+        if (error instanceof HttpError && error.status === 401) {
           await client.query(
             'UPDATE music_connections SET reconnect=true WHERE singleton=true'
           );

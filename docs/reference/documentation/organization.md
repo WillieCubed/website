@@ -123,6 +123,16 @@ only inspected the source or built the site, say so. That review can catch a
 wrong command or missing file, but leaves the fresh-start and hosted steps
 untested.
 
+## Check local links and anchors
+
+Run `pnpm docs:check` from the repository root after moving or editing docs. The
+checker parses maintained Markdown links and reference definitions, resolves
+local files, and checks heading IDs and explicit HTML anchors. It reports the
+source file and line for each broken destination. The
+[command reference](../operations/commands.md#documentation-and-content-checks)
+defines discovery and exclusions. External URLs and runtime links in MDX remain
+separate checks.
+
 ## Before committing documentation
 
 Read continuously first, then skim the hierarchy. The first pass catches gaps in

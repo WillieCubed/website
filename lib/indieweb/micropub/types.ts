@@ -27,15 +27,13 @@ export interface MicropubEvent {
   location?: unknown;
 }
 
-export interface RawMicropubEntry {
+interface MicropubEntryFields {
   properties?: Mf2Properties;
   contentFormat?: 'text' | 'html';
   postStatus?: 'draft' | 'published';
   audio?: string[];
   video?: string[];
   event?: MicropubEvent;
-  h: string;
-  content?: string;
   name?: string;
   summary?: string;
   categories: string[];
@@ -45,9 +43,14 @@ export interface RawMicropubEntry {
   likeOf?: string;
   repostOf?: string;
   bookmarkOf?: string;
-  rsvp?: string;
   photos: MicropubPhoto[];
   syndication: string[];
+}
+
+export interface RawMicropubEntry extends MicropubEntryFields {
+  h: string;
+  content?: string;
+  rsvp?: string;
   syndicateTo: string[];
 }
 
@@ -57,49 +60,12 @@ export interface MicropubPhoto {
   alt?: string;
 }
 
-export interface MicropubPostTypeSource {
-  properties?: Mf2Properties;
-  contentFormat?: 'text' | 'html';
-  postStatus?: 'draft' | 'published';
-  audio?: string[];
-  video?: string[];
-  event?: MicropubEvent;
-  name?: string;
-  photos?: MicropubPhoto[];
-  inReplyTo?: string;
-  likeOf?: string;
-  repostOf?: string;
-  bookmarkOf?: string;
-  rsvp?: string;
-}
-
-export interface MicropubCreateRequest {
-  properties?: Mf2Properties;
-  contentFormat?: 'text' | 'html';
-  postStatus?: 'draft' | 'published';
-  audio?: string[];
-  video?: string[];
-  event?: MicropubEvent;
+export interface MicropubCreateRequest extends MicropubEntryFields {
   h: 'entry' | 'event';
   content: string;
-  name?: string;
-  summary?: string;
-  categories: string[];
-  slug?: string;
-  published?: Date;
   postType: MicropubPostType;
-  inReplyTo?: string;
-  likeOf?: string;
-  repostOf?: string;
-  bookmarkOf?: string;
   rsvp?: MicropubRsvpStatus;
-  photos: MicropubPhoto[];
-  syndication: string[];
-  /**
-   * Targets chosen with `mp-syndicate-to`, recorded as intent in the post's
-   * `syndicateTo` frontmatter. They are not copies, so they never become
-   * syndication links.
-   */
+  /** Requested destinations are intent, not confirmed syndication copies. */
   syndicateTo: MicropubSyndicationTarget[];
 }
 
@@ -134,11 +100,7 @@ export interface MicropubJsonBody {
   properties?: Record<string, unknown[]>;
 }
 
-export interface GitHubContentsCommitResponse {
-  commit?: {
-    sha?: string;
-  };
-}
+export type { GitHubContentsCommitResponse } from '@/lib/github/types';
 
 export interface MicropubConfigResponse {
   'media-endpoint'?: string;

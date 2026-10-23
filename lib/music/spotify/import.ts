@@ -1,4 +1,4 @@
-import { StudioError } from '../../studio/errors';
+import { HttpError } from '../../http/errors';
 import { suppressApproved } from '../public';
 import { musicStore } from '../store';
 import type { MusicPlaylist } from '../types';
@@ -67,7 +67,7 @@ export async function importPlaylist(
       new Date().toISOString()
     );
   }
-  throw new StudioError(
+  throw new HttpError(
     409,
     'The playlist changed during import. Retry to load one complete sequence.'
   );
@@ -82,7 +82,7 @@ export async function importLibrary() {
   ).rows[0].locked;
   if (!locked) {
     await db.release();
-    throw new StudioError(409, 'A library refresh is already running.');
+    throw new HttpError(409, 'A library refresh is already running.');
   }
   const progress = {
     total: 0,

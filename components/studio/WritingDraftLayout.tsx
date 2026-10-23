@@ -1,17 +1,19 @@
 import { type ReactNode, useRef, useState } from 'react';
 
+import type { DraftContent } from '@/lib/studio/types';
+
 import StudioWritingLayout from './StudioWritingLayout';
 import WritingHeading from './WritingHeading';
 import WritingMetadata from './WritingMetadata';
-import type { WritingDocument } from './writing-contracts';
-
-type WritingDraftMetadata = Pick<
-  WritingDocument,
-  'body' | 'draft' | 'update' | 'dirty' | 'status'
->;
+import type { DraftUpdate } from './writing-contracts';
 
 interface WritingDraftLayoutProps {
-  document: WritingDraftMetadata;
+  body: DraftContent;
+  savedRevisionId: string;
+  liveRevisionId: string | null;
+  update: (change: DraftUpdate) => void;
+  dirty: boolean;
+  status: string;
   hidden: boolean;
   published: string;
   minutes: number;
@@ -21,14 +23,18 @@ interface WritingDraftLayoutProps {
 
 /** Heading visibility and title focus stay with the editable document's metadata. */
 export default function WritingDraftLayout({
-  document,
+  body,
+  savedRevisionId,
+  liveRevisionId,
+  update,
+  dirty,
+  status,
   hidden,
   published,
   minutes,
   controls,
   children,
 }: WritingDraftLayoutProps) {
-  const { body } = document;
   const [showHeading, setShowHeading] = useState(
     Boolean(body.title || body.description)
   );
@@ -47,19 +53,20 @@ export default function WritingDraftLayout({
           showHeading={showHeading}
           titleField={titleField}
           body={body}
-          update={document.update}
+          update={update}
         />
       }
       metadata={
         <WritingMetadata
-          draft={document.draft}
+          savedRevisionId={savedRevisionId}
+          liveRevisionId={liveRevisionId}
           showHeading={showHeading}
           setShowHeading={setShowHeading}
           titleField={titleField}
           body={body}
-          dirty={document.dirty}
-          status={document.status}
-          update={document.update}
+          dirty={dirty}
+          status={status}
+          update={update}
           published={published}
           minutes={minutes}
         />

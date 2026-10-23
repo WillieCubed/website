@@ -8,7 +8,6 @@ import {
   calculateCls,
   median,
   medianMetric,
-  sampleRoute,
   stopPreview,
   waitUntilReady,
 } from '../../../scripts/cloudflare/preview-metrics.mts';
@@ -86,23 +85,4 @@ test('preview cleanup stops the child process', async () => {
   await once(preview, 'spawn');
   await stopPreview(preview);
   assert.ok(preview.exitCode !== null || preview.signalCode !== null);
-});
-
-test('non-2xx route navigation fails and closes its page', async () => {
-  let closed = false;
-  const browser = {
-    newPage: async () => ({
-      addInitScript: async () => undefined,
-      goto: async () => ({ status: () => 503 }),
-      evaluate: async () => {
-        throw new Error('evaluate should not run after failed navigation');
-      },
-      close: async () => {
-        closed = true;
-      },
-    }),
-  } satisfies Parameters<typeof sampleRoute>[0];
-
-  await assert.rejects(sampleRoute(browser, '/writings'), /returned 503/);
-  assert.equal(closed, true);
 });

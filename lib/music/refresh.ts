@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 
-import { StudioError } from '../studio/errors';
+import { HttpError } from '../http/errors';
 import { approvedManifest, cacheApproved } from './public';
 import { SpotifyClient, SpotifyError } from './spotify/client';
 import { importPlaylist } from './spotify/import';
@@ -12,7 +12,7 @@ export function authorizeRefresh(
   secret = process.env.MUSIC_REFRESH_SECRET
 ) {
   if (!secret || secret.length < 32)
-    throw new StudioError(503, 'Refresh is not configured.');
+    throw new HttpError(503, 'Refresh is not configured.');
   const actual = request.headers.get('authorization') ?? '';
   if (
     !timingSafeEqual(
@@ -20,7 +20,7 @@ export function authorizeRefresh(
       createHash('sha256').update(`Bearer ${secret}`).digest()
     )
   )
-    throw new StudioError(401, 'Unauthorized');
+    throw new HttpError(401, 'Unauthorized');
 }
 export async function refreshApproved() {
   const manifest = await approvedManifest();
@@ -35,7 +35,7 @@ export async function refreshApproved() {
   ).rows[0].locked;
   if (!locked) {
     await db.release();
-    throw new StudioError(409, 'Refresh is already running.');
+    throw new HttpError(409, 'Refresh is already running.');
   }
   try {
     const auth = await accessToken(),

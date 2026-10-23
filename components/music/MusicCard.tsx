@@ -1,4 +1,5 @@
-import MusicCardControls from './MusicCardControls';
+import type { ReactNode } from 'react';
+
 import { MusicCardCaption, MusicCardOpenTarget } from './MusicCardOpening';
 import MusicFeaturedPlaylist from './MusicFeaturedPlaylist';
 import type { MusicGalleryItem } from './music-gallery';
@@ -7,11 +8,10 @@ interface Props {
   item: MusicGalleryItem;
   editing: boolean;
   href: (id: string) => string;
-  onDragStart: (id: string) => void;
-  onDrop: (id: string) => void;
+  onDragStart?: (id: string) => void;
+  onDrop?: (id: string) => void;
   openPlaylist: (id: string, source?: HTMLElement) => void;
-  select: (id: string) => void;
-  reorder: (id: string, step: number) => void;
+  controls?: ReactNode;
 }
 export default function MusicCard({
   item,
@@ -20,8 +20,7 @@ export default function MusicCard({
   onDragStart,
   onDrop,
   openPlaylist,
-  select,
-  reorder,
+  controls,
 }: Props) {
   const {
     playlist,
@@ -34,7 +33,6 @@ export default function MusicCard({
     note,
     memberships,
     canReorder,
-    curation,
   } = item;
   return (
     <article
@@ -44,11 +42,11 @@ export default function MusicCard({
       data-playlist={playlist.id}
       data-focused={focused || undefined}
       draggable={canReorder}
-      onDragStart={() => onDragStart(playlist.id)}
+      onDragStart={() => onDragStart?.(playlist.id)}
       onDragOver={(event) => {
         if (canReorder) event.preventDefault();
       }}
-      onDrop={() => onDrop(playlist.id)}
+      onDrop={() => onDrop?.(playlist.id)}
     >
       <MusicCardOpenTarget
         playlist={playlist}
@@ -73,15 +71,7 @@ export default function MusicCard({
           href={href}
         />
       )}
-      {editing && (
-        <MusicCardControls
-          playlist={playlist}
-          selected={selected}
-          controls={curation}
-          select={select}
-          reorder={reorder}
-        />
-      )}
+      {controls}
     </article>
   );
 }

@@ -1,16 +1,16 @@
 import { sealJson, unsealJson } from '../../crypto/sealed-json';
-import { StudioError } from '../../studio/errors';
+import { HttpError } from '../../http/errors';
 
 export function spotifyClientId(): string {
   const id = process.env.SPOTIFY_CLIENT_ID;
-  if (!id) throw new StudioError(503, 'Spotify client is not configured.');
+  if (!id) throw new HttpError(503, 'Spotify client is not configured.');
   return id;
 }
 
 function musicKey(): string {
   const key = process.env.MUSIC_TOKEN_ENCRYPTION_KEY;
   if (!key || Buffer.from(key, 'base64').length !== 32)
-    throw new StudioError(503, 'Music token encryption is not configured.');
+    throw new HttpError(503, 'Music token encryption is not configured.');
   return key;
 }
 
@@ -23,6 +23,6 @@ export function unsealMusic<T>(value: string): T {
   try {
     return unsealJson<T>(value, key);
   } catch {
-    throw new StudioError(401, 'Reconnect Spotify to continue.');
+    throw new HttpError(401, 'Reconnect Spotify to continue.');
   }
 }

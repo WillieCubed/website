@@ -19,6 +19,7 @@ import {
   underModal,
 } from '@/lib/search/palette/morph';
 import { NO_PLACES, loadPlaces } from '@/lib/search/palette/places';
+import { preloadCommandRuntime } from '@/lib/search/palette/runtime';
 import type { CloseOptions, PaletteData } from '@/lib/search/palette/types';
 import type { Command } from '@/lib/search/palette/types';
 
@@ -100,6 +101,7 @@ export default function PaletteProvider({ children }: React.PropsWithChildren) {
     }
     busyRef.current = true;
     openRef.current = true;
+    void preloadCommandRuntime().catch(() => undefined);
     loadPlaces().then(setData, () => undefined);
     const focused = document.activeElement;
     returnFocusRef.current =

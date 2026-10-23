@@ -215,3 +215,25 @@ test('the card for an old tag link is the tag page card', () => {
   const known = new Map(cards.map((card) => [entityKey(card.href), card]));
   assert.equal(known.get(entityKey('/writings?tag=note'))?.title, 'note');
 });
+
+test('publication paths match registry membership without building presentation cards', async () => {
+  const registry = await import('@/lib/entities/registry');
+  assert.equal(typeof registry.entityPaths, 'function');
+  const writings = [makeWriting({ tags: ['Note', 'note', 'café'] })];
+  const initiatives = [makeInitiative()];
+  const paths = registry.entityPaths(writings, initiatives);
+  assert.deepEqual(
+    [...paths].sort(),
+    [
+      ...new Set(
+        entityCards(writings, initiatives).map((card) => entityKey(card.href))
+      ),
+    ].sort()
+  );
+  // Publication checks do not construct covers or validate presentation fields.
+  assert.ok(
+    registry
+      .entityPaths([makeWriting({ featuredImage: '/no-alt.jpg' })], [])
+      .has('/writings/hello')
+  );
+});

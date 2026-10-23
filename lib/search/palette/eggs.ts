@@ -1,8 +1,9 @@
 import { fetchWithDeadline } from '@/lib/http/fetch';
 import { randomlyChooseTagline } from '@/lib/site/taglines';
-import { absoluteUrl } from '@/lib/site/urls';
 
 import type { Readout } from './types';
+
+export { copyText, mcp } from './clipboard';
 
 /**
  * The easter eggs' readouts. Each one makes the real request the protocol
@@ -10,9 +11,6 @@ import type { Readout } from './types';
  * server said. A request that fails says what failed instead of standing in
  * a made-up response.
  */
-
-/** The path where the MCP server answers. */
-const MCP_PATH = '/api/mcp';
 
 /**
  * The line a status would carry over HTTP/1.1. HTTP/2 sends no reason
@@ -177,35 +175,6 @@ export async function securityTxt(): Promise<Readout> {
   }
 }
 
-/** A client config for the MCP server, as most desktop clients read it. */
-function mcpConfig(): string {
-  return JSON.stringify(
-    {
-      mcpServers: {
-        'willie-page': { type: 'http', url: absoluteUrl(MCP_PATH) },
-      },
-    },
-    null,
-    2
-  );
-}
-
-/** Shows the MCP endpoint and copies a client config for it. */
-export async function mcp(): Promise<Readout> {
-  const config = mcpConfig();
-  const copied = await copyText(config);
-  return {
-    heading: copied
-      ? 'Copied a client config'
-      : 'Could not copy; the config is below',
-    fields: [
-      ['endpoint', absoluteUrl(MCP_PATH)],
-      ['transport', 'Streamable HTTP, read-only'],
-    ],
-    body: config,
-  };
-}
-
 /** A tagline, never the same one twice running. */
 export function fortune(previous?: string): Readout {
   let tagline = randomlyChooseTagline();
@@ -225,14 +194,4 @@ export function sudo(): Readout {
     heading: 'sudo: owner sign-in is not wired up yet',
     body: 'There is nothing to elevate to. Owner commands will arrive with it.',
   };
-}
-
-/** Copies text, resolving false when the browser refuses. */
-export async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
 }

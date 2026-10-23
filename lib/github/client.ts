@@ -1,7 +1,12 @@
-import { required } from './config';
-import { StudioError } from './errors';
+import { HttpError } from '../http/errors';
 
-export class GitHubError extends StudioError {
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new HttpError(503, `${name} is not configured.`);
+  return value;
+}
+
+export class GitHubError extends HttpError {
   constructor(readonly githubStatus: number) {
     super(
       githubStatus === 409 || githubStatus === 422 ? 409 : 502,
@@ -18,7 +23,7 @@ export async function github(
 ): Promise<Record<string, unknown>> {
   const repository = required('STUDIO_GITHUB_REPOSITORY');
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository))
-    throw new StudioError(503, 'Invalid publication repository.');
+    throw new HttpError(503, 'Invalid publication repository.');
   const response = await fetch(
     path === '$graphql'
       ? 'https://api.github.com/graphql'

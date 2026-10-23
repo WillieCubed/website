@@ -92,7 +92,17 @@ interoperability. The October results remain useful regressions to repeat; they
 are not authority to publish a draft or substitute old provider evidence for the
 migrated runtime.
 
-## October 2026 record
+## Record verifier identity and cleanup
+
+New receipts can include `verifierSourceFiles`; callback-delivery proofs also
+include `probeSourceFiles`. These maps hash the entrypoint and its local source
+dependencies without executing them. Retain the existing entrypoint hash.
+Older receipts without a module manifest remain readable with their original
+scope. Cleanup preserves the verification manifest, including its absence on an
+older receipt, and records its own implementation in `cleanupSourceFiles`.
+A cleanup run cannot expand what the earlier verifier established.
+
+## Historical record
 
 The [October 8–9 verification record](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/guides/publishing/publishing-verification.md) describes the Vercel
 acceptance runs, their receipts, and their cleanup. It explains what those runs

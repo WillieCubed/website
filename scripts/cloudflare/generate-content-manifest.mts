@@ -5,6 +5,25 @@ import prettier from 'prettier';
 
 import { isMain } from '../shared/command.mts';
 
+/** Each bundled directory records its immediate children in filesystem order. */
+export function buildDirectoryIndex(
+  paths: string[]
+): Record<string, Array<[string, boolean]>> {
+  const directories = new Map<string, Map<string, boolean>>();
+  for (const path of paths) {
+    const segments = path.split('/');
+    for (let index = 1; index < segments.length; index++) {
+      const directory = segments.slice(0, index).join('/');
+      const children = directories.get(directory) ?? new Map<string, boolean>();
+      children.set(segments[index], index < segments.length - 1);
+      directories.set(directory, children);
+    }
+  }
+  return Object.fromEntries(
+    [...directories].map(([directory, children]) => [directory, [...children]])
+  );
+}
+
 export async function generateContentManifest() {
   const root = process.cwd();
   const files: Record<string, string> = {};
@@ -59,7 +78,8 @@ export async function generateContentManifest() {
       binaryFiles[path] = readFileSync(join(root, path)).toString('base64');
     }
   }
-  const source = `// Generated runtime content manifest.\nexport const imageDimensions: Record<string, { width: number; height: number }> = ${JSON.stringify(imageDimensions)};\nexport const runtimeFiles: Record<string, string> = ${JSON.stringify(files)};\nexport const runtimeBinaryFiles: Record<string, string> = ${JSON.stringify(binaryFiles)};\n`;
+  const directories = buildDirectoryIndex(Object.keys(files));
+  const source = `// Generated runtime content manifest.\nexport const imageDimensions: Record<string, { width: number; height: number }> = ${JSON.stringify(imageDimensions)};\nexport const runtimeFiles: Record<string, string> = ${JSON.stringify(files)};\nexport const runtimeBinaryFiles: Record<string, string> = ${JSON.stringify(binaryFiles)};\nexport const runtimeDirectories: Record<string, Array<[string, boolean]>> = ${JSON.stringify(directories)};\n`;
   const output = join(root, 'lib/content/generated-content.ts');
   writeFileSync(
     output,

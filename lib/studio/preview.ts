@@ -8,6 +8,7 @@ import { escapeHtml } from '@/lib/text/html';
 import { catalogEntry } from './catalog';
 import { compileSandbox } from './components';
 import { documentSource } from './document';
+import { studioHtmlPolicy } from './html-policy';
 import { effectivePortable } from './portable';
 import { getStudioStore } from './store';
 import type { ComponentProposal, DraftContent, EditorNode } from './types';
@@ -15,21 +16,6 @@ import type { ComponentProposal, DraftContent, EditorNode } from './types';
 function imageUrl(value: unknown): string {
   const url = String(value ?? '');
   return /^(?:https?:\/\/|\/(?!\/))/i.test(url) ? url : '';
-}
-function clean(html: string) {
-  return sanitizeHtml(html, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-      'img',
-      'figure',
-      'figcaption',
-    ]),
-    allowedAttributes: {
-      ...sanitizeHtml.defaults.allowedAttributes,
-      img: ['src', 'alt', 'title', 'width', 'height'],
-      '*': ['id'],
-    },
-    allowedSchemes: ['https', 'http', 'mailto'],
-  });
 }
 
 /** Renders data-only website blocks. Imported MDX passes through the feed parser,
@@ -45,7 +31,10 @@ export async function websitePreviewBody(
   const canonical = absoluteUrl(`/writings/${encodeURIComponent(slug)}`);
   async function prose(source: string) {
     try {
-      return clean(await renderFeedHtml(source, canonical));
+      return sanitizeHtml(
+        await renderFeedHtml(source, canonical),
+        studioHtmlPolicy
+      );
     } catch {
       return `<pre>${escapeHtml(source)}</pre>`;
     }

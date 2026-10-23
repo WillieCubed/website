@@ -6,7 +6,11 @@ import {
 } from 'node:fs';
 import { relative } from 'node:path';
 
-import { runtimeBinaryFiles, runtimeFiles } from './generated-content';
+import {
+  runtimeBinaryFiles,
+  runtimeDirectories,
+  runtimeFiles,
+} from './generated-content';
 
 function inWorker(): boolean {
   try {
@@ -34,7 +38,7 @@ export function existsSync(path: string): boolean {
   return (
     name !== null &&
     (Object.hasOwn(runtimeFiles, name) ||
-      Object.keys(runtimeFiles).some((file) => file.startsWith(`${name}/`)))
+      Object.hasOwn(runtimeDirectories, name))
   );
 }
 
@@ -78,18 +82,11 @@ export function readdirSync(path: string, options?: { withFileTypes: true }) {
   const name = key(path);
   if (name === null)
     throw new Error(`Unknown runtime content directory: ${path}`);
-  const prefix = `${name}/`;
-  const children = new Map<string, boolean>();
-  for (const file of Object.keys(runtimeFiles)) {
-    if (!file.startsWith(prefix)) continue;
-    const suffix = file.slice(prefix.length);
-    const child = suffix.split('/')[0];
-    children.set(child, suffix.includes('/'));
-  }
-  if (children.size === 0)
+  if (!Object.hasOwn(runtimeDirectories, name))
     throw new Error(`Runtime content directory missing: ${name}`);
-  if (!options?.withFileTypes) return [...children.keys()];
-  return [...children].map(([child, directory]) => ({
+  const children = runtimeDirectories[name];
+  if (!options?.withFileTypes) return children.map(([child]) => child);
+  return children.map(([child, directory]) => ({
     name: child,
     isDirectory: () => directory,
     isFile: () => !directory,

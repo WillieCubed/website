@@ -30,48 +30,63 @@ export default function NativeVideo({
     let player: Hls | undefined;
     let disposed = false;
     let requestedPlay = !element.paused;
+    let starting = false;
     const nativeError = () => setFailedSource(src);
     const start = () => {
       requestedPlay = true;
-      player?.startLoad();
+      if (player) {
+        player.startLoad();
+        return;
+      }
+      if (starting) return;
+      starting = true;
+      void import('hls.js')
+        .then(({ default: Hls }) => {
+          if (disposed) return;
+          // Chrome can report native HLS support and still reject a valid stream.
+          if (!Hls.isSupported()) {
+            if (element.canPlayType('application/vnd.apple.mpegurl')) {
+              element.addEventListener('error', nativeError);
+              if (element.error) nativeError();
+            } else {
+              setFailedSource(src);
+            }
+            return;
+          }
+          player = new Hls({
+            autoStartLoad: false,
+            maxBufferLength: 15,
+            capLevelToPlayerSize: true,
+          });
+          player.on(Hls.Events.ERROR, (_event, data) => {
+            if (data.fatal) {
+              setFailedSource(src);
+              player?.destroy();
+            }
+          });
+          player.on(Hls.Events.MANIFEST_PARSED, () => {
+            if (requestedPlay && !disposed) {
+              player?.startLoad();
+              void element.play().catch(() => undefined);
+            }
+          });
+          player.attachMedia(element);
+          player.loadSource(src);
+        })
+        .catch(() => {
+          if (!disposed) setFailedSource(src);
+        });
+    };
+    const pause = () => {
+      requestedPlay = false;
     };
     element.addEventListener('play', start);
-    void import('hls.js')
-      .then(({ default: Hls }) => {
-        if (disposed) return;
-        // Chrome can report native HLS support and still reject a valid stream.
-        if (!Hls.isSupported()) {
-          if (element.canPlayType('application/vnd.apple.mpegurl')) {
-            element.addEventListener('error', nativeError);
-            if (element.error) nativeError();
-          } else {
-            setFailedSource(src);
-          }
-          return;
-        }
-        player = new Hls({
-          autoStartLoad: false,
-          maxBufferLength: 15,
-          capLevelToPlayerSize: true,
-        });
-        player.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal) {
-            setFailedSource(src);
-            player?.destroy();
-          }
-        });
-        player.on(Hls.Events.MANIFEST_PARSED, () => {
-          if (requestedPlay && !disposed) player?.startLoad();
-        });
-        player.attachMedia(element);
-        player.loadSource(src);
-      })
-      .catch(() => {
-        if (!disposed) setFailedSource(src);
-      });
+    element.addEventListener('pause', pause);
+    if (requestedPlay) start();
     return () => {
       disposed = true;
       element.removeEventListener('play', start);
+      element.removeEventListener('pause', pause);
       element.removeEventListener('error', nativeError);
       player?.destroy();
     };

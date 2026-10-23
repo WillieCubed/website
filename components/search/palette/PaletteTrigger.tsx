@@ -4,6 +4,8 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 
 import Icon from '@/components/icons/Icon';
 
+import { preloadCommandRuntime } from '@/lib/search/palette/runtime';
+
 import { usePalette } from './PaletteProvider';
 import './palette.css';
 
@@ -64,6 +66,13 @@ export default function PaletteTrigger({
     >
       <button
         ref={ref}
+        onPointerEnter={() =>
+          void preloadCommandRuntime().catch(() => undefined)
+        }
+        onFocus={() => void preloadCommandRuntime().catch(() => undefined)}
+        onPointerDown={() =>
+          void preloadCommandRuntime().catch(() => undefined)
+        }
         type="submit"
         data-control-size={size === 'rail' ? 'medium' : undefined}
         className={`palette-trigger site-control [font-family:inherit] [line-height:inherit] no-underline ${size === 'rail' ? 'w-full max-w-[720px] gap-3 py-0 pr-6 pl-5 text-base [--control-rest-radius:28px]' : 'palette-trigger--compact gap-2 py-0 pr-4 pl-3 text-sm leading-5 font-semibold [--control-rest-radius:20px] max-[599px]:p-0'}${glass ? ' site-glass' : ''}`}

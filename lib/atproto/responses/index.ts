@@ -50,14 +50,8 @@ export type {
   BlueskyResponseResult,
   ResponseCandidate,
 } from '@/lib/atproto/responses/types';
-export async function loadBlueskyResponses(
-  writing: WritingData,
-  signal?: AbortSignal
-): Promise<BlueskyResponseResult> {
-  return fetchBlueskyResponses(writing, signal);
-}
 /** Uncached importer for fresh AppView reads and acceptance checks. */
-export async function fetchBlueskyResponses(
+export async function loadBlueskyResponses(
   writing: WritingData,
   signal = AbortSignal.timeout(20000)
 ): Promise<BlueskyResponseResult> {

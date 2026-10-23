@@ -6,17 +6,8 @@ import {
   setScheme,
 } from '@/lib/theme/preference';
 
-import {
-  brewCoffee,
-  brewTea,
-  clacks,
-  copyText,
-  fortune,
-  mcp,
-  securityTxt,
-  sudo,
-  whoami,
-} from './eggs';
+import { copyText, mcp } from './clipboard';
+import { preloadCommandRuntime } from './runtime';
 import type { Command, CommandGroup, PaletteData, Readout } from './types';
 
 export type { Command, CommandGroup, PaletteData, Readout };
@@ -239,26 +230,34 @@ function eggs(): Command[] {
         opens: 'tab',
       }
     ),
-    egg('brew', ['brew', 'coffee', 'teapot'], brewCoffee),
-    egg('tea', ['tea'], brewTea),
-    egg('whoami', ['whoami'], whoami),
-    egg('fortune', ['fortune'], () => {
-      const readout = fortune(lastFortune);
+    egg('brew', ['brew', 'coffee', 'teapot'], async () =>
+      (await preloadCommandRuntime()).brewCoffee()
+    ),
+    egg('tea', ['tea'], async () => (await preloadCommandRuntime()).brewTea()),
+    egg('whoami', ['whoami'], async () =>
+      (await preloadCommandRuntime()).whoami()
+    ),
+    egg('fortune', ['fortune'], async () => {
+      const readout = (await preloadCommandRuntime()).fortune(lastFortune);
       lastFortune = readout.heading;
       return readout;
     }),
-    egg('clacks', ['clacks'], clacks),
+    egg('clacks', ['clacks'], async () =>
+      (await preloadCommandRuntime()).clacks()
+    ),
     egg('mcp', ['mcp'], mcp),
     egg('llms', ['llms', 'llms.txt'], undefined, {
       href: '/llms.txt',
       opens: 'document',
     }),
-    egg('security', ['security', 'security.txt'], securityTxt),
+    egg('security', ['security', 'security.txt'], async () =>
+      (await preloadCommandRuntime()).securityTxt()
+    ),
     egg('humans', ['humans', 'humans.txt'], undefined, {
       href: '/humans.txt',
       opens: 'document',
     }),
-    egg('sudo', ['sudo'], sudo),
+    egg('sudo', ['sudo'], async () => (await preloadCommandRuntime()).sudo()),
     egg('quit', [':q', 'exit'], ({ close }) => close()),
   ];
 }

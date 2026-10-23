@@ -176,3 +176,58 @@ test('rickroll aliases find a hidden external egg with the song title', () => {
     assert.ok(!matchCommands(commands, '').includes(command!));
   }
 });
+
+test('executing an egg after intent preload still performs its real request', async (t) => {
+  const { preloadCommandRuntime } =
+    await import('@/lib/search/palette/runtime');
+  const requests: Array<[RequestInfo | URL, RequestInit | undefined]> = [];
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      requests.push([input, init]);
+      return new Response('A teapot cannot brew coffee.', { status: 418 });
+    }
+  );
+  await preloadCommandRuntime();
+  const brew = findEgg(buildCommands(data), 'brew');
+  const output = await brew?.run?.({ close() {} });
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0][0], '/coffee');
+  assert.equal(requests[0][1]?.method, 'POST');
+  assert.ok(output);
+  assert.equal(output.heading, "HTTP 418 I'm a teapot");
+  assert.equal(output.body, 'A teapot cannot brew coffee.');
+});
+
+test('copy commands call the clipboard while the user gesture is active', async () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  let copies = 0;
+  Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    value: {
+      clipboard: {
+        writeText: async () => {
+          copies++;
+        },
+      },
+    },
+  });
+  try {
+    const commands = buildCommands(data);
+    const copyCommands = [
+      commands.find((item) => item.id === 'do:email'),
+      findEgg(commands, 'mcp'),
+    ];
+    for (const [index, command] of copyCommands.entries()) {
+      const pending = command?.run?.({ close() {} });
+      assert.equal(copies, index + 1);
+      const output = await pending;
+      assert.ok(output);
+      assert.ok(output.heading.startsWith('Copied'));
+    }
+  } finally {
+    if (original) Object.defineProperty(globalThis, 'navigator', original);
+    else Reflect.deleteProperty(globalThis, 'navigator');
+  }
+});

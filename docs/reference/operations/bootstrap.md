@@ -21,12 +21,15 @@ then check and run the site:
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
 test -f .env.local || cp .env.example .env.local
 pnpm check
 pnpm dev
 ```
 
-The conditional copy preserves an existing environment file. Fill only the
+The unit suite uses Playwright's pinned Chromium. On Linux, use
+`pnpm exec playwright install --with-deps chromium` to install its system
+libraries too. The conditional copy preserves an existing environment file. Fill only the
 local variables you need; never commit `.env.local`. Leaving the database and
 publishing credentials empty lets you work on ordinary content without
 configuring hosted account or publishing features.
@@ -52,7 +55,7 @@ agree.
 `cf` keeps its own login, separate from Wrangler. `cf auth login` changes only
 the default profile, so it does not replace creation of the named profile.
 For local deployment scripts, set `CLOUDFLARE_PROFILE=williecubed`. The
-[deployment guide](../../guides/operations/deploy.md#hosting-cloudflare-workers)
+[deployment guide](../../guides/operations/deploy.md#select-the-target)
 explains how the two tools participate in the build and upload.
 
 ### Preserve environment isolation

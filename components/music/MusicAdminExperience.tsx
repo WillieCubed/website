@@ -4,22 +4,23 @@ import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 
 import {
   type Catalog,
-  type MusicMode,
   type PlaylistView,
   catalogForViewing,
 } from '@/lib/music/presentation';
 
 import MusicChrome from './MusicChrome';
-import MusicCollectionGallery from './MusicCollectionGallery';
 import MusicCurationReview from './MusicCurationReview';
-import MusicDetail from './MusicDetail';
-import MusicExperienceFrame from './MusicExperienceFrame';
+import MusicExperienceView, {
+  type MusicCollectionView,
+} from './MusicExperienceView';
+import { musicPlaylistCuration } from './MusicPlaylistEditor';
 import MusicSetup from './MusicSetup';
 import { useMusicBrowsing } from './useMusicBrowsing';
 import { useMusicCuration } from './useMusicCuration';
 import { useMusicDocument } from './useMusicDocument';
+import { useMusicGalleryCuration } from './useMusicGalleryCuration';
 
-export interface MusicExperienceProps {
+interface MusicAdminExperienceProps {
   initialSeries?: string;
   initialDetail?: string;
   loading?: boolean;
@@ -27,7 +28,6 @@ export interface MusicExperienceProps {
   onRetry?: () => void;
   playlists: PlaylistView[];
   initialCatalog: Catalog;
-  mode?: MusicMode;
   onChange?: (catalog: Catalog) => void;
   onPublish?: (reviewed: Catalog) => Promise<void>;
   saveStatus?: string;
@@ -40,7 +40,7 @@ export interface MusicExperienceProps {
   adminMenuItems?: BreadcrumbMenuItem[];
   setupInitially?: boolean;
 }
-export default function MusicExperience({
+export default function MusicAdminExperience({
   playlists,
   initialCatalog,
   initialSeries,
@@ -48,7 +48,6 @@ export default function MusicExperience({
   loading = false,
   loadError,
   onRetry,
-  mode = 'public',
   onChange,
   onPublish,
   saveStatus,
@@ -60,13 +59,13 @@ export default function MusicExperience({
   onRefresh,
   adminMenuItems,
   setupInitially = false,
-}: MusicExperienceProps) {
+}: MusicAdminExperienceProps) {
   const { document: catalogDocument, changed } = useMusicDocument(
     { initialCatalog, onChange, loading, setupInitially },
     (open) => curation.setup.restore(open)
   );
   const curation = useMusicCuration({
-    mode,
+    mode: 'admin',
     catalogDocument,
     onPublish,
     clearFilter: () => browsing.clearFilter(),
@@ -76,42 +75,52 @@ export default function MusicExperience({
   const { editing, announcement, changeCatalog, announce } = curation;
   const setup = curation.setup;
   const draft = catalogDocument.draft;
-  const catalog = catalogForViewing(catalogDocument.live, draft, mode);
+  const catalog = catalogForViewing(catalogDocument.live, draft, 'admin');
   const browsing = useMusicBrowsing({
     catalog,
     initialCatalog,
     initialSeries,
     initialDetail,
-    mode,
+    mode: 'admin',
     editing,
     playlists,
     paletteEnabled: !setup.isOpen,
   });
-  const { navigation, seriesId, reordering } = browsing;
-  const { series } = browsing.selection;
-  const publicEmpty = browsing.selection.publicEmpty && !loading;
+  const collection: MusicCollectionView = {
+    catalog,
+    playlists,
+    browsing,
+    initialDetail,
+    loading,
+    loadError,
+    onRetry,
+  };
+  const gallery = useMusicGalleryCuration({
+    collection,
+    editing,
+    onChange: changeCatalog,
+    announce,
+  });
   return (
-    <MusicExperienceFrame
-      setup={setup.isOpen}
+    <MusicExperienceView
+      collection={collection}
+      mode="admin"
       editing={editing}
-      reordering={reordering}
-      loading={loading}
-      loadError={loadError}
       interactionLocked={interactionLocked}
-      publicEmpty={publicEmpty}
-      setupView={
-        <MusicSetup
-          playlists={playlists}
-          connected={connected}
-          onConnect={onConnect}
-          catalog={draft}
-          onCancel={setup.cancel}
-          onComplete={setup.complete}
-        />
+      setup={
+        setup.isOpen && (
+          <MusicSetup
+            playlists={playlists}
+            connected={connected}
+            onConnect={onConnect}
+            catalog={draft}
+            onCancel={setup.cancel}
+            onComplete={setup.complete}
+          />
+        )
       }
       chrome={
         <MusicChrome
-          mode={mode}
           editing={editing}
           onToggleCuration={curation.toggle}
           onOpenSetup={setup.open}
@@ -119,24 +128,11 @@ export default function MusicExperience({
           adminMenuItems={adminMenuItems}
         />
       }
+      gallery={gallery}
+      detail={editing ? musicPlaylistCuration(draft, changeCatalog) : undefined}
+      announcement={announcement}
       overlays={
         <>
-          <p className="sr-only" role="status" aria-live="polite">
-            {announcement}
-          </p>
-          <MusicDetail
-            initialDetail={initialDetail}
-            catalog={catalog}
-            draft={draft}
-            playlists={playlists}
-            mode={mode}
-            editing={editing}
-            reordering={reordering}
-            closeHref={navigation.href(seriesId, null)}
-            series={series}
-            navigation={navigation}
-            onChange={changeCatalog}
-          />
           <MusicCurationReview
             key={String(editing)}
             editing={editing}
@@ -152,21 +148,6 @@ export default function MusicExperience({
           />
         </>
       }
-    >
-      <MusicCollectionGallery
-        catalog={catalog}
-        playlists={playlists}
-        editing={editing}
-        loading={loading}
-        loadError={loadError}
-        onRetry={onRetry}
-        selection={browsing.selection}
-        browsing={browsing}
-        navigation={navigation}
-        draft={draft}
-        onChange={changeCatalog}
-        announce={announce}
-      />
-    </MusicExperienceFrame>
+    />
   );
 }

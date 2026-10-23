@@ -1,7 +1,4 @@
-import {
-  getFeaturedInitiatives,
-  getInitiatives,
-} from '@/lib/initiatives/index';
+import { type Initiative, featuredInitiatives } from '@/lib/initiatives/index';
 import { currentPart } from '@/lib/initiatives/load';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 
@@ -12,11 +9,11 @@ import type { InitiativeTile } from './ventures';
  * come from each initiative's `feature` block, so moving one on the
  * homepage is an edit to its frontmatter.
  */
-export async function getFeaturedTiles(): Promise<InitiativeTile[]> {
-  const featured = await getFeaturedInitiatives();
+export function featuredTiles(initiatives: Initiative[]): InitiativeTile[] {
+  const featured = featuredInitiatives(initiatives);
   // A parent such as The Willie Diaries has no tile of its own, so the
   // lookup covers every published initiative, not only featured ones.
-  const parents = new Map((await getInitiatives()).map((i) => [i.slug, i]));
+  const parents = new Map(initiatives.map((i) => [i.slug, i]));
   return featured.flatMap((initiative) => {
     const feature = initiative.feature;
     if (!feature) return [];

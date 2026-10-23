@@ -98,6 +98,30 @@ resets the series scope to All playlists, and keeps Close and browser Back in
 step with the URL. The curation editor retains its existing controls; endings
 appear in its gallery preview and on the public page.
 
+## Client and session ownership
+
+Public browsing mounts `MusicPublicExperience`; private curation mounts
+`MusicAdminExperience`. Shared gallery, detail, rail, and header views receive
+focused data and actions. Public browsing does not import admin controls,
+draft persistence, provider setup, or selection/setup styles. Cards receive
+prepared playlist and series previews instead of the full catalog and library.
+
+The draft owner keeps the optimistic revision, pending edits, save queue, and
+recovery together. Views request recovery or revision restoration through that
+owner; they do not receive mutable save refs. Browser recovery must be accepted
+before replacing the editor session or dismissing the recovery offer. A recovered
+catalog seeds the editing session; it does not become the confirmed server
+revision. Stable collection identity keeps saved data and recovery tied to the
+same collection across remounts.
+
+The browsing owner coordinates URL history, playlist opening, modal focus, and
+motion. Palette commands and links use that same owner with an explicit
+destination collection. The admin rail keeps its new-series form mounted inside the hidden main during
+setup, preserving that draft. The rail owns its text edits; the review dialog owns its
+DOM and focus. Setup, review, and preview transitions must retain mounted forms
+and the draft owner. An operation owns its own error, so a successful publication
+poll cannot clear a failed save or history request.
+
 ## Storage and approval
 
 Private Music tables share the studio database. Immutable revisions preserve
@@ -126,6 +150,12 @@ flowchart LR
 
 ### Publication proof and concurrent changes
 
+The publisher uses the shared `lib/github/client.ts` transport for requests
+and protected rebase merges. Music retains its own catalog preparation, provider
+checks, and publication JSON under the collection advisory lock. Studio uses
+different transactional revision rules; neither publication workflow shares a
+durable state engine.
+
 The publisher creates one recoverable pull request (PR) per revision and
 respects repository checks and rebase merge protection. Unrelated main changes
 produce a new proposal commit. A changed public catalog stops publication for
@@ -147,9 +177,8 @@ saved.
 
 `SPOTIFY_CLIENT_ID`, the Music-only `MUSIC_TOKEN_ENCRYPTION_KEY`, and the
 private database connection stay server-side. The Music key is separate from the
-writing/Lattice key and must remain stable. It is backed up in the maintainer's
-macOS Keychain as the `music-token-encryption` service for account
-`willie-page`; do not copy it into the repository or command arguments. Both the
+writing/Lattice key and must remain stable. Retain a private backup before changing it; do not copy it into the repository
+or command arguments. Both the
 private preview and public Workers need this same Music key. The public Worker
 uses `MUSIC_PUBLIC_DATABASE_URL` with a read-only role for gallery requests. Its
 bearer-authenticated refresh route uses `MUSIC_PRIVATE_DATABASE_URL` and
@@ -165,7 +194,7 @@ reused across Worker requests.
 ### Configure the Workers
 
 Prepare a private mode-0600 environment file containing `STUDIO_DATABASE_URL`
-and the existing Music key from Keychain as `MUSIC_TOKEN_ENCRYPTION_KEY`. Run
+and the existing Music key as `MUSIC_TOKEN_ENCRYPTION_KEY`. Run
 `pnpm exec tsx scripts/music/provision.mts PRIVATE_ENV PRIVATE_STATE_JSON`.
 Replace `PRIVATE_ENV` with the private environment-file path and
 `PRIVATE_STATE_JSON` with a private path for the provisioner's retained state.
@@ -203,6 +232,19 @@ desktop in both themes.
 ## Hosted acceptance remains required
 
 A passing build does not prove Spotify consent, owner eligibility, GitHub token
-permissions, or publication. Complete the hosted checklist in the [launch
-plan](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/superpowers/plans/2026-10-12-music-production-launch.md). Never
-publish fixture data or choose editorial selections for the owner.
+permissions, or publication. Before claiming hosted acceptance, observe the
+following outcomes on the intended revision:
+
+1. The real owner completes Spotify consent and can reopen saved curation.
+2. A selected immutable revision produces one protected GitHub proposal and
+   survives retry without creating another publication.
+3. The public catalog proof matches the selected revision, source hash, and
+   deployed commit or its verified descendant.
+4. The public read role cannot read private drafts or provider credentials.
+5. Authenticated refresh updates only approved selections, rejects invalid
+   credentials, and suppresses confirmed private or removed playlists.
+6. Desktop and mobile browsing preserve native links, keyboard navigation,
+   readable tracks, retry behavior, and the owner's approved selection.
+
+Keep the results and exact fixture cleanup with the release task. Never publish
+fixture data or choose editorial selections for the owner.

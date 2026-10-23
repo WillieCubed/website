@@ -1,93 +1,54 @@
 'use client';
 
-import {
-  type Catalog,
-  type PlaylistView,
-  canReorderPlaylists,
-} from '@/lib/music/presentation';
-import { gallerySelection } from '@/lib/music/presentation';
+import type { ReactNode } from 'react';
 
 import MusicCollectionHeader from './MusicCollectionHeader';
-import MusicGallery, {
-  MusicEmptyCollection,
-  MusicLibraryFilters,
-} from './MusicGallery';
-import MusicPlaylistGrid from './MusicPlaylistGrid';
+import type { MusicCollectionView } from './MusicExperienceView';
+import MusicGallery, { MusicEmptyCollection } from './MusicGallery';
+import MusicPlaylistGrid, {
+  type MusicPlaylistGridControls,
+} from './MusicPlaylistGrid';
 import MusicRail from './MusicRail';
 import MusicSeriesNavigation from './MusicSeriesNavigation';
-import { createMusicCatalogActions } from './music-catalog-actions';
 import { galleryItems } from './music-gallery';
-import type { MusicBrowsing } from './useMusicBrowsing';
-import type { MusicPlaylistNavigation } from './useMusicPlaylistDialog';
-import { useMusicPlaylistDrag } from './useMusicPlaylistDrag';
 
-type MusicGalleryBrowsing = Pick<
-  MusicBrowsing,
-  | 'gallery'
-  | 'seriesId'
-  | 'libraryFilter'
-  | 'reordering'
-  | 'chooseFilter'
-  | 'browseAll'
-  | 'setReordering'
->;
-type MusicGalleryNavigation = Pick<
-  MusicPlaylistNavigation,
-  'focused' | 'href' | 'chooseSeries' | 'openPlaylist'
->;
-type MusicGallerySelection = ReturnType<typeof gallerySelection>;
-interface Props {
-  catalog: Catalog;
-  playlists: PlaylistView[];
+export interface MusicGallerySlots {
+  rail?: (navigation: ReactNode, publicEmpty: boolean) => ReactNode;
+  tools?: (navigation: ReactNode) => ReactNode;
+  filters?: ReactNode;
+  grid?: MusicPlaylistGridControls;
+}
+interface Props extends MusicGallerySlots {
+  collection: MusicCollectionView;
   editing: boolean;
-  loading: boolean;
-  loadError?: string;
-  onRetry?: () => void;
-  selection: MusicGallerySelection;
-  browsing: MusicGalleryBrowsing;
-  navigation: MusicGalleryNavigation;
-  draft: Catalog;
-  onChange: (next: Catalog) => void;
-  announce: (message: string) => void;
 }
 export default function MusicCollectionGallery({
-  catalog,
-  playlists,
+  collection,
   editing,
-  loading,
-  loadError,
-  onRetry,
-  selection,
-  browsing,
-  navigation,
-  draft,
-  onChange,
-  announce,
+  rail,
+  tools,
+  filters,
+  grid,
 }: Props) {
-  const { series, matching, displayed, lead } = selection;
   const {
+    catalog,
+    playlists,
+    browsing,
+    loading = false,
+    loadError,
+    onRetry,
+  } = collection;
+  const {
+    selection,
+    navigation,
     gallery,
     seriesId,
     libraryFilter,
     reordering,
-    chooseFilter,
     browseAll,
-    setReordering,
   } = browsing;
-  const edits = createMusicCatalogActions({
-    draft,
-    order: selection.order,
-    seriesId: series?.id ?? null,
-    playlists,
-    changeCatalog: onChange,
-    announce,
-    chooseSeries: navigation.chooseSeries,
-  });
+  const { series, matching, displayed, lead } = selection;
   const publicEmpty = selection.publicEmpty && !loading;
-  const drag = useMusicPlaylistDrag({
-    enabled: canReorderPlaylists(editing, reordering, libraryFilter === 'all'),
-    onDrop: edits.drop,
-  });
   const items = galleryItems({
     displayed,
     playlists,
@@ -115,13 +76,15 @@ export default function MusicCollectionGallery({
   );
   return (
     <>
-      <MusicRail
-        publicEmpty={publicEmpty}
-        editing={editing}
-        loading={loading}
-        seriesNavigation={seriesNavigation}
-        onCreateSeries={edits.createSeries}
-      />
+      {rail ? (
+        rail(seriesNavigation, publicEmpty)
+      ) : (
+        <MusicRail
+          publicEmpty={publicEmpty}
+          editing={editing}
+          seriesNavigation={seriesNavigation}
+        />
+      )}
       <MusicGallery
         publicEmpty={publicEmpty}
         loadError={loadError}
@@ -134,20 +97,10 @@ export default function MusicCollectionGallery({
             onRetry={onRetry}
             hasSeries={catalog.series.length > 0}
             count={matching.length}
-            reordering={reordering}
-            filterAll={libraryFilter === 'all'}
-            onToggleReordering={() => setReordering(!reordering)}
-            seriesNavigation={seriesNavigation}
+            tools={tools?.(seriesNavigation)}
           />
         }
-        filters={
-          <MusicLibraryFilters
-            editing={editing}
-            libraryFilter={libraryFilter}
-            setLibraryFilter={chooseFilter}
-            loading={loading}
-          />
-        }
+        filters={filters}
         empty={
           <MusicEmptyCollection
             loading={loading}
@@ -168,11 +121,11 @@ export default function MusicCollectionGallery({
           href={(id) => navigation.href(seriesId, id)}
           collectionKey={`${seriesId}:${editing}:${displayed.join(',')}`}
           gallery={gallery}
-          onDragStart={drag.start}
-          onDrop={drag.drop}
+          onDragStart={grid?.onDragStart}
+          onDrop={grid?.onDrop}
           openPlaylist={navigation.openPlaylist}
-          select={edits.select}
-          reorder={edits.move}
+          controls={grid?.controls}
+          pendingControl={grid?.pendingControl}
         />
       </MusicGallery>
     </>

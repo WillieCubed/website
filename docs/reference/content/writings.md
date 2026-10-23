@@ -18,7 +18,7 @@ storage boundary is described below.
 
 Frontmatter is the field block at the top of a writing file. Copy
 `_template.mdx` for an article or `_template-note.mdx` for a note; both explain
-their fields in comments. `lib/writings/index.ts` reads the fields below.
+their fields in comments. `lib/writings/load.ts` reads the fields below.
 
 | Field                               | Required | Meaning                                                                                                   |
 | ----------------------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
@@ -208,7 +208,7 @@ IndieAuth authorizes that client to act for the owner. Once authorized, the
 client can save and edit private Studio revisions or use the compatibility path
 for existing published files. The protocol maps MF2 properties to this writing
 model; private revision storage is deliberately separate from public MDX. See [IndieWeb:
-Micropub](../publishing/indieweb.md#micropub) for endpoint details.
+Micropub](../publishing/micropub.md#micropub) for endpoint details.
 
 ### Creating and reading a post
 
@@ -235,7 +235,7 @@ document exists. Unknown targets are rejected. Threads sharing remains manual.
 Record an actual outside copy in `syndication` only when its permalink exists.
 Requested delivery and confirmed copies remain separate so a reader never
 receives an invented syndication link. See the [syndication
-contract](../publishing/indieweb.md#micropub) for the complete path.
+contract](../publishing/micropub.md#micropub) for the complete path.
 
 ### Updating without replacing the author's file
 
@@ -273,3 +273,21 @@ A request records a source operation. Public output changes only when the
 corresponding publication/deployment completes. Verify those stages separately,
 and do not assume that deleting a writing also deletes its R2 objects, outside
 copies, or stored Webmentions.
+
+## Loader reads
+
+Maintainers changing writing loaders should keep metadata lists separate from
+full documents. `getAllWritings` reads metadata through
+`loadAllWritingMetadata`; it does not extract table-of-contents headings.
+`loadWritingMetadata` reads one writing's metadata, and `loadWriting` additionally
+returns its body and headings. Metadata still includes body-derived titles and
+reading time, so both paths apply the same frontmatter and text policies.
+
+React `cache` shares parsed input, metadata lists, and the backlink index within
+one server render. Backlinks read source metadata without extracting headings.
+Plain Node callers, including build and publishing scripts, read files again on
+later calls. There is no process-wide mutable content snapshot to invalidate.
+Series consumers import `getSeries` and `getSeriesWithWritings` from
+`lib/collections` directly. That module reads series files and initiative
+fallbacks without a generic collection adapter. The writings index does not
+forward the series API.

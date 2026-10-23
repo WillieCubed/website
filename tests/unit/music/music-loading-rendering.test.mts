@@ -14,8 +14,10 @@ registerHooks({
       : nextLoad(url, context);
   },
 });
-const { default: MusicExperience } =
-  await import('../../../components/music/MusicExperience');
+const { default: MusicAdminExperience } =
+  await import('../../../components/music/MusicAdminExperience');
+const { default: MusicPublicExperience } =
+  await import('../../../components/music/MusicPublicExperience');
 const { default: PaletteProvider } =
   await import('../../../components/search/palette/PaletteProvider');
 const playlist: MusicPlaylist = {
@@ -42,12 +44,14 @@ function markup(
     createElement(
       PaletteProvider,
       null,
-      createElement(MusicExperience, {
-        mode,
-        loading,
-        playlists,
-        initialCatalog: { ...emptyCatalog, order: ids, selected: ids },
-      })
+      createElement(
+        mode === 'admin' ? MusicAdminExperience : MusicPublicExperience,
+        {
+          loading,
+          playlists,
+          initialCatalog: { ...emptyCatalog, order: ids, selected: ids },
+        }
+      )
     )
   );
 }

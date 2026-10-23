@@ -1,79 +1,47 @@
-# IndieMark criteria and evidence
+# IndieMark criteria
 
-IndieMark groups independent-publishing capabilities into levels. A level is a
-claim about the site's public behavior, so check the public examples before
-claiming one. The [IndieMark
-criteria](https://indieweb.org/IndieMark) are draft guidance and include
-untestable `TBD` items. The table dates each recorded result; verify it again
-before making a current claim. Protocol details follow the [supported behavior
-contract](indieweb-spec.md).
+Maintainers use the [IndieMark criteria](https://indieweb.org/IndieMark) to
+review public independent-publishing capabilities. The criteria are draft
+guidance and include unresolved items. Before claiming a level, collect current
+public examples rather than treating implemented endpoints or an old isolated
+acceptance run as a public result.
 
-## Criteria and repeatable checks
+## Repeatable checks
 
-The checks below distinguish an available feature from an example that a reader
-can actually use. POSSE means publishing on your own site and syndicating
-elsewhere: its evidence needs both the original post and its outside copy. An
-isolated test of the machinery cannot supply those production examples.
+The checks below distinguish available code from behavior a reader can use.
+POSSE means publishing on your own site and syndicating elsewhere. Its evidence
+requires both the original post and the exact outside copy.
 
-| Level | Testable criterion                                                      | Repeatable check                                                                                                                                         | Public state (2026-09-23 unless noted)                                                  |
-| ----- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| 1     | Own domain and use it as an identity for sign-in                        | Fetch the homepage, `rel=me`, IndieAuth metadata, and complete a PKCE authorization on an isolated deployment                                            | Domain and discovery live; isolated normal PKCE authorization passed on October 8, 2026 |
-| 1     | At least two original, indexable HTML posts with permalinks and h-entry | Fetch two approved posts without JavaScript, parse each with an independent microformats parser, check robots and site search                            | Pending; every production writing is a draft                                            |
-| 2     | Representative homepage h-card with name, URL, photo, and icon          | Parse the public homepage with an independent parser; fetch the photo and manifest icon                                                                  | Passed on production on 2026-09-24; see evidence below                                  |
-| 2     | Two real post types, including a note                                   | Parse approved article and note permalinks and their feeds                                                                                               | Pending approved publication                                                            |
-| 2     | Navigate and search public posts                                        | Follow previous/next links and query `/search?q=` for a published phrase                                                                                 | UI exists; public post proof pending                                                    |
-| 2     | POSSE copies link back and the originals link to the copies             | Publish a copy from an existing account, follow its link to the original, and parse the original's exact `u-syndication` permalink                       | Pending manual publication; profile URLs do not count                                   |
-| 2     | Minimal posting action for POSSE                                        | Open the Threads composer from an original post; check that it contains the post text and canonical URL                                                  | Implemented locally; a published copy and its permalink remain unverified               |
-| 2     | Link to or preview outside content in notes                             | Render a note with a bare URL and an `@` handle, follow both links, and inspect any embedded outside resource                                            | URL and handle rendering tested locally; no public note demonstrates it yet             |
-| 3     | A reply post reaches another site's Webmention receiver                 | Publish an approved `u-in-reply-to` post, send its Webmention after deployment, and inspect the receiver                                                 | Isolated sender discovery passed; public reply pending                                  |
-| 3     | A syndicated reply stays in the corresponding outside thread            | Post a reply under a copy of its parent on an existing account and record both copy permalinks                                                           | Pending manual publication                                                              |
-| 3     | Feed subscribers receive updates after publication                      | Check hub/self discovery, subscribe with an independent WebSub tool, publish a post, and confirm delivery after the public alias serves the new revision | Isolated RSS delivery passed with WebSub Rocks; production recheck pending              |
-| 3     | Search results use this domain                                          | Query `/search?q=` for a published phrase and check result links                                                                                         | Search route exists; public post proof pending                                          |
+| Level | Testable criterion                                                      | Repeatable check                                                                                                                                         |
+| ----- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Own domain and use it as an identity for sign-in                        | Fetch the homepage, `rel=me`, IndieAuth metadata, and complete a PKCE authorization on an isolated deployment                                            |
+| 1     | At least two original, indexable HTML posts with permalinks and h-entry | Fetch two approved posts without JavaScript, parse each with an independent microformats parser, check robots and site search                            |
+| 2     | Representative homepage h-card with name, URL, photo, and icon          | Parse the public homepage with an independent parser; fetch the photo and manifest icon                                                                  |
+| 2     | Two real post types, including a note                                   | Parse approved article and note permalinks and their feeds                                                                                               |
+| 2     | Navigate and search public posts                                        | Follow previous/next links and query `/search?q=` for a published phrase                                                                                 |
+| 2     | POSSE copies link back and the originals link to the copies             | Publish a copy from an existing account, follow its link to the original, and parse the original's exact `u-syndication` permalink                       |
+| 2     | Minimal posting action for POSSE                                        | Open the Threads composer from an original post; check that it contains the post text and canonical URL                                                  |
+| 2     | Link to or preview outside content in notes                             | Render a note with a bare URL and an `@` handle, follow both links, and inspect any embedded outside resource                                            |
+| 3     | A reply post reaches another site's Webmention receiver                 | Publish an approved `u-in-reply-to` post, send its Webmention after deployment, and inspect the receiver                                                 |
+| 3     | A syndicated reply stays in the corresponding outside thread            | Post a reply under a copy of its parent on an existing account and record both copy permalinks                                                           |
+| 3     | Feed subscribers receive updates after publication                      | Check hub/self discovery, subscribe with an independent WebSub tool, publish a post, and confirm delivery after the public alias serves the new revision |
+| 3     | Search results use this domain                                          | Query `/search?q=` for a published phrase and check result links                                                                                         |
 
-## Why extra capabilities do not establish a level
+## Claim only the observed public capability
 
-The site also receives moderated Webmentions and offers Micropub creation. Those
-capabilities exceed several level 1–3 criteria, but their existence does not
-replace a missing public post, actual syndication copy, or hub delivery.
+The site also receives moderated Webmentions and offers Micropub. Those
+capabilities do not replace missing public posts, syndicated copies, or
+subscriber delivery. The [supported protocol contract](indieweb-spec.md) owns
+implemented behavior, and [conformance boundaries](publishing-conformance.md)
+define the evidence needed for a new release.
 
-The October 9 acceptance results cover received media, Vouch, moderation, source
-updates and deletion, and upstream Salmention receipt. The recorded independent Authorship
-Rocks and Webmention Rocks discovery checks passed. The [current conformance
-matrix](publishing-conformance.md) links the live receipts and cleanup. These
-isolated checks do not supply the two original production posts or establish a
-production IndieMark level.
+A profile URL identifies an account. A copy permalink identifies the particular
+post and lets a reader verify its link back to the original. The owner must
+publish a manual Threads copy and record that exact permalink. Micropub can
+request the configured automatic Bluesky destination through explicit
+per-writing intent. Check both directions of that association before counting a
+POSSE example.
 
-## Recorded homepage identity result
-
-The [Go Microformats
-parser](https://go.microformats.io/?url=https%3A%2F%2Fwillie.page%2F) returned
-one `h-card` from the production homepage on 2026-09-24. Its `name` was `Willie
-Chalmers III`, its `url` was `https://willie.page/`, and its `photo` was
-`https://willie.page/brand/social/avatar-400.png`. The photo returned HTTP 200
-as a 400 × 400 PNG. The [web manifest](https://willie.page/manifest.webmanifest)
-returned HTTP 200 and listed a [192 × 192 PNG
-icon](https://willie.page/brand/web/icon-192.png), which also returned HTTP 200.
-This established the Level 2 identity criterion on the public domain for that
-inspection. The post, syndication, and search criteria require their own public
-examples; parsing an author card cannot supply them.
-
-## Syndication requires a post permalink
-
-A profile identifies an account, while a copy permalink identifies the particular
-post being syndicated. Recording the latter lets a reader follow the association
-in both directions and check that the outside post actually links home.
-
-The Threads action opens an editable composer with the original URL. The owner
-must publish the copy and record its exact permalink afterward.
-
-Micropub advertises only the configured automatic Bluesky destination. A writing
-must explicitly request that destination before the publisher creates a copy.
-The [real isolated Bluesky
-receipt](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/evidence/atmosphere-hosted-live-20261009.json) records
-source-driven publishing, copy association, real responses and playback;
-[#163](https://github.com/WillieCubed/website/issues/163) is complete.
-
-The dated evidence leaves an approved production original as the prerequisite
-for the public-post criteria. Recheck that state before making a current claim;
-the isolated copy establishes the implementation's behavior, not a production
-post's syndication relationship.
+The [archived criteria record](https://github.com/WillieCubed/website/blob/566f37b570df167f917f20217ee6fcd5131d12a8/docs/reference/publishing/indiemark.md)
+contains earlier observations. Those dates do not establish the current public
+post inventory or a current IndieMark level.

@@ -1,56 +1,45 @@
+import type { ReactNode } from 'react';
+
 import Modal from '@/components/site/Modal';
 
 import {
-  toggleCatalogFeature,
-  toggleCatalogMembership,
-  toggleCatalogSelection,
-  updateCatalogNote,
-} from '@/lib/music/catalog-edits';
-import {
-  type Catalog,
   type MusicMode,
   type PlaylistView,
   listeningTime,
 } from '@/lib/music/presentation';
-import type { MusicSeries } from '@/lib/music/types';
 
 import MusicDetailNavigation from './MusicDetailNavigation';
+import type { MusicCollectionView } from './MusicExperienceView';
 import {
   MusicPlaylistArtwork,
-  MusicPlaylistEditor,
   MusicPlaylistSummary,
   MusicPlaylistTracks,
 } from './MusicPlaylistDetails';
 import { detailDialogKeyDown } from './music-dialog';
 import './styles/detail.css';
-import type { MusicPlaylistNavigation } from './useMusicPlaylistDialog';
 
-interface Props {
-  initialDetail?: string;
+export interface MusicDetailSlots {
+  editor?: (playlist: PlaylistView) => ReactNode;
+  seriesContext?: (playlist: PlaylistView) => ReactNode;
+}
+type MusicDetailView = Pick<
+  MusicCollectionView,
+  'catalog' | 'playlists' | 'browsing' | 'initialDetail'
+>;
+interface Props extends MusicDetailSlots {
+  collection: MusicDetailView;
   mode: MusicMode;
   editing: boolean;
-  catalog: Catalog;
-  draft: Catalog;
-  playlists: PlaylistView[];
-  reordering: boolean;
-  closeHref: string;
-  series: MusicSeries | undefined;
-  navigation: MusicPlaylistNavigation;
-  onChange: (next: Catalog) => void;
 }
 export default function MusicDetail({
-  initialDetail,
+  collection,
   mode,
   editing,
-  catalog,
-  draft,
-  playlists,
-  reordering,
-  closeHref,
-  series,
-  navigation,
-  onChange,
+  editor,
+  seriesContext,
 }: Props) {
+  const { catalog, playlists, browsing, initialDetail } = collection;
+  const { navigation, selection, seriesId, reordering } = browsing;
   const {
     focused,
     dialog,
@@ -77,10 +66,10 @@ export default function MusicDetail({
           <MusicDetailNavigation
             index={currentIndex}
             ids={focusIds}
-            series={series}
+            series={selection.series}
             onOpen={openPlaylist}
             onClose={closePlaylist}
-            closeHref={closeHref}
+            closeHref={navigation.href(seriesId, null)}
             title={current.title}
             playlistId={current.id}
             dialog={dialog}
@@ -99,26 +88,9 @@ export default function MusicDetail({
             <MusicPlaylistArtwork
               playlist={current}
               series={catalog.series}
-              editing={editing}
-              onToggleMembership={(id) =>
-                onChange(toggleCatalogMembership(draft, id, current.id))
-              }
+              context={seriesContext?.(current)}
             />
-            {editing && (
-              <MusicPlaylistEditor
-                playlistId={current.id}
-                draft={draft}
-                onUpdateNote={(note) =>
-                  onChange(updateCatalogNote(draft, current.id, note))
-                }
-                onToggleSelection={() =>
-                  onChange(toggleCatalogSelection(draft, current.id))
-                }
-                onToggleFeature={() =>
-                  onChange(toggleCatalogFeature(draft, current.id))
-                }
-              />
-            )}
+            {editor?.(current)}
             <MusicPlaylistTracks
               playlist={current}
               available={playlists.filter((item) =>

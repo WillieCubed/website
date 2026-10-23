@@ -9,7 +9,8 @@ it does not provision or deploy a Cloudflare Worker.
 
 You need Git with SSH access to `WillieCubed/website`, Node.js 24 or later,
 and pnpm 11.5.1, the version currently pinned in `package.json`. You also need
-network access to GitHub and the package registry, a terminal, a browser, and
+network access to GitHub, the package registry, and Playwright browser downloads,
+a terminal, a browser, and
 an unused parent directory for the checkout. Installing dependencies uses local
 disk space and downloads packages; this exercise creates no provider resources.
 
@@ -67,15 +68,32 @@ values empty. `.env.example` documents the optional features each value enables;
 you do not need a Neon connection or signed Cloudflare Access request to browse
 ordinary content. Never commit real environment values.
 
+### Install the test browser
+
+The unit suite includes headless Chromium fixtures. Install the browser version
+pinned by the locked Playwright package before running the checks:
+
+```sh
+pnpm exec playwright install chromium
+```
+
+This downloads a browser into the local Playwright cache. On Linux, install its
+system libraries with `pnpm exec playwright install --with-deps chromium`.
+That command can require administrator access for operating-system packages.
+Resolve a missing browser or library before continuing; an ordinary installed
+Chrome does not replace Playwright's pinned Chromium.
+
 ### Run the repository checks
 
 ```sh
 pnpm check
 ```
 
-Expect tests, lint, type checking, and the Next production build to pass. The
-package scripts also prepare the Studio browser runtime, search index, and
-Cloudflare content manifest needed by the app. These checks build local output;
+Expect documentation checks, tests, lint, type checking, and the Next production
+build to pass. The
+package scripts share `pnpm content:prepare` for the Studio browser runtime,
+compiled MDX, search index, and Worker content manifest. That command reuses
+artifacts only when source/configuration fingerprints and output bytes match. These checks build local output;
 they do not upload a Worker or prove a hosted deployment.
 
 Stop at the first failure and inspect its command output. Keep the lockfile

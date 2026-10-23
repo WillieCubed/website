@@ -6,12 +6,13 @@ import Icon from '@/components/icons/Icon';
 import Popover from '@/components/site/Popover';
 
 import { formatDate } from '@/lib/site/dates';
-import type { Draft, DraftContent } from '@/lib/studio/types';
+import type { DraftContent } from '@/lib/studio/types';
 
 import type { DraftUpdate } from './writing-contracts';
 
 interface WritingMetadataProps {
-  draft: Draft;
+  savedRevisionId: string;
+  liveRevisionId: string | null;
   showHeading: boolean;
   setShowHeading: (show: boolean) => void;
   titleField: RefObject<HTMLTextAreaElement | null>;
@@ -24,7 +25,8 @@ interface WritingMetadataProps {
 }
 
 export default function WritingMetadata({
-  draft,
+  savedRevisionId,
+  liveRevisionId,
   showHeading,
   setShowHeading,
   titleField,
@@ -75,7 +77,9 @@ export default function WritingMetadata({
           </>
         )}
         <span aria-hidden="true">·</span>
-        <span>{writingPublicationState(draft, !dirty)}</span>
+        <span>
+          {writingPublicationState(savedRevisionId, liveRevisionId, !dirty)}
+        </span>
         <AddWritingTitle
           body={body}
           showHeading={showHeading}
@@ -138,9 +142,13 @@ export default function WritingMetadata({
   );
 }
 
-function writingPublicationState(draft: Draft, saved: boolean): string {
-  if (!draft.liveRevisionId) return 'Draft';
-  return draft.liveRevisionId === draft.head.id && saved
+function writingPublicationState(
+  savedRevisionId: string,
+  liveRevisionId: string | null,
+  saved: boolean
+): string {
+  if (!liveRevisionId) return 'Draft';
+  return liveRevisionId === savedRevisionId && saved
     ? 'Published'
     : 'Unpublished changes';
 }

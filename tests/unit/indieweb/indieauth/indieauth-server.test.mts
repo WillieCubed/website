@@ -10,21 +10,23 @@ import {
 import {
   ACCESS_TOKEN_LIFETIME_MS,
   AUTHORIZATION_CODE_LIFETIME_MS,
-  INDIEAUTH_ISSUER,
-  buildIndieAuthMetadata,
   codeChallengeFor,
   findActiveToken,
   hashSecret,
-  introspectionResponse,
   issueAccessToken,
   issueAuthorizationCode,
-  parseAuthorizationRequest,
-  parseScope,
   profileResponse,
   redeemAuthorizationCode,
   refreshAccessToken,
   revokeAccessToken,
   verifyPkce,
+} from '@/lib/indieweb/indieauth/grants';
+import {
+  INDIEAUTH_ISSUER,
+  buildIndieAuthMetadata,
+  introspectionResponse,
+  parseAuthorizationRequest,
+  parseScope,
 } from '@/lib/indieweb/indieauth/server';
 import type { IndieAuthAuthorizationRequest } from '@/lib/indieweb/indieauth/types';
 import { site } from '@/lib/site/identity';

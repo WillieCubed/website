@@ -8,8 +8,10 @@ import { entries } from '@/lib/home/ventures';
 
 import { DetailDialog } from './DetailDialog';
 import {
+  type HomeActions,
+  HomeActionsContext,
   HomeContext,
-  type HomeContextValue,
+  type HomePreviewState,
   type Preview,
 } from './HomeContext';
 
@@ -45,7 +47,7 @@ export function HomeShell({
 }: HomeShellProps) {
   const [preview, setPreviewState] = useState<Preview>(null);
   const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const opener = useRef<HomeContextValue['openDetail'] | null>(null);
+  const opener = useRef<HomeActions['openDetail'] | null>(null);
 
   const cancelClear = () => {
     if (clearTimer.current) clearTimeout(clearTimer.current);
@@ -64,7 +66,33 @@ export function HomeShell({
   }, []);
   const clearPreviewNow = useCallback(() => setPreview(null), [setPreview]);
 
-  const value = useMemo<HomeContextValue>(() => {
+  const actions = useMemo<HomeActions>(
+    () => ({
+      setPreview,
+      clearPreview,
+      clearPreviewNow,
+      brands,
+      openDetail: (id, from) => {
+        if (opener.current) opener.current(id, from);
+        else window.location.assign(`/?detail=${encodeURIComponent(id)}`);
+      },
+    }),
+    [setPreview, clearPreview, clearPreviewNow, brands]
+  );
+  const dialog = useMemo(
+    () => (
+      <DetailDialog
+        initialId={initialDetail}
+        countdown={detailCountdown}
+        registerOpener={(open) => {
+          opener.current = open;
+        }}
+      />
+    ),
+    [initialDetail, detailCountdown]
+  );
+
+  const value = useMemo<HomePreviewState>(() => {
     const focusesOf = (id: string) =>
       entries[id]?.focuses ?? extraEntries[id]?.focuses;
     const matches = (id: string) => {
@@ -81,48 +109,29 @@ export function HomeShell({
         : (focusesOf(preview.id) ?? []);
     return {
       preview,
-      setPreview,
-      clearPreview,
-      clearPreviewNow,
       matches,
       lit,
-      openDetail: (id, from) => {
-        if (opener.current) opener.current(id, from);
-        else window.location.assign(`/?detail=${encodeURIComponent(id)}`);
-      },
-      brands,
     };
-  }, [
-    preview,
-    setPreview,
-    clearPreview,
-    clearPreviewNow,
-    brands,
-    extraEntries,
-  ]);
+  }, [preview, extraEntries]);
 
   return (
-    <HomeContext value={value}>
-      <div className="home">
-        <div
-          className={
-            !preview
-              ? 'shell'
-              : 'focus' in preview && preview.pinned
-                ? 'shell focusing pinned'
-                : 'shell focusing'
-          }
-        >
-          {children}
+    <HomeActionsContext value={actions}>
+      <HomeContext value={value}>
+        <div className="home">
+          <div
+            className={
+              !preview
+                ? 'shell'
+                : 'focus' in preview && preview.pinned
+                  ? 'shell focusing pinned'
+                  : 'shell focusing'
+            }
+          >
+            {children}
+          </div>
+          {dialog}
         </div>
-        <DetailDialog
-          initialId={initialDetail}
-          registerOpener={(open) => {
-            opener.current = open;
-          }}
-          countdown={detailCountdown}
-        />
-      </div>
-    </HomeContext>
+      </HomeContext>
+    </HomeActionsContext>
   );
 }

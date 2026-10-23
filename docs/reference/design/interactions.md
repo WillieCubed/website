@@ -12,6 +12,11 @@ Add `site-control` to an action button or an action-like navigation link.
 the hit target, pressed shape, focus indicator, disabled treatment, and reduced
 motion. Component styles own the resting shape and Material color roles.
 
+Viewport feedback uses `ViewportPortal` outside the page's transformed and
+clipped surface. The portal retains server and hydration markup before moving
+its existing roles and actions to the document body. Navigation hints and Music
+notices share this owner so the footer cannot clip or cover their controls.
+
 Material offers five visual sizes. Size and emphasis communicate an action's
 role; the clickable area is a separate accessibility decision.
 
@@ -98,7 +103,7 @@ layout, and all content and links work without JavaScript.
 
 After scrolling brings the footer into view, native CSS `y proximity` snapping
 can settle the document at its end. The browser controls its distance and timing;
-the single endpoint does not force a stop or intercept scrolling. It is outside
+the footer's end target does not force a stop or intercept scrolling. It is outside
 the sticky homepage footer, hidden from assistive technology, and disabled for
 reduced motion, short static pages, and footers taller than the viewport.
 

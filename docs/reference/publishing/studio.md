@@ -40,6 +40,11 @@ hide the canvas. Views receive the document IDs, revision IDs, body, status,
 and actions their work requires; they do not gain persistence authority through
 an unused controller contract.
 
+The review screen owns a task-start scroll snap target. Portable preview height
+changes must not leave the footer as the only target and move review controls
+outside the viewport. Returning to writing still restores the editor's saved
+position; preview sizing does not replace that return point.
+
 ## Publication boundaries
 
 `lib/studio/publication-artifacts.ts` resolves approved widgets and portable

@@ -1,10 +1,17 @@
 import { repositoryRoot } from './shared/command.mts';
-import { prepareArtifact } from './shared/preparation.mts';
+import {
+  preparationConfiguration,
+  prepareArtifact,
+} from './shared/preparation.mts';
 
 // Search must use the same production loaders even when MDX is reused.
 Object.assign(process.env, { NODE_ENV: 'production' });
 
-const generated = ['lib/mdx/generated.tsx', 'lib/content/generated-content.ts'];
+const generated = [
+  'lib/mdx/generated.tsx',
+  'lib/content/generated-content.ts',
+  'public/_content-images',
+];
 const tools = [
   'package.json',
   'pnpm-lock.yaml',
@@ -15,11 +22,7 @@ const tools = [
   'scripts/prepare.mts',
   'scripts/shared',
 ];
-const configuration = Object.fromEntries(
-  Object.entries(process.env).filter(([key]) =>
-    /^(NEXT_PUBLIC_|SITE_)/.test(key)
-  )
-);
+const configuration = preparationConfiguration(process.env);
 
 async function prepare(
   name: string,
@@ -63,8 +66,9 @@ await prepare(
     'public',
     'brand/fonts',
     'scripts/cloudflare/generate-content-manifest.mts',
+    'scripts/content/public-images.mts',
   ],
-  ['lib/content/generated-content.ts'],
+  ['lib/content/generated-content.ts', 'public/_content-images'],
   async () =>
     (
       await import('./cloudflare/generate-content-manifest.mts')

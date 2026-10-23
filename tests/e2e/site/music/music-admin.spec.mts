@@ -542,6 +542,13 @@ test('publication feedback stays out of the page layout', async ({
   const review = page.getByRole('button', { name: 'Review changes' });
   await expect(review).toBeEnabled();
   await review.scrollIntoViewIfNeeded();
+  // The footer writes its scroll-driven sheet width on the next animation frame.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      )
+  );
   const composition = () =>
     page.evaluate(() =>
       Array.from(

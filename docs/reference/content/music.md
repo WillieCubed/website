@@ -122,6 +122,10 @@ DOM and focus. Setup, review, and preview transitions must retain mounted forms
 and the draft owner. An operation owns its own error, so a successful publication
 poll cannot clear a failed save or history request.
 
+Recovery, save, and publication notices use the shared
+[viewport feedback layer](../design/interactions.md#action-controls). Their
+actions remain reachable when the footer clips and narrows the page surface.
+
 ## Storage and approval
 
 Private Music tables share the studio database. Immutable revisions preserve

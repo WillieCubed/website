@@ -1,26 +1,98 @@
 // Generated runtime content manifest.
 export const imageDimensions: Record<
   string,
-  { width: number; height: number }
+  { width: number; height: number; immutableSrc?: string }
 > = {
   '/apple-touch-icon.png': { width: 180, height: 180 },
-  '/assets/headshot.jpg': { width: 1157, height: 1157 },
-  '/assets/home/curfew-lockout.webp': { width: 1544, height: 960 },
-  '/assets/home/docket-app.webp': { width: 1600, height: 928 },
-  '/assets/home/icon-atlas.webp': { width: 96, height: 96 },
-  '/assets/home/icon-diaries.webp': { width: 96, height: 96 },
-  '/assets/home/icon-docket.webp': { width: 96, height: 96 },
-  '/assets/home/icon-hypertext.webp': { width: 96, height: 96 },
-  '/assets/home/icon-logdate.webp': { width: 96, height: 96 },
-  '/assets/home/icon-lovelace.webp': { width: 96, height: 96 },
-  '/assets/home/icon-lvbt.webp': { width: 96, height: 96 },
-  '/assets/home/icon-transitmapper.webp': { width: 96, height: 96 },
-  '/assets/home/logdate-phone.webp': { width: 948, height: 1852 },
-  '/assets/home/lovelace-ada.webp': { width: 1350, height: 580 },
-  '/assets/home/transit-mapper.webp': { width: 1200, height: 630 },
+  '/assets/headshot.jpg': {
+    width: 1157,
+    height: 1157,
+    immutableSrc:
+      '/_content-images/cf305eec2543cc89f4c5388ab16790a11325241cfc6156be1c9df51c710e796b.jpg',
+  },
+  '/assets/home/curfew-lockout.webp': {
+    width: 1544,
+    height: 960,
+    immutableSrc:
+      '/_content-images/132c37352dbd2c5816b455ee2346c8f7a9f96e38fe3530463fabaedf1ca5af95.webp',
+  },
+  '/assets/home/docket-app.webp': {
+    width: 1600,
+    height: 928,
+    immutableSrc:
+      '/_content-images/caf24be753253f7ca229d707b4fdbab8f32992f0a9489200caed232f7120c596.webp',
+  },
+  '/assets/home/icon-atlas.webp': {
+    width: 96,
+    height: 96,
+    immutableSrc:
+      '/_content-images/4bb106238f41c7f40542ed514f4facf608ead8f5dc85e33718dfd5505d500f23.webp',
+  },
+  '/assets/home/icon-diaries.webp': {
+    width: 96,
+    height: 96,
+    immutableSrc:
+      '/_content-images/cbe86bf6ce5bd2c8cd02953693190d8edd41aee4259e74e5998851cfa2528c26.webp',
+  },
+  '/assets/home/icon-docket.webp': {
+    width: 96,
+    height: 96,
+    immutableSrc:
+      '/_content-images/2ee4a94d0625008348fc0a76305917bb8e71376d26eb568a9044692d446dc45f.webp',
+  },
+  '/assets/home/icon-hypertext.webp': {
+    width: 96,
+    height: 96,
+    immutableSrc:
+      '/_content-images/241f25eaba48c520df276ffebfd9dd49108b864b2715fe36074922b98f8c8cf3.webp',
+  },
+  '/assets/home/icon-logdate.webp': {
+    width: 96,
+    height: 96,
+    immutableSrc:
+      '/_content-images/7cb057a607304e57cd255ac36d1c5f2eb0d14557b3043a89e5d1066c0b64636d.webp',
+  },
+  '/assets/home/icon-lovelace.webp': {
+    width: 96,
+    height: 96,
+    immutableSrc:
+      '/_content-images/e83ae441bd49a6b0d8ad5af0f68725d3a6d1a1dfc791191c4327c13678cb6ba0.webp',
+  },
+  '/assets/home/icon-lvbt.webp': {
+    width: 96,
+    height: 96,
+    immutableSrc:
+      '/_content-images/f7ed9b586943a66c26b99448c6e1d07ddb3e9e4cb0bc6c249d12fd62eb76213a.webp',
+  },
+  '/assets/home/icon-transitmapper.webp': {
+    width: 96,
+    height: 96,
+    immutableSrc:
+      '/_content-images/24e46c9e9d78476e265457f0cb44ad0a376d54befdf942351948abc70907c440.webp',
+  },
+  '/assets/home/logdate-phone.webp': {
+    width: 948,
+    height: 1852,
+    immutableSrc:
+      '/_content-images/78b18efcded55a30c83e8e9eed3fe494ab8c7c9207d13f488a8c5e8e42b1c89c.webp',
+  },
+  '/assets/home/lovelace-ada.webp': {
+    width: 1350,
+    height: 580,
+    immutableSrc:
+      '/_content-images/aa4b7bd106a843da8ed52d88ff0bbbc671aa7d2bf5497e3a932adc93885c1254.webp',
+  },
+  '/assets/home/transit-mapper.webp': {
+    width: 1200,
+    height: 630,
+    immutableSrc:
+      '/_content-images/1c44b8090dfca7b104ac1016458f67bfc9b4963dbc35ff0200c21d046b028ca8.webp',
+  },
   '/assets/home/week-without-driving-las-vegas.webp': {
     width: 960,
     height: 540,
+    immutableSrc:
+      '/_content-images/b85121700510b1d8d98b382d0495fdbc25d2178586ae6839053f9409325a8a0e.webp',
   },
   '/assets/initiatives/fall-tour-2026/cover.svg': { width: 1200, height: 800 },
   '/assets/initiatives/fall-tour-2026/part-1.svg': { width: 1200, height: 800 },
@@ -29,44 +101,131 @@ export const imageDimensions: Record<
   '/assets/initiatives/fall-tour-2026/part-4.svg': { width: 1200, height: 800 },
   '/assets/initiatives/superbloom/cover.svg': { width: 1200, height: 800 },
   '/assets/initiatives/twd/cover.svg': { width: 1200, height: 800 },
-  '/assets/media/college-tour-keep-utd-nerdy.jpg': { width: 1280, height: 720 },
+  '/assets/media/college-tour-keep-utd-nerdy.jpg': {
+    width: 1280,
+    height: 720,
+    immutableSrc:
+      '/_content-images/a8a5f0476da4c2aaf4a2cee9d8561f5ebee9498a7a16c263eaea68dc28bd5916.jpg',
+  },
   '/assets/media/college-tour-ut-dallas-coverage.webp': {
     width: 753,
     height: 997,
+    immutableSrc:
+      '/_content-images/431d7fdfb5717b7e4c55378aa9f9ee9952ceff0cbaac22d5585f5ee2c9528e1d.webp',
   },
-  '/assets/media/fox5-week-without-driving.webp': { width: 1920, height: 1080 },
-  '/assets/media/las-vegas-sun-da-vinci.jpg': { width: 650, height: 433 },
-  '/assets/media/las-vegas-sun-fares.jpg': { width: 1200, height: 762 },
-  '/assets/media/mercury-campus-town-hall.png': { width: 1200, height: 1174 },
+  '/assets/media/fox5-week-without-driving.webp': {
+    width: 1920,
+    height: 1080,
+    immutableSrc:
+      '/_content-images/362c6ba178bc83cdada74e62722dba3ca47fcfeee0cc68df1632d658da9575c9.webp',
+  },
+  '/assets/media/las-vegas-sun-da-vinci.jpg': {
+    width: 650,
+    height: 433,
+    immutableSrc:
+      '/_content-images/159e96be691a978fa2a3336c32f3f0cf646575dae91c2fe60871a8ae8a5cbb1c.jpg',
+  },
+  '/assets/media/las-vegas-sun-fares.jpg': {
+    width: 1200,
+    height: 762,
+    immutableSrc:
+      '/_content-images/a4a29d66ed03e241fa1a14beadabd3bdff5edda5dfd226c83329e870be84ac5a.jpg',
+  },
+  '/assets/media/mercury-campus-town-hall.png': {
+    width: 1200,
+    height: 1174,
+    immutableSrc:
+      '/_content-images/96a6a76582f8d3ff1cb3b445bea1855ab1261d8498734869cb005f98f294ebbd.png',
+  },
   '/assets/media/mercury-clark-program-cancellation.jpg': {
     width: 2560,
     height: 1707,
+    immutableSrc:
+      '/_content-images/f929770537d2b0fab5633ecfc67c0790457eebc96c3c37b3b8d55c7d925ec016.jpg',
   },
-  '/assets/media/mercury-de-densification.jpg': { width: 1200, height: 802 },
+  '/assets/media/mercury-de-densification.jpg': {
+    width: 1200,
+    height: 802,
+    immutableSrc:
+      '/_content-images/20cbb241eb51c75b729b6dd4ba417f9657b309ff05b46234eae823aac04442ae.jpg',
+  },
   '/assets/media/mercury-diversity-equity-committee.jpg': {
     width: 1200,
     height: 675,
+    immutableSrc:
+      '/_content-images/c49bef005af9525cc45f4d73cd13dae5eda7385cffa70673413744715f5fce49.jpg',
   },
-  '/assets/media/mercury-ecs-advising.jpg': { width: 1240, height: 566 },
-  '/assets/media/mercury-heartbeat-of-utd.jpg': { width: 1200, height: 800 },
-  '/assets/media/mercury-nebula-labs.jpg': { width: 1200, height: 1200 },
+  '/assets/media/mercury-ecs-advising.jpg': {
+    width: 1240,
+    height: 566,
+    immutableSrc:
+      '/_content-images/0e9d060dd871b68dea29667b7bba152b7e62cd58846d87f84150de128d1ca277.jpg',
+  },
+  '/assets/media/mercury-heartbeat-of-utd.jpg': {
+    width: 1200,
+    height: 800,
+    immutableSrc:
+      '/_content-images/d839fde8587eae406565075bdef1d580503fda5e0bb67674e933a8cb519ff538.jpg',
+  },
+  '/assets/media/mercury-nebula-labs.jpg': {
+    width: 1200,
+    height: 1200,
+    immutableSrc:
+      '/_content-images/58803381b0d88f6cd4a1dc3f245d87a72bcd88651d176cdfa0170f38159e0897.jpg',
+  },
   '/assets/media/mercury-student-government-update.jpg': {
     width: 300,
     height: 300,
+    immutableSrc:
+      '/_content-images/8a2fb5c74b455cb8d6a60a2d9d02650afae1adc19c81e89b6fce040c2eb307bb.jpg',
   },
-  '/assets/media/mercury-taco-bell.jpg': { width: 800, height: 533 },
-  '/assets/media/ut-dallas-anniversary.jpg': { width: 1000, height: 667 },
-  '/assets/media/ut-dallas-clark-scholars.jpg': { width: 1024, height: 739 },
-  '/assets/media/ut-dallas-eweek.jpg': { width: 1920, height: 1280 },
-  '/assets/media/ut-dallas-robotics-lecture.jpg': { width: 1127, height: 751 },
-  '/assets/media/ut-dallas-sweet-connections.jpg': { width: 1300, height: 867 },
+  '/assets/media/mercury-taco-bell.jpg': {
+    width: 800,
+    height: 533,
+    immutableSrc:
+      '/_content-images/8dc06af98c0de9b2c3878971c8cb70ba2f22d0f48a483996c8401ed5fe3c5368.jpg',
+  },
+  '/assets/media/ut-dallas-anniversary.jpg': {
+    width: 1000,
+    height: 667,
+    immutableSrc:
+      '/_content-images/d1ad3872bff7f63720d58397c8ac4659aeafc88991e042450b291040e844b96b.jpg',
+  },
+  '/assets/media/ut-dallas-clark-scholars.jpg': {
+    width: 1024,
+    height: 739,
+    immutableSrc:
+      '/_content-images/7ea3cd745579eb30ad5d7f36bcdfdd2acec19224e9c5f0b9ff411d2cfed0c47b.jpg',
+  },
+  '/assets/media/ut-dallas-eweek.jpg': {
+    width: 1920,
+    height: 1280,
+    immutableSrc:
+      '/_content-images/eafd187277c1895d532b75226b95a3d33fe82e0fa0bc82813c3aac697fd5acd2.jpg',
+  },
+  '/assets/media/ut-dallas-robotics-lecture.jpg': {
+    width: 1127,
+    height: 751,
+    immutableSrc:
+      '/_content-images/792cca91ebd2476b1aced073cd00c3fd204c2c4b97cad00800a53270b160862f.jpg',
+  },
+  '/assets/media/ut-dallas-sweet-connections.jpg': {
+    width: 1300,
+    height: 867,
+    immutableSrc:
+      '/_content-images/a2fcc8b56651d96b33fc5d8c4958eca9d3c79bbd460f6cf096a65fbf0d565cb1.jpg',
+  },
   '/assets/projects/parlipro/feature-companion-view.png': {
     width: 1920,
     height: 1080,
+    immutableSrc:
+      '/_content-images/c84bf3cba986b760e68707f45632472d4c740a70cbed39e40d2bab372652f311.png',
   },
   '/assets/projects/parlipro/project-hero-graphic.webp': {
     width: 1919,
     height: 1066,
+    immutableSrc:
+      '/_content-images/068ec8799ca5f308a322f756a4108ee8872360fee266ef8985e2ec42fd258e10.webp',
   },
   '/brand/android/play-store-512.png': { width: 512, height: 512 },
   '/brand/android/res/mipmap-hdpi/ic_launcher.png': { width: 72, height: 72 },

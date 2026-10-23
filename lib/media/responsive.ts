@@ -1,5 +1,7 @@
 import { getImageProps } from 'next/image';
 
+import { imageDimensions } from '@/lib/content/generated-content';
+
 /** Only public, dimensioned content uses the site's configured image optimizer. */
 export function localImageSources(
   src: string | undefined,
@@ -7,13 +9,20 @@ export function localImageSources(
   height: number | undefined,
   sizes: string
 ): { src?: string; srcSet?: string; sizes?: string } {
-  if (
-    !src?.startsWith('/assets/') ||
-    !/\.(?:avif|jpe?g|png|webp)$/i.test(src) ||
-    width === undefined ||
-    height === undefined
-  )
+  const image = imageDimensions[src ?? ''];
+  if (!image?.immutableSrc || width === undefined || height === undefined)
     return {};
-  const { props } = getImageProps({ src, width, height, sizes, alt: '' });
-  return { src: props.src, srcSet: props.srcSet, sizes: props.sizes };
+  const { props } = getImageProps({
+    src: image.immutableSrc,
+    overrideSrc: src,
+    width,
+    height,
+    sizes,
+    alt: '',
+  });
+  return {
+    src: props.src,
+    srcSet: props.srcSet,
+    sizes: props.sizes,
+  };
 }

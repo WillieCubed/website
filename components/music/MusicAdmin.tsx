@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import SiteLink from '@/components/link/SiteLink';
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
+import ViewportPortal from '@/components/site/ViewportPortal';
 
 import type {
   MusicAdminCollectionData,
@@ -99,54 +100,56 @@ export default function MusicAdmin() {
           <SiteLink href="/music">Browse the music collection</SiteLink>.
         </p>
       </noscript>
-      <div className="music-admin-notices">
-        <MusicSaveNotice
-          error={draft.state.error}
-          blocked={currentDraft.blocked}
-          conflict={draft.state.conflict}
-          reconnect={Boolean(library.connection?.reconnect)}
-          onRetry={draft.retry}
-          onUseSaved={() => loadSavedDraft(library.load)}
-          onConnect={library.connect}
-          onDismiss={draft.dismissError}
-        />
-        <MusicLibraryNotices
-          loadError={library.loadError}
-          connectError={library.connectError}
-          refreshError={library.refreshError}
-          onDismissLoad={library.dismissLoadError}
-          onDismissConnect={library.dismissConnectError}
-          onDismissRefresh={library.dismissRefreshError}
-          reconnect={Boolean(library.connection?.reconnect)}
-          onRetry={retryLoad}
-          onConnect={library.connect}
-        />
-        <MusicOperationErrors
-          notices={[
-            { error: history.error, onDismiss: history.dismissError },
-            { error: publication.error, onDismiss: publication.dismissError },
-            { error: callback.error, onDismiss: callback.dismiss },
-            { error: retention.error, onDismiss: retention.dismiss },
-          ]}
-        />
-        {busy && (
-          <p className="sr-only" role="status">
-            {status === 'Importing Spotify playlists…' ? status : 'Working…'}
-          </p>
-        )}
-        <MusicRecoveryNotice
-          available={recovery.available}
-          disabled={busy}
-          onRecover={recovery.recover}
-          onDiscard={recovery.discard}
-        />
-        <MusicPublicationNotice
-          publication={publication.publication}
-          visible={publication.showPublicationNotice}
-          onRetry={() => publication.publish(draft.inspect().savedCatalog)}
-          onDismiss={publication.dismissNotice}
-        />
-      </div>
+      <ViewportPortal>
+        <div className="music-admin-notices">
+          <MusicSaveNotice
+            error={draft.state.error}
+            blocked={currentDraft.blocked}
+            conflict={draft.state.conflict}
+            reconnect={Boolean(library.connection?.reconnect)}
+            onRetry={draft.retry}
+            onUseSaved={() => loadSavedDraft(library.load)}
+            onConnect={library.connect}
+            onDismiss={draft.dismissError}
+          />
+          <MusicLibraryNotices
+            loadError={library.loadError}
+            connectError={library.connectError}
+            refreshError={library.refreshError}
+            onDismissLoad={library.dismissLoadError}
+            onDismissConnect={library.dismissConnectError}
+            onDismissRefresh={library.dismissRefreshError}
+            reconnect={Boolean(library.connection?.reconnect)}
+            onRetry={retryLoad}
+            onConnect={library.connect}
+          />
+          <MusicOperationErrors
+            notices={[
+              { error: history.error, onDismiss: history.dismissError },
+              { error: publication.error, onDismiss: publication.dismissError },
+              { error: callback.error, onDismiss: callback.dismiss },
+              { error: retention.error, onDismiss: retention.dismiss },
+            ]}
+          />
+          {busy && (
+            <p className="sr-only" role="status">
+              {status === 'Importing Spotify playlists…' ? status : 'Working…'}
+            </p>
+          )}
+          <MusicRecoveryNotice
+            available={recovery.available}
+            disabled={busy}
+            onRecover={recovery.recover}
+            onDiscard={recovery.discard}
+          />
+          <MusicPublicationNotice
+            publication={publication.publication}
+            visible={publication.showPublicationNotice}
+            onRetry={() => publication.publish(draft.inspect().savedCatalog)}
+            onDismiss={publication.dismissNotice}
+          />
+        </div>
+      </ViewportPortal>
       <MusicAdminExperience
         key={collection.generation}
         playlists={playlists}

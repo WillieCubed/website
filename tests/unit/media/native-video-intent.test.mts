@@ -3,11 +3,13 @@ import { build } from 'esbuild';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import test from 'node:test';
 
-test('an HLS video reads neither its player nor its manifest until playback intent and respects a pause while loading', async () => {
-  const directory = await mkdtemp(join(process.cwd(), 'artifacts/hls-intent-'));
+test('an HLS video reads neither its player nor its manifest until playback intent and respects a pause while loading', async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'hls-intent-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
   let releaseManifest!: () => void;
   const manifestReady = new Promise<void>((resolve) => {
     releaseManifest = resolve;
@@ -41,7 +43,7 @@ test('an HLS video reads neither its player nor its manifest until playback inte
     await build({
       stdin: {
         contents: `import React from 'react';import {createRoot} from 'react-dom/client';import Video from './components/media/NativeVideo';createRoot(document.getElementById('root')).render(React.createElement(Video,{src:location.origin+'/stream.m3u8'}));`,
-        resolveDir: process.cwd(),
+        resolveDir: resolve(import.meta.dirname, '../../..'),
         sourcefile: 'entry.tsx',
       },
       bundle: true,
@@ -73,26 +75,25 @@ test('an HLS video reads neither its player nor its manifest until playback inte
       false
     );
     await page.locator('video').evaluate((video: HTMLVideoElement) => {
-      video.dataset.playCalls = '0';
-      video.play = () => {
-        video.dataset.playCalls = String(Number(video.dataset.playCalls) + 1);
-        return Promise.resolve();
-      };
+      video.muted = true;
     });
     const manifestResponse = page.waitForResponse('**/stream.m3u8');
     const manifest = page.waitForRequest('**/stream.m3u8');
-    await page.locator('video').dispatchEvent('play');
+    await page.locator('video').focus();
+    await page.locator('video').press('Space');
     await manifest;
-    await page.locator('video').dispatchEvent('pause');
+    await page.locator('video').evaluate((v: HTMLVideoElement) => v.pause());
     releaseManifest();
     await (await manifestResponse).finished();
     await page.waitForTimeout(250);
     assert.equal(
-      await page.locator('video').getAttribute('data-play-calls'),
-      '0'
+      await page.locator('video').evaluate((v: HTMLVideoElement) => v.paused),
+      true
     );
     const segment = page.waitForRequest('**/segment.ts');
-    await page.locator('video').dispatchEvent('play');
+    await page
+      .locator('video')
+      .evaluate((v: HTMLVideoElement) => void v.play().catch(() => {}));
     await segment;
     assert.equal(
       requests.some((path) => /hls.*\.js$/.test(path)),
@@ -102,6 +103,5 @@ test('an HLS video reads neither its player nor its manifest until playback inte
     releaseManifest();
     await browser.close();
     await new Promise<void>((resolve) => server.close(() => resolve()));
-    await rm(directory, { recursive: true, force: true });
   }
 });

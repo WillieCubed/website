@@ -105,9 +105,15 @@ Studio fixture server or another explicitly selected authenticated target.
 Supply `PREVIEW_METRICS_PRIVATE_STORAGE_STATE` with a Playwright storage-state
 file or `PREVIEW_METRICS_PRIVATE_HEADERS` with JSON request headers when the
 target needs them. The collector probes `/api/studio/documents` before measuring
-`/studio` and `/studio/music`. A missing target or a rejected authentication/data
+`/studio`, `/studio/music`, and an optional same-origin detail selected by
+`PREVIEW_METRICS_INITIATIVE_PATH`. Header injection applies only to the selected
+origin, including redirect hops. Storage-state cookies keep the browser's native
+scope. CDP request interception preserves HTTP caching; Playwright routing would
+disable it. A missing target or a rejected authentication/data
 probe produces explicit unavailable private-route samples. The collector never
 counts an unauthenticated page shell as successful private measurement.
+Probe failures retain the requested paths and sample count. Network errors use
+a fixed diagnostic because raw request exceptions can contain credentials.
 
 Private outcomes live under `privateRoutes`. They remain separate from public
 CI status because the default public preview has no private fixture or owner
@@ -117,7 +123,7 @@ headers.
 
 Set `PREVIEW_METRICS_PRIVATE_ONLY=1` for an authenticated fixture-only run. The
 report uses `scope: private`, leaves public routes and journeys empty, and
-measures only `/studio` and `/studio/music`. The isolated Studio metrics harness
+measures those private routes and any configured initiative. The isolated Studio metrics harness
 selects this scope automatically. It provides no public performance coverage;
 run public production metrics separately.
 
@@ -142,25 +148,45 @@ change RSC backpressure. These measurements describe bytes the visitor's
 browser received during the stated windows, rather than bytes obtained by
 forcing every response to finish.
 
+The responsive content image path uses prepared content-hashed originals for
+immutable optimizer responses. Compare warm image bytes as well as cold
+transfer savings. The
+[performance guide](../../guides/operations/performance.md#images-video-and-byte-delivery)
+owns this cache policy. A smaller cold image total does not excuse a larger warm
+retransfer or an image that never decoded.
+
 ## CI review evidence
 
-Set `PREVIEW_METRICS_SCREENSHOTS=1` to capture public routes after every cold,
-warm, private, and journey measurement has finished. The collector reuses its
+Set `PREVIEW_METRICS_SCREENSHOTS=1` to capture routes after every cold,
+warm, private, and journey measurement has finished. Public runs capture public
+routes. Private-only runs capture `/studio`, `/studio/music`, and an optional
+same-origin initiative detail selected by `PREVIEW_METRICS_INITIATIVE_PATH` from
+`PREVIEW_METRICS_PRIVATE_BASE_URL` with the same JSON request headers and
+storage-state file configured for private measurements. The collector reuses its
 browser and server, but screenshots use fresh contexts. Capture requests never
 contribute to the previously recorded bandwidth or timing samples.
 
 Each route receives uncropped 1440×1000 and 390×844 viewport captures in light
 and dark themes. The capture waits for fonts and in-viewport images to decode.
-A local image decode error or a 10 second decode deadline fails that capture.
+A local image decode error or a 30 second decode deadline fails that capture.
+The bound changes only the later screenshot wait; the measured
+transfer and paint windows remain unchanged. Decode errors identify the source
+URL and image transform parameters.
 The manifest records failures; a blank image is not accepted as settled visual
 evidence. Screenshots use reduced motion and disable screenshot animations.
-Private-only runs do not capture public screenshots.
+Private-only runs do not capture public screenshots. Authentication headers,
+storage-state contents, and the storage-state filename never enter the
+screenshot manifest or metrics screenshot summary.
 
 The metrics CI job enables this option. Reviewers can download the
 `cloudflare-build-metrics` JSON artifact and the
 `cloudflare-preview-screenshots` artifact from the linked Actions run. CI retains
 both for 14 days and uploads available evidence after a failed measurement.
-The screenshot artifact contains PNG files and its manifest. Generated evidence
+CI uploads the candidate evidence before starting the baseline comparison, so
+a failed or interrupted baseline does not discard the candidate report.
+The private fixture job enables the same capture option and uploads its
+`private-studio-music-screenshots` artifact for 14 days. The screenshot artifacts
+contain PNG files and their manifests. Generated evidence
 stays outside Git.
 
 The job summary reports measurement status, sample counts, cold and warm timing

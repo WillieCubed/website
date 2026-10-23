@@ -1,12 +1,24 @@
-import type { Browser, BrowserContext, Page } from '@playwright/test';
+import type {
+  Browser,
+  BrowserContext,
+  BrowserContextOptions,
+  Page,
+} from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import { authorizePreviewPage } from './preview-auth.mts';
 
 interface ScreenshotOptions {
   baseUrl: string;
   routes: string[];
   outputDirectory: string;
   settleMs?: number;
+  imageDecodeTimeoutMs?: number;
+  contextOptions?: Pick<
+    BrowserContextOptions,
+    'extraHTTPHeaders' | 'storageState'
+  >;
 }
 interface CaptureVariant {
   viewport: { width: number; height: number };
@@ -26,8 +38,12 @@ const VARIANTS: CaptureVariant[] = [
   { viewport: { width: 390, height: 844 }, theme: 'dark' },
 ];
 
-async function settleScreenshot(page: Page, settleMs: number) {
-  await page.evaluate(async () => {
+async function settleScreenshot(
+  page: Page,
+  settleMs: number,
+  imageDecodeTimeoutMs: number
+) {
+  await page.evaluate(async (decodeTimeoutMs) => {
     await Promise.race([
       document.fonts.ready,
       new Promise((_, reject) =>
@@ -62,22 +78,24 @@ async function settleScreenshot(page: Page, settleMs: number) {
                 setTimeout(
                   () =>
                     reject(
-                      new Error('Image decoding did not settle within 10000ms.')
+                      new Error(
+                        `Image decoding did not settle within ${decodeTimeoutMs}ms.`
+                      )
                     ),
-                  10_000
+                  decodeTimeoutMs
                 )
               ),
             ]);
           } catch (error) {
             if (url.origin === location.origin)
               throw new Error(
-                `Expected local image failed to decode: ${url.pathname}. ${String(error)}`,
+                `Expected local image failed to decode: ${url.pathname}${url.search}. ${String(error)}`,
                 { cause: error }
               );
           }
         })
     );
-  });
+  }, imageDecodeTimeoutMs);
   await page.waitForTimeout(settleMs);
 }
 
@@ -85,7 +103,8 @@ async function captureRoute(
   context: BrowserContext,
   path: string,
   variant: CaptureVariant,
-  options: ScreenshotOptions
+  options: ScreenshotOptions,
+  headers?: Record<string, string>
 ): Promise<ScreenshotCapture> {
   const page = await context.newPage();
   const result: ScreenshotCapture = {
@@ -96,13 +115,18 @@ async function captureRoute(
     file: null,
   };
   try {
+    await authorizePreviewPage(page, options.baseUrl, headers);
     await page.bringToFront();
     const response = await page.goto(new URL(path, options.baseUrl).href, {
       waitUntil: 'load',
       timeout: 30_000,
     });
     result.httpStatus = response?.status() ?? null;
-    await settleScreenshot(page, options.settleMs ?? 300);
+    await settleScreenshot(
+      page,
+      options.settleMs ?? 300,
+      options.imageDecodeTimeoutMs ?? 30_000
+    );
     const routeName = path === '/' ? 'home' : encodeURIComponent(path.slice(1));
     const file = `${routeName}-${variant.viewport.width}x${variant.viewport.height}-${variant.theme}.png`;
     await page.screenshot({
@@ -131,6 +155,7 @@ export async function capturePreviewScreenshots(
 ) {
   await mkdir(options.outputDirectory, { recursive: true });
   const captures: ScreenshotCapture[] = [];
+  const headers = options.contextOptions?.extraHTTPHeaders;
   const report = {
     status: 'valid',
     capturedAt: new Date().toISOString(),
@@ -141,6 +166,7 @@ export async function capturePreviewScreenshots(
   };
   for (const variant of VARIANTS) {
     const context = await browser.newContext({
+      storageState: options.contextOptions?.storageState,
       viewport: variant.viewport,
       colorScheme: variant.theme,
       deviceScaleFactor: 1,
@@ -150,7 +176,13 @@ export async function capturePreviewScreenshots(
     });
     try {
       for (const path of options.routes) {
-        const capture = await captureRoute(context, path, variant, options);
+        const capture = await captureRoute(
+          context,
+          path,
+          variant,
+          options,
+          headers
+        );
         captures.push(capture);
         if (capture.file !== null) report.captured += 1;
         if (capture.status === 'failed') report.status = 'failed';

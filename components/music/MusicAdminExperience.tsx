@@ -21,8 +21,6 @@ import { useMusicDocument } from './useMusicDocument';
 import { useMusicGalleryCuration } from './useMusicGalleryCuration';
 
 interface MusicAdminExperienceProps {
-  initialSeries?: string;
-  initialDetail?: string;
   loading?: boolean;
   loadError?: string;
   onRetry?: () => void;
@@ -43,8 +41,6 @@ interface MusicAdminExperienceProps {
 export default function MusicAdminExperience({
   playlists,
   initialCatalog,
-  initialSeries,
-  initialDetail,
   loading = false,
   loadError,
   onRetry,
@@ -79,8 +75,6 @@ export default function MusicAdminExperience({
   const browsing = useMusicBrowsing({
     catalog,
     initialCatalog,
-    initialSeries,
-    initialDetail,
     mode: 'admin',
     editing,
     playlists,
@@ -90,7 +84,6 @@ export default function MusicAdminExperience({
     catalog,
     playlists,
     browsing,
-    initialDetail,
     loading,
     loadError,
     onRetry,
@@ -132,21 +125,19 @@ export default function MusicAdminExperience({
       detail={editing ? musicPlaylistCuration(draft, changeCatalog) : undefined}
       announcement={announcement}
       overlays={
-        <>
-          <MusicCurationReview
-            key={String(editing)}
-            editing={editing}
-            changed={changed}
-            published={published}
-            saveStatus={saveStatus}
-            loading={loading}
-            canReview={canReview}
-            draft={draft}
-            playlists={playlists}
-            onEditOrder={browsing.editOrder}
-            applyReview={curation.applyReview}
-          />
-        </>
+        <MusicCurationReview
+          key={String(editing)}
+          editing={editing}
+          changed={changed}
+          published={published}
+          saveStatus={saveStatus}
+          loading={loading}
+          canReview={canReview}
+          draft={draft}
+          playlists={playlists}
+          onEditOrder={browsing.editOrder}
+          applyReview={curation.applyReview}
+        />
       }
     />
   );

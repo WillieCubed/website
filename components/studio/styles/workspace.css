@@ -137,6 +137,10 @@
 .studio-save-state {
   min-width: 5ch;
 }
+/* The footer must not be the only snap target when a preview shrinks. */
+.studio-review-screen {
+  scroll-snap-align: start;
+}
 .studio-task,
 .studio-review-screen {
   animation: studio-task-enter var(--duration-fast) var(--ease-site);

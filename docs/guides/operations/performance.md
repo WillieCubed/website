@@ -122,9 +122,36 @@ replace application invalidation.
 Check the image's rendered size, source dimensions, selected `srcset` candidate,
 and transfer bytes together. `next.config.ts` bounds optimizer widths and
 qualities. Preview mode disables optimization because the optimizer does not
-forward the owner's Access credentials. The shared `localImageSources` helper uses Next's `getImageProps` only for
-dimensioned `/assets/` JPEG, PNG, WebP, and AVIF sources. Brand assets, remote
-sources, protected media, and formats outside that allowlist keep their native source paths.
+forward the owner's Access credentials. The shared `localImageSources` helper uses
+Next's `getImageProps` only for dimensioned public raster sources listed in the
+generated metadata. During content preparation, `/assets/` JPEG, PNG, WebP, and
+AVIF originals receive byte-identical copies under `public/_content-images/`.
+Each filename contains the source's SHA-256 hash. Responsive `srcset` candidates
+use those copies; the native `src` keeps the authored URL. Brand downloads,
+remote/protected media, unknown sources, SVG, and GIF keep their existing paths.
+
+Only `/_content-images/*` receives immutable caching in `public/_headers`.
+OpenNext propagates that source flag to optimized responses. Replacing an
+original changes its generated URL, so a warm browser can reuse unchanged
+transforms without receiving stale replacement bytes. Preparation removes stale
+copies only inside its generated directory. It checks that directory as an
+output and excludes it from input hashes and image scanning. A missing copy
+therefore regenerates; a complete unchanged copy does not trigger itself.
+Unoptimized preview images retain their authored URL and browser credentials.
+The original files remain available for direct links and downloads.
+
+The component diagram shows the preparation and responsive-source modules.
+Arrows show calls or generated-module dependencies.
+
+```mermaid
+flowchart LR
+  prepare[Preparation runner] --> manifest[Content manifest generator]
+  manifest --> images[Public image generator]
+  manifest --> generated[Generated content module]
+  responsive[Responsive image helper] --> generated
+  responsive --> next[Next image properties]
+```
+
 Remote posters bypass local optimization. An image's expected display size does not establish its actual
 network transfer; inspect the selected response.
 
@@ -155,3 +182,18 @@ prove lower Worker CPU. A warm browser result does not prove an edge cache hit.
 A local route gate does not prove real provider authorization. Use the
 [deployment guide](deploy.md) and [publishing verification](../publishing/publishing-verification.md)
 for the separate hosted gates.
+
+## Reuse prepared outputs
+
+`pnpm content:prepare` fingerprints source/configuration bytes and generated
+outputs for each stage. Build provenance (`SITE_BUILT_AT`, `SITE_BUILD_RECORD`,
+and `NEXT_PUBLIC_SITE_REVISION`) does not change MDX, search documents, image
+copies, or the Studio browser runtime, so changing only those values reuses
+prepared outputs. Mode, origin, and other `SITE_`/`NEXT_PUBLIC_` settings remain
+in the fingerprint. A source, tool, dependency, configuration, or output change
+still rebuilds its owning stage. The Next build retains the current provenance
+record even when preparation reuses its outputs. Search preparation serializes
+authored initiative dates and draft flags; it does not persist clock-derived
+initiative status or current-part selection. Writings publication filtering uses
+draft flags, and MDX compilation uses authored bodies. Date-derived status stays
+in the runtime read path.

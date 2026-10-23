@@ -2,6 +2,23 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+const BUILD_IDENTITY = new Set([
+  'SITE_BUILT_AT',
+  'SITE_BUILD_RECORD',
+  'NEXT_PUBLIC_SITE_REVISION',
+]);
+
+/** Provenance changes the Next artifact, not prepared content or browser tools. */
+export function preparationConfiguration(
+  env: Record<string, string | undefined>
+) {
+  return Object.fromEntries(
+    Object.entries(env).filter(
+      ([key]) => /^(NEXT_PUBLIC_|SITE_)/.test(key) && !BUILD_IDENTITY.has(key)
+    )
+  );
+}
+
 interface Preparation {
   root: string;
   name: string;

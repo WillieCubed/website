@@ -83,3 +83,51 @@ test('failed or incomplete generation cannot seed the reuse cache', async () => 
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('build identity alone reuses preparation while mode, origin and publishing settings invalidate it', async () => {
+  const { preparationConfiguration } =
+    await import('../../../scripts/shared/preparation.mts');
+  const root = await mkdtemp(join(tmpdir(), 'site-preparation-env-'));
+  try {
+    const env = {
+      SITE_BUILT_AT: 'first',
+      SITE_BUILD_RECORD: 'first',
+      NEXT_PUBLIC_SITE_REVISION: 'first',
+      SITE_MODE: 'public',
+      NEXT_PUBLIC_SITE_ORIGIN: 'https://example.test',
+      SITE_PUBLISHING_BRANCH: 'main',
+    };
+    let runs = 0;
+    const prepare = () =>
+      prepareArtifact({
+        root,
+        name: 'env',
+        inputs: [],
+        outputs: ['output'],
+        configuration: preparationConfiguration(env),
+        generate: async () => {
+          runs++;
+          await writeFile(join(root, 'output'), String(runs));
+        },
+      });
+    await prepare();
+    Object.assign(env, {
+      SITE_BUILT_AT: 'second',
+      SITE_BUILD_RECORD: 'second',
+      NEXT_PUBLIC_SITE_REVISION: 'second',
+    });
+    await prepare();
+    assert.equal(runs, 1);
+    for (const key of [
+      'SITE_MODE',
+      'NEXT_PUBLIC_SITE_ORIGIN',
+      'SITE_PUBLISHING_BRANCH',
+    ] as const) {
+      env[key] = 'changed';
+      await prepare();
+    }
+    assert.equal(runs, 4);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

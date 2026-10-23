@@ -63,10 +63,12 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
+        id: public_build
       - name: Browser tests and strict single-row footer contract
         run: pnpm test:e2e --workers=2
 
       - name: Public Music with an isolated production fixture
+        if: ${{ !cancelled() && steps.public_build.outcome == 'success' }}
         run: pnpm test:studio
         env:
           STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
@@ -94,7 +96,7 @@ jobs:
   metrics:
     if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7
 
@@ -118,6 +120,20 @@ jobs:
       - run: pnpm preview:metrics
         env:
           PREVIEW_METRICS_SCREENSHOTS: '1'
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-*-metrics.json') != '' }}
+        with:
+          name: cloudflare-build-metrics
+          path: artifacts/cloudflare-*-metrics.json
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-preview-screenshots/**') != '' }}
+        with:
+          name: cloudflare-preview-screenshots
+          path: artifacts/cloudflare-preview-screenshots/
+          retention-days: 14
 
       - name: Check out the pull request base for comparison
         id: baseline_checkout
@@ -153,20 +169,6 @@ jobs:
         run: pnpm exec tsx scripts/cloudflare/metrics-summary.mts
         env:
           PREVIEW_METRICS_BASELINE_DIRECTORY: ${{ github.event_name == 'pull_request' && '.superpowers/metrics-baseline' || '' }}
-
-      - uses: actions/upload-artifact@v7
-        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-*-metrics.json') != '' }}
-        with:
-          name: cloudflare-build-metrics
-          path: artifacts/cloudflare-*-metrics.json
-          retention-days: 14
-
-      - uses: actions/upload-artifact@v7
-        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-preview-screenshots/**') != '' }}
-        with:
-          name: cloudflare-preview-screenshots
-          path: artifacts/cloudflare-preview-screenshots/
-          retention-days: 14
 
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() && hashFiles('.superpowers/metrics-baseline/artifacts/cloudflare-*-metrics.json') != '' }}
@@ -219,8 +221,10 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build:cloudflare-preview
+        id: private_build
 
       - name: Shared element transitions with private draft fixtures
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
         run: pnpm test:studio
         env:
           STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
@@ -228,12 +232,14 @@ jobs:
           STUDIO_TEST_CONFIG: tests/transitions.config.mts
 
       - name: Private Studio against the production fixture
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
         run: pnpm test:studio
         env:
           STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
           STUDIO_TEST_PRODUCTION: '1'
 
       - name: Private Music against the production fixture
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
         run: pnpm test:studio
         env:
           STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
@@ -241,12 +247,15 @@ jobs:
           MUSIC_E2E: '1'
 
       - name: Private Studio and Music measurements
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
         run: pnpm test:studio
         env:
           STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
           STUDIO_TEST_PRODUCTION: '1'
           STUDIO_TEST_METRICS: '1'
           MUSIC_E2E: '1'
+          PREVIEW_METRICS_SCREENSHOTS: '1'
+          PREVIEW_METRICS_INITIATIVE_PATH: /initiatives/fall-tour-2026
 
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() && hashFiles('test-results/**') != '' }}
@@ -260,4 +269,11 @@ jobs:
         with:
           name: private-studio-music-metrics
           path: artifacts/cloudflare-preview-metrics.json
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-preview-screenshots/**') != '' }}
+        with:
+          name: private-studio-music-screenshots
+          path: artifacts/cloudflare-preview-screenshots/
           retention-days: 14

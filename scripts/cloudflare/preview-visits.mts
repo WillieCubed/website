@@ -1,5 +1,6 @@
 import type { Browser, BrowserContextOptions, Page } from '@playwright/test';
 
+import { authorizePreviewPage } from './preview-auth.mts';
 import {
   type MeasurementSample,
   assessDocument,
@@ -23,19 +24,22 @@ interface ResolvedOptions {
   sampleCount: number;
   quietMs: number;
   timeoutMs: number;
-  contextOptions?: BrowserContextOptions;
+  contextOptions: Omit<BrowserContextOptions, 'extraHTTPHeaders'>;
+  extraHTTPHeaders?: Record<string, string>;
 }
 interface Journey {
   name: string;
   paths: string[];
 }
 function resolvedOptions(options: SampleOptions): ResolvedOptions {
+  const { extraHTTPHeaders, ...contextOptions } = options.contextOptions ?? {};
   return {
     baseUrl: options.baseUrl ?? BASE_URL,
     sampleCount: options.sampleCount ?? SAMPLE_COUNT,
     quietMs: options.quietMs ?? 1_000,
     timeoutMs: options.timeoutMs ?? 30_000,
-    contextOptions: options.contextOptions,
+    contextOptions,
+    extraHTTPHeaders,
   };
 }
 async function measureVisit(
@@ -79,6 +83,11 @@ export async function sampleRoute(
     const context = await browser.newContext(settings.contextOptions);
     const page = await context.newPage();
     try {
+      await authorizePreviewPage(
+        page,
+        settings.baseUrl,
+        settings.extraHTTPHeaders
+      );
       await installObservers(page);
       await page.bringToFront();
       const network = await observeTransfers(page);
@@ -122,6 +131,11 @@ export async function sampleJourney(
   const page = await context.newPage();
   const steps = [];
   try {
+    await authorizePreviewPage(
+      page,
+      settings.baseUrl,
+      settings.extraHTTPHeaders
+    );
     await installObservers(page);
     await page.bringToFront();
     const network = await observeTransfers(page);

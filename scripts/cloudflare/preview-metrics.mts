@@ -122,12 +122,16 @@ export async function stopPreview(preview: ChildProcess): Promise<void> {
   });
 }
 
-function unavailablePrivateRoutes(reason: string) {
+function unavailablePrivateRoutes(
+  reason: string,
+  paths = ['/studio', '/studio/music'],
+  count = SAMPLE_COUNT
+) {
   return Object.fromEntries(
-    ['/studio', '/studio/music'].map((path) => [
+    paths.map((path) => [
       path,
       {
-        ...summarizeSamples([], SAMPLE_COUNT),
+        ...summarizeSamples([], count),
         status: 'unavailable',
         reason,
       },
@@ -135,39 +139,57 @@ function unavailablePrivateRoutes(reason: string) {
   );
 }
 
-async function collectPrivate(browser: Browser) {
+async function collectPrivate(browser: Browser, options: SampleOptions = {}) {
   const baseUrl = process.env.PREVIEW_METRICS_PRIVATE_BASE_URL;
   const paths = ['/studio', '/studio/music'];
   if (!baseUrl)
     return unavailablePrivateRoutes(
-      'PREVIEW_METRICS_PRIVATE_BASE_URL is not configured; no authenticated private target was measured.'
+      'PREVIEW_METRICS_PRIVATE_BASE_URL is not configured; no authenticated private target was measured.',
+      paths,
+      options.sampleCount
     );
+  const configuredInitiative = process.env.PREVIEW_METRICS_INITIATIVE_PATH;
+  if (configuredInitiative) {
+    const path = initiativeDetailPath(configuredInitiative, baseUrl);
+    if (!path)
+      throw new Error(
+        'PREVIEW_METRICS_INITIATIVE_PATH must identify a same-origin initiative detail route.'
+      );
+    paths.push(path);
+  }
   const contextOptions: BrowserContextOptions = {
     storageState: process.env.PREVIEW_METRICS_PRIVATE_STORAGE_STATE,
-    extraHTTPHeaders: JSON.parse(
-      process.env.PREVIEW_METRICS_PRIVATE_HEADERS ?? '{}'
-    ),
   };
+  const headers: Record<string, string> = JSON.parse(
+    process.env.PREVIEW_METRICS_PRIVATE_HEADERS ?? '{}'
+  );
   const context = await browser.newContext(contextOptions);
   try {
     const probe = await context.request.get(
       new URL('/api/studio/documents', baseUrl).href,
-      { maxRedirects: 0 }
+      { maxRedirects: 0, headers }
     );
     if (!probe.ok())
-      throw new Error(
-        `Private authentication/data probe returned HTTP ${probe.status()}.`
+      return unavailablePrivateRoutes(
+        `Private authentication/data probe returned HTTP ${probe.status()}.`,
+        paths,
+        options.sampleCount
       );
-  } catch (error) {
-    return unavailablePrivateRoutes(String(error));
+  } catch {
+    return unavailablePrivateRoutes(
+      'Private authentication/data probe could not reach the authenticated target.',
+      paths,
+      options.sampleCount
+    );
   } finally {
     await context.close();
   }
   const routes: Record<string, Awaited<ReturnType<typeof sampleRoute>>> = {};
   for (const path of paths)
     routes[path] = await sampleRoute(browser, path, {
+      ...options,
       baseUrl,
-      contextOptions,
+      contextOptions: { ...contextOptions, extraHTTPHeaders: headers },
     });
   return routes;
 }
@@ -276,10 +298,16 @@ async function collectJourneys(
   const journeys: Record<string, JourneyRun[]> = {};
   for (const journey of plans) {
     journeys[journey.name] = [];
-    for (let index = 0; index < count; index++)
-      journeys[journey.name]!.push(
-        await sampleJourney(browser, journey, { ...options, baseUrl })
+    for (let index = 0; index < count; index++) {
+      const run = await sampleJourney(browser, journey, {
+        ...options,
+        baseUrl,
+      });
+      journeys[journey.name]!.push(run);
+      console.log(
+        `Cloudflare preview journey ${journey.name} run ${index + 1}/${count}: ${run.status}; ${run.steps.length}/${journey.paths.length} steps.`
       );
+    }
   }
   const journeyCounts = Object.fromEntries(
     Object.entries(journeys).map(([name, runs]) => [
@@ -316,17 +344,18 @@ export async function collectPreviewMetrics(
 ) {
   const count = options.sampleCount ?? SAMPLE_COUNT;
   if (process.env.PREVIEW_METRICS_PRIVATE_ONLY === '1')
-    return collectPrivateMetrics(browser, count);
+    return collectPrivateMetrics(browser, options);
   const initiativeTarget = await resolveInitiativeTarget(browser, baseUrl);
   const routes: Record<string, Awaited<ReturnType<typeof sampleRoute>>> = {};
-  for (const route of ROUTES)
+  const paths = [...ROUTES];
+  if (initiativeTarget.path) paths.push(initiativeTarget.path);
+  for (const [index, route] of paths.entries()) {
     routes[route] = await sampleRoute(browser, route, { ...options, baseUrl });
-  if (initiativeTarget.path)
-    routes[initiativeTarget.path] = await sampleRoute(
-      browser,
-      initiativeTarget.path,
-      { ...options, baseUrl }
+    const result = routes[route];
+    console.log(
+      `Cloudflare preview route ${index + 1}/${paths.length}: cold ${result.status} ${result.counts.valid}/${count}; warm ${result.warm.status} ${result.warm.counts.valid}/${count}.`
     );
+  }
   const { journeys, journeyCounts } = await collectJourneys(
     browser,
     baseUrl,
@@ -338,7 +367,7 @@ export async function collectPreviewMetrics(
     initiativeTarget.status === 'failed';
   if (!initiativeTarget.path)
     routes['initiative-detail'] = unmeasuredRoute(initiativeTarget, count);
-  const privateRoutes = await collectPrivate(browser);
+  const privateRoutes = await collectPrivate(browser, options);
   return {
     revision: execFileSync('git', ['rev-parse', 'HEAD'], {
       encoding: 'utf8',
@@ -352,11 +381,12 @@ export async function collectPreviewMetrics(
     privateRoutes,
   };
 }
-async function collectPrivateMetrics(browser: Browser, count: number) {
+async function collectPrivateMetrics(browser: Browser, options: SampleOptions) {
+  const count = options.sampleCount ?? SAMPLE_COUNT;
   const routes: Record<string, Awaited<ReturnType<typeof sampleRoute>>> = {};
   const journeys: Record<string, JourneyRun[]> = {};
   const journeyCounts: Record<string, ReturnType<typeof journeyCount>> = {};
-  const privateRoutes = await collectPrivate(browser);
+  const privateRoutes = await collectPrivate(browser, options);
   const valid = Object.values(privateRoutes).every(
     (route) =>
       route.status === 'valid' &&
@@ -417,21 +447,32 @@ async function cleanUpMetrics(
   }
 }
 
-async function captureOptionalScreenshots(
+export async function captureOptionalScreenshots(
   browser: Browser,
   metrics: Awaited<ReturnType<typeof collectPreviewMetrics>>,
   root: string,
   baseUrl: string
 ) {
-  if (
-    process.env.PREVIEW_METRICS_SCREENSHOTS !== '1' ||
-    process.env.PREVIEW_METRICS_PRIVATE_ONLY === '1'
-  )
-    return metrics;
+  if (process.env.PREVIEW_METRICS_SCREENSHOTS !== '1') return metrics;
+  const privateOnly = process.env.PREVIEW_METRICS_PRIVATE_ONLY === '1';
+  const target = privateOnly
+    ? process.env.PREVIEW_METRICS_PRIVATE_BASE_URL
+    : baseUrl;
+  if (!target) return metrics;
   const screenshots = await capturePreviewScreenshots(browser, {
-    baseUrl,
-    routes: Object.keys(metrics.routes).filter((path) => path.startsWith('/')),
+    baseUrl: target,
+    routes: Object.keys(
+      privateOnly ? metrics.privateRoutes : metrics.routes
+    ).filter((path) => path.startsWith('/')),
     outputDirectory: join(root, 'artifacts/cloudflare-preview-screenshots'),
+    contextOptions: privateOnly
+      ? {
+          storageState: process.env.PREVIEW_METRICS_PRIVATE_STORAGE_STATE,
+          extraHTTPHeaders: JSON.parse(
+            process.env.PREVIEW_METRICS_PRIVATE_HEADERS ?? '{}'
+          ),
+        }
+      : undefined,
   });
   return {
     ...metrics,

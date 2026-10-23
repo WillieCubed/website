@@ -89,7 +89,7 @@ async function settle(page: Page) {
 
 const TITLE = 'title-initiative-fall-tour-2026';
 
-test('a homepage tile’s title morphs into the initiative’s heading and back', async ({
+test('a homepage tile’s title morphs into its heading and Home returns to the top', async ({
   page,
   request,
 }) => {
@@ -110,17 +110,27 @@ test('a homepage tile’s title morphs into the initiative’s heading and back'
   expect(forward.after).toContain(`SPAN:${TITLE}:title-large`);
   expect(forward.root).toBe('none');
 
-  // The top bar's name leads home, where the heading shrinks into the tile.
+  // Home starts a fresh navigation at the top. The tile lies below that
+  // viewport, so React must not capture an invisible return participant.
   await settle(page);
   await page
     .getByRole('banner')
     .getByRole('link', { name: 'Willie Chalmers III' })
     .click();
   await expect(page).toHaveURL('/');
-  await expect.poll(async () => (await transitions(page)).length).toBe(2);
+  await expect
+    .poll(async () => (await transitions(page))[1]?.groups)
+    .toBeDefined();
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  expect(
+    await page
+      .locator('#initiative-fall-tour-2026')
+      .evaluate((tile) => tile.getBoundingClientRect().top > innerHeight)
+  ).toBe(true);
   const back = (await transitions(page))[1];
   expect(back.before).toContain(`SPAN:${TITLE}:title-large`);
-  expect(back.after).toContain(`SPAN:${TITLE}:title-small`);
+  expect(back.after).not.toContain(`SPAN:${TITLE}:title-small`);
+  expect(back.groups).not.toContain(`::view-transition-group(${TITLE})`);
 });
 
 test('the top bar and an index card’s title move to the next page', async ({
@@ -131,31 +141,38 @@ test('the top bar and an index card’s title move to the next page', async ({
   await recordTransitions(page);
   await page.goto('/initiatives');
   await settle(page);
-  await page
+  const link = page
     .getByRole('main')
-    .getByRole('link', { name: 'The Willie Diaries' })
-    .click();
+    .getByRole('link', { name: 'The Willie Diaries' });
+  // The stretched link covers its whole card, so scrolling the link can
+  // leave the title below the viewport on a phone. Its new viewport also
+  // starts route prefetching, which must settle before testing one commit.
+  await link.locator('span.inline-block').scrollIntoViewIfNeeded();
+  await settle(page);
+  await expect(link.locator('span.inline-block')).toBeInViewport({ ratio: 1 });
+  const headerInViewport = await page.getByRole('banner').evaluate((header) => {
+    const rect = header.getBoundingClientRect();
+    return rect.bottom >= 0 && rect.top <= innerHeight;
+  });
+  await link.locator('span.inline-block').click();
   await expect(page).toHaveURL('/initiatives/twd');
   await expect
     .poll(async () => (await transitions(page)).at(-1)?.groups)
-    .toContain('::view-transition-group(site-top-bar)');
+    .toContain('::view-transition-group(title-initiative-twd)');
 
   const [record] = await transitions(page);
-  expect(record.before).toEqual(
-    expect.arrayContaining([
-      'HEADER:site-top-bar:top-bar',
-      'SPAN:title-initiative-twd:title-small',
-    ])
-  );
-  expect(record.after).toEqual(
-    expect.arrayContaining([
-      'HEADER:site-top-bar:top-bar',
-      'SPAN:title-initiative-twd:title-large',
-    ])
-  );
-  expect(record.groups).toContain(
-    '::view-transition-group(title-initiative-twd)'
-  );
+  expect(record.before).toContain('SPAN:title-initiative-twd:title-small');
+  expect(record.after).toContain('SPAN:title-initiative-twd:title-large');
+  if (headerInViewport) {
+    expect(record.before).toContain('HEADER:site-top-bar:top-bar');
+    expect(record.after).toContain('HEADER:site-top-bar:top-bar');
+    expect(record.groups).toContain('::view-transition-group(site-top-bar)');
+  } else {
+    expect(record.before).not.toContain('HEADER:site-top-bar:top-bar');
+    expect(record.groups).not.toContain(
+      '::view-transition-group(site-top-bar)'
+    );
+  }
   expect(record.running).toBeGreaterThan(0);
 });
 
@@ -170,10 +187,15 @@ test.describe('with reduced motion', () => {
     await recordTransitions(page);
     await page.goto('/initiatives');
     await settle(page);
-    await page
+    const link = page
       .getByRole('main')
-      .getByRole('link', { name: 'The Willie Diaries' })
-      .click();
+      .getByRole('link', { name: 'The Willie Diaries' });
+    await link.locator('span.inline-block').scrollIntoViewIfNeeded();
+    await settle(page);
+    await expect(link.locator('span.inline-block')).toBeInViewport({
+      ratio: 1,
+    });
+    await link.locator('span.inline-block').click();
     await expect(page).toHaveURL('/initiatives/twd');
     await expect
       .poll(async () => (await transitions(page)).at(-1)?.groups)

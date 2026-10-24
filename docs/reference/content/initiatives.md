@@ -197,6 +197,8 @@ Initiative and part pages support:
   four on wide screens. Controls state their actions without explanatory copy
   beneath the map.
   Captions use the large spacing token (16px) inside the rounded frame.
+  The complete caption shares one centered reading-width cap (768px); individual
+  trip columns retain their responsive grid.
   The canvas follows its geographic frame's aspect ratio rather than imposing
   a minimum height. Height caps preserve the map's scale on wide screens.
   Controls and captions share the figure's width, and the Hawaii frame ends

@@ -136,6 +136,8 @@
   vector-effect: non-scaling-stroke;
 }
 .route-map figcaption {
+  max-width: var(--page-width-reading);
+  margin-inline: auto;
   padding: var(--spacing-lg);
 }
 .route-map__trips {

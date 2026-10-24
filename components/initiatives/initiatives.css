@@ -141,13 +141,10 @@
 }
 .route-map__inset {
   width: clamp(144px, 28%, 240px);
-  margin: -8% 0 0 16px;
+  margin: 0 0 0 16px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background: var(--color-card);
-}
-.route-map__inset circle {
-  r: 12;
 }
 .route-map__inset p {
   margin: 0;
@@ -225,4 +222,130 @@
   .route-map circle {
     transition: fill var(--duration-theme) var(--ease-theme);
   }
+}
+
+.route-map__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+}
+.route-map__controls button {
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 12px;
+}
+.route-map__stop-picker {
+  min-width: 0;
+  flex: 1;
+}
+.route-map__stop-picker select {
+  width: 100%;
+  min-width: 120px;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+}
+.route-map__scroll {
+  overflow-x: auto;
+}
+.route-map__interactive {
+  container-type: inline-size;
+}
+.route-map__canvas {
+  position: relative;
+  height: 280px;
+  height: clamp(280px, 55cqw, 480px);
+  margin-inline: auto;
+  overflow: hidden;
+}
+.route-map__canvas > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+.route-map__canvas > svg:active {
+  cursor: grabbing;
+}
+.route-map__canvas .route-map__leaders {
+  pointer-events: none;
+}
+.route-map__leaders path {
+  fill: none;
+  stroke: var(--color-outline);
+  stroke-width: 1;
+}
+.route-map__canvas .route-map__city {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: var(--text-body-small);
+  line-height: var(--text-body-small--line-height);
+  text-align: center;
+  white-space: nowrap;
+}
+.route-map__city[aria-pressed='true'] {
+  outline: 2px solid var(--accent-live);
+}
+.route-map__city:focus-visible,
+.route-map__canvas > svg:focus-visible {
+  outline: 2px solid var(--accent-live);
+  outline-offset: -2px;
+}
+.route-map__interaction-hint {
+  margin: 0;
+  padding: 8px 16px;
+  color: var(--color-muted);
+  font-size: var(--text-body-small);
+}
+.route-map__interactive[data-ready='false'] .route-map__canvas {
+  width: 800px;
+  height: 440px;
+}
+.route-map__interactive[data-ready='false'] .route-map__controls,
+.route-map__interactive[data-ready='false'] .route-map__interaction-hint,
+.route-map__interactive[data-compact='true'] .route-map__controls,
+.route-map__interactive[data-compact='true'] .route-map__interaction-hint {
+  display: none;
+}
+.route-map__interactive[data-compact='true'] .route-map__canvas {
+  height: 160px;
+}
+
+.route-map__interactive[data-ready='false'][data-compact='true']
+  .route-map__canvas {
+  width: 144px;
+}
+.route-map__selection {
+  margin: 0;
+  padding: 8px 16px;
+  color: var(--color-ink);
+}
+
+.route-map__interactive[data-ready='true']
+  .route-map__canvas
+  > svg:first-child
+  circle {
+  display: none;
+}
+.route-map__interactive[data-ready='false'] .route-map__leaders {
+  display: none;
+}
+.route-map__canvas
+  :is(circle, .route-map__land path, .route-map__journey path) {
+  vector-effect: non-scaling-stroke;
 }

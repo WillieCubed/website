@@ -5,7 +5,10 @@ import base from './site.config.mts';
 
 export default defineConfig({
   ...base,
-  testMatch: '**/initiatives/fall-tour.spec.mts',
+  testMatch: [
+    '**/initiatives/fall-tour.spec.mts',
+    '**/initiatives/route-map.spec.mts',
+  ],
   outputDir: join(import.meta.dirname, '../test-results/fall-tour'),
   workers: 1,
   webServer: undefined,

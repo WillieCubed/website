@@ -1,11 +1,11 @@
 import type { Place } from '@/lib/initiatives/index';
 import {
-  MAP_HEIGHT,
-  MAP_WIDTH,
   geographicView,
   isHawaii,
   linePath,
 } from '@/lib/initiatives/route-geography';
+
+import RouteMapCanvas from './RouteMapCanvas';
 
 interface RouteGroup {
   label: string;
@@ -40,11 +40,13 @@ function Geography({
   const includes = (place: Place) =>
     places.some((point) => point.name === place.name);
   return (
-    <svg
-      viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-      role="img"
-      aria-label={`${title}: ${places.map((place) => place.name).join(', ')}`}
-      className="route-map__geography"
+    <RouteMapCanvas
+      title={`${title}: ${places.map((place) => place.name).join(', ')}`}
+      compact={places.every(isHawaii)}
+      points={places.map((place) => {
+        const [x, y] = project(place.lng, place.lat);
+        return { name: place.name, x, y };
+      })}
     >
       <g className="route-map__land" aria-hidden="true">
         {land.map((outline, index) => (
@@ -78,7 +80,7 @@ function Geography({
           </g>
         );
       })}
-    </svg>
+    </RouteMapCanvas>
   );
 }
 

@@ -181,7 +181,15 @@ Initiative and part pages support:
   retain national context rather than stretching neighboring towns across the
   map. Mixed mainland/Hawaii trips use a labeled inset with its own scale.
   `routes={[{ label, places }]}` separates trips without implying travel between
-  them. Each trip retains its full ordered stop list in HTML. Lines end at the
+  them. City names remain beside their map points at a fixed readable text size.
+  Nearby stops group under a city name and count when their labels would crowd.
+  Selecting a group fits its cities; the selected names appear together beside
+  the map. Leader lines connect displaced labels to their geographic points.
+  Selecting a city zooms into its area; the city picker also reaches labels outside the current
+  view. Zoom buttons, drag panning, arrow-key panning, and Show all share the
+  same viewport. Each trip retains its full ordered stop list in HTML.
+  Without JavaScript, the labeled map remains a horizontally scrollable SVG
+  with its HTML labels; enhancement controls stay hidden. Lines end at the
   inset boundary rather than suggesting a false cross-panel distance.
 
 The outlines come from Natural Earth's public-domain 1:110m Admin 0 countries
@@ -190,9 +198,24 @@ rounded to two decimal degrees from the
 [Natural Earth source](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson).
 The downloaded source SHA-256 is
 `6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f`.
-The server filters visible outlines before rendering; maps need no tile
-requests or browser mapping library. See the
+The server filters visible outlines before rendering. A small client viewport
+receives projected city coordinates and server-rendered SVG content. Geographic
+source data stays on the server; maps need no tile requests or mapping library.
+The viewport draws markers in screen coordinates so zoom changes the geography
+without magnifying dots. Server-rendered points remain the no-script fallback.
+See the
 [Natural Earth public-domain terms](https://www.naturalearthdata.com/about/terms-of-use/).
+
+This component diagram records the server/browser ownership boundary. The map
+renderer supplies projected SVG content; the viewport owns selection and gestures.
+
+```mermaid
+flowchart LR
+  Page[Initiative page] --> Map[Map renderer]
+  Map --> Geography[Server geography]
+  Map --> Viewport[Browser viewport]
+  Viewport --> Labels[Label layout]
+```
 
 Fall Tour's overview combines the title, subtitle, dates, and large rounded-pixel
 composition in one tall hero. Chapter covers retain comparable vertical space

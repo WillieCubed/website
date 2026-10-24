@@ -47,7 +47,7 @@ test('clustered map places have visible HTML labels in travel order and named ge
   assert.doesNotMatch(html, /<line\b/);
   assert.match(
     html,
-    /aria-label="Fall Tour: Dallas, Plano, Denton, San Francisco, Reno, Los Angeles"/
+    /aria-label="Fall Tour: Dallas, Plano, Denton, San Francisco, Reno, Los Angeles: drag/
   );
 });
 

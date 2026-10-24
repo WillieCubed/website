@@ -536,8 +536,9 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--spacing-xs) 0;
-    width: 100%;
-    padding-inline: var(--footer-content-pad) var(--spacing-md);
+    width: calc(100% + 2 * var(--footer-panel-edge));
+    margin-inline: calc(-1 * var(--footer-panel-edge));
+    padding-inline: var(--footer-text-edge);
   }
   .site-webrings__label {
     flex-shrink: 0;
@@ -557,8 +558,6 @@
     --footer-text-edge: calc(var(--spacing-xl) - var(--spacing-xs));
   }
   .site-webrings {
-    width: calc(100% + 2 * var(--footer-panel-edge));
-    margin-inline: calc(-1 * var(--footer-panel-edge));
     padding-inline: var(--spacing-xs);
   }
   .site-webrings__label {

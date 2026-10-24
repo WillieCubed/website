@@ -126,6 +126,10 @@ Webrings use 44px-square native targets with 32px visible surfaces, an
 outlined group, and tonal directory links. Compact footer link sizing meets
 [WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)
 while remaining below [Material's recommended 48dp target](https://support.google.com/accessibility/android/answer/7101858?hl=en).
+On phones, the webring outline aligns with the outer page frame. Padding inside
+the outline keeps its label aligned with the page links above. Preserve that
+separation when changing gutters or target sizes.
+
 Keep targets separate and their full padding clickable. The webring label
 can move above its controls; the contact/status/Feeds row must not stack.
 

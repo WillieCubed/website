@@ -73,6 +73,31 @@ test('preview startup failure returns without waiting for the readiness timeout'
   );
 });
 
+test('local readiness uses the hostname required by the adapter streaming workaround', async () => {
+  const preview = spawn(
+    process.execPath,
+    ['-e', 'setInterval(() => {}, 1000)'],
+    {
+      detached: process.platform !== 'win32',
+      stdio: 'ignore',
+    }
+  );
+  await once(preview, 'spawn');
+  const originalFetch = globalThis.fetch;
+  let requested = '';
+  globalThis.fetch = async (input) => {
+    requested = String(input);
+    return new Response('<main>Ready</main>');
+  };
+  try {
+    await waitUntilReady(preview, () => undefined);
+    assert.equal(requested, 'http://localhost:8787');
+  } finally {
+    globalThis.fetch = originalFetch;
+    await stopPreview(preview);
+  }
+});
+
 test('preview cleanup stops the child process', async () => {
   const preview = spawn(
     process.execPath,

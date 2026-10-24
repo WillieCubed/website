@@ -30,6 +30,20 @@ These browser measurements describe a local lab run, not real-user performance.
 In particular, TTFB is measured against the loopback preview, so it excludes
 production network and edge conditions.
 
+The local collector requests `http://localhost:8787` while Wrangler binds to
+IPv4 loopback. OpenNext recognizes that hostname and sets dynamic HTML responses
+to `Content-Encoding: identity` to use its
+[Miniflare streaming workaround](https://github.com/cloudflare/workers-sdk/issues/8004). Linux requests to `127.0.0.1` can return HTTP 200 with an empty compressed
+body instead. This uses the adapter's existing local workaround; it does not
+change production compression. Static JavaScript, CSS, and other assets retain
+the encoding their server sends. The transfer ledger records those actual
+encoded bytes, including compressed assets, rather than estimating compression.
+
+Compare baseline and candidate with the same collector, hostname, and transport.
+Local identity HTML totals do not establish production compressed-HTML savings.
+`PREVIEW_METRICS_BASE_URL` and private target URLs remain exactly as supplied;
+the collector does not rewrite their hostnames or encoding headers.
+
 ## Measurement outcomes and repeat visits
 
 The collector measures `/`, `/search`, `/writings`, `/initiatives`, `/projects`,

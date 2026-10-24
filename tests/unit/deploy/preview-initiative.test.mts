@@ -19,7 +19,7 @@ test('initiative discovery records absent published details without failing meas
     response
       .writeHead(200, { 'content-type': 'text/html' })
       .end(
-        `<main><h1>Fixture ${request.url}</h1><a href="/initiatives/draft" hidden>Draft</a>${detail}</main><nav><a href="/writings" hidden>Hidden breadcrumb</a><a href="/writings">Writings</a><a href="/projects">Projects</a><a href="/music">Music</a></nav>`
+        `<main><h1>${({ '/writings': 'Writings', '/projects': 'Projects', '/music': 'Music' } as Record<string, string>)[request.url ?? ''] ?? 'Fixture'}</h1><a href="/initiatives/draft" hidden>Draft</a>${detail}</main><nav><a href="/writings" hidden>Hidden breadcrumb</a><a href="/writings">Writings</a><a href="/projects">Projects</a><a href="/music">Music</a></nav>`
       );
   });
   server.listen(0, '127.0.0.1');

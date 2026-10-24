@@ -15,7 +15,7 @@ import {
 import { installObservers } from '../../../scripts/cloudflare/preview-observers.mts';
 import { capturePreviewScreenshots } from '../../../scripts/cloudflare/preview-screenshots.mts';
 
-const html = `<h1>A visible performance fixture</h1><link rel="stylesheet" href="/style.css"><img src="/image.svg" width="10" height="10" alt=""><a href="/next" hidden>Hidden breadcrumb</a><a href="/next" data-next>Next</a><script src="/app.js"></script><!--${'padding'.repeat(10_000)}-->`;
+const html = `<main><h1>A visible performance fixture</h1><link rel="stylesheet" href="/style.css"><img src="/image.svg" width="10" height="10" alt=""><a href="/next" hidden>Hidden breadcrumb</a><a href="/next" data-next>Next</a><script src="/app.js"></script><!--${'padding'.repeat(10_000)}--></main>`;
 const compressed = gzipSync(html);
 const resources: Partial<Record<string, [string, string]>> = {
   '/style.css': ['text/css', 'h1 { color: green; }'],
@@ -213,7 +213,7 @@ test('private headers stay on their origin across resources and redirects withou
       response
         .writeHead(200, { 'content-type': 'text/html' })
         .end(
-          `<h1>Private fixture</h1><img src="/immutable.svg" width="100" height="100" alt="Local"><img src="${externalOrigin}/direct.svg" width="100" height="100" alt="External"><link rel="stylesheet" href="/redirect.css"><a href="/next">Next</a>`
+          `<main><h1>Private fixture</h1><img src="/immutable.svg" width="100" height="100" alt="Local"><img src="${externalOrigin}/direct.svg" width="100" height="100" alt="External"><link rel="stylesheet" href="/redirect.css"><a href="/next">Next</a></main>`
         );
     }
   });
@@ -296,5 +296,84 @@ test('private headers stay on their origin across resources and redirects withou
     external.close();
     await Promise.all([once(target, 'close'), once(external, 'close')]);
     await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('client navigation requires the destination heading and main content while retaining failed transfer bytes', async () => {
+  let mode = 'stale';
+  const server = createServer((request, response) => {
+    if (request.url === '/route.rsc') {
+      response
+        .writeHead(200, { 'content-type': 'text/x-component' })
+        .end('received route payload for ' + mode);
+      return;
+    }
+    response.writeHead(200, { 'content-type': 'text/html' }).end(
+      `<main><h1>Projects</h1><a href="/music">Music</a></main><script>
+      document.querySelector('a').onclick=async(event)=>{
+        event.preventDefault();
+        await (await fetch('/route.rsc')).text();
+        history.pushState({},'', '/music');
+        const mode=${JSON.stringify(mode)};
+        if(mode==='blank') document.querySelector('main').replaceChildren();
+        if(mode==='error') document.querySelector('main').innerHTML='<h1>Application error</h1><p>Route failed.</p>';
+        if(mode==='heading-only') document.body.innerHTML='<aside><h1>Music</h1></aside><main></main>';
+        if(mode==='correct') document.querySelector('main').innerHTML='<h1>Music</h1><p>Published playlists.</p>';
+        if(mode==='delayed') setTimeout(()=>{document.querySelector('main').innerHTML='<h1>Music</h1><p>Published playlists.</p>';},120);
+      };
+      </script>`
+    );
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  assert.ok(address !== null && typeof address !== 'string');
+  const browser = await chromium.launch({ headless: true });
+  const options = {
+    baseUrl: `http://127.0.0.1:${address.port}`,
+    quietMs: 50,
+    timeoutMs: 1_500,
+  };
+  try {
+    for (mode of [
+      'stale',
+      'blank',
+      'error',
+      'heading-only',
+      'delayed',
+      'correct',
+    ]) {
+      const result = await sampleJourney(
+        browser,
+        { name: 'destination-fixture', paths: ['/projects', '/music'] },
+        options
+      );
+      const step = result.steps[1];
+      const succeeds = mode === 'delayed' || mode === 'correct';
+      assert.equal(
+        result.status,
+        succeeds ? 'valid' : 'failed',
+        `${mode} content must determine navigation success`
+      );
+      assert.ok(
+        'navigation' in step,
+        `${mode} must retain the attempted destination step`
+      );
+      assert.equal(step.status, succeeds ? 'valid' : 'failed');
+      assert.equal(step.path, '/music');
+      assert.equal(step.navigation, 'client');
+      assert.ok(
+        step.transfer.bytes > 0,
+        'failure must preserve received bytes rather than substitute zero'
+      );
+      assert.ok(step.transfer.byCategory.rsc > 0);
+      assert.equal(step.transfer.settlement.status, 'quiet');
+      if (!succeeds) assert.match(result.reason ?? '', /Music|main/i);
+    }
+    assert.equal(browser.contexts().length, 0);
+  } finally {
+    await browser.close();
+    server.close();
+    await once(server, 'close');
   }
 });

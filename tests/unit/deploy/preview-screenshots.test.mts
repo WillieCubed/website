@@ -166,7 +166,7 @@ test('private screenshot contexts authenticate without changing variants or expo
     }
     response
       .writeHead(200, { 'content-type': 'text/html' })
-      .end('<h1>Fixture content</h1>');
+      .end('<main><h1>Fixture content</h1></main>');
   });
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
@@ -310,6 +310,75 @@ test('private screenshot contexts authenticate without changing variants or expo
     assert.equal(publicReport.screenshots.captured, 4);
     assert.equal(publicCredentialLeaks, 0);
     assert.equal(browser.contexts().length, 0);
+  } finally {
+    await browser.close();
+    server.close();
+    await once(server, 'close');
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('screenshot evidence rejects blank or hidden main content and retains failed PNGs', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'website-blank-screenshots-'));
+  const documents: Record<string, string> = {
+    '/': '<aside><h1>Home heading outside main</h1></aside><main><p>Published projects and work in progress.</p></main>',
+    '/search': '<html><body></body></html>',
+    '/music': '<nav>Site navigation</nav><main>   </main>',
+    '/studio': '<main style="display:none"><h1>Hidden editor</h1></main>',
+    '/studio/music':
+      '<main style="opacity:0"><h1>Transparent Music editor</h1></main>',
+  };
+  const server = createServer((request, response) => {
+    response
+      .writeHead(200, { 'content-type': 'text/html' })
+      .end(documents[request.url ?? '/']);
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  assert.ok(address !== null && typeof address !== 'string');
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const report = await capturePreviewScreenshots(browser, {
+      baseUrl: `http://127.0.0.1:${address.port}`,
+      routes: Object.keys(documents),
+      outputDirectory: directory,
+      settleMs: 0,
+    });
+    assert.equal(
+      report.status,
+      'failed',
+      'HTTP 200 and a saved PNG do not prove the page rendered'
+    );
+    assert.equal(
+      report.captured,
+      20,
+      'failed captures must remain available for diagnosis'
+    );
+    for (const capture of report.captures) {
+      assert.ok(capture.file);
+      assert.ok((await readFile(join(directory, capture.file))).length > 0);
+      if (capture.path === '/') {
+        assert.equal(
+          capture.status,
+          'valid',
+          'Home does not need an h1 inside main'
+        );
+      } else {
+        assert.equal(capture.status, 'failed');
+        assert.match(capture.reason ?? '', /rendered main content/i);
+      }
+    }
+    const saved = JSON.parse(
+      await readFile(join(directory, 'manifest.json'), 'utf8')
+    );
+    assert.equal(saved.status, 'failed');
+    assert.equal(
+      saved.captures.filter(
+        (capture: { status: string }) => capture.status === 'failed'
+      ).length,
+      16
+    );
   } finally {
     await browser.close();
     server.close();

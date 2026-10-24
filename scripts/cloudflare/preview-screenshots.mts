@@ -8,6 +8,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { authorizePreviewPage } from './preview-auth.mts';
+import { requireRenderedContent } from './preview-content.mts';
 
 interface ScreenshotOptions {
   baseUrl: string;
@@ -99,6 +100,26 @@ async function settleScreenshot(
   await page.waitForTimeout(settleMs);
 }
 
+async function preserveScreenshot(
+  page: Page,
+  directory: string,
+  file: string,
+  result: ScreenshotCapture
+) {
+  try {
+    await page.screenshot({
+      path: join(directory, file),
+      fullPage: false,
+      animations: 'disabled',
+      timeout: 30_000,
+    });
+    result.file = file;
+  } catch (error) {
+    result.status = 'failed';
+    result.reason ??= String(error);
+  }
+}
+
 async function captureRoute(
   context: BrowserContext,
   path: string,
@@ -114,6 +135,8 @@ async function captureRoute(
     httpStatus: null,
     file: null,
   };
+  const routeName = path === '/' ? 'home' : encodeURIComponent(path.slice(1));
+  const file = `${routeName}-${variant.viewport.width}x${variant.viewport.height}-${variant.theme}.png`;
   try {
     await authorizePreviewPage(page, options.baseUrl, headers);
     await page.bringToFront();
@@ -127,23 +150,16 @@ async function captureRoute(
       options.settleMs ?? 300,
       options.imageDecodeTimeoutMs ?? 30_000
     );
-    const routeName = path === '/' ? 'home' : encodeURIComponent(path.slice(1));
-    const file = `${routeName}-${variant.viewport.width}x${variant.viewport.height}-${variant.theme}.png`;
-    await page.screenshot({
-      path: join(options.outputDirectory, file),
-      fullPage: false,
-      animations: 'disabled',
-      timeout: 30_000,
-    });
-    result.file = file;
     if (!response?.ok())
       throw new Error(
         `Screenshot route ${path} returned HTTP ${result.httpStatus ?? 'no response'}.`
       );
+    await requireRenderedContent(page);
     result.status = 'valid';
   } catch (error) {
     result.reason = String(error);
   } finally {
+    await preserveScreenshot(page, options.outputDirectory, file, result);
     await page.close();
   }
   return result;

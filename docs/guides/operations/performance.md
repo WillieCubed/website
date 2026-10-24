@@ -35,6 +35,13 @@ initiative result and expected 5/attempted 0/missing 5 counts. That absence does
 not count as a pass or fail an otherwise valid run. A failed attempted
 measurement still fails the command.
 
+A client navigation succeeds only when the expected destination heading and
+visible main content render. A changed URL and a quiet network window can
+still leave the previous page on screen. Failed steps retain their measured
+requests and bytes. Screenshot captures also reject missing, empty, or hidden
+main content and retain the failed PNG for diagnosis. A blank HTTP 200 response
+does not establish a bandwidth improvement.
+
 `PREVIEW_METRICS_BASE_URL` selects an already-running target. The default command
 starts and stops its own local Worker preview. Private Studio measurements need
 an explicitly selected authenticated fixture target. Follow the metrics

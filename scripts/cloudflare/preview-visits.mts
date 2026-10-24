@@ -1,6 +1,7 @@
 import type { Browser, BrowserContextOptions, Page } from '@playwright/test';
 
 import { authorizePreviewPage } from './preview-auth.mts';
+import { requireRenderedContent } from './preview-content.mts';
 import {
   type MeasurementSample,
   assessDocument,
@@ -10,7 +11,8 @@ import {
 import { installObservers, readDocument } from './preview-observers.mts';
 import { type TransferLedger, observeTransfers } from './preview-transfers.mts';
 
-export const BASE_URL = 'http://127.0.0.1:8787';
+// OpenNext applies its local streaming compression workaround only to localhost.
+export const BASE_URL = 'http://localhost:8787';
 const SAMPLE_COUNT = 5;
 export interface SampleOptions {
   baseUrl?: string;
@@ -166,8 +168,7 @@ export async function sampleJourney(
         network.ledger
       );
       steps.push(step);
-      if (step.transfer.settlement.status === 'timeout')
-        throw new Error(pendingTransferReason(step.transfer.pending));
+      if (step.status === 'failed') throw new Error(step.reason);
     }
     return { status: initial.status, paths: journey.paths, steps };
   } catch (error) {
@@ -182,6 +183,54 @@ export async function sampleJourney(
   }
 }
 
+const DESTINATION_HEADINGS: Record<string, string> = {
+  '/search': 'Search',
+  '/writings': 'Writings',
+  '/initiatives': 'Initiatives',
+  '/projects': 'Projects',
+  '/music': 'Music',
+};
+
+async function requireDestinationContent(
+  page: Page,
+  path: string,
+  timeoutMs: number
+) {
+  const heading = DESTINATION_HEADINGS[path];
+  if (heading)
+    await page
+      .getByRole('heading', { level: 1, name: heading, exact: true })
+      .waitFor({ state: 'visible', timeout: timeoutMs });
+  await requireRenderedContent(page);
+}
+
+async function navigateJourneyStep(
+  page: Page,
+  path: string,
+  options: ResolvedOptions,
+  startedAt: number
+) {
+  const timeOrigin = await page.evaluate(() => performance.timeOrigin);
+  await page
+    .locator(`a[href="${path}"]`)
+    .filter({ visible: true })
+    .first()
+    .click({ timeout: options.timeoutMs });
+  await page.waitForURL((url) => url.pathname === path, {
+    timeout: options.timeoutMs,
+  });
+  await page.waitForLoadState('load', { timeout: options.timeoutMs });
+  const documentNavigation =
+    (await page.evaluate(() => performance.timeOrigin)) !== timeOrigin;
+  return {
+    navigationMs: Math.round(performance.now() - startedAt),
+    navigation: documentNavigation ? 'document' : 'client',
+    paintMetrics: documentNavigation
+      ? 'not-collected-for-journey-step'
+      : 'not-applicable-to-client-navigation',
+  };
+}
+
 async function measureJourneyStep(
   page: Page,
   path: string,
@@ -190,30 +239,32 @@ async function measureJourneyStep(
 ) {
   ledger.reset();
   const startedAt = performance.now();
-  const timeOrigin = await page.evaluate(() => performance.timeOrigin);
-  const link = page
-    .locator(`a[href="${path}"]`)
-    .filter({ visible: true })
-    .first();
-  await link.click({ timeout: options.timeoutMs });
-  await page.waitForURL((url) => url.pathname === path, {
-    timeout: options.timeoutMs,
-  });
-  await page.waitForLoadState('load', { timeout: options.timeoutMs });
-  const navigationMs = Math.round(performance.now() - startedAt);
-  await page.waitForTimeout(options.quietMs);
-  const documentNavigation =
-    (await page.evaluate(() => performance.timeOrigin)) !== timeOrigin;
+  let navigation: {
+    navigationMs: number | null;
+    navigation: string;
+    paintMetrics: string;
+  } = {
+    navigationMs: null,
+    navigation: 'unknown',
+    paintMetrics: 'not-collected-for-failed-navigation',
+  };
+  let reason: string | undefined;
+  try {
+    navigation = await navigateJourneyStep(page, path, options, startedAt);
+    await requireDestinationContent(page, path, options.timeoutMs);
+    await page.waitForTimeout(options.quietMs);
+  } catch (error) {
+    reason = String(error);
+  }
   const transfer = await ledger.drain(options.timeoutMs, options.quietMs);
+  if (transfer.settlement.status === 'timeout')
+    reason ??= pendingTransferReason(transfer.pending);
   return {
     path,
-    status: transfer.settlement.status === 'timeout' ? 'failed' : 'valid',
-    navigationMs,
+    status: reason === undefined ? 'valid' : 'failed',
+    reason,
+    ...navigation,
     elapsedMs: Math.round(performance.now() - startedAt),
-    navigation: documentNavigation ? 'document' : 'client',
-    paintMetrics: documentNavigation
-      ? 'not-collected-for-journey-step'
-      : 'not-applicable-to-client-navigation',
     transfer,
   };
 }

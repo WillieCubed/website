@@ -8,40 +8,49 @@ test.skip(
 const root = '/initiatives/fall-tour-2026';
 const paths = [root, ...[1, 2, 3, 4].map((part) => `${root}/part-${part}`)];
 
-test('part navigation groups adjacent parts above the overview link without empty slots', async ({
+test('part navigation uses full-width text links and one page-to-footer gap', async ({
   page,
 }, info) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const part of [1, 3, 4]) {
     await page.goto(`${root}/part-${part}`);
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-footer-motion',
+      ''
+    );
     const nav = page.getByRole('navigation', {
       name: 'Fall Tour 2026 navigation',
     });
-    expect(
-      await page
-        .locator('main')
-        .evaluate((node) => parseFloat(getComputedStyle(node).paddingBottom))
-    ).toBeLessThanOrEqual(48);
-    const adjacent = nav.locator('.part-nav__part');
-    await expect(adjacent).toHaveCount(part === 3 ? 2 : 1);
-    const boxes = await adjacent.evaluateAll((links) =>
-      links.map((link) => {
-        const { x, y, width, height, bottom } = link.getBoundingClientRect();
+    const links = nav.getByRole('link');
+    await expect(links).toHaveCount(part === 3 ? 2 : 1);
+    await expect(nav.getByText(/All of/)).toHaveCount(0);
+    await expect(nav.getByRole('button')).toHaveCount(0);
+    expect(await nav.textContent()).not.toMatch(/[←→]/);
+    const boxes = await links.evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const { x, y, width, height, bottom } = node.getBoundingClientRect();
         return { x, y, width, height, bottom };
       })
     );
-    for (const box of boxes) expect(box.height).toBeGreaterThanOrEqual(44);
+    for (const box of boxes) expect(box.height).toBeGreaterThanOrEqual(48);
+    expect(await links.locator('svg').count()).toBe(boxes.length);
+    const frame = await page.locator('main').evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return {
+        left: box.left + parseFloat(style.paddingLeft),
+        right: box.right - parseFloat(style.paddingRight),
+      };
+    });
+    expect(boxes[0].x).toBeCloseTo(frame.left, 0);
+    expect(boxes[0].x + boxes[0].width).toBeCloseTo(frame.right, 0);
     if (boxes.length === 2) {
-      expect(boxes[0].y).toBeCloseTo(boxes[1].y, 0);
-      expect(boxes[0].height).toBeCloseTo(boxes[1].height, 0);
-      expect(boxes[1].x - boxes[0].x - boxes[0].width).toBeCloseTo(12, 0);
+      expect(boxes[0].x).toBeCloseTo(boxes[1].x, 0);
+      expect(boxes[0].width).toBeCloseTo(boxes[1].width, 0);
+      expect(boxes[1].y - boxes[0].bottom).toBeCloseTo(8, 0);
     }
-    const overview = await nav
-      .getByRole('link', { name: 'All of Fall Tour 2026' })
-      .boundingBox();
-    expect(overview!.y).toBeGreaterThanOrEqual(
-      Math.max(...boxes.map((box) => box.bottom)) + 8
-    );
+    const footer = await page.locator('.site-footer').boundingBox();
+    expect(footer!.y - boxes.at(-1)!.bottom).toBeCloseTo(40, 0);
     if (part === 3) {
       await nav.evaluate((node) => node.scrollIntoView({ block: 'center' }));
       await page.screenshot({
@@ -230,7 +239,23 @@ test('Fall Tour keeps chapter artwork and complete navigation in server HTML', a
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       'A Staycation with Friends from Unlikely Places'
     );
-    await page.getByRole('link', { name: 'All of Fall Tour 2026' }).click();
+    const breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
+    const parent = breadcrumbs.getByRole('button', {
+      name: 'Open menu for Fall Tour 2026',
+      exact: true,
+    });
+    if (await parent.isVisible()) await parent.click();
+    else
+      await breadcrumbs
+        .getByRole('button', { name: 'Pages above this one', exact: true })
+        .click();
+    await expect(breadcrumbs.locator('.site-popover:popover-open')).toHaveCSS(
+      'transform',
+      'none'
+    );
+    await breadcrumbs
+      .getByRole('link', { name: 'Fall Tour 2026', exact: true })
+      .click();
     await expect(page).toHaveURL(new RegExp(`${root}$`));
     await page.goBack();
     await expect(page).toHaveURL(new RegExp(`${root}/part-2$`));

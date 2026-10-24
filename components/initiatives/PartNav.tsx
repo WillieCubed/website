@@ -1,10 +1,17 @@
+import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
 
 import type { Initiative, Part } from '@/lib/initiatives/index';
 
+type NavigationPart = Pick<Part, 'number' | 'slug' | 'title'>;
+type CurrentPart = Pick<Part, 'number'>;
+type NavigationInitiative = Pick<Initiative, 'title' | 'partLabel' | 'href'> & {
+  parts: NavigationPart[];
+};
+
 interface PartNavProps {
-  initiative: Initiative;
-  part: Part;
+  initiative: NavigationInitiative;
+  part: CurrentPart;
 }
 
 export default function PartNav({ initiative, part }: PartNavProps) {
@@ -14,35 +21,26 @@ export default function PartNav({ initiative, part }: PartNavProps) {
 
   return (
     <nav aria-label={`${initiative.title} navigation`} className="part-nav">
-      <div className="part-nav__adjacent">
-        {[previous, next].map(
-          (destination, direction) =>
-            destination != null && (
-              <SiteLink
-                key={destination.number}
-                preview={false}
-                href={`${initiative.href}/${destination.slug}`}
-                aria-label={`${initiative.partLabel} ${destination.number}: ${destination.title}`}
-                rel={direction === 0 ? 'prev' : 'next'}
-                className="part-nav__part"
-              >
-                <span className="part-nav__title">{destination.title}</span>
-                <span className="part-nav__position">
-                  {direction === 0 && '← '}
-                  {initiative.partLabel} {destination.number}
-                  {direction === 1 && ' →'}
-                </span>
-              </SiteLink>
-            )
-        )}
-      </div>
-      <SiteLink
-        preview={false}
-        href={initiative.href}
-        className="part-nav__overview site-control px-4 py-2 text-label-large [--control-ink:var(--color-ink)] [--control-border:1px_solid_var(--color-line)]"
-      >
-        All of {initiative.title}
-      </SiteLink>
+      {[previous, next].map(
+        (destination, direction) =>
+          destination != null && (
+            <SiteLink
+              key={destination.number}
+              preview={false}
+              href={`${initiative.href}/${destination.slug}`}
+              rel={direction === 0 ? 'prev' : 'next'}
+              className="part-nav__part"
+            >
+              <Icon
+                name={direction === 0 ? 'arrow-left' : 'arrow-right'}
+                size={20}
+              />
+              <span>
+                {initiative.partLabel} {destination.number}: {destination.title}
+              </span>
+            </SiteLink>
+          )
+      )}
     </nav>
   );
 }

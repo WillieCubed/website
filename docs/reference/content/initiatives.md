@@ -269,10 +269,13 @@ from frontmatter. Use the body to develop what happened and what it means rather
 than repeating that schedule. A date or milestone can then change in one
 structured source.
 
-Previous and next parts share one row below the story. Their titles wrap
-inside equal-width links, and the part number sits below the title. The
-overview link occupies a separate centered row beneath both choices. First
-and last parts render only their available neighbor without an empty slot.
+Previous and next parts use full-width text links in one vertical sequence.
+Each link keeps the part number inline with its title and uses the shared SVG
+arrow icon. The page does not repeat the overview destination as a separate
+button; the breadcrumb's native destination menu provides that link, including
+without JavaScript. First and last parts render only their available neighbor.
+The shared page sheet owns the space before the footer. Part pages add no
+second trailing inset.
 
 Outside the initiative, a part needs a name that stands on its own. `partTitle()`
 combines the initiative name, part label and number, and title: “Fall Tour 2026

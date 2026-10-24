@@ -277,7 +277,7 @@ header[data-column] .site-breadcrumb:not(.site-control):focus-visible::before {
 
 .site-topbar.site-frame {
   padding-block: 8px;
-  padding-inline: 16px;
+  padding-inline: var(--page-frame-gutter);
 }
 .site-breadcrumbs__crumb:last-child .site-breadcrumb-menu-trigger,
 .site-breadcrumbs__crumb:last-child .site-control__surface {

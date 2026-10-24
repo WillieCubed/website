@@ -57,8 +57,8 @@ type MobileRingLayout = Record<
 function expectMobileRingLayout(bounds: MobileRingLayout) {
   expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
   expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
-  expect(bounds.rings.left).toBeCloseTo(bounds.frame.left + 16, 0);
-  expect(bounds.rings.right).toBeCloseTo(bounds.frame.right - 16, 0);
+  expect(bounds.rings.left).toBeCloseTo(bounds.frame.left, 0);
+  expect(bounds.rings.right).toBeCloseTo(bounds.frame.right, 0);
   expect(bounds.label.left).toBeGreaterThan(bounds.rings.left);
   const sharedRow = bounds.label.bottom > bounds.panel.top;
   if (sharedRow) {

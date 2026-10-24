@@ -483,7 +483,6 @@
     grid-template-rows: repeat(4, auto);
   }
   .site-footer {
-    --footer-content-pad: 16px;
     --footer-brand-size: clamp(20px, 6vw, var(--text-headline-small));
   }
   .site-footer .site-footer__pages {
@@ -537,8 +536,9 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--spacing-xs) 0;
-    width: 100%;
-    padding-inline: var(--footer-content-pad);
+    width: calc(100% + 2 * var(--footer-panel-edge));
+    margin-inline: calc(-1 * var(--footer-panel-edge));
+    padding-inline: var(--footer-text-edge);
   }
   .site-webrings__label {
     flex-shrink: 0;

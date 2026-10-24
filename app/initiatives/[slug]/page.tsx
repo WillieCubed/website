@@ -7,6 +7,7 @@ import Playbill from '@/components/initiatives/Playbill';
 import RouteMap from '@/components/initiatives/RouteMap';
 import TrailerBlock from '@/components/initiatives/TrailerBlock';
 import { initiativeBreadcrumbs } from '@/components/initiatives/breadcrumbs';
+import '@/components/initiatives/fall-tour.css';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
 import SharedTitle from '@/components/site/SharedTitle';
@@ -77,7 +78,7 @@ interface InitiativeHeadingProps {
 
 function InitiativeHeading({ initiative }: InitiativeHeadingProps) {
   return (
-    <header className="mx-auto max-w-[840px]">
+    <header className="initiative-heading mx-auto max-w-[840px]">
       {isPrivatePreview() && initiative.draft && (
         <p className="text-label-medium text-muted">Draft</p>
       )}
@@ -86,7 +87,7 @@ function InitiativeHeading({ initiative }: InitiativeHeadingProps) {
           <span className="inline-block">{initiative.title}</span>
         </SharedTitle>
       </h1>
-      <p className="mt-3 text-headline-small font-normal text-muted">
+      <p className="initiative-tagline mt-3 text-headline-small font-normal text-muted">
         {initiative.tagline}
       </p>
       {initiative.starts && initiative.ends && (
@@ -129,7 +130,11 @@ export default async function InitiativePage(
   const crumbs = await initiativeBreadcrumbs(initiative);
 
   return (
-    <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
+    <div
+      className="initiative initiative-overview"
+      data-initiative={initiative.slug}
+      style={schemeStyleFromHex(initiative.brand)}
+    >
       <JsonLd
         data={graph(
           webPageLd({
@@ -150,13 +155,16 @@ export default async function InitiativePage(
       <main id="main" className="site-frame site-frame--wide pb-20">
         <InitiativeHeading initiative={initiative} />
 
-        <div className="mx-auto mt-8 max-w-[840px]">
+        <div
+          className="initiative-trailer mx-auto mt-8 max-w-[840px]"
+          data-media={initiative.trailer?.youtubeId ? 'video' : 'poster'}
+        >
           <TrailerBlock initiative={initiative} />
         </div>
 
         {initiative.parts.length > 0 && (
           <section
-            className="mt-12"
+            className="initiative-chapters mt-12"
             aria-label={`${initiative.title} ${initiative.partLabel.toLowerCase()}s`}
           >
             <Playbill initiative={initiative} />
@@ -164,12 +172,15 @@ export default async function InitiativePage(
         )}
 
         {places.length > 1 && (
-          <section className="mt-12" aria-label={`${initiative.title} route`}>
+          <section
+            className="initiative-route mt-12"
+            aria-label={`${initiative.title} route`}
+          >
             <RouteMap places={places} title={`${initiative.title} route`} />
           </section>
         )}
 
-        <section className="mx-auto mt-12 max-w-[720px]">
+        <section className="initiative-story mx-auto mt-12 max-w-[720px]">
           <InitiativeBody source={initiative.content} />
         </section>
 

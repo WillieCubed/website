@@ -203,13 +203,30 @@ Scroll reveals are entrance effects. They must never hide content or make
 scrolling a prerequisite for reading. When changing the interaction, check the
 Playbill with JavaScript unavailable and reduced motion enabled.
 
+## Campaign presentation
+
+The full Playbill renders each part's cover beside its copy. The compact
+homepage Playbill keeps its text-only composition. Both use the same part
+records and native destinations. Campaign-specific layout belongs in scoped
+CSS, such as `components/initiatives/fall-tour.css`; it must not add a separate
+client navigation or content model.
+
+Fall Tour uses decorative SVG patterns of rounded pixels. Keep these graphics abstract;
+do not replace them with generated scenes or imitation photographs. Travel
+dates, places, milestones, and public narrative belong in the content records.
+Personal contact names, booking references, and private logistics belong in
+Docket rather than public copy. Do not turn a future plan into a claim that
+the event has already happened.
+
+`tests/fall-tour.config.mts` checks all five draft pages through the authenticated
+fixture. It captures uncropped desktop and phone views in both themes and
+checks enlarged text, server-rendered covers, and native chapter navigation
+without JavaScript.
+
 ## Open questions
 
-Trailer video ids and real cover photos are still to come from Willie; the SVG
-covers under `public/assets/initiatives/` are placeholders. Brand seeds for
-initiatives are hand-picked hexes because they have no site to resolve from.
-
-The placeholders let the page be reviewed while that material is missing. They
-do not establish approval of final imagery or a trailer. Replace them with
-Willie's supplied material and rerun the media checks before treating the page
-as editorially finished.
+Trailer video ids and documentary photographs are still to come from Willie.
+The decorative SVG covers do not imply that footage or photographs exist.
+Brand seeds for initiatives are hand-picked hexes because they have no site to
+resolve from. When adding supplied media, rerun the media checks and review its
+caption, crop, and loading behavior in the complete page.

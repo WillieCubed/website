@@ -1,0 +1,286 @@
+/* Fall Tour uses the initiative records and native chapter navigation. */
+.initiative[data-initiative='fall-tour-2026'] {
+  --tour-gap: clamp(1.5rem, 4vw, 4rem);
+}
+
+.initiative-overview[data-initiative='fall-tour-2026'] main {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--tour-gap);
+}
+.initiative-overview[data-initiative='fall-tour-2026'] main > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .initiative-heading {
+  grid-column: 1 / 7;
+  align-self: center;
+  margin: 0;
+  padding-block: var(--tour-gap);
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .initiative-heading h1 {
+  max-width: 8ch;
+  font-size: clamp(
+    var(--text-display-large),
+    8vw,
+    calc(var(--text-display-large) * 2)
+  );
+  line-height: 0.95;
+  letter-spacing: var(--text-display-large--letter-spacing);
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .initiative-tagline {
+  max-width: 30ch;
+  margin-block: calc(var(--spacing) * 6);
+  font-size: var(--text-headline-small);
+  line-height: var(--text-headline-small--line-height);
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .initiative-trailer {
+  grid-column: 7 / -1;
+  grid-row: 1;
+  align-self: stretch;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+.initiative-overview[data-initiative='fall-tour-2026']
+  .initiative-trailer
+  figure {
+  height: 100%;
+  min-height: 36rem;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-3xl);
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .initiative-chapters {
+  margin-block: calc(var(--spacing) * 24);
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .playbill--full {
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--spacing) * 20);
+}
+.initiative-overview[data-initiative='fall-tour-2026']
+  .playbill--full
+  .act-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--tour-gap);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .act-art {
+  aspect-ratio: 8 / 5;
+  border-radius: var(--radius-3xl);
+  background: var(--surface-soft);
+}
+.initiative-overview[data-initiative='fall-tour-2026']
+  .playbill--full
+  .act:nth-child(even)
+  .act-art {
+  order: 2;
+}
+.initiative-overview[data-initiative='fall-tour-2026']
+  .playbill--full
+  .act-copy {
+  padding: calc(var(--spacing) * 4);
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .playbill--full h3 {
+  max-width: 20ch;
+  margin-block: calc(var(--spacing) * 4);
+  font-size: clamp(var(--text-headline-large), 3vw, var(--text-display-medium));
+  line-height: 1.1;
+  letter-spacing: var(--text-display-medium--letter-spacing);
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .act-copy > p {
+  max-width: 40ch;
+}
+.initiative-overview[data-initiative='fall-tour-2026']
+  .playbill--full
+  ul[aria-label='Places'] {
+  gap: calc(var(--spacing) * 2);
+}
+.initiative-overview[data-initiative='fall-tour-2026']
+  .playbill--full
+  ul[aria-label='Places']
+  li {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.initiative-overview[data-initiative='fall-tour-2026']
+  ul[aria-label='Places']
+  li:not(:last-child)::after {
+  content: ' /';
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .initiative-route {
+  margin-top: 0;
+}
+.initiative-overview[data-initiative='fall-tour-2026'] .initiative-story {
+  margin-top: calc(var(--spacing) * 20);
+}
+
+.initiative-part[data-initiative='fall-tour-2026'] .initiative-part-heading {
+  border-radius: var(--radius-3xl);
+}
+.initiative-part[data-initiative='fall-tour-2026']
+  .initiative-part-heading
+  > img {
+  opacity: 1;
+}
+.initiative-part[data-initiative='fall-tour-2026'] .h-event {
+  min-height: clamp(28rem, 64svh, 44rem);
+  padding: clamp(1.5rem, 5vw, 4rem);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-scrim) 94%, transparent),
+    color-mix(in srgb, var(--color-scrim) 72%, transparent) 48%,
+    transparent
+  );
+}
+.initiative-part[data-initiative='fall-tour-2026'] .h-event h1 {
+  max-width: 20ch;
+  font-size: clamp(
+    var(--text-display-small),
+    5.5vw,
+    calc(var(--text-display-large) * 1.25)
+  );
+  line-height: 1.05;
+  letter-spacing: var(--text-display-large--letter-spacing);
+  text-wrap: balance;
+}
+.initiative-part[data-initiative='fall-tour-2026'] .h-event .p-summary {
+  max-width: 34ch;
+}
+.initiative-part[data-initiative='fall-tour-2026'] .initiative-part-story {
+  max-width: none;
+  gap: var(--tour-gap);
+  margin-top: calc(var(--spacing) * 16);
+}
+.initiative[data-initiative='fall-tour-2026']
+  .initiative-prose
+  > p:first-child {
+  font-size: var(--text-headline-small);
+  line-height: var(--text-headline-small--line-height);
+  color: var(--color-ink);
+}
+.initiative[data-initiative='fall-tour-2026'] .initiative-prose h2 {
+  margin-top: calc(var(--spacing) * 12);
+  font-size: var(--text-headline-medium);
+  line-height: var(--text-headline-medium--line-height);
+}
+.initiative-part[data-initiative='fall-tour-2026']
+  .initiative-milestones
+  .act-card {
+  padding: calc(var(--spacing) * 6);
+  border: 0;
+  background: var(--surface-soft);
+  box-shadow: none;
+}
+.initiative-part[data-initiative='fall-tour-2026'] .initiative-milestones time {
+  display: block;
+  margin-bottom: calc(var(--spacing) * 2);
+  color: var(--accent-live);
+  font-family: var(--font-mono);
+}
+.initiative-part[data-initiative='fall-tour-2026'] .initiative-milestones li {
+  gap: 0;
+}
+
+@media (min-width: 840px) {
+  .initiative-part[data-initiative='fall-tour-2026'] .initiative-part-story {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+  .initiative-part[data-initiative='fall-tour-2026'] .initiative-story {
+    max-width: 66ch;
+    padding-inline: calc(var(--spacing) * 6);
+  }
+  .initiative-part[data-initiative='fall-tour-2026'] .initiative-milestones {
+    position: sticky;
+    top: calc(var(--spacing) * 6);
+    align-self: start;
+  }
+}
+@media (max-width: 839px) {
+  .initiative-part[data-initiative='fall-tour-2026']
+    .initiative-part-heading
+    > img {
+    object-position: 70% center;
+  }
+  .initiative-overview[data-initiative='fall-tour-2026'] main {
+    display: block;
+  }
+  .initiative-overview[data-initiative='fall-tour-2026'] .initiative-heading {
+    padding-block: calc(var(--spacing) * 4);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026']
+    .initiative-heading
+    h1 {
+    max-width: none;
+    font-size: var(--text-display-large);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026'] .initiative-tagline {
+    margin-block: calc(var(--spacing) * 4);
+    font-size: var(--text-title-large);
+    line-height: var(--text-title-large--line-height);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026']
+    .initiative-trailer[data-media='poster'] {
+    margin-top: calc(var(--spacing) * 2);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026']
+    .initiative-trailer[data-media='poster']
+    figure {
+    aspect-ratio: 5 / 1;
+    border-radius: var(--radius-xl);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026']
+    .initiative-trailer[data-media='poster']
+    img {
+    object-position: 70% 42%;
+  }
+  .initiative-overview[data-initiative='fall-tour-2026']
+    .initiative-trailer
+    figure {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 8 / 5;
+  }
+  .initiative-overview[data-initiative='fall-tour-2026'] .initiative-chapters {
+    margin-block: calc(var(--spacing) * 8);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026']
+    .playbill--full
+    .act-card {
+    grid-template-columns: minmax(0, 1fr) 28%;
+    align-items: start;
+    gap: calc(var(--spacing) * 4);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026']
+    .playbill--full
+    .act-art {
+    order: 2;
+    aspect-ratio: 1;
+    border-radius: var(--radius-2xl);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026'] .act-art img {
+    object-position: 70% center;
+  }
+  .initiative-overview[data-initiative='fall-tour-2026']
+    .playbill--full
+    .act-copy {
+    padding-inline: 0;
+    padding-block: 0;
+    overflow-wrap: anywhere;
+  }
+  .initiative-overview[data-initiative='fall-tour-2026'] .playbill--full h3 {
+    margin-block: calc(var(--spacing) * 2);
+    font-size: var(--text-headline-small);
+    line-height: var(--text-headline-small--line-height);
+  }
+  .initiative-overview[data-initiative='fall-tour-2026'] .playbill--full {
+    gap: calc(var(--spacing) * 8);
+  }
+}

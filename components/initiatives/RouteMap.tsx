@@ -12,11 +12,6 @@ const WIDTH = 800;
 const HEIGHT = 320;
 const PAD = 48;
 
-/**
- * An honest little map: places projected onto a plain graticule and joined
- * in order. There is no outline because a hand-drawn continent would be a
- * lie about precision this page does not have.
- */
 export default function RouteMap({
   places,
   connect = true,
@@ -84,33 +79,24 @@ export default function RouteMap({
         )}
         {places.map((place, i) => {
           const [px, py] = points[i];
-          // Alternate label sides so neighbouring cities do not overprint.
-          const crowded = points.some(
-            ([ox, oy], j) =>
-              j < i && Math.abs(ox - px) < 110 && Math.abs(oy - py) < 40
-          );
-          const labelBelow = crowded ? i % 2 === 0 : py < HEIGHT / 2;
           return (
             <g key={`${place.name}-${i}`}>
+              <title>{`${place.name}${place.region ? `, ${place.region}` : ''}`}</title>
               <circle cx={px} cy={py} r="7" />
-              <text
-                x={px}
-                y={labelBelow ? py + 24 : py - 14}
-                textAnchor="middle"
-                fontSize="14"
-                fontFamily="var(--font-mono)"
-                fill="var(--color-ink)"
-              >
-                {place.name}
-              </text>
             </g>
           );
         })}
       </svg>
-      <figcaption className="sr-only">
-        {places
-          .map((p) => `${p.name}${p.region ? `, ${p.region}` : ''}`)
-          .join(' → ')}
+      <figcaption>
+        {/* HTML labels keep nearby stops readable when the map scales down. */}
+        <ol className="mt-3 grid list-decimal grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-x-8 gap-y-2 pl-6 text-sm text-muted sm:grid-cols-3">
+          {places.map((place, i) => (
+            <li key={`${place.name}-${i}`} className="min-w-0 break-words">
+              {place.name}
+              {place.region ? `, ${place.region}` : ''}
+            </li>
+          ))}
+        </ol>
       </figcaption>
     </figure>
   );

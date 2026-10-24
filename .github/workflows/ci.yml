@@ -242,6 +242,14 @@ jobs:
           STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
           STUDIO_TEST_PRODUCTION: '1'
 
+      - name: Fall Tour presentation and native chapter navigation
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
+        run: pnpm test:studio
+        env:
+          STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+          STUDIO_TEST_PRODUCTION: '1'
+          STUDIO_TEST_CONFIG: tests/fall-tour.config.mts
+
       - name: Private Music against the production fixture
         if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
         run: pnpm test:studio

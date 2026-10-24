@@ -1,116 +1,147 @@
 import type { Place } from '@/lib/initiatives/index';
+import {
+  HAWAII_INSET,
+  curvedLeg,
+  isHawaii,
+  routeGeography,
+} from '@/lib/initiatives/route-geography';
+
+import RouteMapCanvas from './RouteMapCanvas';
+
+interface RouteGroup {
+  label: string;
+  places: Place[];
+}
 
 interface RouteMapProps {
   /** Places in travel order. */
   places: Place[];
-  /** Draw a dashed line between places in order. */
+  /** Separate trips never imply travel between their endpoints. */
+  routes?: RouteGroup[];
   connect?: boolean;
   title?: string;
 }
 
-const WIDTH = 800;
-const HEIGHT = 320;
-const PAD = 48;
+interface GeographyProps {
+  places: Place[];
+  routes: RouteGroup[];
+  connect: boolean;
+  title: string;
+}
 
-/**
- * An honest little map: places projected onto a plain graticule and joined
- * in order. There is no outline because a hand-drawn continent would be a
- * lie about precision this page does not have.
- */
+function Geography({ places, routes, connect, title }: GeographyProps) {
+  const { project, land, islandLand, height } = routeGeography(places);
+  const names = new Set(places.map((place) => place.name));
+  return (
+    <RouteMapCanvas
+      title={`${title}: ${places.map((place) => place.name).join(', ')}`}
+      compact={places.every(isHawaii)}
+      height={height}
+      points={places.map((place) => {
+        const [x, y] = project(place);
+        return { name: place.name, x, y };
+      })}
+    >
+      <svg width="800" height="440" overflow="hidden" aria-hidden="true">
+        <g className="route-map__land">
+          {land.map((outline, index) => (
+            <path key={index} d={outline} />
+          ))}
+        </g>
+      </svg>
+      {islandLand.length > 0 && (
+        <svg
+          {...HAWAII_INSET}
+          viewBox="0 0 800 440"
+          className="route-map__islands"
+          role="img"
+          aria-label={`Hawaii inset: ${places
+            .filter(isHawaii)
+            .map((place) => place.name)
+            .join(', ')}`}
+        >
+          <rect width="800" height="440" rx="48" />
+          <g className="route-map__land" aria-hidden="true">
+            {islandLand.map((outline, index) => (
+              <path key={index} d={outline} />
+            ))}
+          </g>
+        </svg>
+      )}
+      {connect &&
+        routes.map((route, index) => (
+          <g key={index} className="route-map__journey" data-route={index % 4}>
+            {route.places.slice(1).map((place, stop) => {
+              const previous = route.places[stop];
+              if (!names.has(previous.name) || !names.has(place.name))
+                return null;
+              if (isHawaii(previous) !== isHawaii(place)) return null;
+              return (
+                <path
+                  key={stop}
+                  d={curvedLeg(project(previous), project(place))}
+                />
+              );
+            })}
+          </g>
+        ))}
+      {places.map((place, index) => {
+        const [x, y] = project(place);
+        return (
+          <g key={index}>
+            <title>{`${place.name}${place.region ? `, ${place.region}` : ''}`}</title>
+            <circle cx={x} cy={y} r="5" />
+          </g>
+        );
+      })}
+    </RouteMapCanvas>
+  );
+}
+
 export default function RouteMap({
   places,
+  routes,
   connect = true,
   title = 'Route',
 }: RouteMapProps) {
   if (places.length === 0) return null;
-  const lats = places.map((p) => p.lat);
-  const lngs = places.map((p) => p.lng);
-  const minLat = Math.min(...lats) - 2;
-  const maxLat = Math.max(...lats) + 2;
-  const minLng = Math.min(...lngs) - 3;
-  const maxLng = Math.max(...lngs) + 3;
-  const x = (lng: number) =>
-    PAD +
-    ((lng - minLng) / (maxLng === minLng ? 1 : maxLng - minLng)) *
-      (WIDTH - PAD * 2);
-  const y = (lat: number) =>
-    HEIGHT -
-    PAD -
-    ((lat - minLat) / (maxLat === minLat ? 1 : maxLat - minLat)) *
-      (HEIGHT - PAD * 2);
-  const points = places.map((p) => [x(p.lng), y(p.lat)] as const);
-  const path = points
-    .map(([px, py], i) => `${i > 0 ? 'L' : 'M'}${px} ${py}`)
-    .join(' ');
-
+  const trips = routes ?? [{ label: title, places }];
   return (
-    <figure className="route-map rounded-2xl border border-line bg-card p-3">
-      <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        role="img"
-        aria-label={`${title}: ${places.map((p) => p.name).join(', ')}`}
-        className="h-auto w-full"
-      >
-        {Array.from({ length: 6 }, (_, i) => (
-          <line
-            key={`h${i}`}
-            x1={PAD}
-            x2={WIDTH - PAD}
-            y1={PAD + (i * (HEIGHT - PAD * 2)) / 5}
-            y2={PAD + (i * (HEIGHT - PAD * 2)) / 5}
-            stroke="var(--color-line)"
-            strokeWidth="1"
-          />
-        ))}
-        {Array.from({ length: 9 }, (_, i) => (
-          <line
-            key={`v${i}`}
-            y1={PAD}
-            y2={HEIGHT - PAD}
-            x1={PAD + (i * (WIDTH - PAD * 2)) / 8}
-            x2={PAD + (i * (WIDTH - PAD * 2)) / 8}
-            stroke="var(--color-line)"
-            strokeWidth="1"
-          />
-        ))}
-        {connect && points.length > 1 && (
-          <path
-            d={path}
-            fill="none"
-            strokeWidth="3"
-            strokeDasharray="2 10"
-            strokeLinecap="round"
-          />
-        )}
-        {places.map((place, i) => {
-          const [px, py] = points[i];
-          // Alternate label sides so neighbouring cities do not overprint.
-          const crowded = points.some(
-            ([ox, oy], j) =>
-              j < i && Math.abs(ox - px) < 110 && Math.abs(oy - py) < 40
-          );
-          const labelBelow = crowded ? i % 2 === 0 : py < HEIGHT / 2;
-          return (
-            <g key={`${place.name}-${i}`}>
-              <circle cx={px} cy={py} r="7" />
-              <text
-                x={px}
-                y={labelBelow ? py + 24 : py - 14}
-                textAnchor="middle"
-                fontSize="14"
-                fontFamily="var(--font-mono)"
-                fill="var(--color-ink)"
-              >
+    <figure className="route-map rounded-4xl border border-line bg-card">
+      <Geography
+        places={places}
+        routes={trips}
+        connect={connect}
+        title={title}
+      />
+      <figcaption>
+        {routes ? (
+          <ol className="route-map__trips" role="list">
+            {routes.map((route, index) => (
+              <li key={index} data-route={index % 4}>
+                <strong>{route.label}</strong>
+                <ol
+                  className="route-map__stops"
+                  role="list"
+                  aria-label={`${route.label} stops`}
+                >
+                  {route.places.map((place, stop) => (
+                    <li key={stop}>{place.name}</li>
+                  ))}
+                </ol>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <ol className="route-map__stops" role="list" data-route="0">
+            {places.map((place, index) => (
+              <li key={index}>
                 {place.name}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      <figcaption className="sr-only">
-        {places
-          .map((p) => `${p.name}${p.region ? `, ${p.region}` : ''}`)
-          .join(' → ')}
+                {place.region ? `, ${place.region}` : ''}
+              </li>
+            ))}
+          </ol>
+        )}
       </figcaption>
     </figure>
   );

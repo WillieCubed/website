@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import { prefersReducedMotion } from './HomeContext';
+import { retainDetailImage } from './detailImage';
 
 interface Source {
   /** The entry the source stands for, which a swap can leave behind. */
@@ -31,11 +32,10 @@ function restoreDetailFocus(element: HTMLElement | null) {
 // card's clipped box the shadow its snapshot loses.
 const morph = (
   kind: 'open' | 'swap' | 'close',
-  update: () => void
+  update: () => void | Promise<void>
 ): Promise<void> => {
   if (document.startViewTransition == null || prefersReducedMotion()) {
-    update();
-    return Promise.resolve();
+    return Promise.resolve(update());
   }
   const root = document.documentElement;
   root.dataset.detailMorph = kind;
@@ -107,7 +107,8 @@ export function useDetailPresentation(
     setName(source.media, 'media');
     sourceRef.current = source;
     let media: HTMLElement | null = null;
-    await morph('open', () => {
+    let restoreImage: () => void = () => undefined;
+    await morph('open', async () => {
       setName(source.card, '');
       setName(source.media, '');
       source.card.style.visibility = 'hidden';
@@ -120,12 +121,14 @@ export function useDetailPresentation(
         dialog.showModal();
       }
       dialog.scrollTop = 0;
+      restoreImage = await retainDetailImage(source.media, media);
     });
     // Names only matter while a transition captures them. Left on, the open
     // view would join the next one on the page, such as the command
     // palette's.
     setName(dialog, '');
     setName(media, '');
+    restoreImage();
     return true;
   };
 

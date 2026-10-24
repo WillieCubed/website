@@ -1,132 +1,46 @@
-import { getCloudflareContext } from '@opennextjs/cloudflare';
 import matter from 'gray-matter';
 import { randomUUID } from 'node:crypto';
 import { link, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import type {
-  GitHubContentsCommitResponse,
-  MicropubRouteEnvironment,
-} from '@/lib/indieweb/micropub/types';
+import type { GitHubContentsCommitResponse } from '@/lib/github/types';
+import { HttpError } from '@/lib/http/errors';
+import type { MicropubRouteEnvironment } from '@/lib/indieweb/micropub/types';
 import { isWritingSlug } from '@/lib/indieweb/utils';
 import { site } from '@/lib/site/identity';
+
 import {
-  documentSource,
-  importMdx,
-  parseDraftContent,
-} from '@/lib/studio/document';
-import { StudioError } from '@/lib/studio/errors';
-import { getStudioStore } from '@/lib/studio/store';
-import type { Draft, Publication, StudioStore } from '@/lib/studio/types';
+  type GitHubFileWrite,
+  MicropubConflictError,
+  MicropubStorageError,
+  type StoredWriting,
+} from './storage-types';
+import {
+  type PrivateMicropubOptions,
+  findPrivateWriting,
+  removePrivateWriting,
+  savePrivateWriting,
+} from './studio-adapter';
+
+export {
+  type PrivateMicropubOptions,
+  type PrivateMicropubStore,
+  type PrivateMicropubWriting,
+  privateMicropubStore,
+  createPrivateMicropubWriting,
+} from './studio-adapter';
+export {
+  type GitHubFileWrite,
+  type StoredWriting,
+  MicropubConflictError,
+  MicropubStorageError,
+} from './storage-types';
 
 /*
  * Private Micropub revisions live exclusively in studio storage. Existing
  * public files use GitHub's Contents API or the writable checkout when studio
  * storage is absent. A draft never falls back to either public backend.
  */
-
-export interface PrivateMicropubOptions {
-  /** Explicit dependency injection for tests; Workers use private Hyperdrive. */
-  studioStore?: PrivateMicropubStore;
-  publish?: (documentId: string, revisionId: string) => Promise<Publication>;
-}
-
-export type PrivateMicropubStore = Pick<
-  StudioStore,
-  'bySlug' | 'create' | 'save' | 'remove'
->;
-
-export function privateMicropubStore(
-  options: PrivateMicropubOptions = {}
-): PrivateMicropubStore | null {
-  if (options.studioStore) return options.studioStore;
-  if (process.env.STUDIO_DATABASE_URL) return getStudioStore();
-  try {
-    if (getCloudflareContext().env.STUDIO_HYPERDRIVE) return getStudioStore();
-  } catch {
-    // Local runs without a private database keep their public file backend.
-  }
-  return null;
-}
-
-function privateSource(draft: Draft): string {
-  const body = draft.head.body;
-  const originalType = body.frontmatter?.postType;
-  const postType =
-    typeof originalType === 'string' &&
-    !['article', 'note'].includes(originalType)
-      ? originalType
-      : body.postType;
-  return matter.stringify(documentSource(body.document), {
-    ...body.frontmatter,
-    title: body.title,
-    description: body.description,
-    postType,
-    tags: body.tags,
-    draft: draft.head.id !== draft.liveRevisionId,
-  });
-}
-
-export interface PrivateMicropubWriting {
-  draft: Draft;
-  commit: string;
-}
-
-export async function createPrivateMicropubWriting(
-  slug: string,
-  source: string,
-  options: PrivateMicropubOptions = {}
-): Promise<PrivateMicropubWriting> {
-  const store = privateMicropubStore(options);
-  if (!store)
-    throw new StudioError(503, 'Private draft storage is not configured.');
-  const draft = await store.create(slug, parseDraftContent(importMdx(source)));
-  const commit = matter(source).data.draft
-    ? ''
-    : await publishPrivate(draft, options);
-  return { draft, commit };
-}
-
-async function publishPrivate(
-  draft: Draft,
-  options: PrivateMicropubOptions
-): Promise<string> {
-  const publish =
-    options.publish ??
-    (await import('@/lib/studio/publication')).publishRevision;
-  return (await publish(draft.id, draft.head.id)).commit ?? '';
-}
-
-/** Thrown when a Micropub post cannot be stored anywhere durable. */
-export class MicropubStorageError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'MicropubStorageError';
-  }
-}
-
-/** One file written with one commit. */
-export class MicropubConflictError extends MicropubStorageError {}
-
-export interface GitHubFileWrite {
-  path: string;
-  content: string;
-  message: string;
-  /** The blob being replaced. Omitted for a new file. */
-  sha?: string;
-}
-
-/** A writing file as storage holds it. */
-export interface StoredWriting {
-  slug: string;
-  /** Repository-relative path of the writing content. */
-  path: string;
-  source: string;
-  /** The blob SHA GitHub needs to change the file; absent locally. */
-  sha?: string;
-  privateDocumentId?: string;
-  privateRevisionId?: string;
-}
 
 /**
  * The slug of a writing permalink on this site, or null for any other URL.
@@ -165,16 +79,12 @@ export async function findStoredWriting(
 ): Promise<StoredWriting | null> {
   const slug = writingSlugForUrl(url);
   if (!slug) return null;
-  const privateDraft = await privateMicropubStore(privateOptions)?.bySlug(slug);
-  if (privateDraft)
-    return {
-      slug,
-      path: `${environment.contentPath}/${slug}.mdx`,
-      source: privateSource(privateDraft),
-      privateDocumentId: privateDraft.id,
-      privateRevisionId: privateDraft.head.id,
-      sha: privateDraft.head.body.baseFileSha,
-    };
+  const privateWriting = await findPrivateWriting(
+    slug,
+    `${environment.contentPath}/${slug}.mdx`,
+    privateOptions
+  );
+  if (privateWriting) return privateWriting;
   for (const extension of ['mdx', 'md']) {
     const path = `${environment.contentPath}/${slug}.${extension}`;
     const found = usesGitHub(environment)
@@ -198,12 +108,8 @@ export async function saveStoredWriting(
   fetchImpl: typeof fetch = fetch,
   privateOptions: PrivateMicropubOptions = {}
 ): Promise<string> {
-  const isDraft = Boolean(matter(source).data.draft);
-  const store = privateMicropubStore(privateOptions);
-  if (isDraft || writing.privateDocumentId) {
-    if (!store)
-      throw new StudioError(503, 'Private draft storage is not configured.');
-    return savePrivateWriting(store, writing, source, isDraft, privateOptions);
+  if (matter(source).data.draft || writing.privateDocumentId) {
+    return savePrivateWriting(writing, source, privateOptions);
   }
   if (usesGitHub(environment)) {
     return putGitHubFile(
@@ -241,14 +147,11 @@ export async function deleteStoredWriting(
   privateOptions: PrivateMicropubOptions = {}
 ): Promise<string> {
   if (writing.privateDocumentId && writing.privateRevisionId) {
-    const store = privateMicropubStore(privateOptions);
-    if (!store)
-      throw new StudioError(503, 'Private draft storage is not configured.');
-    await store.remove(writing.privateDocumentId, writing.privateRevisionId);
+    await removePrivateWriting(writing, privateOptions);
     return '';
   }
   if (matter(writing.source).data.draft)
-    throw new StudioError(
+    throw new HttpError(
       503,
       'Import this draft into private storage before deleting it.'
     );
@@ -397,7 +300,7 @@ export async function restoreStoredWriting(
   fetchImpl: typeof fetch = fetch
 ): Promise<string> {
   if (writing.privateDocumentId || matter(writing.source).data.draft)
-    throw new StudioError(
+    throw new HttpError(
       503,
       'Restore private drafts through the writing studio; they cannot be written to the public content backend.'
     );
@@ -436,25 +339,6 @@ export async function createLocalWriting(
   } finally {
     await unlink(temporary).catch(() => {});
   }
-}
-
-async function savePrivateWriting(
-  store: PrivateMicropubStore,
-  writing: StoredWriting,
-  source: string,
-  isDraft: boolean,
-  privateOptions: PrivateMicropubOptions
-): Promise<string> {
-  const body = parseDraftContent(importMdx(source, writing.sha));
-  const draft =
-    writing.privateDocumentId && writing.privateRevisionId
-      ? await store.save(
-          writing.privateDocumentId,
-          writing.privateRevisionId,
-          body
-        )
-      : await store.create(writing.slug, body);
-  return isDraft ? '' : publishPrivate(draft, privateOptions);
 }
 
 async function deleteGitHubFile(

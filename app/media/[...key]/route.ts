@@ -3,10 +3,16 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { deliverMedia, mediaKey } from '@/lib/indieweb/media-delivery';
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: RouteContext<'/media/[...key]'>
 ) {
   const { key: segments } = await context.params;
   if (!mediaKey(segments)) return new Response(null, { status: 404 });
-  return deliverMedia(segments, getCloudflareContext().env.MEDIA_BUCKET);
+  return deliverMedia(
+    segments,
+    getCloudflareContext().env.MEDIA_BUCKET,
+    request
+  );
 }
+
+export const HEAD = GET;

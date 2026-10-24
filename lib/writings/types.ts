@@ -83,7 +83,42 @@ export interface WritingEvent {
   location?: unknown;
 }
 
-export type WritingData = {
+/** Authored values shared unchanged by frontmatter and loaded metadata. */
+export interface WritingContentFields {
+  featuredImage?: string;
+  featuredImageAlt?: string;
+  /** The series this writing belongs to. */
+  series?: {
+    slug: string;
+    part: number;
+  };
+  /** Links to syndicated copies on other platforms (POSSE) */
+  syndication?: SyndicationLink[];
+  contentFormat?: 'text' | 'html';
+  micropub?: {
+    type: string[];
+    properties: Record<string, (string | Record<string, unknown>)[]>;
+  };
+  audio?: string[];
+  video?: string[];
+  event?: WritingEvent;
+  location?: unknown;
+  /** URL this post is replying to. When present, marks this as a reply (u-in-reply-to). */
+  inReplyTo?: string;
+
+  // Interaction post fields (IndieWeb Level 4)
+
+  /** For like posts: URL being liked (u-like-of) */
+  likeOf?: string;
+  /** For repost posts: URL being reposted (u-repost-of) */
+  repostOf?: string;
+  /** For bookmark posts: URL being bookmarked (u-bookmark-of) */
+  bookmarkOf?: string;
+  /** For RSVP posts: Event and response status */
+  rsvp?: RSVPData;
+}
+
+export interface WritingData extends WritingContentFields {
   slug: string;
   /** Headline, or the first sentence of the body for posts that have none. */
   title: string;
@@ -98,45 +133,14 @@ export type WritingData = {
   draft: boolean;
   /** Set in frontmatter to surface the writing in featured lists. */
   featured: boolean;
-  featuredImage?: string;
-  featuredImageAlt?: string;
   readingTime: number;
-  /** The series this writing belongs to. */
-  series?: {
-    slug: string;
-    part: number;
-  };
   /** Photos the post is about, each a `u-photo`. Absent when there are none. */
   photos?: WritingPhoto[];
-  /** Links to syndicated copies on other platforms (POSSE) */
-  syndication?: SyndicationLink[];
   syndicateTo?: string[];
   atproto?: DocumentMetadata;
-  contentFormat?: 'text' | 'html';
-  micropub?: {
-    type: string[];
-    properties: Record<string, (string | Record<string, unknown>)[]>;
-  };
-  audio?: string[];
-  video?: string[];
-  event?: WritingEvent;
-  location?: unknown;
   /** Type of post for IndieWeb h-entry classification */
   postType: PostType;
-  /** URL this post is replying to. When present, marks this as a reply (u-in-reply-to). */
-  inReplyTo?: string;
-
-  // Interaction post fields (IndieWeb Level 4)
-
-  /** For like posts: URL being liked (u-like-of) */
-  likeOf?: string;
-  /** For repost posts: URL being reposted (u-repost-of) */
-  repostOf?: string;
-  /** For bookmark posts: URL being bookmarked (u-bookmark-of) */
-  bookmarkOf?: string;
-  /** For RSVP posts: Event and response status */
-  rsvp?: RSVPData;
-};
+}
 
 export type TOCHeading = {
   id: string;

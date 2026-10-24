@@ -2,6 +2,7 @@ import { type ParseResult, parse } from '@babel/parser';
 import { randomUUID } from 'node:crypto';
 import sanitizeHtml from 'sanitize-html';
 import { transform } from 'sucrase';
+import { z } from 'zod';
 
 import { escapeHtml } from '@/lib/text/html';
 
@@ -48,9 +49,15 @@ const runtimeModules: Record<string, string> = {
   'react-dom/client': '__studioReactDOMClient',
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
+const record = z.custom<Record<string, unknown>>(
+  (value) => !!value && typeof value === 'object' && !Array.isArray(value)
+);
+const requiredText = z.string().trim().min(1);
+const propertySchema = z.object({
+  type: z.enum(['string', 'number', 'boolean']),
+  description: z.string(),
+  required: z.boolean().optional(),
+});
 function validateComponentFields(value: Record<string, unknown>): void {
   for (const key of [
     'name',
@@ -61,7 +68,7 @@ function validateComponentFields(value: Record<string, unknown>): void {
     'portableText',
     'accessibility',
   ])
-    if (typeof value[key] !== 'string' || !(value[key] as string).trim())
+    if (!requiredText.safeParse(value[key]).success)
       throw new StudioError(422, `Component ${key} is required.`);
   if (
     !/^[A-Z][A-Za-z0-9]{1,60}$/.test(String(value.name)) ||
@@ -69,30 +76,17 @@ function validateComponentFields(value: Record<string, unknown>): void {
   )
     throw new StudioError(422, 'Component name or version is invalid.');
   for (const key of ['properties', 'example'])
-    if (!isRecord(value[key]))
+    if (!record.safeParse(value[key]).success)
       throw new StudioError(422, `Component ${key} must be an object.`);
-}
-function componentProperty(
-  name: string,
-  property: unknown
-): Record<string, unknown> {
-  if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(name) || !isRecord(property))
-    throw new StudioError(422, 'Component property schema is invalid.');
-  const field = property as Record<string, unknown>;
-  if (
-    !['string', 'number', 'boolean'].includes(String(field.type)) ||
-    typeof field.description !== 'string' ||
-    (field.required !== undefined && typeof field.required !== 'boolean')
-  )
-    throw new StudioError(422, 'Component property schema is invalid.');
-
-  return field;
 }
 function validateComponentProperties(value: Record<string, unknown>): void {
   for (const [name, property] of Object.entries(
     value.properties as Record<string, unknown>
   )) {
-    const field = componentProperty(name, property);
+    const parsed = propertySchema.safeParse(property);
+    if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(name) || !parsed.success)
+      throw new StudioError(422, 'Component property schema is invalid.');
+    const field = parsed.data;
     const example = (value.example as Record<string, unknown>)[name];
     if (
       (field.required || example !== undefined) &&

@@ -1,23 +1,12 @@
+import { cache } from 'react';
+
 import { showDrafts } from '@/lib/content/visibility';
 
-import {
-  type SeriesDefinition,
-  type SeriesWithWritings,
-  getAllSeries as _getAllSeries,
-  getAllSeriesWithWritings as _getAllSeriesWithWritings,
-  getSeries as _getSeries,
-  getSeriesSlugs as _getSeriesSlugs,
-  getSeriesWithWritings as _getSeriesWithWritings,
-} from '../collections';
-import { getWritingSlugs, loadWriting } from './load';
+import { getWritingSlugs, loadAllWritingMetadata, loadWriting } from './load';
 import { type TagGroup, groupByTag, normalizeTag } from './tags';
 import type { WritingData } from './types';
 
-export type {
-  SeriesDefinition,
-  SeriesMetadata,
-  SeriesWithWritings,
-} from '../collections';
+export type { SeriesDefinition, SeriesWithWritings } from '../collections';
 export type { TOCHeading, WritingData, WritingDocument } from './types';
 
 /**
@@ -26,9 +15,7 @@ export type { TOCHeading, WritingData, WritingDocument } from './types';
  * @param slug The UID of the writing.
  * @returns The corresponding writing data and MDX source.
  */
-export async function getWriting(slug: string) {
-  return loadWriting(slug);
-}
+export const getWriting = loadWriting;
 
 export { showDrafts };
 
@@ -61,24 +48,18 @@ export async function getPublishedWritingSlugs(): Promise<string[]> {
  * @param includeDrafts Whether to include draft posts (defaults to false in production)
  * @returns All writings sorted by publication date (newest first)
  */
-export async function getAllWritings(
-  includeDrafts = showDrafts
-): Promise<WritingData[]> {
-  const slugs = await getWritingSlugs();
-  const writings = await Promise.all(
-    slugs.map(async (slug) => {
-      const { writing } = await getWriting(slug);
-      return writing;
-    })
-  );
+export const getAllWritings = cache(
+  async (includeDrafts = showDrafts): Promise<WritingData[]> => {
+    const writings = await loadAllWritingMetadata();
 
-  return writings
-    .filter((writing) => includeDrafts || !writing.draft)
-    .sort(
-      (a, b) =>
-        new Date(b.published).getTime() - new Date(a.published).getTime()
-    );
-}
+    return writings
+      .filter((writing) => includeDrafts || !writing.draft)
+      .sort(
+        (a, b) =>
+          new Date(b.published).getTime() - new Date(a.published).getTime()
+      );
+  }
+);
 
 /**
  * Gets writings that contain a specific tag.
@@ -127,45 +108,6 @@ export async function getWritingsInSeries(
   return writings
     .filter((writing) => writing.series?.slug === seriesSlug)
     .sort((a, b) => (a.series?.part ?? 0) - (b.series?.part ?? 0));
-}
-
-/**
- * Fetches all series slugs.
- */
-export async function getSeriesSlugs(): Promise<string[]> {
-  return _getSeriesSlugs();
-}
-
-/**
- * Gets a series definition by slug.
- */
-export async function getSeries(slug: string): Promise<SeriesDefinition> {
-  return _getSeries(slug);
-}
-
-/**
- * Gets all series definitions.
- */
-export async function getAllSeries(): Promise<SeriesDefinition[]> {
-  return _getAllSeries();
-}
-
-/**
- * Gets a series with all its writings.
- */
-export async function getSeriesWithWritings(
-  slug: string
-): Promise<SeriesWithWritings> {
-  return _getSeriesWithWritings(slug, getWritingsInSeries);
-}
-
-/**
- * Gets all series with their writings.
- */
-export async function getAllSeriesWithWritings(): Promise<
-  SeriesWithWritings[]
-> {
-  return _getAllSeriesWithWritings(getWritingsInSeries);
 }
 
 /**

@@ -207,6 +207,10 @@ files. Private search never imports Pagefind.
 
 ## Writing-session interactions
 
+The [Studio ownership reference](../../reference/publishing/studio.md) defines
+which owners retain revisions, autosave, navigation, and publication tracking.
+Preserve those lifetimes while changing the interactions below.
+
 ### Entry, cursor, and save state
 
 New writing opens a private blank draft directly into prose. The entry focus

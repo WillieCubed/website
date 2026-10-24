@@ -1,5 +1,6 @@
 import matter from 'gray-matter';
 import { join } from 'node:path';
+import { cache } from 'react';
 
 import { type BrandSeed, brandSeeds } from '@/lib/brand/scheme';
 import { markdownFiles } from '@/lib/content/files';
@@ -81,7 +82,7 @@ function initiativeDir(slug: string): string {
   return join(CONTENT_DIR, slug);
 }
 
-export function listInitiativeSlugs(): string[] {
+export const listInitiativeSlugs = cache((): string[] => {
   if (!existsSync(CONTENT_DIR)) return [];
   return readdirSync(CONTENT_DIR, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
@@ -90,7 +91,7 @@ export function listInitiativeSlugs(): string[] {
     .filter((entry) => existsSync(join(CONTENT_DIR, entry.name, 'index.mdx')))
     .map((entry) => entry.name)
     .sort();
-}
+});
 
 function loadParts(slug: string, now: Date, includeDrafts = false): Part[] {
   const dir = join(initiativeDir(slug), 'parts');
@@ -175,7 +176,8 @@ export function loadAllInitiatives(
   options: { includeDrafts?: boolean; now?: Date } = {}
 ): Initiative[] {
   const { includeDrafts = false, now = new Date() } = options;
-  return listInitiativeSlugs()
+  const slugs = listInitiativeSlugs();
+  return slugs
     .map((slug) => loadInitiative(slug, now, includeDrafts))
     .filter((item) => includeDrafts || !item.draft);
 }

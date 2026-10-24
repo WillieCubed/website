@@ -7,8 +7,13 @@ import SiteLink from '@/components/link/SiteLink';
 import { isPlainClick } from '@/lib/dom/click';
 import { useHydrated } from '@/lib/dom/hydrated';
 import type { Product } from '@/lib/home/ventures';
+import { localImageSources } from '@/lib/media/responsive';
 
-import { brandStyle, prefersReducedMotion, useHome } from './HomeContext';
+import {
+  brandStyle,
+  prefersReducedMotion,
+  useHomeActions,
+} from './HomeContext';
 
 /**
  * The studio tile's product cards. On compact screens they scroll and snap
@@ -20,7 +25,7 @@ interface ProductScrollerProps {
 }
 
 export function ProductScroller({ products, loading }: ProductScrollerProps) {
-  const { openDetail, brands } = useHome();
+  const { openDetail, brands } = useHomeActions();
   const hydrated = useHydrated();
   const scroller = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
@@ -73,6 +78,12 @@ export function ProductScroller({ products, loading }: ProductScrollerProps) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={product.image.src}
+                  {...localImageSources(
+                    product.image.src,
+                    product.image.width,
+                    product.image.height,
+                    '(max-width: 839px) 50vw, 25vw'
+                  )}
                   width={product.image.width}
                   height={product.image.height}
                   alt=""

@@ -53,6 +53,7 @@ yarn-error.log*
 # Generated search and compiled content
 /public/search-index.json
 /public/pagefind/
+/public/_content-images/
 /lib/mdx/generated.tsx
 
 # Browser automation output (Playwright MCP screenshots, logs, snapshots)

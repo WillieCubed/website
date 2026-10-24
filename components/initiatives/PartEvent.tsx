@@ -29,9 +29,6 @@ export default function PartEvent({ initiative, part, url }: PartEventProps) {
     <div className="h-event relative flex min-h-[52vh] flex-col justify-end bg-gradient-to-t from-scrim/90 via-scrim/40 to-transparent p-6 medium:p-10">
       <data className="p-name" value={partTitle(initiative, part)} />
       <data className="u-url" value={url} />
-      <p className="font-mono tracking-[0.04em] text-label-large text-on-scrim">
-        {initiative.partLabel} {part.number}
-      </p>
       <h1 className="mt-2 max-w-[18ch] text-display-medium text-on-scrim">
         {part.title}
       </h1>
@@ -40,7 +37,8 @@ export default function PartEvent({ initiative, part, url }: PartEventProps) {
           {part.tagline}
         </p>
       )}
-      <p className="mt-4 text-label-large text-on-scrim">
+      <p className="mt-4 text-body-medium text-on-scrim">
+        {initiative.partLabel} {part.number} ·{' '}
         <time className="dt-start" dateTime={isoDate(part.starts)}>
           {formatRange(part.starts, part.ends, true)}
         </time>

@@ -45,6 +45,9 @@
   --color-brand-cube-right: light-dark(#1c231e, #2f6f5e);
   --color-scrim: #000000;
   --color-on-scrim: #ffffff;
+  /* Opaque generative graphics share their fixed SVG backdrop in both themes. */
+  --color-graphic-surface: #102b27;
+  --color-on-graphic-surface: #f1e4c7;
 
   /* Site-language aliases. Every alias resolves through a Material role. */
   --color-ground: var(--color-surface);
@@ -269,7 +272,10 @@ main:focus {
 h1,
 h2,
 h3,
-h4 {
+h4,
+h5,
+h6,
+p {
   text-wrap: pretty;
 }
 
@@ -374,13 +380,6 @@ h4 {
   /* Reserve matching inline rails, as in Studio's inspector. Classic
      scrollbars must neither shift a modal's page nor offset its centre. */
   scrollbar-gutter: stable both-edges;
-}
-@media (max-width: 839px) {
-  :root {
-    /* Compact layouts already supply their own viewport inset. Keep the
-       scrollbar reservation through modal opening, without a mirrored rail. */
-    scrollbar-gutter: stable;
-  }
 }
 
 /* An inner scroller: a thin bar that draws its thumb fully while the

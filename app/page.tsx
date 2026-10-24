@@ -12,14 +12,14 @@ import DockFooter from '@/components/site/DockFooter';
 import type { BrandSchemeVars } from '@/lib/brand/material-scheme';
 import { type BrandSchemes, allBrandVars } from '@/lib/brand/scheme';
 import { detailMetadata } from '@/lib/home/detail-metadata';
-import { focusEntries, getFeaturedTiles } from '@/lib/home/featured';
+import { featuredTiles, focusEntries } from '@/lib/home/featured';
 import { focuses, iconPicture, tilesByFocus } from '@/lib/home/focuses';
 import {
   LVBT_DEADLINE,
   type TileEntry,
   getHomeTiles,
 } from '@/lib/home/ventures';
-import { getFeaturedInitiatives } from '@/lib/initiatives/index';
+import { featuredInitiatives, getInitiatives } from '@/lib/initiatives/index';
 import { homeGraph } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/seo/metadata';
 import { site } from '@/lib/site/identity';
@@ -63,10 +63,9 @@ export async function generateMetadata({
 export default async function HomePage({ searchParams }: PageProps<'/'>) {
   const { detail } = await searchParams;
   const initialDetail = Array.isArray(detail) ? detail[0] : detail;
-  const [featuredTiles, featured] = await Promise.all([
-    getFeaturedTiles(),
-    getFeaturedInitiatives(),
-  ]);
+  const initiatives = await getInitiatives();
+  const tilesForInitiatives = featuredTiles(initiatives);
+  const featured = featuredInitiatives(initiatives);
   const playbills = Object.fromEntries(
     featured
       .filter((initiative) => initiative.parts.length > 0)
@@ -80,7 +79,7 @@ export default async function HomePage({ searchParams }: PageProps<'/'>) {
       ])
   );
 
-  const tiles = getHomeTiles(featuredTiles);
+  const tiles = getHomeTiles(tilesForInitiatives);
   const brands = allBrandVars();
   const byFocus = tilesByFocus(
     tiles.map((tile) => ({ id: tile.id, focuses: focusesOfTile(tile) }))
@@ -105,7 +104,7 @@ export default async function HomePage({ searchParams }: PageProps<'/'>) {
         initialDetail={initialDetail}
         brands={brands}
         detailCountdown={<CountdownDays deadline={LVBT_DEADLINE} />}
-        extraEntries={focusEntries(featuredTiles)}
+        extraEntries={focusEntries(tilesForInitiatives)}
       >
         <Rail focuses={focusItems} />
         <TileGrid tiles={tiles} playbills={playbills} />

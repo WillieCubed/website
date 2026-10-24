@@ -8,7 +8,7 @@ interface AttemptSource {
   key: { action: string; url: string };
 }
 
-test('the speculation rules prefetch in-site pages and nothing else', async ({
+test('document speculation leaves routed links to the router and prefetches native page links', async ({
   page,
   browserName,
 }) => {
@@ -31,6 +31,14 @@ test('the speculation rules prefetch in-site pages and nothing else', async ({
   const candidates = () =>
     sources.map(({ key }) => `${key.action} ${new URL(key.url).pathname}`);
 
+  await expect(page.locator('.site-footer a[href="/writings"]')).toBeVisible();
+  expect(candidates()).not.toContain('Prefetch /writings');
+  await page.evaluate(() => {
+    const native = document.createElement('a');
+    native.href = '/writings';
+    native.textContent = 'Native writing navigation';
+    document.body.append(native);
+  });
   await expect.poll(candidates).toContain('Prefetch /writings');
   const found = candidates();
   expect(errors).toEqual([]);

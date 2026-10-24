@@ -7,6 +7,7 @@ import tseslint from 'typescript-eslint';
 
 import { hashComments, stylesheetComments } from './code-comments.mts';
 import dependencyBoundaries from './dependency-boundaries.mts';
+import noDecorativeOverline from './no-decorative-overline.mts';
 import noFileReferences from './no-file-references.mts';
 import noRawInternalAnchor from './no-raw-internal-anchor.mts';
 
@@ -20,6 +21,7 @@ const sitePlugin: ESLint.Plugin = {
     'no-raw-internal-anchor': noRawInternalAnchor,
     'dependency-boundaries': dependencyBoundaries,
     'no-file-references': noFileReferences,
+    'no-decorative-overline': noDecorativeOverline,
   },
 };
 
@@ -210,6 +212,14 @@ const eslintConfig: Linter.Config[] = [
       ],
       'max-statements': ['error', 30],
     },
+  },
+  {
+    files: [
+      'app/**/*.{js,jsx,ts,tsx,mjs,mts}',
+      'components/**/*.{js,jsx,ts,tsx,mjs,mts}',
+      'lib/**/*.{js,jsx,ts,tsx,mjs,mts}',
+    ],
+    rules: { 'site/no-decorative-overline': 'error' },
   },
   {
     files: [

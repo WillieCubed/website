@@ -1,6 +1,6 @@
-import { StudioError } from '../../studio/errors';
+import { HttpError } from '../../http/errors';
 
-export class SpotifyError extends StudioError {
+export class SpotifyError extends HttpError {
   constructor(
     readonly providerStatus: number,
     readonly retryAfter: number | null = null

@@ -15,6 +15,25 @@ import type {
 } from '@/lib/indieweb/webmention/types';
 import type { RSVPStatus } from '@/lib/writings/types';
 
+const WEBMENTION_COLUMNS = `
+  id,
+  source_url,
+  target_url,
+  type,
+  author_name,
+  author_url,
+  author_photo,
+  rsvp,
+  raw_mf2_json #>> '{properties,name,0}' AS name,
+  content,
+  content_html,
+  published_at,
+  received_at,
+  verified_at,
+  is_verified,
+  is_approved
+`;
+
 /**
  * Store a new webmention (unverified).
  */
@@ -126,29 +145,16 @@ export async function getWebmentionBySourceTarget(
   sourceUrl: string,
   targetUrl: string
 ): Promise<Webmention | null> {
-  const result = await sql`
-    SELECT
-      id,
-      source_url,
-      target_url,
-      type,
-      author_name,
-      author_url,
-      author_photo,
-      rsvp,
-      raw_mf2_json #>> '{properties,name,0}' AS name,
-      content,
-      content_html,
-      published_at,
-      received_at,
-      verified_at,
-      is_verified,
-      is_approved,
+  const result = await sql.query(
+    `
+    SELECT ${WEBMENTION_COLUMNS},
       clock_timestamp() AS origin_read_at
     FROM webmentions
-    WHERE source_url = ${sourceUrl}
-      AND target_url = ${targetUrl}
-  `;
+    WHERE source_url = $1
+      AND target_url = $2
+  `,
+    [sourceUrl, targetUrl]
+  );
 
   if (result.rows.length === 0) {
     return null;
@@ -161,27 +167,14 @@ export async function getWebmentionBySourceTarget(
  * Get one webmention by id, whatever its state.
  */
 export async function getWebmention(id: string): Promise<Webmention | null> {
-  const result = await sql`
-    SELECT
-      id,
-      source_url,
-      target_url,
-      type,
-      author_name,
-      author_url,
-      author_photo,
-      rsvp,
-      raw_mf2_json #>> '{properties,name,0}' AS name,
-      content,
-      content_html,
-      published_at,
-      received_at,
-      verified_at,
-      is_verified,
-      is_approved
+  const result = await sql.query(
+    `
+    SELECT ${WEBMENTION_COLUMNS}
     FROM webmentions
-    WHERE id = ${id}
-  `;
+    WHERE id = $1
+  `,
+    [id]
+  );
   const [row] = result.rows;
   return row != null ? rowToWebmention(row as WebmentionRow) : null;
 }
@@ -193,31 +186,18 @@ export async function getWebmention(id: string): Promise<Webmention | null> {
 export async function getWebmentionsForTarget(
   targetUrl: string
 ): Promise<WebmentionGroup> {
-  const result = await sql`
-    SELECT
-      id,
-      source_url,
-      target_url,
-      type,
-      author_name,
-      author_url,
-      author_photo,
-      rsvp,
-      raw_mf2_json #>> '{properties,name,0}' AS name,
-      content,
-      content_html,
-      published_at,
-      received_at,
-      verified_at,
-      is_verified,
-      is_approved
+  const result = await sql.query(
+    `
+    SELECT ${WEBMENTION_COLUMNS}
     FROM webmentions
-    WHERE target_url = ${targetUrl}
+    WHERE target_url = $1
       AND is_verified = TRUE
       AND is_approved = TRUE
       AND (is_deleted IS NULL OR is_deleted = FALSE)
     ORDER BY published_at DESC NULLS LAST, received_at DESC
-  `;
+  `,
+    [targetUrl]
+  );
 
   const webmentions = rowsToWebmentions(result.rows);
   return groupWebmentions(webmentions);
@@ -236,31 +216,18 @@ export function groupWebmentions(webmentions: Webmention[]): WebmentionGroup {
 
 /** One public read fills the shared R2 snapshot across all target pages. */
 export async function listApprovedWebmentions(): Promise<Webmention[]> {
-  const result = await sql`
-    SELECT
-      id,
-      source_url,
-      target_url,
-      type,
-      author_name,
-      author_url,
-      author_photo,
-      rsvp,
-      raw_mf2_json #>> '{properties,name,0}' AS name,
-      content,
-      content_html,
-      published_at,
-      received_at,
-      verified_at,
-      is_verified,
-      is_approved,
+  const result = await sql.query(
+    `
+    SELECT ${WEBMENTION_COLUMNS},
       clock_timestamp() AS origin_read_at
     FROM webmentions
     WHERE is_verified = TRUE
       AND is_approved = TRUE
       AND (is_deleted IS NULL OR is_deleted = FALSE)
     ORDER BY published_at DESC NULLS LAST, received_at DESC
-  `;
+  `,
+    []
+  );
   // Hyperdrive does not invalidate cached SELECTs after moderation writes.
   // The volatile timestamp bypasses its query cache; R2 is the public cache.
   return rowsToWebmentions(result.rows);
@@ -271,29 +238,16 @@ export async function listApprovedWebmentions(): Promise<Webmention[]> {
  * Unverified ones are listed too, though only verified ones can be approved.
  */
 async function getPendingWebmentions(): Promise<Webmention[]> {
-  const result = await sql`
-    SELECT
-      id,
-      source_url,
-      target_url,
-      type,
-      author_name,
-      author_url,
-      author_photo,
-      rsvp,
-      raw_mf2_json #>> '{properties,name,0}' AS name,
-      content,
-      content_html,
-      published_at,
-      received_at,
-      verified_at,
-      is_verified,
-      is_approved
+  const result = await sql.query(
+    `
+    SELECT ${WEBMENTION_COLUMNS}
     FROM webmentions
     WHERE is_approved = FALSE
       AND (is_deleted IS NULL OR is_deleted = FALSE)
     ORDER BY received_at DESC
-  `;
+  `,
+    []
+  );
 
   return rowsToWebmentions(result.rows);
 }

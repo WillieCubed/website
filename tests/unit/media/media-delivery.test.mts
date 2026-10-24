@@ -6,7 +6,10 @@ import { deliverMedia } from '@/lib/indieweb/media-delivery';
 test('R2 delivery rejects invalid keys before reading the bucket', async () => {
   const keys: string[] = [];
   const bucket = {
-    async get(key: string) {
+    async get() {
+      return null;
+    },
+    async head(key: string) {
       keys.push(key);
       return null;
     },
@@ -32,12 +35,24 @@ test('R2 serves promoted writing assets from the public media bucket', async () 
   const response = await deliverMedia(
     ['writings', publication, `${asset}.png`],
     {
+      async head() {
+        return {
+          httpEtag: '"image"',
+          etag: 'image',
+          size: 4,
+          uploaded: new Date(),
+          httpMetadata: { contentType: 'image/png' },
+        };
+      },
       async get(requested) {
         assert.equal(requested, key);
         return {
           httpEtag: '"image"',
           httpMetadata: { contentType: 'image/png' },
-          arrayBuffer: async () => new Uint8Array([137, 80, 78, 71]).buffer,
+          etag: 'image',
+          size: 4,
+          uploaded: new Date(),
+          body: new Response(new Uint8Array([137, 80, 78, 71])).body!,
         };
       },
     }
@@ -53,12 +68,24 @@ test('R2 delivery returns exact bytes with immutable cache and stored type', asy
   const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
   const key = 'media/2026/10/image-1234.jpg';
   const response = await deliverMedia(['2026', '10', 'image-1234.jpg'], {
+    async head() {
+      return {
+        httpEtag: '"r2-etag"',
+        etag: 'r2-etag',
+        size: 4,
+        uploaded: new Date(),
+        httpMetadata: { contentType: 'image/jpeg' },
+      };
+    },
     async get(requested: string) {
       assert.equal(requested, key);
       return {
         httpEtag: '"r2-etag"',
         httpMetadata: { contentType: 'image/jpeg' },
-        arrayBuffer: async () => bytes.buffer,
+        etag: 'r2-etag',
+        size: 4,
+        uploaded: new Date(),
+        body: new Response(bytes).body!,
       };
     },
   });
@@ -79,6 +106,9 @@ test('R2 delivery distinguishes missing bindings and missing objects', async () 
   assert.equal(
     (
       await deliverMedia(segments, {
+        async head() {
+          return null;
+        },
         async get() {
           return null;
         },

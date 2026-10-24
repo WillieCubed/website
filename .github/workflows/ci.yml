@@ -24,6 +24,20 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: website_test
+          POSTGRES_USER: fixture
+          POSTGRES_PASSWORD: fixture
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fixture -d website_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v7
 
@@ -37,10 +51,7 @@ jobs:
           cache: true
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm build
+      - run: pnpm docs:check
       # Keep the Playwright browser between runs; the install below still
       # adds the system packages it needs.
       - uses: actions/cache@v6
@@ -48,8 +59,37 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build
+        id: public_build
       - name: Browser tests and strict single-row footer contract
-        run: pnpm test:e2e
+        run: pnpm test:e2e --workers=2
+
+      - name: Public Music with an isolated production fixture
+        if: ${{ !cancelled() && steps.public_build.outcome == 'success' }}
+        run: pnpm test:studio
+        env:
+          STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+          STUDIO_TEST_PRODUCTION: '1'
+          STUDIO_TEST_SITE_MODE: public
+          STUDIO_TEST_CONFIG: tests/music-public.config.mts
+          MUSIC_E2E: '1'
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('test-results/music-public/**') != '' }}
+        with:
+          name: public-music-fixture-results
+          path: test-results/music-public/
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('test-results/site/**') != '' }}
+        with:
+          name: public-site-results
+          path: test-results/site/
+          retention-days: 14
 
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() && hashFiles('playwright-report/**') != '' }}
@@ -63,7 +103,26 @@ jobs:
   metrics:
     if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 75
+    # Both revisions need the same reachable local database. A refused
+    # placeholder socket strands the base revision's failed-connect cleanup.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: website_test
+          POSTGRES_USER: fixture
+          POSTGRES_PASSWORD: fixture
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fixture -d website_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_STUDIO_HYPERDRIVE: postgresql://fixture:fixture@127.0.0.1:5432/website_test
     steps:
       - uses: actions/checkout@v7
 
@@ -85,47 +144,174 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build:metrics
       - run: pnpm preview:metrics
-
-      - name: Write metrics summary
-        run: |
-          node --input-type=module <<'NODE'
-          import { appendFileSync, readFileSync } from 'node:fs';
-
-          const build = JSON.parse(readFileSync('artifacts/cloudflare-build-metrics.json', 'utf8'));
-          const preview = JSON.parse(readFileSync('artifacts/cloudflare-preview-metrics.json', 'utf8'));
-          const metricsGuide = [
-            process.env.GITHUB_SERVER_URL,
-            process.env.GITHUB_REPOSITORY,
-            'blob',
-            build.revision,
-            'docs/reference/operations/build-metrics.md',
-          ].join('/');
-          const lines = [
-            '## Cloudflare build metrics',
-            '',
-            `[Metric definitions and collection details](${metricsGuide})`,
-            '',
-            `- Revision: \`${build.revision}\``,
-            `- Build time: ${(build.buildMs / 1000).toFixed(1)} s`,
-            `- Worker JavaScript: ${(build.workerBytes / 1024 / 1024).toFixed(2)} MiB`,
-            `- Static assets: ${(build.staticAssetBytes / 1024 / 1024).toFixed(2)} MiB across ${build.staticAssetFiles} files`,
-            `- Tracked source lines: ${build.sourceLines.toLocaleString()}`,
-            '',
-            `Browser medians (${preview.samplesPerRoute} samples per route; milliseconds except CLS):`,
-            '',
-            '| Route | TTFB | FCP | LCP | CLS |',
-            '| --- | ---: | ---: | ---: | ---: |',
-            ...Object.entries(preview.routes).map(([route, metrics]) =>
-              `| \`${route}\` | ${metrics.ttfbMs} | ${metrics.fcpMs ?? 'n/a'} | ${metrics.lcpMs ?? 'n/a'} | ${metrics.cls} |`
-            ),
-            '',
-            'Informational only; no metric budgets are enforced.',
-            '',
-          ];
-          appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n'));
-          NODE
+        env:
+          PREVIEW_METRICS_SCREENSHOTS: '1'
 
       - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-*-metrics.json') != '' }}
         with:
           name: cloudflare-build-metrics
-          path: artifacts/cloudflare-*-metrics.json
+          path: |
+            artifacts/cloudflare-*-metrics.json
+            artifacts/cloudflare-preview-runtime.log
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-preview-screenshots/**') != '' }}
+        with:
+          name: cloudflare-preview-screenshots
+          path: artifacts/cloudflare-preview-screenshots/
+          retention-days: 14
+
+      - name: Check out the pull request base for comparison
+        id: baseline_checkout
+        if: ${{ github.event_name == 'pull_request' && !cancelled() }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .superpowers/metrics-baseline
+          persist-credentials: false
+
+      - name: Install the baseline dependencies
+        id: baseline_install
+        if: ${{ !cancelled() && steps.baseline_checkout.outcome == 'success' }}
+        working-directory: .superpowers/metrics-baseline
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the pull request base
+        id: baseline_build
+        if: ${{ !cancelled() && steps.baseline_install.outcome == 'success' }}
+        working-directory: .superpowers/metrics-baseline
+        run: pnpm build:metrics
+
+      - name: Measure the baseline with the current collector
+        if: ${{ !cancelled() && steps.baseline_build.outcome == 'success' }}
+        working-directory: .superpowers/metrics-baseline
+        run: |
+          "$GITHUB_WORKSPACE/node_modules/.bin/tsx" "$GITHUB_WORKSPACE/scripts/cloudflare/preview-metrics.mts"
+        env:
+          PREVIEW_METRICS_SCREENSHOTS: '1'
+
+      - name: Write metrics summary
+        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-build-metrics.json') != '' }}
+        run: pnpm exec tsx scripts/cloudflare/metrics-summary.mts
+        env:
+          PREVIEW_METRICS_BASELINE_DIRECTORY: ${{ github.event_name == 'pull_request' && '.superpowers/metrics-baseline' || '' }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('.superpowers/metrics-baseline/artifacts/cloudflare-*-metrics.json') != '' }}
+        with:
+          name: cloudflare-baseline-build-metrics
+          path: |
+            .superpowers/metrics-baseline/artifacts/cloudflare-*-metrics.json
+            .superpowers/metrics-baseline/artifacts/cloudflare-preview-runtime.log
+          include-hidden-files: true
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('.superpowers/metrics-baseline/artifacts/cloudflare-preview-screenshots/**') != '' }}
+        with:
+          name: cloudflare-baseline-preview-screenshots
+          path: .superpowers/metrics-baseline/artifacts/cloudflare-preview-screenshots/
+          include-hidden-files: true
+          retention-days: 14
+
+  private-fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: website_test
+          POSTGRES_USER: fixture
+          POSTGRES_PASSWORD: fixture
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fixture -d website_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - uses: pnpm/action-setup@v6
+        with:
+          cache: true
+
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build:cloudflare-preview
+        id: private_build
+
+      - name: Breadcrumbs and shared transitions with private draft fixtures
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
+        run: pnpm test:studio
+        env:
+          STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+          STUDIO_TEST_PRODUCTION: '1'
+          STUDIO_TEST_CONFIG: tests/transitions.config.mts
+
+      - name: Private Studio against the production fixture
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
+        run: pnpm test:studio
+        env:
+          STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+          STUDIO_TEST_PRODUCTION: '1'
+
+      - name: Fall Tour presentation and native chapter navigation
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
+        run: pnpm test:studio
+        env:
+          STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+          STUDIO_TEST_PRODUCTION: '1'
+          STUDIO_TEST_CONFIG: tests/fall-tour.config.mts
+
+      - name: Private Music against the production fixture
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
+        run: pnpm test:studio
+        env:
+          STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+          STUDIO_TEST_PRODUCTION: '1'
+          MUSIC_E2E: '1'
+
+      - name: Private Studio and Music measurements
+        if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
+        run: pnpm test:studio
+        env:
+          STUDIO_TEST_DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+          STUDIO_TEST_PRODUCTION: '1'
+          STUDIO_TEST_METRICS: '1'
+          MUSIC_E2E: '1'
+          PREVIEW_METRICS_SCREENSHOTS: '1'
+          PREVIEW_METRICS_INITIATIVE_PATH: /initiatives/fall-tour-2026
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('test-results/**') != '' }}
+        with:
+          name: private-studio-music-results
+          path: test-results/
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-preview-metrics.json') != '' }}
+        with:
+          name: private-studio-music-metrics
+          path: artifacts/cloudflare-preview-metrics.json
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('artifacts/cloudflare-preview-screenshots/**') != '' }}
+        with:
+          name: private-studio-music-screenshots
+          path: artifacts/cloudflare-preview-screenshots/
+          retention-days: 14

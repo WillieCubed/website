@@ -4,7 +4,8 @@ import type { Pool, PoolClient } from 'pg';
 
 export async function seedStudioDatabase(
   db: Pool,
-  schema: string
+  schema: string,
+  music = Boolean(process.env.MUSIC_E2E)
 ): Promise<void> {
   await db.query(`CREATE SCHEMA ${schema}`);
   const client = await db.connect();
@@ -17,7 +18,7 @@ export async function seedStudioDatabase(
           'utf8'
         )
       );
-    if (process.env.MUSIC_E2E) await seedMusicFixtures(client);
+    if (music) await seedMusicFixtures(client);
     const id = randomUUID(),
       revision = randomUUID();
     await client.query('INSERT INTO studio_documents(id,slug) VALUES($1,$2)', [

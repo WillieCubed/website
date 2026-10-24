@@ -1,5 +1,5 @@
 import { SITE_URL } from '@/lib/indieweb/constants';
-import { findActiveToken } from '@/lib/indieweb/indieauth/server';
+import { findActiveToken } from '@/lib/indieweb/indieauth/grants';
 import { indieAuthStore } from '@/lib/indieweb/indieauth/storage';
 import type { IndieAuthVerificationOptions } from '@/lib/indieweb/indieauth/types';
 import { sameOrigin } from '@/lib/indieweb/utils';

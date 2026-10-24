@@ -92,7 +92,12 @@ export default function Writing({
             onRebase={document.rebaseChanges}
           />
           <WritingDraftLayout
-            document={document}
+            body={document.body}
+            savedRevisionId={document.draft.head.id}
+            liveRevisionId={document.draft.liveRevisionId}
+            update={document.update}
+            dirty={document.dirty}
+            status={document.status}
             hidden={mode !== 'write'}
             published={published}
             minutes={minutes}
@@ -112,7 +117,9 @@ export default function Writing({
             }
           >
             <WritingTasks
-              draft={document.draft}
+              documentId={document.draft.id}
+              slug={document.draft.slug}
+              revisionId={document.draft.head.id}
               task={interaction.task}
               taskHeading={interaction.taskHeading}
               body={document.body}
@@ -143,7 +150,7 @@ export default function Writing({
           </WritingDraftLayout>
           {mode !== 'write' && (
             <WritingReview
-              draft={document.draft}
+              slug={document.draft.slug}
               reviewedRevision={publication.reviewedRevision}
               body={document.body}
               status={document.status}

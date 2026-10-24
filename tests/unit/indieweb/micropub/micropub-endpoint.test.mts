@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import test from 'node:test';
 
-import { hashSecret } from '@/lib/indieweb/indieauth/server';
+import { hashSecret } from '@/lib/indieweb/indieauth/grants';
 import {
   type ArchivedWriting,
   type MicropubArchiveStore,

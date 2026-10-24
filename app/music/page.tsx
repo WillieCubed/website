@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { connection } from 'next/server';
 
-import MusicExperience from '@/components/music/MusicExperience';
+import MusicPublicExperience from '@/components/music/MusicPublicExperience';
 
 import { publicCollection } from '@/lib/music/public';
 import { pageMetadata } from '@/lib/seo/metadata';
@@ -28,7 +28,7 @@ export default async function Music({ searchParams }: PageProps<'/music'>) {
   await connection();
   const data = await publicCollection();
   return (
-    <MusicExperience
+    <MusicPublicExperience
       playlists={data.playlists}
       initialSeries={
         Array.isArray(params.series) ? params.series[0] : params.series

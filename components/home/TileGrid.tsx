@@ -3,6 +3,7 @@ import type {
   TileEntry,
   Venture,
 } from '@/lib/home/ventures';
+import { localImageSources } from '@/lib/media/responsive';
 
 import { Constellation } from './Constellation';
 import { CountdownDays } from './Countdown';
@@ -54,6 +55,12 @@ function VentureBody({ venture, loading }: VentureBodyProps) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={body.src}
+            {...localImageSources(
+              body.src,
+              body.width,
+              body.height,
+              '(max-width: 599px) 90vw, (max-width: 839px) 45vw, 40vw'
+            )}
             width={body.width}
             height={body.height}
             alt={body.alt}
@@ -116,7 +123,10 @@ interface TileGridProps {
 
 export function TileGrid({ tiles, playbills = {} }: TileGridProps) {
   return (
-    <main id="main" className="evidence" aria-label="Work in progress">
+    <main id="main" className="evidence" aria-labelledby="work-heading">
+      <h2 id="work-heading" className="sr-only">
+        Work in progress
+      </h2>
       {tiles.map((tile, i) => {
         const loading = i < EAGER_TILES ? 'eager' : 'lazy';
         return tile.kind === 'venture' ? (
@@ -125,10 +135,12 @@ export function TileGrid({ tiles, playbills = {} }: TileGridProps) {
             id={tile.id}
             name={tile.venture.name}
             head={
-              tile.venture.head ??
-              [tile.venture.parent, tile.venture.name]
-                .filter(Boolean)
-                .join(' · ')
+              tile.venture.body.kind === 'lead'
+                ? undefined
+                : (tile.venture.head ??
+                  [tile.venture.parent, tile.venture.name]
+                    .filter(Boolean)
+                    .join(' · '))
             }
             hint={tile.venture.hint}
             brand={tile.venture.brand}

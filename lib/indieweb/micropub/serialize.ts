@@ -1,3 +1,4 @@
+import { mapList } from '@/lib/indieweb/micropub/frontmatter';
 import type { MicropubCreateRequest } from '@/lib/indieweb/micropub/types';
 import { assertPhotoAlts, photoUrl } from '@/lib/indieweb/micropub/validation';
 import { syndicationName } from '@/lib/indieweb/syndication';
@@ -23,7 +24,7 @@ export function buildMicropubWritingFile(
     `draft: ${entry.postStatus === 'draft'}`,
     `contentFormat: ${JSON.stringify(entry.contentFormat ?? 'text')}`,
     `micropub: ${JSON.stringify({ type: [entry.h === 'event' ? 'h-event' : 'h-entry'], properties: entry.properties ?? propertiesForEntry(entry) })}`,
-    `postType: ${JSON.stringify(toWritingPostType(entry))}`,
+    `postType: ${JSON.stringify(entry.postType === 'reply' ? 'note' : entry.postType)}`,
   ];
 
   appendEntryMetadata(lines, entry);
@@ -35,37 +36,29 @@ export function buildMicropubWritingFile(
 function syndicationLinks(
   entry: MicropubCreateRequest
 ): { name: string; url: string }[] {
-  const links = entry.syndication.map((url) => ({
+  return [...new Set(entry.syndication)].map((url) => ({
     name: syndicationName(url),
     url,
   }));
-  return links.filter(
-    (link, index) => links.findIndex(({ url }) => url === link.url) === index
-  );
-}
-// The writings loader treats "reply" as a note with inReplyTo set, so the
-// stored postType collapses to note; the frontmatter keeps inReplyTo.
-function toWritingPostType(entry: MicropubCreateRequest): string {
-  return entry.postType === 'reply' ? 'note' : entry.postType;
 }
 function titleForEntry(entry: MicropubCreateRequest, published: Date): string {
-  if (entry.postType === 'reply') return `Reply from ${formatDate(published)}`;
-  if (entry.postType === 'like') return `Like from ${formatDate(published)}`;
-  if (entry.postType === 'repost')
-    return `Repost from ${formatDate(published)}`;
-  if (entry.postType === 'bookmark') {
-    return `Bookmark from ${formatDate(published)}`;
-  }
-  if (entry.postType === 'rsvp') return `RSVP from ${formatDate(published)}`;
-  if (entry.postType === 'photo') {
-    return `Photo from ${formatDate(published)}`;
-  }
-  if (['audio', 'video', 'event'].includes(entry.postType))
-    return `${entry.postType[0].toUpperCase()}${entry.postType.slice(1)} from ${formatDate(published)}`;
-  return `Note from ${formatDate(published)}`;
-}
-function formatDate(date: Date): string {
-  return isoDateOnly(date);
+  const named = [
+    'reply',
+    'like',
+    'repost',
+    'bookmark',
+    'rsvp',
+    'photo',
+    'audio',
+    'video',
+    'event',
+  ].includes(entry.postType);
+  const label = !named
+    ? 'Note'
+    : entry.postType === 'rsvp'
+      ? 'RSVP'
+      : entry.postType[0].toUpperCase() + entry.postType.slice(1);
+  return `${label} from ${isoDateOnly(published)}`;
 }
 function propertiesForEntry(
   entry: MicropubCreateRequest
@@ -113,59 +106,34 @@ function peopleForEntry(entry: MicropubCreateRequest) {
   });
 }
 function appendEntryMetadata(lines: string[], entry: MicropubCreateRequest) {
-  if (entry.audio !== undefined && entry.audio.length > 0)
-    lines.push(`audio: ${JSON.stringify(entry.audio)}`);
-  if (entry.video !== undefined && entry.video.length > 0)
-    lines.push(`video: ${JSON.stringify(entry.video)}`);
-  if (entry.event) lines.push(`event: ${JSON.stringify(entry.event)}`);
-  const people = peopleForEntry(entry);
-  if (people.length > 0) lines.push(`people: ${JSON.stringify(people)}`);
-
-  appendCitationMetadata(lines, entry);
-  appendPhotoAndRsvpMetadata(lines, entry);
-  const syndication = syndicationLinks(entry);
-  if (syndication.length > 0) {
-    lines.push('syndication:');
-    syndication.forEach(({ name, url }) => {
-      lines.push(`  - name: ${JSON.stringify(name)}`);
-      lines.push(`    url: ${JSON.stringify(url)}`);
-    });
-  }
-  if (entry.syndicateTo.length > 0) {
+  const metadata = {
+    audio: entry.audio,
+    video: entry.video,
+    event: entry.event,
+    people: peopleForEntry(entry),
+    inReplyTo: entry.inReplyTo,
+    likeOf: entry.likeOf,
+    repostOf: entry.repostOf,
+    bookmarkOf: entry.bookmarkOf,
+  };
+  for (const [key, value] of Object.entries(metadata).filter(([, value]) =>
+    Array.isArray(value) ? value.length > 0 : Boolean(value)
+  ))
+    lines.push(`${key}: ${JSON.stringify(value)}`);
+  lines.push(...(mapList('photo', entry.photos) ?? []));
+  if (entry.rsvp && entry.inReplyTo)
+    lines.push(
+      'rsvp:',
+      `  eventUrl: ${JSON.stringify(entry.inReplyTo)}`,
+      `  status: ${JSON.stringify(entry.rsvp)}`
+    );
+  lines.push(...(mapList('syndication', syndicationLinks(entry)) ?? []));
+  if (entry.syndicateTo.length > 0)
     lines.push(
       `syndicateTo: ${JSON.stringify(entry.syndicateTo.map(({ uid }) => uid))}`
     );
-  }
 }
 
 function optionalValue(value: string | undefined): string[] {
   return value ? [value] : [];
-}
-
-function appendCitationMetadata(lines: string[], entry: MicropubCreateRequest) {
-  if (entry.inReplyTo)
-    lines.push(`inReplyTo: ${JSON.stringify(entry.inReplyTo)}`);
-  if (entry.likeOf) lines.push(`likeOf: ${JSON.stringify(entry.likeOf)}`);
-  if (entry.repostOf) lines.push(`repostOf: ${JSON.stringify(entry.repostOf)}`);
-  if (entry.bookmarkOf) {
-    lines.push(`bookmarkOf: ${JSON.stringify(entry.bookmarkOf)}`);
-  }
-}
-
-function appendPhotoAndRsvpMetadata(
-  lines: string[],
-  entry: MicropubCreateRequest
-) {
-  if (entry.photos.length > 0) {
-    lines.push('photo:');
-    entry.photos.forEach(({ url, alt }) => {
-      lines.push(`  - url: ${JSON.stringify(url)}`);
-      lines.push(`    alt: ${JSON.stringify(alt)}`);
-    });
-  }
-  if (entry.rsvp && entry.inReplyTo) {
-    lines.push('rsvp:');
-    lines.push(`  eventUrl: ${JSON.stringify(entry.inReplyTo)}`);
-    lines.push(`  status: ${JSON.stringify(entry.rsvp)}`);
-  }
 }

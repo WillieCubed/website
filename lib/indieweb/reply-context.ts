@@ -49,21 +49,15 @@ async function getCachedReplyContext(
   maxAgeHours = 168 // 7 days default
 ): Promise<ReplyContext | null> {
   if (!hasDatabase()) return null;
-  const result = await sql<ReplyContextRow>`
-    SELECT
-      target_url,
-      author_name,
-      author_url,
-      author_photo,
-      title,
-      content_preview,
-      published_at,
-      site_name,
-      fetched_at
+  const result = await sql.query<ReplyContextRow>(
+    `
+    SELECT ${cacheColumns.filter((column) => column !== 'raw_mf2_json').join(', ')}
     FROM reply_context_cache
-    WHERE target_url = ${url}
-      AND fetched_at > NOW() - INTERVAL '1 hour' * ${maxAgeHours}
-  `;
+    WHERE target_url = $1
+      AND fetched_at > NOW() - INTERVAL '1 hour' * $2
+  `,
+    [url, maxAgeHours]
+  );
 
   if (result.rows.length === 0) {
     return null;
@@ -72,124 +66,82 @@ async function getCachedReplyContext(
   return contextFromRow(result.rows[0]);
 }
 
-/**
- * Store reply context in the cache.
- */
+const cacheColumns = [
+  'target_url',
+  'author_name',
+  'author_url',
+  'author_photo',
+  'title',
+  'content_preview',
+  'published_at',
+  'site_name',
+  'raw_mf2_json',
+  'fetched_at',
+];
+
 async function cacheReplyContext(
   context: ReplyContext,
   rawMf2?: object
 ): Promise<void> {
   if (!hasDatabase()) return;
-  const [authorName, authorUrl, authorPhoto, title, contentPreview, siteName] =
-    [
+  const values = [
+    context.url,
+    ...[
       context.authorName,
       context.authorUrl,
       context.authorPhoto,
       context.title,
       context.contentPreview,
-      context.siteName,
-    ].map((value) => value || null);
-  await sql`
-    INSERT INTO reply_context_cache (
-      target_url,
-      author_name,
-      author_url,
-      author_photo,
-      title,
-      content_preview,
-      published_at,
-      site_name,
-      fetched_at,
-      raw_mf2_json
-    ) VALUES (
-      ${context.url},
-      ${authorName},
-      ${authorUrl},
-      ${authorPhoto},
-      ${title},
-      ${contentPreview},
-      ${context.publishedAt?.toISOString() || null},
-      ${siteName},
-      NOW(),
-      ${JSON.stringify(rawMf2 || {})}
-    )
+    ].map((value) => value || null),
+    context.publishedAt?.toISOString() || null,
+    context.siteName || null,
+    JSON.stringify(rawMf2 || {}),
+  ];
+  await sql.query(
+    `
+    INSERT INTO reply_context_cache (${cacheColumns.join(', ')})
+    VALUES (${values.map((_, index) => `$${index + 1}`).join(', ')}, NOW())
     ON CONFLICT (target_url) DO UPDATE SET
-      author_name = EXCLUDED.author_name,
-      author_url = EXCLUDED.author_url,
-      author_photo = EXCLUDED.author_photo,
-      title = EXCLUDED.title,
-      content_preview = EXCLUDED.content_preview,
-      published_at = EXCLUDED.published_at,
-      site_name = EXCLUDED.site_name,
-      fetched_at = NOW(),
-      raw_mf2_json = EXCLUDED.raw_mf2_json
-  `;
+      ${cacheColumns
+        .slice(1)
+        .map((column) => `${column} = EXCLUDED.${column}`)
+        .join(', ')}
+  `,
+    values
+  );
 }
 
-/**
- * Extract site name from HTML meta tags or URL.
- */
+const metadataPatterns = {
+  title: [
+    /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i,
+    /<meta[^>]*name=["']twitter:title["'][^>]*content=["']([^"']+)["']/i,
+    /<title[^>]*>([^<]+)<\/title>/i,
+  ],
+  contentPreview: [
+    /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i,
+    /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i,
+  ],
+  siteName: [
+    /<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']+)["']/i,
+    /<meta[^>]*name=["']twitter:site["'][^>]*content=["']@?([^"']+)["']/i,
+  ],
+};
+
+function metadataValue(html: string, field: keyof typeof metadataPatterns) {
+  // A matching blank value blocks lower-priority tags even after cleanup.
+  return metadataPatterns[field]
+    .map((pattern) => html.match(pattern))
+    .find(Boolean)?.[1];
+}
+
 function extractSiteName(html: string, url: string): string | undefined {
-  // Try og:site_name
-  const ogMatch = html.match(
-    /<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']+)["']/i
-  );
-  if (ogMatch) return cleanMetaText(ogMatch[1]);
-
-  // Try twitter:site
-  const twitterMatch = html.match(
-    /<meta[^>]*name=["']twitter:site["'][^>]*content=["']@?([^"']+)["']/i
-  );
-  if (twitterMatch) return cleanMetaText(twitterMatch[1]);
-
-  // Fall back to hostname
+  const value = metadataValue(html, 'siteName');
+  if (value !== undefined) return cleanMetaText(value);
   try {
     return new URL(url).hostname.replace(/^www\./, '');
   } catch {
     return undefined;
   }
-}
-
-/**
- * Extract page title from HTML.
- */
-function extractTitle(html: string): string | undefined {
-  // Try og:title first
-  const ogMatch = html.match(
-    /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i
-  );
-  if (ogMatch) return cleanMetaText(ogMatch[1]);
-
-  // Try twitter:title
-  const twitterMatch = html.match(
-    /<meta[^>]*name=["']twitter:title["'][^>]*content=["']([^"']+)["']/i
-  );
-  if (twitterMatch) return cleanMetaText(twitterMatch[1]);
-
-  // Fall back to <title>
-  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-  if (titleMatch) return cleanMetaText(titleMatch[1]);
-
-  return undefined;
-}
-
-/**
- * Extract description/content preview from HTML meta tags.
- */
-function extractDescription(html: string): string | undefined {
-  // Try og:description
-  const ogMatch = html.match(
-    /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i
-  );
-  if (ogMatch) return cleanMetaText(ogMatch[1]);
-
-  // Try meta description
-  const metaMatch = html.match(
-    /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i
-  );
-  if (metaMatch) return cleanMetaText(metaMatch[1]);
-
-  return undefined;
 }
 
 /**
@@ -222,31 +174,20 @@ export async function getReplyContext(url: string): Promise<ReplyContext> {
       1500
     );
 
-    if (!response.ok) {
-      // Still cache the minimal context to avoid repeated failed fetches
-      await cacheReplyContext(context);
-      return context;
-    }
-
-    const html = await response.text();
-
     let mf2Context: Partial<ReplyContext> = {};
-    try {
-      mf2Context = extractMicroformats(html, url);
-    } catch {
-      // A page the parser cannot read still gets the meta tag fallbacks.
-    }
-    context = { ...context, ...mf2Context };
-
-    // Fill in missing fields from meta tags
-    if (!context.title) {
-      context.title = extractTitle(html);
-    }
-    if (!context.contentPreview) {
-      context.contentPreview = extractDescription(html);
-    }
-    if (!context.siteName) {
-      context.siteName = extractSiteName(html, url);
+    if (response.ok) {
+      const html = await response.text();
+      try {
+        mf2Context = extractMicroformats(html, url);
+      } catch {
+        // A page the parser cannot read still gets the meta tag fallbacks.
+      }
+      context = { ...context, ...mf2Context };
+      context.title ||= cleanMetaText(metadataValue(html, 'title'));
+      context.contentPreview ||= cleanMetaText(
+        metadataValue(html, 'contentPreview')
+      );
+      context.siteName ||= extractSiteName(html, url);
     }
 
     // Cache the result

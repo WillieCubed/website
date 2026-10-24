@@ -8,7 +8,6 @@ import { isInternalHref } from '@/lib/site/urls';
 import LinkPreview from './LinkPreview';
 import NavigationHint from './NavigationHint';
 import './link.css';
-import { schemeVars } from './scheme';
 import { useLinkPreview } from './useLinkPreview';
 
 type AnchorProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>;
@@ -61,6 +60,7 @@ export default function SiteLink({
   return (
     <Link
       {...props}
+      data-site-link=""
       href={href}
       prefetch={prefetch}
       scroll={scroll}
@@ -97,14 +97,13 @@ function PreviewSiteLink({
     hide,
   } = useLinkPreview(href);
 
-  const cardStyle = card?.brand
-    ? { ...style, ...schemeVars(card.brand) }
-    : style;
+  const cardStyle = card?.scheme ? { ...style, ...card.scheme } : style;
 
   return (
     <>
       <Link
         {...rest}
+        data-site-link=""
         ref={anchorRef}
         href={href}
         prefetch={prefetch}

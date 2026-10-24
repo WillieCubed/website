@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
@@ -11,15 +11,15 @@ import {
   getPublicResources,
 } from '@/lib/indieweb/resources';
 import { formatRange } from '@/lib/initiatives/dates';
-import { type Initiative, getInitiatives } from '@/lib/initiatives/index';
-import { type Project, getPublishedProjects } from '@/lib/projects';
+import { getInitiatives } from '@/lib/initiatives/index';
+import { getPublishedProjects } from '@/lib/projects';
 import { projectFacts } from '@/lib/projects/facts';
 import { pageMetadata } from '@/lib/seo/metadata';
 import { publishedSitemapContent } from '@/lib/seo/sitemap';
 import { formatDate } from '@/lib/site/dates';
 import { sitePage } from '@/lib/site/navigation';
-import { type WritingData, getAllWritings } from '@/lib/writings/index';
-import { type TagGroup, tagPath, writingCount } from '@/lib/writings/tags';
+import { getAllWritings } from '@/lib/writings/index';
+import { tagPath, writingCount } from '@/lib/writings/tags';
 
 import '../../components/seo/sitemap.css';
 
@@ -89,11 +89,77 @@ export default async function SitemapPage() {
         <h1 className="text-display-small">Sitemap</h1>
         <div className="sitemap-sections">
           <div className="sitemap-directory">
-            <BrowseDirectory />
-            <InitiativeDirectory initiatives={published.initiatives} />
-            <ProjectDirectory projects={projects} />
-            <WritingDirectory writings={published.writings} />
-            <TopicDirectory topics={published.topics} />
+            <Directory
+              id="browse"
+              title="Browse"
+              items={STATIC_PAGES.filter(({ href }) => href !== page.path).map(
+                (item) => ({
+                  ...item,
+                  title: item.href === '/' ? 'Home' : item.title,
+                })
+              )}
+            />
+            <Directory
+              id="initiatives"
+              title="Initiatives"
+              items={published.initiatives.map((initiative) => ({
+                href: initiative.href,
+                title: initiative.title,
+                description: initiative.tagline,
+                after: initiative.parts.length > 0 && (
+                  <ul className="sitemap-parts">
+                    {initiative.parts.map((part) => (
+                      <li key={part.slug}>
+                        <SitemapLink
+                          href={`${initiative.href}/${part.slug}`}
+                          title={`${initiative.partLabel} ${part.number}: ${part.title}`}
+                          description={
+                            part.description ??
+                            part.tagline ??
+                            formatRange(part.starts, part.ends)
+                          }
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ),
+              }))}
+            />
+            <Directory
+              id="projects"
+              title="Projects"
+              items={projects.map((project) => ({
+                href: project.href,
+                title: project.title,
+                description: project.line ?? projectFacts(project).join(' · '),
+              }))}
+            />
+            <Directory
+              id="writings"
+              title="Writings"
+              items={published.writings.map((writing) => ({
+                href: `/writings/${writing.slug}`,
+                title: writing.title,
+                description: writing.description,
+                children: (
+                  <time
+                    className="text-body-small text-muted"
+                    dateTime={new Date(writing.published).toISOString()}
+                  >
+                    {formatDate(writing.published)}
+                  </time>
+                ),
+              }))}
+            />
+            <Directory
+              id="topics"
+              title="Topics"
+              items={published.topics.map(({ tag, writings }) => ({
+                href: tagPath(tag),
+                title: tag,
+                description: `${writingCount(writings.length)} on this topic.`,
+              }))}
+            />
           </div>
           {resourceGroups.map((group) => (
             <ResourceDirectory key={group.label} group={group} />
@@ -104,148 +170,27 @@ export default async function SitemapPage() {
   );
 }
 
-function BrowseDirectory() {
+interface DirectoryItem extends SitemapLinkProps {
+  after?: ReactNode;
+}
+interface DirectoryProps {
+  id: string;
+  title: string;
+  items: DirectoryItem[];
+}
+function Directory({ id, title, items }: DirectoryProps) {
+  if (items.length === 0) return null;
+  const heading = `sitemap-${id}`;
   return (
-    <section aria-labelledby="sitemap-browse">
-      <h2 id="sitemap-browse" className="text-title-large">
-        Browse
+    <section aria-labelledby={heading}>
+      <h2 id={heading} className="text-title-large">
+        {title}
       </h2>
       <ul className="sitemap-links sitemap-grid">
-        {STATIC_PAGES.filter(({ href }) => href !== page.path).map((item) => (
-          <li key={item.href}>
-            <SitemapLink
-              href={item.href}
-              title={item.href === '/' ? 'Home' : item.title}
-              description={item.description}
-            />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-interface InitiativeDirectoryProps {
-  initiatives: Initiative[];
-}
-
-function InitiativeDirectory({ initiatives }: InitiativeDirectoryProps) {
-  if (initiatives.length === 0) return null;
-  return (
-    <section aria-labelledby="sitemap-initiatives">
-      <h2 id="sitemap-initiatives" className="text-title-large">
-        Initiatives
-      </h2>
-      <ul className="sitemap-links sitemap-grid">
-        {initiatives.map((initiative) => (
-          <li key={initiative.href}>
-            <SitemapLink
-              href={initiative.href}
-              title={initiative.title}
-              description={initiative.tagline}
-            />
-            {initiative.parts.length > 0 && (
-              <ul className="sitemap-parts">
-                {initiative.parts.map((part) => (
-                  <li key={part.slug}>
-                    <SitemapLink
-                      href={`${initiative.href}/${part.slug}`}
-                      title={`${initiative.partLabel} ${part.number}: ${part.title}`}
-                      description={
-                        part.description ??
-                        part.tagline ??
-                        formatRange(part.starts, part.ends)
-                      }
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-interface ProjectDirectoryProps {
-  projects: Project[];
-}
-
-function ProjectDirectory({ projects }: ProjectDirectoryProps) {
-  if (projects.length === 0) return null;
-  return (
-    <section aria-labelledby="sitemap-projects">
-      <h2 id="sitemap-projects" className="text-title-large">
-        Projects
-      </h2>
-      <ul className="sitemap-links sitemap-grid">
-        {projects.map((project) => (
-          <li key={project.href}>
-            <SitemapLink
-              href={project.href}
-              title={project.title}
-              description={project.line ?? projectFacts(project).join(' · ')}
-            />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-interface WritingDirectoryProps {
-  writings: WritingData[];
-}
-
-function WritingDirectory({ writings }: WritingDirectoryProps) {
-  if (writings.length === 0) return null;
-  return (
-    <section aria-labelledby="sitemap-writings">
-      <h2 id="sitemap-writings" className="text-title-large">
-        Writings
-      </h2>
-      <ul className="sitemap-links sitemap-grid">
-        {writings.map((writing) => (
-          <li key={writing.slug}>
-            <SitemapLink
-              href={`/writings/${writing.slug}`}
-              title={writing.title}
-              description={writing.description}
-            >
-              <time
-                className="text-body-small text-muted"
-                dateTime={new Date(writing.published).toISOString()}
-              >
-                {formatDate(writing.published)}
-              </time>
-            </SitemapLink>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-interface TopicDirectoryProps {
-  topics: TagGroup[];
-}
-
-function TopicDirectory({ topics }: TopicDirectoryProps) {
-  if (topics.length === 0) return null;
-  return (
-    <section aria-labelledby="sitemap-topics">
-      <h2 id="sitemap-topics" className="text-title-large">
-        Topics
-      </h2>
-      <ul className="sitemap-links sitemap-grid">
-        {topics.map(({ tag, writings }) => (
-          <li key={tag}>
-            <SitemapLink
-              href={tagPath(tag)}
-              title={tag}
-              description={`${writingCount(writings.length)} on this topic.`}
-            />
+        {items.map(({ after, ...link }) => (
+          <li key={link.href}>
+            <SitemapLink {...link} />
+            {after}
           </li>
         ))}
       </ul>

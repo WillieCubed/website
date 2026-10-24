@@ -1,9 +1,5 @@
 import type { ReactNode } from 'react';
 
-import Icon from '@/components/icons/Icon';
-import Button from '@/components/site/Button';
-import Popover from '@/components/site/Popover';
-
 import type { MusicSeries } from '@/lib/music/types';
 
 interface Props {
@@ -14,10 +10,7 @@ interface Props {
   onRetry?: () => void;
   hasSeries: boolean;
   count: number;
-  reordering: boolean;
-  filterAll: boolean;
-  onToggleReordering: () => void;
-  seriesNavigation: ReactNode;
+  tools?: ReactNode;
 }
 export default function MusicCollectionHeader({
   series,
@@ -27,10 +20,7 @@ export default function MusicCollectionHeader({
   onRetry,
   hasSeries,
   count,
-  reordering,
-  filterAll,
-  onToggleReordering,
-  seriesNavigation,
+  tools,
 }: Props) {
   return (
     <header
@@ -40,7 +30,12 @@ export default function MusicCollectionHeader({
           : 'music-collection-header'
       }
     >
-      <CollectionTitle series={series} editing={editing} />
+      <h2
+        id="music-collection-title"
+        className={editing || !series ? 'sr-only' : undefined}
+      >
+        {series?.title ?? (editing ? 'Playlists' : 'Willie’s playlists')}
+      </h2>
       <CollectionLoadStatus
         loading={loading}
         loadError={loadError}
@@ -50,48 +45,15 @@ export default function MusicCollectionHeader({
         inSeries={Boolean(series)}
         onRetry={onRetry}
       />
-      <CollectionPicker
-        visible={editing && hasSeries}
-        title={series?.title}
-        count={count}
-        loading={loading}
-      >
-        {seriesNavigation}
-      </CollectionPicker>
-      <ReorderToggle
-        visible={editing}
-        reordering={reordering}
-        loading={loading}
-        count={count}
-        filterAll={filterAll}
-        onToggle={onToggleReordering}
-      />
+      {tools}
     </header>
   );
 }
-interface CollectionTitleProps {
-  series: MusicSeries | undefined;
-  editing: boolean;
-}
-
-function CollectionTitle({ series, editing }: CollectionTitleProps) {
-  return (
-    <h2
-      id="music-collection-title"
-      className={editing || !series ? 'sr-only' : undefined}
-    >
-      {series?.title ?? (editing ? 'Playlists' : 'Willie’s playlists')}
-    </h2>
-  );
-}
-interface LoadStatusProps {
-  loading: boolean;
-  loadError?: string;
-  editing: boolean;
-  hasSeries: boolean;
-  count: number;
+interface LoadStatusProps extends Pick<
+  Props,
+  'loading' | 'loadError' | 'editing' | 'hasSeries' | 'count' | 'onRetry'
+> {
   inSeries: boolean;
-  onRetry?: () => void;
 }
 function CollectionLoadStatus({
   loading,
@@ -128,68 +90,4 @@ function collectionStatusText(
       error || (editing ? 'Loading playlists…' : 'Loading Willie’s playlists…')
     );
   return `${count} ${count === 1 ? 'playlist' : 'playlists'}${inSeries ? ' · In sequence' : ''}`;
-}
-interface PickerProps {
-  visible: boolean;
-  title: string | undefined;
-  count: number;
-  loading: boolean;
-  children: ReactNode;
-}
-function CollectionPicker({
-  visible,
-  title,
-  count,
-  loading,
-  children,
-}: PickerProps) {
-  if (!visible) return null;
-  return (
-    <Popover
-      label="Choose playlist collection"
-      disabled={loading}
-      triggerClassName="music-collection-picker"
-      panelClassName="music-collection-menu"
-      width={320}
-      trigger={
-        <>
-          <span>{title ?? 'All playlists'}</span>
-          <span className="music-small">{count}</span>
-          <Icon name="chevron-down" size={16} />
-        </>
-      }
-    >
-      {children}
-    </Popover>
-  );
-}
-interface ReorderProps {
-  visible: boolean;
-  reordering: boolean;
-  loading: boolean;
-  count: number;
-  filterAll: boolean;
-  onToggle: () => void;
-}
-function ReorderToggle({
-  visible,
-  reordering,
-  loading,
-  count,
-  filterAll,
-  onToggle,
-}: ReorderProps) {
-  if (!visible) return null;
-  return (
-    <Button
-      variant="quiet"
-      className="music-reorder-toggle"
-      aria-label={reordering ? 'Finish reordering' : 'Reorder playlists'}
-      aria-pressed={reordering}
-      disabled={loading || (!reordering && (count < 2 || !filterAll))}
-      onClick={onToggle}
-    >
-      {reordering ? 'Done' : 'Reorder'}
-    </Button>
-  );
 }

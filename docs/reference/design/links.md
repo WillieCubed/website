@@ -43,6 +43,12 @@ import SiteLink from '@/components/link/SiteLink';
 <SiteLink href="https://hypertext.studio">Hypertext Studio</SiteLink>
 ```
 
+`SiteLink` marks router links with `data-site-link`. The document speculation
+rule excludes that marker and leaves RSC prefetch to Next. Native document links
+remain eligible under the separate speculation rule. The
+[performance guide](../../guides/operations/performance.md#navigation-and-hover-previews)
+explains how to inspect those requests.
+
 ### Event handlers compose with the shared behavior
 
 A component may need to respond to focus or a press while still using the link's
@@ -62,7 +68,7 @@ navigation still has an address to follow when that handler does not run.
 
 `no-restricted-imports` rejects direct `next/link` imports outside the shared
 link implementation. The local `site/no-raw-internal-anchor` rule in
-`eslint/no-raw-internal-anchor.mjs` checks JSX anchors whose href can be read
+`eslint/no-raw-internal-anchor.mts` checks JSX anchors whose href can be read
 from their source syntax.
 
 The raw-anchor rule recognizes strings or template-literal prefixes starting
@@ -172,7 +178,9 @@ also keeps search and other presentations of the page in agreement.
 A visitor expresses preview intent by resting the mouse pointer on a link or
 giving it visible keyboard focus. Once that intent reaches the show step,
 `SiteLink` fetches `/entities.json` and reuses the successful request for the
-visit. Waiting for intent avoids downloading preview data for someone who
+visit. The endpoint sends an ETag and answers matching conditional requests with 304. The server includes prepared brand schemes, so the browser does not run
+the Material palette generator for each link. Waiting for intent avoids
+downloading preview data for someone who
 only reads the page or follows a link immediately.
 
 If the request fails, the link still navigates and no card appears. The failure

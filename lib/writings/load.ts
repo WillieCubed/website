@@ -1,5 +1,6 @@
 import matter from 'gray-matter';
 import { join } from 'node:path';
+import { cache } from 'react';
 import readingTime from 'reading-time';
 
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
@@ -11,9 +12,8 @@ import { writingText } from './content';
 import { parsePersonTags } from './person-tags';
 import type {
   PostType,
-  RSVPData,
-  SyndicationLink,
   TOCHeading,
+  WritingContentFields,
   WritingData,
   WritingDocument,
   WritingPhoto,
@@ -21,7 +21,7 @@ import type {
 
 const writingsDirectory = join(process.cwd(), 'content/writings');
 
-interface RawFrontmatter {
+interface RawFrontmatter extends WritingContentFields {
   /** Optional for notes and interaction posts; derived from the body when absent. */
   title?: string;
   description?: string;
@@ -34,30 +34,11 @@ interface RawFrontmatter {
   draft?: boolean;
   /** Surfaces the writing wherever featured writings are listed. */
   featured?: boolean;
-  featuredImage?: string;
-  featuredImageAlt?: string;
-  series?: {
-    slug: string;
-    part: number;
-  };
-  syndication?: SyndicationLink[];
   syndicateTo?: unknown;
   atproto?: unknown;
-  contentFormat?: 'text' | 'html';
-  micropub?: WritingData['micropub'];
-  audio?: string[];
-  video?: string[];
-  event?: WritingData['event'];
-  location?: unknown;
   /** Photos, each `{ url, alt }`, as the Micropub endpoint writes them. */
   photo?: unknown;
   postType?: PostType;
-  inReplyTo?: string;
-  // Interaction post fields (IndieWeb Level 4)
-  likeOf?: string;
-  repostOf?: string;
-  bookmarkOf?: string;
-  rsvp?: RSVPData;
 }
 
 /**
@@ -68,7 +49,7 @@ interface RawFrontmatter {
  *
  * @returns The codenames of all non-hidden projects
  */
-export async function getWritingSlugs(): Promise<string[]> {
+export const getWritingSlugs = cache(async (): Promise<string[]> => {
   const slugs = markdownFiles(writingsDirectory)
     .map((file) => file.replace(/\.mdx?$/, ''))
     .filter((slug) => {
@@ -81,7 +62,7 @@ export async function getWritingSlugs(): Promise<string[]> {
       return true;
     });
   return slugs;
-}
+});
 
 /**
  * Reads the raw content of a writing file.
@@ -159,73 +140,99 @@ function warnFrontmatter(
     );
 }
 
-/**
- * Read a writing's source and derive its metadata, text statistics, and headings.
- */
-export async function loadWriting(slug: string): Promise<WritingDocument> {
-  const slugs = await getWritingSlugs();
-  if (!slugs.includes(slug)) {
+/** Metadata lists skip heading extraction and return no document bodies. */
+export const loadAllWritingMetadata = cache(
+  async (): Promise<WritingData[]> => {
+    const slugs = await getWritingSlugs();
+    return slugs.map((slug) => readWritingData(slug).writing);
+  }
+);
+
+async function requireWritingSlug(slug: string): Promise<void> {
+  if (!(await getWritingSlugs()).includes(slug)) {
     throw new Error(`Writing with given codename "${slug}" cannot be found.`);
   }
-
-  const { source } = readWritingFile(slug);
-  const fileContent = source.toString();
-
-  // Parse frontmatter using gray-matter
-  const { data, content } = matter(fileContent);
-  const frontmatter = data as RawFrontmatter;
-
-  const stats = readingTime(
-    writingText(content, { contentFormat: frontmatter.contentFormat })
-  );
-  const headings = frontmatter.contentFormat ? [] : extractHeadings(content);
-
-  const postType = inferPostType(frontmatter);
-  const people = parsePersonTags(frontmatter.people);
-  warnFrontmatter(slug, frontmatter, postType, people.length);
-
-  const derivedTitle = deriveTitle(frontmatter, content);
-  const writing: WritingData = {
-    slug,
-    title: derivedTitle.title,
-    hasExplicitTitle: derivedTitle.explicit,
-    description: frontmatter.description ?? derivedTitle.title,
-    published: new Date(frontmatter.published),
-    lastUpdated: new Date(frontmatter.lastUpdated ?? frontmatter.published),
-    tags: frontmatter.tags || [],
-    people,
-    draft: frontmatter.draft ?? false,
-    featured: frontmatter.featured ?? false,
-    featuredImage: frontmatter.featuredImage,
-    featuredImageAlt: frontmatter.featuredImageAlt,
-    readingTime: Math.ceil(stats.minutes),
-    series: frontmatter.series,
-    syndication: frontmatter.syndication,
-    syndicateTo: Array.isArray(frontmatter.syndicateTo)
-      ? frontmatter.syndicateTo.filter(
-          (value): value is string =>
-            typeof value === 'string' && value.length > 0
-        )
-      : undefined,
-    atproto: parseDocumentMetadata(frontmatter.atproto),
-    contentFormat: frontmatter.contentFormat,
-    micropub: frontmatter.micropub,
-    audio: frontmatter.audio,
-    video: frontmatter.video,
-    event: frontmatter.event,
-    location: frontmatter.location,
-    photos: parsePhotos(frontmatter.photo),
-    postType,
-    inReplyTo: frontmatter.inReplyTo,
-    // Interaction post fields
-    likeOf: frontmatter.likeOf,
-    repostOf: frontmatter.repostOf,
-    bookmarkOf: frontmatter.bookmarkOf,
-    rsvp: frontmatter.rsvp,
-  };
-
-  return { content, writing, headings };
 }
+
+export async function loadWritingMetadata(slug: string): Promise<WritingData> {
+  await requireWritingSlug(slug);
+  return readWritingData(slug).writing;
+}
+
+/** Full document reads share their parsed source with metadata during an RSC render. */
+export const loadWriting = cache(
+  async (slug: string): Promise<WritingDocument> => {
+    await requireWritingSlug(slug);
+    const { content, writing } = readWritingData(slug);
+    return {
+      content,
+      writing,
+      headings: writing.contentFormat ? [] : extractHeadings(content),
+    };
+  }
+);
+
+// React releases this cache after each server render. Plain Node loaders
+// keep reading files so build scripts and editing tools see later writes.
+const readWritingData = cache(
+  (slug: string): Omit<WritingDocument, 'headings'> => {
+    const { source } = readWritingFile(slug);
+    const fileContent = source.toString();
+
+    const { data, content } = matter(fileContent);
+    const frontmatter = data as RawFrontmatter;
+
+    const plainText = writingText(content, {
+      contentFormat: frontmatter.contentFormat,
+    });
+    const stats = readingTime(plainText);
+
+    const postType = inferPostType(frontmatter);
+    const people = parsePersonTags(frontmatter.people);
+    warnFrontmatter(slug, frontmatter, postType, people.length);
+
+    const derivedTitle = deriveTitle(frontmatter, plainText);
+    const writing: WritingData = {
+      slug,
+      title: derivedTitle.title,
+      hasExplicitTitle: derivedTitle.explicit,
+      description: frontmatter.description ?? derivedTitle.title,
+      published: new Date(frontmatter.published),
+      lastUpdated: new Date(frontmatter.lastUpdated ?? frontmatter.published),
+      tags: frontmatter.tags || [],
+      people,
+      draft: frontmatter.draft ?? false,
+      featured: frontmatter.featured ?? false,
+      featuredImage: frontmatter.featuredImage,
+      featuredImageAlt: frontmatter.featuredImageAlt,
+      readingTime: Math.ceil(stats.minutes),
+      series: frontmatter.series,
+      syndication: frontmatter.syndication,
+      syndicateTo: Array.isArray(frontmatter.syndicateTo)
+        ? frontmatter.syndicateTo.filter(
+            (value): value is string =>
+              typeof value === 'string' && value.length > 0
+          )
+        : undefined,
+      atproto: parseDocumentMetadata(frontmatter.atproto),
+      contentFormat: frontmatter.contentFormat,
+      micropub: frontmatter.micropub,
+      audio: frontmatter.audio,
+      video: frontmatter.video,
+      event: frontmatter.event,
+      location: frontmatter.location,
+      photos: parsePhotos(frontmatter.photo),
+      postType,
+      inReplyTo: frontmatter.inReplyTo,
+      likeOf: frontmatter.likeOf,
+      repostOf: frontmatter.repostOf,
+      bookmarkOf: frontmatter.bookmarkOf,
+      rsvp: frontmatter.rsvp,
+    };
+
+    return { content, writing };
+  }
+);
 
 /**
  * `photo` frontmatter as a list of photos with descriptions.
@@ -252,16 +259,12 @@ function parsePhotos(value: unknown): WritingPhoto[] | undefined {
  */
 function deriveTitle(
   frontmatter: RawFrontmatter,
-  content: string
+  plainText: string
 ): { title: string; explicit: boolean } {
   const explicit = frontmatter.title?.trim();
   if (explicit) return { title: explicit, explicit: true };
 
-  const plain = writingText(content, {
-    contentFormat: frontmatter.contentFormat,
-  })
-    .replace(/\s+/g, ' ')
-    .trim();
+  const plain = plainText.replace(/\s+/g, ' ').trim();
   const sentence = plain.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? plain;
   const title =
     sentence.length > 120 ? `${sentence.slice(0, 117).trimEnd()}…` : sentence;

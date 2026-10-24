@@ -85,20 +85,104 @@
 .act[aria-current='step'] .act-card {
   border-color: var(--accent-live);
   /* A scheme container rather than a tint of the brand color, so the muted
-     text and the kicker keep 4.5:1 on the current act. */
+     text keeps 4.5:1 on the current act. */
   background: var(--surface-raised);
 }
-.act-kicker {
-  font-family: var(--font-mono);
-  letter-spacing: 0.04em;
-  color: var(--accent-live);
-}
 
-.route-map path {
+.route-map__journey path {
   stroke: var(--accent-live);
 }
 .route-map circle {
-  fill: var(--accent-live);
+  fill: var(--color-ink);
+  stroke: var(--color-card);
+  stroke-width: 2;
+}
+.route-map__geography {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+.route-map__land path {
+  fill: var(--color-surface-container-high);
+  stroke: var(--color-outline);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.route-map__journey path {
+  fill: none;
+  stroke: var(--route-color, var(--accent-live));
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.route-map__journey[data-route='3'] path {
+  stroke-dasharray: 8 5;
+}
+.route-map [data-route='0'] {
+  --route-color: var(--color-primary);
+}
+.route-map [data-route='1'] {
+  --route-color: var(--color-secondary);
+}
+.route-map [data-route='2'] {
+  --route-color: var(--color-tertiary);
+}
+.route-map [data-route='3'] {
+  --route-color: var(--accent-live);
+}
+.route-map__islands > rect {
+  fill: var(--color-card);
+  stroke: var(--color-line);
+  vector-effect: non-scaling-stroke;
+}
+.route-map figcaption {
+  padding: 8px;
+}
+.route-map__trips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9em), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.route-map__trips strong {
+  font-weight: 500;
+}
+.route-map__stops {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.route-map__stops li {
+  position: relative;
+  padding-left: 16px;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+.route-map__stops li::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-xs);
+  background: var(--route-color);
+}
+.route-map__stops li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  bottom: -12px;
+  left: 4px;
+  transform: translateX(-50%);
+  border-left: 2px solid var(--route-color);
+}
+.route-map__trips [data-route='3'] .route-map__stops li::after {
+  border-left-style: dashed;
 }
 
 /* The link to an initiative's own website, filled in its brand primary. */
@@ -120,14 +204,137 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .act-kicker,
   .initiative-prose a {
     transition: color var(--duration-theme) var(--ease-theme);
   }
-  .route-map path {
+  .route-map__journey path {
     transition: stroke var(--duration-theme) var(--ease-theme);
   }
   .route-map circle {
     transition: fill var(--duration-theme) var(--ease-theme);
   }
+}
+
+.route-map__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+}
+.route-map__controls button {
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 8px;
+}
+.route-map__stop-picker {
+  min-width: 144px;
+  flex: 1 1 144px;
+}
+.route-map__stop-picker select {
+  width: 100%;
+  min-width: 120px;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-4xl);
+  background: var(--color-surface-container-high);
+  color: var(--color-ink);
+  font: inherit;
+}
+.route-map__scroll {
+  overflow-x: auto;
+  border-radius: var(--radius-3xl);
+  background: var(--color-surface-container-low);
+  outline: 1px solid var(--color-outline-variant);
+  outline-offset: -1px;
+}
+.route-map__canvas {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  margin-inline: auto;
+  overflow: hidden;
+}
+.route-map__interactive[data-islands='true'] .route-map__canvas {
+  max-height: 584px;
+}
+.route-map__canvas > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+.route-map__canvas > svg:active {
+  cursor: grabbing;
+}
+.route-map__canvas .route-map__leaders {
+  pointer-events: none;
+}
+.route-map__leaders path {
+  fill: none;
+  stroke: var(--color-outline);
+  stroke-width: 1;
+}
+.route-map__canvas .route-map__city {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: var(--text-body-small);
+  line-height: var(--text-body-small--line-height);
+  text-align: center;
+  white-space: nowrap;
+}
+.route-map__city[aria-pressed='true'] {
+  outline: 2px solid var(--accent-live);
+}
+.route-map__city:focus-visible,
+.route-map__canvas > svg:focus-visible {
+  outline: 2px solid var(--accent-live);
+  outline-offset: -2px;
+}
+.route-map__interactive[data-ready='false'] .route-map__canvas {
+  width: 800px;
+}
+.route-map__interactive[data-ready='false'] .route-map__controls,
+.route-map__interactive[data-compact='true'] .route-map__controls {
+  display: none;
+}
+.route-map__interactive[data-compact='true'] .route-map__canvas {
+  height: 160px;
+}
+
+.route-map__interactive[data-ready='false'][data-compact='true']
+  .route-map__canvas {
+  width: 144px;
+}
+.route-map__selection {
+  margin: 0;
+  padding: 8px 16px;
+  color: var(--color-ink);
+}
+
+.route-map__interactive[data-ready='true']
+  .route-map__canvas
+  > svg:first-child
+  circle {
+  display: none;
+}
+.route-map__interactive[data-ready='false'] .route-map__leaders {
+  display: none;
+}
+.route-map__canvas
+  :is(circle, .route-map__land path, .route-map__journey path) {
+  vector-effect: non-scaling-stroke;
 }

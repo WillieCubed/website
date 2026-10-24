@@ -11,26 +11,19 @@ import { buildPagefindIndex } from '../../lib/search/pagefind';
 import { isMain } from '../shared/command.mts';
 
 export async function runSearchIndex() {
-  async function main() {
-    console.log('Generating search index...');
+  console.log('Generating search index...');
 
-    const index = await collectSearchDocuments();
+  const index = await collectSearchDocuments();
 
-    const outputPath = join(process.cwd(), 'public', 'search-index.json');
-    writeFileSync(outputPath, JSON.stringify(index, null, 2));
+  const outputPath = join(process.cwd(), 'public', 'search-index.json');
+  writeFileSync(outputPath, JSON.stringify(index, null, 2));
 
-    console.log(`Search index generated with ${index.length} items`);
-    console.log(`Output: ${outputPath}`);
+  console.log(`Search index generated with ${index.length} items`);
+  console.log(`Output: ${outputPath}`);
 
-    const pagefindPath = join(process.cwd(), 'public', 'pagefind');
-    await buildPagefindIndex(index, pagefindPath);
-    console.log(`Pagefind index written to ${pagefindPath}`);
-  }
-
-  await main().catch((error) => {
-    console.error('Failed to generate search index:', error);
-    process.exit(1);
-  });
+  const pagefindPath = join(process.cwd(), 'public', 'pagefind');
+  await buildPagefindIndex(index, pagefindPath);
+  console.log(`Pagefind index written to ${pagefindPath}`);
 }
 
 if (isMain(import.meta.url)) await runSearchIndex();

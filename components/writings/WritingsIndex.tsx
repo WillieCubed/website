@@ -5,13 +5,13 @@ import TagChips from '@/components/writings/TagChips';
 import WritingItem from '@/components/writings/WritingItem';
 
 import { socialSettings } from '@/lib/atproto/config';
+import { getSeries } from '@/lib/collections';
 import { getWritingContentHtml } from '@/lib/indieweb/feeds/items';
 import { absoluteUrl } from '@/lib/site/urls';
 import {
   type WritingData,
   getAllTags,
   getAllWritings,
-  getSeries,
 } from '@/lib/writings/index';
 
 import StandardSocialControls from './StandardSocialControls';

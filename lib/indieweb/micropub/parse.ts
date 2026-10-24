@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
 import { MicropubRequestError } from '@/lib/indieweb/micropub/document-types';
 import type {
@@ -7,7 +9,6 @@ import type {
   MicropubJsonBody,
   MicropubPhoto,
   MicropubPostType,
-  MicropubPostTypeSource,
   MicropubRsvpStatus,
   RawMicropubEntry,
 } from '@/lib/indieweb/micropub/types';
@@ -41,16 +42,10 @@ function parseJsonBody(body: MicropubJsonBody): MicropubCreateRequest {
     throw new Error('invalid_request');
   const properties = validateProperties(body.properties ?? {});
   const types = body.type ?? ['h-entry'];
-  validateTypes(types);
+  if (!z.array(z.string()).safeParse(types).success)
+    throw new Error('invalid_request');
   const content = contentValue(properties.content);
-  for (const property of [
-    'in-reply-to',
-    'like-of',
-    'repost-of',
-    'bookmark-of',
-    'syndication',
-  ])
-    urlValues(properties[property], property);
+  validateCitations(properties);
   sanitizeContentProperties(properties);
   const postStatus = parsePostStatus(properties['post-status']);
   return normalizeEntry({
@@ -124,14 +119,7 @@ function citedUrl(values: unknown[] | undefined): string | undefined {
 }
 function parseFormData(formData: FormData): MicropubCreateRequest {
   const properties = collectFormProperties(formData);
-  for (const property of [
-    'in-reply-to',
-    'like-of',
-    'repost-of',
-    'bookmark-of',
-    'syndication',
-  ])
-    urlValues(properties[property], property);
+  validateCitations(properties);
   if (properties.category != null)
     properties.category = formStringList(formData, 'category');
   const content = contentValue(properties.content);
@@ -193,26 +181,12 @@ function normalizeEntry(entry: RawMicropubEntry): MicropubCreateRequest {
   validateEntry(entry, content);
 
   return {
+    ...entry,
     h: entry.h as 'entry' | 'event',
-    properties: entry.properties,
-    contentFormat: entry.contentFormat,
-    postStatus: entry.postStatus,
-    audio: entry.audio,
-    video: entry.video,
-    event: entry.event,
     content,
-    name: entry.name,
-    summary: entry.summary,
     categories: entry.categories.filter(Boolean),
-    slug: entry.slug,
-    published: entry.published,
     postType: inferPostType(entry),
-    inReplyTo: entry.inReplyTo,
-    likeOf: entry.likeOf,
-    repostOf: entry.repostOf,
-    bookmarkOf: entry.bookmarkOf,
     rsvp: normalizeRsvp(entry.rsvp),
-    photos: entry.photos,
     syndication: entry.syndication.filter(Boolean),
     syndicateTo: resolveSyndicationTargets(entry.syndicateTo),
   };
@@ -240,7 +214,7 @@ function parseJsonPhotos(values: unknown): MicropubPhoto[] {
     throw new Error('invalid_request');
   });
 }
-function inferPostType(entry: MicropubPostTypeSource): MicropubPostType {
+function inferPostType(entry: RawMicropubEntry): MicropubPostType {
   const candidates: [unknown, MicropubPostType][] = [
     [entry.rsvp, 'rsvp'],
     [entry.likeOf, 'like'],
@@ -258,40 +232,42 @@ function inferPostType(entry: MicropubPostTypeSource): MicropubPostType {
 function normalizeRsvp(
   value: string | undefined
 ): MicropubRsvpStatus | undefined {
-  if (
-    value === 'yes' ||
-    value === 'no' ||
-    value === 'maybe' ||
-    value === 'interested'
-  ) {
-    return value;
-  }
-  if (value !== undefined)
-    throw new MicropubRequestError(
-      'rsvp is one of yes, no, maybe, or interested.'
-    );
-  return undefined;
-}
-function validateProperties(
-  value: unknown
-): Record<string, (string | Record<string, unknown>)[]> {
-  if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw new Error('invalid_request');
-  return Object.fromEntries(
-    Object.entries(value).map(([key, values]) => {
-      if (
-        !Array.isArray(values) ||
-        !values.every(
-          (item) =>
-            typeof item === 'string' ||
-            (item && typeof item === 'object' && !Array.isArray(item))
-        )
-      )
-        throw new Error('invalid_request');
-      return [key, values];
-    })
+  if (value === undefined) return undefined;
+  if (['yes', 'no', 'maybe', 'interested'].includes(value))
+    return value as MicropubRsvpStatus;
+  throw new MicropubRequestError(
+    'rsvp is one of yes, no, maybe, or interested.'
   );
 }
+
+const propertySchema = z.array(
+  z.tuple([
+    z.string(),
+    z.array(z.union([z.string(), z.record(z.string(), z.unknown())])),
+  ])
+);
+function validateProperties(value: unknown): Mf2Properties {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('invalid_request');
+  const entries = Object.entries(value);
+  if (!propertySchema.safeParse(entries).success)
+    throw new Error('invalid_request');
+  // Validate entries rather than record keys so extension names such as
+  // __proto__ survive without becoming setters on the retained property bag.
+  return Object.fromEntries(entries) as Mf2Properties;
+}
+
+function validateCitations(properties: Mf2Properties): void {
+  for (const name of [
+    'in-reply-to',
+    'like-of',
+    'repost-of',
+    'bookmark-of',
+    'syndication',
+  ])
+    urlValues(properties[name], name);
+}
+
 function contentValue(
   values: (string | Record<string, unknown>)[] | undefined
 ): { body: string; format: 'text' | 'html' } {
@@ -321,14 +297,6 @@ function validDate(value: string | undefined): Date | undefined {
   if (value !== undefined && Number.isNaN(new Date(value).getTime()))
     throw new MicropubRequestError('published must be a valid date.');
   return parseOptionalDate(value);
-}
-
-function validateTypes(types: unknown): asserts types is string[] {
-  if (
-    !Array.isArray(types) ||
-    !types.every((value) => typeof value === 'string')
-  )
-    throw new Error('invalid_request');
 }
 
 function collectFormProperties(formData: FormData): Mf2Properties {

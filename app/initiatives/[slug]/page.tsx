@@ -7,6 +7,7 @@ import Playbill from '@/components/initiatives/Playbill';
 import RouteMap from '@/components/initiatives/RouteMap';
 import TrailerBlock from '@/components/initiatives/TrailerBlock';
 import { initiativeBreadcrumbs } from '@/components/initiatives/breadcrumbs';
+import '@/components/initiatives/fall-tour.css';
 import SiteLink from '@/components/link/SiteLink';
 import JsonLd from '@/components/seo/JsonLd';
 import SharedTitle from '@/components/site/SharedTitle';
@@ -31,7 +32,6 @@ import {
 } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/seo/metadata';
 import { absoluteUrl } from '@/lib/site/urls';
-import { isPrivatePreview } from '@/lib/studio/config';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix
@@ -77,16 +77,13 @@ interface InitiativeHeadingProps {
 
 function InitiativeHeading({ initiative }: InitiativeHeadingProps) {
   return (
-    <header className="mx-auto max-w-[840px]">
-      {isPrivatePreview() && initiative.draft && (
-        <p className="text-label-medium text-muted">Draft</p>
-      )}
+    <header className="initiative-heading mx-auto max-w-[840px]">
       <h1 className="mt-2 text-display-medium text-ink">
         <SharedTitle id={`initiative-${initiative.slug}`} size="large">
           <span className="inline-block">{initiative.title}</span>
         </SharedTitle>
       </h1>
-      <p className="mt-3 text-headline-small font-normal text-muted">
+      <p className="initiative-tagline mt-3 text-headline-small font-normal text-muted">
         {initiative.tagline}
       </p>
       {initiative.starts && initiative.ends && (
@@ -129,7 +126,11 @@ export default async function InitiativePage(
   const crumbs = await initiativeBreadcrumbs(initiative);
 
   return (
-    <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
+    <div
+      className="initiative initiative-overview"
+      data-initiative={initiative.slug}
+      style={schemeStyleFromHex(initiative.brand)}
+    >
       <JsonLd
         data={graph(
           webPageLd({
@@ -146,30 +147,61 @@ export default async function InitiativePage(
           personLd()
         )}
       />
-      <TopBar crumbs={crumbs} column="content" />
+      <TopBar
+        crumbs={[
+          ...crumbs,
+          {
+            label: initiative.title,
+            href: initiative.href,
+            menuItems: initiative.parts.map((part) => ({
+              label: `${initiative.partLabel} ${part.number}: ${part.title}`,
+              href: `${initiative.href}/${part.slug}`,
+            })),
+          },
+        ]}
+        column={initiative.slug === 'fall-tour-2026' ? 'wide' : 'content'}
+      />
       <main id="main" className="site-frame site-frame--wide pb-20">
-        <InitiativeHeading initiative={initiative} />
+        <div className="initiative-introduction">
+          <InitiativeHeading initiative={initiative} />
 
-        <div className="mx-auto mt-8 max-w-[840px]">
-          <TrailerBlock initiative={initiative} />
+          <div
+            className="initiative-trailer mx-auto mt-8 max-w-[840px]"
+            data-media={initiative.trailer?.youtubeId ? 'video' : 'poster'}
+          >
+            <TrailerBlock initiative={initiative} />
+          </div>
         </div>
 
         {initiative.parts.length > 0 && (
           <section
-            className="mt-12"
+            className="initiative-chapters mt-12"
             aria-label={`${initiative.title} ${initiative.partLabel.toLowerCase()}s`}
           >
-            <Playbill initiative={initiative} />
+            <Playbill
+              initiative={initiative}
+              showCovers={initiative.slug !== 'fall-tour-2026'}
+            />
           </section>
         )}
 
         {places.length > 1 && (
-          <section className="mt-12" aria-label={`${initiative.title} route`}>
-            <RouteMap places={places} title={`${initiative.title} route`} />
+          <section
+            className="initiative-route mt-12"
+            aria-label={`${initiative.title} route`}
+          >
+            <RouteMap
+              places={places}
+              routes={initiative.parts.map((part) => ({
+                label: `${initiative.partLabel} ${part.number}`,
+                places: part.places,
+              }))}
+              title={`${initiative.title} route`}
+            />
           </section>
         )}
 
-        <section className="mx-auto mt-12 max-w-[720px]">
+        <section className="initiative-story mx-auto mt-12 max-w-[720px]">
           <InitiativeBody source={initiative.content} />
         </section>
 

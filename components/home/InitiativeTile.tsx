@@ -66,14 +66,14 @@ export function InitiativeTile({ tile, children }: InitiativeTileProps) {
         preview={false}
       />
       <div className="head">
-        <span className="label">
+        <h3 className="tile-title">
           {tile.parent && `${tile.parent} · `}
-          {/* Inline, not inline-block: the label never wraps, and an
-              atomic box would lose the label's ellipsis. */}
+          {/* Inline, not inline-block: the title never wraps, and an
+              atomic box would lose its ellipsis. */}
           <SharedTitle id={tile.id} size="small">
             <span>{tile.name}</span>
           </SharedTitle>
-        </span>
+        </h3>
         <span className="hint" aria-hidden="true">
           <span>{tile.hint}</span>
           <i>

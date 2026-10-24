@@ -41,7 +41,7 @@ for (const width of [390, 1920]) {
       await expect(page.locator('.site-footer__pages')).toBeVisible();
       await expect(page.locator('.site-footer__row')).toHaveCSS(
         'margin-block-start',
-        '40px'
+        '24px'
       );
       await page.mouse.wheel(0, -height * 0.75);
       await expect

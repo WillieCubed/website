@@ -41,7 +41,7 @@ export const SPECULATION_RULES = {
           {
             not: {
               selector_matches:
-                '[rel~="nofollow"], [target="_blank"], [download]',
+                '[data-site-link], [rel~="nofollow"], [target="_blank"], [download]',
             },
           },
         ],

@@ -101,8 +101,9 @@ export function createPool(
     // Worker I/O objects belong to one request. Hyperdrive pools at the edge;
     // retaining a pg Pool across invocations can hang the next request.
     const client = new Client({ connectionString: url, ...clientDeadlines });
+    // A rejected Cloudflare socket may never emit the close event end() awaits.
+    await client.connect();
     try {
-      await client.connect();
       return await client.query(text, values);
     } finally {
       await client.end();

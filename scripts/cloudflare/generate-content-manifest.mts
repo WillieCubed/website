@@ -1,36 +1,34 @@
-import { imageSize } from 'image-size';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import prettier from 'prettier';
 
+import { generatePublicImages } from '../content/public-images.mts';
 import { isMain } from '../shared/command.mts';
+
+/** Each bundled directory records its immediate children in filesystem order. */
+export function buildDirectoryIndex(
+  paths: string[]
+): Record<string, Array<[string, boolean]>> {
+  const directories = new Map<string, Map<string, boolean>>();
+  for (const path of paths) {
+    const segments = path.split('/');
+    for (let index = 1; index < segments.length; index++) {
+      const directory = segments.slice(0, index).join('/');
+      const children = directories.get(directory) ?? new Map<string, boolean>();
+      children.set(segments[index], index < segments.length - 1);
+      directories.set(directory, children);
+    }
+  }
+  return Object.fromEntries(
+    [...directories].map(([directory, children]) => [directory, [...children]])
+  );
+}
 
 export async function generateContentManifest() {
   const root = process.cwd();
   const files: Record<string, string> = {};
   const binaryFiles: Record<string, string> = {};
-  const imageDimensions: Record<string, { width: number; height: number }> = {};
-  function images(directory: string) {
-    for (const entry of readdirSync(join(root, directory), {
-      withFileTypes: true,
-    })) {
-      const path = join(directory, entry.name);
-      if (entry.isDirectory()) images(path);
-      else if (/\.(?:png|jpe?g|webp|gif|avif|svg)$/i.test(entry.name)) {
-        try {
-          const size = imageSize(readFileSync(join(root, path)));
-          if (size.width !== 0 && size.height !== 0)
-            imageDimensions['/' + relative('public', path)] = {
-              width: size.width,
-              height: size.height,
-            };
-        } catch {
-          /* Unsupported assets use a bounded presentation slot. */
-        }
-      }
-    }
-  }
-  images('public');
+  const imageDimensions = generatePublicImages(root);
 
   function visit(directory: string) {
     for (const entry of readdirSync(join(root, directory), {
@@ -59,7 +57,8 @@ export async function generateContentManifest() {
       binaryFiles[path] = readFileSync(join(root, path)).toString('base64');
     }
   }
-  const source = `// Generated runtime content manifest.\nexport const imageDimensions: Record<string, { width: number; height: number }> = ${JSON.stringify(imageDimensions)};\nexport const runtimeFiles: Record<string, string> = ${JSON.stringify(files)};\nexport const runtimeBinaryFiles: Record<string, string> = ${JSON.stringify(binaryFiles)};\n`;
+  const directories = buildDirectoryIndex(Object.keys(files));
+  const source = `// Generated runtime content manifest.\nexport const imageDimensions: Record<string, { width: number; height: number; immutableSrc?: string }> = ${JSON.stringify(imageDimensions)};\nexport const runtimeFiles: Record<string, string> = ${JSON.stringify(files)};\nexport const runtimeBinaryFiles: Record<string, string> = ${JSON.stringify(binaryFiles)};\nexport const runtimeDirectories: Record<string, Array<[string, boolean]>> = ${JSON.stringify(directories)};\n`;
   const output = join(root, 'lib/content/generated-content.ts');
   writeFileSync(
     output,

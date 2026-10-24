@@ -3,9 +3,9 @@ import { join } from 'node:path';
 
 import { readFileSync } from '../content/runtime-files';
 import { type PostgresPool, createPool } from '../db/postgres';
+import { HttpError } from '../http/errors';
 import { optionalWithin } from '../http/optional';
 import { isPrivatePreview } from '../studio/config';
-import { StudioError } from '../studio/errors';
 import { visibleCollection } from './public-projection';
 import { parseCatalog, publicCatalog } from './schema';
 import { musicStore } from './store';
@@ -20,7 +20,7 @@ function musicDatabaseUrl(name: string) {
 }
 function cacheWriter() {
   if (!process.env.MUSIC_CACHE_WRITE_DATABASE_URL)
-    throw new StudioError(503, 'Music publication storage is not configured.');
+    throw new HttpError(503, 'Music publication storage is not configured.');
   return (writer ??= createPool({
     connectionString: musicDatabaseUrl('MUSIC_CACHE_WRITE_DATABASE_URL'),
     max: 2,

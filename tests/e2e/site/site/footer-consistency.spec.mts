@@ -114,6 +114,16 @@ for (const width of [320, 390, 840, 1440]) {
             navigationGap: Math.round((nav.top - detail.bottom) * 10) / 10,
           };
         });
+        const nameLine = await footer
+          .locator('.site-footer__wordmark')
+          .evaluate((el) => ({
+            height: el.getBoundingClientRect().height,
+            lineHeight: parseFloat(getComputedStyle(el).lineHeight),
+          }));
+        expect(
+          nameLine.height,
+          `${route} keeps the complete name together`
+        ).toBeLessThanOrEqual(nameLine.lineHeight + 1);
         const profiles = footer.locator('.site-footer__profiles');
         const iconOnly = await profiles
           .locator('.site-footer__label')

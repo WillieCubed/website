@@ -30,7 +30,7 @@ Understand why the site works this way and how its parts fit together.
 
 ### Architecture
 
-- [Domain boundaries](./concepts/architecture/domain-boundaries.md): module ownership, dependency direction, and retained publishing recovery contracts.
+- [Domain boundaries](./concepts/architecture/domain-boundaries.md): module ownership, dependency direction, and state lifetimes.
 
 ## Reference
 
@@ -86,19 +86,35 @@ Look up exact rules, schemas, commands, routes, and supported behavior.
 
 - [AT Protocol](./reference/publishing/atproto.md): publication identity,
   document records, configuration, and Standard.site and Bluesky interactions.
-- [IndieWeb routes and configuration](./reference/publishing/indieweb.md):
-  endpoints, environment variables, microformats, and operating details.
+- [IndieWeb index](./reference/publishing/indieweb.md): protocol entrypoints and
+  retained links from the former combined reference.
+- [Discovery and routes](./reference/publishing/indieweb-discovery.md): endpoint
+  inventory and database boundaries.
+- [Shared protocol configuration](./reference/publishing/indieweb-configuration.md):
+  bindings, secrets, commands, and migration order.
+- [Microformats](./reference/publishing/microformats.md): authors, entries,
+  collections, events, and response markup.
+- [Webmention](./reference/publishing/webmention.md): verification, moderation,
+  delivery, Vouch, and Salmention.
+- [Micropub and media](./reference/publishing/micropub.md): authenticated source
+  operations, private draft boundaries, uploads, and public byte delivery.
+- [IndieAuth](./reference/publishing/indieauth.md): owner consent, PKCE,
+  token rotation, replay, and UserInfo.
+- [Studio ownership](./reference/publishing/studio.md): editor lifetimes,
+  revisions, and publication recovery.
 - [Supported behavior](./reference/publishing/indieweb-spec.md): the protocol
   contract clients can rely on.
 - [IndieMark checklist](./reference/publishing/indiemark.md): requirements and
-  recorded status.
+  repeatable public checks.
 - [Publishing conformance](./reference/publishing/publishing-conformance.md):
-  standards coverage, external evidence, and unresolved release gates.
+  local, hosted, provider, and independent evidence requirements.
 - [Protocol easter eggs](./reference/publishing/protocols.md): `/coffee`,
   `/tea`, `/whoami`, discovery, and headers.
 
 ### Operations
 
+- [Commands](./reference/operations/commands.md): package scripts and focused
+  documentation/content checks.
 - [Build metrics](./reference/operations/build-metrics.md): definitions and
   collection boundaries for the Cloudflare build and local browser measurements.
 - [Site build record](./reference/operations/build-record.md): artifact versions,
@@ -129,6 +145,8 @@ Complete a task in an existing checkout or deployment.
 
 ### Operations
 
+- [Diagnose loading and repeated work](./guides/operations/performance.md):
+  comparable measurements, cache ownership, prefetch, previews, and media.
 - [Deploy and change domains](./guides/operations/deploy.md): current hosting,
   domain attachment, DNS cutover checks, and dependency patch maintenance.
 

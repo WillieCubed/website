@@ -33,9 +33,13 @@ The loader is `lib/initiatives/index.ts`. It validates frontmatter with the zod
 schemas in `lib/initiatives/schema.ts`, resolves each status from its dates when
 the author leaves `status` out, and exposes `getInitiatives`, `getInitiative`,
 `getPart`, `getFeaturedInitiatives`, and `currentPart`. The loaders resolve
-statuses against the clock when reading the records. They no longer declare an
-hourly Next.js `use cache` policy; inspect the consuming route's caching when
-diagnosing a stale rendered status.
+statuses against the clock when reading the records. React `cache` shares an
+initiative list within one server render; it does not retain a mutable snapshot
+between requests. Inspect the consuming route's caching when diagnosing a stale
+rendered status. The homepage loads one visible initiative snapshot and derives
+both featured tiles and compact playbills from it. The pure `featuredInitiatives`
+and `featuredTiles` helpers leave that snapshot unchanged. Tile parent names come
+from the same snapshot.
 
 ## Initiative frontmatter
 
@@ -172,8 +176,70 @@ Initiative and part pages support:
 - `<Scene src="/assets/initiatives/x/1.jpg" alt="…" flip caption="…">prose</Scene>`
   puts media beside a few paragraphs. Alternate `flip` down the page.
 - `<Gallery items={[{ src, alt }, …]} columns={3} />` is a photo grid.
-- `<RouteMap places={[{ name, lat, lng }]} />` draws places on a plain grid
-  with a dashed line between them. There is no continent outline on purpose.
+- `<RouteMap places={[{ name, lat, lng }]} />` draws a server-rendered geographic map.
+  Place coordinates and land outlines use the same scale. Mainland US trips
+  retain national context rather than stretching neighboring towns across the
+  map. Mixed mainland/Hawaii trips use a labeled inset inside the same map,
+  with its own scale. Honolulu shares city selection and zoom controls with
+  mainland stops.
+  `routes={[{ label, places }]}` separates trips without implying travel between
+  them. Curved legs preserve each stop and indicate travel order; they do not
+  claim to trace flight paths, roads, or railways. City names remain beside their
+  map points at a fixed readable text size.
+  Nearby stops group under a city name and count when their labels would crowd.
+  Selecting a group fits its cities; the selected names appear together beside
+  the map. Leader lines connect displaced labels to their geographic points.
+  Selecting a city zooms into its area. The “Zoom to city” picker also reaches
+  labels outside the current view. Zoom buttons, drag panning, arrow-key panning,
+  and Show all share the same viewport. Each trip retains its full ordered stop
+  list in HTML. Trip captions arrange cities vertically with colored stop markers
+  and connecting lines. They use two columns on phones where the text fits and
+  four on wide screens. Controls state their actions without explanatory copy
+  beneath the map.
+  The canvas follows its geographic frame's aspect ratio rather than imposing
+  a minimum height. Height caps preserve the map's scale on wide screens.
+  Controls and captions share the figure's width, and the Hawaii frame ends
+  eight coordinate units after the inset. Keep label type and touch targets
+  unchanged when tightening the map's surrounding space.
+  Label placement chooses the nearest clear position beside, above, or below
+  each point. Nearby labels define additional rows without pushing names
+  across the map.
+  A rounded tonal viewport contains the cropped geography. Filled tonal controls
+  use the site's shared MD3 action states. These boundaries also remain visible
+  around the horizontally scrolling no-script map.
+  Without JavaScript, the labeled map remains a horizontally scrollable SVG
+  with its HTML labels; enhancement controls stay hidden. Lines end at the
+  inset boundary rather than suggesting a false cross-panel distance.
+
+The outlines come from Natural Earth's public-domain 1:110m Admin 0 countries
+(version 5.1.1). `lib/initiatives/world-outlines.json` contains exterior rings
+rounded to two decimal degrees from the
+[Natural Earth source](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson).
+The downloaded source SHA-256 is
+`6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f`.
+The server filters visible outlines before rendering. A small client viewport
+receives projected city coordinates and server-rendered SVG content. Geographic
+source data stays on the server; maps need no tile requests or mapping library.
+The viewport draws markers in screen coordinates so zoom changes the geography
+without magnifying dots. Server-rendered points remain the no-script fallback.
+See the
+[Natural Earth public-domain terms](https://www.naturalearthdata.com/about/terms-of-use/).
+
+This component diagram records the server/browser ownership boundary. The map
+renderer supplies projected SVG content; the viewport owns selection and gestures.
+
+```mermaid
+flowchart LR
+  Page[Initiative page] --> Map[Map renderer]
+  Map --> Geography[Server geography]
+  Map --> Viewport[Browser viewport]
+  Viewport --> Labels[Label layout]
+```
+
+Fall Tour's overview combines the title, subtitle, dates, and large rounded-pixel
+composition in one tall hero. Chapter covers retain comparable vertical space
+for their illustration and title group. These sizes belong to the campaign;
+they do not change the site's page gutters or top bar.
 
 ### What the page supplies
 
@@ -199,13 +265,34 @@ Scroll reveals are entrance effects. They must never hide content or make
 scrolling a prerequisite for reading. When changing the interaction, check the
 Playbill with JavaScript unavailable and reduced motion enabled.
 
+## Campaign presentation
+
+The full Playbill can render each part's cover beside its copy on wide screens
+and above its copy on phones. Fall Tour uses one graphic in its centered
+introduction and a text chapter list to avoid repeating near-identical covers. The compact
+homepage Playbill keeps its text-only composition. Both use the same part
+records and native destinations. Campaign-specific layout belongs in scoped
+CSS, such as `components/initiatives/fall-tour.css`; it must not add a separate
+client navigation or content model.
+
+Fall Tour uses decorative SVG patterns of large rounded pixels that remain
+distinct at phone widths. Titles and subtitles use pretty wrapping. Preview
+pages omit draft eyebrows while retaining draft access rules. Keep the graphics abstract;
+do not replace them with generated scenes or imitation photographs. Travel
+dates, places, milestones, and public narrative belong in the content records.
+Personal contact names, booking references, and private logistics belong in
+Docket rather than public copy. Do not turn a future plan into a claim that
+the event has already happened.
+
+`tests/fall-tour.config.mts` checks all five draft pages through the authenticated
+fixture. It captures uncropped desktop and phone views in both themes and
+checks enlarged text, server-rendered covers, and native chapter navigation
+without JavaScript.
+
 ## Open questions
 
-Trailer video ids and real cover photos are still to come from Willie; the SVG
-covers under `public/assets/initiatives/` are placeholders. Brand seeds for
-initiatives are hand-picked hexes because they have no site to resolve from.
-
-The placeholders let the page be reviewed while that material is missing. They
-do not establish approval of final imagery or a trailer. Replace them with
-Willie's supplied material and rerun the media checks before treating the page
-as editorially finished.
+Trailer video ids and documentary photographs are still to come from Willie.
+The decorative SVG covers do not imply that footage or photographs exist.
+Brand seeds for initiatives are hand-picked hexes because they have no site to
+resolve from. When adding supplied media, rerun the media checks and review its
+caption, crop, and loading behavior in the complete page.

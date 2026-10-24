@@ -5,12 +5,11 @@ import { useEffect, useRef } from 'react';
 
 import { entries } from '@/lib/home/ventures';
 
-import { useHome } from './HomeContext';
+import { useHomeActions } from './HomeContext';
 import { useDetailPresentation } from './useDetailPresentation';
 
-// The detail view's pictures are never lazy: the morph snapshots the dialog
-// as soon as it opens, and the tile or row it grew from has usually loaded
-// the same file already.
+// Detail images load eagerly. Opening retains the tile's decoded source for
+// the morph before allowing the destination's larger responsive candidate.
 interface DetailDialogProps {
   /** Lets the shell hand `openDetail` calls from tiles and rows here. */
   registerOpener: (
@@ -35,7 +34,7 @@ export function useDetailDialog(
   const searchParams = useSearchParams();
   const requested = searchParams.get('detail');
 
-  const { clearPreviewNow } = useHome();
+  const { clearPreviewNow } = useHomeActions();
   const initial = initialId && entries[initialId] != null ? initialId : null;
   const {
     openId,

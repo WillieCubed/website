@@ -1,7 +1,7 @@
 'use client';
 
 import { Body, Media } from '@/components/home/DetailContent.tsx';
-import { brandStyle, useHome } from '@/components/home/HomeContext';
+import { brandStyle, useHomeActions } from '@/components/home/HomeContext';
 import { useDetailDialog } from '@/components/home/useDetailDialog';
 import Icon from '@/components/icons/Icon';
 import SiteLink from '@/components/link/SiteLink';
@@ -27,10 +27,10 @@ interface DetailBodyProps {
 function DetailBody({ entry, onOpen }: DetailBodyProps) {
   return (
     <div className="d-content scroller">
-      <span className="d-kicker">{entry?.parent ?? ''}</span>
       <h2 className="d-title" id="d-title">
         {entry?.name}
       </h2>
+      {entry?.parent && <p className="d-parent">{entry.parent}</p>}
       {entry && <Body detail={entry.detail} onOpen={onOpen} />}
     </div>
   );
@@ -94,7 +94,7 @@ export function DetailDialog({
     requestClose,
     onNativeClose,
   } = useDetailDialog(registerOpener, initialId);
-  const { brands } = useHome();
+  const { brands } = useHomeActions();
   const entry = openId ? entries[openId] : null;
   const style = brandStyle(brands, entry?.brand);
 

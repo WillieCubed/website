@@ -2,19 +2,18 @@ import { unstable_cache } from 'next/cache';
 
 import { loadBlueskyResponses } from '@/lib/atproto/responses';
 import { emptyResponses } from '@/lib/atproto/responses/merge';
+import { getSeriesWithWritings } from '@/lib/collections';
 import { optionalWithin } from '@/lib/http/optional';
 import {
   type ReplyContext,
   getReplyContext,
 } from '@/lib/indieweb/reply-context';
 import { publicWebmentionsForPost } from '@/lib/indieweb/webmention/public-reads';
-import type { WebmentionGroup } from '@/lib/indieweb/webmention/types';
 import { getBacklinksForPost } from '@/lib/writings/backlinks';
 import {
   type SeriesWithWritings,
   type WritingData,
   getAdjacentWritings,
-  getSeriesWithWritings,
 } from '@/lib/writings/index';
 
 // An interaction target's metadata changes slowly. Cache this public read
@@ -36,27 +35,15 @@ const cachedReplyContext = unstable_cache(
 async function seriesFor(
   seriesSlug: string | undefined
 ): Promise<SeriesWithWritings | null> {
-  if (!seriesSlug) return null;
-  try {
-    return await getSeriesWithWritings(seriesSlug);
-  } catch {
-    return null;
-  }
+  return seriesSlug
+    ? getSeriesWithWritings(seriesSlug).catch(() => null)
+    : null;
 }
 
 async function fetchInteractions(slug: string) {
   const backlinks = await getBacklinksForPost(slug);
-  const webmentions = await loadWebmentions(slug);
+  const webmentions = await publicWebmentionsForPost(slug).catch(() => null);
   return { backlinks, webmentions };
-}
-
-/** A missing database leaves the interaction area empty, not the page broken. */
-async function loadWebmentions(slug: string): Promise<WebmentionGroup | null> {
-  try {
-    return await publicWebmentionsForPost(slug);
-  } catch {
-    return null;
-  }
 }
 
 /**
@@ -66,32 +53,27 @@ async function loadWebmentions(slug: string): Promise<WebmentionGroup | null> {
 async function replyContextsFor(
   urls: string[]
 ): Promise<Map<string, ReplyContext>> {
-  return new Map(await loadReplyContexts([...new Set(urls)]));
-}
-
-/** Fetch remote reply context during rendering and tolerate source failures. */
-async function loadReplyContexts(
-  urls: string[]
-): Promise<Array<[string, ReplyContext]>> {
-  return Promise.all(
-    urls.map(async (url): Promise<[string, ReplyContext]> => {
-      try {
-        const context = await cachedReplyContext(url);
-        return [
-          url,
-          {
-            ...context,
-            publishedAt: context.publishedAt
-              ? new Date(context.publishedAt)
-              : undefined,
-            fetchedAt: new Date(context.fetchedAt),
-          },
-        ];
-      } catch (error) {
-        console.error(`Failed to fetch context for ${url}:`, error);
-        return [url, { url, fetchedAt: new Date() }];
-      }
-    })
+  return new Map(
+    await Promise.all(
+      [...new Set(urls)].map(async (url): Promise<[string, ReplyContext]> => {
+        try {
+          const context = await cachedReplyContext(url);
+          return [
+            url,
+            {
+              ...context,
+              publishedAt: context.publishedAt
+                ? new Date(context.publishedAt)
+                : undefined,
+              fetchedAt: new Date(context.fetchedAt),
+            },
+          ];
+        } catch (error) {
+          console.error(`Failed to fetch context for ${url}:`, error);
+          return [url, { url, fetchedAt: new Date() }];
+        }
+      })
+    )
   );
 }
 

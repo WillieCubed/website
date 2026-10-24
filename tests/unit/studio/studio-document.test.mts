@@ -195,3 +195,53 @@ test('text export retains mark order and escapes link destinations', () => {
     /Unsupported writing node/
   );
 });
+
+test('draft validation keeps error priority, depth, and preserved metadata', () => {
+  const body = importMdx('Writing');
+  const rejected = (value: unknown, message: string) =>
+    assert.throws(
+      () => parseDraftContent(value),
+      (error: unknown) =>
+        error instanceof Error &&
+        'status' in error &&
+        error.status === 400 &&
+        error.message === message
+    );
+  rejected(
+    { ...body, title: 1, document: { type: 'unsupported' } },
+    'Invalid writing fields.'
+  );
+  rejected(
+    {
+      ...body,
+      document: { type: 'doc', attrs: [], marks: {}, text: 1, content: {} },
+    },
+    'Invalid document attributes.'
+  );
+  rejected(
+    { ...body, document: { type: 'doc', marks: {}, text: 1, content: {} } },
+    'Invalid text formatting.'
+  );
+  rejected(
+    { ...body, document: { type: 'doc', text: 1, content: {} } },
+    'Invalid text.'
+  );
+  rejected(
+    { ...body, document: { type: 'doc', content: {} } },
+    'Invalid document structure.'
+  );
+  let node = { type: 'paragraph' } as DraftContent['document'];
+  for (let index = 0; index < 50; index++)
+    node = { type: 'paragraph', content: [node] };
+  rejected(
+    { ...body, document: { type: 'doc', content: [node] } },
+    'Unsupported document node.'
+  );
+  rejected(
+    { ...body, originalSource: 'x'.repeat(1_000_000) },
+    'The writing is invalid or too large.'
+  );
+  const parsed = parseDraftContent({ ...body, extra: 'preserved' });
+  assert.equal((parsed as unknown as { extra: string }).extra, 'preserved');
+  assert.notEqual(parsed.document, body.document);
+});

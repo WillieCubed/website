@@ -151,14 +151,12 @@ export function MusicEmptyCollection({
   onBrowse,
 }: EmptyCollectionProps) {
   if (loading || count > 0) return null;
+  const copy = emptyCollectionCopy(editing, libraryFilter, hasLibrary);
   return (
     <div className="music-empty">
       <Icon name="music" size={32} />
-      <EmptyCollectionMessage
-        editing={editing}
-        libraryFilter={libraryFilter}
-        hasLibrary={hasLibrary}
-      />
+      <h3>{copy.title}</h3>
+      <p>{copy.description}</p>
       {(editing ? hasLibrary : hasSelection) && (
         <button className="site-control music-button" onClick={onBrowse}>
           Browse all playlists
@@ -168,35 +166,24 @@ export function MusicEmptyCollection({
   );
 }
 
-interface EmptyCollectionMessageProps {
-  editing: boolean;
-  libraryFilter: MusicLibraryFilter;
-  hasLibrary: boolean;
-}
-
-function EmptyCollectionMessage({
-  editing,
-  libraryFilter,
-  hasLibrary,
-}: EmptyCollectionMessageProps) {
-  return (
-    <>
-      <h3>
-        {editing && libraryFilter === 'unselected'
-          ? 'Every playlist is included.'
-          : editing && libraryFilter === 'selected'
-            ? 'No playlists included yet'
-            : 'This series is still empty'}
-      </h3>
-      <p>
-        {editing && !hasLibrary
-          ? 'Connect Spotify to bring playlists into the studio.'
-          : editing && libraryFilter !== 'all'
-            ? 'Choose All to see the rest of the library.'
-            : editing
-              ? 'Open a playlist from All playlists to add it to this series.'
-              : 'Explore All playlists for more of Willie’s music.'}
-      </p>
-    </>
-  );
+function emptyCollectionCopy(
+  editing: boolean,
+  filter: MusicLibraryFilter,
+  hasLibrary: boolean
+) {
+  const title = editing
+    ? {
+        all: 'This series is still empty',
+        selected: 'No playlists included yet',
+        unselected: 'Every playlist is included.',
+      }[filter]
+    : 'This series is still empty';
+  let description = 'Explore All playlists for more of Willie’s music.';
+  if (editing)
+    description = !hasLibrary
+      ? 'Connect Spotify to bring playlists into the studio.'
+      : filter === 'all'
+        ? 'Open a playlist from All playlists to add it to this series.'
+        : 'Choose All to see the rest of the library.';
+  return { title, description };
 }

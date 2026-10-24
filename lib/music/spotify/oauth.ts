@@ -1,7 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
+import { HttpError } from '../../http/errors';
 import { studioOrigin } from '../../studio/config';
-import { StudioError } from '../../studio/errors';
 import { musicStore } from '../store';
 import { SpotifyClient } from './client';
 import { sealMusic, spotifyClientId, unsealMusic } from './credentials';
@@ -50,18 +50,18 @@ export async function completeSpotify(
     )
   ).rows[0];
   if (row == null)
-    throw new StudioError(
+    throw new HttpError(
       400,
       'Spotify sign-in expired or was already used. Connect again.'
     );
   if (params.has('error'))
-    throw new StudioError(
+    throw new HttpError(
       400,
       'Spotify connection was cancelled. Your previous connection and draft are unchanged.'
     );
   const code = params.get('code');
   if (!code)
-    throw new StudioError(400, 'Spotify did not return an authorization code.');
+    throw new HttpError(400, 'Spotify did not return an authorization code.');
   const grant = await exchangeToken({
     grant_type: 'authorization_code',
     code,
@@ -70,10 +70,7 @@ export async function completeSpotify(
   });
   const me = await new SpotifyClient(grant.accessToken).get('me');
   if (typeof me.id !== 'string' || !me.id)
-    throw new StudioError(
-      502,
-      'Spotify did not identify the connected account.'
-    );
+    throw new HttpError(502, 'Spotify did not identify the connected account.');
   const db = await musicStore().pool.connect();
   try {
     await db.query('BEGIN');
@@ -84,7 +81,7 @@ export async function completeSpotify(
       )
     ).rows[0];
     if (existing != null && existing.owner_id !== me.id)
-      throw new StudioError(
+      throw new HttpError(
         409,
         'Reconnect the same Spotify account to preserve your collection.'
       );
@@ -112,6 +109,6 @@ function spotifyCallbackState(
     state.length !== cookieState.length ||
     !timingSafeEqual(Buffer.from(state), Buffer.from(cookieState))
   )
-    throw new StudioError(400, 'Spotify sign-in expired. Connect again.');
+    throw new HttpError(400, 'Spotify sign-in expired. Connect again.');
   return state;
 }

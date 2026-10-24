@@ -8,6 +8,7 @@ import PartEvent from '@/components/initiatives/PartEvent';
 import PartNav from '@/components/initiatives/PartNav';
 import RouteMap from '@/components/initiatives/RouteMap';
 import { initiativeBreadcrumbs } from '@/components/initiatives/breadcrumbs';
+import '@/components/initiatives/fall-tour.css';
 import JsonLd from '@/components/seo/JsonLd';
 import TopBar from '@/components/site/TopBar';
 
@@ -32,7 +33,6 @@ import {
 import { pageMetadata } from '@/lib/seo/metadata';
 import { absoluteUrl } from '@/lib/site/urls';
 import { canonicalUrl } from '@/lib/site/urls';
-import { isPrivatePreview } from '@/lib/studio/config';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix
@@ -86,7 +86,7 @@ interface PartMilestonesProps {
 
 function PartMilestones({ part }: PartMilestonesProps) {
   return (
-    <aside className="grid content-start gap-6">
+    <aside className="initiative-milestones grid content-start gap-6">
       {part.milestones.length > 0 && (
         <section className="act-card rounded-2xl p-4" aria-label="Milestones">
           <ol className="grid list-none gap-3 p-0">
@@ -160,14 +160,21 @@ export default async function PartPage(
   );
 
   return (
-    <div className="initiative" style={schemeStyleFromHex(initiative.brand)}>
+    <div
+      className="initiative initiative-part"
+      data-initiative={initiative.slug}
+      data-part={part.number}
+      style={schemeStyleFromHex(initiative.brand)}
+    >
       <JsonLd data={partGraph} />
-      <TopBar crumbs={crumbs} />
+      <TopBar
+        crumbs={[
+          ...crumbs,
+          { label: `${initiative.partLabel} ${part.number}`, href: partPath },
+        ]}
+      />
       <main id="main" className="site-frame site-frame--wide pb-20">
-        {isPrivatePreview() && (initiative.draft || part.draft) && (
-          <p className="mb-4 text-label-medium text-muted">Draft</p>
-        )}
-        <header className="relative overflow-hidden rounded-3xl bg-scrim text-on-scrim">
+        <header className="initiative-part-heading relative overflow-hidden rounded-3xl bg-scrim text-on-scrim">
           {cover && (
             <Image
               src={cover.src}
@@ -186,8 +193,8 @@ export default async function PartPage(
           />
         </header>
 
-        <div className="mx-auto mt-10 grid max-w-[1000px] gap-10 expanded:grid-cols-[1fr_320px]">
-          <article className="min-w-0">
+        <div className="initiative-part-story mx-auto mt-10 grid max-w-[1000px] gap-10 expanded:grid-cols-[1fr_320px]">
+          <article className="initiative-story min-w-0">
             <InitiativeBody source={part.content} />
           </article>
           <PartMilestones part={part} />

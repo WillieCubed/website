@@ -19,6 +19,8 @@ export interface EntityCard {
   cover?: { src: string; alt: string };
   /** A `#rrggbb` seed for the Material scheme the card takes on. */
   brand?: string;
+  /** Prepared adaptive CSS roles; clients never need to generate a palette. */
+  scheme?: Record<`--b-${string}`, string>;
   /** One short line of context, such as a date or "Part 2 of 4". */
   meta?: string;
 }

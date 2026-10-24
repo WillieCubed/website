@@ -432,9 +432,8 @@ test('enhancing the server-rendered detail preserves an existing reading positio
     const dialog = page.locator('dialog.music-detail');
     const port = dialog.locator('.music-detail-scroll');
     await expect(dialog.locator('.music-track-list > li')).toHaveCount(105);
-    await page.evaluate(() =>
-      Promise.all(Array.from(document.fonts, (face) => face.load()))
-    );
+    // Loading unused local fallbacks fails on systems without those fonts.
+    await page.evaluate(() => document.fonts.ready);
     await port.focus();
     await port.press('End');
     await expect

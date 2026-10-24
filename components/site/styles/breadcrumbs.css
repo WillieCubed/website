@@ -78,39 +78,6 @@ header[data-folded]
 header[data-folded]:not([data-folded='0']) .site-breadcrumbs__crumb--collapsed {
   display: flex;
 }
-/* Trails that nearly always fold on a phone start folded, for the same
-   reason long trails start compact. TopBar makes the guess, and the widths
-   are where the Fall Tour part and initiative pages stop fitting. */
-@media (max-width: 419px) {
-  header[data-deep-trail='phone']:not([data-folded])
-    .site-breadcrumbs__crumb--middle {
-    display: none;
-  }
-}
-@media (min-width: 420px) and (max-width: 499px) {
-  header[data-deep-trail='phone']:not([data-folded])
-    .site-breadcrumbs__crumb--middle[data-depth='0'] {
-    display: none;
-  }
-}
-@media (max-width: 343px) {
-  header[data-deep-trail='narrow']:not([data-folded])
-    .site-breadcrumbs__crumb--middle {
-    display: none;
-  }
-}
-@media (max-width: 499px) {
-  header[data-deep-trail='phone']:not([data-folded])
-    .site-breadcrumbs__crumb--collapsed {
-    display: flex;
-  }
-}
-@media (max-width: 343px) {
-  header[data-deep-trail='narrow']:not([data-folded])
-    .site-breadcrumbs__crumb--collapsed {
-    display: flex;
-  }
-}
 /* The current page's label truncates when even the collapsed trail does not
    fit, so the rail never has to scroll. */
 .site-breadcrumbs__crumb:last-child {
@@ -299,30 +266,6 @@ header[data-column] .site-breadcrumb:not(.site-control):focus-visible::before {
   outline-offset: var(--control-focus-offset);
 }
 
-.site-private-indicator {
-  display: none;
-  align-items: center;
-  gap: var(--spacing-inline);
-  flex: 0 0 auto;
-  margin-left: auto;
-  color: var(--color-muted);
-  font-size: var(--text-label-medium);
-  font-weight: 500;
-  white-space: nowrap;
-}
-html[data-site-mode='preview'] .site-private-indicator {
-  display: inline-flex;
-}
-.site-private-indicator__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-primary);
-}
-html[data-site-mode='preview'] .site-private-indicator + .site-topbar-search {
-  margin-left: 12px;
-}
-
 .site-breadcrumb-menu__link.site-control {
   --control-ink: var(--color-ink);
   --control-rest-radius: 10px;
@@ -330,4 +273,39 @@ html[data-site-mode='preview'] .site-private-indicator + .site-topbar-search {
   width: 100%;
   font: inherit;
   text-align: left;
+}
+
+.site-topbar.site-frame {
+  padding-block: 8px;
+  padding-inline: var(--page-frame-gutter);
+}
+.site-breadcrumbs__crumb:last-child .site-breadcrumb-menu-trigger,
+.site-breadcrumbs__crumb:last-child .site-control__surface {
+  min-width: 0;
+  max-width: 100%;
+}
+.site-breadcrumbs__crumb:last-child .site-breadcrumb-menu__label {
+  display: block;
+  flex: 1 1 auto;
+}
+
+@media (max-width: 599px) {
+  header:not([data-folded]) .site-breadcrumbs__crumb--middle {
+    display: none;
+  }
+  header[data-long-trail]:not([data-folded])
+    .site-breadcrumbs__crumb--collapsed {
+    display: flex;
+  }
+}
+
+header:not([data-folded])
+  .site-breadcrumbs:has(> .site-breadcrumbs__crumb:nth-child(6))
+  .site-breadcrumbs__crumb--middle:not(:nth-last-child(2)) {
+  display: none;
+}
+header:not([data-folded])
+  .site-breadcrumbs:has(> .site-breadcrumbs__crumb:nth-child(6))
+  .site-breadcrumbs__crumb--collapsed {
+  display: flex;
 }

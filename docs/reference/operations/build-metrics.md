@@ -216,6 +216,14 @@ directory. Both runs use the same browser, observation rules, screenshot sizes,
 and runner. The baseline's own Git checkout supplies its revision identity.
 Baseline JSON and screenshots upload in separate baseline artifacts.
 
+The managed collector requires a free preview port, Wrangler's own readiness
+signal, and a successful HTTP probe. It monitors the child process during
+collection and terminates its process group during cleanup, including runtime
+children that outlive the command wrapper. An occupied port or failed runtime
+invalidates the report rather than accepting another server's responses. The
+`cloudflare-preview-runtime.log` artifact retains the runtime output for each
+revision. Check it before attributing a measurement to a baseline build.
+
 The summary compares cold, warm, and journey transfer medians by category.
 Prefetch bytes stay separate. Deltas are exact current-minus-baseline byte
 values, not Worker output-size estimates. Failed, missing, incomplete, unanswered,

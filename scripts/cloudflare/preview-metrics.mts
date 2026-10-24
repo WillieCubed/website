@@ -4,7 +4,7 @@ import {
   chromium,
 } from '@playwright/test';
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
 import { isMain } from '../shared/command.mts';
@@ -13,6 +13,14 @@ import {
   writeLocalWranglerConfig,
 } from './local-wrangler-config.mts';
 import { summarizeSamples } from './preview-measurement.mts';
+import {
+  assertPreviewPortAvailable,
+  monitorPreview,
+  previewRuntimeError,
+  stopPreview,
+  waitUntilReady,
+} from './preview-process.mts';
+import { writePreviewReport } from './preview-report.mts';
 import { capturePreviewScreenshots } from './preview-screenshots.mts';
 import {
   BASE_URL,
@@ -39,7 +47,6 @@ export const ROUTES = [
   '/music',
 ];
 const SAMPLE_COUNT = 5;
-const READY_TIMEOUT_MS = 180_000;
 const PUBLIC_REPORT_STATUS = {
   available: 'valid',
   unavailable: 'partial',
@@ -54,74 +61,6 @@ const JOURNEYS: Journey[] = [
   { name: 'browse-projects', paths: ['/writings', '/projects'] },
   { name: 'discover-music', paths: ['/projects', '/music'] },
 ];
-export async function waitUntilReady(
-  preview: ReturnType<typeof spawn>,
-  getSpawnError: () => Error | undefined
-) {
-  const deadline = Date.now() + READY_TIMEOUT_MS;
-  let lastError: unknown;
-  while (Date.now() < deadline) {
-    const spawnError = getSpawnError();
-    if (spawnError) {
-      throw new Error(
-        `Cloudflare preview could not start: ${spawnError.message}`
-      );
-    }
-    if (preview.exitCode !== null) {
-      throw new Error(
-        `Cloudflare preview exited early with status ${preview.exitCode}.`
-      );
-    }
-    let response: Response | undefined;
-    try {
-      response = await fetch(BASE_URL, {
-        signal: AbortSignal.timeout(2_000),
-      });
-    } catch (error) {
-      lastError = error;
-    }
-    if (response?.ok) return;
-    if (response && response.status >= 400) {
-      throw new Error(
-        `Cloudflare preview readiness route returned HTTP ${response.status}.`
-      );
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1_000));
-  }
-  throw new Error(
-    `Cloudflare preview did not become ready at ${BASE_URL} within ${READY_TIMEOUT_MS}ms.${lastError ? ` Last error: ${String(lastError)}` : ''}`
-  );
-}
-
-export async function stopPreview(preview: ChildProcess): Promise<void> {
-  if (
-    preview.exitCode !== null ||
-    preview.signalCode !== null ||
-    preview.pid === undefined
-  )
-    return;
-  const kill = (signal: NodeJS.Signals) => {
-    if (preview.pid !== undefined && process.platform !== 'win32') {
-      try {
-        process.kill(-preview.pid, signal);
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
-      }
-    } else if (preview.pid !== undefined) preview.kill(signal);
-  };
-  await new Promise<void>((resolve) => {
-    const timeout = setTimeout(() => {
-      kill('SIGKILL');
-      resolve();
-    }, 5_000);
-    preview.once('exit', () => {
-      clearTimeout(timeout);
-      resolve();
-    });
-    kill('SIGTERM');
-  });
-}
-
 function unavailablePrivateRoutes(
   reason: string,
   paths = ['/studio', '/studio/music'],
@@ -425,7 +364,7 @@ function startLocalPreview(root: string, configPath: string): ChildProcess {
 }
 
 function previewError(error: unknown, output: string) {
-  const details = output.trim();
+  const details = output.trim().slice(-12_000);
   return new Error(
     `${error instanceof Error ? error.message : String(error)}${details ? `\n\nPreview output:\n${details}` : ''}`,
     { cause: error }
@@ -487,19 +426,22 @@ export async function captureOptionalScreenshots(
 async function persistPreviewMetrics(
   browser: Browser,
   root: string,
-  baseUrl: string
+  baseUrl: string,
+  signal?: AbortSignal
 ) {
+  signal?.throwIfAborted();
   const metrics = await collectPreviewMetrics(browser, baseUrl);
+  signal?.throwIfAborted();
   const outputPath = join(root, 'artifacts/cloudflare-preview-metrics.json');
   await mkdir(join(root, 'artifacts'), { recursive: true });
-  await writeFile(outputPath, `${JSON.stringify(metrics, null, 2)}\n`);
+  await writePreviewReport(outputPath, metrics, signal);
   const report = await captureOptionalScreenshots(
     browser,
     metrics,
     root,
     baseUrl
   );
-  await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
+  await writePreviewReport(outputPath, report, signal);
   console.log(`Cloudflare preview metrics: ${relative(root, outputPath)}`);
   if (report.status === 'failed')
     throw new Error(
@@ -512,8 +454,40 @@ async function persistPreviewMetrics(
   return report;
 }
 
+export async function recordPreviewFailure(
+  root: string,
+  startedAt: number,
+  error: unknown
+) {
+  const outputPath = join(root, 'artifacts/cloudflare-preview-metrics.json');
+  let report: Record<string, unknown> = {
+    samplesPerRoute: SAMPLE_COUNT,
+    routes: {},
+    privateRoutes: {},
+    journeys: {},
+    journeyCounts: {},
+  };
+  try {
+    const [saved, info] = await Promise.all([
+      readFile(outputPath, 'utf8'),
+      stat(outputPath),
+    ]);
+    if (info.mtimeMs >= startedAt)
+      report = JSON.parse(saved) as Record<string, unknown>;
+  } catch {
+    // Startup can fail before any browser measurements exist.
+  }
+  await mkdir(join(root, 'artifacts'), { recursive: true });
+  await writeFile(
+    outputPath,
+    `${JSON.stringify({ ...report, status: 'failed', reason: String(error) }, null, 2)}\n`
+  );
+}
+
 export async function runCloudflarePreviewMetrics() {
   const root = process.cwd();
+  const startedAt = Date.now();
+  let failure: unknown;
   const externalTarget = process.env.PREVIEW_METRICS_BASE_URL;
   const config = externalTarget
     ? undefined
@@ -524,27 +498,46 @@ export async function runCloudflarePreviewMetrics() {
   let browser: Browser | undefined;
   try {
     if (config) {
+      await assertPreviewPortAvailable();
       preview = startLocalPreview(root, config.path);
       preview.on('error', (error) => {
         spawnError = error;
       });
       const capture = (chunk: Buffer) => {
-        capturedOutput = `${capturedOutput}${chunk.toString()}`.slice(-12_000);
+        capturedOutput += chunk.toString();
+        spawnError ??= previewRuntimeError(capturedOutput);
       };
       preview.stdout?.on('data', capture);
       preview.stderr?.on('data', capture);
-      await waitUntilReady(preview, () => spawnError);
+      await waitUntilReady(
+        preview,
+        () => spawnError,
+        () => /Ready on http/.test(capturedOutput)
+      );
     }
     browser = await chromium.launch({ headless: true });
-    return await persistPreviewMetrics(
-      browser,
-      root,
-      externalTarget ?? BASE_URL
-    );
+    const measure = (signal?: AbortSignal) =>
+      persistPreviewMetrics(browser!, root, externalTarget ?? BASE_URL, signal);
+    return preview
+      ? await monitorPreview(preview, () => spawnError, measure)
+      : await measure();
   } catch (error) {
+    failure = error;
     throw previewError(error, capturedOutput);
   } finally {
-    await cleanUpMetrics(browser, preview, config);
+    try {
+      await cleanUpMetrics(browser, preview, config);
+    } finally {
+      if (config && failure !== undefined)
+        await recordPreviewFailure(root, startedAt, failure);
+      if (preview) {
+        await mkdir(join(root, 'artifacts'), { recursive: true });
+        await writeFile(
+          join(root, 'artifacts/cloudflare-preview-runtime.log'),
+          capturedOutput
+        );
+      }
+    }
   }
 }
 if (isMain(import.meta.url)) await runCloudflarePreviewMetrics();

@@ -12,6 +12,18 @@ test('city names are readable on the map and support selection, zoom, drag, and 
   await page.goto(root);
   const map = page.locator('.route-map__interactive').first();
   await expect(map).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator('.route-map__interactive')).toHaveCount(1);
+  await expect(map.locator('.route-map__islands')).toHaveCount(1);
+  const inset = await map.locator('.route-map__islands').boundingBox();
+  const honolulu = await map
+    .getByRole('button', { name: 'Honolulu', exact: true })
+    .boundingBox();
+  expect(honolulu!.y + honolulu!.height / 2).toBeGreaterThan(inset!.y - 44);
+  expect(honolulu!.y).toBeLessThan(inset!.y + inset!.height + 44);
+  for (const path of await map
+    .locator('.route-map__journey path')
+    .evaluateAll((paths) => paths.map((path) => path.getAttribute('d'))))
+    expect(path).toContain(' Q');
   await map.scrollIntoViewIfNeeded();
   const cities = map.locator('.route-map__city');
   expect(await cities.count()).toBeGreaterThanOrEqual(4);
@@ -48,7 +60,7 @@ test('city names are readable on the map and support selection, zoom, drag, and 
   const plane = map.locator('.route-map__canvas > svg').first();
   const original = await plane.getAttribute('viewBox');
   await map
-    .getByRole('combobox', { name: 'Find a city' })
+    .getByRole('combobox', { name: 'Zoom to city' })
     .selectOption('Plano');
   const plano = map.getByRole('button', { name: /Plano/ });
   if (info.project.use.hasTouch) await plano.tap();
@@ -101,10 +113,16 @@ test('city names are readable on the map and support selection, zoom, drag, and 
   await map.getByRole('button', { name: 'Show all' }).click();
   await expect(plane).toHaveAttribute('viewBox', original!);
   await map
-    .getByRole('combobox', { name: 'Find a city' })
+    .getByRole('combobox', { name: 'Zoom to city' })
     .selectOption('New York');
   await expect(
     map.getByRole('button', { name: 'New York', exact: true })
+  ).toHaveAttribute('aria-pressed', 'true');
+  await map
+    .getByRole('combobox', { name: 'Zoom to city' })
+    .selectOption('Honolulu');
+  await expect(
+    map.getByRole('button', { name: 'Honolulu', exact: true })
   ).toHaveAttribute('aria-pressed', 'true');
   await map.getByRole('button', { name: 'Show all' }).click();
   await page.screenshot({ path: info.outputPath('labeled-map-viewport.png') });

@@ -23,6 +23,7 @@ interface RouteMapCanvasProps {
   points: MapPoint[];
   children: ReactNode;
   compact?: boolean;
+  height?: number;
 }
 
 const WORLD: MapFrame = { x: 0, y: 0, width: 800, height: 440 };
@@ -36,7 +37,7 @@ const PAN_STEPS = new Map<string, [number, number]>([
 
 function zoomView(view: MapFrame, multiplier: number, center?: MapPoint) {
   const width = Math.max(4, Math.min(WORLD.width, view.width * multiplier));
-  const height = (width * WORLD.height) / WORLD.width;
+  const height = (width * view.height) / view.width;
   return {
     x: (center?.x ?? view.x + view.width / 2) - width / 2,
     y: (center?.y ?? view.y + view.height / 2) - height / 2,
@@ -45,22 +46,22 @@ function zoomView(view: MapFrame, multiplier: number, center?: MapPoint) {
   };
 }
 
-function groupView(points: MapPoint[]) {
+function groupView(points: MapPoint[], world: MapFrame) {
   const xs = points.map((point) => point.x);
   const ys = points.map((point) => point.y);
   const width = Math.max(
     4,
     (Math.max(...xs) - Math.min(...xs)) * 1.8,
-    ((Math.max(...ys) - Math.min(...ys)) * 1.8 * WORLD.width) / WORLD.height
+    ((Math.max(...ys) - Math.min(...ys)) * 1.8 * world.width) / world.height
   );
-  return zoomView(WORLD, width / WORLD.width, {
+  return zoomView(world, width / world.width, {
     name: points[0].name,
     x: (Math.max(...xs) + Math.min(...xs)) / 2,
     y: (Math.max(...ys) + Math.min(...ys)) / 2,
   });
 }
 
-function cityView(point: MapPoint, points: MapPoint[]) {
+function cityView(point: MapPoint, points: MapPoint[], world: MapFrame) {
   const neighbors = points.filter((other) => other.name !== point.name);
   const nearest = Math.min(
     ...neighbors.map((other) =>
@@ -69,7 +70,7 @@ function cityView(point: MapPoint, points: MapPoint[]) {
   );
   // Separate neighboring markers when a reader asks for one specific city.
   return zoomView(
-    WORLD,
+    world,
     Math.min(160, Math.max(4, nearest * 6)) / WORLD.width,
     point
   );
@@ -118,9 +119,9 @@ function MapControls({
         Show all
       </button>
       <label className="route-map__stop-picker">
-        <span className="sr-only">Find a city</span>
+        <span className="sr-only">Zoom to city</span>
         <select
-          aria-label="Find a city"
+          aria-label="Zoom to city"
           value={selected.length === 1 ? selected[0] : ''}
           onChange={(event) => {
             const point = points.find(
@@ -130,7 +131,7 @@ function MapControls({
           }}
         >
           <option value="" disabled>
-            Find a city
+            Zoom to city
           </option>
           {points.map((point) => (
             <option key={point.name} value={point.name}>
@@ -145,11 +146,12 @@ function MapControls({
 
 function useCanvasSize(
   container: RefObject<HTMLDivElement | null>,
-  compact: boolean
+  compact: boolean,
+  height: number
 ) {
   const [size, setSize] = useState({
     width: compact ? 144 : 800,
-    height: compact ? 160 : 440,
+    height: compact ? 160 : height,
     ready: false,
   });
   useEffect(() => {
@@ -212,26 +214,33 @@ export default function RouteMapCanvas({
   points,
   children,
   compact = false,
+  height = WORLD.height,
 }: RouteMapCanvasProps) {
   const container = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; view: MapFrame } | null>(null);
-  const size = useCanvasSize(container, compact);
+  const world = { ...WORLD, height };
+  const size = useCanvasSize(container, compact, height);
   const ready = size.ready;
-  const [view, setView] = useState(WORLD);
+  const [view, setView] = useState(world);
   const [selected, setSelected] = useState<string[]>([]);
   const labels = mapLabels(points, view, size.width, size.height);
   const markers = screenMapPoints(points, view, size.width, size.height);
   function reset() {
-    setView(WORLD);
+    setView(world);
     setSelected([]);
   }
   function select(point: MapPoint) {
     setSelected([point.name]);
-    setView(cityView(point, points));
+    setView(cityView(point, points, world));
   }
   function selectGroup(names: string[]) {
     setSelected(names);
-    setView(groupView(points.filter((point) => names.includes(point.name))));
+    setView(
+      groupView(
+        points.filter((point) => names.includes(point.name)),
+        world
+      )
+    );
     container.current
       ?.querySelector<SVGSVGElement>('svg')
       ?.focus({ preventScroll: true });
@@ -260,6 +269,7 @@ export default function RouteMapCanvas({
       className="route-map__interactive"
       data-ready={ready}
       data-compact={compact}
+      data-islands={height > WORLD.height}
     >
       <MapControls
         title={title}
@@ -292,7 +302,7 @@ export default function RouteMapCanvas({
               drag.current = null;
             }}
           >
-            <svg x="0" y="0" width="800" height="440" overflow="hidden">
+            <svg x="0" y="0" width="800" height={height} overflow="hidden">
               {children}
             </svg>
           </svg>

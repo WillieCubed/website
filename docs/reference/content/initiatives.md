@@ -179,15 +179,19 @@ Initiative and part pages support:
 - `<RouteMap places={[{ name, lat, lng }]} />` draws a server-rendered geographic map.
   Place coordinates and land outlines use the same scale. Mainland US trips
   retain national context rather than stretching neighboring towns across the
-  map. Mixed mainland/Hawaii trips use a labeled inset with its own scale.
+  map. Mixed mainland/Hawaii trips use a labeled inset inside the same map,
+  with its own scale. Honolulu shares city selection and zoom controls with
+  mainland stops.
   `routes={[{ label, places }]}` separates trips without implying travel between
-  them. City names remain beside their map points at a fixed readable text size.
+  them. Curved legs preserve each stop and indicate travel order; they do not
+  claim to trace flight paths, roads, or railways. City names remain beside their
+  map points at a fixed readable text size.
   Nearby stops group under a city name and count when their labels would crowd.
   Selecting a group fits its cities; the selected names appear together beside
   the map. Leader lines connect displaced labels to their geographic points.
-  Selecting a city zooms into its area; the city picker also reaches labels outside the current
-  view. Zoom buttons, drag panning, arrow-key panning, and Show all share the
-  same viewport. Each trip retains its full ordered stop list in HTML.
+  Selecting a city zooms into its area. The “Zoom to city” picker also reaches
+  labels outside the current view. Zoom buttons, drag panning, arrow-key panning,
+  and Show all share the same viewport. Each trip retains its full ordered stop list in HTML.
   Without JavaScript, the labeled map remains a horizontally scrollable SVG
   with its HTML labels; enhancement controls stay hidden. Lines end at the
   inset boundary rather than suggesting a false cross-panel distance.

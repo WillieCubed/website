@@ -43,6 +43,7 @@ test('clustered map places have visible HTML labels in travel order and named ge
     /class="route-map__journey"[^>]*>([\s\S]*?)<\/g>/
   )?.[1];
   assert.equal((journeys?.match(/<path\b/g) || []).length, places.length - 1);
+  assert.equal((journeys?.match(/ Q/g) || []).length, places.length - 1);
   assert.match(html, /class="route-map__land"/);
   assert.doesNotMatch(html, /<line\b/);
   assert.match(
@@ -85,9 +86,35 @@ test('separate trips never connect across their boundaries and Hawaii uses an ho
     'two Texas legs and two western legs; no fabricated inter-trip or inter-inset leg'
   );
   assert.match(html, /aria-label="Hawaii inset: Honolulu"/);
-  assert.match(html, /Hawaii · separate scale/);
+  assert.match(html, /Hawaii uses a separate scale/);
+  assert.equal((html.match(/class="route-map__interactive"/g) || []).length, 1);
+  assert.match(html, /<option value="Honolulu">Honolulu<\/option>/);
+  assert.match(html, /class="route-map__islands"/);
   assert.match(html, /San Francisco → Reno → Los Angeles → Honolulu/);
   assert.equal((html.match(/<circle\b/g) || []).length, stops.length);
+});
+
+test('travel curves retain endpoints and a consistent bend in either direction', async () => {
+  const { curvedLeg } = await import('@/lib/initiatives/route-geography');
+  assert.equal(curvedLeg([0, 0], [100, 0]), 'M0 0 Q50 -22 100 0');
+  assert.equal(curvedLeg([100, 0], [0, 0]), 'M100 0 Q50 -22 0 0');
+  assert.equal(curvedLeg([0, 0], [1000, 0]), 'M0 0 Q500 -64 1000 0');
+  assert.equal(curvedLeg([2, 3], [2, 3]), 'M2 3 Q2 3 2 3');
+});
+
+test('the Hawaii inset shares city selection without changing mainland geography', async () => {
+  const { routeGeography, geographicView, HAWAII_INSET } =
+    await import('@/lib/initiatives/route-geography');
+  const honolulu = { name: 'Honolulu', lat: 21.31, lng: -157.86 };
+  const { project, islandLand } = routeGeography([...places, honolulu]);
+  assert.deepEqual(
+    project(places[0]),
+    geographicView(places, true).project(-96.8, 32.78)
+  );
+  const [x, y] = project(honolulu);
+  assert.ok(x > HAWAII_INSET.x && x < HAWAII_INSET.x + HAWAII_INSET.width);
+  assert.ok(y > HAWAII_INSET.y && y < HAWAII_INSET.y + HAWAII_INSET.height);
+  assert.ok(islandLand.length > 0);
 });
 
 test('geographic projection keeps western stops west and nearby Texas stops close', async () => {

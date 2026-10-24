@@ -1,8 +1,9 @@
 import type { Place } from '@/lib/initiatives/index';
 import {
-  geographicView,
+  HAWAII_INSET,
+  curvedLeg,
   isHawaii,
-  linePath,
+  routeGeography,
 } from '@/lib/initiatives/route-geography';
 
 import RouteMapCanvas from './RouteMapCanvas';
@@ -26,53 +27,66 @@ interface GeographyProps {
   routes: RouteGroup[];
   connect: boolean;
   title: string;
-  mainland?: boolean;
 }
 
-function Geography({
-  places,
-  routes,
-  connect,
-  title,
-  mainland = false,
-}: GeographyProps) {
-  const { project, land } = geographicView(places, mainland);
-  const includes = (place: Place) =>
-    places.some((point) => point.name === place.name);
+function Geography({ places, routes, connect, title }: GeographyProps) {
+  const { project, land, islandLand, height } = routeGeography(places);
+  const names = new Set(places.map((place) => place.name));
   return (
     <RouteMapCanvas
       title={`${title}: ${places.map((place) => place.name).join(', ')}`}
       compact={places.every(isHawaii)}
+      height={height}
       points={places.map((place) => {
-        const [x, y] = project(place.lng, place.lat);
+        const [x, y] = project(place);
         return { name: place.name, x, y };
       })}
     >
-      <g className="route-map__land" aria-hidden="true">
-        {land.map((outline, index) => (
-          <path key={index} d={outline} />
-        ))}
-      </g>
+      <svg width="800" height="440" overflow="hidden" aria-hidden="true">
+        <g className="route-map__land">
+          {land.map((outline, index) => (
+            <path key={index} d={outline} />
+          ))}
+        </g>
+      </svg>
+      {islandLand.length > 0 && (
+        <svg
+          {...HAWAII_INSET}
+          viewBox="0 0 800 440"
+          className="route-map__islands"
+          role="img"
+          aria-label={`Hawaii inset: ${places
+            .filter(isHawaii)
+            .map((place) => place.name)
+            .join(', ')}`}
+        >
+          <rect width="800" height="440" rx="48" />
+          <g className="route-map__land" aria-hidden="true">
+            {islandLand.map((outline, index) => (
+              <path key={index} d={outline} />
+            ))}
+          </g>
+        </svg>
+      )}
       {connect &&
         routes.map((route, index) => (
           <g key={index} className="route-map__journey" data-route={index % 4}>
             {route.places.slice(1).map((place, stop) => {
               const previous = route.places[stop];
-              if (!includes(previous) || !includes(place)) return null;
+              if (!names.has(previous.name) || !names.has(place.name))
+                return null;
+              if (isHawaii(previous) !== isHawaii(place)) return null;
               return (
                 <path
                   key={stop}
-                  d={linePath([
-                    project(previous.lng, previous.lat),
-                    project(place.lng, place.lat),
-                  ])}
+                  d={curvedLeg(project(previous), project(place))}
                 />
               );
             })}
           </g>
         ))}
       {places.map((place, index) => {
-        const [x, y] = project(place.lng, place.lat);
+        const [x, y] = project(place);
         return (
           <g key={index}>
             <title>{`${place.name}${place.region ? `, ${place.region}` : ''}`}</title>
@@ -92,39 +106,16 @@ export default function RouteMap({
 }: RouteMapProps) {
   if (places.length === 0) return null;
   const trips = routes ?? [{ label: title, places }];
-  const islands = places.filter(isHawaii);
-  const separateHawaii = islands.length > 0 && islands.length < places.length;
-  const main = separateHawaii
-    ? places.filter((place) => !isHawaii(place))
-    : places;
-  const mainland = main.every(
-    (place) =>
-      place.lng >= -126 &&
-      place.lng <= -66 &&
-      place.lat >= 24 &&
-      place.lat <= 50
-  );
+  const separateHawaii = places.some(isHawaii) && !places.every(isHawaii);
   return (
     <figure className="route-map rounded-2xl border border-line bg-card">
       <div className="route-map__atlas">
         <Geography
-          places={main}
+          places={places}
           routes={trips}
           connect={connect}
           title={title}
-          mainland={mainland}
         />
-        {separateHawaii && (
-          <div className="route-map__inset">
-            <Geography
-              places={islands}
-              routes={trips}
-              connect={connect}
-              title="Hawaii inset"
-            />
-            <p>Hawaii · separate scale</p>
-          </div>
-        )}
       </div>
       <figcaption>
         {routes ? (
@@ -150,10 +141,7 @@ export default function RouteMap({
           </ol>
         )}
         {separateHawaii && (
-          <p className="route-map__note">
-            Honolulu appears in the inset. The inset does not show distance from
-            the mainland.
-          </p>
+          <p className="route-map__note">Hawaii uses a separate scale.</p>
         )}
       </figcaption>
     </figure>

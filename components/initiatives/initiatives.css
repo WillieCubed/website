@@ -136,7 +136,7 @@
   vector-effect: non-scaling-stroke;
 }
 .route-map figcaption {
-  padding: 8px;
+  padding: var(--spacing-lg);
 }
 .route-map__trips {
   display: grid;

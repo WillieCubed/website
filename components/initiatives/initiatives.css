@@ -219,28 +219,45 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px;
+  gap: var(--control-group-gap);
+  padding: var(--spacing-xs);
 }
 .route-map__controls button {
   --control-fill: var(--color-secondary-container);
   --control-ink: var(--color-on-secondary-container);
-  min-width: 44px;
-  min-height: 44px;
-  padding-inline: 8px;
 }
 .route-map__stop-picker {
+  position: relative;
   min-width: 144px;
   flex: 1 1 144px;
+  font-size: var(--text-label-large);
+  font-weight: var(--text-label-large--font-weight);
+  line-height: var(--text-label-large--line-height);
+}
+.route-map__stop-picker::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: max(
+    var(--control-container-extra-small),
+    calc(1lh + var(--spacing-sm))
+  );
+  translate: 0 -50%;
+  border: 1px solid var(--color-line);
+  border-radius: calc(var(--control-container-extra-small) / 2);
+  background: var(--color-surface-container-high);
+  pointer-events: none;
 }
 .route-map__stop-picker select {
+  position: relative;
   width: 100%;
   min-width: 120px;
-  min-height: 44px;
-  padding: 8px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-4xl);
-  background: var(--color-surface-container-high);
+  min-height: var(--control-target-small);
+  padding: var(--spacing-sm);
+  border: 0;
+  border-radius: calc(var(--control-container-extra-small) / 2);
+  background: transparent;
   color: var(--color-ink);
   font: inherit;
 }

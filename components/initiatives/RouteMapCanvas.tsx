@@ -10,6 +10,8 @@ import {
   useState,
 } from 'react';
 
+import Button from '@/components/site/Button';
+
 import {
   type MapFrame,
   type MapLabel,
@@ -99,25 +101,34 @@ function MapControls({
       role="group"
       aria-label={`${title} controls`}
     >
-      <button
+      <Button
         type="button"
-        className="site-control"
+        size="extra-small"
+        variant="tonal"
+        iconOnly
         aria-label="Zoom in"
         onClick={() => onZoom(0.5)}
       >
         +
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
-        className="site-control"
+        size="extra-small"
+        variant="tonal"
+        iconOnly
         aria-label="Zoom out"
         onClick={() => onZoom(2)}
       >
         −
-      </button>
-      <button type="button" className="site-control" onClick={onReset}>
+      </Button>
+      <Button
+        type="button"
+        size="extra-small"
+        variant="tonal"
+        onClick={onReset}
+      >
         Show all
-      </button>
+      </Button>
       <label className="route-map__stop-picker">
         <span className="sr-only">Zoom to city</span>
         <select

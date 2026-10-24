@@ -210,6 +210,10 @@ Initiative and part pages support:
   A rounded tonal viewport contains the cropped geography. Filled tonal controls
   use the site's shared MD3 action states. These boundaries also remain visible
   around the horizontally scrolling no-script map.
+  Toolbar buttons use `Button size="extra-small"`: 32px visible surfaces inside
+  48px touch targets. The native city picker uses the same container and target
+  tokens. Its surface grows with enlarged text. The toolbar uses the shared
+  control-group gap and extra-small outer spacing.
   Without JavaScript, the labeled map remains a horizontally scrollable SVG
   with its HTML labels; enhancement controls stay hidden. Lines end at the
   inset boundary rather than suggesting a false cross-panel distance.

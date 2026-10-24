@@ -1,9 +1,18 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import { test } from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import RouteMap from '@/components/initiatives/RouteMap';
+registerHooks({
+  load(url, context, nextLoad) {
+    return url.endsWith('.css')
+      ? { format: 'module', source: '', shortCircuit: true }
+      : nextLoad(url, context);
+  },
+});
+
+const { default: RouteMap } = await import('@/components/initiatives/RouteMap');
 
 const places = [
   { name: 'Dallas', region: 'Texas', lat: 32.78, lng: -96.8 },

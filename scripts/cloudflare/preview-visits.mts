@@ -1,7 +1,8 @@
 import type { Browser, BrowserContextOptions, Page } from '@playwright/test';
 
 import { authorizePreviewPage } from './preview-auth.mts';
-import { requireRenderedContent } from './preview-content.mts';
+import { requireRouteContent } from './preview-content.mts';
+import { observeBrowserErrors } from './preview-errors.mts';
 import {
   type MeasurementSample,
   assessDocument,
@@ -47,7 +48,8 @@ function resolvedOptions(options: SampleOptions): ResolvedOptions {
 async function measureVisit(
   page: Page,
   path: string,
-  options: ResolvedOptions
+  options: ResolvedOptions,
+  readErrors: ReturnType<typeof observeBrowserErrors>
 ) {
   try {
     const response = await page.goto(new URL(path, options.baseUrl).href, {
@@ -61,13 +63,35 @@ async function measureVisit(
     const actual = new URL(page.url()).pathname;
     if (actual !== path)
       throw new Error(`Route ${path} redirected to ${actual}.`);
-    return assessDocument(
-      await readDocument(page, options.quietMs, options.timeoutMs)
-    );
+    const measured = await assessRenderedDocument(page, path, options);
+    return measured.status === 'failed'
+      ? { ...measured, browserErrors: await readErrors() }
+      : measured;
   } catch (error) {
     return failedSample(String(error));
   }
 }
+async function assessRenderedDocument(
+  page: Page,
+  path: string,
+  options: ResolvedOptions
+): Promise<MeasurementSample> {
+  const measured = assessDocument(
+    await readDocument(page, options.quietMs, options.timeoutMs)
+  );
+  try {
+    await requireRouteContent(page, path);
+    return measured;
+  } catch (error) {
+    return {
+      ...measured,
+      status: 'failed',
+      reason: [measured.reason, String(error)].filter(Boolean).join(' '),
+      documentHtml: await page.content().catch(() => undefined),
+    };
+  }
+}
+
 export async function sampleRoute(
   browser: Browser,
   path: string,
@@ -84,6 +108,7 @@ export async function sampleRoute(
   for (let index = 0; index < count; index++) {
     const context = await browser.newContext(settings.contextOptions);
     const page = await context.newPage();
+    const readErrors = observeBrowserErrors(page);
     try {
       await authorizePreviewPage(
         page,
@@ -98,7 +123,7 @@ export async function sampleRoute(
         [warm, 'warm'],
       ] as const) {
         network.ledger.reset();
-        const measured = await measureVisit(page, path, settings);
+        const measured = await measureVisit(page, path, settings, readErrors);
         const transfer = await network.ledger.drain(
           settings.timeoutMs,
           settings.quietMs
@@ -131,6 +156,7 @@ export async function sampleJourney(
   const settings = resolvedOptions(options);
   const context = await browser.newContext(settings.contextOptions);
   const page = await context.newPage();
+  const readErrors = observeBrowserErrors(page);
   const steps = [];
   try {
     await authorizePreviewPage(
@@ -142,22 +168,13 @@ export async function sampleJourney(
     await page.bringToFront();
     const network = await observeTransfers(page);
     const first = journey.paths[0]!;
-    const response = await page.goto(new URL(first, settings.baseUrl).href, {
-      waitUntil: 'load',
-      timeout: settings.timeoutMs,
-    });
-    if (!response?.ok())
-      throw new Error(
-        `Journey entry ${first} returned ${response?.status() ?? 'no response'}.`
-      );
-    const initial = assessDocument(
-      await readDocument(page, settings.quietMs, settings.timeoutMs)
-    );
+    const initial = await measureVisit(page, first, settings, readErrors);
     const initialTransfer = await network.ledger.drain(
       settings.timeoutMs,
       settings.quietMs
     );
     steps.push({ path: first, ...initial, transfer: initialTransfer });
+    if (initial.status !== 'valid') throw new Error(initial.reason);
     if (initialTransfer.settlement.status === 'timeout')
       throw new Error(pendingTransferReason(initialTransfer.pending));
     for (const path of journey.paths.slice(1)) {
@@ -181,27 +198,6 @@ export async function sampleJourney(
   } finally {
     await context.close();
   }
-}
-
-const DESTINATION_HEADINGS: Record<string, string> = {
-  '/search': 'Search',
-  '/writings': 'Writings',
-  '/initiatives': 'Initiatives',
-  '/projects': 'Projects',
-  '/music': 'Music',
-};
-
-async function requireDestinationContent(
-  page: Page,
-  path: string,
-  timeoutMs: number
-) {
-  const heading = DESTINATION_HEADINGS[path];
-  if (heading)
-    await page
-      .getByRole('heading', { level: 1, name: heading, exact: true })
-      .waitFor({ state: 'visible', timeout: timeoutMs });
-  await requireRenderedContent(page);
 }
 
 async function navigateJourneyStep(
@@ -251,7 +247,7 @@ async function measureJourneyStep(
   let reason: string | undefined;
   try {
     navigation = await navigateJourneyStep(page, path, options, startedAt);
-    await requireDestinationContent(page, path, options.timeoutMs);
+    await requireRouteContent(page, path, options.timeoutMs);
     await page.waitForTimeout(options.quietMs);
   } catch (error) {
     reason = String(error);

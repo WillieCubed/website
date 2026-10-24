@@ -1,3 +1,5 @@
+import type { BrowserError } from './preview-errors.mts';
+
 export interface BrowserSample {
   ttfbMs: number | null;
   fcpMs: number | null;
@@ -21,6 +23,8 @@ export interface MeasurementSample extends BrowserSample {
   status: 'valid' | 'failed' | 'unavailable';
   reason?: string;
   observation?: DocumentObservation;
+  documentHtml?: string;
+  browserErrors?: BrowserError[];
 }
 
 export function median(values: number[]): number | null {

@@ -47,7 +47,7 @@ test('screenshot evidence contains uncropped desktop and phone viewports in both
     response
       .writeHead(200, { 'content-type': 'text/html' })
       .end(
-        `<style>body{min-height:2000px;background:white} @media(prefers-color-scheme:dark){body{background:black;color:white}}</style><main><h1>Capture fixture</h1>${image}</main>`
+        `<style>body{min-height:2000px;background:white} @media(prefers-color-scheme:dark){body{background:black;color:white}}</style><main><h1>Willie Chalmers III builds software and systems for people.</h1>${image}</main>`
       );
   });
   server.listen(0, '127.0.0.1');
@@ -321,7 +321,7 @@ test('private screenshot contexts authenticate without changing variants or expo
 test('screenshot evidence rejects blank or hidden main content and retains failed PNGs', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'website-blank-screenshots-'));
   const documents: Record<string, string> = {
-    '/': '<aside><h1>Home heading outside main</h1></aside><main><p>Published projects and work in progress.</p></main>',
+    '/': '<aside><h1>Willie Chalmers III builds software and systems for people.</h1></aside><main><p>Published projects and work in progress.</p></main>',
     '/search': '<html><body></body></html>',
     '/music': '<nav>Site navigation</nav><main>   </main>',
     '/studio': '<main style="display:none"><h1>Hidden editor</h1></main>',
@@ -366,7 +366,10 @@ test('screenshot evidence rejects blank or hidden main content and retains faile
         );
       } else {
         assert.equal(capture.status, 'failed');
-        assert.match(capture.reason ?? '', /rendered main content/i);
+        assert.match(
+          capture.reason ?? '',
+          /rendered main content|route heading/i
+        );
       }
     }
     const saved = JSON.parse(

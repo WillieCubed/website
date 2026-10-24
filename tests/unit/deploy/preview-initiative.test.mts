@@ -19,7 +19,7 @@ test('initiative discovery records absent published details without failing meas
     response
       .writeHead(200, { 'content-type': 'text/html' })
       .end(
-        `<main><h1>${({ '/writings': 'Writings', '/projects': 'Projects', '/music': 'Music' } as Record<string, string>)[request.url ?? ''] ?? 'Fixture'}</h1><a href="/initiatives/draft" hidden>Draft</a>${detail}</main><nav><a href="/writings" hidden>Hidden breadcrumb</a><a href="/writings">Writings</a><a href="/projects">Projects</a><a href="/music">Music</a></nav>`
+        `<main><h1>${({ '/': 'Willie Chalmers III builds software and systems for people.', '/search': 'Search', '/initiatives': 'Initiatives', '/writings': 'Writings', '/projects': 'Projects', '/music': 'Music' } as Record<string, string>)[request.url ?? ''] ?? 'Fixture'}</h1><a href="/initiatives/draft" hidden>Draft</a>${detail}</main><nav><a href="/writings" hidden>Hidden breadcrumb</a><a href="/writings">Writings</a><a href="/projects">Projects</a><a href="/music">Music</a></nav>`
       );
   });
   server.listen(0, '127.0.0.1');
@@ -100,7 +100,7 @@ test('private measurements include an explicitly selected draft with the same au
     paths.push(request.url!);
     response
       .writeHead(200, { 'content-type': 'text/html' })
-      .end('<h1>Private fixture</h1>');
+      .end('<main><h1>Private fixture</h1></main>');
   });
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');

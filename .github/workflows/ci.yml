@@ -97,6 +97,25 @@ jobs:
     if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     timeout-minutes: 75
+    # Both revisions need the same reachable local database. A refused
+    # placeholder socket strands the base revision's failed-connect cleanup.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: website_test
+          POSTGRES_USER: fixture
+          POSTGRES_PASSWORD: fixture
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fixture -d website_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgresql://fixture:fixture@127.0.0.1:5432/website_test
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_STUDIO_HYPERDRIVE: postgresql://fixture:fixture@127.0.0.1:5432/website_test
     steps:
       - uses: actions/checkout@v7
 

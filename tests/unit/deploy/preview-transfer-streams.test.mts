@@ -130,7 +130,7 @@ test('Chromium measures an idle partial gzip prefetch stream without waiting for
     response
       .writeHead(200, { 'content-type': 'text/html' })
       .end(
-        `<h1>Visible streaming fixture</h1><script>fetch('/stream',{headers:{'Next-Router-Prefetch':'1'}}).then(async response=>{window.heldReader=response.body.getReader();await window.heldReader.read();});</script>`
+        `<main><h1>Willie Chalmers III builds software and systems for people.</h1></main><script>fetch('/stream',{headers:{'Next-Router-Prefetch':'1'}}).then(async response=>{window.heldReader=response.body.getReader();await window.heldReader.read();});</script>`
       );
   });
   server.listen(0, '127.0.0.1');

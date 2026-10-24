@@ -1,7 +1,7 @@
 import { chromium } from '@playwright/test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -15,7 +15,7 @@ import {
 import { installObservers } from '../../../scripts/cloudflare/preview-observers.mts';
 import { capturePreviewScreenshots } from '../../../scripts/cloudflare/preview-screenshots.mts';
 
-const html = `<main><h1>A visible performance fixture</h1><link rel="stylesheet" href="/style.css"><img src="/image.svg" width="10" height="10" alt=""><a href="/next" hidden>Hidden breadcrumb</a><a href="/next" data-next>Next</a><script src="/app.js"></script><!--${'padding'.repeat(10_000)}--></main>`;
+const html = `<main><h1>Willie Chalmers III builds software and systems for people.</h1><link rel="stylesheet" href="/style.css"><img src="/image.svg" width="10" height="10" alt=""><a href="/next" hidden>Hidden breadcrumb</a><a href="/next" data-next>Next</a><script src="/app.js"></script><!--${'padding'.repeat(10_000)}--></main>`;
 const compressed = gzipSync(html);
 const resources: Partial<Record<string, [string, string]>> = {
   '/style.css': ['text/css', 'h1 { color: green; }'],
@@ -375,5 +375,92 @@ test('client navigation requires the destination heading and main content while 
     await browser.close();
     server.close();
     await once(server, 'close');
+  }
+});
+
+function assertRenderedFailureObservations(
+  route: Awaited<ReturnType<typeof sampleRoute>>,
+  path: string
+) {
+  for (const phase of [route, route.warm]) {
+    assert.equal(phase.counts.failed, 1);
+    assert.equal(phase.counts.valid, 0);
+    const sample = phase.samples[0]!;
+    assert.ok(
+      sample.fcpMs !== null && sample.fcpMs > 0,
+      'the failure must retain its actual FCP'
+    );
+    assert.ok(
+      sample.lcpMs !== null && sample.lcpMs > 0,
+      'the failure must retain its actual LCP'
+    );
+    assert.match(sample.reason ?? '', /error boundary|Projects/i);
+    assert.ok(sample.documentHtml?.includes('<h1>'));
+    if (path !== '/projects') {
+      assert.ok(
+        sample.browserErrors?.some(
+          (error) =>
+            error.source === 'pageerror' &&
+            error.message.includes('Fixture page exception')
+        )
+      );
+      assert.ok(
+        sample.browserErrors?.some((error) => error.digest === 'fixture-digest')
+      );
+    }
+  }
+}
+
+test('painted HTTP 200 error boundaries fail document visits and screenshots without discarding observations or bytes', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'painted-error-evidence-'));
+  const server = createServer((request, response) => {
+    const body =
+      request.url === '/projects'
+        ? '<main><h1>Writings</h1><p>Wrong route content.</p></main>'
+        : '<main><h1>Something went wrong.</h1><p>The site hit a server error.</p><a href="/">Return Home</a></main><script>console.error(Object.assign(new Error("Fixture console exception"),{digest:"fixture-digest"}));throw new Error("Fixture page exception");</script>';
+    response.writeHead(200, { 'content-type': 'text/html' }).end(body);
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  assert.ok(address !== null && typeof address !== 'string');
+  const browser = await chromium.launch({ headless: true });
+  const routes = ['/', '/search', '/music', '/private-error', '/projects'];
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  try {
+    for (const path of routes) {
+      const route = await sampleRoute(browser, path, {
+        baseUrl,
+        sampleCount: 1,
+        quietMs: 50,
+        timeoutMs: 1000,
+      });
+      assert.equal(
+        route.status,
+        'failed',
+        `${path} must reject painted error or wrong-route content`
+      );
+      assertRenderedFailureObservations(route, path);
+      assert.ok(route.transfers.cold[0]!.byCategory.html > 0);
+      assert.ok(route.transfers.warm[0]!.byCategory.html > 0);
+    }
+    const screenshots = await capturePreviewScreenshots(browser, {
+      baseUrl,
+      routes,
+      outputDirectory: directory,
+      settleMs: 0,
+    });
+    assert.equal(screenshots.status, 'failed');
+    assert.equal(screenshots.captured, 20);
+    for (const capture of screenshots.captures) {
+      assert.equal(capture.status, 'failed');
+      assert.match(capture.reason ?? '', /error boundary|Projects/i);
+      assert.ok((await readFile(join(directory, capture.file!))).length > 0);
+    }
+  } finally {
+    await browser.close();
+    server.close();
+    await once(server, 'close');
+    await rm(directory, { recursive: true, force: true });
   }
 });

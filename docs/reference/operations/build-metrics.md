@@ -56,6 +56,13 @@ context. The route's existing top-level timing fields and `samples` describe
 cold visits. `warm` describes revisits with the browser cache retained. The
 collector does not disable the browser cache or intercept requests.
 
+A real paint is necessary but does not prove that the requested page loaded.
+The collector also requires visible, nonempty main content and the expected
+heading on known public routes. It rejects the site's global server-error
+boundary after hydration and applies the same guard to screenshots and client
+navigation. Failed evidence retains its observed timings, bytes, DOM, screenshot,
+and bounded browser error diagnostics.
+
 Each sample reports `valid`, `failed`, or `unavailable`. A visible document
 that supports paint entries but never reports FCP or LCP fails measurement.
 Hidden documents and unsupported required entry types are unavailable. CLS
@@ -86,6 +93,13 @@ sample or journey fails or is unavailable. The explicit missing-initiative case
 above remains partial without failing the command. Metrics remain informational,
 but a broken measurement does not pass as a successful one. Startup failures
 still return errors directly.
+
+CI serves the candidate and base with the same isolated PostgreSQL service and
+local Hyperdrive connection overrides. The empty public store exercises unavailable
+status and Music fallbacks; it does not represent live provider data. Seeded
+public Music and private authoring coverage run separately. A reachable service
+also lets the unchanged base close connected queries instead of hanging during
+failed-socket cleanup. Keep failed evidence when either runtime cannot render.
 
 ## Browser transfer bytes
 

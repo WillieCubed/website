@@ -8,7 +8,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { authorizePreviewPage } from './preview-auth.mts';
-import { requireRenderedContent } from './preview-content.mts';
+import { requireRouteContent } from './preview-content.mts';
+import { type BrowserError, observeBrowserErrors } from './preview-errors.mts';
 
 interface ScreenshotOptions {
   baseUrl: string;
@@ -31,6 +32,8 @@ interface ScreenshotCapture extends CaptureVariant {
   httpStatus: number | null;
   file: string | null;
   reason?: string;
+  documentHtml?: string;
+  browserErrors?: BrowserError[];
 }
 const VARIANTS: CaptureVariant[] = [
   { viewport: { width: 1440, height: 1000 }, theme: 'light' },
@@ -128,6 +131,7 @@ async function captureRoute(
   headers?: Record<string, string>
 ): Promise<ScreenshotCapture> {
   const page = await context.newPage();
+  const readErrors = observeBrowserErrors(page);
   const result: ScreenshotCapture = {
     ...variant,
     path,
@@ -154,10 +158,12 @@ async function captureRoute(
       throw new Error(
         `Screenshot route ${path} returned HTTP ${result.httpStatus ?? 'no response'}.`
       );
-    await requireRenderedContent(page);
+    await requireRouteContent(page, path);
     result.status = 'valid';
   } catch (error) {
     result.reason = String(error);
+    result.documentHtml = await page.content().catch(() => undefined);
+    result.browserErrors = await readErrors();
   } finally {
     await preserveScreenshot(page, options.outputDirectory, file, result);
     await page.close();

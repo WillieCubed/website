@@ -208,8 +208,11 @@ test('readiness does not accept HTTP success without this preview runtime readin
 test('a managed preview that exits during collection invalidates the measurement', async () => {
   const preview = spawn(
     process.execPath,
-    ['-e', 'setTimeout(()=>process.exit(7),100)'],
-    { detached: process.platform !== 'win32', stdio: 'ignore' }
+    ['-e', "process.on('message', () => process.exit(7))"],
+    {
+      detached: process.platform !== 'win32',
+      stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+    }
   );
   await once(preview, 'spawn');
   try {
@@ -217,8 +220,14 @@ test('a managed preview that exits during collection invalidates the measurement
       monitorPreview(
         preview,
         () => undefined,
-        async () => {
-          await delay(500);
+        async (signal) => {
+          const exited = once(preview, 'exit');
+          const invalidated = once(signal, 'abort', {
+            signal: AbortSignal.timeout(5_000),
+          });
+          preview.send('exit');
+          await exited;
+          await invalidated;
           return 'must not succeed';
         }
       ),

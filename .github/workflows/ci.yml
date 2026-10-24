@@ -85,6 +85,13 @@ jobs:
           retention-days: 14
 
       - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('test-results/site/**') != '' }}
+        with:
+          name: public-site-results
+          path: test-results/site/
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() && hashFiles('playwright-report/**') != '' }}
         with:
           name: playwright-report

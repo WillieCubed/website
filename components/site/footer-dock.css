@@ -484,7 +484,7 @@
   }
   .site-footer {
     --footer-content-pad: 16px;
-    --footer-brand-size: var(--text-headline-small);
+    --footer-brand-size: clamp(20px, 6vw, var(--text-headline-small));
   }
   .site-footer .site-footer__pages {
     padding-inline: var(--footer-content-pad);

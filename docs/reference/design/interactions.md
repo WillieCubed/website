@@ -84,6 +84,8 @@ The expanded footer shares brand typography, control weights, internal padding,
 and vertical spacing across pages. Its outer width follows the page's content
 column. The homepage dock animates into this shared composition; its animated
 brand position and size must end at the same dimensions as a plain footer.
+At ordinary text size, compact footers scale the name from 20px to 24px so
+the full name remains on one line from 320px upward.
 `footer-consistency.spec.mts` compares rendered typography and gaps across
 home, colophon, writings, and music, including JavaScript-disabled rendering.
 

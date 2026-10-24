@@ -39,8 +39,12 @@ test('clustered map places have visible HTML labels in travel order and named ge
     )
   );
   assert.equal((html.match(/<circle\b/g) || []).length, places.length);
-  const path = html.match(/<path\b[^>]*d="([^"]+)"/)?.[1];
-  assert.equal((path?.match(/L/g) || []).length, places.length - 1);
+  const journeys = html.match(
+    /class="route-map__journey"[^>]*>([\s\S]*?)<\/g>/
+  )?.[1];
+  assert.equal((journeys?.match(/<path\b/g) || []).length, places.length - 1);
+  assert.match(html, /class="route-map__land"/);
+  assert.doesNotMatch(html, /<line\b/);
   assert.match(
     html,
     /aria-label="Fall Tour: Dallas, Plano, Denton, San Francisco, Reno, Los Angeles"/
@@ -51,10 +55,50 @@ test('unconnected maps keep every place and empty maps render nothing', () => {
   const html = renderToStaticMarkup(
     createElement(RouteMap, { places, connect: false })
   );
-  assert.doesNotMatch(html, /<path\b/);
+  assert.doesNotMatch(html, /class="route-map__journey"/);
+  assert.match(html, /class="route-map__land"/);
   assert.equal((html.match(/<circle\b/g) || []).length, places.length);
   assert.equal(
     renderToStaticMarkup(createElement(RouteMap, { places: [] })),
     ''
   );
+});
+
+test('separate trips never connect across their boundaries and Hawaii uses an honest inset', () => {
+  const honolulu = { name: 'Honolulu', lat: 21.31, lng: -157.86 };
+  const stops = [...places, honolulu];
+  const html = renderToStaticMarkup(
+    createElement(RouteMap, {
+      places: stops,
+      routes: [
+        { label: 'Part 1', places: places.slice(0, 3) },
+        { label: 'Part 4', places: [...places.slice(3), honolulu] },
+      ],
+    })
+  );
+  const paths = [
+    ...html.matchAll(/class="route-map__journey"[^>]*>([\s\S]*?)<\/g>/g),
+  ].flatMap((match) => [...match[1].matchAll(/<path\b/g)]);
+  assert.equal(
+    paths.length,
+    4,
+    'two Texas legs and two western legs; no fabricated inter-trip or inter-inset leg'
+  );
+  assert.match(html, /aria-label="Hawaii inset: Honolulu"/);
+  assert.match(html, /Hawaii · separate scale/);
+  assert.match(html, /San Francisco → Reno → Los Angeles → Honolulu/);
+  assert.equal((html.match(/<circle\b/g) || []).length, stops.length);
+});
+
+test('geographic projection keeps western stops west and nearby Texas stops close', async () => {
+  const { geographicView } = await import('@/lib/initiatives/route-geography');
+  const { project, land } = geographicView(places, true);
+  const dallas = project(-96.8, 32.78);
+  const plano = project(-96.7, 33.02);
+  const sf = project(-122.42, 37.77);
+  assert.ok(sf[0] < dallas[0]);
+  assert.ok(sf[1] < dallas[1]);
+  assert.ok(Math.hypot(plano[0] - dallas[0], plano[1] - dallas[1]) < 5);
+  assert.ok(land.length > 0);
+  assert.ok(land.every((path) => path.endsWith('Z') && !path.includes('NaN')));
 });

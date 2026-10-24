@@ -190,7 +190,14 @@ export default async function InitiativePage(
             className="initiative-route mt-12"
             aria-label={`${initiative.title} route`}
           >
-            <RouteMap places={places} title={`${initiative.title} route`} />
+            <RouteMap
+              places={places}
+              routes={initiative.parts.map((part) => ({
+                label: `${initiative.partLabel} ${part.number}`,
+                places: part.places,
+              }))}
+              title={`${initiative.title} route`}
+            />
           </section>
         )}
 

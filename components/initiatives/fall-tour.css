@@ -9,6 +9,9 @@
 }
 .initiative-overview[data-initiative='fall-tour-2026']
   .initiative-introduction {
+  display: flex;
+  min-height: min(760px, 78svh);
+  flex-direction: column;
   overflow: hidden;
   border-radius: var(--radius-3xl);
   background: var(--color-graphic-surface);
@@ -16,7 +19,7 @@
 }
 .initiative-overview[data-initiative='fall-tour-2026'] .initiative-heading {
   max-width: 840px;
-  padding: 32px 24px 0;
+  padding: clamp(32px, 5vw, 64px) 24px 0;
   text-align: center;
 }
 .initiative-overview[data-initiative='fall-tour-2026'] .initiative-heading h1 {
@@ -48,12 +51,12 @@
 .initiative-overview[data-initiative='fall-tour-2026'] .initiative-trailer {
   width: 100%;
   max-width: none;
-  margin: 0;
+  margin: auto 0;
 }
 .initiative-overview[data-initiative='fall-tour-2026']
-  .initiative-trailer
+  .initiative-trailer[data-media='poster']
   figure {
-  height: clamp(112px, 18vw, 208px);
+  height: clamp(360px, 42vw, 480px);
   aspect-ratio: auto;
   border-radius: 0;
   background: var(--color-graphic-surface);
@@ -124,7 +127,7 @@
   opacity: 1;
 }
 .initiative-part[data-initiative='fall-tour-2026'] .h-event {
-  min-height: 360px;
+  min-height: clamp(520px, 72svh, 760px);
   padding: clamp(24px, 4vw, 48px);
   background: linear-gradient(
     90deg,
@@ -205,7 +208,7 @@
     object-position: 70% center;
   }
   .initiative-part[data-initiative='fall-tour-2026'] .h-event {
-    min-height: 320px;
+    min-height: max(560px, 72svh);
     padding: 24px;
   }
 }

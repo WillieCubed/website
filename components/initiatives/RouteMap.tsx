@@ -1,102 +1,158 @@
 import type { Place } from '@/lib/initiatives/index';
+import {
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  geographicView,
+  isHawaii,
+  linePath,
+} from '@/lib/initiatives/route-geography';
+
+interface RouteGroup {
+  label: string;
+  places: Place[];
+}
 
 interface RouteMapProps {
   /** Places in travel order. */
   places: Place[];
-  /** Draw a dashed line between places in order. */
+  /** Separate trips never imply travel between their endpoints. */
+  routes?: RouteGroup[];
   connect?: boolean;
   title?: string;
 }
 
-const WIDTH = 800;
-const HEIGHT = 320;
-const PAD = 48;
+interface GeographyProps {
+  places: Place[];
+  routes: RouteGroup[];
+  connect: boolean;
+  title: string;
+  mainland?: boolean;
+}
+
+function Geography({
+  places,
+  routes,
+  connect,
+  title,
+  mainland = false,
+}: GeographyProps) {
+  const { project, land } = geographicView(places, mainland);
+  const includes = (place: Place) =>
+    places.some((point) => point.name === place.name);
+  return (
+    <svg
+      viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+      role="img"
+      aria-label={`${title}: ${places.map((place) => place.name).join(', ')}`}
+      className="route-map__geography"
+    >
+      <g className="route-map__land" aria-hidden="true">
+        {land.map((outline, index) => (
+          <path key={index} d={outline} />
+        ))}
+      </g>
+      {connect &&
+        routes.map((route, index) => (
+          <g key={index} className="route-map__journey" data-route={index % 4}>
+            {route.places.slice(1).map((place, stop) => {
+              const previous = route.places[stop];
+              if (!includes(previous) || !includes(place)) return null;
+              return (
+                <path
+                  key={stop}
+                  d={linePath([
+                    project(previous.lng, previous.lat),
+                    project(place.lng, place.lat),
+                  ])}
+                />
+              );
+            })}
+          </g>
+        ))}
+      {places.map((place, index) => {
+        const [x, y] = project(place.lng, place.lat);
+        return (
+          <g key={index}>
+            <title>{`${place.name}${place.region ? `, ${place.region}` : ''}`}</title>
+            <circle cx={x} cy={y} r="5" />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
 
 export default function RouteMap({
   places,
+  routes,
   connect = true,
   title = 'Route',
 }: RouteMapProps) {
   if (places.length === 0) return null;
-  const lats = places.map((p) => p.lat);
-  const lngs = places.map((p) => p.lng);
-  const minLat = Math.min(...lats) - 2;
-  const maxLat = Math.max(...lats) + 2;
-  const minLng = Math.min(...lngs) - 3;
-  const maxLng = Math.max(...lngs) + 3;
-  const x = (lng: number) =>
-    PAD +
-    ((lng - minLng) / (maxLng === minLng ? 1 : maxLng - minLng)) *
-      (WIDTH - PAD * 2);
-  const y = (lat: number) =>
-    HEIGHT -
-    PAD -
-    ((lat - minLat) / (maxLat === minLat ? 1 : maxLat - minLat)) *
-      (HEIGHT - PAD * 2);
-  const points = places.map((p) => [x(p.lng), y(p.lat)] as const);
-  const path = points
-    .map(([px, py], i) => `${i > 0 ? 'L' : 'M'}${px} ${py}`)
-    .join(' ');
-
+  const trips = routes ?? [{ label: title, places }];
+  const islands = places.filter(isHawaii);
+  const separateHawaii = islands.length > 0 && islands.length < places.length;
+  const main = separateHawaii
+    ? places.filter((place) => !isHawaii(place))
+    : places;
+  const mainland = main.every(
+    (place) =>
+      place.lng >= -126 &&
+      place.lng <= -66 &&
+      place.lat >= 24 &&
+      place.lat <= 50
+  );
   return (
-    <figure className="route-map rounded-2xl border border-line bg-card p-3">
-      <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        role="img"
-        aria-label={`${title}: ${places.map((p) => p.name).join(', ')}`}
-        className="h-auto w-full"
-      >
-        {Array.from({ length: 6 }, (_, i) => (
-          <line
-            key={`h${i}`}
-            x1={PAD}
-            x2={WIDTH - PAD}
-            y1={PAD + (i * (HEIGHT - PAD * 2)) / 5}
-            y2={PAD + (i * (HEIGHT - PAD * 2)) / 5}
-            stroke="var(--color-line)"
-            strokeWidth="1"
-          />
-        ))}
-        {Array.from({ length: 9 }, (_, i) => (
-          <line
-            key={`v${i}`}
-            y1={PAD}
-            y2={HEIGHT - PAD}
-            x1={PAD + (i * (WIDTH - PAD * 2)) / 8}
-            x2={PAD + (i * (WIDTH - PAD * 2)) / 8}
-            stroke="var(--color-line)"
-            strokeWidth="1"
-          />
-        ))}
-        {connect && points.length > 1 && (
-          <path
-            d={path}
-            fill="none"
-            strokeWidth="3"
-            strokeDasharray="2 10"
-            strokeLinecap="round"
-          />
+    <figure className="route-map rounded-2xl border border-line bg-card">
+      <div className="route-map__atlas">
+        <Geography
+          places={main}
+          routes={trips}
+          connect={connect}
+          title={title}
+          mainland={mainland}
+        />
+        {separateHawaii && (
+          <div className="route-map__inset">
+            <Geography
+              places={islands}
+              routes={trips}
+              connect={connect}
+              title="Hawaii inset"
+            />
+            <p>Hawaii · separate scale</p>
+          </div>
         )}
-        {places.map((place, i) => {
-          const [px, py] = points[i];
-          return (
-            <g key={`${place.name}-${i}`}>
-              <title>{`${place.name}${place.region ? `, ${place.region}` : ''}`}</title>
-              <circle cx={px} cy={py} r="7" />
-            </g>
-          );
-        })}
-      </svg>
+      </div>
       <figcaption>
-        {/* HTML labels keep nearby stops readable when the map scales down. */}
-        <ol className="mt-3 grid list-decimal grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-x-8 gap-y-2 pl-6 text-sm text-muted sm:grid-cols-3">
-          {places.map((place, i) => (
-            <li key={`${place.name}-${i}`} className="min-w-0 break-words">
-              {place.name}
-              {place.region ? `, ${place.region}` : ''}
-            </li>
-          ))}
-        </ol>
+        {routes ? (
+          <ol className="route-map__trips">
+            {routes.map((route, index) => (
+              <li key={index} data-route={index % 4}>
+                <span className="route-map__key" aria-hidden="true" />
+                <div>
+                  <strong>{route.label}</strong>
+                  <p>{route.places.map((place) => place.name).join(' → ')}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <ol className="route-map__places">
+            {places.map((place, index) => (
+              <li key={index}>
+                {place.name}
+                {place.region ? `, ${place.region}` : ''}
+              </li>
+            ))}
+          </ol>
+        )}
+        {separateHawaii && (
+          <p className="route-map__note">
+            Honolulu appears in the inset. The inset does not show distance from
+            the mainland.
+          </p>
+        )}
       </figcaption>
     </figure>
   );

@@ -176,8 +176,28 @@ Initiative and part pages support:
 - `<Scene src="/assets/initiatives/x/1.jpg" alt="…" flip caption="…">prose</Scene>`
   puts media beside a few paragraphs. Alternate `flip` down the page.
 - `<Gallery items={[{ src, alt }, …]} columns={3} />` is a photo grid.
-- `<RouteMap places={[{ name, lat, lng }]} />` draws places on a plain grid
-  with a dashed line between them. There is no continent outline on purpose.
+- `<RouteMap places={[{ name, lat, lng }]} />` draws a server-rendered geographic map.
+  Place coordinates and land outlines use the same scale. Mainland US trips
+  retain national context rather than stretching neighboring towns across the
+  map. Mixed mainland/Hawaii trips use a labeled inset with its own scale.
+  `routes={[{ label, places }]}` separates trips without implying travel between
+  them. Each trip retains its full ordered stop list in HTML. Lines end at the
+  inset boundary rather than suggesting a false cross-panel distance.
+
+The outlines come from Natural Earth's public-domain 1:110m Admin 0 countries
+(version 5.1.1). `lib/initiatives/world-outlines.json` contains exterior rings
+rounded to two decimal degrees from the
+[Natural Earth source](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson).
+The downloaded source SHA-256 is
+`6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f`.
+The server filters visible outlines before rendering; maps need no tile
+requests or browser mapping library. See the
+[Natural Earth public-domain terms](https://www.naturalearthdata.com/about/terms-of-use/).
+
+Fall Tour's overview combines the title, subtitle, dates, and large rounded-pixel
+composition in one tall hero. Chapter covers retain comparable vertical space
+for their illustration and title group. These sizes belong to the campaign;
+they do not change the site's page gutters or top bar.
 
 ### What the page supplies
 

@@ -77,7 +77,11 @@ test('Fall Tour renders every chapter with readable content and loaded viewport 
       const bounds = await artwork.boundingBox();
       expect(bounds).not.toBeNull();
       expect(bounds!.width).toBeGreaterThan(300);
-      expect(bounds!.height).toBeGreaterThan(100);
+      expect(bounds!.height).toBeGreaterThan(260);
+      const hero = await main.locator('.initiative-introduction').boundingBox();
+      expect(hero!.height).toBeGreaterThan(
+        info.project.use.viewport!.height * 0.65
+      );
       expect(bounds!.y).toBeLessThan(await page.evaluate(() => innerHeight));
     }
     await expect(page.locator('.site-private-indicator')).toHaveCount(0);

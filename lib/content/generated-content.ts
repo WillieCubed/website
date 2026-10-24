@@ -116,8 +116,8 @@ export const imageDimensions: Record<
     height: 1000,
   },
   '/assets/initiatives/fall-tour-2026/tour-poster.svg': {
-    width: 1600,
-    height: 1000,
+    width: 820,
+    height: 700,
   },
   '/assets/initiatives/superbloom/cover.svg': { width: 1200, height: 800 },
   '/assets/initiatives/twd/cover.svg': { width: 1200, height: 800 },

@@ -100,8 +100,6 @@ export interface MicropubJsonBody {
   properties?: Record<string, unknown[]>;
 }
 
-export type { GitHubContentsCommitResponse } from '@/lib/github/types';
-
 export interface MicropubConfigResponse {
   'media-endpoint'?: string;
   'syndicate-to': MicropubSyndicationTarget[];

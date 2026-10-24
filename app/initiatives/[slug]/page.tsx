@@ -151,7 +151,10 @@ export default async function InitiativePage(
           personLd()
         )}
       />
-      <TopBar crumbs={crumbs} column="content" />
+      <TopBar
+        crumbs={crumbs}
+        column={initiative.slug === 'fall-tour-2026' ? 'wide' : 'content'}
+      />
       <main id="main" className="site-frame site-frame--wide pb-20">
         <InitiativeHeading initiative={initiative} />
 

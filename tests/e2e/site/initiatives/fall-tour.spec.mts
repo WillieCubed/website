@@ -18,6 +18,12 @@ test('Fall Tour renders every chapter with readable content and loaded viewport 
     expect(response?.status()).toBe(200);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     const main = page.locator('main');
+    const header = await page.locator('header[data-column]').boundingBox();
+    const frame = await main.boundingBox();
+    expect(header).not.toBeNull();
+    expect(frame).not.toBeNull();
+    expect(header!.x).toBeCloseTo(frame!.x, 0);
+    expect(header!.width).toBeCloseTo(frame!.width, 0);
     await page.evaluate(() => document.fonts.ready);
     await expect
       .poll(() =>

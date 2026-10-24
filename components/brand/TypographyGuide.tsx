@@ -54,9 +54,6 @@ function PageCompositionExamples() {
         <figure className="brand-type-layout brand-type-reading">
           <figcaption>Reading page</figcaption>
           <article>
-            <p className="brand-type-eyebrow font-mono">
-              FIELD NOTES · SEPTEMBER 2026
-            </p>
             <h4 className="text-headline-large">A city that moves together</h4>
             <p className="brand-type-annotation">
               Subtitle, when it helps · body large
@@ -80,7 +77,6 @@ function PageCompositionExamples() {
         <figure className="brand-type-layout brand-type-landing">
           <figcaption>Prominent introduction</figcaption>
           <div>
-            <p className="brand-type-eyebrow font-mono">WILLIE CHALMERS III</p>
             <h4 className="text-display-small desktop:text-display-medium">
               I build software and systems for people.
             </h4>
@@ -97,7 +93,6 @@ function PageCompositionExamples() {
         <figure className="brand-type-layout brand-type-local">
           <figcaption>Local content and controls</figcaption>
           <div className="brand-type-local-card">
-            <p className="text-label-medium brand-type-category">PROJECT</p>
             <h4 className="text-title-large">A better way home</h4>
             <p className="text-body-medium">
               A practical idea, explained in one or two sentences.
@@ -107,8 +102,8 @@ function PageCompositionExamples() {
             </span>
           </div>
           <p className="brand-type-local-note">
-            The title belongs to this card. Its category and action are labels;
-            both stay in the reading face here.
+            The title belongs to this card. Its action uses a label in the
+            reading face. Metadata belongs below the heading.
           </p>
         </figure>
       </div>

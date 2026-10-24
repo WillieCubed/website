@@ -32,7 +32,6 @@ import {
 } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/seo/metadata';
 import { absoluteUrl } from '@/lib/site/urls';
-import { isPrivatePreview } from '@/lib/studio/config';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix
@@ -79,9 +78,6 @@ interface InitiativeHeadingProps {
 function InitiativeHeading({ initiative }: InitiativeHeadingProps) {
   return (
     <header className="initiative-heading mx-auto max-w-[840px]">
-      {isPrivatePreview() && initiative.draft && (
-        <p className="text-label-medium text-muted">Draft</p>
-      )}
       <h1 className="mt-2 text-display-medium text-ink">
         <SharedTitle id={`initiative-${initiative.slug}`} size="large">
           <span className="inline-block">{initiative.title}</span>
@@ -152,17 +148,29 @@ export default async function InitiativePage(
         )}
       />
       <TopBar
-        crumbs={crumbs}
+        crumbs={[
+          ...crumbs,
+          {
+            label: initiative.title,
+            href: initiative.href,
+            menuItems: initiative.parts.map((part) => ({
+              label: `${initiative.partLabel} ${part.number}: ${part.title}`,
+              href: `${initiative.href}/${part.slug}`,
+            })),
+          },
+        ]}
         column={initiative.slug === 'fall-tour-2026' ? 'wide' : 'content'}
       />
       <main id="main" className="site-frame site-frame--wide pb-20">
-        <InitiativeHeading initiative={initiative} />
+        <div className="initiative-introduction">
+          <InitiativeHeading initiative={initiative} />
 
-        <div
-          className="initiative-trailer mx-auto mt-8 max-w-[840px]"
-          data-media={initiative.trailer?.youtubeId ? 'video' : 'poster'}
-        >
-          <TrailerBlock initiative={initiative} />
+          <div
+            className="initiative-trailer mx-auto mt-8 max-w-[840px]"
+            data-media={initiative.trailer?.youtubeId ? 'video' : 'poster'}
+          >
+            <TrailerBlock initiative={initiative} />
+          </div>
         </div>
 
         {initiative.parts.length > 0 && (
@@ -170,7 +178,10 @@ export default async function InitiativePage(
             className="initiative-chapters mt-12"
             aria-label={`${initiative.title} ${initiative.partLabel.toLowerCase()}s`}
           >
-            <Playbill initiative={initiative} />
+            <Playbill
+              initiative={initiative}
+              showCovers={initiative.slug !== 'fall-tour-2026'}
+            />
           </section>
         )}
 

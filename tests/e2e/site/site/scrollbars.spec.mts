@@ -25,24 +25,20 @@ test('the page draws a themed thumb', async ({ page }) => {
   expect(await computed(page, 'html', 'scrollbar-color')).not.toBe('auto');
 });
 
-test('compact viewports reserve only the actual scrollbar edge', async ({
+test('scrollbar gutters keep both sides symmetric at every viewport width', async ({
   page,
 }) => {
   await page.goto('/');
   for (const width of [320, 390, 599, 600, 839, 840, 1200]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await computed(page, 'html', 'scrollbar-gutter')).toBe(
-      width < 840 ? 'stable' : 'stable both-edges'
+      'stable both-edges'
     );
-    if (width < 840) {
-      // Classic scrollbars must not add a second empty rail before the
-      // page's own inset. This also runs with overlay scrollbars.
-      expect(
-        await page
-          .locator('body')
-          .evaluate((body) => body.getBoundingClientRect().left)
-      ).toBe(0);
-    }
+    const edges = await page.locator('body').evaluate((body) => {
+      const bounds = body.getBoundingClientRect();
+      return { left: bounds.left, right: innerWidth - bounds.right };
+    });
+    expect(edges.left).toBeCloseTo(edges.right, 0);
   }
 });
 

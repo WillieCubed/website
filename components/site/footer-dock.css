@@ -368,9 +368,9 @@
 /* Content sets the footer height. Responsive spacing gives the closing
    panel room without reserving a fixed fraction of the viewport. */
 .site-footer {
-  --footer-space: var(--spacing-section);
+  --footer-space: 24px;
   --footer-tail-gap: var(--spacing-inline);
-  --footer-row-gap: var(--spacing-section-roomy);
+  --footer-row-gap: 24px;
   --footer-link-width: var(--control-target-small);
   --footer-profile-icon-size: 24px;
   --footer-link-inset: calc(
@@ -483,7 +483,8 @@
     grid-template-rows: repeat(4, auto);
   }
   .site-footer {
-    --footer-brand-size: clamp(22px, 6.7vw, 30px);
+    --footer-content-pad: 16px;
+    --footer-brand-size: var(--text-headline-small);
   }
   .site-footer .site-footer__pages {
     padding-inline: var(--footer-content-pad);
@@ -536,37 +537,21 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--spacing-xs) 0;
-    width: calc(100% + 2 * var(--footer-panel-edge));
-    margin-inline: calc(-1 * var(--footer-panel-edge));
-    padding-inline: var(--footer-text-edge);
+    width: 100%;
+    padding-inline: var(--footer-content-pad);
   }
   .site-webrings__label {
     flex-shrink: 0;
     padding: 0;
   }
   .site-webrings__controls {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     margin-inline-start: auto;
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
     gap: var(--spacing-xs);
-  }
-}
-/* Full targets need the frame width on the narrowest phone columns. */
-@media (max-width: 359px) {
-  .site-footer {
-    --footer-text-edge: calc(var(--spacing-xl) - var(--spacing-xs));
-  }
-  .site-webrings {
-    padding-inline: var(--spacing-xs);
-  }
-  .site-webrings__label {
-    padding: 0;
-    margin-inline-start: calc(var(--footer-text-edge) - var(--spacing-xs));
-  }
-  .site-webrings__controls {
-    margin-inline: auto;
-    gap: 0;
   }
 }
 .site-webring {
@@ -666,6 +651,10 @@
       0px,
       calc(var(--footer-content-pad) - var(--footer-link-inset))
     );
+  }
+  /* A full target must fit even when the strip has no room for scroll margins. */
+  .site-footer__profiles a {
+    scroll-margin-inline: 0;
   }
   .site-footer[data-dock] .site-footer__profiles {
     --profile-icons: 1;

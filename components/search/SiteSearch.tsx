@@ -103,14 +103,15 @@ function SearchResultCard({ result }: SearchResultCardProps) {
       href={searchResultPath(result)}
       className="group block rounded-lg border border-outline-variant p-4 transition-all hover:border-primary hover:bg-primary/5"
     >
-      <div className="flex flex-wrap items-center gap-2 text-label-medium text-on-surface-variant">
+      <h2 className="text-title-large group-hover:text-primary">
+        {result.title}
+      </h2>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-body-small text-on-surface-variant">
         {meta.map((part, index) => (
           <Fragment key={part.kind}>
             {index > 0 && <span aria-hidden="true">·</span>}
             {part.kind === 'type' ? (
-              <span className="rounded bg-primary/10 px-2 py-1 capitalize text-primary">
-                {part.text}
-              </span>
+              <span className="capitalize">{part.text}</span>
             ) : part.kind === 'date' ? (
               <time dateTime={part.dateTime}>{part.text}</time>
             ) : (
@@ -119,9 +120,6 @@ function SearchResultCard({ result }: SearchResultCardProps) {
           </Fragment>
         ))}
       </div>
-      <h2 className="mt-1 text-title-large group-hover:text-primary">
-        {result.title}
-      </h2>
       <p className="mt-1 line-clamp-2 text-body-medium text-on-surface-variant">
         {result.description}
       </p>

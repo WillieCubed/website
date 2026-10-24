@@ -19,8 +19,8 @@ import {
 interface TileProps {
   id: string;
   name: string;
-  /** The label in the tile's top corner. */
-  head: string;
+  /** The visible object title when its body does not already contain one. */
+  head?: string;
   hint: string;
   brand: BrandKey;
   size: string;
@@ -114,7 +114,7 @@ export function Tile({
         }}
       />
       <div className="head">
-        <span className="label">{head}</span>
+        {head && <h3 className="tile-title">{head}</h3>}
         <span className="hint" aria-hidden="true">
           <span>{hint}</span>
           <i>

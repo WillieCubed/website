@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { formatRange } from '@/lib/initiatives/dates';
 import { getPart } from '@/lib/initiatives/index';
+import { partTitle } from '@/lib/initiatives/load';
 import { publicImageDataUri, renderEntityImage } from '@/lib/seo/og/render';
 
 export const alt = 'Part of an initiative';
@@ -22,8 +23,7 @@ export default async function Image(props: SocialImageProps) {
   if (!found) notFound();
   const { initiative, part } = found;
   return renderEntityImage({
-    kicker: `${initiative.title} · ${initiative.partLabel} ${part.number}`,
-    title: part.title,
+    title: partTitle(initiative, part),
     description: part.tagline ?? part.description,
     meta: `${formatRange(part.starts, part.ends, true)}${part.places.length > 0 ? ` · ${part.places.map((p) => p.name).join(', ')}` : ''}`,
     brand: initiative.brand?.startsWith('#') ? initiative.brand : undefined,

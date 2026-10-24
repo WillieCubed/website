@@ -11,8 +11,6 @@ interface TopBarFrameProps {
   floatOnScroll?: boolean;
   /** Two or more crumbs after the name, which the CSS treats as compact until measured. */
   longTrail?: boolean;
-  /** Which phones the CSS treats as collapsed until measured (TopBar). */
-  deepTrail?: 'phone' | 'narrow';
 }
 
 /**
@@ -27,7 +25,6 @@ export default function TopBarFrame({
   className,
   floatOnScroll = false,
   longTrail = false,
-  deepTrail,
   children,
 }: React.PropsWithChildren<TopBarFrameProps>) {
   const ref = useRef<HTMLElement>(null);
@@ -56,12 +53,14 @@ export default function TopBarFrame({
     // Crumbs and the ellipsis menu's links share a depth, so folding a crumb
     // also lists it in the menu.
     const foldable = [...header.querySelectorAll<HTMLElement>('[data-depth]')];
-    const depth = rail.querySelectorAll('[data-depth]').length;
+    const depth = rail.querySelectorAll(
+      ':scope > .site-breadcrumbs__crumb--middle'
+    ).length;
     // The current crumb shrinks rather than overflow the rail, so a
     // truncated label is how an overflow shows up.
     const overflows = () =>
       rail.scrollWidth > rail.clientWidth ||
-      (current !== null && current.scrollWidth > current.clientWidth);
+      (current !== null && current.scrollWidth > current.clientWidth + 1);
     const fold = (count: number) => {
       header.setAttribute('data-folded', String(count));
       for (const element of foldable) {
@@ -73,10 +72,13 @@ export default function TopBarFrame({
     };
     const fitTrail = () => {
       header.setAttribute('data-compact', 'false');
-      fold(0);
+      const minimumFolded = depth > 2 ? depth - 1 : 0;
+      fold(minimumFolded);
       if (!overflows()) return;
       header.setAttribute('data-compact', 'true');
-      for (let count = 1; count <= depth && overflows(); count++) fold(count);
+      for (let count = minimumFolded; count <= depth && overflows(); count++) {
+        fold(count);
+      }
     };
     fitTrail();
     // The rail's width follows the header, which can change without a
@@ -108,7 +110,6 @@ export default function TopBarFrame({
       ref={ref}
       data-column={column}
       data-long-trail={longTrail || undefined}
-      data-deep-trail={deepTrail}
       className={className}
     >
       {children}

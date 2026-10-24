@@ -176,20 +176,13 @@
       color-mix(in srgb, var(--color-scrim) 20%, transparent);
     font-size: var(--text-title-large);
   }
-  .d-kicker {
+  .d-parent {
+    margin: var(--spacing-stack) 0 0;
     color: var(--color-muted);
-    font: 500 12px/1 var(--font-mono);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .d-kicker:empty {
-    display: none;
-  }
-  .d-kicker:empty + .d-title {
-    margin-top: 0;
+    font-size: var(--text-body-medium);
   }
   .d-title {
-    margin: var(--spacing-md) 0 0;
+    margin: 0;
     font-size: clamp(28px, 3vw, 40px);
     font-weight: 600;
     letter-spacing: -0.025em;
@@ -274,7 +267,7 @@
     translate: 1px -1px;
   }
   dialog.detail[open]
-    :is(.d-kicker, .d-title, .d-body > p, .d-list li, .d-links) {
+    :is(.d-parent, .d-title, .d-body > p, .d-list li, .d-links) {
     animation: rise 520ms var(--ease-site) both;
   }
   dialog.detail[open] .d-title {

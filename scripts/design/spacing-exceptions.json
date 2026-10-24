@@ -7,13 +7,6 @@
     "reason": "Reserves the cube control's actual height: its 1.3em artwork, token padding, and two 1px borders. The dock and plain footer share this geometry."
   },
   {
-    "file": "components/site/footer-dock.css",
-    "selector": ".site-footer",
-    "property": "--footer-brand-size",
-    "value": "clamp(22px, 6.7vw, 30px)",
-    "reason": "Keeps the complete name and cube on one line at phone widths; this existing fluid brand scale is shared by every footer."
-  },
-  {
     "file": "components/brand/styles/usage.css",
     "selector": ".brand-avoid-crowd",
     "property": "gap",

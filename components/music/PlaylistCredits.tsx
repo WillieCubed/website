@@ -60,7 +60,6 @@ export default function PlaylistCredits({ tracks }: PlaylistCreditsProps) {
         onFocus={pause}
       >
         <div className="music-credits-intro">
-          <p>Closing music</p>
           <h3>A soundtrack for the ending.</h3>
         </div>
         <ol role="list">
@@ -74,8 +73,8 @@ export default function PlaylistCredits({ tracks }: PlaylistCreditsProps) {
           ))}
         </ol>
         <div className="music-credits-finale">
-          <p>Music supervision</p>
           <h3>Willie Chalmers III</h3>
+          <p>Music supervision</p>
           <p>The end.</p>
         </div>
       </div>

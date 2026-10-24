@@ -205,13 +205,17 @@ Playbill with JavaScript unavailable and reduced motion enabled.
 
 ## Campaign presentation
 
-The full Playbill renders each part's cover beside its copy. The compact
+The full Playbill can render each part's cover beside its copy on wide screens
+and above its copy on phones. Fall Tour uses one graphic in its centered
+introduction and a text chapter list to avoid repeating near-identical covers. The compact
 homepage Playbill keeps its text-only composition. Both use the same part
 records and native destinations. Campaign-specific layout belongs in scoped
 CSS, such as `components/initiatives/fall-tour.css`; it must not add a separate
 client navigation or content model.
 
-Fall Tour uses decorative SVG patterns of rounded pixels. Keep these graphics abstract;
+Fall Tour uses decorative SVG patterns of large rounded pixels that remain
+distinct at phone widths. Titles and subtitles use pretty wrapping. Preview
+pages omit draft eyebrows while retaining draft access rules. Keep the graphics abstract;
 do not replace them with generated scenes or imitation photographs. Travel
 dates, places, milestones, and public narrative belong in the content records.
 Personal contact names, booking references, and private logistics belong in

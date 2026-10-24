@@ -25,6 +25,33 @@ test('Fall Tour renders every chapter with readable content and loaded viewport 
     expect(header!.x).toBeCloseTo(frame!.x, 0);
     expect(header!.width).toBeCloseTo(frame!.width, 0);
     await page.evaluate(() => document.fonts.ready);
+    const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
+    const currentLabel = breadcrumb.locator(
+      '.site-breadcrumbs__crumb:last-child .site-breadcrumb-menu__label'
+    );
+    await expect(currentLabel).toHaveText(
+      index === 0 ? 'Fall Tour 2026' : `Part ${index}`
+    );
+    expect(
+      await currentLabel.evaluate(
+        (node) => node.scrollWidth <= node.clientWidth + 1
+      )
+    ).toBe(true);
+    expect(
+      await breadcrumb
+        .locator(':scope > div')
+        .evaluateAll(
+          (items) =>
+            items.filter((item) => item.getBoundingClientRect().width > 0)
+              .length
+        )
+    ).toBeLessThanOrEqual(4);
+    const search = await page.locator('.site-topbar-search').boundingBox();
+    expect(search!.x + search!.width).toBeCloseTo(
+      header!.x + header!.width - 16,
+      0
+    );
+
     await expect
       .poll(() =>
         main.locator('img').evaluateAll((images) =>
@@ -46,15 +73,15 @@ test('Fall Tour renders every chapter with readable content and loaded viewport 
       await page.evaluate(() => document.documentElement.scrollWidth)
     ).toBeLessThanOrEqual(await page.evaluate(() => innerWidth));
     if (index === 0 && info.project.name.startsWith('phone')) {
-      const chapters = main.locator('.playbill--full h3');
-      for (const chapter of [chapters.nth(0), chapters.nth(1)]) {
-        const bounds = await chapter.boundingBox();
-        expect(bounds).not.toBeNull();
-        expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(
-          await page.evaluate(() => innerHeight)
-        );
-      }
+      const artwork = main.locator('.initiative-trailer figure');
+      const bounds = await artwork.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.width).toBeGreaterThan(300);
+      expect(bounds!.height).toBeGreaterThan(100);
+      expect(bounds!.y).toBeLessThan(await page.evaluate(() => innerHeight));
     }
+    await expect(page.locator('.site-private-indicator')).toHaveCount(0);
+    await expect(main.getByText('Draft', { exact: true })).toHaveCount(0);
     await page.screenshot({
       path: info.outputPath(`tour-${index}-viewport.png`),
     });
@@ -62,7 +89,38 @@ test('Fall Tour renders every chapter with readable content and loaded viewport 
       path: info.outputPath(`tour-${index}-full.png`),
       fullPage: true,
     });
-    await page.addStyleTag({ content: 'html { font-size: 200%; }' });
+    const originals = await main
+      .locator('h1, h2, h3, p, li')
+      .evaluateAll((nodes) => {
+        const sizes = nodes.map((node) => ({
+          node,
+          size: parseFloat(getComputedStyle(node).fontSize),
+          height: parseFloat(getComputedStyle(node).lineHeight),
+        }));
+        for (const { node, size, height } of sizes) {
+          const element = node as HTMLElement;
+          element.style.fontSize = `${size * 2}px`;
+          if (Number.isFinite(height))
+            element.style.lineHeight = `${height * 2}px`;
+        }
+        return sizes.map(({ size }) => size);
+      });
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+    );
+    const enlarged = await main
+      .locator('h1, h2, h3, p, li')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => parseFloat(getComputedStyle(node).fontSize))
+      );
+    expect(enlarged.length).toBeGreaterThan(0);
+    expect(enlarged.length).toBe(originals.length);
+    expect(enlarged).toEqual(
+      originals.map((size) => expect.closeTo(size * 2, 1))
+    );
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth)
     ).toBeLessThanOrEqual(await page.evaluate(() => innerWidth));
@@ -117,7 +175,8 @@ test('Fall Tour keeps chapter artwork and complete navigation in server HTML', a
     const page = await context.newPage();
     await page.goto(root);
     const chapters = page.locator('.playbill--full');
-    await expect(chapters.locator('img')).toHaveCount(4);
+    await expect(chapters.locator('img')).toHaveCount(0);
+    await expect(page.locator('main img')).toHaveCount(1);
     await chapters.locator(`a[href="${root}/part-1"]`).click();
     await expect(page).toHaveURL(new RegExp(`${root}/part-1$`));
     await page.getByRole('link', { name: /^Part 2/ }).click();

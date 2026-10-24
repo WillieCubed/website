@@ -41,6 +41,17 @@ all four sides: 8px normally and 4px on phones at or below 360px. Their full
 The home-name link uses the same shared hover, pressed, focus, and reduced-motion
 states, with its original compact horizontal footprint and 48px target height.
 
+The breadcrumb shows at most four parts. When space runs out, it substitutes
+the cube for the home name and collapses content ancestors from the left into
+one menu. The current page stays visible at the right. Only its label can
+truncate after all earlier content has collapsed. The fitter counts path items,
+not the links inside their menus. CSS keeps the final destination readable
+before hydration and without JavaScript.
+
+The top bar has an 8px vertical inset and a 16px horizontal inset. These insets
+do not grow with text preferences. Private preview uses the same header without
+an extra mode badge. Authentication and draft filtering still govern access.
+
 These sizes follow the [button](https://m3.material.io/components/buttons/specs)
 and [icon-button](https://m3.material.io/components/icon-buttons/specs) scales.
 Choose visual emphasis independently: primary fill for the current forward or
@@ -93,7 +104,7 @@ its wider work layout, content pages use 840px, reading pages use 768px, and
 wide pages use 1200px.
 
 The homepage and Status page request the compact contact dock. Other footers
-retain normal document flow. The contact/status/Feeds row has 40px of space above it, with the
+retain normal document flow. The contact/status/Feeds row has 24px of space above it, with the
 webrings retaining their separate compact gap. Profile artwork is centered with
 its longer dimension at 20px inside 24px SVG boxes, using viewBox padding rather
 than CSS scale transforms; their larger touch targets and icon-only zero-gap
@@ -126,9 +137,9 @@ Webrings use 44px-square native targets with 32px visible surfaces, an
 outlined group, and tonal directory links. Compact footer link sizing meets
 [WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)
 while remaining below [Material's recommended 48dp target](https://support.google.com/accessibility/android/answer/7101858?hl=en).
-On phones, the webring outline aligns with the outer page frame. Padding inside
-the outline keeps its label aligned with the page links above. Preserve that
-separation when changing gutters or target sizes.
+On phones, the webring outline has equal 16px insets within the page frame.
+Padding inside the outline keeps its label aligned with the page links above.
+Preserve both edges when changing gutters or target sizes.
 
 Keep targets separate and their full padding clickable. The webring label
 can move above its controls; the contact/status/Feeds row must not stack.

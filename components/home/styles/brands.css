@@ -69,7 +69,7 @@
   dialog.detail[data-branded] .d-media {
     background: var(--b-surface-container-high);
   }
-  dialog.detail[data-branded] :is(.d-kicker, .d-count b) {
+  dialog.detail[data-branded] :is(.d-parent, .d-count b) {
     color: var(--b-primary);
   }
   dialog.detail[data-branded] .d-links a {

@@ -85,13 +85,8 @@
 .act[aria-current='step'] .act-card {
   border-color: var(--accent-live);
   /* A scheme container rather than a tint of the brand color, so the muted
-     text and the kicker keep 4.5:1 on the current act. */
+     text keeps 4.5:1 on the current act. */
   background: var(--surface-raised);
-}
-.act-kicker {
-  font-family: var(--font-mono);
-  letter-spacing: 0.04em;
-  color: var(--accent-live);
 }
 
 .route-map path {
@@ -120,7 +115,6 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .act-kicker,
   .initiative-prose a {
     transition: color var(--duration-theme) var(--ease-theme);
   }

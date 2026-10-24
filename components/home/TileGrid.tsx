@@ -123,7 +123,10 @@ interface TileGridProps {
 
 export function TileGrid({ tiles, playbills = {} }: TileGridProps) {
   return (
-    <main id="main" className="evidence" aria-label="Work in progress">
+    <main id="main" className="evidence" aria-labelledby="work-heading">
+      <h2 id="work-heading" className="sr-only">
+        Work in progress
+      </h2>
       {tiles.map((tile, i) => {
         const loading = i < EAGER_TILES ? 'eager' : 'lazy';
         return tile.kind === 'venture' ? (
@@ -132,10 +135,12 @@ export function TileGrid({ tiles, playbills = {} }: TileGridProps) {
             id={tile.id}
             name={tile.venture.name}
             head={
-              tile.venture.head ??
-              [tile.venture.parent, tile.venture.name]
-                .filter(Boolean)
-                .join(' · ')
+              tile.venture.body.kind === 'lead'
+                ? undefined
+                : (tile.venture.head ??
+                  [tile.venture.parent, tile.venture.name]
+                    .filter(Boolean)
+                    .join(' · '))
             }
             hint={tile.venture.hint}
             brand={tile.venture.brand}

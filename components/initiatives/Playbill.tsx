@@ -11,6 +11,7 @@ interface PlaybillProps {
   initiative: Initiative;
   /** `compact` fits inside a homepage tile; `full` is the initiative page. */
   variant?: 'full' | 'compact';
+  showCovers?: boolean;
 }
 
 /**
@@ -21,10 +22,12 @@ interface PlaybillProps {
 export default function Playbill({
   initiative,
   variant = 'full',
+  showCovers = true,
 }: PlaybillProps) {
   const { parts, partLabel } = initiative;
   if (parts.length === 0) return null;
   const compact = variant === 'compact';
+  const showArtwork = !compact && showCovers;
 
   return (
     <Reveal>
@@ -47,7 +50,7 @@ export default function Playbill({
               <article
                 className={`act-card relative flex h-full flex-col rounded-2xl ${compact ? 'p-3' : 'p-5'}`}
               >
-                {!compact && part.cover && (
+                {showArtwork && part.cover && (
                   <figure className="act-art relative m-0 aspect-[3/2] overflow-hidden rounded-xl">
                     <Image
                       src={part.cover.src}
@@ -60,9 +63,6 @@ export default function Playbill({
                   </figure>
                 )}
                 <div className="act-copy flex min-w-0 flex-1 flex-col">
-                  <p className="act-kicker text-label-medium">
-                    {partLabel} {part.number}
-                  </p>
                   <h3
                     className={`mt-1 font-semibold text-ink ${compact ? 'text-title-medium' : 'text-title-large'}`}
                   >
@@ -79,7 +79,8 @@ export default function Playbill({
                       {part.tagline}
                     </p>
                   )}
-                  <p className="mt-auto pt-3 text-label-medium text-muted">
+                  <p className="mt-auto pt-3 text-body-small text-muted">
+                    {partLabel} {part.number} ·{' '}
                     <time dateTime={isoDate(part.starts)}>
                       {formatRange(part.starts, part.ends)}
                     </time>

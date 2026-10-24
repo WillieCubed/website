@@ -57,8 +57,8 @@ type MobileRingLayout = Record<
 function expectMobileRingLayout(bounds: MobileRingLayout) {
   expect(bounds.rings.top).toBeGreaterThan(bounds.row.bottom);
   expect(bounds.row.top).toBeGreaterThan(bounds.pages.bottom);
-  expect(bounds.rings.left).toBeCloseTo(bounds.frame.left, 0);
-  expect(bounds.rings.right).toBeCloseTo(bounds.frame.right, 0);
+  expect(bounds.rings.left).toBeCloseTo(bounds.frame.left + 16, 0);
+  expect(bounds.rings.right).toBeCloseTo(bounds.frame.right - 16, 0);
   expect(bounds.label.left).toBeGreaterThan(bounds.rings.left);
   const sharedRow = bounds.label.bottom > bounds.panel.top;
   if (sharedRow) {
@@ -322,13 +322,13 @@ test('the restored ring group contains full touch targets at every width', async
     expectUsableTargets(bounds.targets, bounds.panel);
     await expectFooterTouchTargets(page, bounds.footer, width);
 
+    // A ring stays intact when narrow panels stack the two groups.
     for (let i = 0; i < bounds.targets.length; i += 3) {
       expect(
         new Set(bounds.targets.slice(i, i + 3).map((target) => target.top)).size
       ).toBe(1);
+      expect(bounds.targets[i + 2].right - bounds.targets[i].left).toBe(132);
     }
-    if (width < 600)
-      expect(new Set(bounds.targets.map((target) => target.top)).size).toBe(1);
   }
 });
 

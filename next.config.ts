@@ -21,6 +21,7 @@ if (build.builtAt) process.env.SITE_BUILT_AT = build.builtAt;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(process.env.STUDIO_E2E === '1' ? { devIndicators: false as const } : {}),
   // Next inlines the complete record so start time and newer CI runs cannot change it.
   env: {
     SITE_BUILD_RECORD: JSON.stringify(build),

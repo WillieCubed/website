@@ -246,7 +246,7 @@ jobs:
       - run: pnpm build:cloudflare-preview
         id: private_build
 
-      - name: Shared element transitions with private draft fixtures
+      - name: Breadcrumbs and shared transitions with private draft fixtures
         if: ${{ !cancelled() && steps.private_build.outcome == 'success' }}
         run: pnpm test:studio
         env:

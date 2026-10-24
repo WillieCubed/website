@@ -33,7 +33,6 @@ import {
 import { pageMetadata } from '@/lib/seo/metadata';
 import { absoluteUrl } from '@/lib/site/urls';
 import { canonicalUrl } from '@/lib/site/urls';
-import { isPrivatePreview } from '@/lib/studio/config';
 
 // Cache Components refuses an empty list at build time. When nothing is
 // published, one underscore path stands in: the loaders treat the prefix
@@ -168,11 +167,13 @@ export default async function PartPage(
       style={schemeStyleFromHex(initiative.brand)}
     >
       <JsonLd data={partGraph} />
-      <TopBar crumbs={crumbs} />
+      <TopBar
+        crumbs={[
+          ...crumbs,
+          { label: `${initiative.partLabel} ${part.number}`, href: partPath },
+        ]}
+      />
       <main id="main" className="site-frame site-frame--wide pb-20">
-        {isPrivatePreview() && (initiative.draft || part.draft) && (
-          <p className="mb-4 text-label-medium text-muted">Draft</p>
-        )}
         <header className="initiative-part-heading relative overflow-hidden rounded-3xl bg-scrim text-on-scrim">
           {cover && (
             <Image

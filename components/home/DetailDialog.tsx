@@ -27,10 +27,10 @@ interface DetailBodyProps {
 function DetailBody({ entry, onOpen }: DetailBodyProps) {
   return (
     <div className="d-content scroller">
-      <span className="d-kicker">{entry?.parent ?? ''}</span>
       <h2 className="d-title" id="d-title">
         {entry?.name}
       </h2>
+      {entry?.parent && <p className="d-parent">{entry.parent}</p>}
       {entry && <Body detail={entry.detail} onOpen={onOpen} />}
     </div>
   );

@@ -209,7 +209,7 @@ test('breadcrumb menu supports keyboard navigation and hash links', async ({
 test('an initiative crumb lists only its own children or parts', async ({
   page,
 }) => {
-  const response = await page.goto('/initiatives/fall-tour-2026/part-1');
+  const response = await page.goto('/initiatives/fall-tour-2026');
   test.skip(
     response?.status() === 404,
     'Initiative examples are draft-only in production builds.'
@@ -274,9 +274,12 @@ test('a long trail swaps the name for the cube on a phone', async ({
 test('a long trail paints compact before the bar measures itself', async ({
   browser,
   request,
+  baseURL,
 }) => {
   await skipUnlessPublished(request, '/initiatives/fall-tour-2026');
   const context = await browser.newContext({
+    baseURL,
+    extraHTTPHeaders: test.info().project.use.extraHTTPHeaders,
     javaScriptEnabled: false,
     viewport: { width: 375, height: 812 },
   });
@@ -331,58 +334,93 @@ for (const width of [320, 375, 390]) {
   });
 }
 
-test('a trail folds only as many crumbs as it has to', async ({
+test('a trail keeps its current page and collapses ancestors from the left', async ({
   page,
   request,
 }) => {
   await skipUnlessPublished(request, '/initiatives/fall-tour-2026');
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto('/initiatives/fall-tour-2026');
-  const banner = page.getByRole('banner');
-  // Drawing the crumbs closer makes room for this trail without folding.
-  await expect(banner).toHaveAttribute('data-folded', '0');
-  await expect(
-    banner.getByRole('button', { name: 'Open menu for Initiatives' })
-  ).toBeVisible();
-
-  await page.goto('/initiatives/fall-tour-2026/part-1');
-  await expect(banner).toHaveAttribute('data-folded', '2');
-  const ellipsis = banner.getByRole('button', {
-    name: 'Pages above this one',
-  });
-  await ellipsis.click();
-  const folded = page
-    .getByRole('navigation', { name: 'Pages above this one' })
-    .getByRole('link');
-  await expect(folded).toHaveCount(2);
-  await expect(folded.nth(0)).toHaveAttribute('href', '/initiatives');
-  await expect(folded.nth(1)).toHaveAttribute('href', '/initiatives/twd');
-  await page.keyboard.press('Escape');
-
-  await page.setViewportSize({ width: 430, height: 812 });
-  await expect(banner).toHaveAttribute('data-folded', '1');
-  await expect(
-    banner.getByRole('button', { name: 'Open menu for The Willie Diaries' })
-  ).toBeVisible();
-  await ellipsis.click();
-  await expect(folded.locator('visible=true')).toHaveCount(1);
-  await expect(folded.locator('visible=true')).toHaveAttribute(
-    'href',
-    '/initiatives'
-  );
-  await page.keyboard.press('Escape');
-
-  await page.setViewportSize({ width: 1280, height: 812 });
-  await expect(banner).toHaveAttribute('data-folded', '0');
-  await expect(ellipsis).toBeHidden();
+  for (const [path, label] of [
+    ['/initiatives/fall-tour-2026', 'Fall Tour 2026'],
+    ['/initiatives/fall-tour-2026/part-1', 'Part 1'],
+  ]) {
+    await page.goto(path);
+    let previousFolded = Infinity;
+    for (const width of [320, 375, 390, 430, 768, 1280]) {
+      await page.setViewportSize({ width, height: 812 });
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+          )
+      );
+      const banner = page.getByRole('banner');
+      const rail = banner.getByRole('navigation', { name: 'Breadcrumb' });
+      const current = rail.locator(
+        '.site-breadcrumbs__crumb:last-child .site-breadcrumb-menu__label'
+      );
+      await expect(current).toHaveText(label);
+      const clipped = await current.evaluate(
+        (node) => node.scrollWidth > node.clientWidth + 1
+      );
+      if (clipped) {
+        await expect(banner).toHaveAttribute('data-compact', 'true');
+        expect((await current.boundingBox())!.width).toBeGreaterThan(40);
+        await expect(
+          rail
+            .locator(':scope > .site-breadcrumbs__crumb--middle')
+            .filter({ visible: true })
+        ).toHaveCount(0);
+      }
+      const folded = Number(await banner.getAttribute('data-folded'));
+      expect(folded).toBeLessThanOrEqual(previousFolded);
+      previousFolded = folded;
+      const visible = await rail
+        .locator(':scope > div')
+        .evaluateAll(
+          (items) =>
+            items.filter((item) => item.getBoundingClientRect().width > 0)
+              .length
+        );
+      expect(visible).toBeLessThanOrEqual(4);
+      const ancestors = rail.locator(
+        ':scope > .site-breadcrumbs__crumb--middle'
+      );
+      const depths = await ancestors
+        .filter({ visible: true })
+        .evaluateAll((items) =>
+          items.map((item) => Number((item as HTMLElement).dataset.depth))
+        );
+      expect(depths).toEqual(
+        Array.from(
+          { length: (await ancestors.count()) - folded },
+          (_, index) => folded + index
+        )
+      );
+      if (folded > 0) {
+        await banner
+          .getByRole('button', { name: 'Pages above this one' })
+          .click();
+        const links = page
+          .getByRole('navigation', { name: 'Pages above this one' })
+          .getByRole('link')
+          .filter({ visible: true });
+        await expect(links).toHaveCount(folded);
+        await expect(links.first()).toHaveAttribute('href', '/initiatives');
+        await page.keyboard.press('Escape');
+      }
+    }
+  }
 });
 
 test('a deep trail paints folded before the bar measures itself', async ({
   browser,
   request,
+  baseURL,
 }) => {
   await skipUnlessPublished(request, '/initiatives/fall-tour-2026');
   const context = await browser.newContext({
+    baseURL,
+    extraHTTPHeaders: test.info().project.use.extraHTTPHeaders,
     javaScriptEnabled: false,
     viewport: { width: 375, height: 812 },
   });

@@ -107,15 +107,13 @@ export default function RouteMap({
   if (places.length === 0) return null;
   const trips = routes ?? [{ label: title, places }];
   return (
-    <figure className="route-map rounded-2xl border border-line bg-card">
-      <div className="route-map__atlas">
-        <Geography
-          places={places}
-          routes={trips}
-          connect={connect}
-          title={title}
-        />
-      </div>
+    <figure className="route-map rounded-4xl border border-line bg-card">
+      <Geography
+        places={places}
+        routes={trips}
+        connect={connect}
+        title={title}
+      />
       <figcaption>
         {routes ? (
           <ol className="route-map__trips" role="list">

@@ -50,32 +50,43 @@ function placeLabel(
     point.x < width / 2
       ? [point.x - labelWidth - 12, point.x + 12]
       : [point.x + 12, point.x - labelWidth - 12];
-  const directions = point.y > height / 2 ? [1, -1] : [-1, 1];
-  const rows = Math.ceil(height / LABEL_HEIGHT);
-  for (let row = 0; row <= rows; row++) {
-    for (const direction of directions) {
-      for (const side of sides) {
-        const candidate = {
-          ...point,
-          width: labelWidth,
-          left: Math.max(8, Math.min(width - labelWidth - 8, side)),
-          top: Math.max(
-            4,
-            Math.min(
-              height - LABEL_HEIGHT - 4,
-              point.y - 22 + row * direction * (LABEL_HEIGHT + GAP)
-            )
-          ),
-        };
-        if (
-          !coversPoint(candidate) &&
-          !labels.some((label) => intersects(candidate, label))
-        )
-          return candidate;
+  sides.push(point.x - labelWidth / 2);
+  const tops = [
+    point.y - LABEL_HEIGHT / 2,
+    point.y - LABEL_HEIGHT - 12,
+    point.y + 12,
+    ...labels.flatMap((label) => [
+      label.top - LABEL_HEIGHT - GAP,
+      label.top + LABEL_HEIGHT + GAP,
+    ]),
+  ];
+  let best: MapLabel | undefined;
+  let distance = Infinity;
+  for (const top of tops) {
+    for (const side of sides) {
+      const candidate = {
+        ...point,
+        width: labelWidth,
+        left: Math.max(8, Math.min(width - labelWidth - 8, side)),
+        top: Math.max(4, Math.min(height - LABEL_HEIGHT - 4, top)),
+      };
+      const candidateDistance = Math.hypot(
+        candidate.left + labelWidth / 2 - point.x,
+        candidate.top + LABEL_HEIGHT / 2 - point.y
+      );
+      if (
+        candidateDistance < distance &&
+        !coversPoint(candidate) &&
+        !labels.some((label) => intersects(candidate, label))
+      ) {
+        best = candidate;
+        distance = candidateDistance;
       }
     }
   }
-  return { ...point, width: labelWidth, left: 8, top: height - LABEL_HEIGHT };
+  return (
+    best ?? { ...point, width: labelWidth, left: 8, top: height - LABEL_HEIGHT }
+  );
 }
 
 export function screenMapPoints(

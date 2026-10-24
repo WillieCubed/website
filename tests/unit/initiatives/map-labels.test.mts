@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { mapLabels } from '@/lib/initiatives/map-labels';
-import { geographicView } from '@/lib/initiatives/route-geography';
+import {
+  geographicView,
+  routeGeography,
+} from '@/lib/initiatives/route-geography';
 
 const cities = [
   ['Dallas', 32.8471, -96.8518],
@@ -98,4 +101,65 @@ test('nearby cities share a named group until zoom gives their labels room', () 
       .sort(),
     ['Dallas', 'Plano']
   );
+});
+
+test('a proportional sidebar map keeps every marathon stop readable without overlapping labels', () => {
+  const stops = [
+    ...places.filter((place) =>
+      ['Austin', 'San Antonio', 'Reno', 'Long Beach'].includes(place.name)
+    ),
+    { name: 'Honolulu', lat: 21.31, lng: -157.86 },
+  ];
+  const { project, height } = routeGeography(stops);
+  const width = 318;
+  const labels = mapLabels(
+    stops.map((place) => {
+      const [x, y] = project(place);
+      return { name: place.name, x, y };
+    }),
+    { x: 0, y: 0, width: 800, height },
+    width,
+    (width * height) / 800
+  );
+  assert.equal(labels.flatMap((label) => label.names).length, stops.length);
+  for (const [index, label] of labels.entries()) {
+    assert.ok(label.left >= 0 && label.left + label.width <= width);
+    assert.ok(label.top >= 0 && label.top + 44 <= (width * height) / 800);
+    for (const other of labels.slice(index + 1)) {
+      assert.ok(
+        label.left + label.width <= other.left ||
+          other.left + other.width <= label.left ||
+          label.top + 44 <= other.top ||
+          other.top + 44 <= label.top,
+        `${label.name} overlaps ${other.name}`
+      );
+    }
+  }
+});
+
+test('tour labels stay near their cities instead of moving across the country', () => {
+  const stops = [...places, { name: 'Honolulu', lat: 21.31, lng: -157.86 }];
+  const geography = routeGeography(stops);
+  const projected = stops.map((place) => {
+    const [x, y] = geography.project(place);
+    return { name: place.name, x, y };
+  });
+  for (const width of [356, 1166]) {
+    const labels = mapLabels(
+      projected,
+      { x: 0, y: 0, width: 800, height: geography.height },
+      width,
+      Math.min((width * geography.height) / 800, 584)
+    );
+    for (const label of labels) {
+      assert.ok(
+        Math.hypot(
+          label.left + label.width / 2 - label.x,
+          label.top + 22 - label.y
+        ) <=
+          label.width / 2 + 64,
+        `${label.name} moved too far from its city`
+      );
+    }
+  }
 });

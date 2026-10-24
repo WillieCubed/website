@@ -196,6 +196,17 @@ Initiative and part pages support:
   and connecting lines. They use two columns on phones where the text fits and
   four on wide screens. Controls state their actions without explanatory copy
   beneath the map.
+  The canvas follows its geographic frame's aspect ratio rather than imposing
+  a minimum height. Height caps preserve the map's scale on wide screens.
+  Controls and captions share the figure's width, and the Hawaii frame ends
+  eight coordinate units after the inset. Keep label type and touch targets
+  unchanged when tightening the map's surrounding space.
+  Label placement chooses the nearest clear position beside, above, or below
+  each point. Nearby labels define additional rows without pushing names
+  across the map.
+  A rounded tonal viewport contains the cropped geography. Filled tonal controls
+  use the site's shared MD3 action states. These boundaries also remain visible
+  around the horizontally scrolling no-script map.
   Without JavaScript, the labeled map remains a horizontally scrollable SVG
   with its HTML labels; enhancement controls stay hidden. Lines end at the
   inset boundary rather than suggesting a false cross-panel distance.

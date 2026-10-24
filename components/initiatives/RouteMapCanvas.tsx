@@ -280,7 +280,11 @@ export default function RouteMapCanvas({
         onSelect={select}
       />
       <div className="route-map__scroll">
-        <div ref={container} className="route-map__canvas">
+        <div
+          ref={container}
+          className="route-map__canvas"
+          style={{ aspectRatio: `${WORLD.width} / ${height}` }}
+        >
           <svg
             viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`}
             role="img"

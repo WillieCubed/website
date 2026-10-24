@@ -130,11 +130,6 @@
 .route-map [data-route='3'] {
   --route-color: var(--accent-live);
 }
-.route-map__atlas {
-  position: relative;
-  max-width: 960px;
-  margin-inline: auto;
-}
 .route-map__islands > rect {
   fill: var(--color-card);
   stroke: var(--color-line);
@@ -228,9 +223,11 @@
   padding: 8px;
 }
 .route-map__controls button {
+  --control-fill: var(--color-secondary-container);
+  --control-ink: var(--color-on-secondary-container);
   min-width: 44px;
   min-height: 44px;
-  padding-inline: 12px;
+  padding-inline: 8px;
 }
 .route-map__stop-picker {
   min-width: 144px;
@@ -242,26 +239,28 @@
   min-height: 44px;
   padding: 8px;
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
+  border-radius: var(--radius-4xl);
+  background: var(--color-surface-container-high);
   color: var(--color-ink);
   font: inherit;
 }
 .route-map__scroll {
   overflow-x: auto;
-}
-.route-map__interactive {
-  container-type: inline-size;
+  border-radius: var(--radius-3xl);
+  background: var(--color-surface-container-low);
+  outline: 1px solid var(--color-outline-variant);
+  outline-offset: -1px;
 }
 .route-map__canvas {
   position: relative;
-  height: 280px;
-  height: clamp(280px, 55cqw, 480px);
+  width: 100%;
+  height: auto;
+  max-height: 480px;
   margin-inline: auto;
   overflow: hidden;
 }
 .route-map__interactive[data-islands='true'] .route-map__canvas {
-  height: clamp(340px, 70cqw, 600px);
+  max-height: 584px;
 }
 .route-map__canvas > svg {
   position: absolute;
@@ -307,11 +306,6 @@
 }
 .route-map__interactive[data-ready='false'] .route-map__canvas {
   width: 800px;
-  height: 440px;
-}
-.route-map__interactive[data-ready='false'][data-islands='true']
-  .route-map__canvas {
-  height: 560px;
 }
 .route-map__interactive[data-ready='false'] .route-map__controls,
 .route-map__interactive[data-compact='true'] .route-map__controls {

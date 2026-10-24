@@ -94,6 +94,6 @@ export function routeGeography(places: Place[]) {
     land: geography.land,
     project,
     islandLand: inset?.land ?? [],
-    height: inset ? 560 : MAP_HEIGHT,
+    height: inset ? HAWAII_INSET.y + HAWAII_INSET.height + 8 : MAP_HEIGHT,
   };
 }

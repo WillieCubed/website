@@ -86,11 +86,21 @@ test('separate trips never connect across their boundaries and Hawaii uses an ho
     'two Texas legs and two western legs; no fabricated inter-trip or inter-inset leg'
   );
   assert.match(html, /aria-label="Hawaii inset: Honolulu"/);
-  assert.match(html, /Hawaii uses a separate scale/);
   assert.equal((html.match(/class="route-map__interactive"/g) || []).length, 1);
   assert.match(html, /<option value="Honolulu">Honolulu<\/option>/);
   assert.match(html, /class="route-map__islands"/);
-  assert.match(html, /San Francisco → Reno → Los Angeles → Honolulu/);
+  const stopLists = [
+    ...html.matchAll(/<ol class="route-map__stops"[^>]*>([\s\S]*?)<\/ol>/g),
+  ];
+  assert.deepEqual(
+    stopLists.map(([, list]) =>
+      [...list.matchAll(/<li>(.*?)<\/li>/g)].map(([, name]) => name)
+    ),
+    [
+      ['Dallas', 'Plano', 'Denton'],
+      ['San Francisco', 'Reno', 'Los Angeles', 'Honolulu'],
+    ]
+  );
   assert.equal((html.match(/<circle\b/g) || []).length, stops.length);
 });
 

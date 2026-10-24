@@ -191,7 +191,11 @@ Initiative and part pages support:
   the map. Leader lines connect displaced labels to their geographic points.
   Selecting a city zooms into its area. The “Zoom to city” picker also reaches
   labels outside the current view. Zoom buttons, drag panning, arrow-key panning,
-  and Show all share the same viewport. Each trip retains its full ordered stop list in HTML.
+  and Show all share the same viewport. Each trip retains its full ordered stop
+  list in HTML. Trip captions arrange cities vertically with colored stop markers
+  and connecting lines. They use two columns on phones where the text fits and
+  four on wide screens. Controls state their actions without explanatory copy
+  beneath the map.
   Without JavaScript, the labeled map remains a horizontally scrollable SVG
   with its HTML labels; enhancement controls stay hidden. Lines end at the
   inset boundary rather than suggesting a false cross-panel distance.

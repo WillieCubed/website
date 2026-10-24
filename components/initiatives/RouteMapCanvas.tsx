@@ -339,9 +339,6 @@ export default function RouteMapCanvas({
           {selected.join(' · ')}
         </p>
       )}
-      <div className="route-map__interaction-hint">
-        Select a city or group to zoom. Drag to move the map.
-      </div>
     </div>
   );
 }

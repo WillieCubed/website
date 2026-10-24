@@ -106,7 +106,6 @@ export default function RouteMap({
 }: RouteMapProps) {
   if (places.length === 0) return null;
   const trips = routes ?? [{ label: title, places }];
-  const separateHawaii = places.some(isHawaii) && !places.every(isHawaii);
   return (
     <figure className="route-map rounded-2xl border border-line bg-card">
       <div className="route-map__atlas">
@@ -119,19 +118,24 @@ export default function RouteMap({
       </div>
       <figcaption>
         {routes ? (
-          <ol className="route-map__trips">
+          <ol className="route-map__trips" role="list">
             {routes.map((route, index) => (
               <li key={index} data-route={index % 4}>
-                <span className="route-map__key" aria-hidden="true" />
-                <div>
-                  <strong>{route.label}</strong>
-                  <p>{route.places.map((place) => place.name).join(' → ')}</p>
-                </div>
+                <strong>{route.label}</strong>
+                <ol
+                  className="route-map__stops"
+                  role="list"
+                  aria-label={`${route.label} stops`}
+                >
+                  {route.places.map((place, stop) => (
+                    <li key={stop}>{place.name}</li>
+                  ))}
+                </ol>
               </li>
             ))}
           </ol>
         ) : (
-          <ol className="route-map__places">
+          <ol className="route-map__stops" role="list" data-route="0">
             {places.map((place, index) => (
               <li key={index}>
                 {place.name}
@@ -139,9 +143,6 @@ export default function RouteMap({
               </li>
             ))}
           </ol>
-        )}
-        {separateHawaii && (
-          <p className="route-map__note">Hawaii uses a separate scale.</p>
         )}
       </figcaption>
     </figure>

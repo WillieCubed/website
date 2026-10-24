@@ -118,10 +118,6 @@
 .route-map__journey[data-route='3'] path {
   stroke-dasharray: 8 5;
 }
-.route-map__trips [data-route='3'] .route-map__key {
-  border-top: 4px dashed var(--route-color);
-  background: none;
-}
 .route-map [data-route='0'] {
   --route-color: var(--color-primary);
 }
@@ -145,45 +141,53 @@
   vector-effect: non-scaling-stroke;
 }
 .route-map figcaption {
-  padding: 16px;
+  padding: 8px;
 }
 .route-map__trips {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 16px 24px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9em), 1fr));
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.route-map__trips li {
-  display: flex;
-  gap: 8px;
-}
 .route-map__trips strong {
   font-weight: 500;
 }
-.route-map__trips p {
+.route-map__stops {
+  display: grid;
+  gap: 4px;
   margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
 }
-.route-map__key {
-  width: 16px;
-  height: 4px;
-  margin-top: 12px;
-  flex-shrink: 0;
-  border-radius: var(--radius-full);
+.route-map__stops li {
+  position: relative;
+  padding-left: 16px;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+.route-map__stops li::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-xs);
   background: var(--route-color);
 }
-.route-map__places {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 32px;
-  margin: 0;
-  padding-left: 24px;
+.route-map__stops li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  bottom: -12px;
+  left: 4px;
+  transform: translateX(-50%);
+  border-left: 2px solid var(--route-color);
 }
-.route-map__note {
-  margin: 16px 0 0;
-  color: var(--color-muted);
-  font-size: var(--text-body-small);
+.route-map__trips [data-route='3'] .route-map__stops li::after {
+  border-left-style: dashed;
 }
 
 /* The link to an initiative's own website, filled in its brand primary. */
@@ -221,7 +225,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 16px;
+  padding: 8px;
 }
 .route-map__controls button {
   min-width: 44px;
@@ -229,8 +233,8 @@
   padding-inline: 12px;
 }
 .route-map__stop-picker {
-  min-width: 0;
-  flex: 1;
+  min-width: 144px;
+  flex: 1 1 144px;
 }
 .route-map__stop-picker select {
   width: 100%;
@@ -301,12 +305,6 @@
   outline: 2px solid var(--accent-live);
   outline-offset: -2px;
 }
-.route-map__interaction-hint {
-  margin: 0;
-  padding: 8px 16px;
-  color: var(--color-muted);
-  font-size: var(--text-body-small);
-}
 .route-map__interactive[data-ready='false'] .route-map__canvas {
   width: 800px;
   height: 440px;
@@ -316,9 +314,7 @@
   height: 560px;
 }
 .route-map__interactive[data-ready='false'] .route-map__controls,
-.route-map__interactive[data-ready='false'] .route-map__interaction-hint,
-.route-map__interactive[data-compact='true'] .route-map__controls,
-.route-map__interactive[data-compact='true'] .route-map__interaction-hint {
+.route-map__interactive[data-compact='true'] .route-map__controls {
   display: none;
 }
 .route-map__interactive[data-compact='true'] .route-map__canvas {

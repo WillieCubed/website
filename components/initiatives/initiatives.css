@@ -282,19 +282,29 @@
   stroke-width: 1;
 }
 .route-map__canvas .route-map__city {
+  --control-fill: var(--color-card);
+  --control-disabled-fill: var(--color-card);
+  --control-border: 1px solid var(--color-line);
   display: grid;
   place-items: center;
   position: absolute;
   min-height: 44px;
-  padding: 4px;
-  border: 1px solid var(--color-line);
+  padding: 0;
+  border: 0;
   border-radius: var(--radius-lg);
-  background: var(--color-card);
+  background: transparent;
   color: var(--color-ink);
   font-size: var(--text-body-small);
   line-height: var(--text-body-small--line-height);
   text-align: center;
   white-space: nowrap;
+}
+.route-map__city-name {
+  min-height: 0;
+  padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
+  border: 1px solid var(--color-line);
+  border-radius: inherit;
+  background: var(--color-card);
 }
 .route-map__city[aria-pressed='true'] {
   outline: 2px solid var(--accent-live);

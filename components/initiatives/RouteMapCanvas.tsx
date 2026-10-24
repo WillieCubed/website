@@ -191,7 +191,7 @@ function CityLabel({
   if (compact)
     return (
       <span className="route-map__city" style={style}>
-        {label.name}
+        <span className="route-map__city-name">{label.name}</span>
       </span>
     );
   return (
@@ -204,7 +204,9 @@ function CityLabel({
       style={style}
       onClick={() => onSelect(label.names)}
     >
-      {label.name}
+      <span className="site-control__surface route-map__city-name">
+        {label.name}
+      </span>
     </button>
   );
 }

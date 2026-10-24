@@ -204,6 +204,9 @@ Initiative and part pages support:
   Label placement chooses the nearest clear position beside, above, or below
   each point. Nearby labels define additional rows without pushing names
   across the map.
+  City labels use 2px vertical and 4px horizontal surface padding. A transparent
+  outer control preserves the full 44px touch height and existing label width.
+  Keep the text size unchanged when tightening the visible container.
   A rounded tonal viewport contains the cropped geography. Filled tonal controls
   use the site's shared MD3 action states. These boundaries also remain visible
   around the horizontally scrolling no-script map.

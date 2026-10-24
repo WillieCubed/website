@@ -207,9 +207,15 @@ Initiative and part pages support:
   It does not enlarge the canvas. Only the outer viewport clips the geography;
   mainland outlines continue behind the overlay without an internal cutoff. Keep label type and touch targets
   unchanged when tightening the map's surrounding space.
-  Label placement chooses the nearest clear position beside, above, or below
-  each point. Nearby labels define additional rows without pushing names
-  across the map.
+  Label placement considers neighboring labels together instead of moving
+  each name around the labels placed before it. Leaders stop at the nearest
+  label edge and stay within one 44px touch target plus the 4px gap. Label
+  surfaces avoid unrelated city markers. Nearby cities can group when their
+  labels cannot fit locally; inset cities never join mainland clusters.
+  Home stops reserve their nearby label positions first. Placement scores both
+  the text center and the leader length so a wide label cannot drift toward
+  another city's marker merely to shorten its leader.
+  Standalone part maps use the part's route color and pattern from the overview.
   City labels use 2px vertical and 4px horizontal surface padding. A transparent
   outer control preserves the full 44px touch height and at least 44px of width.
   Keep the text size unchanged when tightening the visible container.
@@ -262,6 +268,11 @@ The part page renders the hero, milestones, places, and previous/next navigation
 from frontmatter. Use the body to develop what happened and what it means rather
 than repeating that schedule. A date or milestone can then change in one
 structured source.
+
+Previous and next parts share one row below the story. Their titles wrap
+inside equal-width links, and the part number sits below the title. The
+overview link occupies a separate centered row beneath both choices. First
+and last parts render only their available neighbor without an empty slot.
 
 Outside the initiative, a part needs a name that stands on its own. `partTitle()`
 combines the initiative name, part label and number, and title: “Fall Tour 2026

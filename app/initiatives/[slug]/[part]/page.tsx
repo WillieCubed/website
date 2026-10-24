@@ -111,7 +111,11 @@ function PartMilestones({ part }: PartMilestonesProps) {
         </section>
       )}
       {part.places.length > 1 && (
-        <RouteMap places={part.places} title={`${part.title} places`} />
+        <RouteMap
+          places={part.places}
+          title={`${part.title} places`}
+          routeIndex={part.number - 1}
+        />
       )}
     </aside>
   );
@@ -179,7 +183,7 @@ export default async function PartPage(
           { label: `${initiative.partLabel} ${part.number}`, href: partPath },
         ]}
       />
-      <main id="main" className="site-frame site-frame--wide pb-20">
+      <main id="main" className="site-frame site-frame--wide pb-2xl">
         <header className="initiative-part-heading relative overflow-hidden rounded-3xl bg-scrim text-on-scrim">
           {cover && (
             <Image

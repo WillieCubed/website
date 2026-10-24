@@ -12,6 +12,7 @@ import RouteMapCanvas from './RouteMapCanvas';
 interface RouteGroup {
   label: string;
   places: Place[];
+  routeIndex?: number;
 }
 
 interface RouteMapProps {
@@ -21,6 +22,7 @@ interface RouteMapProps {
   routes?: RouteGroup[];
   connect?: boolean;
   title?: string;
+  routeIndex?: number;
 }
 
 interface GeographyProps {
@@ -41,7 +43,13 @@ function Geography({ places, routes, connect, title, hubs }: GeographyProps) {
       height={height}
       points={places.map((place) => {
         const [x, y] = project(place);
-        return { name: place.name, x, y, hub: hubs.has(place.name) };
+        return {
+          name: place.name,
+          x,
+          y,
+          hub: hubs.has(place.name),
+          inset: isHawaii(place),
+        };
       })}
     >
       <g className="route-map__land" aria-hidden="true">
@@ -70,7 +78,11 @@ function Geography({ places, routes, connect, title, hubs }: GeographyProps) {
       )}
       {connect &&
         routes.map((route, index) => (
-          <g key={index} className="route-map__journey" data-route={index % 4}>
+          <g
+            key={index}
+            className="route-map__journey"
+            data-route={(route.routeIndex ?? index) % 4}
+          >
             {route.places.slice(1).map((place, stop) => {
               const previous = route.places[stop];
               if (!names.has(previous.name) || !names.has(place.name))
@@ -105,9 +117,10 @@ export default function RouteMap({
   routes,
   connect = true,
   title = 'Route',
+  routeIndex = 0,
 }: RouteMapProps) {
   if (places.length === 0) return null;
-  const trips = routes ?? [{ label: title, places }];
+  const trips = routes ?? [{ label: title, places, routeIndex }];
   const hubs = repeatedPlaceNames(trips.flatMap((trip) => trip.places));
   return (
     <figure className="route-map rounded-4xl border border-line bg-card">
@@ -122,7 +135,7 @@ export default function RouteMap({
         {routes ? (
           <ol className="route-map__trips" role="list">
             {routes.map((route, index) => (
-              <li key={index} data-route={index % 4}>
+              <li key={index} data-route={(route.routeIndex ?? index) % 4}>
                 <strong>{route.label}</strong>
                 <ol
                   className="route-map__stops"
@@ -137,7 +150,11 @@ export default function RouteMap({
             ))}
           </ol>
         ) : (
-          <ol className="route-map__stops" role="list" data-route="0">
+          <ol
+            className="route-map__stops"
+            role="list"
+            data-route={routeIndex % 4}
+          >
             {places.map((place, index) => (
               <li key={index}>
                 {place.name}

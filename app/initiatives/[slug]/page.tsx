@@ -192,6 +192,7 @@ export default async function InitiativePage(
               routes={initiative.parts.map((part) => ({
                 label: `${initiative.partLabel} ${part.number}`,
                 places: part.places,
+                routeIndex: part.number - 1,
               }))}
               title={`${initiative.title} route`}
             />

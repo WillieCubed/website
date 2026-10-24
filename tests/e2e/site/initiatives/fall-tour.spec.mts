@@ -8,6 +8,49 @@ test.skip(
 const root = '/initiatives/fall-tour-2026';
 const paths = [root, ...[1, 2, 3, 4].map((part) => `${root}/part-${part}`)];
 
+test('part navigation groups adjacent parts above the overview link without empty slots', async ({
+  page,
+}, info) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const part of [1, 3, 4]) {
+    await page.goto(`${root}/part-${part}`);
+    const nav = page.getByRole('navigation', {
+      name: 'Fall Tour 2026 navigation',
+    });
+    expect(
+      await page
+        .locator('main')
+        .evaluate((node) => parseFloat(getComputedStyle(node).paddingBottom))
+    ).toBeLessThanOrEqual(48);
+    const adjacent = nav.locator('.part-nav__part');
+    await expect(adjacent).toHaveCount(part === 3 ? 2 : 1);
+    const boxes = await adjacent.evaluateAll((links) =>
+      links.map((link) => {
+        const { x, y, width, height, bottom } = link.getBoundingClientRect();
+        return { x, y, width, height, bottom };
+      })
+    );
+    for (const box of boxes) expect(box.height).toBeGreaterThanOrEqual(44);
+    if (boxes.length === 2) {
+      expect(boxes[0].y).toBeCloseTo(boxes[1].y, 0);
+      expect(boxes[0].height).toBeCloseTo(boxes[1].height, 0);
+      expect(boxes[1].x - boxes[0].x - boxes[0].width).toBeCloseTo(12, 0);
+    }
+    const overview = await nav
+      .getByRole('link', { name: 'All of Fall Tour 2026' })
+      .boundingBox();
+    expect(overview!.y).toBeGreaterThanOrEqual(
+      Math.max(...boxes.map((box) => box.bottom)) + 8
+    );
+    if (part === 3) {
+      await nav.evaluate((node) => node.scrollIntoView({ block: 'center' }));
+      await page.screenshot({
+        path: info.outputPath('part-navigation-viewport.png'),
+      });
+    }
+  }
+});
+
 test('Fall Tour renders every chapter with readable content and loaded viewport media', async ({
   page,
 }, info) => {

@@ -7,59 +7,42 @@ interface PartNavProps {
   part: Part;
 }
 
-/** Previous and next act, and the way back to the campaign. */
 export default function PartNav({ initiative, part }: PartNavProps) {
   const index = initiative.parts.findIndex((p) => p.number === part.number);
   const previous = initiative.parts[index - 1];
   const next = initiative.parts[index + 1];
-  const label = initiative.partLabel;
 
   return (
-    <nav
-      aria-label={`${initiative.title} navigation`}
-      className="mt-12 grid gap-3 medium:grid-cols-3"
-    >
-      <div>
-        {previous != null && (
-          <SiteLink
-            preview={false}
-            href={`${initiative.href}/${previous.slug}`}
-            className="group block rounded-xl p-3 transition-colors hover:bg-tray"
-          >
-            <span className="block text-label-small text-muted">
-              ← {label} {previous.number}
-            </span>
-            <span className="text-title-small text-ink group-hover:underline">
-              {previous.title}
-            </span>
-          </SiteLink>
+    <nav aria-label={`${initiative.title} navigation`} className="part-nav">
+      <div className="part-nav__adjacent">
+        {[previous, next].map(
+          (destination, direction) =>
+            destination != null && (
+              <SiteLink
+                key={destination.number}
+                preview={false}
+                href={`${initiative.href}/${destination.slug}`}
+                aria-label={`${initiative.partLabel} ${destination.number}: ${destination.title}`}
+                rel={direction === 0 ? 'prev' : 'next'}
+                className="part-nav__part"
+              >
+                <span className="part-nav__title">{destination.title}</span>
+                <span className="part-nav__position">
+                  {direction === 0 && '← '}
+                  {initiative.partLabel} {destination.number}
+                  {direction === 1 && ' →'}
+                </span>
+              </SiteLink>
+            )
         )}
       </div>
-      <div className="text-center">
-        <SiteLink
-          preview={false}
-          href={initiative.href}
-          className="site-control px-4 py-2 text-label-large [--control-ink:var(--color-ink)] [--control-border:1px_solid_var(--color-line)]"
-        >
-          All of {initiative.title}
-        </SiteLink>
-      </div>
-      <div className="text-right">
-        {next != null && (
-          <SiteLink
-            preview={false}
-            href={`${initiative.href}/${next.slug}`}
-            className="group block rounded-xl p-3 transition-colors hover:bg-tray"
-          >
-            <span className="block text-label-small text-muted">
-              {label} {next.number} →
-            </span>
-            <span className="text-title-small text-ink group-hover:underline">
-              {next.title}
-            </span>
-          </SiteLink>
-        )}
-      </div>
+      <SiteLink
+        preview={false}
+        href={initiative.href}
+        className="part-nav__overview site-control px-4 py-2 text-label-large [--control-ink:var(--color-ink)] [--control-border:1px_solid_var(--color-line)]"
+      >
+        All of {initiative.title}
+      </SiteLink>
     </nav>
   );
 }

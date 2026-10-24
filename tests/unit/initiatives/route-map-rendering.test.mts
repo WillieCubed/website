@@ -74,6 +74,22 @@ test('unconnected maps keep every place and empty maps render nothing', () => {
   );
 });
 
+test('standalone parts retain the same route identity in the map and stop list', () => {
+  for (const routeIndex of [2, 3]) {
+    const html = renderToStaticMarkup(
+      createElement(RouteMap, { places, routeIndex })
+    );
+    assert.match(
+      html,
+      new RegExp(`class="route-map__journey" data-route="${routeIndex}"`)
+    );
+    assert.match(
+      html,
+      new RegExp(`class="route-map__stops"[^>]*data-route="${routeIndex}"`)
+    );
+  }
+});
+
 test('separate trips keep their boundaries and Hawaii connections remain schematic', () => {
   const honolulu = { name: 'Honolulu', lat: 21.31, lng: -157.86 };
   const stops = [...places, honolulu];

@@ -16,6 +16,7 @@ import {
   type MapFrame,
   type MapLabel,
   type MapPoint,
+  labelEndpoint,
   mapLabels,
   screenMapPoints,
 } from '@/lib/initiatives/map-labels';
@@ -334,7 +335,7 @@ export default function RouteMapCanvas({
             {labels.map((label) => (
               <path
                 key={label.name}
-                d={`M${label.x} ${label.y}L${label.left + label.width / 2} ${label.top + 22}`}
+                d={`M${label.x} ${label.y}L${labelEndpoint(label).join(' ')}`}
               />
             ))}
           </svg>

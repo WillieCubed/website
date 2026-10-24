@@ -1,11 +1,56 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { mapLabels } from '@/lib/initiatives/map-labels';
+import { mapLabels, screenMapPoints } from '@/lib/initiatives/map-labels';
 import {
   geographicView,
   routeGeography,
 } from '@/lib/initiatives/route-geography';
+
+test('narrow rail labels stay beside their own markers', () => {
+  const stops = [
+    { name: 'Las Vegas', lat: 36.1699, lng: -115.1398 },
+    { name: 'Los Angeles', lat: 34.0522, lng: -118.2437 },
+    { name: 'Chicago', lat: 41.8781, lng: -87.6298 },
+    { name: 'Dallas–Fort Worth', lat: 32.7767, lng: -96.797 },
+    { name: 'San Francisco', lat: 37.7749, lng: -122.4194 },
+  ];
+  const { project } = routeGeography(stops);
+  for (const width of [318, 356]) {
+    const labels = mapLabels(
+      stops.map((place) => {
+        const [x, y] = project(place);
+        return { name: place.name, x, y, hub: place.name === 'Las Vegas' };
+      }),
+      { x: 0, y: 0, width: 800, height: 440 },
+      width,
+      (width * 440) / 800
+    );
+    for (const label of labels) {
+      const dx = Math.max(
+        label.left - label.x,
+        0,
+        label.x - label.left - label.width
+      );
+      const dy = Math.max(
+        label.top + 11 - label.y,
+        0,
+        label.y - label.top - 33
+      );
+      assert.ok(
+        Math.hypot(dx, dy) <= 48,
+        `${width}: ${label.name} is too far from its marker`
+      );
+      assert.ok(
+        Math.hypot(
+          label.left + label.width / 2 - label.x,
+          label.top + 22 - label.y
+        ) <= Math.max(44, label.width / 2 + 16),
+        `${width}: ${label.name} is centered too far from its marker`
+      );
+    }
+  }
+});
 
 const cities = [
   ['Dallas', 32.8471, -96.8518],
@@ -26,6 +71,41 @@ const { project } = geographicView(places, true);
 const points = places.map((place) => {
   const [x, y] = project(place.lng, place.lat);
   return { name: place.name, x, y };
+});
+
+test('a small pan retains every visible city on narrow overview maps', () => {
+  const stops = [
+    { name: 'Las Vegas', lat: 36.1699, lng: -115.1398 },
+    ...places,
+    { name: 'Honolulu', lat: 21.31, lng: -157.86 },
+  ];
+  const geography = routeGeography(stops);
+  const projected = stops.map((place) => {
+    const [x, y] = geography.project(place);
+    return {
+      name: place.name,
+      x,
+      y,
+      hub: place.name === 'Las Vegas',
+      inset: place.name === 'Honolulu',
+    };
+  });
+  for (const width of [318, 356]) {
+    for (const y of [-88, -40, -20, 0, 20, 88, 140]) {
+      const view = { x: 0, y, width: 800, height: 440 };
+      const height = (width * 440) / 800;
+      const labels = mapLabels(projected, view, width, height);
+      assert.deepEqual(
+        labels.flatMap((label) => label.names).sort(),
+        screenMapPoints(projected, view, width, height)
+          .map((point) => point.name)
+          .sort(),
+        `${width}px with vertical pan ${y}`
+      );
+      const island = labels.find((label) => label.names.includes('Honolulu'));
+      if (island) assert.deepEqual(island.names, ['Honolulu']);
+    }
+  }
 });
 
 for (const width of [320, 358, 736, 960]) {
@@ -209,7 +289,8 @@ test('home and destination touch targets fit the map when Hawaii overlays the ma
       );
       assert.deepEqual(
         labels.find((label) => label.name === 'Las Vegas')?.names,
-        ['Las Vegas']
+        ['Las Vegas'],
+        `${stops.length} stops at ${width}px`
       );
       for (const [index, label] of labels.entries())
         for (const other of labels.slice(index + 1))

@@ -175,7 +175,9 @@ keep their native or documented component-specific focus behavior.
 
 [Connected button groups](https://m3.material.io/components/button-groups/specs)
 use 2px inner spacing and 8px inner corners at the small size. Only the pressed
-control changes shape; neighboring controls retain their position and size.
+control changes shape; extra-small connected controls use the shared 6px inner
+corner token. Keep the full semantic targets separate from those smaller surfaces.
+Neighboring controls retain their position and size.
 The spacing is a documented exception to the site's normal 4px layout grid.
 
 Cards and inline links are not automatically buttons. Preserve the site's

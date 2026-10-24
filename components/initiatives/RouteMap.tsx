@@ -1,4 +1,5 @@
 import type { Place } from '@/lib/initiatives/index';
+import { repeatedPlaceNames, uniquePlaces } from '@/lib/initiatives/places';
 import {
   HAWAII_INSET,
   curvedLeg,
@@ -27,9 +28,10 @@ interface GeographyProps {
   routes: RouteGroup[];
   connect: boolean;
   title: string;
+  hubs: Set<string>;
 }
 
-function Geography({ places, routes, connect, title }: GeographyProps) {
+function Geography({ places, routes, connect, title, hubs }: GeographyProps) {
   const { project, land, islandLand, height } = routeGeography(places);
   const names = new Set(places.map((place) => place.name));
   return (
@@ -39,28 +41,26 @@ function Geography({ places, routes, connect, title }: GeographyProps) {
       height={height}
       points={places.map((place) => {
         const [x, y] = project(place);
-        return { name: place.name, x, y };
+        return { name: place.name, x, y, hub: hubs.has(place.name) };
       })}
     >
-      <svg width="800" height="440" overflow="hidden" aria-hidden="true">
-        <g className="route-map__land">
-          {land.map((outline, index) => (
-            <path key={index} d={outline} />
-          ))}
-        </g>
-      </svg>
+      <g className="route-map__land" aria-hidden="true">
+        {land.map((outline, index) => (
+          <path key={index} d={outline} />
+        ))}
+      </g>
       {islandLand.length > 0 && (
         <svg
           {...HAWAII_INSET}
           viewBox="0 0 800 440"
           className="route-map__islands"
+          overflow="visible"
           role="img"
           aria-label={`Hawaii inset: ${places
             .filter(isHawaii)
             .map((place) => place.name)
             .join(', ')}`}
         >
-          <rect width="800" height="440" rx="48" />
           <g className="route-map__land" aria-hidden="true">
             {islandLand.map((outline, index) => (
               <path key={index} d={outline} />
@@ -75,10 +75,12 @@ function Geography({ places, routes, connect, title }: GeographyProps) {
               const previous = route.places[stop];
               if (!names.has(previous.name) || !names.has(place.name))
                 return null;
-              if (isHawaii(previous) !== isHawaii(place)) return null;
               return (
                 <path
                   key={stop}
+                  data-inset-leg={
+                    isHawaii(previous) !== isHawaii(place) || undefined
+                  }
                   d={curvedLeg(project(previous), project(place))}
                 />
               );
@@ -106,13 +108,15 @@ export default function RouteMap({
 }: RouteMapProps) {
   if (places.length === 0) return null;
   const trips = routes ?? [{ label: title, places }];
+  const hubs = repeatedPlaceNames(trips.flatMap((trip) => trip.places));
   return (
     <figure className="route-map rounded-4xl border border-line bg-card">
       <Geography
-        places={places}
+        places={uniquePlaces(places)}
         routes={trips}
         connect={connect}
         title={title}
+        hubs={hubs}
       />
       <figcaption>
         {routes ? (

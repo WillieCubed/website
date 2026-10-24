@@ -4,7 +4,7 @@ import outlines from './world-outlines.json';
 export const MAP_WIDTH = 800;
 export const MAP_HEIGHT = 440;
 const PAD = 32;
-export const HAWAII_INSET = { x: 16, y: 430, width: 192, height: 106 };
+export const HAWAII_INSET = { x: 16, y: 326, width: 192, height: 106 };
 
 export function isHawaii(place: Place) {
   return (
@@ -94,6 +94,6 @@ export function routeGeography(places: Place[]) {
     land: geography.land,
     project,
     islandLand: inset?.land ?? [],
-    height: inset ? HAWAII_INSET.y + HAWAII_INSET.height + 8 : MAP_HEIGHT,
+    height: MAP_HEIGHT,
   };
 }

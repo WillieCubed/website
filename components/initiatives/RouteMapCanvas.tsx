@@ -101,26 +101,28 @@ function MapControls({
       role="group"
       aria-label={`${title} controls`}
     >
-      <Button
-        type="button"
-        size="extra-small"
-        variant="tonal"
-        iconOnly
-        aria-label="Zoom in"
-        onClick={() => onZoom(0.5)}
-      >
-        +
-      </Button>
-      <Button
-        type="button"
-        size="extra-small"
-        variant="tonal"
-        iconOnly
-        aria-label="Zoom out"
-        onClick={() => onZoom(2)}
-      >
-        −
-      </Button>
+      <div className="route-map__zoom" role="group" aria-label="Map zoom">
+        <Button
+          type="button"
+          size="extra-small"
+          variant="tonal"
+          iconOnly
+          aria-label="Zoom in"
+          onClick={() => onZoom(0.5)}
+        >
+          +
+        </Button>
+        <Button
+          type="button"
+          size="extra-small"
+          variant="tonal"
+          iconOnly
+          aria-label="Zoom out"
+          onClick={() => onZoom(2)}
+        >
+          −
+        </Button>
+      </div>
       <Button
         type="button"
         size="extra-small"
@@ -282,7 +284,6 @@ export default function RouteMapCanvas({
       className="route-map__interactive"
       data-ready={ready}
       data-compact={compact}
-      data-islands={height > WORLD.height}
     >
       <MapControls
         title={title}
@@ -319,9 +320,7 @@ export default function RouteMapCanvas({
               drag.current = null;
             }}
           >
-            <svg x="0" y="0" width="800" height={height} overflow="hidden">
-              {children}
-            </svg>
+            {children}
           </svg>
           <svg
             viewBox={`0 0 ${size.width} ${size.height}`}

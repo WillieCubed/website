@@ -2,6 +2,7 @@ export interface MapPoint {
   name: string;
   x: number;
   y: number;
+  hub?: boolean;
 }
 
 export interface MapFrame {
@@ -45,12 +46,21 @@ function placeLabel(
   width: number,
   height: number
 ) {
-  const labelWidth = Math.min(width - 16, point.name.length * 8 + 20);
+  const labelWidth = Math.min(
+    width - 16,
+    Math.max(44, point.name.length * 7 + 12)
+  );
   const sides =
     point.x < width / 2
       ? [point.x - labelWidth - 12, point.x + 12]
       : [point.x + 12, point.x - labelWidth - 12];
-  sides.push(point.x - labelWidth / 2);
+  sides.push(
+    point.x - labelWidth / 2,
+    ...labels.flatMap((label) => [
+      label.left - labelWidth - GAP,
+      label.left + label.width + GAP,
+    ])
+  );
   const tops = [
     point.y - LABEL_HEIGHT / 2,
     point.y - LABEL_HEIGHT - 12,
@@ -119,16 +129,22 @@ export function mapLabels(
   const visible = screenMapPoints(points, view, width, height);
   const groups: MapPoint[][] = [];
   for (const point of visible.sort((a, b) => a.y - b.y)) {
-    const nearby = groups.find((group) =>
-      group.some(
-        (other) => Math.hypot(other.x - point.x, other.y - point.y) < 28
-      )
-    );
+    const nearby = point.hub
+      ? undefined
+      : groups.find(
+          (group) =>
+            !group.some((other) => other.hub) &&
+            group.some(
+              (other) => Math.hypot(other.x - point.x, other.y - point.y) < 28
+            )
+        );
     if (nearby) nearby.push(point);
     else groups.push([point]);
   }
   const labels: MapLabel[] = [];
-  for (const group of groups) {
+  for (const group of groups.sort(
+    (a, b) => Number(!!b[0].hub) - Number(!!a[0].hub)
+  )) {
     const names = points
       .filter((point) => group.some((member) => member.name === point.name))
       .map((point) => point.name);

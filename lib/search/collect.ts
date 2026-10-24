@@ -6,6 +6,7 @@ import { type Entry, entries } from '@/lib/home/ventures';
 import { decodePortableMarkdown } from '@/lib/indieweb/feeds/html';
 import { type Initiative, type Part } from '@/lib/initiatives/index';
 import { loadAllInitiatives, partTitle } from '@/lib/initiatives/load';
+import { uniquePlaces } from '@/lib/initiatives/places';
 import { getMediaMentions } from '@/lib/media/content';
 import { type Project, loadAllProjects } from '@/lib/projects';
 import { projectFacts } from '@/lib/projects/facts';
@@ -61,7 +62,9 @@ function partToItem(initiative: Initiative, part: Part): SearchableItem {
     description: part.description || part.tagline || initiative.description,
     content: [
       part.tagline,
-      part.places.map((place) => place.name).join(', '),
+      uniquePlaces(part.places)
+        .map((place) => place.name)
+        .join(', '),
       stripMdxSyntax(part.content),
     ]
       .filter(Boolean)

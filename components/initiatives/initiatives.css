@@ -118,6 +118,9 @@
 .route-map__journey[data-route='3'] path {
   stroke-dasharray: 8 5;
 }
+.route-map__journey path[data-inset-leg] {
+  stroke-dasharray: 4 4;
+}
 .route-map [data-route='0'] {
   --route-color: var(--color-primary);
 }
@@ -129,11 +132,6 @@
 }
 .route-map [data-route='3'] {
   --route-color: var(--accent-live);
-}
-.route-map__islands > rect {
-  fill: var(--color-card);
-  stroke: var(--color-line);
-  vector-effect: non-scaling-stroke;
 }
 .route-map figcaption {
   max-width: var(--page-width-reading);
@@ -228,10 +226,30 @@
   --control-fill: var(--color-secondary-container);
   --control-ink: var(--color-on-secondary-container);
 }
+.route-map__zoom {
+  display: flex;
+}
+.route-map__zoom > button:first-child {
+  justify-content: flex-end;
+  padding-inline-end: calc(var(--control-group-gap) / 2);
+}
+.route-map__zoom > button:last-child {
+  justify-content: flex-start;
+  padding-inline-start: calc(var(--control-group-gap) / 2);
+}
+.route-map__zoom > button:first-child > .site-control__surface {
+  border-start-end-radius: var(--control-connected-radius-extra-small);
+  border-end-end-radius: var(--control-connected-radius-extra-small);
+}
+.route-map__zoom > button:last-child > .site-control__surface {
+  border-start-start-radius: var(--control-connected-radius-extra-small);
+  border-end-start-radius: var(--control-connected-radius-extra-small);
+}
 .route-map__stop-picker {
   position: relative;
-  min-width: 144px;
-  flex: 1 1 144px;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
   font-size: var(--text-label-large);
   font-weight: var(--text-label-large--font-weight);
   line-height: var(--text-label-large--line-height);
@@ -253,8 +271,10 @@
 }
 .route-map__stop-picker select {
   position: relative;
-  width: 100%;
-  min-width: 120px;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  field-sizing: content;
   min-height: var(--control-target-small);
   padding: var(--spacing-sm);
   border: 0;
@@ -277,9 +297,6 @@
   max-height: 480px;
   margin-inline: auto;
   overflow: hidden;
-}
-.route-map__interactive[data-islands='true'] .route-map__canvas {
-  max-height: 584px;
 }
 .route-map__canvas > svg {
   position: absolute;

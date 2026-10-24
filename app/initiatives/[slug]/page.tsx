@@ -21,6 +21,7 @@ import {
   getInitiative,
   getInitiativeSlugs,
 } from '@/lib/initiatives/index';
+import { uniquePlaces } from '@/lib/initiatives/places';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
 import {
@@ -118,11 +119,7 @@ export default async function InitiativePage(
   }
   const children = await getChildInitiatives(slug);
   const links = await publishedLinks(initiative.links);
-  const places = initiative.parts
-    .flatMap((part) => part.places)
-    .filter(
-      (place, i, all) => all.findIndex((p) => p.name === place.name) === i
-    );
+  const places = uniquePlaces(initiative.parts.flatMap((part) => part.places));
   const crumbs = await initiativeBreadcrumbs(initiative);
 
   return (

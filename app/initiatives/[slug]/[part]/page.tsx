@@ -20,6 +20,7 @@ import {
   getPart,
 } from '@/lib/initiatives/index';
 import { partTitle } from '@/lib/initiatives/load';
+import { uniquePlaces } from '@/lib/initiatives/places';
 import { schemeStyleFromHex } from '@/lib/initiatives/theme';
 import { initiativeViewport } from '@/lib/initiatives/viewport';
 import {
@@ -60,7 +61,12 @@ export async function generateMetadata(
     ['When', formatRange(part.starts, part.ends, true)],
   ];
   if (part.places.length > 0) {
-    labels.push(['Where', part.places.map((place) => place.name).join(', ')]);
+    labels.push([
+      'Where',
+      uniquePlaces(part.places)
+        .map((place) => place.name)
+        .join(', '),
+    ]);
   }
   return pageMetadata({
     title: partTitle(initiative, part),
@@ -148,7 +154,7 @@ export default async function PartPage(
       path: partPath,
       startDate: isoDate(part.starts),
       endDate: isoDate(part.ends),
-      places: part.places,
+      places: uniquePlaces(part.places),
       image: `${partPath}/opengraph-image`,
     }),
     breadcrumbLd([

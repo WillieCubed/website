@@ -3,6 +3,7 @@ import { Fragment } from 'react';
 import { formatRange, isoDate } from '@/lib/initiatives/dates';
 import { type Initiative, type Part } from '@/lib/initiatives/index';
 import { partTitle } from '@/lib/initiatives/load';
+import { uniquePlaces } from '@/lib/initiatives/places';
 
 type EventInitiative = Pick<Initiative, 'title' | 'partLabel'>;
 type EventPart = Pick<
@@ -44,7 +45,7 @@ export default function PartEvent({ initiative, part, url }: PartEventProps) {
         </time>
         <data className="dt-end" value={isoDate(part.ends)} />
         {part.places.length > 0 && ' · '}
-        {part.places.map((place, i) => (
+        {uniquePlaces(part.places).map((place, i) => (
           <Fragment key={place.name}>
             {i > 0 && ', '}
             <span className="p-location h-adr">

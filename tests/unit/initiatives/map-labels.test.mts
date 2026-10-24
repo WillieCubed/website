@@ -103,6 +103,22 @@ test('nearby cities share a named group until zoom gives their labels room', () 
   );
 });
 
+test('a repeated home stop remains independently selectable beside nearby cities', () => {
+  const labels = mapLabels(
+    [
+      { name: 'Las Vegas', x: 400, y: 220, hub: true },
+      { name: 'Los Angeles', x: 380, y: 220 },
+    ],
+    { x: 0, y: 0, width: 800, height: 440 },
+    356,
+    196
+  );
+  assert.equal(labels.length, 2);
+  assert.deepEqual(labels.find((label) => label.name === 'Las Vegas')?.names, [
+    'Las Vegas',
+  ]);
+});
+
 test('a proportional sidebar map keeps every marathon stop readable without overlapping labels', () => {
   const stops = [
     ...places.filter((place) =>
@@ -160,6 +176,50 @@ test('tour labels stay near their cities instead of moving across the country', 
           label.width / 2 + 64,
         `${label.name} moved too far from its city`
       );
+    }
+  }
+});
+
+test('home and destination touch targets fit the map when Hawaii overlays the mainland', () => {
+  const home = { name: 'Las Vegas', lat: 36.1699, lng: -115.1398 };
+  for (const stops of [
+    [home, ...places, { name: 'Honolulu', lat: 21.31, lng: -157.86 }],
+    [
+      home,
+      ...places.filter((place) =>
+        [
+          'Los Angeles',
+          'Chicago',
+          'Dallas–Fort Worth',
+          'San Francisco',
+        ].includes(place.name)
+      ),
+    ],
+  ]) {
+    const geography = routeGeography(stops);
+    for (const width of [318, 356, 736, 1166]) {
+      const labels = mapLabels(
+        stops.map((place) => {
+          const [x, y] = geography.project(place);
+          return { name: place.name, x, y, hub: place.name === 'Las Vegas' };
+        }),
+        { x: 0, y: 0, width: 800, height: 440 },
+        width,
+        Math.min((width * 440) / 800, 480)
+      );
+      assert.deepEqual(
+        labels.find((label) => label.name === 'Las Vegas')?.names,
+        ['Las Vegas']
+      );
+      for (const [index, label] of labels.entries())
+        for (const other of labels.slice(index + 1))
+          assert.ok(
+            label.left + label.width <= other.left ||
+              other.left + other.width <= label.left ||
+              label.top + 44 <= other.top ||
+              other.top + 44 <= label.top,
+            `${width}: ${label.name} overlaps ${other.name}`
+          );
     }
   }
 });

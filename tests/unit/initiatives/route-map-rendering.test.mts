@@ -74,7 +74,7 @@ test('unconnected maps keep every place and empty maps render nothing', () => {
   );
 });
 
-test('separate trips never connect across their boundaries and Hawaii uses an honest inset', () => {
+test('separate trips keep their boundaries and Hawaii connections remain schematic', () => {
   const honolulu = { name: 'Honolulu', lat: 21.31, lng: -157.86 };
   const stops = [...places, honolulu];
   const html = renderToStaticMarkup(
@@ -91,13 +91,15 @@ test('separate trips never connect across their boundaries and Hawaii uses an ho
   ].flatMap((match) => [...match[1].matchAll(/<path\b/g)]);
   assert.equal(
     paths.length,
-    4,
-    'two Texas legs and two western legs; no fabricated inter-trip or inter-inset leg'
+    5,
+    'each trip keeps its own legs, including its schematic Hawaii connection'
   );
   assert.match(html, /aria-label="Hawaii inset: Honolulu"/);
   assert.equal((html.match(/class="route-map__interactive"/g) || []).length, 1);
   assert.match(html, /<option value="Honolulu">Honolulu<\/option>/);
   assert.match(html, /class="route-map__islands"/);
+  assert.match(html, /data-inset-leg="true"/);
+  assert.doesNotMatch(html, /overflow="hidden"/);
   const stopLists = [
     ...html.matchAll(/<ol class="route-map__stops"[^>]*>([\s\S]*?)<\/ol>/g),
   ];
@@ -134,6 +136,24 @@ test('the Hawaii inset shares city selection without changing mainland geography
   assert.ok(x > HAWAII_INSET.x && x < HAWAII_INSET.x + HAWAII_INSET.width);
   assert.ok(y > HAWAII_INSET.y && y < HAWAII_INSET.y + HAWAII_INSET.height);
   assert.ok(islandLand.length > 0);
+  assert.equal(routeGeography([...places, honolulu]).height, 440);
+  assert.ok(HAWAII_INSET.y + HAWAII_INSET.height <= 440);
+});
+
+test('round trips keep repeated home stops while rendering one home marker and picker option', () => {
+  const home = {
+    name: 'Las Vegas',
+    region: 'NV',
+    lat: 36.1699,
+    lng: -115.1398,
+  };
+  const html = renderToStaticMarkup(
+    createElement(RouteMap, { places: [home, places[0], home] })
+  );
+  assert.equal((html.match(/<circle\b/g) || []).length, 2);
+  assert.equal((html.match(/<option value="Las Vegas">/g) || []).length, 1);
+  assert.equal((html.match(/<li>Las Vegas, NV<\/li>/g) || []).length, 2);
+  assert.equal((html.match(/ Q/g) || []).length, 2);
 });
 
 test('geographic projection keeps western stops west and nearby Texas stops close', async () => {

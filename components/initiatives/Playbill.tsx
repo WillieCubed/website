@@ -4,6 +4,7 @@ import SiteLink from '@/components/link/SiteLink';
 
 import { formatRange, isoDate } from '@/lib/initiatives/dates';
 import type { Initiative } from '@/lib/initiatives/index';
+import { uniquePlaces } from '@/lib/initiatives/places';
 
 import Reveal from './Reveal';
 
@@ -90,7 +91,7 @@ export default function Playbill({
                       className="mt-3 flex flex-wrap gap-inline"
                       aria-label="Places"
                     >
-                      {part.places.map((place) => (
+                      {uniquePlaces(part.places).map((place) => (
                         <li
                           key={place.name}
                           className="rounded-full border border-line bg-ground px-3 py-1 text-label-small text-muted"

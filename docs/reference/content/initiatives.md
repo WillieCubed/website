@@ -192,7 +192,9 @@ Initiative and part pages support:
   Selecting a city zooms into its area. The “Zoom to city” picker also reaches
   labels outside the current view. Zoom buttons, drag panning, arrow-key panning,
   and Show all share the same viewport. Each trip retains its full ordered stop
-  list in HTML. Trip captions arrange cities vertically with colored stop markers
+  list in HTML, including repeated departures and returns. Map points, picker
+  options, and place summaries deduplicate those visits. Repeated home stops
+  remain separately selectable instead of joining nearby city clusters. Trip captions arrange cities vertically with colored stop markers
   and connecting lines. They use two columns on phones where the text fits and
   four on wide screens. Controls state their actions without explanatory copy
   beneath the map.
@@ -201,25 +203,28 @@ Initiative and part pages support:
   trip columns retain their responsive grid.
   The canvas follows its geographic frame's aspect ratio rather than imposing
   a minimum height. Height caps preserve the map's scale on wide screens.
-  Controls and captions share the figure's width, and the Hawaii frame ends
-  eight coordinate units after the inset. Keep label type and touch targets
+  Hawaii overlays the lower-left Pacific inside the fixed 800×440 frame.
+  It does not enlarge the canvas. Only the outer viewport clips the geography;
+  mainland outlines continue behind the overlay without an internal cutoff. Keep label type and touch targets
   unchanged when tightening the map's surrounding space.
   Label placement chooses the nearest clear position beside, above, or below
   each point. Nearby labels define additional rows without pushing names
   across the map.
   City labels use 2px vertical and 4px horizontal surface padding. A transparent
-  outer control preserves the full 44px touch height and existing label width.
+  outer control preserves the full 44px touch height and at least 44px of width.
   Keep the text size unchanged when tightening the visible container.
   A rounded tonal viewport contains the cropped geography. Filled tonal controls
   use the site's shared MD3 action states. These boundaries also remain visible
   around the horizontally scrolling no-script map.
   Toolbar buttons use `Button size="extra-small"`: 32px visible surfaces inside
   48px touch targets. The native city picker uses the same container and target
-  tokens. Its surface grows with enlarged text. The toolbar uses the shared
-  control-group gap and extra-small outer spacing.
+  tokens. Its surface grows with enlarged text. The zoom buttons form a connected
+  group with a 2px surface gap and 6px inner corners while retaining separate
+  48px targets. The native picker sizes to its selected text instead of stretching
+  across the toolbar. The toolbar uses extra-small outer spacing.
   Without JavaScript, the labeled map remains a horizontally scrollable SVG
-  with its HTML labels; enhancement controls stay hidden. Lines end at the
-  inset boundary rather than suggesting a false cross-panel distance.
+  with its HTML labels; enhancement controls stay hidden. Dotted inset connections indicate travel order at a separate scale, rather
+  than geographic flight paths.
 
 The outlines come from Natural Earth's public-domain 1:110m Admin 0 countries
 (version 5.1.1). `lib/initiatives/world-outlines.json` contains exterior rings

@@ -285,9 +285,9 @@
 :root[data-footer-motion] .site-footer {
   margin-top: 0;
 }
-/* Keep the existing content-to-footer breathing room inside the page sheet. */
+/* The active page owns any compact ending; other pages retain their spacing. */
 :root[data-footer-motion]:not([data-footer-dock]) body > .grow {
-  padding-bottom: var(--spacing-section-roomy);
+  padding-bottom: var(--page-footer-gap, var(--spacing-section-roomy));
 }
 :root[data-footer-static] {
   --sheet: 1;

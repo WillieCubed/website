@@ -39,6 +39,8 @@ interface TopBarProps {
   floating?: boolean;
   /** Which content column the bar should line up with. */
   column?: Column;
+  /** Keep the page ending close to the footer after a navigation surface. */
+  compactFooter?: boolean;
   /** Pages with a dedicated search field can omit the site search trigger. */
   showSearch?: boolean;
   /**
@@ -58,6 +60,7 @@ export default function TopBar({
   crumbs = [],
   floating = false,
   column = 'wide',
+  compactFooter = false,
   prefetchHome = true,
   showSearch = true,
 }: TopBarProps) {
@@ -66,6 +69,7 @@ export default function TopBar({
     <ViewTransition name="site-top-bar" share="top-bar" default="none">
       <TopBarFrame
         column={column}
+        compactFooter={compactFooter}
         floatOnScroll={floating}
         longTrail={crumbs.length >= 2}
         breadcrumbKey={crumbs

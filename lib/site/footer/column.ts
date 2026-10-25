@@ -17,6 +17,7 @@ export type PageColumn = 'reading' | 'content' | 'media' | 'wide';
 interface Bar {
   column: PageColumn;
   element: Element;
+  compactFooter: boolean;
 }
 
 let bars: Bar[] = [];
@@ -24,14 +25,23 @@ let heard = false;
 const listeners = new Set<() => void>();
 
 function emit(): void {
-  if (typeof document !== 'undefined')
+  if (typeof document !== 'undefined') {
     document.documentElement.dataset.pageColumn = bars.at(-1)?.column ?? 'home';
+    document.documentElement.dataset.pageFooterSpacing = bars.at(-1)
+      ?.compactFooter
+      ? 'compact'
+      : 'regular';
+  }
   for (const listener of listeners) listener();
 }
 
 /** Registers a top bar as on screen and returns the way to take it back. */
-export function registerTopBar(column: PageColumn, element: Element) {
-  const bar: Bar = { column, element };
+export function registerTopBar(
+  column: PageColumn,
+  element: Element,
+  compactFooter = false
+) {
+  const bar: Bar = { column, element, compactFooter };
   bars = [...bars, bar];
   heard = true;
   emit();

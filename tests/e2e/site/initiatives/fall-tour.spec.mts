@@ -50,7 +50,7 @@ test('part navigation uses full-width text links and one page-to-footer gap', as
       expect(boxes[1].y - boxes[0].bottom).toBeCloseTo(8, 0);
     }
     const footer = await page.locator('.site-footer').boundingBox();
-    expect(footer!.y - boxes.at(-1)!.bottom).toBeCloseTo(40, 0);
+    expect(footer!.y - boxes.at(-1)!.bottom).toBeCloseTo(8, 0);
     if (part === 3) {
       await nav.evaluate((node) => node.scrollIntoView({ block: 'center' }));
       await page.screenshot({
@@ -58,6 +58,27 @@ test('part navigation uses full-width text links and one page-to-footer gap', as
       });
     }
   }
+});
+
+test('part footer spacing follows navigation and history without leaking from hidden pages', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(`${root}/part-3`);
+  const sheet = page.locator('body > .grow');
+  await expect(sheet).toHaveCSS('padding-bottom', '8px');
+  await page
+    .locator('.site-footer__pages')
+    .getByRole('link', { name: 'Colophon' })
+    .click();
+  await expect(page).toHaveURL(/\/colophon$/);
+  await expect(sheet).toHaveCSS('padding-bottom', '40px');
+  await page.goBack();
+  await expect(page).toHaveURL(new RegExp(`${root}/part-3$`));
+  await expect(sheet).toHaveCSS('padding-bottom', '8px');
+  await page.goForward();
+  await expect(page).toHaveURL(/\/colophon$/);
+  await expect(sheet).toHaveCSS('padding-bottom', '40px');
 });
 
 test('Fall Tour renders every chapter with readable content and loaded viewport media', async ({
@@ -238,6 +259,12 @@ test('Fall Tour keeps chapter artwork and complete navigation in server HTML', a
     await page.getByRole('link', { name: /^Part 2/ }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       'A Staycation with Friends from Unlikely Places'
+    );
+    const lastPartLink = await page.locator('.part-nav a').last().boundingBox();
+    const footer = await page.locator('.site-footer').boundingBox();
+    expect(footer!.y - lastPartLink!.y - lastPartLink!.height).toBeCloseTo(
+      8,
+      0
     );
     const breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
     const parent = breadcrumbs.getByRole('button', {

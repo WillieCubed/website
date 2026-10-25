@@ -279,8 +279,10 @@ padding so long titles have room to wrap.
 The page does not repeat the overview destination as a separate
 button; the breadcrumb's native destination menu provides that link, including
 without JavaScript. First and last parts render only their available neighbor.
-The shared page sheet owns the space before the footer. Part pages add no
-second trailing inset.
+Part pages request a compact 8px ending from the shared page frame. This leaves
+room for the last link's focus ring without a second trailing inset. Top-bar
+registration applies that spacing only while the part is active, and native
+HTML carries the same preference without JavaScript.
 
 Outside the initiative, a part needs a name that stands on its own. `partTitle()`
 combines the initiative name, part label and number, and title: “Fall Tour 2026

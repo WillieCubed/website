@@ -104,6 +104,10 @@ The existing top-bar registration supplies that frame across client navigation;
 CSS supplies the first paint and no-JavaScript fallback. The homepage retains
 its wider work layout, content pages use 840px, reading pages use 768px, and
 wide pages use 1200px.
+Pages ending with navigation surfaces can request `compactFooter` on `TopBar`.
+The active top bar then supplies an 8px page-to-footer gap, including the
+no-JavaScript fallback. Registration restores ordinary spacing when that page
+leaves, so hidden routes cannot affect the current page's ending.
 The frame owns one 16px horizontal gutter on compact screens; footer brand and
 navigation add no second inset. Reading frames remove that gutter at viewport
 widths of 1200px and above, and their headers follow the same rule. Symmetric

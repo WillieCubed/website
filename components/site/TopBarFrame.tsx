@@ -6,6 +6,7 @@ import { type PageColumn, registerTopBar } from '@/lib/site/footer/column';
 
 interface TopBarFrameProps {
   column: PageColumn;
+  compactFooter?: boolean;
   breadcrumbKey: string;
   className: string;
   floatOnScroll?: boolean;
@@ -21,6 +22,7 @@ interface TopBarFrameProps {
  */
 export default function TopBarFrame({
   column,
+  compactFooter = false,
   breadcrumbKey,
   className,
   floatOnScroll = false,
@@ -31,8 +33,8 @@ export default function TopBarFrame({
 
   useLayoutEffect(() => {
     if (!ref.current) return;
-    return registerTopBar(column, ref.current);
-  }, [column]);
+    return registerTopBar(column, ref.current, compactFooter);
+  }, [column, compactFooter]);
 
   useLayoutEffect(() => {
     const rail = ref.current?.querySelector<HTMLElement>('.site-breadcrumbs');
@@ -109,6 +111,7 @@ export default function TopBarFrame({
     <header
       ref={ref}
       data-column={column}
+      data-footer-spacing={compactFooter ? 'compact' : undefined}
       data-long-trail={longTrail || undefined}
       className={className}
     >

@@ -27,6 +27,10 @@
 .site-frame--wide {
   --page-frame-max: var(--page-width-wide);
 }
+:root[data-page-footer-spacing='compact'],
+:root:not([data-page-column]):has(header[data-footer-spacing='compact']) {
+  --page-footer-gap: var(--spacing-sm);
+}
 .site-frame {
   --page-frame-gutter: 16px;
   width: 100%;

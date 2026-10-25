@@ -178,6 +178,7 @@ export default async function PartPage(
     >
       <JsonLd data={partGraph} />
       <TopBar
+        compactFooter
         crumbs={[
           ...crumbs,
           { label: `${initiative.partLabel} ${part.number}`, href: partPath },

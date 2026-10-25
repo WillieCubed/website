@@ -1,9 +1,2 @@
-export class StudioError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-  }
-}
+// Keep existing imports and instanceof checks compatible during the ownership change.
+export { HttpError as StudioError } from '../http/errors';

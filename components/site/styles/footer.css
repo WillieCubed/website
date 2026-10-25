@@ -3,7 +3,7 @@
    data-column, and the widths follow from here. Buttons keep their outer
    edge on the line; only cards and quotes reach past it. */
 .site-footer {
-  margin-top: 64px;
+  margin-top: var(--page-footer-gap, 64px);
   background: var(--color-tray);
 }
 .site-footer__inner {

@@ -1,17 +1,14 @@
+import type { ReactNode } from 'react';
+
 import Icon from '@/components/icons/Icon';
 import SpotifyIcon from '@/components/icons/SpotifyIcon';
 
 import { offersCredits, playlistEnding } from '@/lib/music/easter-eggs';
-import type {
-  Catalog,
-  MusicMode,
-  PlaylistView,
-} from '@/lib/music/presentation';
+import type { MusicMode, PlaylistView } from '@/lib/music/presentation';
 import type { MusicSeries } from '@/lib/music/types';
 
 import MusicCover from './MusicCover';
 import MusicPlaylistSeries from './MusicPlaylistSeries';
-import MusicSelectionControl from './MusicSelectionControl';
 import PlaylistCredits from './PlaylistCredits';
 import PlaylistEnding from './PlaylistEnding';
 import PlaylistTracks from './PlaylistTracks';
@@ -20,14 +17,12 @@ import { musicHref } from './useMusicPlaylistHistory';
 interface ArtworkProps {
   playlist: PlaylistView;
   series: MusicSeries[];
-  editing: boolean;
-  onToggleMembership: (id: string) => void;
+  context?: ReactNode;
 }
 export function MusicPlaylistArtwork({
   playlist,
   series,
-  editing,
-  onToggleMembership,
+  context,
 }: ArtworkProps) {
   return (
     <div className="music-detail-art-column">
@@ -35,12 +30,9 @@ export function MusicPlaylistArtwork({
         <MusicCover playlist={playlist} />
       </div>
       <div className="music-detail-context">
-        <MusicPlaylistSeries
-          playlistId={playlist.id}
-          series={series}
-          editing={editing}
-          onToggleMembership={onToggleMembership}
-        />
+        {context ?? (
+          <MusicPlaylistSeries playlistId={playlist.id} series={series} />
+        )}
       </div>
     </div>
   );
@@ -77,53 +69,6 @@ export function MusicPlaylistSummary({
         </a>
       </div>
       {note && <p className="music-playlist-note">{note}</p>}
-    </div>
-  );
-}
-interface EditorProps {
-  playlistId: string;
-  draft: Catalog;
-  onUpdateNote: (note: string) => void;
-  onToggleSelection: () => void;
-  onToggleFeature: () => void;
-}
-export function MusicPlaylistEditor({
-  playlistId,
-  draft,
-  onUpdateNote,
-  onToggleSelection,
-  onToggleFeature,
-}: EditorProps) {
-  return (
-    <div className="music-context-editor">
-      <div className="music-context-note">
-        <label htmlFor="music-playlist-note">Playlist notes</label>
-        <textarea
-          id="music-playlist-note"
-          rows={3}
-          placeholder="What should someone know before listening?"
-          value={draft.notes[playlistId] ?? ''}
-          onChange={(event) => onUpdateNote(event.target.value)}
-        />
-      </div>
-      <fieldset className="music-visibility-editor">
-        <legend>In the public gallery</legend>
-        <label className="music-check">
-          <MusicSelectionControl
-            aria-label="Include in gallery"
-            checked={draft.selected.includes(playlistId)}
-            onChange={() => onToggleSelection()}
-          />
-          Include in gallery
-        </label>
-        <label className="music-check">
-          <MusicSelectionControl
-            checked={draft.lead === playlistId}
-            onChange={onToggleFeature}
-          />
-          Feature in the gallery
-        </label>
-      </fieldset>
     </div>
   );
 }

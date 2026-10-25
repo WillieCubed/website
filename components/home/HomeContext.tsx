@@ -28,35 +28,38 @@ export function isFocusPressed(preview: Preview, focus: FocusId): boolean {
   );
 }
 
-export interface HomeContextValue {
+export interface HomePreviewState {
   preview: Preview;
-  /** Set the preview right away, cancelling any pending clear. */
-  setPreview: (value: Preview) => void;
-  /** Clear the preview after the leave debounce. */
-  clearPreview: () => void;
-  /** Clear the preview right away, before opening a detail. */
-  clearPreviewNow: () => void;
-  /** Whether an entry matches the current preview. */
   matches: (id: string) => boolean;
-  /** The focus rows marked for the current preview. */
   lit: FocusId[];
-  /** Open an entry's detail view, morphing from the element that was used. */
+}
+
+export interface HomeActions {
+  setPreview: (value: Preview) => void;
+  clearPreview: () => void;
+  clearPreviewNow: () => void;
   openDetail: (id: string, from: HTMLElement | null) => void;
-  /** Material 3 custom properties per brand key, computed on the server. */
   brands: BrandSchemes;
 }
 
-export const HomeContext = createContext<HomeContextValue | null>(null);
+export const HomeContext = createContext<HomePreviewState | null>(null);
+export const HomeActionsContext = createContext<HomeActions | null>(null);
 
-export function useHome(): HomeContextValue {
+export function useHome(): HomePreviewState {
   const value = useContext(HomeContext);
   if (!value) throw new Error('useHome must be used inside HomeShell');
   return value;
 }
 
+export function useHomeActions(): HomeActions {
+  const value = useContext(HomeActionsContext);
+  if (!value) throw new Error('useHomeActions must be used inside HomeShell');
+  return value;
+}
+
 /** Pointer and focus handlers that preview a focus or an entry. */
 export function usePreviewHandlers(value: Exclude<Preview, null>) {
-  const { setPreview, clearPreview } = useHome();
+  const { setPreview, clearPreview } = useHomeActions();
   return {
     onPointerEnter: () => setPreview(value),
     onPointerLeave: clearPreview,

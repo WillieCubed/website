@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { hashSecret } from '@/lib/indieweb/indieauth/server';
+import { hashSecret } from '@/lib/indieweb/indieauth/grants';
 import {
   type MediaStore,
   MediaUploadError,

@@ -1,5 +1,5 @@
+import { HttpError } from '../http/errors';
 import { studioRoute } from '../studio/auth';
-import { StudioError } from '../studio/errors';
 
 export function musicRoute(request: Request, work: () => Promise<Response>) {
   return studioRoute(
@@ -19,10 +19,10 @@ export async function readMusicBody(
 ): Promise<MusicRequestBody> {
   const text = await request.text();
   if (text.length > 2000000)
-    throw new StudioError(413, 'This collection is too large.');
+    throw new HttpError(413, 'This collection is too large.');
   try {
     return JSON.parse(text);
   } catch {
-    throw new StudioError(400, 'Invalid request.');
+    throw new HttpError(400, 'Invalid request.');
   }
 }

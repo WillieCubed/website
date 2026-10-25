@@ -1,44 +1,10 @@
 import type { MusicSeries } from '@/lib/music/types';
 
-import MusicSelectionControl from './MusicSelectionControl';
-
 interface Props {
   playlistId: string;
   series: MusicSeries[];
-  editing: boolean;
-  onToggleMembership: (id: string) => void;
 }
-export default function MusicPlaylistSeries({
-  playlistId,
-  series,
-  editing,
-  onToggleMembership,
-}: Props) {
-  if (editing && series.length > 0)
-    return (
-      <fieldset className="music-detail-series-editor">
-        <legend className="music-detail-series-label">Series</legend>
-        {series.map((item) => {
-          const index = item.playlistIds.indexOf(playlistId);
-          return (
-            <label className="music-detail-series music-check" key={item.id}>
-              <MusicSelectionControl
-                aria-label={item.title}
-                checked={index >= 0}
-                onChange={() => onToggleMembership(item.id)}
-              />
-              <span className="music-detail-series-name">{item.title}</span>
-              {index >= 0 && (
-                <SeriesPosition
-                  position={index + 1}
-                  count={item.playlistIds.length}
-                />
-              )}
-            </label>
-          );
-        })}
-      </fieldset>
-    );
+export default function MusicPlaylistSeries({ playlistId, series }: Props) {
   return series
     .filter((item) => item.playlistIds.includes(playlistId))
     .map((item) => (
@@ -56,7 +22,7 @@ interface SeriesPositionProps {
   position: number;
   count: number;
 }
-function SeriesPosition({ position, count }: SeriesPositionProps) {
+export function SeriesPosition({ position, count }: SeriesPositionProps) {
   return (
     <span className="music-detail-series-position">
       <span aria-hidden="true">{`${String(position).padStart(2, '0')} / ${String(count).padStart(2, '0')}`}</span>

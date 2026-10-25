@@ -1,11 +1,16 @@
-import type { RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 
 import MusicCard from './MusicCard';
 import MusicScrollCue from './MusicScrollCue';
-import MusicSelectionControl from './MusicSelectionControl';
 import type { MusicGalleryItem } from './music-gallery';
 
-interface Props {
+export interface MusicPlaylistGridControls {
+  controls?: (item: MusicGalleryItem) => ReactNode;
+  pendingControl?: ReactNode;
+  onDragStart?: (id: string) => void;
+  onDrop?: (id: string) => void;
+}
+interface Props extends MusicPlaylistGridControls {
   items: MusicGalleryItem[];
   editing: boolean;
   loading: boolean;
@@ -13,11 +18,7 @@ interface Props {
   href: (id: string) => string;
   collectionKey: string;
   gallery: RefObject<HTMLDivElement | null>;
-  onDragStart: (id: string) => void;
-  onDrop: (id: string) => void;
   openPlaylist: (id: string, source?: HTMLElement) => void;
-  select: (id: string) => void;
-  reorder: (id: string, step: number) => void;
 }
 export default function MusicPlaylistGrid({
   items,
@@ -30,8 +31,8 @@ export default function MusicPlaylistGrid({
   onDragStart,
   onDrop,
   openPlaylist,
-  select,
-  reorder,
+  controls,
+  pendingControl,
 }: Props) {
   return (
     <>
@@ -40,7 +41,7 @@ export default function MusicPlaylistGrid({
         className={`music-grid${editing ? ' music-grid-editing' : ''}`}
       >
         {loading && playlistCount === 0 ? (
-          <MusicPendingCards editing={editing} />
+          <MusicPendingCards control={pendingControl} />
         ) : (
           items.map((item) => (
             <MusicCard
@@ -51,8 +52,7 @@ export default function MusicPlaylistGrid({
               onDragStart={onDragStart}
               onDrop={onDrop}
               openPlaylist={openPlaylist}
-              select={select}
-              reorder={reorder}
+              controls={controls?.(item)}
             />
           ))
         )}
@@ -65,10 +65,10 @@ export default function MusicPlaylistGrid({
 }
 
 interface MusicPendingCardsProps {
-  editing: boolean;
+  control?: ReactNode;
 }
 
-function MusicPendingCards({ editing }: MusicPendingCardsProps) {
+function MusicPendingCards({ control }: MusicPendingCardsProps) {
   return Array.from({ length: 6 }, (_, index) => (
     <article
       className="music-card music-card-pending"
@@ -89,14 +89,7 @@ function MusicPendingCards({ editing }: MusicPendingCardsProps) {
           <span className="music-open-icon" />
         </div>
       </div>
-      {editing && (
-        <div className="music-card-controls">
-          <label className="music-check">
-            <MusicSelectionControl disabled tabIndex={-1} />
-            <span className="music-pending-line music-pending-control" />
-          </label>
-        </div>
-      )}
+      {control}
     </article>
   ));
 }

@@ -282,5 +282,3 @@ function playlistReturnTarget(
         );
   return { originVisible, target };
 }
-
-export type MusicPlaylistNavigation = ReturnType<typeof useMusicPlaylistDialog>;

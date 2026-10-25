@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { fetchWithDeadline } from '@/lib/http/fetch';
+import { requestStatus } from '@/lib/status/browser-request';
 import type { PublicStatus } from '@/lib/status/types';
 
 interface StatusSnapshot {
@@ -26,14 +26,8 @@ export function useStatusSnapshot(
       inFlight = true;
       setRefreshing(true);
       try {
-        const response = await fetchWithDeadline('/api/status', {
-          cache: 'no-store',
-          signal: abort.signal,
-        });
-        if (response.ok) {
-          const next: PublicStatus = await response.json();
-          if (!abort.signal.aborted) setData(next);
-        }
+        const next = await requestStatus(abort.signal);
+        if (next && !abort.signal.aborted) setData(next);
       } catch {
         /* Keep the city available during a connection failure. */
       } finally {

@@ -4,14 +4,14 @@ import { useEffect, useRef } from 'react';
 import Button from '@/components/site/Button';
 
 import { formatDate } from '@/lib/site/dates';
-import type { Draft, DraftContent } from '@/lib/studio/types';
+import type { DraftContent } from '@/lib/studio/types';
 
 import StudioPreview from './StudioPreview';
 import type { WritingPreview } from './useWritingPublication';
 import type { WritingMode, WritingPreviewMode } from './writing-contracts';
 
 interface WritingReviewProps {
-  draft: Draft;
+  slug: string;
   reviewedRevision: number | null;
   body: DraftContent;
   status: string;
@@ -28,7 +28,7 @@ interface WritingReviewProps {
 }
 
 export default function WritingReview({
-  draft,
+  slug,
   reviewedRevision,
   body,
   status,
@@ -71,7 +71,7 @@ export default function WritingReview({
         </div>
         <p className="mt-4 text-body-large text-muted">
           {review
-            ? `This revision will appear at /writings/${draft.slug}. Website and portable versions are available below.`
+            ? `This revision will appear at /writings/${slug}. Website and portable versions are available below.`
             : 'A preview of the current draft.'}
         </p>
         {review && (

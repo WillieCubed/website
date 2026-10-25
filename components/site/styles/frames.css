@@ -4,7 +4,7 @@
   --page-width-content: 840px;
   --page-width-wide: 1200px;
   --page-frame-max: var(--page-width-wide);
-  --page-frame-gutter: var(--spacing-lg);
+  --page-frame-gutter: 16px;
   --sheet-frame-w: var(--page-frame-max);
 }
 :root[data-page-column='home'],
@@ -27,8 +27,12 @@
 .site-frame--wide {
   --page-frame-max: var(--page-width-wide);
 }
+:root[data-page-footer-spacing='compact'],
+:root:not([data-page-column]):has(header[data-footer-spacing='compact']) {
+  --page-footer-gap: var(--spacing-sm);
+}
 .site-frame {
-  --page-frame-gutter: var(--spacing-lg);
+  --page-frame-gutter: 16px;
   width: 100%;
   max-width: var(--page-frame-max);
   margin-inline: auto;

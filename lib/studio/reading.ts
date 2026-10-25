@@ -6,6 +6,7 @@ import type { WritingData } from '@/lib/writings';
 import { writingText } from '@/lib/writings/content';
 
 import { documentSource } from './document';
+import { studioHtmlPolicy } from './html-policy';
 import type { Draft } from './types';
 
 interface ReadingSeries {
@@ -147,18 +148,8 @@ export async function safeReadingHtml(
 ): Promise<string> {
   const html = await renderFeedHtml(source, path);
   return sanitizeHtml(html, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-      'img',
-      'figure',
-      'figcaption',
-      'aside',
-    ]),
-    allowedAttributes: {
-      ...sanitizeHtml.defaults.allowedAttributes,
-      img: ['src', 'alt', 'title', 'width', 'height'],
-      '*': ['id'],
-    },
-    allowedSchemes: ['https', 'http', 'mailto'],
+    ...studioHtmlPolicy,
+    allowedTags: [...studioHtmlPolicy.allowedTags, 'aside'],
     transformTags: {
       a: sanitizeHtml.simpleTransform('a', {
         rel: 'noopener noreferrer',

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { QueryResult, QueryResultRow } from 'pg';
 
 import { type PostgresPool, createPool } from '../db/postgres';
-import { StudioError } from '../studio/errors';
+import { HttpError } from '../http/errors';
 import { getStudioPool } from '../studio/store';
 import { parseCatalog } from './schema';
 import type { MusicCatalog, MusicPlaylist, MusicRevision } from './types';
@@ -84,7 +84,7 @@ export class MusicStore {
       await client.release();
     }
     if (conflict)
-      throw new StudioError(
+      throw new HttpError(
         409,
         'Another tab saved a newer draft. Both versions are in history.',
         { preservedRevisionId: id }
@@ -121,8 +121,8 @@ export function musicStore() {
   try {
     return new MusicStore(getStudioPool());
   } catch (error) {
-    if (error instanceof StudioError && error.status === 503)
-      throw new StudioError(503, 'Private Music storage is not configured.');
+    if (error instanceof HttpError && error.status === 503)
+      throw new HttpError(503, 'Private Music storage is not configured.');
     throw error;
   }
 }

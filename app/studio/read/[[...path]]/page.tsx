@@ -11,6 +11,7 @@ import WritingContent from '@/components/writings/WritingContent';
 import WritingHeader from '@/components/writings/WritingHeader';
 import { WritingsList } from '@/components/writings/WritingsIndex';
 
+import { getSeriesWithWritings } from '@/lib/collections';
 import { pageMetadata } from '@/lib/seo/metadata';
 import { absoluteUrl } from '@/lib/site/urls';
 import { isPrivatePreview } from '@/lib/studio/config';
@@ -28,7 +29,6 @@ import {
   type WritingData,
   type WritingDocument,
   getAllWritings,
-  getSeriesWithWritings,
 } from '@/lib/writings';
 import { loadWriting } from '@/lib/writings/load';
 import { normalizeTag, tagFromParam } from '@/lib/writings/tags';

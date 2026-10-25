@@ -82,3 +82,18 @@ export function setKey(file: WritingFile, key: string, lines: string[] | null) {
   if (index !== -1) file.blocks[index] = block;
   else file.blocks.push(block);
 }
+
+export function mapList(key: string, items: object[]) {
+  if (items.length === 0) return null;
+  return [
+    `${key}:`,
+    ...items.flatMap((item) =>
+      Object.entries(item)
+        .filter(([, value]) => value !== undefined)
+        .map(
+          ([field, value], index) =>
+            `${index === 0 ? '  - ' : '    '}${field}: ${JSON.stringify(value)}`
+        )
+    ),
+  ];
+}

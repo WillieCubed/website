@@ -65,7 +65,7 @@
   height: var(--control-container-size);
   padding: 0;
 }
-.site-control__surface > svg {
+.site-button > .site-control__surface > svg {
   display: block;
   flex: none;
 }

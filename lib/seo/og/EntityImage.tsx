@@ -9,8 +9,6 @@ import { site } from '@/lib/site/identity';
 import { themeSchemes } from '@/lib/theme/tokens';
 
 export interface EntityImageProps {
-  /** One line of context above the title, such as the parent or the part. */
-  kicker?: string;
   title: string;
   description?: string;
   meta?: string;
@@ -47,7 +45,6 @@ function palette(brand?: string) {
  * flexbox and inline styles, hence the shape of this markup.
  */
 export default function EntityImage({
-  kicker,
   title,
   description,
   meta,
@@ -83,18 +80,6 @@ export default function EntityImage({
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}
         >
-          {kicker && (
-            <div
-              style={{
-                display: 'flex',
-                fontSize: 26,
-                color: c.accent,
-                fontWeight: 700,
-              }}
-            >
-              {kicker}
-            </div>
-          )}
           <div
             style={{
               display: 'flex',

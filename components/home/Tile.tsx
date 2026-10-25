@@ -12,14 +12,15 @@ import {
   brandStyle,
   prefersReducedMotion,
   useHome,
+  useHomeActions,
   usePreviewHandlers,
 } from './HomeContext';
 
 interface TileProps {
   id: string;
   name: string;
-  /** The label in the tile's top corner. */
-  head: string;
+  /** The visible object title when its body does not already contain one. */
+  head?: string;
   hint: string;
   brand: BrandKey;
   size: string;
@@ -39,7 +40,8 @@ export function Tile({
   size,
   children,
 }: TileProps) {
-  const { matches, openDetail, brands } = useHome();
+  const { matches } = useHome();
+  const { openDetail, brands } = useHomeActions();
   const handlers = usePreviewHandlers({ id });
   const ref = useRef<HTMLElement>(null);
   const [hover, setHover] = useState(false);
@@ -112,7 +114,7 @@ export function Tile({
         }}
       />
       <div className="head">
-        <span className="label">{head}</span>
+        {head && <h3 className="tile-title">{head}</h3>}
         <span className="hint" aria-hidden="true">
           <span>{hint}</span>
           <i>

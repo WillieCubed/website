@@ -1,6 +1,13 @@
+import { cache } from 'react';
+
 import { showDrafts } from '@/lib/content/visibility';
 
-import { listInitiativeSlugs, loadInitiative, parsePartSlug } from './load';
+import {
+  listInitiativeSlugs,
+  loadAllInitiatives,
+  loadInitiative,
+  parsePartSlug,
+} from './load';
 import type { Initiative, Part } from './schema';
 
 export * from './schema';
@@ -19,7 +26,7 @@ export async function getInitiativeSlugs(): Promise<string[]> {
 /**
  * Find a visible initiative, returning null for missing and unpublished slugs.
  */
-async function findPublishedInitiative(
+export async function findPublishedInitiative(
   slug: string
 ): Promise<Initiative | null> {
   if (!listInitiativeSlugs().includes(slug)) return null;
@@ -42,17 +49,14 @@ export async function getInitiative(slug: string): Promise<Initiative> {
 /**
  * All initiatives, drafts excluded in production, most recent start first.
  */
-export async function getInitiatives(): Promise<Initiative[]> {
-  const now = new Date();
-  return listInitiativeSlugs()
-    .map((slug) => loadInitiative(slug, now, showDrafts))
-    .filter((item) => showDrafts || !item.draft)
-    .sort((a, b) => (b.starts?.getTime() ?? 0) - (a.starts?.getTime() ?? 0));
-}
+export const getInitiatives = cache(async (): Promise<Initiative[]> => {
+  return loadAllInitiatives({ includeDrafts: showDrafts }).sort(
+    (a, b) => (b.starts?.getTime() ?? 0) - (a.starts?.getTime() ?? 0)
+  );
+});
 
-/** Initiatives that declare a homepage feature block. */
-export async function getFeaturedInitiatives(): Promise<Initiative[]> {
-  const all = await getInitiatives();
+/** Feature ordering leaves the shared initiative snapshot unchanged. */
+export function featuredInitiatives(all: Initiative[]): Initiative[] {
   return all
     .filter((item) => item.feature)
     .sort((a, b) => (b.feature?.weight ?? 0) - (a.feature?.weight ?? 0));
@@ -77,10 +81,4 @@ export { currentPart } from './load';
 export async function getChildInitiatives(slug: string): Promise<Initiative[]> {
   const all = await getInitiatives();
   return all.filter((item) => item.parent === slug);
-}
-
-/** Every initiative slug that has an `initiative` with that slug as parent. */
-export async function initiativeExists(slug: string): Promise<boolean> {
-  const slugs = await getInitiativeSlugs();
-  return slugs.includes(slug);
 }

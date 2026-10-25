@@ -124,7 +124,11 @@ from a bad refresh.
 
 Downloads happen during authoring. Builds and visitors use local originals, so
 an unavailable publisher does not break already fetched images. Next.js resizes
-those originals for the layout. `pnpm content:check`, also run by the build,
+those originals for the layout. Shared responsive content images select
+content-hashed copies for browser caching; authored source URLs, originals,
+credits, and downloads stay unchanged. The
+[performance guide](../../guides/operations/performance.md#images-video-and-byte-delivery)
+owns eligibility, cache headers, replacement invalidation, and preview behavior. `pnpm content:check`, also run by the build,
 checks every selected image for existence and decodability, including drafts,
 without contacting the publisher. Run it after fetching and inspect the entry at
 desktop and phone widths to assess crop and subject placement.

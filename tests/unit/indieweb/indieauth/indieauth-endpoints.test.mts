@@ -12,7 +12,7 @@ import {
   handleTokenRequest,
   handleTokenVerification,
 } from '@/lib/indieweb/indieauth/endpoints';
-import { codeChallengeFor } from '@/lib/indieweb/indieauth/server';
+import { codeChallengeFor } from '@/lib/indieweb/indieauth/grants';
 import type {
   IndieAuthClientInfo,
   IndieAuthEndpointOptions,

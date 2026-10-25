@@ -12,6 +12,7 @@
   --control-focus-width: 3px;
   --control-focus-offset: 3px;
   --control-group-gap: 2px;
+  --control-connected-radius-extra-small: 6px;
   --control-effects-duration: 160ms;
   --control-effects-ease: cubic-bezier(0.2, 0, 0, 1);
   --control-shape-duration: 350ms;

@@ -1,7 +1,10 @@
+import Image from 'next/image';
+
 import SiteLink from '@/components/link/SiteLink';
 
 import { formatRange, isoDate } from '@/lib/initiatives/dates';
 import type { Initiative } from '@/lib/initiatives/index';
+import { uniquePlaces } from '@/lib/initiatives/places';
 
 import Reveal from './Reveal';
 
@@ -9,6 +12,7 @@ interface PlaybillProps {
   initiative: Initiative;
   /** `compact` fits inside a homepage tile; `full` is the initiative page. */
   variant?: 'full' | 'compact';
+  showCovers?: boolean;
 }
 
 /**
@@ -19,18 +23,20 @@ interface PlaybillProps {
 export default function Playbill({
   initiative,
   variant = 'full',
+  showCovers = true,
 }: PlaybillProps) {
   const { parts, partLabel } = initiative;
   if (parts.length === 0) return null;
   const compact = variant === 'compact';
+  const showArtwork = !compact && showCovers;
 
   return (
     <Reveal>
       <ol
         className={
           compact
-            ? 'grid gap-2'
-            : 'grid gap-4 medium:grid-cols-2 large:grid-cols-4'
+            ? 'playbill playbill--compact grid gap-2'
+            : 'playbill playbill--full grid gap-4 medium:grid-cols-2 large:grid-cols-4'
         }
         aria-label={`${initiative.title} acts`}
       >
@@ -45,45 +51,57 @@ export default function Playbill({
               <article
                 className={`act-card relative flex h-full flex-col rounded-2xl ${compact ? 'p-3' : 'p-5'}`}
               >
-                <p className="act-kicker text-label-medium">
-                  {partLabel} {part.number}
-                </p>
-                <h3
-                  className={`mt-1 font-semibold text-ink ${compact ? 'text-title-medium' : 'text-title-large'}`}
-                >
-                  <SiteLink
-                    preview={false}
-                    href={href}
-                    className="after:absolute after:inset-0 after:rounded-2xl focus-visible:rounded-2xl"
+                {showArtwork && part.cover && (
+                  <figure className="act-art relative m-0 aspect-[3/2] overflow-hidden rounded-xl">
+                    <Image
+                      src={part.cover.src}
+                      alt={part.cover.alt}
+                      fill
+                      sizes="(min-width: 840px) 50vw, 100vw"
+                      className="object-cover"
+                      unoptimized={part.cover.src.endsWith('.svg')}
+                    />
+                  </figure>
+                )}
+                <div className="act-copy flex min-w-0 flex-1 flex-col">
+                  <h3
+                    className={`mt-1 font-semibold text-ink ${compact ? 'text-title-medium' : 'text-title-large'}`}
                   >
-                    {part.title}
-                  </SiteLink>
-                </h3>
-                {!compact && part.tagline && (
-                  <p className="mt-2 text-body-medium text-muted">
-                    {part.tagline}
+                    <SiteLink
+                      preview={false}
+                      href={href}
+                      className="after:absolute after:inset-0 after:rounded-2xl focus-visible:rounded-2xl"
+                    >
+                      {part.title}
+                    </SiteLink>
+                  </h3>
+                  {!compact && part.tagline && (
+                    <p className="mt-2 text-body-medium text-muted">
+                      {part.tagline}
+                    </p>
+                  )}
+                  <p className="mt-auto pt-3 text-body-small text-muted">
+                    {partLabel} {part.number} ·{' '}
+                    <time dateTime={isoDate(part.starts)}>
+                      {formatRange(part.starts, part.ends)}
+                    </time>
                   </p>
-                )}
-                <p className="mt-auto pt-3 text-label-medium text-muted">
-                  <time dateTime={isoDate(part.starts)}>
-                    {formatRange(part.starts, part.ends)}
-                  </time>
-                </p>
-                {!compact && part.places.length > 0 && (
-                  <ul
-                    className="mt-3 flex flex-wrap gap-inline"
-                    aria-label="Places"
-                  >
-                    {part.places.map((place) => (
-                      <li
-                        key={place.name}
-                        className="rounded-full border border-line bg-ground px-3 py-1 text-label-small text-muted"
-                      >
-                        {place.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                  {!compact && part.places.length > 0 && (
+                    <ul
+                      className="mt-3 flex flex-wrap gap-inline"
+                      aria-label="Places"
+                    >
+                      {uniquePlaces(part.places).map((place) => (
+                        <li
+                          key={place.name}
+                          className="rounded-full border border-line bg-ground px-3 py-1 text-label-small text-muted"
+                        >
+                          {place.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </article>
             </li>
           );

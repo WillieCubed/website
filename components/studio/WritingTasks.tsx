@@ -2,7 +2,6 @@ import type { RefObject } from 'react';
 
 import Button from '@/components/site/Button';
 
-import type { Draft } from '@/lib/studio/types';
 import type {
   ComponentProposal,
   DraftContent,
@@ -16,7 +15,9 @@ import type { WritingTask } from './writing-task-definitions';
 import { WRITING_TASKS } from './writing-task-definitions';
 
 interface WritingTasksProps {
-  draft: Draft;
+  documentId: string;
+  slug: string;
+  revisionId: string;
   task: WritingTask;
   taskHeading: RefObject<HTMLHeadingElement | null>;
   body: DraftContent;
@@ -30,7 +31,9 @@ interface WritingTasksProps {
 }
 
 export default function WritingTasks({
-  draft,
+  documentId,
+  slug,
+  revisionId,
   task,
   taskHeading,
   body,
@@ -93,19 +96,19 @@ export default function WritingTasks({
                 </label>
               )}
               <p className="text-body-medium break-words text-muted">
-                Public address: /writings/{draft.slug}
+                Public address: /writings/{slug}
               </p>
             </div>
           )}
           {task === 'history' && (
-            <WritingHistory documentId={draft.id} onRestore={onRestore} />
+            <WritingHistory documentId={documentId} onRestore={onRestore} />
           )}
         </section>
       )}
       <div hidden={task !== 'components'} className="studio-task-form">
         <StudioWidgetGenerator
-          documentId={draft.id}
-          revisionId={draft.head.id}
+          documentId={documentId}
+          revisionId={revisionId}
           save={save}
           onApproved={onApproved}
         />

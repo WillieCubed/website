@@ -210,7 +210,14 @@ or absent forms must preserve the same content and destinations.
 
 ### Warm: make the person visible
 
-Headings stand on their own, without decorative overline or eyebrow text.
+Decorative overline and eyebrow text are banned. Headings stand on their own.
+The `site/no-decorative-overline` ESLint rule enforces this in rendered JSX.
+It rejects named eyebrow, overline, and kicker presentations and short standalone
+text immediately before headings. Do not evade it by renaming a class or
+suppressing the rule. Remove decorative text or put useful metadata below the
+heading. Semantic form labels, controls, navigation, and actual object titles
+remain part of the interface.
+
 Put useful metadata, such as a playlist's position or track count, below its
 title. Keep labels where someone needs them to use a control or field.
 

@@ -94,13 +94,18 @@
     color: var(--color-muted);
     font-size: 13px;
   }
-  .head .label {
+  .head .tile-title {
+    margin: 0;
+    font-size: var(--text-title-medium);
+    line-height: var(--text-title-medium--line-height);
+    font-weight: 500;
     flex: 1;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
   .hint {
+    margin-inline-start: auto;
     position: relative;
     display: inline-flex;
     align-items: center;

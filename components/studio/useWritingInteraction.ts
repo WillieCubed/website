@@ -31,6 +31,11 @@ import type {
 } from './writing-contracts';
 import type { WritingPanelTask, WritingTask } from './writing-task-definitions';
 
+type WritingEditorSource = Pick<
+  DraftEditing,
+  'body' | 'update' | 'captureSnapshot'
+>;
+
 export interface WritingInteraction {
   editor: Editor | null;
   mode: WritingMode;
@@ -52,7 +57,7 @@ export interface WritingInteraction {
 
 /** Keep one editor, its catalog extensions, and the selection used when returning from tasks. */
 export function useWritingInteraction(
-  document: DraftEditing,
+  document: WritingEditorSource,
   readCatalog: () => CatalogEntry[],
   onReady: () => void,
   interactive: boolean

@@ -1,12 +1,7 @@
 import type { BreadcrumbMenuItem } from '@/components/site/BreadcrumbMenu';
 import TopBar from '@/components/site/TopBar';
 
-import type { MusicMode } from '@/lib/music/presentation';
-
-import { musicHref } from './useMusicPlaylistHistory';
-
 interface Props {
-  mode: MusicMode;
   editing: boolean;
   onToggleCuration: () => void;
   onOpenSetup: () => void;
@@ -15,7 +10,6 @@ interface Props {
 }
 
 export default function MusicChrome({
-  mode,
   editing,
   onToggleCuration,
   onOpenSetup,
@@ -28,34 +22,31 @@ export default function MusicChrome({
       crumbs={[
         {
           label: 'Music',
-          menuItems:
-            mode === 'admin'
+          menuItems: [
+            {
+              label: editing ? 'View gallery' : 'Curate music',
+              onSelect: onToggleCuration,
+            },
+            {
+              label: 'Choose playlists',
+              onSelect: onOpenSetup,
+            },
+            ...(onRefresh
               ? [
                   {
-                    label: editing ? 'View gallery' : 'Curate music',
-                    onSelect: onToggleCuration,
-                  },
-                  {
-                    label: 'Choose playlists',
-                    onSelect: onOpenSetup,
-                  },
-                  ...(onRefresh
-                    ? [
-                        {
-                          label: 'Refresh Spotify',
-                          onSelect: () => void onRefresh(),
-                        },
-                      ]
-                    : []),
-                  ...adminMenuItems,
-                  { label: 'Studio', href: '/studio' },
-                  {
-                    label: 'Live music page',
-                    href: 'https://willie.page/music',
+                    label: 'Refresh Spotify',
+                    onSelect: () => void onRefresh(),
                   },
                 ]
-              : undefined,
-          href: musicHref(null, null, mode),
+              : []),
+            ...adminMenuItems,
+            { label: 'Studio', href: '/studio' },
+            {
+              label: 'Live music page',
+              href: 'https://willie.page/music',
+            },
+          ],
+          href: '/studio/music',
         },
       ]}
     />

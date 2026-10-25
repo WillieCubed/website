@@ -718,8 +718,9 @@ test('private reading uses native writing cards, headers and note typography', a
   await expect(
     page.getByRole('heading', { level: 1, name: title })
   ).toBeVisible();
-  await expect(page.locator('main:visible header')).toHaveClass(
-    /max-w-breakpoint-md/
+  await expect(page.locator('main:visible header')).toHaveCSS(
+    'max-width',
+    '768px'
   );
   await expect(page.locator('main:visible .prose p')).toHaveCSS(
     'font-size',

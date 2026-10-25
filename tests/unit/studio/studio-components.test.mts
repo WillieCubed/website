@@ -172,3 +172,49 @@ test(
     }
   }
 );
+
+test('component validation preserves ordered field, property, example, and size errors', () => {
+  const rejected = (value: unknown, message: string) =>
+    assert.throws(
+      () => parseComponent(JSON.stringify(value)),
+      (error: unknown) =>
+        error instanceof Error &&
+        'status' in error &&
+        error.status === 422 &&
+        error.message === message
+    );
+  rejected(
+    { ...payload(), name: '', description: '', properties: [] },
+    'Component name is required.'
+  );
+  rejected(
+    { ...payload(), name: 'bad', properties: [] },
+    'Component name or version is invalid.'
+  );
+  rejected(
+    { ...payload(), properties: [], example: [] },
+    'Component properties must be an object.'
+  );
+  rejected(
+    {
+      ...payload(),
+      properties: {
+        count: { type: 'number', description: '', required: true },
+      },
+    },
+    'Component example does not match its properties.'
+  );
+  rejected(
+    {
+      ...payload(),
+      properties: {
+        count: { type: 'number', description: '', required: 'yes' },
+      },
+    },
+    'Component property schema is invalid.'
+  );
+  rejected(
+    { ...payload(), source: 'x'.repeat(200_001) },
+    'Component exceeds the size limit.'
+  );
+});

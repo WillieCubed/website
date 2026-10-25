@@ -1,4 +1,5 @@
 import matter from 'gray-matter';
+import { z } from 'zod';
 
 import { hasImageDescription } from '@/lib/accessibility/alt-policy';
 import { sanitizeCommentHtml } from '@/lib/indieweb/comment-content';
@@ -13,6 +14,7 @@ import type {
 import { MicropubRequestError } from '@/lib/indieweb/micropub/document-types';
 import {
   joinWritingFile,
+  mapList,
   readWritingSource,
   setKey,
   splitWritingFile,
@@ -98,41 +100,38 @@ export function applyMicropubUpdate(
   return checked(joinWritingFile(file));
 }
 function sourceProperties(data: Frontmatter, body: string): Mf2Properties {
-  const properties: Mf2Properties = {};
-  const put = (name: string, values: Mf2Value[]) => {
-    if (values.length > 0) properties[name] = values;
-  };
   const rsvp = rsvpOf(data);
-  put('name', text(data.title));
-  put('summary', text(data.description));
-  put(
-    'content',
-    data.contentFormat === 'html' && body.trim()
-      ? [{ html: body.trim() }]
-      : text(body)
+  const draft = Boolean(data.draft);
+  return mergeStoredProperties(
+    data,
+    nonEmptyProperties({
+      name: text(data.title),
+      summary: text(data.description),
+      content:
+        data.contentFormat === 'html' && body.trim()
+          ? [{ html: body.trim() }]
+          : text(body),
+      published: text(isoDate(data.published)),
+      updated: text(isoDate(data.lastUpdated)),
+      category: [...tagsOf(data), ...readList(data.people, person).map(hCard)],
+      'in-reply-to': text(data.inReplyTo ?? rsvp?.eventUrl),
+      'like-of': text(data.likeOf),
+      'repost-of': text(data.repostOf),
+      'bookmark-of': text(data.bookmarkOf),
+      rsvp: text(rsvp?.status),
+      photo: readList(data.photo, photo).map(({ url, alt }) =>
+        alt ? { value: url, alt } : url
+      ),
+      syndication: readList(data.syndication, syndication).map(
+        ({ url }) => url
+      ),
+      'post-status': [draft ? 'draft' : 'published'],
+      'mp-syndicate-to': readList(data.syndicateTo, z.string()),
+      audio: readList(data.audio, z.string()),
+      video: readList(data.video, z.string()),
+      ...eventSourceProperties(data),
+    })
   );
-  put('published', text(isoDate(data.published)));
-  put('updated', text(isoDate(data.lastUpdated)));
-  put('category', [...tagsOf(data), ...peopleOf(data).map(hCard)]);
-  put('in-reply-to', text(data.inReplyTo ?? rsvp?.eventUrl));
-  put('like-of', text(data.likeOf));
-  put('repost-of', text(data.repostOf));
-  put('bookmark-of', text(data.bookmarkOf));
-  put('rsvp', text(rsvp?.status));
-  put(
-    'photo',
-    photosOf(data).map(({ url, alt }) => (alt ? { value: url, alt } : url))
-  );
-  put(
-    'syndication',
-    syndicationOf(data).map(({ url }) => url)
-  );
-  put('post-status', [isDraft(data) ? 'draft' : 'published']);
-  put('mp-syndicate-to', stringList(data.syndicateTo));
-  put('audio', stringList(data.audio));
-  put('video', stringList(data.video));
-  Object.assign(properties, eventSourceProperties(data));
-  return mergeStoredProperties(data, properties);
 }
 function writeProperties(
   file: WritingFile,
@@ -212,7 +211,7 @@ function writePostStatus(
     );
   }
   const draft = status === 'draft';
-  if (draft !== isDraft(data)) setKey(file, 'draft', [`draft: ${draft}`]);
+  if (draft !== Boolean(data.draft)) setKey(file, 'draft', [`draft: ${draft}`]);
 }
 function writeMediaUrls(
   file: WritingFile,
@@ -317,12 +316,8 @@ function writeCategory(
   if (!sameJson(tags, tagsOf(data))) {
     setKey(file, 'tags', [`tags: ${JSON.stringify(tags)}`]);
   }
-  if (!sameJson(people, peopleOf(data))) {
-    setKey(
-      file,
-      'people',
-      people.length > 0 ? mapList('people', people) : null
-    );
+  if (!sameJson(people, readList(data.people, person))) {
+    setKey(file, 'people', mapList('people', people));
   }
 }
 function writeRsvp(file: WritingFile, data: Frontmatter, next: Mf2Properties) {
@@ -366,8 +361,8 @@ function writePhotos(file: WritingFile, data: Frontmatter, values: Mf2Value[]) {
       ? { url: webUrl(url, 'photo'), alt: text }
       : { url: webUrl(url, 'photo') };
   });
-  if (sameJson(photos, photosOf(data))) return;
-  setKey(file, 'photo', photos.length > 0 ? mapList('photo', photos) : null);
+  if (sameJson(photos, readList(data.photo, photo))) return;
+  setKey(file, 'photo', mapList('photo', photos));
 }
 // A copy already listed keeps the name its author gave it.
 function writeSyndication(
@@ -375,7 +370,7 @@ function writeSyndication(
   data: Frontmatter,
   values: Mf2Value[]
 ) {
-  const existing = syndicationOf(data);
+  const existing = readList(data.syndication, syndication);
   const links = values.map((value) => {
     if (typeof value !== 'string') {
       throw new MicropubRequestError('Each syndication value is a URL.');
@@ -386,11 +381,7 @@ function writeSyndication(
     return { name, url };
   });
   if (sameJson(links, existing)) return;
-  setKey(
-    file,
-    'syndication',
-    links.length > 0 ? mapList('syndication', links) : null
-  );
+  setKey(file, 'syndication', mapList('syndication', links));
 }
 function personFromCard(value: Mf2Value): { name: string; url: string } {
   const properties =
@@ -482,76 +473,47 @@ function isoDate(value: unknown): string | undefined {
   const date = value instanceof Date ? value : new Date(String(value));
   return Number.isNaN(date.getTime()) ? String(value) : date.toISOString();
 }
-// The writings loader hides any post whose `draft` is truthy, so this reads
-// it the same way.
-function isDraft(data: Frontmatter): boolean {
-  return Boolean(data.draft);
-}
 function tagsOf(data: Frontmatter): string[] {
   return Array.isArray(data.tags) ? data.tags.map(String) : [];
 }
-function peopleOf(data: Frontmatter): { name: string; url: string }[] {
-  return listOf(data.people).flatMap(({ name, url }) =>
-    typeof name === 'string' && typeof url === 'string' ? [{ name, url }] : []
-  );
-}
-function photosOf(data: Frontmatter): { url: string; alt?: string }[] {
-  return (Array.isArray(data.photo) ? data.photo : []).flatMap(
-    (item: unknown) => {
-      if (typeof item === 'string') return item ? [{ url: item }] : [];
-      if (!item || typeof item !== 'object') return [];
-      const { url, alt } = item as Record<string, unknown>;
-      if (typeof url !== 'string' || !url) return [];
-      return [typeof alt === 'string' && alt ? { url, alt } : { url }];
-    }
-  );
-}
-function syndicationOf(data: Frontmatter): { name?: string; url: string }[] {
-  return listOf(data.syndication).flatMap(({ name, url }) => {
-    if (typeof url !== 'string') return [];
-    return [typeof name === 'string' ? { name, url } : { url }];
+const person = z.object({ name: z.string(), url: z.string() });
+const photo = z.union([
+  z
+    .string()
+    .min(1)
+    .transform((url) => ({ url, alt: undefined })),
+  z.object({
+    url: z.string().min(1),
+    alt: z.string().min(1).optional().catch(undefined),
+  }),
+]);
+const syndication = z.object({
+  name: z.string().optional().catch(undefined),
+  url: z.string(),
+});
+
+function readList<T>(value: unknown, schema: z.ZodType<T>): T[] {
+  return (Array.isArray(value) ? value : []).flatMap((item) => {
+    const parsed = schema.safeParse(item);
+    return parsed.success ? [parsed.data] : [];
   });
 }
+const rsvp = z.object({ eventUrl: z.string(), status: z.string() });
 function rsvpOf(
   data: Frontmatter
 ): { eventUrl: string; status: string } | undefined {
-  const rsvp = data.rsvp as Record<string, unknown> | undefined;
-  return rsvp &&
-    typeof rsvp.eventUrl === 'string' &&
-    typeof rsvp.status === 'string'
-    ? { eventUrl: rsvp.eventUrl, status: rsvp.status }
-    : undefined;
-}
-function listOf(value: unknown): Record<string, unknown>[] {
-  return Array.isArray(value)
-    ? value.filter(
-        (item): item is Record<string, unknown> =>
-          Boolean(item) && typeof item === 'object'
-      )
-    : [];
+  const parsed = rsvp.safeParse(data.rsvp);
+  return parsed.success ? parsed.data : undefined;
 }
 function sameJson(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
-}
-function mapList(key: string, items: Record<string, string | undefined>[]) {
-  return [
-    `${key}:`,
-    ...items.flatMap((item) =>
-      Object.entries(item)
-        .filter(([, value]) => value !== undefined)
-        .map(
-          ([field, value], index) =>
-            `${index === 0 ? '  - ' : '    '}${field}: ${JSON.stringify(value)}`
-        )
-    ),
-  ];
 }
 // An edit that the loader could not read would break the next build, so it
 // never leaves this module.
 function checked(source: string): string {
   try {
     const { data } = matter(source, {});
-    const index = photosOf(data).findIndex(
+    const index = readList(data.photo, photo).findIndex(
       (photo) => !hasImageDescription(photo.alt)
     );
     if (index >= 0) {
@@ -623,12 +585,6 @@ function updatedProperties(
   return next;
 }
 
-function stringList(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === 'string')
-    : [];
-}
-
 function writeCitations(
   file: WritingFile,
   data: Frontmatter,
@@ -647,20 +603,23 @@ function writeCitations(
 }
 
 function eventSourceProperties(data: Frontmatter): Mf2Properties {
-  const properties: Mf2Properties = {};
-  const put = (name: string, values: Mf2Value[]) => {
-    if (values.length > 0) properties[name] = values;
-  };
   const event = data.event as Record<string, unknown> | undefined;
-  if (event) {
-    put('start', text(event.start));
-    put('end', text(event.end));
-    if (event.location !== undefined)
-      put('location', [event.location as Mf2Value]);
-  }
-  return properties;
+  return event
+    ? nonEmptyProperties({
+        start: text(event.start),
+        end: text(event.end),
+        location:
+          event.location === undefined ? [] : [event.location as Mf2Value],
+      })
+    : {};
 }
-
+function nonEmptyProperties(properties: Mf2Properties): Mf2Properties {
+  return Object.fromEntries(
+    Object.entries(properties).filter(
+      ([, values]) => Array.isArray(values) && values.length > 0
+    )
+  );
+}
 function mediaPostType(properties: Mf2Properties): string {
   for (const type of ['video', 'audio', 'photo'])
     if ((properties[type]?.length ?? 0) > 0) return type;
@@ -674,9 +633,5 @@ function mergeStoredProperties(
   const mf2 = data.micropub as { properties?: Mf2Properties } | undefined;
   if (mf2?.properties && !Object.hasOwn(mf2.properties, 'name'))
     delete properties.name;
-  return Object.fromEntries(
-    Object.entries({ ...properties, ...(mf2?.properties ?? {}) }).filter(
-      ([, values]) => Array.isArray(values) && values.length > 0
-    )
-  );
+  return nonEmptyProperties({ ...properties, ...(mf2?.properties ?? {}) });
 }

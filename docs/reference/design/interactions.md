@@ -12,6 +12,11 @@ Add `site-control` to an action button or an action-like navigation link.
 the hit target, pressed shape, focus indicator, disabled treatment, and reduced
 motion. Component styles own the resting shape and Material color roles.
 
+Viewport feedback uses `ViewportPortal` outside the page's transformed and
+clipped surface. The portal retains server and hydration markup before moving
+its existing roles and actions to the document body. Navigation hints and Music
+notices share this owner so the footer cannot clip or cover their controls.
+
 Material offers five visual sizes. Size and emphasis communicate an action's
 role; the clickable area is a separate accessibility decision.
 
@@ -35,6 +40,17 @@ all four sides: 8px normally and 4px on phones at or below 360px. Their full
 48px touch targets remain clickable around the shorter visible surface.
 The home-name link uses the same shared hover, pressed, focus, and reduced-motion
 states, with its original compact horizontal footprint and 48px target height.
+
+The breadcrumb shows at most four parts. When space runs out, it substitutes
+the cube for the home name and collapses content ancestors from the left into
+one menu. The current page stays visible at the right. Only its label can
+truncate after all earlier content has collapsed. The fitter counts path items,
+not the links inside their menus. CSS keeps the final destination readable
+before hydration and without JavaScript.
+
+The top bar has an 8px vertical inset and uses the shared frame's horizontal gutter.
+These insets do not grow with text preferences. Private preview uses the same header without
+an extra mode badge. Authentication and draft filtering still govern access.
 
 These sizes follow the [button](https://m3.material.io/components/buttons/specs)
 and [icon-button](https://m3.material.io/components/icon-buttons/specs) scales.
@@ -68,6 +84,8 @@ The expanded footer shares brand typography, control weights, internal padding,
 and vertical spacing across pages. Its outer width follows the page's content
 column. The homepage dock animates into this shared composition; its animated
 brand position and size must end at the same dimensions as a plain footer.
+At ordinary text size, compact footers scale the name from 20px to 24px so
+the full name remains on one line from 320px upward.
 `footer-consistency.spec.mts` compares rendered typography and gaps across
 home, colophon, writings, and music, including JavaScript-disabled rendering.
 
@@ -86,9 +104,17 @@ The existing top-bar registration supplies that frame across client navigation;
 CSS supplies the first paint and no-JavaScript fallback. The homepage retains
 its wider work layout, content pages use 840px, reading pages use 768px, and
 wide pages use 1200px.
+Pages ending with navigation surfaces can request `compactFooter` on `TopBar`.
+The active top bar then supplies an 8px page-to-footer gap, including the
+no-JavaScript fallback. Registration restores ordinary spacing when that page
+leaves, so hidden routes cannot affect the current page's ending.
+The frame owns one 16px horizontal gutter on compact screens; footer brand and
+navigation add no second inset. Reading frames remove that gutter at viewport
+widths of 1200px and above, and their headers follow the same rule. Symmetric
+scrollbar gutters sit outside the shared frame.
 
 The homepage and Status page request the compact contact dock. Other footers
-retain normal document flow. The contact/status/Feeds row has 40px of space above it, with the
+retain normal document flow. The contact/status/Feeds row has 24px of space above it, with the
 webrings retaining their separate compact gap. Profile artwork is centered with
 its longer dimension at 20px inside 24px SVG boxes, using viewBox padding rather
 than CSS scale transforms; their larger touch targets and icon-only zero-gap
@@ -98,7 +124,7 @@ layout, and all content and links work without JavaScript.
 
 After scrolling brings the footer into view, native CSS `y proximity` snapping
 can settle the document at its end. The browser controls its distance and timing;
-the single endpoint does not force a stop or intercept scrolling. It is outside
+the footer's end target does not force a stop or intercept scrolling. It is outside
 the sticky homepage footer, hidden from assistive technology, and disabled for
 reduced motion, short static pages, and footers taller than the viewport.
 
@@ -121,8 +147,13 @@ Webrings use 44px-square native targets with 32px visible surfaces, an
 outlined group, and tonal directory links. Compact footer link sizing meets
 [WCAG's enhanced target-size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)
 while remaining below [Material's recommended 48dp target](https://support.google.com/accessibility/android/answer/7101858?hl=en).
+On phones, the webring outline shares the page container's outer edges.
+Its 16px inner padding aligns the label with the page links above.
+Preserve both edges when changing gutters or target sizes.
+
 Keep targets separate and their full padding clickable. The webring label
-can move above its controls; the contact/status/Feeds row must not stack.
+can move above its controls. Each three-link ring stays in one 132px group;
+the two groups can stack, but the contact/status/Feeds row must not stack.
 
 Playlist navigation uses small connected surfaces; Create a series and New writing are prominent
 labelled creation actions. Existing selected states, featured project links
@@ -148,7 +179,9 @@ keep their native or documented component-specific focus behavior.
 
 [Connected button groups](https://m3.material.io/components/button-groups/specs)
 use 2px inner spacing and 8px inner corners at the small size. Only the pressed
-control changes shape; neighboring controls retain their position and size.
+control changes shape; extra-small connected controls use the shared 6px inner
+corner token. Keep the full semantic targets separate from those smaller surfaces.
+Neighboring controls retain their position and size.
 The spacing is a documented exception to the site's normal 4px layout grid.
 
 Cards and inline links are not automatically buttons. Preserve the site's

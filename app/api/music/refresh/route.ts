@@ -1,5 +1,5 @@
+import { HttpError } from '@/lib/http/errors';
 import { authorizeRefresh, refreshApproved } from '@/lib/music/refresh';
-import { StudioError } from '@/lib/studio/errors';
 
 export const maxDuration = 300;
 export async function POST(request: Request) {
@@ -12,12 +12,12 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          error instanceof StudioError
+          error instanceof HttpError
             ? error.message
             : 'Refresh could not finish.',
       },
       {
-        status: error instanceof StudioError ? error.status : 503,
+        status: error instanceof HttpError ? error.status : 503,
         headers: { 'Cache-Control': 'no-store' },
       }
     );

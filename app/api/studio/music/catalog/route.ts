@@ -1,8 +1,8 @@
+import { HttpError } from '@/lib/http/errors';
 import { musicRoute, readMusicBody } from '@/lib/music/http';
 import { publicationResponse } from '@/lib/music/publication';
 import { parseCatalog } from '@/lib/music/schema';
 import { musicStore } from '@/lib/music/store';
-import { StudioError } from '@/lib/studio/errors';
 
 export async function GET(request: Request) {
   return musicRoute(request, async () => {
@@ -31,7 +31,7 @@ export async function PUT(request: Request) {
       input.expectedRevisionId !== null &&
       !/^[a-f0-9-]{36}$/.test(input.expectedRevisionId ?? '')
     )
-      throw new StudioError(422, 'Invalid saved revision.');
+      throw new HttpError(422, 'Invalid saved revision.');
     let body;
     try {
       body = parseCatalog(
@@ -39,7 +39,7 @@ export async function PUT(request: Request) {
         (await store.playlists()).map((p) => p.id)
       );
     } catch {
-      throw new StudioError(
+      throw new HttpError(
         422,
         'The collection contains invalid selections. Refresh the library and try again.'
       );

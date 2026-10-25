@@ -1,14 +1,15 @@
 import { randomUUID } from 'node:crypto';
 
-import { required } from '../studio/config';
-import { StudioError } from '../studio/errors';
 import {
   GitHubError,
   findOrOpenPullRequest,
   github,
   githubOptional,
   rebaseMergePullRequest,
-} from '../studio/github';
+} from '../github/client';
+import type { GitHubCheckRun, GitHubObject } from '../github/types';
+import { HttpError } from '../http/errors';
+import { required } from '../studio/config';
 import { approvedManifest, cacheApproved, suppressApproved } from './public';
 import { matchesMusicProof, musicArtifact } from './publication-artifact';
 import { musicPublicationMessage } from './publication-message';
@@ -19,16 +20,6 @@ import { accessToken } from './spotify/tokens';
 import { type MusicQuery, musicStore } from './store';
 import type { MusicPublication, MusicRevision } from './types';
 import { emptyCatalog } from './types';
-
-interface GitHubObject {
-  sha: string;
-}
-interface GitHubCheckRun {
-  name: string;
-  app?: { id: number };
-  status: string;
-  conclusion: string;
-}
 
 type Publication = MusicPublication & {
   source?: string;
@@ -43,38 +34,35 @@ async function githubCatalog(ref: string) {
   );
   if (!file) return { sha: null, catalog: emptyCatalog };
   if (file.encoding !== 'base64' || typeof file.content !== 'string')
-    throw new StudioError(
-      502,
-      'GitHub did not return the published collection.'
-    );
+    throw new HttpError(502, 'GitHub did not return the published collection.');
   try {
     const source = JSON.parse(
       Buffer.from(file.content, 'base64').toString('utf8')
     );
     return { sha: file.sha as string, catalog: parseCatalog(source.catalog) };
   } catch {
-    throw new StudioError(
+    throw new HttpError(
       502,
       'GitHub returned an invalid published collection.'
     );
   }
 }
-async function get(id: string): Promise<Publication> {
+async function readPublication(id: string): Promise<Publication> {
   const row = (
     await musicStore().pool.query(
       'SELECT body FROM music_publications WHERE id=$1',
       [id]
     )
   ).rows[0];
-  if (row == null) throw new StudioError(404, 'Publication not found.');
+  if (row == null) throw new HttpError(404, 'Publication not found.');
   return row.body;
 }
-async function patch(id: string, value: Partial<Publication>) {
+async function persistPublication(id: string, value: Partial<Publication>) {
   await musicStore().pool.query(
     'UPDATE music_publications SET body=body||$2::jsonb WHERE id=$1',
     [id, JSON.stringify(value)]
   );
-  return get(id);
+  return readPublication(id);
 }
 async function fileSha(ref: string) {
   const file = await githubOptional(
@@ -109,7 +97,7 @@ async function makeCommit(p: Publication, base: string) {
 async function rebase(p: Publication, base: string) {
   if (!p.rebase) {
     const after = await makeCommit(p, base);
-    p = await patch(p.id, {
+    p = await persistPublication(p.id, {
       rebase: { before: p.proposalCommit!, after, parent: base },
     });
   }
@@ -117,7 +105,7 @@ async function rebase(p: Publication, base: string) {
     current = (ref.object as GitHubObject).sha;
   if (current !== p.rebase!.after) {
     if (current !== p.rebase!.before)
-      throw new StudioError(
+      throw new HttpError(
         409,
         'The publication branch changed outside Music. Review its pull request.'
       );
@@ -141,21 +129,21 @@ async function rebase(p: Publication, base: string) {
       },
     });
     if (result.errors)
-      throw new StudioError(
+      throw new HttpError(
         409,
         'GitHub could not rebase the publication. Retry.'
       );
   }
-  return patch(p.id, {
+  return persistPublication(p.id, {
     proposalCommit: p.rebase!.after,
     base: p.rebase!.parent,
     rebase: null,
   });
 }
-async function advance(p: Publication): Promise<Publication> {
+async function advancePublication(p: Publication): Promise<Publication> {
   const branch = required('STUDIO_GITHUB_BRANCH');
   if (branch === p.branch || p.branch !== `codex/music-publish-${p.id}`)
-    throw new StudioError(409, 'Invalid publication branch.');
+    throw new HttpError(409, 'Invalid publication branch.');
   if (p.rebase) p = await rebase(p, p.rebase.parent);
   const merged = await recoverMergedPublication(p);
   if (merged) return merged;
@@ -163,7 +151,7 @@ async function advance(p: Publication): Promise<Publication> {
     base = (ref.object as GitHubObject).sha;
   const currentSha = await fileSha(base);
   if (currentSha !== p.baseFileSha)
-    throw new StudioError(
+    throw new HttpError(
       409,
       'The published collection changed. Reload and review the current collection before publishing.'
     );
@@ -184,15 +172,8 @@ async function recoverMergedPublication(p: Publication) {
     const existing = await github(`pulls/${p.pullRequestNumber}`);
     if (existing.merged) {
       if ((existing.head as GitHubObject).sha !== p.proposalCommit)
-        throw new StudioError(
-          409,
-          'The merged proposal changed outside Music.'
-        );
-      return patch(p.id, {
-        status: 'deploying',
-        commit: String(existing.merge_commit_sha),
-        error: null,
-      });
+        throw new HttpError(409, 'The merged proposal changed outside Music.');
+      return markPublicationDeploying(p.id, String(existing.merge_commit_sha));
     }
   }
   return null;
@@ -211,17 +192,17 @@ async function ensureProposalCommit(p: Publication, base: string) {
           message(p).replace(/\n+$/, '') ||
         (await fileSha((existing.object as GitHubObject).sha)) !== p.sourceSha
       )
-        throw new StudioError(
+        throw new HttpError(
           409,
           'The publication branch contains unexpected content.'
         );
-      p = await patch(p.id, {
+      p = await persistPublication(p.id, {
         proposalCommit: (existing.object as GitHubObject).sha,
         base: (commit.parents as GitHubObject[])[0].sha,
       });
     } else {
       const commit = await makeCommit(p, base);
-      p = await patch(p.id, { proposalCommit: commit, base });
+      p = await persistPublication(p.id, { proposalCommit: commit, base });
     }
   }
   return p;
@@ -238,10 +219,7 @@ async function ensureProposalBranch(p: Publication) {
     branchRef = { object: { sha: p.proposalCommit } };
   }
   if ((branchRef.object as GitHubObject).sha !== p.proposalCommit)
-    throw new StudioError(
-      409,
-      'The publication proposal changed outside Music.'
-    );
+    throw new HttpError(409, 'The publication proposal changed outside Music.');
 }
 async function ensurePullRequest(p: Publication, branch: string) {
   if ((p.pullRequestNumber ?? 0) === 0) {
@@ -251,7 +229,7 @@ async function ensurePullRequest(p: Publication, branch: string) {
       base: branch,
       body: `## TL;DR\n\nPublish the reviewed Music collection.\n\n## Changes\n\n${message(p).split('\n\n').slice(1).join('\n\n')}\n\n## Verification\n\nMusic validated the immutable revision and rechecked each selected playlist with Spotify. Required repository checks must pass before rebase merge.\n\n## Follow-ups and Next Work\n\nMusic verifies the deployed revision and source hash before reporting Live.`,
     });
-    p = await patch(p.id, {
+    p = await persistPublication(p.id, {
       pullRequestNumber: Number(pr.number),
       pullRequestUrl: String(pr.html_url),
     });
@@ -275,7 +253,7 @@ async function requiredChecks(p: Publication) {
     runs.push(...(checks.check_runs as GitHubCheckRun[]));
     if (runs.length >= Number(checks.total_count)) break;
     if (page === 10)
-      throw new StudioError(502, 'GitHub returned too many checks to verify.');
+      throw new HttpError(502, 'GitHub returned too many checks to verify.');
   }
   // The default branch ruleset requires GitHub Actions' ci check. Other
   // integrations may fail to make optional previews without blocking merge.
@@ -289,7 +267,7 @@ async function requiredChecks(p: Publication) {
         !['success', 'neutral'].includes(run.conclusion)
     )
   )
-    throw new StudioError(
+    throw new HttpError(
       409,
       'The required CI check failed. Open the publication to inspect it, then retry.'
     );
@@ -299,7 +277,7 @@ async function recheckSelectedPlaylists(p: Publication) {
   const store = musicStore(),
     revision = await store.revision(p.revisionId);
   if (!revision || (await store.head())?.id !== p.revisionId)
-    throw new StudioError(
+    throw new HttpError(
       409,
       'The draft changed. Review the current saved collection.'
     );
@@ -317,7 +295,7 @@ async function recheckSelectedPlaylists(p: Publication) {
       await store.cache(playlist);
       if (!playlist.eligible) {
         await suppressApproved(id);
-        throw new StudioError(
+        throw new HttpError(
           422,
           'A selected playlist is no longer public. Update your selection.'
         );
@@ -326,7 +304,7 @@ async function recheckSelectedPlaylists(p: Publication) {
     }
   }
   if ((await store.head())?.id !== p.revisionId)
-    throw new StudioError(
+    throw new HttpError(
       409,
       'The draft changed during publication. Review it again.'
     );
@@ -336,7 +314,7 @@ async function mergeProposal(p: Publication): Promise<Publication> {
     p.pullRequestNumber!,
     p.proposalCommit!
   );
-  return commit ? patch(p.id, { status: 'deploying', commit }) : p;
+  return commit ? markPublicationDeploying(p.id, commit) : p;
 }
 async function preparePublication(
   revision: MusicRevision
@@ -386,7 +364,7 @@ async function reviewPlaylists(revision: MusicRevision) {
     await store.cache(playlist);
     if (!playlist.eligible) {
       await suppressApproved(playlist.id);
-      throw new StudioError(
+      throw new HttpError(
         422,
         `${playlist.title} must be an owned public playlist before publication.`
       );
@@ -394,7 +372,7 @@ async function reviewPlaylists(revision: MusicRevision) {
     fresh.push(playlist);
   }
   if ((await store.head())?.id !== revisionId)
-    throw new StudioError(
+    throw new HttpError(
       409,
       'The draft changed during review. Review it again.'
     );
@@ -412,7 +390,7 @@ async function verifyPublishedCatalog(baseSha: string | null) {
       )
     ).rowCount;
     if ((known ?? 0) === 0)
-      throw new StudioError(
+      throw new HttpError(
         409,
         'The public collection changed outside this admin. Reload the current deployment before publishing.'
       );
@@ -462,17 +440,17 @@ export async function publishMusic(
         [publication.id, revisionId, JSON.stringify(publication)]
       );
     }
-    publication = await patch(publication.id, {
+    publication = await persistPublication(publication.id, {
       status: 'publishing',
       error: null,
     });
-    return await advance(publication);
+    return await advancePublication(publication);
   } catch (error) {
     if (!publication) throw error;
-    return patch(publication.id, {
+    return persistPublication(publication.id, {
       status: 'failed',
       error:
-        error instanceof StudioError
+        error instanceof HttpError
           ? error.message
           : 'Publication could not finish. Retry to resume the saved publication.',
     });
@@ -484,7 +462,7 @@ export async function publishMusic(
 export async function musicPublicationStatus(
   id: string
 ): Promise<MusicPublication> {
-  let p = await get(id);
+  let p = await readPublication(id);
   if (p.status === 'publishing') p = await publishMusic(p.revisionId);
   if (p.status === 'deploying' && p.commit) {
     try {
@@ -495,7 +473,7 @@ export async function musicPublicationStatus(
       const proof = await result.json();
       const ancestor = await proofContainsPublication(p, result, proof);
       if (result.ok && matchesMusicProof(p, proof, ancestor))
-        p = await patch(p.id, { status: 'live', error: null });
+        p = await persistPublication(p.id, { status: 'live', error: null });
     } catch {
       /* A starting deployment remains deploying until its proof matches. */
     }
@@ -537,7 +515,7 @@ async function lockPublication(db: MusicQuery) {
       )
     ).rows[0].locked
   )
-    throw new StudioError(
+    throw new HttpError(
       409,
       'A publication is already being checked. Retry shortly.'
     );
@@ -546,7 +524,7 @@ async function reviewedRevision(revisionId: string) {
   const store = musicStore();
   const revision = await store.revision(revisionId);
   if (!revision || (await store.head())?.id !== revisionId)
-    throw new StudioError(
+    throw new HttpError(
       409,
       'The draft changed after review. Review the latest saved draft.'
     );
@@ -556,20 +534,17 @@ async function reviewedRevision(revisionId: string) {
 async function proposalMergeReadiness(p: Publication, base: string) {
   const pr = await github(`pulls/${p.pullRequestNumber}`);
   if ((pr.head as GitHubObject).sha !== p.proposalCommit)
-    throw new StudioError(
-      409,
-      'The publication proposal changed outside Music.'
-    );
+    throw new HttpError(409, 'The publication proposal changed outside Music.');
   if (pr.merged)
     return {
       ready: false,
-      publication: await patch(p.id, {
+      publication: await persistPublication(p.id, {
         status: 'deploying',
         commit: String(pr.merge_commit_sha),
       }),
     };
   if (pr.state !== 'open')
-    throw new StudioError(409, 'The publication pull request was closed.');
+    throw new HttpError(409, 'The publication pull request was closed.');
   const requiredRuns = await requiredChecks(p);
   if (!canMergeProposal(pr, base, requiredRuns))
     return { ready: false, publication: p };
@@ -587,4 +562,11 @@ async function mergeReviewedProposal(
   const mergeBase = await github(`git/ref/heads/${encodeURIComponent(branch)}`);
   if ((mergeBase.object as { sha: string }).sha !== base) return p;
   return mergeProposal(p);
+}
+
+async function markPublicationDeploying(
+  id: string,
+  commit: string
+): Promise<Publication> {
+  return persistPublication(id, { status: 'deploying', commit, error: null });
 }

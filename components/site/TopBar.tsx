@@ -34,22 +34,13 @@ export const COLUMN = {
 
 export type Column = keyof typeof COLUMN;
 
-/**
- * Whether a phone should paint the trail folded before the bar measures
- * itself. Three crumbs fold below 500px, and two only fail to fit below about 344px once their labels pass
- * about 26 characters. Both bands come from the Fall Tour pages.
- */
-function collapseGuess(crumbs: Crumb[]): 'phone' | 'narrow' | undefined {
-  if (crumbs.length >= 3) return 'phone';
-  const characters = crumbs.reduce((sum, { label }) => sum + label.length, 0);
-  return crumbs.length === 2 && characters >= 26 ? 'narrow' : undefined;
-}
-
 interface TopBarProps {
   crumbs?: Crumb[];
   floating?: boolean;
   /** Which content column the bar should line up with. */
   column?: Column;
+  /** Keep the page ending close to the footer after a navigation surface. */
+  compactFooter?: boolean;
   /** Pages with a dedicated search field can omit the site search trigger. */
   showSearch?: boolean;
   /**
@@ -69,6 +60,7 @@ export default function TopBar({
   crumbs = [],
   floating = false,
   column = 'wide',
+  compactFooter = false,
   prefetchHome = true,
   showSearch = true,
 }: TopBarProps) {
@@ -77,13 +69,13 @@ export default function TopBar({
     <ViewTransition name="site-top-bar" share="top-bar" default="none">
       <TopBarFrame
         column={column}
+        compactFooter={compactFooter}
         floatOnScroll={floating}
         longTrail={crumbs.length >= 2}
-        deepTrail={collapseGuess(crumbs)}
         breadcrumbKey={crumbs
           .map(({ href, label }) => `${href}:${label}`)
           .join('|')}
-        className={`mx-auto flex items-center gap-1 max-[360px]:gap-0 py-4 text-label-large text-muted ${COLUMN[column]}`}
+        className={`site-topbar mx-auto flex items-center gap-1 max-[360px]:gap-0 text-label-large text-muted ${COLUMN[column]}`}
       >
         <nav
           className={`site-breadcrumbs${floating ? ' site-glass' : ''}`}
@@ -148,10 +140,6 @@ export default function TopBar({
             </div>
           ))}
         </nav>
-        <span className="site-private-indicator" title="Private preview">
-          <span className="site-private-indicator__dot" aria-hidden="true" />
-          <span>Private</span>
-        </span>
         {showSearch && (
           <div className="site-topbar-search ml-auto flex shrink-0 items-center">
             <PaletteTrigger size="compact" glass={floating} />

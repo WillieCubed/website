@@ -7,7 +7,7 @@ test('a registry response after hover ends cannot reopen a preview', async ({
   const registryReady = new Promise<void>((resolve) => {
     releaseRegistry = resolve;
   });
-  await page.route('**/entities.json', async (route) => {
+  await page.route('**/entities.json*', async (route) => {
     await registryReady;
     await route.continue();
   });
@@ -15,11 +15,11 @@ test('a registry response after hover ends cannot reopen a preview', async ({
   const link = page.locator('.p-note').getByRole('link', {
     name: 'Las Vegans for Better Transit',
   });
-  const requested = page.waitForRequest('**/entities.json');
+  const requested = page.waitForRequest('**/entities.json*');
   await link.hover();
   await requested;
   await page.mouse.move(0, 0);
-  const responded = page.waitForResponse('**/entities.json');
+  const responded = page.waitForResponse('**/entities.json*');
   releaseRegistry();
   await (await responded).finished();
   await page.evaluate(

@@ -4,6 +4,7 @@ import SiteLink from '@/components/link/SiteLink';
 
 import { isPlainClick } from '@/lib/dom/click';
 import { type Detail, type DetailMedia } from '@/lib/home/ventures';
+import { localImageSources } from '@/lib/media/responsive';
 
 interface MediaProps {
   id: string;
@@ -25,6 +26,12 @@ export function Media({ id, media, countdown }: MediaProps) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={media.src}
+          {...localImageSources(
+            media.src,
+            media.width,
+            media.height,
+            '(max-width: 839px) 90vw, 520px'
+          )}
           width={media.width}
           height={media.height}
           alt={media.alt}
@@ -40,6 +47,12 @@ export function Media({ id, media, countdown }: MediaProps) {
             <img
               key={image.src}
               src={image.src}
+              {...localImageSources(
+                image.src,
+                image.width,
+                image.height,
+                '(max-width: 839px) 45vw, 260px'
+              )}
               width={image.width}
               height={image.height}
               alt={image.alt}

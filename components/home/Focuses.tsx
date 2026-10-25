@@ -6,7 +6,12 @@ import { isPlainClick } from '@/lib/dom/click';
 import { useHydrated } from '@/lib/dom/hydrated';
 import type { FocusId } from '@/lib/home/focuses';
 
-import { isFocusPressed, useHome, usePreviewHandlers } from './HomeContext';
+import {
+  isFocusPressed,
+  useHome,
+  useHomeActions,
+  usePreviewHandlers,
+} from './HomeContext';
 
 export interface FocusItem {
   id: FocusId;
@@ -37,7 +42,8 @@ interface LiveFocusProps {
 }
 
 function LiveFocus({ focus }: LiveFocusProps) {
-  const { preview, lit, setPreview, clearPreviewNow } = useHome();
+  const { preview, lit } = useHome();
+  const { setPreview, clearPreviewNow } = useHomeActions();
   const { onPointerEnter, onPointerLeave, onFocus, onBlur } =
     usePreviewHandlers({ focus: focus.id });
   const handlers = {
@@ -150,7 +156,7 @@ interface VentureLinkProps {
 }
 
 export function VentureLink({ id, children }: VentureLinkProps) {
-  const { openDetail } = useHome();
+  const { openDetail } = useHomeActions();
   return (
     <SiteLink
       href={`/?detail=${id}`}

@@ -13,7 +13,6 @@ import { graph, personLd, webPageLd, websiteLd } from '@/lib/seo/jsonld';
 import { pageMetadata } from '@/lib/seo/metadata';
 import { sitePage } from '@/lib/site/navigation';
 import { absoluteUrl } from '@/lib/site/urls';
-import { isPrivatePreview } from '@/lib/studio/config';
 
 const INITIATIVES_PAGE = sitePage('/initiatives');
 const INITIATIVES = {
@@ -94,9 +93,6 @@ export default async function InitiativesPage() {
                   </div>
                 )}
                 <div className="p-5">
-                  {isPrivatePreview() && item.draft && (
-                    <p className="text-label-medium text-muted">Draft</p>
-                  )}
                   <h2 className="p-name mt-1 text-title-large text-ink">
                     <SiteLink
                       preview={false}

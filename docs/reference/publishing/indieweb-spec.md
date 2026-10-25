@@ -7,8 +7,8 @@ contract defines those supported behaviors and the checks needed when they
 change.
 
 The [IndieWeb reference](indieweb.md) supplies endpoint and configuration details.
-The [conformance record](publishing-conformance.md) supplies dated interoperability
-results, and [IndieMark criteria](indiemark.md) concern community capability levels.
+The [conformance boundaries](publishing-conformance.md) identify the additional
+interoperability evidence each change needs, and [IndieMark criteria](indiemark.md) concern community capability levels.
 These serve different purposes: a recorded validator pass does not expand the
 implemented contract, and an IndieMark level does not replace a protocol
 requirement.
@@ -42,8 +42,7 @@ required case in each standard.
 Read each row as a supported operation and its observable result. Optional
 features listed here are implemented, but their protocol standards may not
 require every publisher to offer them. Use the verification column to select the
-checks affected by a change; use the conformance record to establish which
-external checks actually ran.
+checks affected by a change; retain external results with the release that ran them.
 
 | Supported behavior               | Observable contract                                                                                                                                                                                                                                                                                                                                                                                                                            | Verification                                                                      |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -51,7 +50,7 @@ external checks actually ran.
 | Posts and feeds                  | Article, note, photo, audio, video, reply, like, repost, bookmark, RSVP and event properties survive authoring. Pages and RSS, Atom and JSON Feed carry safe content, media and author identity. Drafts remain excluded.                                                                                                                                                                                                                       | Parse actual pages and feeds; inspect media playback and draft exclusion.         |
 | Webmention                       | Public HTTP and HTTPS sources may cite distinct same-site pages. Verification resolves document links against the final URL and valid base URL and selects the citing entry. Approved responses retain authorship and safe media. Edits, lost links and deletion refresh stored state.                                                                                                                                                         | Run receiving/discovery fixtures, Webmention Rocks and Authorship Rocks.          |
 | Moderation, Vouch and Salmention | Responses remain private until approved by the configured policy. Vouch verifies actual referring links. Salmention resends approved responses upstream under the existing throttle.                                                                                                                                                                                                                                                           | Verify policy decisions and delivery against independent fixtures.                |
-| Micropub                         | Form, multipart and JSON requests preserve nested and multivalued MF2 properties. Authenticated source queries support property filters. Replace/add/remove retain additional properties. Explicit post-status controls drafts. Delete privately archives source; undelete restores its original permalink and rejects collisions.                                                                                                             | Exercise authenticated creation, editing, restoration, conflicts and round trips. |
+| Micropub                         | Form, multipart and JSON requests preserve nested and multivalued MF2 properties. Authenticated source queries support property filters. Replace/add/remove retain additional properties. Explicit post-status controls private Studio drafts without a public-file fallback. Public-file delete privately archives source; undelete restores its original permalink and rejects collisions.                                                   | Exercise authenticated creation, editing, restoration, conflicts and round trips. |
 | IndieAuth                        | S256 PKCE, client and redirect binding, single-use codes and token scopes remain enforced. New access tokens last one hour. Refresh tokens rotate as hashed client-bound families with a 90-day inactivity limit. Reuse revokes the family. Authorization-code replay also revokes the associated family and cannot race token issuance. Scope-free redemption returns identity without a token. UserInfo returns only granted profile fields. | Exercise a current PKCE client, rotation, replay, scope limits and UserInfo.      |
 | Syndication                      | Micropub advertises the configured Bluesky destination only when Standard publishing can run. Explicit per-writing intent creates one associated copy after the document exists. Existing copies prevent duplicates. Manual Threads and Bluesky sharing remains available.                                                                                                                                                                     | Verify real isolated PDS writes, retries and public associations.                 |
 | WebSub                           | Feeds advertise hub/self links. Deployment notifications publish changed topics. Hub acceptance and subscriber receipt are recorded separately.                                                                                                                                                                                                                                                                                                | Verify actual subscriber delivery with WebSub Rocks or an independent subscriber. |
@@ -71,9 +70,9 @@ Authorship verification also has a specific direction. [Authorship
 Rocks](https://authorship.rocks/) supplies sample posts for software that consumes
 other sites' author data. Those cases apply to this site's Webmention verifier:
 submit a case to an isolated deployment and compare the stored author with the
-expected author. The October 8 fixture receipt records five such cases; the
-[conformance record](publishing-conformance.md) retains the result and its limits.
-Repeat relevant cases after changing the verifier.
+expected author. Repeat the relevant cases after changing the verifier and retain the result
+with that release. The [conformance boundaries](publishing-conformance.md)
+explain the limits of a local fixture or outside validator.
 
 ## Test environments
 
@@ -107,32 +106,3 @@ suite.
 Record the deployment revision, URLs, date, test results, and any cases that
 could not run. A `202` response only proves that a request was accepted; it does
 not prove that a post was published or a Webmention was verified and displayed.
-
-## October 7, 2026 additions
-
-### Source fidelity and reversible deletion
-
-The October 7 additions expanded what can survive a publishing-client round
-trip. Micropub preserves a canonical nested and multivalued MF2 property map through
-create, authenticated source queries and updates. It supports literal text, safe
-HTML, explicit drafts, audio/video/events and linked files. Delete commits an
-exact private source archive before removing the public source. Undelete
-restores the same source and permalink under a transaction lock and rejects
-collisions.
-
-### Credential lifetime and replay
-
-A refresh family is the sequence of credentials issued from one authorization.
-IndieAuth stores their hashes and binds that sequence to the client. Replay
-revokes the family. New access credentials last one hour; refresh inactivity
-expires after 90 days. UserInfo exposes permitted profile fields. Existing
-access-token expiry and mandatory S256 PKCE remain unchanged.
-
-### Verified responses and faithful feeds
-
-Webmention verification accepts public HTTP and HTTPS sources and distinct pages
-on this site. It resolves actual links against the final response URL and valid
-HTML base, then selects the citing entry. Approved response media renders
-through safe native controls. Feed items retain author identity, dates,
-canonical URLs, full body and attachments. RSS uses a confirmed media size
-rather than inventing an enclosure length.

@@ -4,6 +4,7 @@ import remarkParse from 'remark-parse';
 import sanitizeHtml from 'sanitize-html';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
+import { z } from 'zod';
 
 import { validateMdxImageAlts } from '@/lib/accessibility/mdx-image-alt-check';
 import {
@@ -12,8 +13,9 @@ import {
 } from '@/lib/indieweb/feeds/html';
 import { absoluteUrl } from '@/lib/site/urls';
 
-import { type CatalogEntry, catalogEntry } from './catalog';
+import { BUILTIN_CATALOG, type CatalogEntry, catalogEntry } from './catalog';
 import { StudioError } from './errors';
+import { studioHtmlPolicy } from './html-policy';
 import type { DraftContent, EditorMark, EditorNode } from './types';
 
 const MAX_SOURCE_BYTES = 1_000_000;
@@ -25,80 +27,59 @@ export function parseDraftContent(value: unknown): DraftContent {
   )
     throw new StudioError(400, 'The writing is invalid or too large.');
   const body = value as DraftContent;
-  if (
-    typeof body.title !== 'string' ||
-    typeof body.description !== 'string' ||
-    !['article', 'note'].includes(body.postType) ||
-    !isStringList(body.tags) ||
-    body.document?.type !== 'doc'
-  )
+  if (!draftFields.safeParse(body).success)
     throw new StudioError(400, 'Invalid writing fields.');
 
   validateDocumentNode(body.document, 0);
   return structuredClone(body);
 }
 
-function isStringList(value: unknown): value is string[] {
-  return (
-    Array.isArray(value) && value.every((item) => typeof item === 'string')
-  );
-}
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
-const allowedNodes = new Set([
-  'doc',
-  'paragraph',
-  'text',
-  'heading',
-  'blockquote',
-  'bulletList',
-  'orderedList',
-  'listItem',
-  'codeBlock',
-  'hardBreak',
-  'horizontalRule',
-  'image',
-  'table',
-  'tableRow',
-  'tableCell',
-  'tableHeader',
-  'mdxSource',
-  'catalogBlock',
-]);
-function validMark(mark: EditorMark): boolean {
-  return (
-    isRecord(mark) &&
-    ['bold', 'italic', 'strike', 'code', 'link', 'underline'].includes(
-      mark.type
-    ) &&
-    (mark.attrs === undefined || isRecord(mark.attrs))
-  );
-}
+const record = z.custom<Record<string, unknown>>(
+  (value) => !!value && typeof value === 'object' && !Array.isArray(value)
+);
+const draftFields = z.object({
+  title: z.string(),
+  description: z.string(),
+  postType: z.enum(['article', 'note']),
+  tags: z.array(z.string()),
+  document: z.object({ type: z.literal('doc') }),
+});
+const nodeFields = z.object({
+  attrs: record.optional(),
+  marks: z
+    .array(
+      z.object({
+        type: z.enum(['bold', 'italic', 'strike', 'code', 'link', 'underline']),
+        attrs: record.optional(),
+      })
+    )
+    .optional(),
+  text: z.string().optional(),
+  content: z.array(z.unknown()).optional(),
+});
+const fieldErrors = {
+  attrs: 'Invalid document attributes.',
+  marks: 'Invalid text formatting.',
+  text: 'Invalid text.',
+  content: 'Invalid document structure.',
+};
+// Tables render their rows directly, so rows have no standalone renderer.
 function validateDocumentNode(node: EditorNode, depth: number): void {
   if (
     depth > 50 ||
     node == null ||
     typeof node.type !== 'string' ||
-    !allowedNodes.has(node.type)
+    !(node.type === 'tableRow' || Object.hasOwn(sourceRenderers, node.type))
   )
     throw new StudioError(400, 'Unsupported document node.');
-  validateNodeFields(node);
+  const fields = nodeFields.safeParse(node);
+  if (!fields.success)
+    throw new StudioError(
+      400,
+      fieldErrors[fields.error.issues[0].path[0] as keyof typeof fieldErrors]
+    );
   for (const child of node.content ?? [])
     validateDocumentNode(child, depth + 1);
-}
-function validateNodeFields(node: EditorNode): void {
-  if (node.attrs !== undefined && !isRecord(node.attrs))
-    throw new StudioError(400, 'Invalid document attributes.');
-  if (
-    node.marks !== undefined &&
-    (!Array.isArray(node.marks) || !node.marks.every(validMark))
-  )
-    throw new StudioError(400, 'Invalid text formatting.');
-  if (node.text !== undefined && typeof node.text !== 'string')
-    throw new StudioError(400, 'Invalid text.');
-  if (node.content !== undefined && !Array.isArray(node.content))
-    throw new StudioError(400, 'Invalid document structure.');
 }
 
 export function importMdx(source: string, baseFileSha?: string): DraftContent {
@@ -401,35 +382,31 @@ interface MdxNode {
   type: string;
 }
 
+const safeElements = new Set([
+  ...BUILTIN_CATALOG.map((entry) => entry.component),
+  'StudioBlock',
+  'br',
+  'strong',
+  'em',
+  'sup',
+  'sub',
+  'kbd',
+  'mark',
+  'details',
+  'summary',
+  'p',
+  'span',
+  'div',
+  'a',
+  'img',
+  'figure',
+  'figcaption',
+  'blockquote',
+]);
 function mdxElementIssues(node: MdxNode, issues: string[]): void {
   if (!['mdxJsxFlowElement', 'mdxJsxTextElement'].includes(node.type)) return;
   const element = node as unknown as MdxElement;
-  const safeElements = new Set([
-    'Figure',
-    'Callout',
-    'Ref',
-    'YouTube',
-    'Spotify',
-    'SoundCloud',
-    'StudioBlock',
-    'br',
-    'strong',
-    'em',
-    'sup',
-    'sub',
-    'kbd',
-    'mark',
-    'details',
-    'summary',
-    'p',
-    'span',
-    'div',
-    'a',
-    'img',
-    'figure',
-    'figcaption',
-    'blockquote',
-  ]);
+
   if (!safeElements.has(element.name))
     issues.push(
       'Imported components need an approved catalog version before publication.'
@@ -481,17 +458,11 @@ export async function portablePreview(body: DraftContent, slug: string) {
     issues.push('A block needs a valid portable alternative.');
   }
   const clean = sanitizeHtml(portableHtml, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-      'img',
-      'figure',
-      'figcaption',
-    ]),
+    ...studioHtmlPolicy,
     allowedAttributes: {
-      ...sanitizeHtml.defaults.allowedAttributes,
+      ...studioHtmlPolicy.allowedAttributes,
       img: ['src', 'alt', 'title'],
-      '*': ['id'],
     },
-    allowedSchemes: ['https', 'http', 'mailto'],
   });
   const style =
     '<meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:18px/1.65 system-ui;color:#292822;background:#faf8f2;margin:24px;overflow-wrap:anywhere}img{max-width:100%;height:auto}pre{overflow:auto}a{color:#48664b}blockquote{border-left:3px solid #9ba58b;padding-left:1em}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:.5em}</style>';

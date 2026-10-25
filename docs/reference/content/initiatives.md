@@ -269,11 +269,13 @@ from frontmatter. Use the body to develop what happened and what it means rather
 than repeating that schedule. A date or milestone can then change in one
 structured source.
 
-Previous and next parts use full-width text links in one vertical sequence.
+Previous and next parts use full-width tonal links in one vertical sequence.
 Each link keeps the part number inline with its title and uses the shared SVG
-arrow icon in a 32px tonal circle within the row's 48px touch target. The next
-part uses the primary tone; the previous part uses the secondary tone. The
-circle rounds to an 8px corner on press, with reduced motion respected.
+arrow icon. The entire row owns the surface and its 48px minimum touch target.
+The next part uses the primary container; the previous part uses a neutral
+surface container. Shared control states supply hover, focus, pressed shape,
+and reduced-motion behavior. Each row uses 8px vertical and 12px horizontal
+padding so long titles have room to wrap.
 The page does not repeat the overview destination as a separate
 button; the breadcrumb's native destination menu provides that link, including
 without JavaScript. First and last parts render only their available neighbor.

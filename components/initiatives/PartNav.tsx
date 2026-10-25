@@ -29,14 +29,12 @@ export default function PartNav({ initiative, part }: PartNavProps) {
               preview={false}
               href={`${initiative.href}/${destination.slug}`}
               rel={direction === 0 ? 'prev' : 'next'}
-              className="part-nav__part"
+              className="part-nav__part site-control"
             >
-              <span className="part-nav__direction" aria-hidden="true">
-                <Icon
-                  name={direction === 0 ? 'arrow-left' : 'arrow-right'}
-                  size={20}
-                />
-              </span>
+              <Icon
+                name={direction === 0 ? 'arrow-left' : 'arrow-right'}
+                size={20}
+              />
               <span>
                 {initiative.partLabel} {destination.number}: {destination.title}
               </span>

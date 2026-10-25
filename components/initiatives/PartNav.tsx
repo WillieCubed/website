@@ -31,10 +31,12 @@ export default function PartNav({ initiative, part }: PartNavProps) {
               rel={direction === 0 ? 'prev' : 'next'}
               className="part-nav__part"
             >
-              <Icon
-                name={direction === 0 ? 'arrow-left' : 'arrow-right'}
-                size={20}
-              />
+              <span className="part-nav__direction" aria-hidden="true">
+                <Icon
+                  name={direction === 0 ? 'arrow-left' : 'arrow-right'}
+                  size={20}
+                />
+              </span>
               <span>
                 {initiative.partLabel} {destination.number}: {destination.title}
               </span>

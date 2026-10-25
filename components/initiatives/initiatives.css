@@ -405,7 +405,45 @@
   overflow-wrap: anywhere;
   text-wrap: pretty;
 }
-.part-nav__part:hover > span {
+.part-nav__direction {
+  display: grid;
+  place-items: center;
+  width: var(--control-container-extra-small);
+  height: var(--control-container-extra-small);
+  border-radius: calc(var(--control-container-extra-small) / 2);
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  transition:
+    background-color var(--control-effects-duration) var(--control-effects-ease),
+    border-radius var(--control-shape-duration) var(--control-shape-ease);
+}
+.part-nav__part[rel='next'] .part-nav__direction {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+}
+.part-nav__part:is(:hover, :focus-visible) .part-nav__direction {
+  background: color-mix(
+    in srgb,
+    currentColor 8%,
+    var(--color-secondary-container)
+  );
+}
+.part-nav__part[rel='next']:is(:hover, :focus-visible) .part-nav__direction {
+  background: color-mix(
+    in srgb,
+    currentColor 8%,
+    var(--color-primary-container)
+  );
+}
+.part-nav__part:active .part-nav__direction {
+  border-radius: var(--control-pressed-radius-small);
+}
+.part-nav__part:hover > span:last-child {
   text-decoration: underline;
   text-underline-offset: 0.15em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .part-nav__direction {
+    transition: none;
+  }
 }

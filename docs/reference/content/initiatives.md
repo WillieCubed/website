@@ -271,7 +271,10 @@ structured source.
 
 Previous and next parts use full-width text links in one vertical sequence.
 Each link keeps the part number inline with its title and uses the shared SVG
-arrow icon. The page does not repeat the overview destination as a separate
+arrow icon in a 32px tonal circle within the row's 48px touch target. The next
+part uses the primary tone; the previous part uses the secondary tone. The
+circle rounds to an 8px corner on press, with reduced motion respected.
+The page does not repeat the overview destination as a separate
 button; the breadcrumb's native destination menu provides that link, including
 without JavaScript. First and last parts render only their available neighbor.
 The shared page sheet owns the space before the footer. Part pages add no
